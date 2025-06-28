@@ -132,7 +132,8 @@ model Location {
 
   // Relations
   products    Product[]
-  movements   InventoryMovement[]
+  movementsFrom InventoryMovement[] @relation("MovementFrom")
+  movementsTo   InventoryMovement[] @relation("MovementTo")
 
   @@map("locations")
 }
@@ -148,8 +149,8 @@ model InventoryMovement {
 
   // Relations
   product     Product @relation(fields: [productId], references: [id])
-  fromLocation Location? @relation(fields: [fromLocationId], references: [id])
-  toLocation   Location? @relation(fields: [toLocationId], references: [id])
+  fromLocation Location? @relation("MovementFrom", fields: [fromLocationId], references: [id])
+  toLocation   Location? @relation("MovementTo", fields: [toLocationId], references: [id])
 
   @@map("inventory_movements")
 }
