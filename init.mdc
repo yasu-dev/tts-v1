@@ -1,0 +1,13 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# 初期実行ルール
+
+このプロジェクトでは、ClaudeCodeは以下のルールに従ってください：
+
+- `.cursor/rules/globals.mdc`
+
+WSL上のターミナルで起動された場合も、これらルールをすべて読み込み、以降の修正・追加作業に反映すること。
+

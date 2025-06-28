@@ -1,0 +1,22 @@
+{
+  "name": "THE WORLD DOOR",
+  "short_name": "TWD",
+  "description": "グローバル輸出インテリジェンスプラットフォーム",
+  "theme_color": "#0064D2",
+  "background_color": "#F8FAFE",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+} 

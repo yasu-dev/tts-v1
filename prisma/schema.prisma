@@ -1,0 +1,212 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ProductStatus {
+  inbound      // 入庫
+  inspection   // 検品
+  storage      // 保管
+  listing      // 出品
+  ordered      // 受注
+  shipping     // 出荷
+  delivery     // 配送
+  sold         // 売約済み
+  returned     // 返品
+}
+
+enum ProductCategory {
+  camera_body  // カメラ本体
+  lens         // レンズ
+  watch        // 腕時計
+  accessory    // アクセサリ
+}
+
+enum ProductCondition {
+  new          // 新品
+  like_new     // 新品同様
+  excellent    // 極美品
+  very_good    // 美品
+  good         // 良品
+  fair         // 中古美品
+  poor         // 中古
+}
+
+enum UserRole {
+  seller       // セラー
+  staff        // スタッフ
+  admin        // 管理者
+}
+
+enum OrderStatus {
+  pending      // 保留中
+  confirmed    // 確認済み
+  processing   // 処理中
+  shipped      // 出荷済み
+  delivered    // 配送完了
+  cancelled    // キャンセル
+  returned     // 返品
+}
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  username    String   @unique
+  password    String
+  role        UserRole @default(seller)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  products    Product[]
+  orders      Order[]
+  activities  Activity[]
+  sessions    Session[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Product {
+  id           String           @id @default(cuid())
+  name         String
+  sku          String           @unique
+  category     ProductCategory
+  status       ProductStatus    @default(inbound)
+  price        Int
+  condition    ProductCondition
+  description  String?
+  imageUrl     String?
+  entryDate    DateTime         @default(now())
+  sellerId     String
+  
+  // Inspection data
+  inspectedAt  DateTime?
+  inspectedBy  String?
+  inspectionNotes String?
+  
+  // Location tracking
+  currentLocationId String?
+  
+  // Timestamps
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  seller       User @relation(fields: [sellerId], references: [id])
+  currentLocation Location? @relation(fields: [currentLocationId], references: [id])
+  movements    InventoryMovement[]
+  orderItems   OrderItem[]
+  activities   Activity[]
+
+  @@map("products")
+}
+
+model Location {
+  id          String @id @default(cuid())
+  code        String @unique // A区画-01, V区画-12, etc.
+  name        String
+  zone        String // A区画, V区画, H区画, etc.
+  capacity    Int?
+  isActive    Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  products    Product[]
+  movements   InventoryMovement[]
+
+  @@map("locations")
+}
+
+model InventoryMovement {
+  id          String   @id @default(cuid())
+  productId   String
+  fromLocationId String?
+  toLocationId   String?
+  movedBy     String
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  product     Product @relation(fields: [productId], references: [id])
+  fromLocation Location? @relation(fields: [fromLocationId], references: [id])
+  toLocation   Location? @relation(fields: [toLocationId], references: [id])
+
+  @@map("inventory_movements")
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  orderNumber   String      @unique
+  customerId    String
+  status        OrderStatus @default(pending)
+  totalAmount   Int
+  shippingAddress String?
+  paymentMethod String?
+  notes         String?
+  
+  // Timestamps
+  orderDate     DateTime @default(now())
+  shippedAt     DateTime?
+  deliveredAt   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  customer      User @relation(fields: [customerId], references: [id])
+  items         OrderItem[]
+  activities    Activity[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int    @default(1)
+  price     Int
+  
+  // Relations
+  order     Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+model Activity {
+  id          String   @id @default(cuid())
+  type        String   // inbound, inspection, listing, sold, etc.
+  description String
+  userId      String?
+  productId   String?
+  orderId     String?
+  metadata    Json?    // Additional data specific to activity type
+  createdAt   DateTime @default(now())
+
+  // Relations
+  user        User? @relation(fields: [userId], references: [id])
+  product     Product? @relation(fields: [productId], references: [id])
+  order       Order? @relation(fields: [orderId], references: [id])
+
+  @@map("activities")
+}

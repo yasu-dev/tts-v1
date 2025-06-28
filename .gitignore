@@ -1,0 +1,74 @@
+# Node modules
+node_modules/
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# IDE settings
+.vscode/
+
+# Environment files
+.env
+.env.local
+
+# Cache
+.cache/
+
+# Logs
+*.log
+*.log.*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build outputs
+.next/
+dist/
+build/
+
+# Temporary files
+temp/
+tmp/
+temp-*/
+*.tmp
+*.temp
+
+# Test outputs
+coverage/
+.nyc_output/
+
+# Backup files
+*.backup
+*.bak
+
+# Development files
+*.dev.*
+*.test.*
+*-test.*
+*-demo.*
+*-temp.*
+
+# Report files
+*REPORT*.md
+*COMPLETE*.md
+*SOLUTION*.md
+*FIX*.md
+
+# Batch files (except main ones)
+START_*.bat
+start-*.bat
+*-start.bat
+CHECK_*.bat
+OPEN_*.bat
+E2E_*.bat
+
+# HTML demos/tests
+*-demo.html
+*-test.html
+*-system.html
+*-professional.html
+working-*.html
+simple-*.html
+ultra-*.html
+api-*.html

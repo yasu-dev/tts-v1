@@ -1,0 +1,326 @@
+{
+  "dashboard": {
+    "kpi": {
+      "totalAssetValue": 12456789,
+      "inventoryCount": 234,
+      "todaySales": 456789,
+      "orderCount": 12,
+      "monthlyGrowth": 12.5,
+      "dailyGrowth": 24.3
+    },
+    "statusSummary": {
+      "inbound": 12,
+      "inspection": 8,
+      "storage": 145,
+      "listing": 58,
+      "shipping": 6,
+      "returned": 5
+    },
+    "recentActivities": [
+      {
+        "id": 1,
+        "time": "10分前",
+        "action": "カメラ本体 Canon EOS R5 が入庫されました",
+        "type": "inbound"
+      },
+      {
+        "id": 2,
+        "time": "25分前",
+        "action": "レンズ Sony FE 24-70mm が出品されました",
+        "type": "listing"
+      },
+      {
+        "id": 3,
+        "time": "1時間前",
+        "action": "Rolex Submariner が売約済みになりました",
+        "type": "sold"
+      },
+      {
+        "id": 4,
+        "time": "2時間前",
+        "action": "Hermès バッグの検品が完了しました",
+        "type": "inspection"
+      }
+    ],
+    "chartData": {
+      "sales": [
+        { "month": "1月", "sales": 4500000, "orders": 45 },
+        { "month": "2月", "sales": 5200000, "orders": 52 },
+        { "month": "3月", "sales": 4800000, "orders": 48 },
+        { "month": "4月", "sales": 6100000, "orders": 61 },
+        { "month": "5月", "sales": 7300000, "orders": 73 },
+        { "month": "6月", "sales": 8500000, "orders": 85 }
+      ],
+      "categoryBreakdown": [
+        { "category": "カメラ本体", "value": 35, "count": 82 },
+        { "category": "レンズ", "value": 28, "count": 65 },
+        { "category": "腕時計", "value": 25, "count": 58 },
+        { "category": "アクセサリ", "value": 12, "count": 29 }
+      ]
+    }
+  },
+  "delivery": {
+    "plans": [
+      {
+        "id": "DEL-001",
+        "planName": "6月定期納品",
+        "scheduledDate": "2024-06-30",
+        "status": "準備中",
+        "itemCount": 15,
+        "totalValue": 3500000,
+        "createdAt": "2024-06-20",
+        "deliveryMethod": "宅配便",
+        "trackingNumber": null
+      },
+      {
+        "id": "DEL-002",
+        "planName": "緊急納品_カメラ",
+        "scheduledDate": "2024-06-25",
+        "status": "配送中",
+        "itemCount": 3,
+        "totalValue": 1200000,
+        "createdAt": "2024-06-22",
+        "deliveryMethod": "直接持込",
+        "trackingNumber": "TRK-1234567890"
+      }
+    ],
+    "deliveryHistory": [
+      {
+        "id": "DEL-H-001",
+        "planName": "5月定期納品",
+        "deliveredDate": "2024-05-28",
+        "status": "完了",
+        "itemCount": 22,
+        "totalValue": 4200000,
+        "receivedBy": "田中スタッフ",
+        "notes": "全商品検品完了。品質良好。"
+      },
+      {
+        "id": "DEL-H-002",
+        "planName": "特別納品_時計",
+        "deliveredDate": "2024-05-15",
+        "status": "完了",
+        "itemCount": 8,
+        "totalValue": 2800000,
+        "receivedBy": "佐藤スタッフ",
+        "notes": "高級時計8点。全て新品同様。"
+      }
+    ]
+  },
+  "inventory": {
+    "items": [
+      {
+        "id": "INV-001",
+        "name": "Canon EOS R5",
+        "sku": "CAM-001",
+        "category": "カメラ本体",
+        "status": "storage",
+        "location": "A区画-01",
+        "price": 450000,
+        "estimatedValue": 480000,
+        "condition": "極美品",
+        "entryDate": "2024-06-20",
+        "images": [
+          "/images/camera-1-1.jpg",
+          "/images/camera-1-2.jpg",
+          "/images/camera-1-3.jpg",
+          "/images/camera-1-4.jpg",
+          "/images/camera-1-5.jpg",
+          "/images/camera-1-6.jpg"
+        ],
+        "description": "Canon EOS R5 ボディ、付属品完備。使用感少なく、動作良好。",
+        "specifications": {
+          "resolution": "45MP",
+          "iso": "100-51200",
+          "videoRecording": "8K RAW 30p",
+          "weight": "650g"
+        }
+      },
+      {
+        "id": "INV-002",
+        "name": "Sony FE 24-70mm f/2.8",
+        "sku": "LEN-002",
+        "category": "レンズ",
+        "status": "listing",
+        "location": "A区画-05",
+        "price": 280000,
+        "estimatedValue": 295000,
+        "condition": "美品",
+        "entryDate": "2024-06-22",
+        "images": [
+          "/images/lens-1-1.jpg",
+          "/images/lens-1-2.jpg",
+          "/images/lens-1-3.jpg",
+          "/images/lens-1-4.jpg"
+        ],
+        "description": "Sony FE 24-70mm f/2.8 GM レンズ。わずかな使用感あり。",
+        "specifications": {
+          "focalLength": "24-70mm",
+          "aperture": "f/2.8",
+          "mount": "Sony E-mount",
+          "weight": "886g"
+        }
+      },
+      {
+        "id": "INV-003",
+        "name": "Rolex Submariner Date",
+        "sku": "WAT-001",
+        "category": "腕時計",
+        "status": "sold",
+        "location": "V区画-12",
+        "price": 1200000,
+        "estimatedValue": 1250000,
+        "condition": "中古美品",
+        "entryDate": "2024-06-15",
+        "images": [
+          "/images/watch-1-1.jpg",
+          "/images/watch-1-2.jpg",
+          "/images/watch-1-3.jpg",
+          "/images/watch-1-4.jpg",
+          "/images/watch-1-5.jpg",
+          "/images/watch-1-6.jpg"
+        ],
+        "description": "ロレックス サブマリーナー デイト 41mm。2022年購入品。",
+        "specifications": {
+          "movement": "Cal. 3235",
+          "case": "41mm オイスタースチール",
+          "waterResistance": "300m",
+          "bracelet": "オイスターブレスレット"
+        }
+      }
+    ]
+  },
+  "sales": {
+    "orders": [
+      {
+        "id": "ORD-001",
+        "orderNumber": "WD-2024-001",
+        "customerName": "山田太郎",
+        "productName": "Canon EOS R5",
+        "salePrice": 445000,
+        "commission": 66750,
+        "netAmount": 378250,
+        "orderDate": "2024-06-23",
+        "status": "配送中",
+        "shippingMethod": "ヤマト運輸",
+        "trackingNumber": "1234-5678-9012",
+        "estimatedDelivery": "2024-06-25"
+      },
+      {
+        "id": "ORD-002",
+        "orderNumber": "WD-2024-002",
+        "customerName": "鈴木花子",
+        "productName": "Hermès Kelly",
+        "salePrice": 2800000,
+        "commission": 420000,
+        "netAmount": 2380000,
+        "orderDate": "2024-06-22",
+        "status": "出荷準備中",
+        "shippingMethod": "佐川急便",
+        "trackingNumber": null,
+        "estimatedDelivery": "2024-06-26"
+      }
+    ],
+    "salesReport": {
+      "totalSales": 8950000,
+      "totalCommission": 1342500,
+      "netEarnings": 7607500,
+      "averagePrice": 447500,
+      "topCategories": [
+        { "category": "腕時計", "sales": 3200000, "count": 8 },
+        { "category": "カメラ本体", "sales": 2800000, "count": 12 },
+        { "category": "アクセサリ", "sales": 1950000, "count": 3 },
+        { "category": "レンズ", "sales": 1000000, "count": 7 }
+      ]
+    },
+    "priceSettings": [
+      {
+        "category": "カメラ本体",
+        "commissionRate": 15,
+        "minPrice": 100000,
+        "maxPrice": 1000000,
+        "priceStrategy": "市場価格連動"
+      },
+      {
+        "category": "レンズ",
+        "commissionRate": 12,
+        "minPrice": 50000,
+        "maxPrice": 500000,
+        "priceStrategy": "固定マージン"
+      },
+      {
+        "category": "腕時計",
+        "commissionRate": 18,
+        "minPrice": 200000,
+        "maxPrice": 5000000,
+        "priceStrategy": "オークション"
+      },
+      {
+        "category": "アクセサリ",
+        "commissionRate": 20,
+        "minPrice": 300000,
+        "maxPrice": 10000000,
+        "priceStrategy": "専門査定"
+      }
+    ]
+  },
+  "returns": {
+    "requests": [
+      {
+        "id": "RET-001",
+        "requestNumber": "RT-2024-001",
+        "orderNumber": "WD-2024-001",
+        "productName": "Canon EOS R6",
+        "reason": "商品説明と相違",
+        "description": "レンズマウント部分に記載のない傷があります",
+        "requestDate": "2024-06-20",
+        "status": "審査中",
+        "customerName": "田中一郎",
+        "images": [
+          "/images/return-1-1.jpg",
+          "/images/return-1-2.jpg"
+        ],
+        "refundAmount": 320000,
+        "processingNotes": null
+      },
+      {
+        "id": "RET-002",
+        "requestNumber": "RT-2024-002",
+        "orderNumber": "WD-2024-002",
+        "productName": "Omega Speedmaster",
+        "reason": "初期不良",
+        "description": "ゼンマイの巻き上げが固く、正常に動作しません",
+        "requestDate": "2024-06-18",
+        "status": "承認済み",
+        "customerName": "佐々木美咲",
+        "images": [
+          "/images/return-2-1.jpg"
+        ],
+        "refundAmount": 580000,
+        "processingNotes": "メーカー修理後、再出品予定"
+      }
+    ],
+    "returnHistory": [
+      {
+        "id": "RET-H-001",
+        "requestNumber": "RT-2024-003",
+        "productName": "Leica M10",
+        "reason": "イメージ違い",
+        "processedDate": "2024-05-30",
+        "status": "完了",
+        "refundAmount": 750000,
+        "outcome": "全額返金"
+      },
+      {
+        "id": "RET-H-002",
+        "requestNumber": "RT-2024-004",
+        "productName": "Cartier Tank",
+        "reason": "サイズ不適合",
+        "processedDate": "2024-05-25",
+        "status": "完了",
+        "refundAmount": 450000,
+        "outcome": "全額返金"
+      }
+    ]
+  }
+}

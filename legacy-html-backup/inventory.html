@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在庫管理 - THE WORLD DOOR</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f6fa;
+            line-height: 1.6;
+        }
+        
+        /* ヘッダー */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+        
+        .breadcrumb {
+            background: white;
+            padding: 0.75rem 2rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .breadcrumb-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .breadcrumb a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        /* フィルターセクション */
+        .filters {
+            background: white;
+            padding: 1.5rem 2rem;
+            margin: 2rem 0;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .filters-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .filter-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .filter-select, .filter-input {
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5a6fd8;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: #667eea;
+            border: 1px solid #667eea;
+        }
+        
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        /* コンテナ */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem 2rem;
+        }
+        
+        /* 在庫一覧テーブル */
+        .inventory-table {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        
+        .table-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .table-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .table-actions {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .table-wrapper {
+            overflow-x: auto;
+        }
+        
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            padding: 1.5rem;
+        }
+        
+        .product-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .product-image {
+            height: 200px;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 3rem;
+        }
+        
+        .product-info {
+            padding: 1.5rem;
+        }
+        
+        .product-sku {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+        
+        .product-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .product-category {
+            font-size: 0.9rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+        
+        .product-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .detail-item {
+            font-size: 0.85rem;
+        }
+        
+        .detail-label {
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .detail-value {
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .product-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .status-inbound { background: #ffe6cc; color: #d9480f; }
+        .status-inspection { background: #fff3cd; color: #856404; }
+        .status-storage { background: #d4edda; color: #155724; }
+        .status-listing { background: #cce5ff; color: #004085; }
+        .status-sold { background: #e2e3e5; color: #383d41; }
+        
+        .product-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+        }
+        
+        /* ページネーション */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .pagination button {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        
+        .pagination button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        /* レスポンシブ */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem 1rem;
+            }
+            
+            .filters {
+                margin: 1rem;
+                padding: 1rem;
+            }
+            
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-buttons {
+                flex-direction: column;
+            }
+            
+            .inventory-grid {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+            
+            .table-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+            
+            .table-actions {
+                justify-content: center;
+            }
+        }
+        
+        /* モーダル */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .close {
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- ヘッダー -->
+    <header class="header">
+        <div class="header-content">
+            <h1>📦 THE WORLD DOOR</h1>
+            <div style="display: flex; gap: 1rem;">
+                <a href="index.html" style="color: white; text-decoration: none;">🏠 ダッシュボード</a>
+                <div style="color: white;">⚙️</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- パンくずリスト -->
+    <div class="breadcrumb">
+        <div class="breadcrumb-content">
+            <a href="index.html">ダッシュボード</a> > <span>在庫管理</span> > 在庫一覧
+        </div>
+    </div>
+
+    <!-- フィルターセクション -->
+    <div class="filters">
+        <div class="filters-content">
+            <h3 style="margin-bottom: 1rem;">🔍 在庫検索・フィルター</h3>
+            <div class="filter-grid">
+                <div class="filter-group">
+                    <label class="filter-label">ステータス</label>
+                    <select class="filter-select" id="statusFilter">
+                        <option value="">すべて</option>
+                        <option value="inbound">入庫待ち</option>
+                        <option value="inspection">検品中</option>
+                        <option value="storage">保管中</option>
+                        <option value="listing">出品中</option>
+                        <option value="sold">売約済み</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">カテゴリー</label>
+                    <select class="filter-select" id="categoryFilter">
+                        <option value="">すべて</option>
+                        <option value="camera">カメラ本体</option>
+                        <option value="lens">レンズ</option>
+                        <option value="watch">腕時計</option>
+                        <option value="accessory">アクセサリ</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">保管場所</label>
+                    <select class="filter-select" id="locationFilter">
+                        <option value="">すべて</option>
+                        <option value="A">標準棚（A区画）</option>
+                        <option value="H">防湿庫（H区画）</option>
+                        <option value="V">金庫室（V区画）</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">商品名・SKU検索</label>
+                    <input type="text" class="filter-input" id="searchInput" placeholder="商品名やSKUを入力">
+                </div>
+            </div>
+            <div class="filter-buttons">
+                <button class="btn btn-primary" onclick="applyFilters()">🔍 検索</button>
+                <button class="btn btn-outline" onclick="clearFilters()">🔄 クリア</button>
+                <button class="btn btn-outline" onclick="exportData()">📊 CSV出力</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div class="container">
+        <div class="inventory-table">
+            <div class="table-header">
+                <div class="table-title">📷 在庫一覧（写真付き）</div>
+                <div class="table-actions">
+                    <button class="btn btn-primary" onclick="openModal('addProduct')">+ 新規商品登録</button>
+                    <button class="btn btn-outline" onclick="bulkAction()">📦 一括操作</button>
+                </div>
+            </div>
+
+            <!-- 商品カードグリッド -->
+            <div class="inventory-grid" id="inventoryGrid">
+                <!-- 動的に生成される -->
+            </div>
+        </div>
+
+        <!-- ページネーション -->
+        <div class="pagination">
+            <button onclick="previousPage()">← 前へ</button>
+            <button class="active">1</button>
+            <button onclick="goToPage(2)">2</button>
+            <button onclick="goToPage(3)">3</button>
+            <button onclick="nextPage()">次へ →</button>
+        </div>
+    </div>
+
+    <!-- 商品詳細モーダル -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">商品詳細</div>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div id="modalBody">
+                <!-- 動的に内容が追加される -->
+            </div>
+        </div>
+    </div>
+
+    <!-- APIとヘルパー関数を読み込み -->
+    <script src="js/api.js"></script>
+    <script src="js/ui-helpers.js"></script>
+    
+    <script>
+        // グローバル変数
+        let inventoryData = null;
+        let currentFilters = {};
+
+        // フィルター適用
+        async function applyFilters() {
+            const status = document.getElementById('statusFilter').value;
+            const category = document.getElementById('categoryFilter').value;
+            const location = document.getElementById('locationFilter').value;
+            const search = document.getElementById('searchInput').value;
+            
+            currentFilters = { status, category, location, search };
+            await loadProducts();
+        }
+        
+        // 在庫データを読み込み
+        async function loadInventoryData() {
+            try {
+                inventoryData = await api.getInventoryData();
+                
+                // フィルターオプションを設定
+                setupFilterOptions();
+                
+                // 商品一覧を表示
+                await loadProducts();
+                
+            } catch (error) {
+                console.error('Failed to load inventory data:', error);
+                document.getElementById('inventoryGrid').innerHTML = 
+                    UIHelpers.createErrorMessage('在庫データの読み込みに失敗しました');
+            }
+        }
+
+        // フィルターオプションを設定
+        function setupFilterOptions() {
+            const statusFilter = document.getElementById('statusFilter');
+            const categoryFilter = document.getElementById('categoryFilter');
+            const locationFilter = document.getElementById('locationFilter');
+            
+            statusFilter.innerHTML = UIHelpers.createSelectOptions(inventoryData.statuses);
+            categoryFilter.innerHTML = UIHelpers.createSelectOptions(inventoryData.categories);
+            locationFilter.innerHTML = UIHelpers.createSelectOptions(inventoryData.locations);
+        }
+
+        // 商品一覧を読み込み
+        async function loadProducts() {
+            try {
+                document.getElementById('inventoryGrid').innerHTML = UIHelpers.createLoadingSpinner();
+                
+                const products = await api.getProducts(currentFilters);
+                
+                if (products.length === 0) {
+                    document.getElementById('inventoryGrid').innerHTML = 
+                        '<div style="text-align: center; padding: 2rem; color: #666;">条件に一致する商品が見つかりませんでした</div>';
+                    return;
+                }
+                
+                const productCards = products.map(product => UIHelpers.createProductCard(product)).join('');
+                document.getElementById('inventoryGrid').innerHTML = productCards;
+                
+                // アニメーション
+                animateProductCards();
+                
+            } catch (error) {
+                console.error('Failed to load products:', error);
+                document.getElementById('inventoryGrid').innerHTML = 
+                    UIHelpers.createErrorMessage('商品データの読み込みに失敗しました');
+            }
+        }
+
+        // フィルタークリア
+        function clearFilters() {
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('categoryFilter').value = '';
+            document.getElementById('locationFilter').value = '';
+            document.getElementById('searchInput').value = '';
+            currentFilters = {};
+            loadProducts();
+        }
+        
+        // CSVエクスポート
+        async function exportData() {
+            try {
+                await api.exportInventory('csv');
+                alert('在庫データをCSVファイルでダウンロードしました');
+            } catch (error) {
+                alert('エクスポートに失敗しました: ' + error.message);
+            }
+        }
+
+        // 商品アクションを処理
+        function handleProductAction(action, productId) {
+            switch (action) {
+                case 'detail':
+                    viewProduct(productId);
+                    break;
+                case 'list':
+                    listProduct(productId);
+                    break;
+                case 'editPrice':
+                    editPrice(productId);
+                    break;
+            }
+        }
+        
+        // 商品詳細表示
+        async function viewProduct(productId) {
+            try {
+                const product = await api.getProduct(productId);
+                if (!product) {
+                    alert('商品が見つかりませんでした');
+                    return;
+                }
+                
+                const modalBody = document.getElementById('modalBody');
+                modalBody.innerHTML = `
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <div style="font-size: 4rem; margin-bottom: 1rem;">${product.image}</div>
+                        <h3>${product.sku}</h3>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">商品名</label>
+                        <input type="text" class="form-input" value="${product.name}" readonly>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">カテゴリー</label>
+                        <input type="text" class="form-input" value="${product.categoryLabel}" readonly>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">価格</label>
+                        <input type="text" class="form-input" value="${UIHelpers.formatCurrency(product.price)}" readonly>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">ステータス</label>
+                        <input type="text" class="form-input" value="${product.statusLabel}" readonly>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">保管場所</label>
+                        <input type="text" class="form-input" value="${product.location || '-'}" readonly>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">入庫日</label>
+                        <input type="text" class="form-input" value="${UIHelpers.formatDate(product.inboundDate)}" readonly>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">保管日数</label>
+                        <input type="text" class="form-input" value="${product.daysInStorage}日" readonly>
+                    </div>
+                    
+                    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                        <button class="btn btn-primary" onclick="editProduct('${product.id}')">編集</button>
+                        <button class="btn btn-outline" onclick="closeModal()">閉じる</button>
+                    </div>
+                `;
+                openModal('product');
+                
+            } catch (error) {
+                console.error('Failed to load product details:', error);
+                alert('商品詳細の読み込みに失敗しました');
+            }
+        }
+        
+        // 商品出品
+        async function listProduct(productId) {
+            try {
+                const product = await api.getProduct(productId);
+                if (!product) {
+                    alert('商品が見つかりませんでした');
+                    return;
+                }
+                
+                if (product.status !== 'storage') {
+                    alert('出品可能なステータスではありません（保管中の商品のみ出品可能）');
+                    return;
+                }
+                
+                const confirmed = confirm(`${product.name} (${product.sku})\nを出品処理しますか？\n\n価格: ${UIHelpers.formatCurrency(product.price)}`);
+                
+                if (confirmed) {
+                    // モック処理：実際の実装では出品APIを呼び出し
+                    console.log(`Listing product: ${productId}`);
+                    alert(`${product.name} の出品処理を開始しました\n\nステータスが「出品中」に変更されます`);
+                    
+                    // データを再読み込み
+                    await loadProducts();
+                }
+                
+            } catch (error) {
+                console.error('Failed to list product:', error);
+                alert('出品処理に失敗しました');
+            }
+        }
+        
+        // 価格変更
+        async function editPrice(productId) {
+            try {
+                const product = await api.getProduct(productId);
+                if (!product) {
+                    alert('商品が見つかりませんでした');
+                    return;
+                }
+                
+                const currentPrice = product.price.toString();
+                const newPrice = prompt(`${product.name} (${product.sku})\n新しい価格を入力してください（円）`, currentPrice);
+                
+                if (newPrice && newPrice !== currentPrice) {
+                    const priceNumber = parseInt(newPrice.replace(/[^0-9]/g, ''));
+                    
+                    if (isNaN(priceNumber) || priceNumber <= 0) {
+                        alert('有効な価格を入力してください');
+                        return;
+                    }
+                    
+                    const confirmed = confirm(`価格を変更しますか？\n\n${product.name}\n${UIHelpers.formatCurrency(product.price)} → ${UIHelpers.formatCurrency(priceNumber)}`);
+                    
+                    if (confirmed) {
+                        const result = await api.updateProductPrice(productId, priceNumber);
+                        
+                        if (result.success) {
+                            alert(`${product.name} の価格を ${UIHelpers.formatCurrency(priceNumber)} に変更しました`);
+                            // データを再読み込み
+                            await loadProducts();
+                        } else {
+                            alert('価格変更に失敗しました');
+                        }
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Failed to update price:', error);
+                alert('価格変更に失敗しました');
+            }
+        }
+        
+        // 商品編集
+        async function editProduct(productId) {
+            try {
+                const product = await api.getProduct(productId);
+                if (!product) {
+                    alert('商品が見つかりませんでした');
+                    return;
+                }
+                
+                alert(`${product.name} (${product.sku}) の編集画面を開きます\n\n実装中...\n\n編集可能項目:\n・商品名\n・価格\n・保管場所\n・商品説明`);
+                
+            } catch (error) {
+                console.error('Failed to load product for editing:', error);
+                alert('商品編集画面の読み込みに失敗しました');
+            }
+        }
+        
+        // 一括操作
+        function bulkAction() {
+            alert('一括操作メニューを開きます\n\n実装中...');
+        }
+        
+        // モーダル開閉
+        function openModal(type) {
+            document.getElementById('productModal').style.display = 'block';
+        }
+        
+        function closeModal() {
+            document.getElementById('productModal').style.display = 'none';
+        }
+        
+        // ページネーション
+        function previousPage() {
+            alert('前のページに移動します');
+        }
+        
+        function nextPage() {
+            alert('次のページに移動します');
+        }
+        
+        function goToPage(page) {
+            alert(`ページ ${page} に移動します`);
+        }
+        
+        // モーダル外クリックで閉じる
+        window.onclick = function(event) {
+            const modal = document.getElementById('productModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+        
+        // 検索入力でのEnterキー処理
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                applyFilters();
+            }
+        });
+        
+        // 商品カードのアニメーション
+        function animateProductCards() {
+            const cards = document.querySelectorAll('.product-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        }
+        
+        // ページ読み込み時の初期化
+        window.addEventListener('load', function() {
+            loadInventoryData();
+        });
+        
+        // URLパラメータからフィルターを適用
+        window.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const filterStatus = urlParams.get('status') || localStorage.getItem('inventoryFilter');
+            
+            if (filterStatus) {
+                document.getElementById('statusFilter').value = filterStatus;
+                localStorage.removeItem('inventoryFilter');
+            }
+        });
+    </script>
+</body>
+</html>

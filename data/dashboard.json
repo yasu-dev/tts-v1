@@ -1,0 +1,73 @@
+{
+  "summary": {
+    "totalAssetValue": 12456789,
+    "inventoryCount": 234,
+    "todaySales": 456789,
+    "orderCount": 12,
+    "changeFromLastMonth": 8.5,
+    "changeFromYesterday": 15
+  },
+  "statusSummary": {
+    "inbound": 12,
+    "inspection": 8,
+    "storage": 145,
+    "listing": 58,
+    "shipping": 6,
+    "returned": 5
+  },
+  "alerts": [
+    {
+      "id": "alert-001",
+      "type": "urgent",
+      "icon": "🔴",
+      "title": "高額商品の検品待ち",
+      "description": "Rolex GMT Master II（24時間経過）",
+      "priority": "high",
+      "createdAt": "2024-06-21T10:00:00Z"
+    },
+    {
+      "id": "alert-002",
+      "type": "warning",
+      "icon": "🟡",
+      "title": "在庫30日以上の商品",
+      "description": "5件の商品が長期在庫となっています",
+      "priority": "medium",
+      "createdAt": "2024-06-21T08:00:00Z"
+    },
+    {
+      "id": "alert-003",
+      "type": "warning",
+      "icon": "🟡",
+      "title": "返品未処理",
+      "description": "2件の返品が処理待ちです",
+      "priority": "medium",
+      "createdAt": "2024-06-21T07:00:00Z"
+    }
+  ],
+  "recentActivities": [
+    {
+      "id": "activity-001",
+      "type": "completed",
+      "title": "検品完了",
+      "description": "Canon EOS R5 (TWD-001)",
+      "timestamp": "2024-06-22T15:00:00Z",
+      "color": "#4CAF50"
+    },
+    {
+      "id": "activity-002",
+      "type": "order",
+      "title": "新規注文",
+      "description": "Nikon Z9 (TWD-045)",
+      "timestamp": "2024-06-22T13:00:00Z",
+      "color": "#2196F3"
+    },
+    {
+      "id": "activity-003",
+      "type": "shipping",
+      "title": "出荷完了",
+      "description": "Sony α7R V (TWD-032)",
+      "timestamp": "2024-06-22T11:00:00Z",
+      "color": "#FF9800"
+    }
+  ]
+}

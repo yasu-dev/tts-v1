@@ -1,0 +1,234 @@
+{
+  "kpis": {
+    "inventoryTurnover": {
+      "current": 4.2,
+      "previous": 3.8,
+      "change": 10.5,
+      "trend": "up",
+      "label": "在庫回転率"
+    },
+    "averageStorageDays": {
+      "current": 18.5,
+      "previous": 22.1,
+      "change": -16.3,
+      "trend": "down",
+      "label": "平均保管日数"
+    },
+    "returnRate": {
+      "current": 2.1,
+      "previous": 2.8,
+      "change": -25.0,
+      "trend": "down",
+      "label": "返品率（%）"
+    },
+    "salePrice": {
+      "current": 385000,
+      "previous": 368000,
+      "change": 4.6,
+      "trend": "up",
+      "label": "平均販売価格"
+    }
+  },
+  "categoryPerformance": [
+    {
+      "category": "カメラ本体",
+      "sales": 8420000,
+      "count": 23,
+      "avgPrice": 366087,
+      "turnover": 4.8,
+      "storageDays": 16.2
+    },
+    {
+      "category": "レンズ",
+      "sales": 3850000,
+      "count": 35,
+      "avgPrice": 110000,
+      "turnover": 5.2,
+      "storageDays": 12.8
+    },
+    {
+      "category": "腕時計",
+      "sales": 12650000,
+      "count": 18,
+      "avgPrice": 702778,
+      "turnover": 3.1,
+      "storageDays": 28.5
+    },
+    {
+      "category": "アクセサリ",
+      "sales": 1260000,
+      "count": 42,
+      "avgPrice": 30000,
+      "turnover": 6.8,
+      "storageDays": 8.2
+    }
+  ],
+  "monthlyTrends": [
+    { "month": "2024-01", "sales": 15200000, "count": 89, "returns": 3 },
+    { "month": "2024-02", "sales": 18450000, "count": 102, "returns": 2 },
+    { "month": "2024-03", "sales": 22100000, "count": 125, "returns": 4 },
+    { "month": "2024-04", "sales": 19800000, "count": 118, "returns": 3 },
+    { "month": "2024-05", "sales": 26300000, "count": 142, "returns": 5 },
+    { "month": "2024-06", "sales": 31200000, "count": 165, "returns": 3 }
+  ],
+  "stagingAnalysis": {
+    "averageDays": {
+      "inbound": 1.2,
+      "inspection": 2.8,
+      "storage": 15.6,
+      "listing": 18.2,
+      "shipping": 1.1,
+      "delivery": 2.4
+    },
+    "bottlenecks": [
+      {
+        "stage": "inspection",
+        "count": 15,
+        "avgDelay": 3.2,
+        "reason": "専門検品員不足"
+      },
+      {
+        "stage": "listing",
+        "count": 8,
+        "avgDelay": 5.1,
+        "reason": "写真撮影待ち"
+      }
+    ]
+  },
+  "slowMovingInventory": [
+    {
+      "id": "TWD-20240315-00012",
+      "name": "Leica M10-P ボディ",
+      "category": "カメラ本体",
+      "storageDays": 85,
+      "price": 680000,
+      "views": 245,
+      "watchers": 12,
+      "reason": "価格競争力不足"
+    },
+    {
+      "id": "TWD-20240401-00008",
+      "name": "Omega Speedmaster Professional",
+      "category": "腕時計",
+      "storageDays": 72,
+      "price": 450000,
+      "views": 189,
+      "watchers": 8,
+      "reason": "需要期待値低下"
+    },
+    {
+      "id": "TWD-20240418-00025",
+      "name": "Canon EF 85mm f/1.2L",
+      "category": "レンズ",
+      "storageDays": 61,
+      "price": 180000,
+      "views": 156,
+      "watchers": 15,
+      "reason": "競合商品多数"
+    }
+  ],
+  "notifications": [
+    {
+      "id": "notif-001",
+      "type": "warning",
+      "title": "長期在庫アラート",
+      "message": "3件の商品が60日を超えて在庫中です",
+      "timestamp": "2024-06-22T10:00:00Z",
+      "read": false,
+      "action": "inventory"
+    },
+    {
+      "id": "notif-002",
+      "type": "success",
+      "title": "高額商品成約",
+      "message": "Rolex GMT Master II が成約しました（¥850,000）",
+      "timestamp": "2024-06-22T09:30:00Z",
+      "read": false,
+      "action": "timeline"
+    },
+    {
+      "id": "notif-003",
+      "type": "info",
+      "title": "月次レポート準備完了",
+      "message": "5月の月次レポートが生成されました",
+      "timestamp": "2024-06-22T08:00:00Z",
+      "read": true,
+      "action": "reports"
+    },
+    {
+      "id": "notif-004",
+      "type": "error",
+      "title": "システムエラー",
+      "message": "eBay API接続に問題が発生しています",
+      "timestamp": "2024-06-22T07:45:00Z",
+      "read": false,
+      "action": "system"
+    }
+  ],
+  "flowStages": [
+    {
+      "id": "inbound",
+      "name": "入庫",
+      "icon": "📦",
+      "color": "#3B82F6",
+      "count": 12,
+      "avgDays": 1.2
+    },
+    {
+      "id": "inspection",
+      "name": "検品",
+      "icon": "🔍",
+      "color": "#8B5CF6",
+      "count": 8,
+      "avgDays": 2.8
+    },
+    {
+      "id": "storage",
+      "name": "保管",
+      "icon": "📚",
+      "color": "#10B981",
+      "count": 145,
+      "avgDays": 15.6
+    },
+    {
+      "id": "listing",
+      "name": "出品",
+      "icon": "🏪",
+      "color": "#F59E0B",
+      "count": 58,
+      "avgDays": 18.2
+    },
+    {
+      "id": "order",
+      "name": "受注",
+      "icon": "📋",
+      "color": "#EF4444",
+      "count": 6,
+      "avgDays": 0.5
+    },
+    {
+      "id": "shipping",
+      "name": "出荷",
+      "icon": "🚚",
+      "color": "#06B6D4",
+      "count": 4,
+      "avgDays": 1.1
+    },
+    {
+      "id": "delivery",
+      "name": "配送",
+      "icon": "📮",
+      "color": "#84CC16",
+      "count": 2,
+      "avgDays": 2.4
+    },
+    {
+      "id": "returned",
+      "name": "返品",
+      "icon": "↩️",
+      "color": "#6B7280",
+      "count": 5,
+      "avgDays": 3.2
+    }
+  ]
+}

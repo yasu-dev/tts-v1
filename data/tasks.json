@@ -1,0 +1,108 @@
+{
+  "urgentTasks": [
+    {
+      "id": "task-urgent-001",
+      "name": "高額商品検品（Rolex GMT）",
+      "description": "TWD-WAT-007 | 24時間経過 | 要即時対応",
+      "priority": "high",
+      "type": "inspection",
+      "productId": "TWD-WAT-007",
+      "location": "金庫室V-03",
+      "duration": "24h経過",
+      "value": "¥2,100,000",
+      "assignee": "田中次郎",
+      "status": "pending"
+    },
+    {
+      "id": "task-urgent-002",
+      "name": "返品再検品（Canon R5）",
+      "description": "TWD-CAM-015 | 顧客クレーム対応 | 緊急",
+      "priority": "high",
+      "type": "inspection",
+      "productId": "TWD-CAM-015",
+      "location": "検品室B",
+      "duration": "6h経過",
+      "value": "返品処理",
+      "assignee": "田中次郎",
+      "status": "pending"
+    }
+  ],
+  "normalTasks": [
+    {
+      "id": "task-normal-001",
+      "name": "入庫検品",
+      "description": "Sony α7R V 他7件 | バッチ処理可能",
+      "priority": "medium",
+      "type": "inspection",
+      "itemCount": 8,
+      "location": "検品室A",
+      "deadline": "今日",
+      "batchId": "inspection-batch-1",
+      "status": "pending"
+    },
+    {
+      "id": "task-normal-002",
+      "name": "商品撮影",
+      "description": "Nikon Z9, Canon 24-70mm 他2件",
+      "priority": "medium",
+      "type": "photography",
+      "itemCount": 4,
+      "location": "撮影室",
+      "deadline": "今日",
+      "batchId": "photo-batch-1",
+      "status": "pending"
+    },
+    {
+      "id": "task-normal-003",
+      "name": "出荷準備",
+      "description": "本日出荷予定 | 優先度順",
+      "priority": "low",
+      "type": "shipping",
+      "itemCount": 3,
+      "location": "梱包室",
+      "deadline": "16:00まで",
+      "batchId": "shipping-batch-1",
+      "status": "pending"
+    }
+  ],
+  "progress": {
+    "completed": 12,
+    "inProgress": 8,
+    "pending": 5,
+    "total": 25,
+    "percentage": 60
+  },
+  "quickActions": [
+    { "id": "barcode-scan", "label": "📱 バーコードスキャン", "action": "openModal" },
+    { "id": "location-register", "label": "📍 ロケーション登録", "action": "openModal" },
+    { "id": "photo-upload", "label": "📸 写真アップロード", "action": "openModal" },
+    { "id": "issue-report", "label": "⚠️ 問題報告", "action": "openModal" },
+    { "id": "inventory-check", "label": "📦 在庫確認", "action": "navigate", "url": "inventory.html" }
+  ],
+  "recentActivity": [
+    {
+      "id": "activity-001",
+      "type": "completed",
+      "icon": "✓",
+      "text": "TWD-CAM-012 検品完了",
+      "timestamp": "15分前",
+      "color": "activity-completed"
+    },
+    {
+      "id": "activity-002",
+      "type": "started",
+      "icon": "▶",
+      "text": "撮影バッチ開始",
+      "timestamp": "1時間前",
+      "color": "activity-started"
+    },
+    {
+      "id": "activity-003",
+      "type": "updated",
+      "icon": "📝",
+      "text": "ロケーション更新",
+      "timestamp": "2時間前",
+      "color": "activity-updated"
+    }
+  ]
+}
