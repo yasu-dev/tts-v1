@@ -1,0 +1,125 @@
+# Page snapshot
+
+```yaml
+- complementary:
+  - heading "THE WORLD DOOR" [level=2]
+  - paragraph: フルフィルメントサービス
+  - paragraph: セラー管理
+  - navigation:
+    - link "ダッシュボード":
+      - /url: /dashboard
+      - img
+      - text: ダッシュボード
+    - link "納品管理 3":
+      - /url: /delivery
+      - img
+      - text: 納品管理 3
+    - link "在庫管理 234":
+      - /url: /inventory
+      - img
+      - text: 在庫管理 234
+    - link "販売管理 12":
+      - /url: /sales
+      - img
+      - text: 販売管理 12
+    - link "返品管理 5":
+      - /url: /returns
+      - img
+      - text: 返品管理 5
+    - link "請求・精算":
+      - /url: /billing
+      - img
+      - text: 請求・精算
+    - link "商品履歴":
+      - /url: /timeline
+      - img
+      - text: 商品履歴
+- main:
+  - heading "ダッシュボード" [level=1]
+  - button "通知":
+    - img
+    - text: 通知
+  - button "プロフィール":
+    - img
+    - text: プロフィール
+  - heading "商品フロー" [level=3]
+  - button "📥 入庫"
+  - img
+  - button "🔍 検品"
+  - img
+  - button "📦 保管"
+  - img
+  - button "🏷️ 出品"
+  - img
+  - button "📋 受注"
+  - img
+  - button "🚛 出荷"
+  - img
+  - button "📦 配送"
+  - img
+  - button "✅ 売約済み"
+  - img
+  - button "↩️ 返品"
+  - text: "総在庫: 0件"
+  - heading "ダッシュボード" [level=1]
+  - heading "グローバル統合ビュー" [level=2]:
+    - img
+    - text: グローバル統合ビュー
+  - paragraph: 全体の業績と主要指標を一目で確認
+  - button "新規輸出":
+    - img
+    - text: 新規輸出
+  - button "レポート出力":
+    - img
+    - text: レポート出力
+  - heading "在庫サマリー" [level=3]
+  - paragraph: リアルタイム在庫状況
+  - img
+  - text: 総計 0 総在庫数
+  - img
+  - text: 価値 ¥0 総在庫価値
+  - heading "ステータス別在庫" [level=3]
+  - heading "カテゴリー別在庫" [level=3]
+  - img
+  - text: 30秒ごとに自動更新
+  - img
+  - text: +12.5% ¥48,470,000 グローバル収益
+  - img
+  - text: アクティブ 2,386 アクティブ輸出
+  - img
+  - text: 最適 94.2% 在庫効率
+  - img
+  - text: 急成長 126% 市場拡大率
+  - heading "グローバル取引モニター" [level=3]
+  - paragraph: リアルタイムの注文状況
+  - table:
+    - rowgroup:
+      - row "WD-2024-0847 NEXUS Global Trading APEX Industries ELITE 156 ¥2,847,300 最適 北米":
+        - cell "WD-2024-0847"
+        - cell "NEXUS Global Trading"
+        - cell "APEX Industries"
+        - cell "ELITE"
+        - cell "156"
+        - cell "¥2,847,300"
+        - cell "最適"
+        - cell "北米"
+      - row "WD-2024-0846 EuroTech Solutions Quantum Exports PREMIUM 89 ¥1,234,500 監視中 欧州":
+        - cell "WD-2024-0846"
+        - cell "EuroTech Solutions"
+        - cell "Quantum Exports"
+        - cell "PREMIUM"
+        - cell "89"
+        - cell "¥1,234,500"
+        - cell "監視中"
+        - cell "欧州"
+      - row "WD-2024-0845 AsiaLink Corp Global Dynamics GLOBAL 234 ¥3,456,700 最適 アジア":
+        - cell "WD-2024-0845"
+        - cell "AsiaLink Corp"
+        - cell "Global Dynamics"
+        - cell "GLOBAL"
+        - cell "234"
+        - cell "¥3,456,700"
+        - cell "最適"
+        - cell "アジア"
+- alert
+```
