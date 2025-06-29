@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "THE WORLD DOOR - グローバル輸出インテリジェンスプラットフォーム",
+  title: "THE WORLD DOOR - フルフィルメントサービス",
   description: "世界最先端のAI駆動型在庫管理・輸出支援システム。",
 };
 

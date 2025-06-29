@@ -39,20 +39,12 @@ export default function NexusHeader({
       
       <div className="flex items-center gap-8 z-10">
         {/* ブランドアイデンティティ */}
-        <div className="flex items-center gap-6">
-          <div className="nexus-logo relative">
-            <div className="absolute inset-[-3px] bg-gradient-to-r from-primary-blue via-nexus-yellow via-nexus-red via-nexus-green via-nexus-purple to-nexus-cyan rounded-[21px] opacity-60 -z-10" />
-            <svg className="h-7 w-7 text-white filter drop-shadow-[0_0_15px_rgba(255,255,255,0.9)] z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9 3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-            </svg>
+        <div className="text-white">
+          <div className="font-display text-3xl font-black text-white tracking-wider">
+            THE WORLD DOOR
           </div>
-          <div className="text-white">
-            <div className="font-display text-3xl font-black text-white text-shadow-[0_0_20px_rgba(255,206,0,0.6),0_3px_6px_rgba(0,0,0,0.4)] tracking-wider">
-              THE WORLD DOOR
-            </div>
-            <div className="text-base font-medium text-white/95 mt-1 tracking-wide">
-              グローバル輸出インテリジェンスプラットフォーム
-            </div>
+          <div className="text-base font-medium text-white/95 mt-1 tracking-wide">
+            フルフィルメントサービス
           </div>
         </div>
         

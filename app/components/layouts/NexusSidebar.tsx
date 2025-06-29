@@ -193,20 +193,16 @@ export default function NexusSidebar({ userType }: NexusSidebarProps) {
     <aside className="nexus-sidebar w-340 bg-nexus-surface/95 backdrop-blur-nexus border-r-4 border-r-gradient-to-b from-region-americas via-region-europe via-region-asia via-region-africa via-region-oceania to-region-global">
       {/* サイドバーヘッダー */}
       <div className="p-8 border-b border-nexus-border">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-gradient-to-br from-nexus-blue via-nexus-purple to-nexus-cyan rounded-xl flex items-center justify-center">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
-          <div>
-            <h2 className="font-display font-bold text-lg text-nexus-text-primary">
-              コマンドセンター
-            </h2>
-            <p className="text-xs text-nexus-text-secondary font-medium">
-              {userType === 'staff' ? 'スタッフモード' : 'セラーモード'}
-            </p>
-          </div>
+        <div>
+          <h2 className="font-display font-bold text-xl text-nexus-text-primary">
+            THE WORLD DOOR
+          </h2>
+          <p className="text-sm text-nexus-text-secondary font-medium mt-1">
+            フルフィルメントサービス
+          </p>
+          <p className="text-xs text-nexus-text-muted mt-2">
+            {userType === 'staff' ? 'スタッフモード' : 'セラーモード'}
+          </p>
         </div>
       </div>
 

@@ -190,10 +190,9 @@ export default function Sidebar({ userType }: SidebarProps) {
     >
       {/* Logo Section */}
       <div className="sidebar-logo" role="banner">
-        <div className="sidebar-logo-icon" aria-hidden="true">WD</div>
-        <div>
-          <h2 className="text-xl font-bold">THE WORLD DOOR</h2>
-          <p className="text-sm text-gray-600">在庫管理システム</p>
+        <div className="w-full">
+          <h2 className="text-xl font-bold text-gray-900">THE WORLD DOOR</h2>
+          <p className="text-sm text-gray-600 mt-1">フルフィルメントサービス</p>
         </div>
       </div>
 

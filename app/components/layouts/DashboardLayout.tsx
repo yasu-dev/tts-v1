@@ -238,12 +238,12 @@ export default function DashboardLayout({
       <aside className="sidebar">
         <div className="sidebar-header">
           <div className="sidebar-logo">
-            <div className="sidebar-logo-icon">
-              TWD
-            </div>
-            <div>
+            <div className="w-full">
               <h2 className="text-lg font-bold">THE WORLD DOOR</h2>
               <p className="text-sm text-gray-600">
+                フルフィルメントサービス
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
                 {userType === 'seller' ? 'セラー管理' : 'スタッフ管理'}
               </p>
             </div>

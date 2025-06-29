@@ -17,12 +17,9 @@ export default function RootLayoutClient({ children }: RootLayoutClientProps) {
       {/* Nexus Header */}
       <header className="nexus-header" role="banner">
         <div className="brand-nexus">
-          <div className="nexus-logo" aria-label="THE WORLD DOOR ロゴ">
-            <i className="fas fa-globe-americas text-white text-2xl" aria-hidden="true"></i>
-          </div>
           <div className="brand-identity">
-            <h1 className="brand-title">WORLD DOOR</h1>
-            <p className="brand-tagline">グローバル輸出インテリジェンスプラットフォーム</p>
+            <h1 className="brand-title">THE WORLD DOOR</h1>
+            <p className="brand-tagline">フルフィルメントサービス</p>
           </div>
           <nav className="nexus-nav ml-auto mr-8" role="navigation" aria-label="メインナビゲーション">
             <a href="/dashboard" className="nav-pill active">ダッシュボード</a>
@@ -40,7 +37,7 @@ export default function RootLayoutClient({ children }: RootLayoutClientProps) {
             <div className="user-orb" aria-hidden="true">WD</div>
             <div className="text-left">
               <div className="font-semibold">管理者</div>
-              <div className="text-xs opacity-80">WORLD DOOR Corp.</div>
+              <div className="text-xs opacity-80">THE WORLD DOOR</div>
             </div>
           </button>
         </div>

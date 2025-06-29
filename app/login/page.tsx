@@ -72,17 +72,9 @@ export default function LoginPage() {
         <div className="max-w-md w-full space-y-8">
           {/* Logo and Title */}
           <div className="text-center">
-            <div className="mx-auto h-24 w-24 rounded-2xl flex items-center justify-center shadow-2xl mb-6 border-4 border-[rgba(0,100,210,0.25)]"
-              style={{
-                background: 'linear-gradient(135deg, #FFCE00 0%, #E53238 20%, #86B817 40%, #7B1FA2 60%, #00BCD4 80%, #0064D2 100%)',
-                boxShadow: '0 0 30px rgba(255, 206, 0, 0.6), 0 8px 32px rgba(0, 100, 210, 0.4)'
-              }}
-            >
-              <div className="text-white text-3xl font-black font-display">TWD</div>
-            </div>
-            <h2 className="text-4xl font-display font-black text-[#0064D2] mb-2">THE WORLD DOOR</h2>
-            <p className="text-lg text-[#666666] font-display">
-              フルフィルメント・ビジネス・ターミナル
+            <h2 className="text-4xl font-black text-black mb-2" style={{fontFamily: 'Poppins, Montserrat, sans-serif'}}>THE WORLD DOOR</h2>
+            <p className="text-lg text-[#666666]" style={{fontFamily: 'Noto Sans JP, ヒラギノ角ゴ W4 JIS2004, sans-serif'}}>
+              フルフィルメントサービス
             </p>
           </div>
 
@@ -103,7 +95,7 @@ export default function LoginPage() {
                   <svg className="w-4 h-4 mr-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                   </svg>
-                  セラー
+                  <span style={{fontFamily: 'Noto Sans JP, ヒラギノ角ゴ W4 JIS2004, sans-serif'}}>セラー</span>
                 </button>
                 <button
                   type="button"
@@ -117,7 +109,7 @@ export default function LoginPage() {
                   <svg className="w-4 h-4 mr-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
                   </svg>
-                  スタッフ
+                  <span style={{fontFamily: 'Noto Sans JP, ヒラギノ角ゴ W4 JIS2004, sans-serif'}}>スタッフ</span>
                 </button>
               </div>
 
@@ -132,7 +124,7 @@ export default function LoginPage() {
                 )}
 
                 <div>
-                  <label htmlFor="email" className="block text-sm font-bold text-[#1A1A1A] mb-2">
+                  <label htmlFor="email" className="block text-sm font-bold text-[#1A1A1A] mb-2" style={{fontFamily: 'Noto Sans JP, ヒラギノ角ゴ W4 JIS2004, sans-serif'}}>
                     <svg className="w-4 h-4 mr-2 inline-block text-[#0064D2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 7.89a2 2 0 002.83 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
@@ -152,7 +144,7 @@ export default function LoginPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="password" className="block text-sm font-bold text-[#1A1A1A] mb-2">
+                  <label htmlFor="password" className="block text-sm font-bold text-[#1A1A1A] mb-2" style={{fontFamily: 'Noto Sans JP, ヒラギノ角ゴ W4 JIS2004, sans-serif'}}>
                     <svg className="w-4 h-4 mr-2 inline-block text-[#0064D2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
@@ -171,27 +163,20 @@ export default function LoginPage() {
                   />
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <input
-                      id="remember-me"
-                      name="remember-me"
-                      type="checkbox"
-                      className="h-4 w-4 text-[#0064D2] focus:ring-[#0064D2] border-[rgba(0,100,210,0.25)] rounded"
-                    />
-                    <label htmlFor="remember-me" className="ml-2 block text-sm text-[#666666]">
-                      ログイン状態を保持
-                    </label>
-                  </div>
-
-                  <div className="text-sm">
-                    <a href="#" className="font-medium text-[#0064D2] hover:text-[#0078FF] transition-colors">
-                      パスワードを忘れた？
-                    </a>
-                  </div>
+                {/* Remember Me Checkbox - Moved above */}
+                <div className="flex items-center">
+                  <input
+                    id="remember-me"
+                    name="remember-me"
+                    type="checkbox"
+                    className="h-4 w-4 text-[#0064D2] focus:ring-[#0064D2] border-[rgba(0,100,210,0.25)] rounded cursor-pointer"
+                  />
+                  <label htmlFor="remember-me" className="ml-2 block text-sm text-[#666666] cursor-pointer select-none" style={{fontFamily: 'Noto Sans JP, ヒラギノ角ゴ W4 JIS2004, sans-serif'}}>
+                    ログイン状態を保持する
+                  </label>
                 </div>
 
-                <div>
+                <div className="pt-2">
                   <button
                     type="submit"
                     disabled={isLoading}
@@ -204,29 +189,43 @@ export default function LoginPage() {
                     {isLoading ? (
                       <div className="flex items-center">
                         <div className="animate-spin h-5 w-5 border-b-2 border-white rounded-full mr-3"></div>
-                        認証中...
+                        <span style={{fontFamily: 'Noto Sans JP, ヒラギノ角ゴ W4 JIS2004, sans-serif'}}>認証中...</span>
                       </div>
                     ) : (
                       <>
                         <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                         </svg>
-                        ログイン
+                        <span style={{fontFamily: 'Noto Sans JP, ヒラギノ角ゴ W4 JIS2004, sans-serif'}}>ログイン</span>
                       </>
                     )}
                   </button>
+                </div>
+
+                {/* Password Reset Link - Moved below button */}
+                <div className="text-center pt-3">
+                  <a 
+                    href="#" 
+                    className="text-sm font-medium text-[#0064D2] hover:text-[#0078FF] transition-colors inline-flex items-center gap-1" 
+                    style={{fontFamily: 'Noto Sans JP, ヒラギノ角ゴ W4 JIS2004, sans-serif'}}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 11-4 0 2 2 0 014 0zm0 0v1a2 2 0 01-2 2H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    パスワードをお忘れですか？
+                  </a>
                 </div>
               </form>
 
               {/* Demo Credentials */}
               <div className="mt-6 p-4 bg-[rgba(248,250,254,0.97)] rounded-xl border border-[rgba(0,100,210,0.25)]">
-                <p className="text-xs text-[#666666] mb-3 font-bold">
+                <p className="text-xs text-[#666666] mb-3 font-bold" style={{fontFamily: 'Noto Sans JP, ヒラギノ角ゴ W4 JIS2004, sans-serif'}}>
                   <svg className="w-4 h-4 mr-1 inline-block text-[#0064D2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   テスト用ログイン情報
                 </p>
-                <div className="space-y-2 text-xs">
+                <div className="space-y-2 text-xs" style={{fontFamily: 'Noto Sans JP, ヒラギノ角ゴ W4 JIS2004, sans-serif'}}>
                   <div className="flex justify-between">
                     <span className="text-[#999999]">セラー:</span>
                     <span className="text-[#1A1A1A] font-mono">seller@example.com / password123</span>
@@ -240,33 +239,6 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Features */}
-          <div className="grid grid-cols-3 gap-4 mt-8">
-            <div className="text-center">
-              <div className="action-orb green mx-auto mb-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-              </div>
-              <p className="text-xs text-[#666666] font-bold">高セキュリティ</p>
-            </div>
-            <div className="text-center">
-              <div className="action-orb blue mx-auto mb-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-              <p className="text-xs text-[#666666] font-bold">高速処理</p>
-            </div>
-            <div className="text-center">
-              <div className="action-orb red mx-auto mb-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <p className="text-xs text-[#666666] font-bold">24時間対応</p>
-            </div>
-          </div>
         </div>
       </div>
     </div>
