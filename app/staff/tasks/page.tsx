@@ -207,262 +207,341 @@ export default function StaffTasksPage() {
     <DashboardLayout userType="staff">
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              タスク管理
-            </h1>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              作業タスクの詳細管理と進捗追跡
-            </p>
-          </div>
-          <div className="flex space-x-3">
-            <button className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-              一括操作
-            </button>
-            <button 
-              onClick={() => setShowCreateModal(true)}
-              className="button-primary"
-            >
-              新規タスク作成
-            </button>
+        <div className="intelligence-card americas">
+          <div className="p-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
+                  タスク管理
+                </h1>
+                <p className="mt-1 text-sm text-nexus-text-secondary">
+                  作業タスクの詳細管理と進捗追跡
+                </p>
+              </div>
+              <div className="flex space-x-3">
+                <button className="nexus-button">
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                  </svg>
+                  一括操作
+                </button>
+                <button 
+                  onClick={() => setShowCreateModal(true)}
+                  className="nexus-button primary"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  新規タスク作成
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">総タスク数</p>
+        <div className="intelligence-metrics">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+            <div className="intelligence-card global">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="action-orb">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                  </div>
+                  <span className="status-badge info">総計</span>
+                </div>
+                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
+                  {stats.total}
+                </div>
+                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
+                  総タスク数
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-gray-600 dark:text-gray-400">{stats.pending}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">待機中</p>
+
+            <div className="intelligence-card europe">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="action-orb">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <span className="status-badge">待機</span>
+                </div>
+                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
+                  {stats.pending}
+                </div>
+                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
+                  待機中
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-blue-600">{stats.inProgress}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">作業中</p>
+
+            <div className="intelligence-card asia">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="action-orb blue">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                  <span className="status-badge info">実行中</span>
+                </div>
+                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
+                  {stats.inProgress}
+                </div>
+                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
+                  作業中
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-green-600">{stats.completed}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">完了</p>
+
+            <div className="intelligence-card africa">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="action-orb green">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <span className="status-badge success">完了</span>
+                </div>
+                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
+                  {stats.completed}
+                </div>
+                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
+                  完了済み
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-red-600">{stats.highPriority}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">緊急</p>
+
+            <div className="intelligence-card americas">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="action-orb red">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <span className="status-badge danger">緊急</span>
+                </div>
+                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
+                  {stats.highPriority}
+                </div>
+                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
+                  緊急タスク
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                ステータス
-              </label>
-              <select
-                value={filter}
-                onChange={(e) => setFilter(e.target.value as any)}
-                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm"
-              >
-                <option value="all">すべて</option>
-                <option value="pending">待機中</option>
-                <option value="in_progress">作業中</option>
-                <option value="completed">完了</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                カテゴリー
-              </label>
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm"
-              >
-                <option value="all">すべて</option>
-                <option value="inspection">検品</option>
-                <option value="photography">撮影</option>
-                <option value="listing">出品</option>
-                <option value="shipping">出荷</option>
-                <option value="returns">返品</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                担当者
-              </label>
-              <select
-                value={assigneeFilter}
-                onChange={(e) => setAssigneeFilter(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm"
-              >
-                <option value="all">すべて</option>
-                {assignees.map(assignee => (
-                  <option key={assignee} value={assignee}>{assignee}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                期限
-              </label>
-              <select className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm">
-                <option value="all">すべて</option>
-                <option value="today">今日</option>
-                <option value="tomorrow">明日</option>
-                <option value="week">今週</option>
-                <option value="overdue">期限超過</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Task List */}
-          <div className="space-y-4">
-            {filteredTasks.map((task) => (
-              <div
-                key={task.id}
-                className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center space-x-3 flex-1">
-                    <span className="text-2xl">{categoryIcons[task.category]}</span>
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <h3 className="font-semibold text-gray-900 dark:text-white">
-                          {task.title}
-                        </h3>
-                        {task.productSku && (
-                          <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-xs font-medium rounded">
-                            {task.productSku}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                        {task.description}
-                      </p>
-                      {task.productName && (
-                        <p className="text-sm font-medium text-purple-600 dark:text-purple-400">
-                          📦 {task.productName}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${priorityColors[task.priority]}`}>
-                      {priorityLabels[task.priority]}
-                    </span>
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusColors[task.status]}`}>
-                      {statusLabels[task.status]}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-600 dark:text-gray-400 mb-3">
-                  <div>
-                    <span className="font-medium">担当:</span> {task.assignedTo}
-                  </div>
-                  <div>
-                    <span className="font-medium">期限:</span> {task.dueDate}
-                  </div>
-                  <div>
-                    <span className="font-medium">予想時間:</span> {task.estimatedTime}分
-                  </div>
-                  <div>
-                    <span className="font-medium">カテゴリ:</span> {categoryLabels[task.category]}
-                  </div>
-                </div>
-
-                {task.notes && (
-                  <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg mb-3">
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
-                      <span className="font-medium">備考:</span> {task.notes}
-                    </p>
-                  </div>
-                )}
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex space-x-2">
-                    {task.status === 'pending' && (
-                      <button
-                        onClick={() => updateTaskStatus(task.id, 'in_progress')}
-                        className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
-                      >
-                        開始
-                      </button>
-                    )}
-                    {task.status === 'in_progress' && (
-                      <button
-                        onClick={() => updateTaskStatus(task.id, 'completed')}
-                        className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
-                      >
-                        完了
-                      </button>
-                    )}
-                    <button 
-                      onClick={() => handleTaskDetail(task)}
-                      className="px-3 py-1 bg-gray-600 text-white text-sm rounded hover:bg-gray-700 transition-colors"
-                    >
-                      詳細
-                    </button>
-                    <button 
-                      onClick={() => handleTaskEdit(task)}
-                      className="px-3 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700 transition-colors"
-                    >
-                      編集
-                    </button>
-                  </div>
-                  
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    ID: {task.id}
-                  </div>
-                </div>
+        {/* Filters and Task List */}
+        <div className="intelligence-card global">
+          <div className="p-8">
+            {/* Filters */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  ステータス
+                </label>
+                <select
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value as any)}
+                  className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg text-sm text-nexus-text-primary"
+                >
+                  <option value="all">すべて</option>
+                  <option value="pending">待機中</option>
+                  <option value="in_progress">作業中</option>
+                  <option value="completed">完了</option>
+                </select>
               </div>
-            ))}
-          </div>
 
-          {filteredTasks.length === 0 && (
-            <div className="text-center py-8">
-              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-              </svg>
-              <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">タスクがありません</h3>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                条件に一致するタスクが見つかりません。
-              </p>
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  カテゴリー
+                </label>
+                <select
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg text-sm text-nexus-text-primary"
+                >
+                  <option value="all">すべて</option>
+                  <option value="inspection">検品</option>
+                  <option value="photography">撮影</option>
+                  <option value="listing">出品</option>
+                  <option value="shipping">出荷</option>
+                  <option value="returns">返品</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  担当者
+                </label>
+                <select
+                  value={assigneeFilter}
+                  onChange={(e) => setAssigneeFilter(e.target.value)}
+                  className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg text-sm text-nexus-text-primary"
+                >
+                  <option value="all">すべて</option>
+                  {assignees.map(assignee => (
+                    <option key={assignee} value={assignee}>{assignee}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  期限
+                </label>
+                <select className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg text-sm text-nexus-text-primary">
+                  <option value="all">すべて</option>
+                  <option value="today">今日</option>
+                  <option value="tomorrow">明日</option>
+                  <option value="week">今週</option>
+                  <option value="overdue">期限超過</option>
+                </select>
+              </div>
             </div>
-          )}
+
+            {/* Task List */}
+            <div className="holo-table">
+              <table className="w-full">
+                <thead className="holo-header">
+                  <tr>
+                    <th className="text-left">タスク情報</th>
+                    <th className="text-left">担当者</th>
+                    <th className="text-left">期限・時間</th>
+                    <th className="text-left">ステータス</th>
+                    <th className="text-right">アクション</th>
+                  </tr>
+                </thead>
+                <tbody className="holo-body">
+                  {filteredTasks.map((task) => (
+                    <tr key={task.id} className="holo-row">
+                      <td>
+                        <div className="flex items-start space-x-3">
+                          <span className="text-2xl">{categoryIcons[task.category]}</span>
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2 mb-1">
+                              <h3 className="font-semibold text-nexus-text-primary">
+                                {task.title}
+                              </h3>
+                              {task.productSku && (
+                                <span className="cert-nano cert-premium">
+                                  {task.productSku}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-nexus-text-secondary mb-2">
+                              {task.description}
+                            </p>
+                            {task.productName && (
+                              <p className="text-sm font-medium text-nexus-yellow">
+                                📦 {task.productName}
+                              </p>
+                            )}
+                            {task.notes && (
+                              <div className="mt-2 p-2 bg-nexus-bg-secondary rounded text-xs text-nexus-text-secondary">
+                                <span className="font-medium">備考:</span> {task.notes}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span className="text-sm font-medium text-nexus-text-primary">👤 {task.assignedTo}</span>
+                      </td>
+                      <td>
+                        <div className="text-sm">
+                          <div className="text-nexus-text-primary">📅 {task.dueDate}</div>
+                          <div className="text-nexus-text-secondary">⏱️ {task.estimatedTime}分</div>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="flex flex-col space-y-2">
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${priorityColors[task.priority]}`}>
+                            {priorityLabels[task.priority]}
+                          </span>
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusColors[task.status]}`}>
+                            {statusLabels[task.status]}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="text-right">
+                        <div className="flex justify-end space-x-2">
+                          {task.status === 'pending' && (
+                            <button
+                              onClick={() => updateTaskStatus(task.id, 'in_progress')}
+                              className="nexus-button primary text-xs"
+                            >
+                              開始
+                            </button>
+                          )}
+                          {task.status === 'in_progress' && (
+                            <button
+                              onClick={() => updateTaskStatus(task.id, 'completed')}
+                              className="nexus-button primary text-xs"
+                            >
+                              完了
+                            </button>
+                          )}
+                          <button 
+                            onClick={() => handleTaskDetail(task)}
+                            className="nexus-button text-xs"
+                          >
+                            詳細
+                          </button>
+                          <button 
+                            onClick={() => handleTaskEdit(task)}
+                            className="nexus-button text-xs"
+                          >
+                            編集
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {filteredTasks.length === 0 && (
+              <div className="text-center py-8">
+                <svg className="mx-auto h-12 w-12 text-nexus-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+                <h3 className="mt-2 text-sm font-medium text-nexus-text-primary">タスクがありません</h3>
+                <p className="mt-1 text-sm text-nexus-text-secondary">
+                  条件に一致するタスクが見つかりません。
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* New Task Modal (簡易実装) */}
         {showCreateModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-lg">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                新規タスク作成
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                デモ版では新規タスク作成機能は実装されていません。
-              </p>
-              <button
-                onClick={() => setShowCreateModal(false)}
-                className="button-primary w-full"
-              >
-                閉じる
-              </button>
+            <div className="intelligence-card global mx-4 max-w-lg w-full">
+              <div className="p-6">
+                <h3 className="text-lg font-display font-medium text-nexus-text-primary mb-4">
+                  新規タスク作成
+                </h3>
+                <p className="text-sm text-nexus-text-secondary mb-4">
+                  デモ版では新規タスク作成機能は実装されていません。
+                </p>
+                <button
+                  onClick={() => setShowCreateModal(false)}
+                  className="nexus-button primary w-full"
+                >
+                  閉じる
+                </button>
+              </div>
             </div>
           </div>
         )}
