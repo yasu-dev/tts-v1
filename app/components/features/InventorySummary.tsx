@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { ApiClient, API_CONFIG } from '@/lib/api-config';
 
 interface InventoryStats {
   statusStats: Record<string, number>;
@@ -16,17 +17,12 @@ export default function InventorySummary() {
 
   const fetchStats = async () => {
     try {
-      setIsLoading(true);
-      const response = await fetch('/api/inventory/stats');
-      if (!response.ok) {
-        throw new Error('Failed to fetch stats');
-      }
-      const data = await response.json();
+      const data = await ApiClient.get<any>(API_CONFIG.endpoints.inventory.stats);
       setStats(data);
       setError(null);
     } catch (err) {
-      setError('統計データの取得に失敗しました');
-      console.error('Stats fetch error:', err);
+      console.error('Failed to fetch inventory stats:', err);
+      setError('在庫統計の取得に失敗しました');
     } finally {
       setIsLoading(false);
     }
@@ -34,8 +30,10 @@ export default function InventorySummary() {
 
   useEffect(() => {
     fetchStats();
-    // Auto-refresh every 5 minutes
-    const interval = setInterval(fetchStats, 5 * 60 * 1000);
+    
+    // 30秒ごとに自動更新
+    const interval = setInterval(fetchStats, 30000);
+    
     return () => clearInterval(interval);
   }, []);
 
@@ -244,7 +242,7 @@ export default function InventorySummary() {
         <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
         </svg>
-        5分ごとに自動更新
+        30秒ごとに自動更新
       </div>
     </div>
   );

@@ -102,7 +102,7 @@ export default function InspectionPage() {
   ];
 
   useEffect(() => {
-    fetch('/data/staff-mock.json')
+    fetch('/api/staff/dashboard')
       .then(res => res.json())
       .then(data => {
         setInspectionData(data.inspectionData);

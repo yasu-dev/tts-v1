@@ -90,7 +90,7 @@ export default function LocationPage() {
   ];
 
   useEffect(() => {
-    fetch('/data/staff-mock.json')
+    fetch('/api/staff/dashboard')
       .then(res => res.json())
       .then(data => {
         setLocationData(data.locationData);

@@ -28,8 +28,8 @@ export default function MonthlyReportsPage() {
   useEffect(() => {
     const loadAnalyticsData = async () => {
       try {
-        const response = await fetch('/data/analytics-mock.json');
-        const data = await response.json();
+            const response = await fetch('/api/reports/analytics');
+      const data = await response.json();
         setAnalyticsData(data);
       } catch (error) {
         console.error('Analytics data loading error:', error);

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { ApiClient, API_CONFIG } from '@/lib/api-config';
 
 export default function LoginPage() {
   const [userType, setUserType] = useState<'seller' | 'staff'>('seller');
@@ -17,30 +18,25 @@ export default function LoginPage() {
     setError('');
     
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const data = await ApiClient.post<{ success: boolean; user?: any; error?: string }>(
+        API_CONFIG.endpoints.auth.login,
+        { email, password }
+      );
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error || 'ログインに失敗しました');
-        setIsLoading(false);
-        return;
-      }
-
-      // ログイン成功 - ユーザーのロールに基づいてリダイレクト
-      if (data.user.role === 'staff') {
-        router.push('/staff/dashboard');
+      if (data.success && data.user) {
+        // ユーザータイプに基づいてリダイレクト
+        if (data.user.role === 'staff') {
+          router.push('/staff/dashboard');
+        } else {
+          router.push('/dashboard');
+        }
       } else {
-        router.push('/dashboard');
+        setError(data.error || 'ログインに失敗しました');
       }
-    } catch (err) {
-      setError('ネットワークエラーが発生しました');
+    } catch (error) {
+      console.error('Login error:', error);
+      setError('ログインに失敗しました');
+    } finally {
       setIsLoading(false);
     }
   };

@@ -126,7 +126,7 @@ export default function KPIDashboard() {
   useEffect(() => {
     const loadKPIData = async () => {
       try {
-        const response = await fetch('/data/analytics-mock.json');
+        const response = await fetch('/api/reports/analytics');
         const data = await response.json();
         setKpiData(data);
       } catch (error) {

@@ -29,7 +29,7 @@ export default function StaffShippingPage() {
 
   useEffect(() => {
     // Load shipping data from mock file
-    fetch('/data/staff-mock.json')
+    fetch('/api/staff/dashboard')
       .then(res => res.json())
       .then(data => {
         // Convert staff shipping data to ShippingItem format

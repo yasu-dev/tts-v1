@@ -27,7 +27,7 @@ export default function NotificationPanel({ showAll = false, limit = 5 }: Notifi
   useEffect(() => {
     const loadNotifications = async () => {
       try {
-        const response = await fetch('/data/analytics-mock.json');
+        const response = await fetch('/api/reports/analytics');
         const data = await response.json();
         setNotifications(data.notifications);
       } catch (error) {

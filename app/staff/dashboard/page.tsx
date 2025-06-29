@@ -50,8 +50,8 @@ export default function StaffDashboard() {
   const timelineRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Load staff data from mock file
-    fetch('/data/staff-mock.json')
+    // Load staff data from API
+    fetch('/api/staff/dashboard')
       .then(res => res.json())
       .then((data: StaffData) => {
         setStaffData(data);

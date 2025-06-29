@@ -44,7 +44,7 @@ export default function ReturnsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    fetch('/data/staff-mock.json')
+    fetch('/api/staff/dashboard')
       .then(res => res.json())
       .then(data => {
         setReturnsData(data.returnsData);
