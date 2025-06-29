@@ -186,240 +186,319 @@ export default function StaffShippingPage() {
     <DashboardLayout userType="staff">
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              検品・出荷管理
-            </h1>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              商品検品から出荷までの一括管理
-            </p>
-          </div>
-          <div className="flex space-x-3">
-            <button 
-              onClick={() => handlePrintLabel()}
-              className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              配送ラベル印刷
-            </button>
-            <button 
-              onClick={() => alert('一括処理機能（デモ版では利用できません）')}
-              className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              一括処理
-            </button>
-            <button 
-              onClick={() => setIsBarcodeScannerOpen(true)}
-              className="button-primary"
-            >
-              バーコードスキャン
-            </button>
+        <div className="intelligence-card oceania">
+          <div className="p-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
+                  検品・出荷管理
+                </h1>
+                <p className="mt-1 text-sm text-nexus-text-secondary">
+                  商品検品から出荷までの一括管理
+                </p>
+              </div>
+              <div className="flex space-x-3">
+                <button 
+                  onClick={() => handlePrintLabel()}
+                  className="nexus-button"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H9.5a2 2 0 01-2-2V5a2 2 0 00-2-2H4a2 2 0 00-2 2v6a2 2 0 002 2h2.5" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m15 12-3-3-3 3" />
+                  </svg>
+                  配送ラベル印刷
+                </button>
+                <button 
+                  onClick={() => alert('一括処理機能（デモ版では利用できません）')}
+                  className="nexus-button"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                  一括処理
+                </button>
+                <button 
+                  onClick={() => setIsBarcodeScannerOpen(true)}
+                  className="nexus-button primary"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V6a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1zm12 0h2a1 1 0 001-1V6a1 1 0 00-1-1h-2a1 1 0 00-1 1v1a1 1 0 001 1zM5 20h2a1 1 0 001-1v-1a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1z" />
+                  </svg>
+                  バーコードスキャン
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">総件数</p>
+        <div className="intelligence-metrics">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="intelligence-card global">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="action-orb">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                    </svg>
+                  </div>
+                  <span className="status-badge info">総計</span>
+                </div>
+                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
+                  {stats.total}
+                </div>
+                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
+                  総件数
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-orange-600">{stats.pendingInspection}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">検品待ち</p>
+
+            <div className="intelligence-card americas">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="action-orb orange">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                  </div>
+                  <span className="status-badge warning">待機中</span>
+                </div>
+                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
+                  {stats.pendingInspection}
+                </div>
+                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
+                  検品待ち
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-purple-600">{stats.readyToShip}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">出荷準備完了</p>
+
+            <div className="intelligence-card europe">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="action-orb purple">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                  </div>
+                  <span className="status-badge success">準備完了</span>
+                </div>
+                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
+                  {stats.readyToShip}
+                </div>
+                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
+                  出荷準備完了
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-red-600">{stats.urgent}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">緊急案件</p>
+
+            <div className="intelligence-card asia">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="action-orb red">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <span className="status-badge danger">緊急</span>
+                </div>
+                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
+                  {stats.urgent}
+                </div>
+                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
+                  緊急案件
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                ステータス
-              </label>
-              <select
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm"
-              >
-                <option value="all">すべて</option>
-                <option value="pending_inspection">検品待ち</option>
-                <option value="inspected">検品完了</option>
-                <option value="packed">梱包完了</option>
-                <option value="shipped">出荷済み</option>
-                <option value="delivered">配送完了</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                優先度
-              </label>
-              <select
-                value={selectedPriority}
-                onChange={(e) => setSelectedPriority(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm"
-              >
-                <option value="all">すべて</option>
-                <option value="urgent">緊急</option>
-                <option value="normal">通常</option>
-                <option value="low">低</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                期限
-              </label>
-              <select className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm">
-                <option value="all">すべて</option>
-                <option value="today">今日</option>
-                <option value="tomorrow">明日</option>
-                <option value="week">今週</option>
-                <option value="overdue">期限超過</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Shipping Items List */}
-          <div className="space-y-4">
-            {filteredItems.map((item) => (
-              <div
-                key={item.id}
-                className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center space-x-4">
-                    <div className="h-12 w-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-lg flex items-center justify-center text-white font-medium">
-                      📦
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-white">
-                        {item.productName}
-                      </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        注文番号: {item.orderNumber} | SKU: {item.productSku}
-                      </p>
-                      <p className="text-sm font-medium text-purple-600 dark:text-purple-400">
-                        お客様: {item.customer}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${priorityColors[item.priority]}`}>
-                      {priorityLabels[item.priority]}
-                    </span>
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusColors[item.status]}`}>
-                      {statusLabels[item.status]}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">配送先</p>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      {item.shippingAddress}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">配送方法</p>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      {item.shippingMethod}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">商品価値</p>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      ¥{item.value.toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-
-                {item.inspectionNotes && (
-                  <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg mb-4">
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
-                      <span className="font-medium">検品メモ:</span> {item.inspectionNotes}
-                    </p>
-                  </div>
-                )}
-
-                {item.trackingNumber && (
-                  <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg mb-4">
-                    <p className="text-sm text-blue-700 dark:text-blue-300">
-                      <span className="font-medium">追跡番号:</span> {item.trackingNumber}
-                    </p>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between">
-                  <div className="flex space-x-2">
-                    {getNextStatus(item.status) && (
-                      <button
-                        onClick={() => updateItemStatus(item.id, getNextStatus(item.status)!)}
-                        className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
-                      >
-                        {getNextStatusLabel(item.status)}
-                      </button>
-                    )}
-                    <button 
-                      onClick={() => alert(`詳細情報\n商品: ${item.productName}\n注文: ${item.orderNumber}\n顧客: ${item.customer}`)}
-                      className="px-3 py-1 bg-gray-600 text-white text-sm rounded hover:bg-gray-700 transition-colors"
-                    >
-                      詳細
-                    </button>
-                    {item.status === 'inspected' && (
-                      <button 
-                        onClick={() => handlePackingInstruction(item)}
-                        className="px-3 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700 transition-colors"
-                      >
-                        梱包指示
-                      </button>
-                    )}
-                    {item.status === 'packed' && (
-                      <button 
-                        onClick={() => handlePrintLabel(item)}
-                        className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
-                      >
-                        配送ラベル
-                      </button>
-                    )}
-                  </div>
-                  
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    期限: {item.dueDate}
-                  </div>
-                </div>
+        {/* Filters and Shipping Items */}
+        <div className="intelligence-card global">
+          <div className="p-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  ステータス
+                </label>
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg text-sm text-nexus-text-primary"
+                >
+                  <option value="all">すべて</option>
+                  <option value="pending_inspection">検品待ち</option>
+                  <option value="inspected">検品完了</option>
+                  <option value="packed">梱包完了</option>
+                  <option value="shipped">出荷済み</option>
+                  <option value="delivered">配送完了</option>
+                </select>
               </div>
-            ))}
-          </div>
 
-          {filteredItems.length === 0 && (
-            <div className="text-center py-8">
-              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-              </svg>
-              <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">出荷案件がありません</h3>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                条件に一致する出荷案件が見つかりません。
-              </p>
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  優先度
+                </label>
+                <select
+                  value={selectedPriority}
+                  onChange={(e) => setSelectedPriority(e.target.value)}
+                  className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg text-sm text-nexus-text-primary"
+                >
+                  <option value="all">すべて</option>
+                  <option value="urgent">緊急</option>
+                  <option value="normal">通常</option>
+                  <option value="low">低</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  期限
+                </label>
+                <select className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg text-sm text-nexus-text-primary">
+                  <option value="all">すべて</option>
+                  <option value="today">今日</option>
+                  <option value="tomorrow">明日</option>
+                  <option value="week">今週</option>
+                  <option value="overdue">期限超過</option>
+                </select>
+              </div>
             </div>
-          )}
+
+            {/* Shipping Items List */}
+            <div className="space-y-6">
+              {filteredItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="intelligence-card oceania hover:shadow-lg transition-all"
+                >
+                  <div className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center space-x-4">
+                        <div className="action-orb">
+                          📦
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-nexus-text-primary">
+                            {item.productName}
+                          </h3>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <span className="text-sm text-nexus-text-secondary">
+                              注文番号: {item.orderNumber}
+                            </span>
+                            <span className="cert-nano cert-premium">
+                              {item.productSku}
+                            </span>
+                          </div>
+                          <p className="text-sm font-medium text-nexus-yellow mt-1">
+                            お客様: {item.customer}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${priorityColors[item.priority]}`}>
+                          {priorityLabels[item.priority]}
+                        </span>
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusColors[item.status]}`}>
+                          {statusLabels[item.status]}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <p className="text-sm text-nexus-text-secondary">配送先</p>
+                        <p className="text-sm font-medium text-nexus-text-primary">
+                          {item.shippingAddress}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-nexus-text-secondary">配送方法</p>
+                        <p className="text-sm font-medium text-nexus-text-primary">
+                          {item.shippingMethod}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-nexus-text-secondary">商品価値</p>
+                        <p className="text-sm font-display font-medium text-nexus-text-primary">
+                          ¥{item.value.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+
+                    {item.inspectionNotes && (
+                      <div className="bg-nexus-bg-secondary p-3 rounded-lg mb-4">
+                        <p className="text-sm text-nexus-text-primary">
+                          <span className="font-medium">検品メモ:</span> {item.inspectionNotes}
+                        </p>
+                      </div>
+                    )}
+
+                    {item.trackingNumber && (
+                      <div className="intelligence-card americas mb-4">
+                        <div className="p-3">
+                          <p className="text-sm text-nexus-text-primary">
+                            <span className="font-medium">追跡番号:</span> 
+                            <span className="cert-nano cert-mint ml-2">{item.trackingNumber}</span>
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex space-x-2">
+                        {getNextStatus(item.status) && (
+                          <button
+                            onClick={() => updateItemStatus(item.id, getNextStatus(item.status)!)}
+                            className="nexus-button primary text-sm"
+                          >
+                            {getNextStatusLabel(item.status)}
+                          </button>
+                        )}
+                        <button 
+                          onClick={() => alert(`詳細情報\n商品: ${item.productName}\n注文: ${item.orderNumber}\n顧客: ${item.customer}`)}
+                          className="nexus-button text-sm"
+                        >
+                          詳細
+                        </button>
+                        {item.status === 'inspected' && (
+                          <button 
+                            onClick={() => handlePackingInstruction(item)}
+                            className="nexus-button text-sm"
+                          >
+                            梱包指示
+                          </button>
+                        )}
+                        {item.status === 'packed' && (
+                          <button 
+                            onClick={() => handlePrintLabel(item)}
+                            className="nexus-button text-sm"
+                          >
+                            配送ラベル
+                          </button>
+                        )}
+                      </div>
+                      
+                      <div className="text-xs text-nexus-text-secondary">
+                        期限: {item.dueDate}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {filteredItems.length === 0 && (
+              <div className="text-center py-8">
+                <svg className="mx-auto h-12 w-12 text-nexus-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                </svg>
+                <h3 className="mt-2 text-sm font-medium text-nexus-text-primary">出荷案件がありません</h3>
+                <p className="mt-1 text-sm text-nexus-text-secondary">
+                  条件に一致する出荷案件が見つかりません。
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Barcode Scanner Modal */}
