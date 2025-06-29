@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import DashboardLayout from '../../components/DashboardLayout';
+import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 
 interface ChecklistItem {
   id: string;

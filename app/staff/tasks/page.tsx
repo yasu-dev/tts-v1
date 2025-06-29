@@ -1,6 +1,6 @@
 'use client';
 
-import DashboardLayout from '../../components/DashboardLayout';
+import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import TaskDetailModal from '../../components/TaskDetailModal';
 import EditModal from '../../components/EditModal';
 import { useState, useEffect } from 'react';

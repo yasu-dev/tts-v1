@@ -1,6 +1,6 @@
 'use client';
 
-import DashboardLayout from '../../components/DashboardLayout';
+import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import QRCodeModal from '../../components/QRCodeModal';
 import { useState, useEffect } from 'react';
 

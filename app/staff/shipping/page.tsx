@@ -1,6 +1,6 @@
 'use client';
 
-import DashboardLayout from '../../components/DashboardLayout';
+import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import BarcodeScanner from '../../components/BarcodeScanner';
 import { useState, useEffect } from 'react';
 
