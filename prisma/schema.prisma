@@ -6,53 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
-enum ProductStatus {
-  inbound      // 入庫
-  inspection   // 検品
-  storage      // 保管
-  listing      // 出品
-  ordered      // 受注
-  shipping     // 出荷
-  delivery     // 配送
-  sold         // 売約済み
-  returned     // 返品
-}
-
-enum ProductCategory {
-  camera_body  // カメラ本体
-  lens         // レンズ
-  watch        // 腕時計
-  accessory    // アクセサリ
-}
-
-enum ProductCondition {
-  new          // 新品
-  like_new     // 新品同様
-  excellent    // 極美品
-  very_good    // 美品
-  good         // 良品
-  fair         // 中古美品
-  poor         // 中古
-}
-
-enum UserRole {
-  seller       // セラー
-  staff        // スタッフ
-  admin        // 管理者
-}
-
-enum OrderStatus {
-  pending      // 保留中
-  confirmed    // 確認済み
-  processing   // 処理中
-  shipped      // 出荷済み
-  delivered    // 配送完了
-  cancelled    // キャンセル
-  returned     // 返品
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
@@ -60,7 +15,7 @@ model User {
   email       String   @unique
   username    String   @unique
   password    String
-  role        UserRole @default(seller)
+  role        String   @default("seller") // seller, staff, admin
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -89,10 +44,10 @@ model Product {
   id           String           @id @default(cuid())
   name         String
   sku          String           @unique
-  category     ProductCategory
-  status       ProductStatus    @default(inbound)
+  category     String           // camera_body, lens, watch, accessory
+  status       String           @default("inbound") // inbound, inspection, storage, listing, ordered, shipping, delivery, sold, returned
   price        Int
-  condition    ProductCondition
+  condition    String           // new, like_new, excellent, very_good, good, fair, poor
   description  String?
   imageUrl     String?
   entryDate    DateTime         @default(now())
@@ -159,7 +114,7 @@ model Order {
   id            String      @id @default(cuid())
   orderNumber   String      @unique
   customerId    String
-  status        OrderStatus @default(pending)
+  status        String      @default("pending") // pending, confirmed, processing, shipped, delivered, cancelled, returned
   totalAmount   Int
   shippingAddress String?
   paymentMethod String?
@@ -201,7 +156,7 @@ model Activity {
   userId      String?
   productId   String?
   orderId     String?
-  metadata    Json?    // Additional data specific to activity type
+  metadata    String?  // JSON data stored as string
   createdAt   DateTime @default(now())
 
   // Relations

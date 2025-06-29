@@ -1,6 +1,7 @@
 'use client';
 
 import DashboardLayout from '../components/layouts/DashboardLayout';
+import InventorySummary from '../components/features/InventorySummary';
 import { useState } from 'react';
 
 export default function DashboardPage() {
@@ -53,6 +54,9 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* Real-time Inventory Summary */}
+        <InventorySummary />
 
         {/* Stats Overview - Intelligence Metrics Style */}
         <div className="intelligence-metrics">

@@ -30,17 +30,100 @@ export default function FlowNavigationBar({
   useEffect(() => {
     const loadFlowData = async () => {
       try {
-        const response = await fetch('/data/analytics-mock.json');
+        const response = await fetch('/api/inventory/stats');
         const data = await response.json();
-        setFlowData(data.flowStages);
+        
+        // Transform API data to flow stages
+        const stages: FlowStage[] = [
+          {
+            id: 'inbound',
+            name: '入庫',
+            icon: '📥',
+            color: '#3B82F6',
+            count: data.statusStats['入庫'] || 0,
+            avgDays: 1
+          },
+          {
+            id: 'inspection',
+            name: '検品',
+            icon: '🔍',
+            color: '#F59E0B',
+            count: data.statusStats['検品'] || 0,
+            avgDays: 2
+          },
+          {
+            id: 'storage',
+            name: '保管',
+            icon: '📦',
+            color: '#10B981',
+            count: data.statusStats['保管'] || 0,
+            avgDays: 30
+          },
+          {
+            id: 'listing',
+            name: '出品',
+            icon: '🏷️',
+            color: '#8B5CF6',
+            count: data.statusStats['出品'] || 0,
+            avgDays: 7
+          },
+          {
+            id: 'ordered',
+            name: '受注',
+            icon: '📋',
+            color: '#F97316',
+            count: data.statusStats['受注'] || 0,
+            avgDays: 1
+          },
+          {
+            id: 'shipping',
+            name: '出荷',
+            icon: '🚛',
+            color: '#6366F1',
+            count: data.statusStats['出荷'] || 0,
+            avgDays: 1
+          },
+          {
+            id: 'delivery',
+            name: '配送',
+            icon: '📦',
+            color: '#06B6D4',
+            count: data.statusStats['配送'] || 0,
+            avgDays: 3
+          },
+          {
+            id: 'sold',
+            name: '売約済み',
+            icon: '✅',
+            color: '#6B7280',
+            count: data.statusStats['売約済み'] || 0,
+            avgDays: 0
+          },
+          {
+            id: 'returned',
+            name: '返品',
+            icon: '↩️',
+            color: '#EF4444',
+            count: data.statusStats['返品'] || 0,
+            avgDays: 7
+          }
+        ];
+        
+        setFlowData(stages);
       } catch (error) {
         console.error('Flow data loading error:', error);
+        // Fallback to empty stages if API fails
+        setFlowData([]);
       } finally {
         setLoading(false);
       }
     };
 
     loadFlowData();
+    
+    // Auto-refresh every 5 minutes
+    const interval = setInterval(loadFlowData, 5 * 60 * 1000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleStageClick = (stageId: string) => {

@@ -4,109 +4,110 @@ import { AuthService } from '@/lib/auth';
 
 const prisma = new PrismaClient();
 
-export async function GET() {
-  // This is handled by Server Components for data fetching
-  // Keeping existing static data for demo purposes
-  const inventoryData = [
-    {
-      id: '1',
-      name: 'Canon EOS R5',
-      sku: 'CAM-001',
-      category: 'カメラ本体',
-      status: 'storage',
-      location: 'A区画-01',
-      price: 450000,
-      condition: '極美品',
-      entryDate: '2024-06-20',
-      imageUrl: null,
-    },
-    {
-      id: '2',
-      name: 'Sony FE 24-70mm f/2.8',
-      sku: 'LEN-002',
-      category: 'レンズ',
-      status: 'listing',
-      location: 'A区画-05',
-      price: 280000,
-      condition: '美品',
-      entryDate: '2024-06-22',
-      imageUrl: null,
-    },
-    {
-      id: '3',
-      name: 'Rolex Submariner',
-      sku: 'WAT-001',
-      category: '腕時計',
-      status: 'sold',
-      location: 'V区画-12',
-      price: 1200000,
-      condition: '中古美品',
-      entryDate: '2024-06-15',
-      imageUrl: null,
-    },
-    {
-      id: '4',
-      name: 'Hermès Birkin 30',
-      sku: 'ACC-003',
-      category: 'アクセサリ',
-      status: 'inspection',
-      location: 'H区画-08',
-      price: 2500000,
-      condition: '新品同様',
-      entryDate: '2024-06-28',
-      imageUrl: null,
-    },
-    {
-      id: '5',
-      name: 'Leica M11',
-      sku: 'CAM-005',
-      category: 'カメラ本体',
-      status: 'inbound',
-      location: '入庫待ち',
-      price: 980000,
-      condition: '美品',
-      entryDate: '2024-06-28',
-      imageUrl: null,
-    },
-    {
-      id: '6',
-      name: 'Nikon Z9',
-      sku: 'CAM-006',
-      category: 'カメラ本体',
-      status: 'storage',
-      location: 'A区画-03',
-      price: 520000,
-      condition: '極美品',
-      entryDate: '2024-06-25',
-      imageUrl: null,
-    },
-    {
-      id: '7',
-      name: 'Canon EF 85mm f/1.4L',
-      sku: 'LEN-007',
-      category: 'レンズ',
-      status: 'listing',
-      location: 'A区画-07',
-      price: 180000,
-      condition: '美品',
-      entryDate: '2024-06-23',
-      imageUrl: null,
-    },
-    {
-      id: '8',
-      name: 'Omega Speedmaster',
-      sku: 'WAT-008',
-      category: '腕時計',
-      status: 'storage',
-      location: 'V区画-05',
-      price: 650000,
-      condition: '中古美品',
-      entryDate: '2024-06-21',
-      imageUrl: null,
-    },
-  ];
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '20');
+    const status = searchParams.get('status');
+    const category = searchParams.get('category');
+    const search = searchParams.get('search');
+    const offset = (page - 1) * limit;
 
-  return NextResponse.json(inventoryData);
+    // Build where clause
+    const where: any = {};
+    
+    if (status) {
+      where.status = status.replace('入庫', 'inbound')
+                          .replace('検品', 'inspection')
+                          .replace('保管', 'storage')
+                          .replace('出品', 'listing')
+                          .replace('受注', 'ordered')
+                          .replace('出荷', 'shipping')
+                          .replace('配送', 'delivery')
+                          .replace('売約済み', 'sold')
+                          .replace('返品', 'returned');
+    }
+    
+    if (category) {
+      where.category = category.replace('カメラ本体', 'camera_body')
+                              .replace('レンズ', 'lens')
+                              .replace('腕時計', 'watch')
+                              .replace('アクセサリ', 'accessory');
+    }
+    
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { sku: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    // Get products with pagination
+    const [products, totalCount] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        include: {
+          currentLocation: true,
+          seller: {
+            select: { id: true, username: true, email: true }
+          }
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: offset,
+        take: limit,
+      }),
+      prisma.product.count({ where })
+    ]);
+
+    // Transform to match UI expectations
+    const inventoryData = products.map(product => ({
+      id: product.id,
+      name: product.name,
+      sku: product.sku,
+      category: product.category.replace('camera_body', 'カメラ本体')
+                               .replace('lens', 'レンズ')
+                               .replace('watch', '腕時計')
+                               .replace('accessory', 'アクセサリ'),
+      status: product.status.replace('inbound', '入庫')
+                           .replace('inspection', '検品')
+                           .replace('storage', '保管')
+                           .replace('listing', '出品')
+                           .replace('ordered', '受注')
+                           .replace('shipping', '出荷')
+                           .replace('delivery', '配送')
+                           .replace('sold', '売約済み')
+                           .replace('returned', '返品'),
+      location: product.currentLocation?.code || '未設定',
+      price: product.price,
+      condition: product.condition.replace('new', '新品')
+                                 .replace('like_new', '新品同様')
+                                 .replace('excellent', '極美品')
+                                 .replace('very_good', '美品')
+                                 .replace('good', '良品')
+                                 .replace('fair', '中古美品')
+                                 .replace('poor', '中古'),
+      entryDate: product.entryDate.toISOString().split('T')[0],
+      imageUrl: product.imageUrl,
+      seller: product.seller,
+    }));
+
+    return NextResponse.json({
+      data: inventoryData,
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        pages: Math.ceil(totalCount / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Inventory fetch error:', error);
+    return NextResponse.json(
+      { error: '在庫データの取得中にエラーが発生しました' },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(request: NextRequest) {

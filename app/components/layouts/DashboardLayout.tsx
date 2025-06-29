@@ -5,6 +5,7 @@ import NexusHeader from './NexusHeader';
 import NexusSidebar from './NexusSidebar';
 import SearchModal from '../SearchModal';
 import NotificationPanel from '../NotificationPanel';
+import FlowNavigationBar from '../features/flow-nav/FlowNavigationBar';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -216,6 +217,21 @@ export default function DashboardLayout({
 
   const menuItems = userType === 'staff' ? staffMenuItems : sellerMenuItems;
 
+  const getCurrentStage = () => {
+    // Map current path to flow stage
+    if (pathname.includes('/inventory')) {
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        const filter = params.get('filter');
+        return filter || 'storage';
+      }
+      return 'storage';
+    }
+    if (pathname.includes('/tasks')) return 'inspection';
+    if (pathname.includes('/shipping')) return 'shipping';
+    return undefined;
+  };
+
   return (
     <div className="main-layout">
       {/* Sidebar */}
@@ -277,6 +293,9 @@ export default function DashboardLayout({
             </div>
           </div>
         </header>
+
+        {/* Flow Navigation Bar */}
+        <FlowNavigationBar currentStage={getCurrentStage()} compact={true} />
 
         {/* Page Content */}
         <div className="page-container">

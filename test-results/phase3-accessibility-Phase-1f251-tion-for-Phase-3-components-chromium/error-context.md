@@ -42,6 +42,8 @@
   - button "プロフィール":
     - img
     - text: プロフィール
+  - heading "商品フロー" [level=3]
+  - text: "総在庫: 0件"
   - heading "ダッシュボード" [level=1]
   - heading "グローバル統合ビュー" [level=2]:
     - img
@@ -53,6 +55,9 @@
   - button "レポート出力":
     - img
     - text: レポート出力
+  - img
+  - paragraph: 統計データの取得に失敗しました
+  - button "再試行"
   - img
   - text: +12.5% ¥48,470,000 グローバル収益
   - img
