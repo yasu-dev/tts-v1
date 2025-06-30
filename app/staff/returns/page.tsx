@@ -115,11 +115,31 @@ export default function ReturnsPage() {
   };
 
   const getReasonIcon = (reason: string) => {
-    if (reason.includes('動作不良')) return '⚠️';
-    if (reason.includes('破損')) return '💥';
-    if (reason.includes('説明相違')) return '📝';
-    if (reason.includes('顧客都合')) return '👤';
-    return '📋';
+    if (reason.includes('動作不良')) return (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+    );
+    if (reason.includes('破損')) return (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    );
+    if (reason.includes('説明相違')) return (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+    );
+    if (reason.includes('顧客都合')) return (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+      </svg>
+    );
+    return (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+      </svg>
+    );
   };
 
   if (!returnsData) {
@@ -217,9 +237,9 @@ export default function ReturnsPage() {
           <div className="p-8">
             <div className="flex space-x-1 bg-nexus-bg-secondary p-1 rounded-lg mb-6">
               {[
-                { key: 'list', label: '返品一覧', icon: '📋' },
-                { key: 'inspection', label: '検品作業', icon: '🔍' },
-                { key: 'history', label: '処理履歴', icon: '📊' },
+                { key: 'list', label: '返品一覧' },
+                { key: 'inspection', label: '検品作業' },
+                { key: 'history', label: '処理履歴' },
               ].map((tab) => (
                 <button
                   key={tab.key}
@@ -230,7 +250,6 @@ export default function ReturnsPage() {
                       : 'text-nexus-text-secondary hover:text-nexus-text-primary'
                   }`}
                 >
-                  <span>{tab.icon}</span>
                   <span>{tab.label}</span>
                 </button>
               ))}
@@ -605,9 +624,9 @@ export default function ReturnsPage() {
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       {[
-                        { value: 'resell', label: '再販可能', icon: '✅', color: 'asia' },
-                        { value: 'repair', label: '修理必要', icon: '🔧', color: 'americas' },
-                        { value: 'dispose', label: '廃棄', icon: '❌', color: 'europe' }
+                        { value: 'resell', label: '再販可能', color: 'asia' },
+                        { value: 'repair', label: '修理必要', color: 'americas' },
+                        { value: 'dispose', label: '廃棄', color: 'europe' }
                       ].map((option) => (
                         <button
                           key={option.value}
@@ -618,7 +637,6 @@ export default function ReturnsPage() {
                               : 'border-nexus-border hover:border-nexus-yellow'
                           }`}
                         >
-                          <div className="text-3xl mb-2">{option.icon}</div>
                           <div className="font-medium text-nexus-text-primary">{option.label}</div>
                         </button>
                       ))}

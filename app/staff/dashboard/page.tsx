@@ -152,6 +152,26 @@ export default function StaffDashboard() {
     urgent: staffData?.staffTasks.urgentTasks.filter(t => t.status !== 'completed').length || 0,
   };
 
+  const taskPrioritySettings = {
+    high: '緊急',
+    medium: '中',
+    low: '低',
+  };
+
+  const taskCategorySettings = {
+    inspection: '',
+    photography: '',
+    shipping: '',
+    returns: '',
+  };
+
+  const taskCategories = [
+    { key: 'inspection', label: '検品', icon: '' },
+    { key: 'photography', label: '撮影', icon: '' },
+    { key: 'shipping', label: '出荷', icon: '' },
+    { key: 'returns', label: '返品', icon: '' },
+  ];
+
   if (!staffData) {
     return (
       <DashboardLayout userType="staff">
@@ -521,15 +541,24 @@ export default function StaffDashboard() {
                         </div>
                       </td>
                       <td>
-                        <span className="text-sm text-nexus-text-primary">👤 {task.assignee}</span>
-                      </td>
-                      <td>
-                        <span className="text-sm text-nexus-text-primary">📅 {task.dueDate}</span>
+                        <span className="text-sm text-nexus-text-primary">
+                          <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                          {task.assignee}
+                        </span>
+                        <span className="text-xs text-nexus-text-muted">•</span>
+                        <span className="text-sm text-nexus-text-primary">
+                          <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          {task.dueDate}
+                        </span>
                       </td>
                       <td>
                         <div className="flex items-center space-x-2">
                           <span className={`px-2 py-1 text-xs font-medium rounded-full ${priorityColors[task.priority]}`}>
-                            {priorityLabels[task.priority]}
+                            {taskPrioritySettings[task.priority]}
                           </span>
                           <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusColors[task.status]}`}>
                             {statusLabels[task.status]}

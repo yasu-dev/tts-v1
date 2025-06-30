@@ -115,10 +115,27 @@ export default function LocationPage() {
 
   const getAreaTypeIcon = (type: string) => {
     switch (type) {
-      case 'standard': return '📦';
-      case 'humidity_controlled': return '💧';
-      case 'vault': return '🔒';
-      default: return '📍';
+      case 'standard': return (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+        </svg>
+      );
+      case 'humidity_controlled': return (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+        </svg>
+      );
+      case 'vault': return (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+      );
+      default: return (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      );
     }
   };
 
@@ -193,10 +210,10 @@ export default function LocationPage() {
           <div className="p-8">
             <div className="flex space-x-1 bg-nexus-bg-secondary p-1 rounded-lg mb-6">
               {[
-                { key: 'overview', label: '保管エリア概要', icon: '📍' },
-                { key: 'register', label: 'ロケーション登録', icon: '📥' },
-                { key: 'move', label: '商品移動', icon: '🔄' },
-                { key: 'history', label: '移動履歴', icon: '📋' },
+                { key: 'overview', label: '保管エリア概要' },
+                { key: 'register', label: 'ロケーション登録' },
+                { key: 'move', label: '商品移動' },
+                { key: 'history', label: '移動履歴' },
               ].map((tab) => (
                 <button
                   key={tab.key}
@@ -207,7 +224,6 @@ export default function LocationPage() {
                       : 'text-nexus-text-secondary hover:text-nexus-text-primary'
                   }`}
                 >
-                  <span>{tab.icon}</span>
                   <span>{tab.label}</span>
                 </button>
               ))}
@@ -360,7 +376,9 @@ export default function LocationPage() {
                           className="flex-1 px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-yellow text-nexus-text-primary"
                         />
                         <button className="nexus-button primary">
-                          📱
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V6a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1zm12 0h2a1 1 0 001-1V6a1 1 0 00-1-1h-2a1 1 0 00-1 1v1a1 1 0 001 1zM5 20h2a1 1 0 001-1v-1a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1z" />
+                          </svg>
                         </button>
                       </div>
                     </div>
@@ -570,7 +588,9 @@ export default function LocationPage() {
                           <td>
                             <div className="flex items-center space-x-2">
                               <div className="action-orb">
-                                🔄
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
                               </div>
                               <span className="text-sm text-nexus-text-primary">
                                 {history.fromLocation} → {history.toLocation}

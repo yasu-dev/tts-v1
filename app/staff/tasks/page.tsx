@@ -134,9 +134,9 @@ export default function StaffTasksPage() {
   };
 
   const priorityLabels = {
-    high: '🔴 高',
-    medium: '🟡 中',
-    low: '🟢 低',
+    high: '高',
+    medium: '中',
+    low: '低',
   };
 
   const statusColors = {
@@ -151,12 +151,33 @@ export default function StaffTasksPage() {
     completed: '完了',
   };
 
-  const categoryIcons = {
-    inspection: '🔍',
-    listing: '🏪',
-    shipping: '🚚',
-    returns: '↩️',
-    photography: '📸',
+  const categoryIcons: Record<string, React.ReactNode> = {
+    inspection: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+    ),
+    listing: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+    shipping: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+      </svg>
+    ),
+    returns: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+      </svg>
+    ),
+    photography: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+    ),
   };
 
   const categoryLabels = {
@@ -425,7 +446,7 @@ export default function StaffTasksPage() {
                     <tr key={task.id} className="holo-row">
                       <td>
                         <div className="flex items-start space-x-3">
-                          <span className="text-2xl">{categoryIcons[task.category]}</span>
+                          <span className="action-orb">{categoryIcons[task.category]}</span>
                           <div className="flex-1">
                             <div className="flex items-center space-x-2 mb-1">
                               <h3 className="font-semibold text-nexus-text-primary">
@@ -441,9 +462,12 @@ export default function StaffTasksPage() {
                               {task.description}
                             </p>
                             {task.productName && (
-                              <p className="text-sm font-medium text-nexus-yellow">
-                                📦 {task.productName}
-                              </p>
+                              <div className="flex items-center gap-1 text-sm font-medium text-nexus-yellow">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                </svg>
+                                {task.productName}
+                              </div>
                             )}
                             {task.notes && (
                               <div className="mt-2 p-2 bg-nexus-bg-secondary rounded text-xs text-nexus-text-secondary">
@@ -454,12 +478,27 @@ export default function StaffTasksPage() {
                         </div>
                       </td>
                       <td>
-                        <span className="text-sm font-medium text-nexus-text-primary">👤 {task.assignedTo}</span>
+                        <div className="flex items-center gap-1 text-sm font-medium text-nexus-text-primary">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                          {task.assignedTo}
+                        </div>
                       </td>
                       <td>
                         <div className="text-sm">
-                          <div className="text-nexus-text-primary">📅 {task.dueDate}</div>
-                          <div className="text-nexus-text-secondary">⏱️ {task.estimatedTime}分</div>
+                          <div className="flex items-center gap-1 text-nexus-text-primary">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            {task.dueDate}
+                          </div>
+                          <div className="flex items-center gap-1 text-nexus-text-secondary">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {task.estimatedTime}分
+                          </div>
                         </div>
                       </td>
                       <td>

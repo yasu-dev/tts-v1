@@ -111,15 +111,15 @@ export default function StaffShippingPage() {
   };
 
   const priorityColors = {
-    urgent: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-    normal: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
-    low: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+    urgent: '緊急',
+    normal: '通常',
+    low: '低',
   };
 
   const priorityLabels = {
-    urgent: '🔴 緊急',
-    normal: '⚪ 通常',
-    low: '🟢 低',
+    urgent: '緊急',
+    normal: '通常',
+    low: '低',
   };
 
   const updateItemStatus = (itemId: string, newStatus: ShippingItem['status']) => {
@@ -375,7 +375,9 @@ export default function StaffShippingPage() {
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center space-x-4">
                         <div className="action-orb">
-                          📦
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                          </svg>
                         </div>
                         <div>
                           <h3 className="font-semibold text-nexus-text-primary">
