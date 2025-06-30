@@ -2,7 +2,6 @@
 
 import Sidebar from './Sidebar';
 import SearchModal from './SearchModal';
-import NotificationPanel from './NotificationPanel';
 import NexusHeader from './layouts/NexusHeader';
 import { ReactNode, useState, useEffect } from 'react';
 
@@ -14,7 +13,6 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children, userType }: DashboardLayoutProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState({ utc: '', jst: '' });
@@ -71,10 +69,6 @@ export default function DashboardLayout({ children, userType }: DashboardLayoutP
     alert('設定パネルはデモ版では利用できません');
   };
 
-  const handleNotificationClick = () => {
-    setIsNotificationOpen(!isNotificationOpen);
-  };
-
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
@@ -99,7 +93,6 @@ export default function DashboardLayout({ children, userType }: DashboardLayoutP
       <NexusHeader
         userType={userType}
         onSearchSubmit={handleSearchSubmit}
-        onNotificationClick={handleNotificationClick}
         onSettingsClick={handleSettingsClick}
         onLogout={handleLogout}
         currentTime={currentTime}
@@ -157,19 +150,7 @@ export default function DashboardLayout({ children, userType }: DashboardLayoutP
               <span className="sm:hidden">追加</span>
             </button>
             
-            {/* Notifications */}
-            <div className="relative ml-auto md:ml-4">
-              <button 
-                onClick={handleNotificationClick}
-                className="relative p-2.5 lg:p-3 text-primary-blue hover:text-white hover:bg-primary-blue rounded-xl transition-all duration-300 border-2 border-nexus-border hover:border-primary-blue"
-              >
-                <svg className="h-5 w-5 lg:h-6 lg:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-                <span className="absolute top-0 right-0 h-2.5 w-2.5 lg:h-3 lg:w-3 bg-nexus-red rounded-full shadow-[0_0_10px_rgba(229,50,56,0.7)]"></span>
-              </button>
-              <NotificationPanel isOpen={isNotificationOpen} onClose={() => setIsNotificationOpen(false)} />
-            </div>
+            {/* Notifications - NexusHeaderで管理 */}
             
             {/* Settings */}
             <button 

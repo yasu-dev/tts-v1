@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import DashboardLayout from '../../components/DashboardLayout';
+import DashboardLayout from '../../components/layouts/DashboardLayout';
 
 interface MonthlyData {
   month: string;

@@ -1,6 +1,6 @@
 'use client';
 
-import DashboardLayout from '../components/DashboardLayout';
+import DashboardLayout from '../components/layouts/DashboardLayout';
 import KPIDashboard from '../components/features/kpi/KPIDashboard';
 import { useState, useEffect } from 'react';
 

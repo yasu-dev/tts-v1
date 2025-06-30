@@ -1,6 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import EnhancedNotificationPanel from '../EnhancedNotificationPanel';
+import ProfileMenu from '../ProfileMenu';
 
 interface NexusHeaderProps {
   userType: 'seller' | 'staff';
@@ -27,7 +29,31 @@ export default function NexusHeader({
   isMobileMenuOpen = false
 }: NexusHeaderProps) {
 
-  const [searchQuery, setSearchQuery] = React.useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
+  const notificationRef = useRef<HTMLButtonElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  // 通知数を取得
+  useEffect(() => {
+    const fetchNotificationCount = async () => {
+      try {
+        const response = await fetch(`/api/notifications?role=${userType}`);
+        const data = await response.json();
+        const unreadCount = data.filter((n: any) => !n.read).length;
+        setNotificationCount(unreadCount);
+      } catch (error) {
+        console.error('Failed to fetch notification count:', error);
+      }
+    };
+
+    fetchNotificationCount();
+    // 定期的に通知数を更新
+    const interval = setInterval(fetchNotificationCount, 60000); // 1分ごと
+    return () => clearInterval(interval);
+  }, [userType]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,8 +122,29 @@ export default function NexusHeader({
           </div>
         </div>
         
+        {/* 通知ボタン */}
+        <button
+          ref={notificationRef}
+          onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+          className="relative p-2 lg:p-2.5 bg-white/15 backdrop-blur-xl border border-white/25 rounded-lg lg:rounded-xl text-white hover:bg-white/25 transition-all duration-300 hover:translate-y-[-2px]"
+          aria-label="通知"
+        >
+          <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
+          {notificationCount > 0 && (
+            <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(239,68,68,0.7)] animate-pulse">
+              {notificationCount > 9 ? '9+' : notificationCount}
+            </span>
+          )}
+        </button>
+        
         {/* ユーザープロファイル */}
-        <div className="user-nexus flex items-center gap-2 md:gap-2.5 lg:gap-3 bg-white/15 backdrop-blur-xl border border-white/25 rounded-lg lg:rounded-xl px-2.5 md:px-3 lg:px-4 py-1.5 lg:py-2 cursor-pointer transition-all duration-300 hover:bg-white/25 hover:translate-y-[-2px]">
+        <div 
+          ref={profileRef}
+          onClick={() => setIsProfileOpen(!isProfileOpen)}
+          className="user-nexus flex items-center gap-2 md:gap-2.5 lg:gap-3 bg-white/15 backdrop-blur-xl border border-white/25 rounded-lg lg:rounded-xl px-2.5 md:px-3 lg:px-4 py-1.5 lg:py-2 cursor-pointer transition-all duration-300 hover:bg-white/25 hover:translate-y-[-2px]"
+        >
           <div className="user-orb w-6 h-6 lg:w-8 lg:h-8 bg-gradient-to-br from-nexus-red to-nexus-yellow to-nexus-green rounded-md lg:rounded-lg flex items-center justify-center font-black text-xs lg:text-sm text-white shadow-[0_0_12px_rgba(229,50,56,0.4)]">
             {userType === 'staff' ? 'S' : 'U'}
           </div>
@@ -109,8 +156,27 @@ export default function NexusHeader({
               グローバル貿易ディレクター
             </div>
           </div>
+          <svg className="w-4 h-4 text-white/60 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
         </div>
       </div>
+      
+      {/* 通知パネル */}
+      <EnhancedNotificationPanel
+        isOpen={isNotificationOpen}
+        onClose={() => setIsNotificationOpen(false)}
+        userType={userType}
+        anchorRef={notificationRef}
+      />
+      
+      {/* プロフィールメニュー */}
+      <ProfileMenu
+        userType={userType}
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+        anchorRef={profileRef}
+      />
     </header>
   );
 }

@@ -1,10 +1,8 @@
 'use client';
 
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode, useState, useEffect } from 'react';
 import NexusHeader from './NexusHeader';
-import NexusSidebar from './NexusSidebar';
 import SearchModal from '../SearchModal';
-import NotificationPanel from '../NotificationPanel';
 import FlowNavigationBar from '../features/flow-nav/FlowNavigationBar';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -24,7 +22,7 @@ export default function DashboardLayout({
 }: DashboardLayoutProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
   const getCurrentTime = () => {
@@ -43,13 +41,25 @@ export default function DashboardLayout({
   const [currentTime, setCurrentTime] = useState(getCurrentTime());
 
   // 時刻を1分ごとに更新
-  React.useEffect(() => {
+  useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTime(getCurrentTime());
     }, 60000);
     
     return () => clearInterval(interval);
   }, []);
+
+  // モバイルメニューが開いているときスクロールを無効化
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileMenuOpen]);
 
   const handleSearchSubmit = (query: string) => {
     setSearchQuery(query);
@@ -62,6 +72,10 @@ export default function DashboardLayout({
 
   const handleSettingsClick = () => {
     alert('設定パネルはデモ版では利用できません');
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
   const sellerMenuItems = [
@@ -233,75 +247,99 @@ export default function DashboardLayout({
   };
 
   return (
-    <div className="main-layout">
-      {/* Sidebar */}
-      <aside className="sidebar">
-        <div className="sidebar-header">
-          <div className="sidebar-logo">
-            <div className="w-full">
-              <h2 className="text-lg font-bold">THE WORLD DOOR</h2>
-              <p className="text-sm text-gray-600">
-                フルフィルメントサービス
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                {userType === 'seller' ? 'セラー管理' : 'スタッフ管理'}
-              </p>
+    <div className="min-h-screen bg-gradient-to-br from-nexus-background via-gray-50 to-blue-50/20">
+      {/* モバイルサイドバーオーバーレイ */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
+          onClick={toggleMobileMenu}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* モダンレイアウト */}
+      <div className="flex h-screen">
+        {/* サイドバー */}
+        <aside className={`${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:relative z-50 lg:z-0 w-64 h-full bg-white shadow-xl transition-transform duration-300 ease-in-out`}>
+          <div className="h-full flex flex-col">
+            <div className="p-6 border-b">
+              <div className="flex items-center justify-between lg:justify-start">
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900">THE WORLD DOOR</h2>
+                  <p className="text-sm text-gray-600">
+                    フルフィルメントサービス
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {userType === 'seller' ? 'セラー管理' : 'スタッフ管理'}
+                  </p>
+                </div>
+                <button
+                  onClick={toggleMobileMenu}
+                  className="lg:hidden p-2 text-gray-500 hover:text-gray-700"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
             </div>
+
+            <nav className="flex-1 p-4 overflow-y-auto">
+              {menuItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3 mb-1 rounded-lg transition-all duration-200 ${
+                    pathname === item.href
+                      ? 'bg-blue-50 text-blue-600'
+                      : 'text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  {item.icon}
+                  <span className="font-medium">{item.label}</span>
+                  {item.badge && (
+                    <span className="ml-auto bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded-full">
+                      {item.badge}
+                    </span>
+                  )}
+                </Link>
+              ))}
+            </nav>
           </div>
-        </div>
+        </aside>
 
-        <nav className="sidebar-nav">
-          {menuItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`nav-item ${pathname === item.href ? 'active' : ''}`}
-            >
-              {item.icon}
-              <span>{item.label}</span>
-              {item.badge && (
-                <span className="nav-badge">{item.badge}</span>
-              )}
-            </Link>
-          ))}
-        </nav>
-      </aside>
+        {/* メインコンテンツ */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* NexusHeader */}
+          <NexusHeader
+            userType={userType}
+            onSearchSubmit={handleSearchSubmit}
+            onSettingsClick={handleSettingsClick}
+            onLogout={handleLogout}
+            currentTime={currentTime}
+            onMobileMenuToggle={toggleMobileMenu}
+            isMobileMenuOpen={isMobileMenuOpen}
+          />
 
-      {/* Main Content */}
-      <main className="main-content">
-        {/* Header */}
-        <header className="header">
-          <div className="header-content">
-            <div>
-              <h1 className="text-2xl font-bold">
-                {menuItems.find(item => item.href === pathname)?.label || 'ダッシュボード'}
-              </h1>
+          {/* Flow Navigation Bar */}
+          <FlowNavigationBar currentStage={getCurrentStage()} compact={true} />
+
+          {/* ページコンテンツ */}
+          <main className="flex-1 overflow-y-auto bg-gray-50">
+            <div className="p-4 md:p-6 lg:p-8">
+              {children}
             </div>
-            <div className="flex items-center gap-4">
-              <button className="btn btn-secondary flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-                通知
-              </button>
-              <button className="btn btn-secondary flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                プロフィール
-              </button>
-            </div>
-          </div>
-        </header>
-
-        {/* Flow Navigation Bar */}
-        <FlowNavigationBar currentStage={getCurrentStage()} compact={true} />
-
-        {/* Page Content */}
-        <div className="page-container">
-          {children}
+          </main>
         </div>
-      </main>
+      </div>
+
+      {/* Search Modal */}
+      <SearchModal 
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        query={searchQuery}
+      />
     </div>
   );
 }
