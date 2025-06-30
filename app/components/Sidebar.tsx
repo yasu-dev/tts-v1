@@ -191,8 +191,8 @@ export default function Sidebar({ userType }: SidebarProps) {
       {/* Logo Section */}
       <div className="sidebar-logo" role="banner">
         <div className="w-full">
-          <h2 className="text-xl font-bold text-gray-900">THE WORLD DOOR</h2>
-          <p className="text-sm text-gray-600 mt-1">フルフィルメントサービス</p>
+          <h2 className="text-sm font-bold text-gray-900">THE WORLD DOOR</h2>
+          <p className="text-[10px] text-gray-600">フルフィルメント</p>
         </div>
       </div>
 

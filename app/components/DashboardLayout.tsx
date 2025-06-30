@@ -102,16 +102,16 @@ export default function DashboardLayout({ children, userType }: DashboardLayoutP
       
       <div className="nexus-display flex-1 flex flex-col overflow-hidden bg-transparent">
         {/* Command Bar */}
-        <div className="command-bar bg-white/95 backdrop-blur-[25px] border-b-[3px] border-nexus-border px-4 md:px-6 lg:px-8 py-4 lg:py-6 flex flex-col md:flex-row items-stretch md:items-center gap-4 lg:gap-6 shadow-[0_4px_25px_rgba(0,100,210,0.15)]">
+        <div className="command-bar bg-white/95 backdrop-blur-[25px] border-b border-nexus-border px-3 md:px-4 lg:px-5 py-2 lg:py-2.5 flex flex-col md:flex-row items-stretch md:items-center gap-2 lg:gap-3 shadow-[0_2px_10px_rgba(0,100,210,0.08)]">
           {/* Search Nexus */}
-          <div className="search-nexus flex-1 max-w-full md:max-w-[580px] relative">
+          <div className="search-nexus flex-1 max-w-full md:max-w-[480px] relative">
             <form onSubmit={(e) => {
               e.preventDefault();
               if (searchQuery.trim()) {
                 handleSearchSubmit(searchQuery);
               }
             }} className="relative">
-              <svg className="search-orb absolute left-4 lg:left-5 top-1/2 transform -translate-y-1/2 text-primary-blue text-lg h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="search-orb absolute left-3 lg:left-3.5 top-1/2 transform -translate-y-1/2 text-primary-blue h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <input
@@ -119,35 +119,35 @@ export default function DashboardLayout({ children, userType }: DashboardLayoutP
                 placeholder="製品、市場、規制を検索..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="nexus-input text-sm md:text-base"
+                className="nexus-input text-xs md:text-sm py-1.5 pl-9 pr-3"
               />
             </form>
           </div>
           
           {/* Command Actions - モバイルでは横スクロール可能 */}
-          <div className="command-actions flex gap-2 md:gap-3 lg:gap-4 overflow-x-auto">
-            <button className="nexus-button flex items-center gap-2 lg:gap-3 whitespace-nowrap text-sm lg:text-base">
-              <svg className="h-4 w-4 lg:h-5 lg:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="command-actions flex gap-1.5 md:gap-2 lg:gap-2.5 overflow-x-auto">
+            <button className="nexus-button flex items-center gap-1.5 lg:gap-2 whitespace-nowrap text-xs px-2.5 py-1.5">
+              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
               </svg>
-              <span className="hidden sm:inline">スマートフィルター</span>
-              <span className="sm:hidden">フィルター</span>
+              <span className="hidden sm:inline">フィルター</span>
+              <span className="sm:hidden">絞込</span>
             </button>
             
-            <button className="nexus-button flex items-center gap-2 lg:gap-3 whitespace-nowrap text-sm lg:text-base">
-              <svg className="h-4 w-4 lg:h-5 lg:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button className="nexus-button flex items-center gap-1.5 lg:gap-2 whitespace-nowrap text-xs px-2.5 py-1.5">
+              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h4m-4 8h4M4 16h4m0 0h6m-6 0v4" />
               </svg>
-              <span className="hidden sm:inline">グローバルスキャン</span>
-              <span className="sm:hidden">スキャン</span>
+              <span className="hidden sm:inline">スキャン</span>
+              <span className="sm:hidden">検索</span>
             </button>
             
-            <button className="nexus-button primary flex items-center gap-2 lg:gap-3 whitespace-nowrap text-sm lg:text-base">
-              <svg className="h-4 w-4 lg:h-5 lg:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button className="nexus-button primary flex items-center gap-1.5 lg:gap-2 whitespace-nowrap text-xs px-2.5 py-1.5">
+              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
-              <span className="hidden sm:inline">アセット追加</span>
-              <span className="sm:hidden">追加</span>
+              <span className="hidden sm:inline">追加</span>
+              <span className="sm:hidden">+</span>
             </button>
             
             {/* Notifications - NexusHeaderで管理 */}
@@ -155,9 +155,9 @@ export default function DashboardLayout({ children, userType }: DashboardLayoutP
             {/* Settings */}
             <button 
               onClick={handleSettingsClick}
-              className="p-2.5 lg:p-3 text-primary-blue hover:text-white hover:bg-primary-blue rounded-xl transition-all duration-300 border-2 border-nexus-border hover:border-primary-blue"
+              className="p-1.5 lg:p-2 text-primary-blue hover:text-white hover:bg-primary-blue rounded transition-all duration-200 border border-nexus-border hover:border-primary-blue"
             >
-              <svg className="h-5 w-5 lg:h-6 lg:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-3.5 w-3.5 lg:h-4 lg:w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
@@ -166,7 +166,7 @@ export default function DashboardLayout({ children, userType }: DashboardLayoutP
             {/* Logout - デスクトップのみ */}
             <button 
               onClick={handleLogout}
-              className="hidden md:block ml-2 px-4 lg:px-6 py-2.5 lg:py-3 bg-nexus-red hover:bg-red-600 text-white rounded-xl text-sm font-bold transition-all duration-300 shadow-[0_4px_15px_rgba(229,50,56,0.3)] hover:shadow-[0_6px_20px_rgba(229,50,56,0.4)] hover:translate-y-[-2px]"
+              className="hidden md:block ml-1 px-3 lg:px-4 py-1.5 lg:py-2 bg-nexus-red hover:bg-red-600 text-white rounded text-xs font-bold transition-all duration-200 shadow-[0_2px_8px_rgba(229,50,56,0.2)] hover:shadow-[0_4px_12px_rgba(229,50,56,0.3)]"
             >
               ログアウト
             </button>
@@ -175,7 +175,7 @@ export default function DashboardLayout({ children, userType }: DashboardLayoutP
 
         {/* Main Content */}
         <main className="nexus-display grid-area-[main-display] bg-nexus-background/85 backdrop-blur-[15px] flex flex-col overflow-hidden relative">
-          <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+          <div className="flex-1 overflow-y-auto p-2 md:p-3 lg:p-4">
             {children}
           </div>
         </main>
