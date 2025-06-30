@@ -85,16 +85,10 @@ export default function StaffDashboard() {
     return filtered;
   };
 
-  const priorityColors = {
-    high: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-    medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-    low: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-  };
-
-  const priorityLabels = {
-    high: '🔴 緊急',
-    medium: '🟡 中',
-    low: '🟢 低',
+  const priorityLabels: Record<string, string> = {
+    high: '高',
+    medium: '中',
+    low: '低'
   };
 
   const statusColors = {
@@ -110,10 +104,27 @@ export default function StaffDashboard() {
   };
 
   const typeIcons = {
-    inspection: '🔍',
-    photography: '📸',
-    shipping: '🚚',
-    returns: '↩️',
+    inspection: (
+      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+    ),
+    photography: (
+      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+    ),
+    shipping: (
+      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+      </svg>
+    ),
+    returns: (
+      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+      </svg>
+    ),
   };
 
   const typeLabels = {
@@ -463,11 +474,32 @@ export default function StaffDashboard() {
                 <label className="block text-sm font-medium text-nexus-text-secondary mb-2">作業種別フィルター</label>
                 <div className="flex space-x-1 bg-nexus-bg-secondary p-1 rounded-lg">
                   {[
-                    { key: 'all', label: 'すべて', icon: '📋' },
-                    { key: 'inspection', label: '検品', icon: '🔍' },
-                    { key: 'photography', label: '撮影', icon: '📸' },
-                    { key: 'shipping', label: '出荷', icon: '🚚' },
-                    { key: 'returns', label: '返品', icon: '↩️' },
+                                      { key: 'all', label: 'すべて', icon: (
+                    <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                  ) },
+                  { key: 'inspection', label: '検品', icon: (
+                    <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  ) },
+                  { key: 'photography', label: '撮影', icon: (
+                    <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  ) },
+                  { key: 'shipping', label: '出荷', icon: (
+                    <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                    </svg>
+                  ) },
+                  { key: 'returns', label: '返品', icon: (
+                    <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                    </svg>
+                  ) },
                   ].map((tab) => (
                     <button
                       key={tab.key}
@@ -478,7 +510,7 @@ export default function StaffDashboard() {
                           : 'text-nexus-text-secondary hover:text-nexus-text-primary'
                       }`}
                     >
-                      <span>{tab.icon}</span>
+                      <div className="w-4 h-4">{tab.icon}</div>
                       <span>{tab.label}</span>
                     </button>
                   ))}
@@ -503,7 +535,7 @@ export default function StaffDashboard() {
                     <tr key={task.id} className="holo-row">
                       <td>
                         <div className="flex items-start space-x-3">
-                          <span className="text-2xl">{typeIcons[task.type]}</span>
+                          <div className="w-8 h-8 text-nexus-text-secondary">{typeIcons[task.type]}</div>
                           <div className="flex-1">
                             <div className="flex items-center space-x-2 mb-1">
                               <h3 className="font-semibold text-nexus-text-primary">
@@ -557,8 +589,8 @@ export default function StaffDashboard() {
                       </td>
                       <td>
                         <div className="flex items-center space-x-2">
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${priorityColors[task.priority]}`}>
-                            {taskPrioritySettings[task.priority]}
+                          <span className="cert-nano cert-premium">
+                            {priorityLabels[task.priority]}
                           </span>
                           <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusColors[task.status]}`}>
                             {statusLabels[task.status]}

@@ -5,7 +5,7 @@ import React from 'react';
 interface PageWrapperProps {
   title: string;
   description?: string;
-  icon?: string;
+  icon?: React.ReactNode;
   children: React.ReactNode;
   actions?: React.ReactNode;
 }
@@ -13,7 +13,7 @@ interface PageWrapperProps {
 export default function PageWrapper({ 
   title, 
   description, 
-  icon = '',
+  icon,
   children,
   actions 
 }: PageWrapperProps) {

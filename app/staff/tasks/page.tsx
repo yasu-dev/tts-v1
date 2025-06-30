@@ -127,16 +127,10 @@ export default function StaffTasksPage() {
     return statusMatch && categoryMatch && assigneeMatch;
   });
 
-  const priorityColors = {
-    high: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-    medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-    low: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-  };
-
-  const priorityLabels = {
+  const priorityLabels: Record<string, string> = {
     high: '高',
     medium: '中',
-    low: '低',
+    low: '低'
   };
 
   const statusColors = {
@@ -222,6 +216,18 @@ export default function StaffTasksPage() {
     inProgress: filteredTasks.filter(t => t.status === 'in_progress').length,
     completed: filteredTasks.filter(t => t.status === 'completed').length,
     highPriority: filteredTasks.filter(t => t.priority === 'high' && t.status !== 'completed').length,
+  };
+
+  const taskCategories = [
+    { id: 'urgent', name: '緊急タスク', icon: '🔥', color: 'americas' },
+    { id: 'today', name: '本日完了', icon: '📅', color: 'europe' },
+    { id: 'pending', name: '保留中', icon: '⏸️', color: 'asia' },
+    { id: 'review', name: 'レビュー待ち', icon: '👀', color: 'africa' },
+    { id: 'completed', name: '完了済み', icon: '✅', color: 'americas' }
+  ];
+
+  const handleTaskComplete = (taskId: string) => {
+    // Implementation
   };
 
   return (
@@ -503,7 +509,7 @@ export default function StaffTasksPage() {
                       </td>
                       <td>
                         <div className="flex flex-col space-y-2">
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${priorityColors[task.priority]}`}>
+                          <span className="cert-nano cert-premium">
                             {priorityLabels[task.priority]}
                           </span>
                           <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusColors[task.status]}`}>

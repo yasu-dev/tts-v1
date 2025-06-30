@@ -99,7 +99,12 @@ export default function MonthlyReportsPage() {
     </div>
 
     <div class="section">
-        <h3>📊 今月のサマリー</h3>
+                        <h3 className="flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  今月のサマリー
+                </h3>
         <div class="grid">
             <div class="card">
                 <h4>売上高</h4>
@@ -125,7 +130,12 @@ export default function MonthlyReportsPage() {
     </div>
 
     <div class="section">
-        <h3>📈 カテゴリー別分析</h3>
+                        <h3 className="flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                  </svg>
+                  カテゴリー別分析
+                </h3>
         <table>
             <thead>
                 <tr>
@@ -153,7 +163,7 @@ export default function MonthlyReportsPage() {
     </div>
 
     <div class="section">
-        <h3>⚠️ 課題と改善提案</h3>
+        <h3>課題と改善提案</h3>
         <div class="card">
             <h4>滞留在庫について</h4>
             <ul>
@@ -253,7 +263,7 @@ export default function MonthlyReportsPage() {
               disabled={isGeneratingPDF}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {isGeneratingPDF ? '生成中...' : '📄 PDF生成'}
+              {isGeneratingPDF ? '生成中...' : 'PDF生成'}
             </button>
           </div>
         </div>
@@ -358,7 +368,12 @@ export default function MonthlyReportsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Slow Moving Inventory */}
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">🐌 滞留在庫</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              滞留在庫
+            </h3>
             <div className="space-y-3">
               {analyticsData.slowMovingInventory.map((item: any) => (
                 <div key={item.id} className="p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -383,7 +398,12 @@ export default function MonthlyReportsPage() {
 
           {/* Process Bottlenecks */}
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">🚨 工程ボトルネック</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              工程ボトルネック
+            </h3>
             <div className="space-y-3">
               {analyticsData.stagingAnalysis.bottlenecks.map((bottleneck: any, index: number) => (
                 <div key={index} className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
@@ -405,22 +425,42 @@ export default function MonthlyReportsPage() {
 
         {/* Action Items */}
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">📋 推奨アクション</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+            </svg>
+            推奨アクション
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <h4 className="font-medium text-blue-800 mb-2">💡 価格戦略</h4>
+              <h4 className="font-medium text-blue-800 mb-2 flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+                価格戦略
+              </h4>
               <p className="text-sm text-blue-700">
                 滞留在庫の価格見直しを実施し、回転率向上を図る
               </p>
             </div>
             <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-              <h4 className="font-medium text-green-800 mb-2">⚡ 工程改善</h4>
+              <h4 className="font-medium text-green-800 mb-2 flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                工程改善
+              </h4>
               <p className="text-sm text-green-700">
                 検品工程の人員増強により処理速度を向上
               </p>
             </div>
             <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
-              <h4 className="font-medium text-purple-800 mb-2">📈 売上拡大</h4>
+              <h4 className="font-medium text-purple-800 mb-2 flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+                売上拡大
+              </h4>
               <p className="text-sm text-purple-700">
                 好調カテゴリーの仕入れ強化で収益最大化
               </p>

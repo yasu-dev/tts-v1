@@ -63,7 +63,11 @@ export default function LocationScanner({
           <div className="flex items-center justify-between mb-4">
             <div className={`flex items-center space-x-3 ${scanMode === 'product' ? 'opacity-100' : 'opacity-50'}`}>
               <div className={`action-orb ${scannedProduct ? 'green' : 'blue'}`}>
-                {scannedProduct ? '✓' : '1'}
+                                  {scannedProduct ? (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : '1'}
               </div>
               <div>
                 <p className="font-medium text-nexus-text-primary">商品バーコード</p>
@@ -77,7 +81,11 @@ export default function LocationScanner({
 
             <div className={`flex items-center space-x-3 ${scanMode === 'location' ? 'opacity-100' : 'opacity-50'}`}>
               <div className={`action-orb ${scannedLocation ? 'green' : scanMode === 'location' ? 'blue' : ''}`}>
-                {scannedLocation ? '✓' : '2'}
+                                  {scannedLocation ? (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : '2'}
               </div>
               <div>
                 <p className="font-medium text-nexus-text-primary">棚番バーコード</p>

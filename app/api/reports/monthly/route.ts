@@ -226,7 +226,7 @@ const generateMonthlyReportHTML = (data: MonthlyReportData) => {
     <div class="content">
       <!-- 業績サマリー -->
       <div class="section">
-        <h2>📊 業績サマリー</h2>
+                  <h2>業績サマリー</h2>
         <div class="metrics-grid">
           <div class="metric-card">
             <div class="metric-value">¥${data.summary.totalRevenue.toLocaleString()}</div>
@@ -277,7 +277,7 @@ const generateMonthlyReportHTML = (data: MonthlyReportData) => {
       
       <!-- 在庫分析 -->
       <div class="section">
-        <h2>📦 在庫分析</h2>
+                  <h2>在庫分析</h2>
         <div class="metrics-grid">
           <div class="metric-card">
             <div class="metric-value">${data.inventory.averageDays}</div>

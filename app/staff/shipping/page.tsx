@@ -102,24 +102,18 @@ export default function StaffShippingPage() {
     delivered: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
   };
 
-  const statusLabels = {
-    pending_inspection: '検品待ち',
-    inspected: '検品完了',
-    packed: '梱包完了',
-    shipped: '出荷済み',
-    delivered: '配送完了',
+  const statusLabels: Record<string, string> = {
+    'pending_pickup': 'ピックアップ待ち',
+    'picking': 'ピッキング中',
+    'packing': '梱包中',
+    'ready': '発送準備完了',
+    'shipped': '発送済み'
   };
 
-  const priorityColors = {
-    urgent: '緊急',
-    normal: '通常',
-    low: '低',
-  };
-
-  const priorityLabels = {
-    urgent: '緊急',
-    normal: '通常',
-    low: '低',
+  const priorityLabels: Record<string, string> = {
+    high: '緊急',
+    medium: '通常',
+    low: '低'
   };
 
   const updateItemStatus = (itemId: string, newStatus: ShippingItem['status']) => {
@@ -397,7 +391,7 @@ export default function StaffShippingPage() {
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${priorityColors[item.priority]}`}>
+                        <span className="cert-nano cert-premium">
                           {priorityLabels[item.priority]}
                         </span>
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusColors[item.status]}`}>

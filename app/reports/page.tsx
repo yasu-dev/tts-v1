@@ -286,24 +286,33 @@ export default function ReportsPage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-              <h3 className="font-medium text-green-800 dark:text-green-200 mb-2">
-                📈 好調なカテゴリー
+              <h3 className="font-medium text-green-800 dark:text-green-200 mb-2 flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                </svg>
+                好調なカテゴリー
               </h3>
               <p className="text-sm text-green-700 dark:text-green-300">
                 カメラ本体の売上が好調で、前月比+25%の成長を記録
               </p>
             </div>
             <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-              <h3 className="font-medium text-yellow-800 dark:text-yellow-200 mb-2">
-                ⚠️ 注意事項
+              <h3 className="font-medium text-yellow-800 dark:text-yellow-200 mb-2 flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                注意事項
               </h3>
               <p className="text-sm text-yellow-700 dark:text-yellow-300">
                 アクセサリの在庫回転率が低下、価格見直しを推奨
               </p>
             </div>
             <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <h3 className="font-medium text-blue-800 dark:text-blue-200 mb-2">
-                💡 提案
+              <h3 className="font-medium text-blue-800 dark:text-blue-200 mb-2 flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+                提案
               </h3>
               <p className="text-sm text-blue-700 dark:text-blue-300">
                 高級腕時計の仕入れ拡大で収益性向上が期待できます

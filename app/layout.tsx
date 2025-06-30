@@ -4,6 +4,11 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "THE WORLD DOOR - フルフィルメントサービス",
   description: "世界最先端のAI駆動型在庫管理・輸出支援システム。",
+  icons: {
+    icon: '/icon.svg',
+    shortcut: '/icon.svg',
+    apple: '/icon.svg',
+  },
 };
 
 export const viewport: Viewport = {

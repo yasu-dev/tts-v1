@@ -196,72 +196,75 @@ export default function Sidebar({ userType }: SidebarProps) {
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="nav-cluster" role="navigation" aria-label="ナビゲーションメニュー">
-        <h3 className="cluster-label" id="nav-label">ナビゲーション</h3>
-        <ul className="nav-items" role="menubar" aria-labelledby="nav-label">
-          {menuItems.map((item) => (
-            <li key={item.href} role="none">
-              <Link
-                href={item.href}
-                className={`nav-node ${pathname === item.href ? 'active' : ''}`}
-                role="menuitem"
-                aria-current={pathname === item.href ? 'page' : undefined}
-                tabIndex={0}
-              >
-                <div className="node-icon">
-                  {item.icon}
-                </div>
-                <span>{item.label}</span>
-                {item.badge && (
-                  <span className="nav-badge" aria-label={`${item.badge}件の通知`}>
-                    {item.badge}
-                  </span>
-                )}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
-      
-      {/* Performance Module */}
-      <div className="performance-module" role="region" aria-label="パフォーマンス指標">
-        <h3 className="module-header">
-          <i className="fas fa-bolt" aria-hidden="true"></i>
-          システムパフォーマンス
-        </h3>
-        <div 
-          className="quantum-gauge" 
-          role="progressbar" 
-          aria-valuemin={0} 
-          aria-valuemax={100} 
-          aria-valuenow={94}
-          aria-label="システム稼働率"
-        >
-          <div className="gauge-energy"></div>
-        </div>
-        <div className="metrics-grid">
-          <div className="metric-pod">
-            <div className="metric-value" aria-label="アップタイム">99.9%</div>
-            <div className="metric-label">アップタイム</div>
+      {/* Scrollable Content Area */}
+      <div className="sidebar-content">
+        {/* Navigation */}
+        <nav className="nav-cluster" role="navigation" aria-label="ナビゲーションメニュー">
+          <h3 className="cluster-label" id="nav-label">ナビゲーション</h3>
+          <ul className="nav-items" role="menubar" aria-labelledby="nav-label">
+            {menuItems.map((item) => (
+              <li key={item.href} role="none">
+                <Link
+                  href={item.href}
+                  className={`nav-node ${pathname === item.href ? 'active' : ''}`}
+                  role="menuitem"
+                  aria-current={pathname === item.href ? 'page' : undefined}
+                  tabIndex={0}
+                >
+                  <div className="node-icon">
+                    {item.icon}
+                  </div>
+                  <span className="nav-label">{item.label}</span>
+                  {item.badge && (
+                    <span className="nav-badge" aria-label={`${item.badge}件の通知`}>
+                      {item.badge}
+                    </span>
+                  )}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        
+        {/* Performance Module */}
+        <div className="performance-module" role="region" aria-label="パフォーマンス指標">
+          <h3 className="module-header">
+            <i className="fas fa-bolt" aria-hidden="true"></i>
+            システムパフォーマンス
+          </h3>
+          <div 
+            className="quantum-gauge" 
+            role="progressbar" 
+            aria-valuemin={0} 
+            aria-valuemax={100} 
+            aria-valuenow={94}
+            aria-label="システム稼働率"
+          >
+            <div className="gauge-energy"></div>
           </div>
-          <div className="metric-pod">
-            <div className="metric-value" aria-label="処理速度">0.3s</div>
-            <div className="metric-label">処理速度</div>
-          </div>
-          <div className="metric-pod">
-            <div className="metric-value" aria-label="同時接続">2,847</div>
-            <div className="metric-label">同時接続</div>
-          </div>
-          <div className="metric-pod">
-            <div className="metric-value" aria-label="エラー率">0.02%</div>
-            <div className="metric-label">エラー率</div>
+          <div className="metrics-grid">
+            <div className="metric-pod">
+              <div className="metric-value" aria-label="アップタイム">99.9%</div>
+              <div className="metric-label">アップタイム</div>
+            </div>
+            <div className="metric-pod">
+              <div className="metric-value" aria-label="処理速度">0.3s</div>
+              <div className="metric-label">処理速度</div>
+            </div>
+            <div className="metric-pod">
+              <div className="metric-value" aria-label="同時接続">2,847</div>
+              <div className="metric-label">同時接続</div>
+            </div>
+            <div className="metric-pod">
+              <div className="metric-value" aria-label="エラー率">0.02%</div>
+              <div className="metric-label">エラー率</div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Logout Button */}
-      <div className="p-4 mt-auto">
+      <div className="sidebar-footer">
         <button
           onClick={handleLogout}
           className="nexus-button w-full"

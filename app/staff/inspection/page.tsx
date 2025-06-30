@@ -180,12 +180,6 @@ export default function InspectionPage() {
     );
   }
 
-  const priorityColors = {
-    high: 'border-red-300 bg-red-50 dark:bg-red-900/20',
-    medium: 'border-yellow-300 bg-yellow-50 dark:bg-yellow-900/20',
-    low: 'border-green-300 bg-green-50 dark:bg-green-900/20'
-  };
-
   const priorityLabels: Record<string, string> = {
     high: '緊急',
     medium: '中',
@@ -237,63 +231,64 @@ export default function InspectionPage() {
                 {inspectionTasks.map((task) => (
                   <div
                     key={task.id}
-                    className={`border rounded-lg p-6 transition-colors ${priorityColors[task.priority]}`}
+                    className="intelligence-card global"
                   >
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="action-orb">
-                          {task.type === 'camera' ? 
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg> :
-                           task.type === 'watch' ? 
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg> :
-                           task.type === 'lens' ? 
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg> : 
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                            </svg>}
+                    <div className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="action-orb">
+                            {task.type === 'camera' ? 
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg> :
+                             task.type === 'watch' ? 
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg> :
+                             task.type === 'lens' ? 
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              </svg> : 
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                              </svg>}
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-nexus-text-primary">
+                              {task.title}
+                            </h3>
+                            <p className="text-sm text-nexus-text-secondary">
+                              {task.productId} | {task.productName}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="font-semibold text-nexus-text-primary">
-                            {task.title}
-                          </h3>
-                          <p className="text-sm text-nexus-text-secondary">
-                            {task.productId} | {task.productName}
-                          </p>
+                        <div className="flex items-center space-x-2">
+                          <span className="cert-nano cert-mint">
+                            {task.value}
+                          </span>
+                          <span className="cert-nano cert-premium">
+                            {priorityLabels[task.priority]}
+                          </span>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <span className="cert-nano cert-mint">
-                          {task.value}
-                        </span>
-                        <span className="cert-nano cert-premium">
-                          {priorityLabels[task.priority]}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between text-sm text-nexus-text-secondary">
-                      <div className="flex items-center space-x-4">
-                        <span>
-                          <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                          </svg>
-                          {task.assignee}
-                        </span>
-                        <span>
-                          <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                          {task.dueDate}
-                        </span>
-                                                  <span>
+                      
+                      <div className="flex items-center justify-between text-sm text-nexus-text-secondary">
+                        <div className="flex items-center space-x-4">
+                          <span>
+                            <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            {task.assignee}
+                          </span>
+                          <span>
+                            <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            {task.dueDate}
+                          </span>
+                          <span>
                             <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -306,14 +301,15 @@ export default function InspectionPage() {
                             </svg>
                             {task.category}
                           </span>
+                        </div>
+                        
+                        <button
+                          onClick={() => handleStartInspection(task)}
+                          className="nexus-button primary"
+                        >
+                          検品開始
+                        </button>
                       </div>
-                      
-                      <button
-                        onClick={() => handleStartInspection(task)}
-                        className="nexus-button primary"
-                      >
-                        検品開始
-                      </button>
                     </div>
                   </div>
                 ))}
@@ -398,7 +394,7 @@ export default function InspectionPage() {
                                           : 'nexus-button'
                                       }`}
                                     >
-                                      ✓ OK
+                                      OK
                                     </button>
                                     <button
                                       onClick={() => handleItemComplete(categoryIndex, itemIndex, false)}
@@ -408,7 +404,7 @@ export default function InspectionPage() {
                                           : 'nexus-button'
                                       }`}
                                     >
-                                      ✗ NG
+                                      NG
                                     </button>
                                   </div>
                                 )}
@@ -453,50 +449,82 @@ export default function InspectionPage() {
             {/* Photo Upload */}
             <div className="intelligence-card europe">
               <div className="p-8">
-                <h3 className="text-lg font-semibold mb-6 text-nexus-text-primary">検品写真</h3>
+                <div className="mb-6">
+                  <h3 className="text-2xl font-display font-bold text-nexus-text-primary">検品写真</h3>
+                  <p className="text-nexus-text-secondary mt-1">商品の状態を詳細に撮影してください</p>
+                </div>
                 
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-4">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={(e) => handlePhotoUpload(e.target.files)}
-                      className="hidden"
-                    />
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="nexus-button primary"
-                    >
-                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      写真を追加
-                    </button>
-                    <span className="text-sm text-nexus-text-secondary">
-                      {photos.length}枚アップロード済み
-                    </span>
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={(e) => handlePhotoUpload(e.target.files)}
+                        className="hidden"
+                      />
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="nexus-button primary"
+                      >
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        写真を追加
+                      </button>
+                      <div className="action-orb">
+                        <span className="text-sm font-bold">{photos.length}</span>
+                      </div>
+                      <span className="text-sm text-nexus-text-secondary">
+                        枚アップロード済み
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <button className="nexus-button">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                   
-                  {photos.length > 0 && (
-                    <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
-                      {photos.map((photo, index) => (
-                        <div key={index} className="relative group">
-                          <img
-                            src={URL.createObjectURL(photo)}
-                            alt={`検品写真 ${index + 1}`}
-                            className="w-full h-20 object-cover rounded border border-nexus-border"
-                          />
-                          <button
-                            onClick={() => removePhoto(index)}
-                            className="absolute -top-1 -right-1 w-5 h-5 bg-red-600 text-white rounded-full text-xs hover:bg-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
+                  {photos.length > 0 ? (
+                    <div className="bg-nexus-bg-primary rounded-lg border border-nexus-border p-4">
+                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                        {photos.map((photo, index) => (
+                          <div key={index} className="relative group">
+                            <div className="aspect-square rounded-lg overflow-hidden bg-nexus-bg-secondary border border-nexus-border hover:border-primary-blue transition-all duration-200">
+                              <img
+                                src={URL.createObjectURL(photo)}
+                                alt={`検品写真 ${index + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                              <button
+                                onClick={() => removePhoto(index)}
+                                className="absolute top-2 right-2 w-8 h-8 bg-red-600 text-white rounded-full text-sm hover:bg-red-700 opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center shadow-lg"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
+                              <div className="absolute bottom-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <span className="cert-nano cert-premium">#{index + 1}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-10 bg-nexus-bg-primary rounded-lg border border-nexus-border">
+                      <svg className="w-12 h-12 mx-auto text-nexus-text-tertiary mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <p className="text-nexus-text-secondary">検品写真を追加してください</p>
                     </div>
                   )}
                 </div>

@@ -73,11 +73,11 @@
     "percentage": 60
   },
   "quickActions": [
-    { "id": "barcode-scan", "label": "📱 バーコードスキャン", "action": "openModal" },
-    { "id": "location-register", "label": "📍 ロケーション登録", "action": "openModal" },
-    { "id": "photo-upload", "label": "📸 写真アップロード", "action": "openModal" },
-    { "id": "issue-report", "label": "⚠️ 問題報告", "action": "openModal" },
-    { "id": "inventory-check", "label": "📦 在庫確認", "action": "navigate", "url": "inventory.html" }
+          { "id": "barcode-scan", "label": "バーコードスキャン", "action": "openModal" },
+      { "id": "location-register", "label": "ロケーション登録", "action": "openModal" },
+          { "id": "photo-upload", "label": "写真アップロード", "action": "openModal" },
+      { "id": "issue-report", "label": "問題報告", "action": "openModal" },
+          { "id": "inventory-check", "label": "在庫確認", "action": "navigate", "url": "inventory.html" }
   ],
   "recentActivity": [
     {

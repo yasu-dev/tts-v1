@@ -169,7 +169,7 @@
     {
       "id": "inbound",
       "name": "入庫",
-      "icon": "📦",
+      "icon": "inventory",
       "color": "#3B82F6",
       "count": 12,
       "avgDays": 1.2
@@ -209,7 +209,7 @@
     {
       "id": "shipping",
       "name": "出荷",
-      "icon": "🚚",
+      "icon": "shipping",
       "color": "#06B6D4",
       "count": 4,
       "avgDays": 1.1
@@ -225,7 +225,7 @@
     {
       "id": "returned",
       "name": "返品",
-      "icon": "↩️",
+      "icon": "return",
       "color": "#6B7280",
       "count": 5,
       "avgDays": 3.2

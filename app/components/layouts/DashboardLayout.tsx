@@ -3,7 +3,7 @@
 import React, { ReactNode, useState, useEffect } from 'react';
 import NexusHeader from './NexusHeader';
 import SearchModal from '../SearchModal';
-import FlowNavigationBar from '../features/flow-nav/FlowNavigationBar';
+import UnifiedProductFlow from '../features/flow-nav/UnifiedProductFlow';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -260,16 +260,17 @@ export default function DashboardLayout({
       {/* モダンレイアウト */}
       <div className="flex h-screen">
         {/* サイドバー */}
-        <aside className={`${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:relative z-50 lg:z-0 w-64 h-full bg-white shadow-xl transition-transform duration-300 ease-in-out`}>
+        <aside className={`${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:relative z-50 lg:z-0 w-64 h-full bg-white shadow-xl transition-transform duration-300 ease-in-out flex flex-col`}>
           <div className="h-full flex flex-col">
-            <div className="p-6 border-b">
+            {/* サイドバーヘッダー */}
+            <div className="p-4 border-b flex-shrink-0">
               <div className="flex items-center justify-between lg:justify-start">
                 <div>
-                  <h2 className="text-lg font-bold text-gray-900">THE WORLD DOOR</h2>
-                  <p className="text-sm text-gray-600">
+                  <h2 className="text-base font-bold text-gray-900">THE WORLD DOOR</h2>
+                  <p className="text-xs text-gray-600">
                     フルフィルメントサービス
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-[10px] text-gray-500 mt-0.5">
                     {userType === 'seller' ? 'セラー管理' : 'スタッフ管理'}
                   </p>
                 </div>
@@ -284,22 +285,25 @@ export default function DashboardLayout({
               </div>
             </div>
 
-            <nav className="flex-1 p-4 overflow-y-auto">
+            {/* ナビゲーションメニュー - スクロール可能エリア */}
+            <nav className="flex-1 p-3 overflow-y-auto">
               {menuItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 mb-1 rounded-lg transition-all duration-200 ${
+                  className={`flex items-center gap-3 px-3 py-2.5 mb-1 rounded-lg transition-all duration-200 whitespace-nowrap min-h-[40px] ${
                     pathname === item.href
                       ? 'bg-blue-50 text-blue-600'
                       : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
-                  {item.icon}
-                  <span className="font-medium">{item.label}</span>
+                  <div className="flex-shrink-0 w-5 h-5">
+                    {item.icon}
+                  </div>
+                  <span className="font-medium text-sm flex-1 overflow-hidden text-ellipsis">{item.label}</span>
                   {item.badge && (
-                    <span className="ml-auto bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded-full">
+                    <span className="ml-auto bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0">
                       {item.badge}
                     </span>
                   )}
@@ -322,12 +326,16 @@ export default function DashboardLayout({
             isMobileMenuOpen={isMobileMenuOpen}
           />
 
-          {/* Flow Navigation Bar */}
-          <FlowNavigationBar currentStage={getCurrentStage()} compact={true} />
+          {/* Unified Product Flow */}
+          <UnifiedProductFlow 
+            currentStage={getCurrentStage()} 
+            userType={userType}
+            compact={true} 
+          />
 
           {/* ページコンテンツ */}
           <main className="flex-1 overflow-y-auto bg-gray-50">
-            <div className="p-4 md:p-6 lg:p-8">
+            <div className="p-4 md:p-6 lg:p-8 max-w-[1600px] mx-auto">
               {children}
             </div>
           </main>

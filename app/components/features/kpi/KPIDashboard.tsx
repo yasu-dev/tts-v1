@@ -13,7 +13,7 @@ interface KPIData {
 interface KPICardProps {
   title: string;
   data: KPIData;
-  icon: string;
+  icon: React.ReactNode;
   color: string;
   format?: 'currency' | 'number' | 'percentage' | 'days';
 }
@@ -33,8 +33,20 @@ function KPICard({ title, data, icon, color, format = 'number' }: KPICardProps) 
   };
 
   const getTrendIcon = (trend: string, change: number) => {
-    if (Math.abs(change) < 0.1) return '➖';
-    return trend === 'up' ? '📈' : '📉';
+    if (Math.abs(change) < 0.1) return (
+      <svg className="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+      </svg>
+    );
+    return trend === 'up' ? (
+      <svg className="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+      </svg>
+    ) : (
+      <svg className="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+      </svg>
+    );
   };
 
   const getTrendColor = (trend: string, change: number) => {
@@ -50,7 +62,7 @@ function KPICard({ title, data, icon, color, format = 'number' }: KPICardProps) 
       <div className="flex items-center justify-between">
         <div className="flex-1">
           <div className="flex items-center space-x-2 mb-2">
-            <span className="text-2xl">{icon}</span>
+            <div className="w-6 h-6 text-gray-600">{icon}</div>
             <h3 className="text-sm font-medium text-gray-600">{title}</h3>
           </div>
           
@@ -69,10 +81,10 @@ function KPICard({ title, data, icon, color, format = 'number' }: KPICardProps) 
         </div>
         
         <div 
-          className="w-12 h-12 rounded-lg flex items-center justify-center text-white text-xl"
+          className="w-12 h-12 rounded-lg flex items-center justify-center text-white"
           style={{ backgroundColor: color }}
         >
-          {icon}
+          <div className="w-6 h-6">{icon}</div>
         </div>
       </div>
       
@@ -206,9 +218,12 @@ export default function KPIDashboard() {
           
           <button
             onClick={exportData}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
           >
-            📊 CSV出力
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            CSV出力
           </button>
         </div>
       </div>
@@ -218,28 +233,44 @@ export default function KPIDashboard() {
         <KPICard
           title="在庫回転率"
           data={kpiData.kpis.inventoryTurnover}
-          icon="🔄"
+          icon={
+            <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          }
           color="#3B82F6"
           format="number"
         />
         <KPICard
           title="平均保管日数"
           data={kpiData.kpis.averageStorageDays}
-          icon="📅"
+          icon={
+            <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          }
           color="#8B5CF6"
           format="days"
         />
         <KPICard
           title="返品率"
           data={kpiData.kpis.returnRate}
-          icon="↩️"
+          icon={
+            <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+            </svg>
+          }
           color="#EF4444"
           format="percentage"
         />
         <KPICard
           title="平均販売価格"
           data={kpiData.kpis.salePrice}
-          icon="💰"
+          icon={
+            <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          }
           color="#10B981"
           format="currency"
         />
@@ -270,7 +301,12 @@ export default function KPIDashboard() {
 
       {/* Bottlenecks Analysis */}
       <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">🚨 工程ボトルネック分析</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          工程ボトルネック分析
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {kpiData.stagingAnalysis.bottlenecks.map((bottleneck: any, index: number) => (
             <div key={index} className="p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -287,7 +323,12 @@ export default function KPIDashboard() {
 
       {/* Slow Moving Inventory */}
       <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">🐌 滞留在庫アラート</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          滞留在庫アラート
+        </h3>
         <div className="space-y-3">
           {kpiData.slowMovingInventory.map((item: any) => (
             <div key={item.id} className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">

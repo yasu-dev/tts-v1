@@ -180,18 +180,48 @@ export default function NexusSidebar({ userType }: NexusSidebarProps) {
 
   return (
     <aside className="nexus-sidebar w-340 bg-nexus-surface/95 backdrop-blur-nexus border-r-4 border-r-gradient-to-b from-region-americas via-region-europe via-region-asia via-region-africa via-region-oceania to-region-global">
-      {/* サイドバーヘッダー */}
-      <div className="p-8 border-b border-nexus-border">
-        <div>
-          <h2 className="font-display font-bold text-xl text-nexus-text-primary">
-            THE WORLD DOOR
-          </h2>
-          <p className="text-sm text-nexus-text-secondary font-medium mt-1">
-            フルフィルメントサービス
-          </p>
-          <p className="text-xs text-nexus-text-muted mt-2">
-            {userType === 'staff' ? 'スタッフモード' : 'セラーモード'}
-          </p>
+      {/* クイックアクションパネル */}
+      <div className="p-4 border-b border-nexus-border bg-gradient-to-b from-nexus-surface to-transparent">
+        {/* モード切替ボタン */}
+        <div className="mb-4">
+          <button className="w-full flex items-center justify-between px-4 py-3 bg-gradient-to-r from-primary-blue/10 to-nexus-cyan/10 rounded-xl border border-primary-blue/20 hover:border-primary-blue/40 transition-all duration-300 group">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-primary-blue to-nexus-cyan rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {userType === 'staff' ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                  )}
+                </svg>
+              </div>
+              <div className="text-left">
+                <div className="text-xs text-nexus-text-secondary">現在のモード</div>
+                <div className="text-sm font-bold text-nexus-text-primary">{userType === 'staff' ? 'スタッフ管理' : 'セラー管理'}</div>
+              </div>
+            </div>
+            <svg className="w-5 h-5 text-nexus-text-tertiary group-hover:text-primary-blue transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+            </svg>
+          </button>
+        </div>
+        
+        {/* クイックステータス */}
+        <div className="grid grid-cols-2 gap-2">
+          <div className="bg-nexus-bg-primary/50 rounded-lg p-3 border border-nexus-border">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[10px] text-nexus-text-secondary">アクティブ</span>
+              <div className="w-2 h-2 bg-nexus-green rounded-full animate-pulse" />
+            </div>
+            <div className="text-lg font-bold text-nexus-text-primary">24</div>
+          </div>
+          <div className="bg-nexus-bg-primary/50 rounded-lg p-3 border border-nexus-border">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[10px] text-nexus-text-secondary">保留中</span>
+              <div className="w-2 h-2 bg-nexus-yellow rounded-full" />
+            </div>
+            <div className="text-lg font-bold text-nexus-text-primary">7</div>
+          </div>
         </div>
       </div>
 

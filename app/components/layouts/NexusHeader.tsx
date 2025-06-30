@@ -63,20 +63,20 @@ export default function NexusHeader({
   };
 
   return (
-    <header className="nexus-header flex items-center justify-between px-2 md:px-3 lg:px-4 relative overflow-hidden">
+    <header className="nexus-header flex items-center justify-between px-4 md:px-6 lg:px-8 relative overflow-hidden h-16">
       {/* 背景シャインエフェクト */}
       <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/5 to-transparent" />
       
-      <div className="flex items-center gap-2 md:gap-3 lg:gap-4 z-10">
+      <div className="flex items-center gap-3 md:gap-4 lg:gap-6 z-10">
         {/* モバイルハンバーガーメニューボタン */}
         <button
           id="mobile-menu-button"
           onClick={onMobileMenuToggle}
-          className="lg:hidden p-1 text-white hover:bg-white/20 rounded transition-all duration-200"
+          className="lg:hidden p-2 text-white hover:bg-white/20 rounded-lg transition-all duration-200"
           aria-label="メニューを開く"
           aria-expanded={isMobileMenuOpen}
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             {isMobileMenuOpen ? (
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             ) : (
@@ -85,40 +85,36 @@ export default function NexusHeader({
           </svg>
         </button>
         
-        {/* ブランドアイデンティティ */}
-        <div className="text-white">
-          <div className="font-display text-xs md:text-sm lg:text-base font-black text-white tracking-wider whitespace-nowrap">
-            THE WORLD DOOR
-          </div>
-          <div className="hidden md:block text-[9px] md:text-[10px] lg:text-xs font-medium text-white/90 tracking-wide">
-            フルフィルメントサービス
-          </div>
+        {/* 検索バー */}
+        <div className="flex-1 max-w-xl">
+          <form onSubmit={handleSearchSubmit} className="relative">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="商品を検索..."
+              className="w-full px-4 py-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg text-white placeholder-white/50 focus:bg-white/20 focus:border-white/40 transition-all duration-200"
+            />
+            <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2">
+              <svg className="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </button>
+          </form>
         </div>
-        
-        {/* ナビゲーションピル - デスクトップのみ */}
-        <nav className="nexus-nav hidden lg:flex gap-1.5 z-10">
-          <a href="/dashboard" className="nav-pill bg-white/12 text-white/85 hover:text-white hover:bg-white/20 rounded px-2.5 lg:px-3 py-1 lg:py-1.5 font-semibold text-xs transition-all duration-200">
-            ダッシュボード
-          </a>
-          <a href="/inventory" className="nav-pill text-white/85 hover:text-white hover:bg-white/12 rounded px-2.5 lg:px-3 py-1 lg:py-1.5 font-semibold text-xs transition-all duration-200">
-            在庫管理
-          </a>
-          <a href="/reports" className="nav-pill text-white/85 hover:text-white hover:bg-white/12 rounded px-2.5 lg:px-3 py-1 lg:py-1.5 font-semibold text-xs transition-all duration-200">
-            市場分析
-          </a>
-        </nav>
       </div>
       
-      <div className="flex items-center gap-1.5 md:gap-2 lg:gap-2.5 z-10">
-        {/* タイムゾーンウィジェット - タブレット以上で表示 */}
-        <div className="timezone-widget hidden md:flex gap-1 lg:gap-1.5">
-          <div className="bg-white/15 backdrop-blur-xl border border-white/25 rounded px-1.5 lg:px-2 py-0.5 lg:py-1 text-white font-semibold">
-            <div className="font-mono text-[10px] lg:text-xs">{currentTime.utc}</div>
-            <div className="text-[8px] lg:text-[9px] opacity-80">UTC</div>
-          </div>
-          <div className="bg-white/15 backdrop-blur-xl border border-white/25 rounded px-1.5 lg:px-2 py-0.5 lg:py-1 text-white font-semibold">
-            <div className="font-mono text-[10px] lg:text-xs">{currentTime.jst}</div>
-            <div className="text-[8px] lg:text-[9px] opacity-80">JST</div>
+      <div className="flex items-center gap-3 md:gap-4 z-10">
+        {/* 日本時間のみ表示 */}
+        <div className="hidden md:block bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg px-3 py-1.5 text-white">
+          <div className="flex items-center gap-2">
+            <svg className="w-4 h-4 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <div className="font-mono text-sm font-semibold">{currentTime.jst}</div>
+              <div className="text-[10px] opacity-80">日本時間</div>
+            </div>
           </div>
         </div>
         
@@ -126,40 +122,40 @@ export default function NexusHeader({
         <button
           ref={notificationRef}
           onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-          className="relative p-1.5 lg:p-2 bg-white/15 backdrop-blur-xl border border-white/25 rounded lg:rounded-lg text-white hover:bg-white/25 transition-all duration-200"
+          className="relative p-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg text-white hover:bg-white/20 transition-all duration-200"
           aria-label="通知"
         >
-          <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
           </svg>
           {notificationCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 h-4 w-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-[0_0_8px_rgba(239,68,68,0.6)] animate-pulse">
+            <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-[11px] font-bold rounded-full flex items-center justify-center shadow-lg animate-pulse">
               {notificationCount > 9 ? '9+' : notificationCount}
             </span>
           )}
         </button>
         
         {/* ユーザープロファイル */}
-        <div 
-          ref={profileRef}
+        <button 
+          ref={profileRef as any}
           onClick={() => setIsProfileOpen(!isProfileOpen)}
-          className="user-nexus flex items-center gap-1.5 md:gap-2 lg:gap-2.5 bg-white/15 backdrop-blur-xl border border-white/25 rounded lg:rounded-lg px-2 md:px-2.5 lg:px-3 py-1 lg:py-1.5 cursor-pointer transition-all duration-200 hover:bg-white/25"
+          className="flex items-center gap-2.5 bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg px-3 py-2 hover:bg-white/20 transition-all duration-200"
         >
-          <div className="user-orb w-5 h-5 lg:w-6 lg:h-6 bg-gradient-to-br from-nexus-red to-nexus-yellow to-nexus-green rounded lg:rounded-md flex items-center justify-center font-black text-[10px] lg:text-xs text-white shadow-[0_0_10px_rgba(229,50,56,0.4)]">
+          <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center font-bold text-sm text-white border border-white/30">
             {userType === 'staff' ? 'S' : 'U'}
           </div>
-          <div className="hidden sm:block">
-            <div className="user-data text-white font-bold text-[10px] lg:text-xs">
+          <div className="hidden sm:block text-left">
+            <div className="text-white font-semibold text-sm">
               {userType === 'staff' ? 'スタッフ' : 'セラー'}
             </div>
-            <div className="user-role text-[8px] lg:text-[9px] text-white/80">
-              グローバル貿易ディレクター
+            <div className="text-[11px] text-white/70">
+              管理者
             </div>
           </div>
-          <svg className="w-3.5 h-3.5 text-white/60 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 text-white/60 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
-        </div>
+        </button>
       </div>
       
       {/* 通知パネル */}
