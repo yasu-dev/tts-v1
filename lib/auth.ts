@@ -65,7 +65,12 @@ export class AuthService {
 
       const token = this.generateToken({ userId: user.id, role: user.role });
 
-      // Create session record
+      // Delete existing sessions for this user before creating new one
+      await prisma.session.deleteMany({
+        where: { userId: user.id },
+      });
+
+      // Create new session record
       await prisma.session.create({
         data: {
           userId: user.id,
