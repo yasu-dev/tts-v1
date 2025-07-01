@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
+import LocationRegistration from '@/app/components/features/location/LocationRegistration';
+import LocationList from '@/app/components/features/location/LocationList';
 
 interface StorageArea {
   id: string;
@@ -350,95 +352,10 @@ export default function LocationPage() {
 
             {/* Register View */}
             {viewMode === 'register' && (
-              <div className="space-y-6">
-                <div className="intelligence-card asia">
-                  <div className="p-6">
-                    <h3 className="font-semibold text-nexus-text-primary mb-4">
-                      ロケーション登録手順
-                    </h3>
-                    <ol className="list-decimal list-inside text-sm text-nexus-text-secondary space-y-1">
-                      <li>商品のバーコードをスキャンまたは手動入力</li>
-                      <li>保管エリアとセクションを選択</li>
-                      <li>保管理由を入力</li>
-                      <li>登録を確定</li>
-                    </ol>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-nexus-text-secondary mb-2">商品ID</label>
-                      <div className="flex space-x-2">
-                        <input
-                          type="text"
-                          placeholder="TWD-CAM-015"
-                          className="flex-1 px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-yellow text-nexus-text-primary"
-                        />
-                        <button className="nexus-button primary">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V6a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1zm12 0h2a1 1 0 001-1V6a1 1 0 00-1-1h-2a1 1 0 00-1 1v1a1 1 0 001 1zM5 20h2a1 1 0 001-1v-1a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1z" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-nexus-text-secondary mb-2">保管エリア</label>
-                      <select className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-yellow text-nexus-text-primary">
-                        <option value="">エリアを選択</option>
-                        {locationData.storageAreas.map(area => (
-                          <option key={area.id} value={area.id}>
-                            {getAreaTypeIcon(area.type)} {area.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-nexus-text-secondary mb-2">セクション</label>
-                      <select className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-yellow text-nexus-text-primary">
-                        <option value="">セクションを選択</option>
-                        <option value="A-01">A-01</option>
-                        <option value="A-02">A-02</option>
-                        <option value="B-01">B-01</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-nexus-text-secondary mb-2">保管理由</label>
-                      <select className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-yellow text-nexus-text-primary">
-                        <option value="">理由を選択</option>
-                        <option value="入庫">新規入庫</option>
-                        <option value="検品完了">検品完了</option>
-                        <option value="撮影完了">撮影完了</option>
-                        <option value="返品受付">返品受付</option>
-                      </select>
-                    </div>
-
-                    <button className="nexus-button primary w-full">
-                      ロケーション登録
-                    </button>
-                  </div>
-
-                  <div className="intelligence-card europe">
-                    <div className="p-6">
-                      <h4 className="font-medium mb-4 text-nexus-text-primary">最近の登録履歴</h4>
-                      <div className="space-y-2 text-sm">
-                        {locationData.locationHistory.slice(0, 5).map((history) => (
-                          <div key={history.id} className="flex justify-between items-center p-3 bg-nexus-bg-secondary rounded">
-                            <div>
-                              <span className="font-medium text-nexus-text-primary">{history.productId}</span>
-                              <span className="text-nexus-text-secondary ml-2">→ {history.toLocation}</span>
-                            </div>
-                            <span className="text-xs text-nexus-text-secondary">{history.timestamp.split('T')[0]}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <LocationRegistration onRegisterComplete={(productId, location) => {
+                console.log(`Product ${productId} registered at ${location}`);
+                // 登録完了後の処理（履歴の更新など）
+              }} />
             )}
 
             {/* Move View */}
@@ -455,50 +372,20 @@ export default function LocationPage() {
                   />
                 </div>
 
-                <div className="holo-table">
-                  <table className="w-full">
-                    <thead className="holo-header">
-                      <tr>
-                        <th className="text-left">商品情報</th>
-                        <th className="text-left">現在位置</th>
-                        <th className="text-left">ステータス</th>
-                        <th className="text-right">アクション</th>
-                      </tr>
-                    </thead>
-                    <tbody className="holo-body">
-                      {filteredProducts.map((product) => (
-                        <tr key={product.id} className="holo-row">
-                          <td>
-                            <div>
-                              <h3 className="font-semibold text-nexus-text-primary">
-                                {product.name}
-                              </h3>
-                              <p className="text-sm text-nexus-text-secondary">
-                                {product.id} | {product.value}
-                              </p>
-                            </div>
-                          </td>
-                          <td>
-                            <span className="font-medium text-nexus-text-primary">{product.location}</span>
-                          </td>
-                          <td>
-                            <span className={`text-xs px-2 py-1 rounded ${getStatusColor(product.status)}`}>
-                              {product.status}
-                            </span>
-                          </td>
-                          <td className="text-right">
-                            <button
-                              onClick={() => setSelectedProduct(product)}
-                              className="nexus-button primary"
-                            >
-                              移動
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <LocationList 
+                  searchQuery={searchQuery}
+                  onProductMove={(product) => {
+                    setSelectedProduct({
+                      id: product.productId,
+                      name: product.productName,
+                      location: product.location,
+                      category: product.category,
+                      value: product.value,
+                      lastMoved: product.lastUpdated,
+                      status: product.status
+                    });
+                  }}
+                />
 
                 {selectedProduct && (
                   <div className="intelligence-card oceania">
