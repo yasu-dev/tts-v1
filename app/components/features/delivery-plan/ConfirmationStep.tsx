@@ -2,38 +2,45 @@
 
 import { useState } from 'react';
 import NexusButton from '@/app/components/ui/NexusButton';
-import NexusCard from '@/app/components/ui/NexusCard';
 
 interface ConfirmationStepProps {
   data: any;
   onUpdate: (data: any) => void;
-  onNext: () => void;
   onPrev: () => void;
   onSubmit: () => void;
-  isFirstStep: boolean;
   isLastStep: boolean;
   loading: boolean;
 }
 
-export default function ConfirmationStep({
-  data,
-  onUpdate,
-  onPrev,
+export default function ConfirmationStep({ 
+  data, 
+  onUpdate, 
+  onPrev, 
   onSubmit,
-  loading,
+  isLastStep,
+  loading
 }: ConfirmationStepProps) {
-  const [agreedToTerms, setAgreedToTerms] = useState(
-    data.confirmation?.agreedToTerms || false
-  );
-  const [generateBarcodes, setGenerateBarcodes] = useState(
-    data.confirmation?.generateBarcodes ?? true
-  );
+  const [agreedToTerms, setAgreedToTerms] = useState(data.confirmation?.agreedToTerms || false);
+  const [generateBarcodes, setGenerateBarcodes] = useState(data.confirmation?.generateBarcodes ?? true);
 
-  const categories = {
-    camera_body: 'カメラ本体',
-    lens: 'レンズ',
-    watch: '時計',
-    accessory: 'アクセサリー',
+  const handleTermsChange = (checked: boolean) => {
+    setAgreedToTerms(checked);
+    onUpdate({ 
+      confirmation: { 
+        agreedToTerms: checked, 
+        generateBarcodes 
+      } 
+    });
+  };
+
+  const handleBarcodesChange = (checked: boolean) => {
+    setGenerateBarcodes(checked);
+    onUpdate({ 
+      confirmation: { 
+        agreedToTerms, 
+        generateBarcodes: checked 
+      } 
+    });
   };
 
   const handleSubmit = () => {
@@ -41,163 +48,160 @@ export default function ConfirmationStep({
       alert('利用規約に同意してください');
       return;
     }
-
-    onUpdate({
-      confirmation: {
-        agreedToTerms,
-        generateBarcodes,
-      },
-    });
     onSubmit();
   };
 
-  const totalValue = data.products?.reduce(
-    (sum: number, product: any) => sum + (product.estimatedValue || 0),
-    0
-  ) || 0;
+  const getTotalValue = () => {
+    return data.products?.reduce((total: number, product: any) => total + (product.estimatedValue || 0), 0) || 0;
+  };
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold mb-4">確認・出力</h2>
-        <p className="text-gray-600 mb-6">
-          入力内容を確認し、納品プランを作成してください。
-        </p>
+        <h2 className="text-xl font-bold text-gray-900 mb-4">確認・出力</h2>
+        <p className="text-gray-600 mb-6">入力内容を確認して、納品プランを作成してください</p>
       </div>
 
-      {/* 基本情報の確認 */}
-      <NexusCard className="p-6">
-        <h3 className="text-lg font-medium mb-4">基本情報</h3>
-        <dl className="space-y-2 text-sm">
-          <div className="flex">
-            <dt className="font-medium text-gray-700 w-32">納品者名:</dt>
-            <dd className="text-gray-900">{data.basicInfo?.sellerName}</dd>
+      {/* 基本情報確認 */}
+      <div className="bg-gray-50 rounded-lg p-6">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">基本情報</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div>
+            <span className="font-medium text-gray-700">セラー名:</span>
+            <span className="ml-2 text-gray-900">{data.basicInfo?.sellerName || '未入力'}</span>
           </div>
-          <div className="flex">
-            <dt className="font-medium text-gray-700 w-32">配送先住所:</dt>
-            <dd className="text-gray-900 whitespace-pre-wrap">
-              {data.basicInfo?.deliveryAddress}
-            </dd>
+          <div>
+            <span className="font-medium text-gray-700">連絡先メール:</span>
+            <span className="ml-2 text-gray-900">{data.basicInfo?.contactEmail || '未入力'}</span>
           </div>
-          <div className="flex">
-            <dt className="font-medium text-gray-700 w-32">メールアドレス:</dt>
-            <dd className="text-gray-900">{data.basicInfo?.contactEmail}</dd>
+          <div className="md:col-span-2">
+            <span className="font-medium text-gray-700">納品先住所:</span>
+            <span className="ml-2 text-gray-900">{data.basicInfo?.deliveryAddress || '未入力'}</span>
           </div>
-          <div className="flex">
-            <dt className="font-medium text-gray-700 w-32">電話番号:</dt>
-            <dd className="text-gray-900">{data.basicInfo?.phoneNumber}</dd>
+          <div>
+            <span className="font-medium text-gray-700">電話番号:</span>
+            <span className="ml-2 text-gray-900">{data.basicInfo?.phoneNumber || '未入力'}</span>
           </div>
           {data.basicInfo?.notes && (
-            <div className="flex">
-              <dt className="font-medium text-gray-700 w-32">備考:</dt>
-              <dd className="text-gray-900 whitespace-pre-wrap">
-                {data.basicInfo.notes}
-              </dd>
+            <div className="md:col-span-2">
+              <span className="font-medium text-gray-700">備考:</span>
+              <span className="ml-2 text-gray-900">{data.basicInfo.notes}</span>
             </div>
           )}
-        </dl>
-      </NexusCard>
+        </div>
+      </div>
 
-      {/* 商品リストの確認 */}
-      <NexusCard className="p-6">
-        <h3 className="text-lg font-medium mb-4">商品リスト</h3>
-        <div className="space-y-3">
-          {data.products?.map((product: any, index: number) => (
-            <div
-              key={index}
-              className="border border-gray-200 rounded-md p-4 bg-gray-50"
-            >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-                <div>
-                  <p className="font-medium text-gray-900">{product.name}</p>
-                  <p className="text-gray-600">
-                    {product.brand} - {product.model}
-                  </p>
-                  <p className="text-gray-500">
-                    カテゴリー: {categories[product.category as keyof typeof categories]}
-                  </p>
+      {/* 商品一覧確認 */}
+      <div className="bg-gray-50 rounded-lg p-6">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">登録商品一覧</h3>
+        {data.products && data.products.length > 0 ? (
+          <div className="space-y-4">
+            {data.products.map((product: any, index: number) => (
+              <div key={index} className="bg-white rounded-lg p-4 shadow-sm">
+                <div className="flex justify-between items-start mb-2">
+                  <h4 className="font-medium text-gray-900">{product.name}</h4>
+                  <span className="text-lg font-bold text-blue-600">
+                    ¥{product.estimatedValue?.toLocaleString() || '0'}
+                  </span>
                 </div>
-                <div className="text-right">
-                  <p className="font-medium text-blue-600">
-                    ¥{product.estimatedValue.toLocaleString()}
-                  </p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm text-gray-600">
+                  <div>
+                    <span className="font-medium">ブランド:</span> {product.brand}
+                  </div>
+                  <div>
+                    <span className="font-medium">モデル:</span> {product.model}
+                  </div>
+                  <div>
+                    <span className="font-medium">カテゴリ:</span> 
+                    {product.category === 'camera_body' ? 'カメラボディ' :
+                     product.category === 'lens' ? 'レンズ' :
+                     product.category === 'watch' ? '腕時計' : 'アクセサリー'}
+                  </div>
                   {product.serialNumber && (
-                    <p className="text-gray-500 text-xs">
-                      S/N: {product.serialNumber}
-                    </p>
+                    <div>
+                      <span className="font-medium">S/N:</span> {product.serialNumber}
+                    </div>
                   )}
                 </div>
+                {product.description && (
+                  <div className="mt-2 text-sm text-gray-600">
+                    <span className="font-medium">説明:</span> {product.description}
+                  </div>
+                )}
               </div>
-              {product.description && (
-                <p className="text-gray-600 text-sm mt-2">{product.description}</p>
-              )}
+            ))}
+            <div className="bg-blue-50 rounded-lg p-4">
+              <div className="flex justify-between items-center">
+                <span className="text-lg font-medium text-gray-900">合計予想価格:</span>
+                <span className="text-xl font-bold text-blue-600">
+                  ¥{getTotalValue().toLocaleString()}
+                </span>
+              </div>
+              <p className="text-sm text-gray-600 mt-1">
+                登録商品数: {data.products.length}点
+              </p>
             </div>
-          ))}
-        </div>
-        <div className="mt-4 pt-4 border-t border-gray-200">
-          <div className="flex justify-between items-center">
-            <span className="font-medium text-gray-700">商品点数:</span>
-            <span className="font-bold">{data.products?.length || 0} 点</span>
           </div>
-          <div className="flex justify-between items-center mt-2">
-            <span className="font-medium text-gray-700">合計見積価格:</span>
-            <span className="font-bold text-lg text-blue-600">
-              ¥{totalValue.toLocaleString()}
-            </span>
-          </div>
-        </div>
-      </NexusCard>
+        ) : (
+          <p className="text-gray-500">商品が登録されていません</p>
+        )}
+      </div>
 
-      {/* オプション */}
-      <NexusCard className="p-6">
-        <h3 className="text-lg font-medium mb-4">オプション</h3>
+      {/* オプション設定 */}
+      <div className="bg-gray-50 rounded-lg p-6">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">出力オプション</h3>
         <div className="space-y-4">
           <label className="flex items-center">
             <input
               type="checkbox"
               checked={generateBarcodes}
-              onChange={(e) => setGenerateBarcodes(e.target.checked)}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              onChange={(e) => handleBarcodesChange(e.target.checked)}
+              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
             />
             <span className="ml-2 text-sm text-gray-700">
-              バーコードラベルを生成する（PDF）
+              バーコードラベルを生成する（推奨）
             </span>
           </label>
+          <p className="text-xs text-gray-500 ml-6">
+            商品管理用のバーコードラベルPDFを自動生成します
+          </p>
         </div>
-      </NexusCard>
+      </div>
 
-      {/* 利用規約への同意 */}
-      <NexusCard className="p-6 bg-blue-50 border-blue-200">
-        <label className="flex items-start">
-          <input
-            type="checkbox"
-            checked={agreedToTerms}
-            onChange={(e) => setAgreedToTerms(e.target.checked)}
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-0.5"
-          />
-          <span className="ml-2 text-sm text-gray-700">
-            納品規約および注意事項を確認し、同意します
-          </span>
-        </label>
-      </NexusCard>
+      {/* 利用規約同意 */}
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">利用規約</h3>
+        <div className="space-y-4">
+          <label className="flex items-start">
+            <input
+              type="checkbox"
+              checked={agreedToTerms}
+              onChange={(e) => handleTermsChange(e.target.checked)}
+              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1"
+            />
+            <span className="ml-2 text-sm text-gray-700">
+              <span className="text-red-500">*</span> 
+              THE WORLD DOORの利用規約およびプライバシーポリシーに同意します
+            </span>
+          </label>
+          <div className="text-xs text-gray-500 ml-6 space-y-1">
+            <p>• 商品の査定価格は市場状況により変動する場合があります</p>
+            <p>• 商品の状態により査定額が変更される場合があります</p>
+            <p>• 納品後のキャンセルはお受けできません</p>
+          </div>
+        </div>
+      </div>
 
       <div className="flex justify-between pt-6">
-        <NexusButton onClick={onPrev} variant="secondary" className="px-6">
-          戻る
+        <NexusButton variant="default" onClick={onPrev} disabled={loading}>
+          前に戻る
         </NexusButton>
-        <NexusButton
-          onClick={handleSubmit}
+        <NexusButton 
+          variant="primary" 
+          onClick={handleSubmit} 
           disabled={loading || !agreedToTerms}
-          className="px-8"
         >
-          {loading ? (
-            <span className="flex items-center">
-              <span className="animate-spin h-4 w-4 border-b-2 border-white rounded-full mr-2"></span>
-              処理中...
-            </span>
-          ) : (
-            '納品プランを作成'
-          )}
+          {loading ? '作成中...' : '納品プランを作成'}
         </NexusButton>
       </div>
     </div>
