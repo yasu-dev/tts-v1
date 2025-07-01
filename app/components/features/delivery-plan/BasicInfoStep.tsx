@@ -13,169 +13,108 @@ interface BasicInfoStepProps {
 export default function BasicInfoStep({ 
   data, 
   onUpdate, 
-  onNext,
+  onNext, 
+  isFirstStep 
 }: BasicInfoStepProps) {
   const [formData, setFormData] = useState(data.basicInfo || {
     sellerName: '',
     deliveryAddress: '',
     contactEmail: '',
     phoneNumber: '',
-    notes: '',
+    notes: ''
   });
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.sellerName.trim()) {
-      newErrors.sellerName = '納品者名は必須です';
-    }
-
-    if (!formData.deliveryAddress.trim()) {
-      newErrors.deliveryAddress = '配送先住所は必須です';
-    }
-
-    if (!formData.contactEmail.trim()) {
-      newErrors.contactEmail = 'メールアドレスは必須です';
-    } else if (!/\S+@\S+\.\S+/.test(formData.contactEmail)) {
-      newErrors.contactEmail = 'メールアドレスの形式が正しくありません';
-    }
-
-    if (!formData.phoneNumber.trim()) {
-      newErrors.phoneNumber = '電話番号は必須です';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const handleInputChange = (field: string, value: string) => {
+    const updatedData = { ...formData, [field]: value };
+    setFormData(updatedData);
+    onUpdate({ basicInfo: updatedData });
   };
 
   const handleNext = () => {
-    if (validateForm()) {
-      onUpdate({ basicInfo: formData });
+    if (formData.sellerName && formData.deliveryAddress && formData.contactEmail) {
       onNext();
-    }
-  };
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData((prev: typeof formData) => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+    } else {
+      alert('必須項目を入力してください');
     }
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold mb-4">基本情報入力</h2>
-        <p className="text-gray-600 mb-6">
-          納品に必要な基本情報を入力してください。
-        </p>
+        <h2 className="text-xl font-bold text-gray-900 mb-4">基本情報</h2>
+        <p className="text-gray-600 mb-6">納品プランの基本情報を入力してください</p>
       </div>
 
-      <form className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            納品者名 <span className="text-red-500">*</span>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            セラー名 <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
             value={formData.sellerName}
             onChange={(e) => handleInputChange('sellerName', e.target.value)}
-            className={`
-              w-full px-3 py-2 border rounded-md 
-              focus:outline-none focus:ring-2 focus:ring-blue-500
-              ${errors.sellerName ? 'border-red-500' : 'border-gray-300'}
-            `}
-            placeholder="例: 田中太郎"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="セラー名を入力"
           />
-          {errors.sellerName && (
-            <p className="text-red-500 text-sm mt-1">{errors.sellerName}</p>
-          )}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            配送先住所 <span className="text-red-500">*</span>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            連絡先メール <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="email"
+            value={formData.contactEmail}
+            onChange={(e) => handleInputChange('contactEmail', e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="メールアドレスを入力"
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            納品先住所 <span className="text-red-500">*</span>
           </label>
           <textarea
             value={formData.deliveryAddress}
             onChange={(e) => handleInputChange('deliveryAddress', e.target.value)}
             rows={3}
-            className={`
-              w-full px-3 py-2 border rounded-md 
-              focus:outline-none focus:ring-2 focus:ring-blue-500
-              ${errors.deliveryAddress ? 'border-red-500' : 'border-gray-300'}
-            `}
-            placeholder="例: 〒100-0001 東京都千代田区千代田1-1-1"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="納品先住所を入力"
           />
-          {errors.deliveryAddress && (
-            <p className="text-red-500 text-sm mt-1">{errors.deliveryAddress}</p>
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              メールアドレス <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="email"
-              value={formData.contactEmail}
-              onChange={(e) => handleInputChange('contactEmail', e.target.value)}
-              className={`
-                w-full px-3 py-2 border rounded-md 
-                focus:outline-none focus:ring-2 focus:ring-blue-500
-                ${errors.contactEmail ? 'border-red-500' : 'border-gray-300'}
-              `}
-              placeholder="例: example@email.com"
-            />
-            {errors.contactEmail && (
-              <p className="text-red-500 text-sm mt-1">{errors.contactEmail}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              電話番号 <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="tel"
-              value={formData.phoneNumber}
-              onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
-              className={`
-                w-full px-3 py-2 border rounded-md 
-                focus:outline-none focus:ring-2 focus:ring-blue-500
-                ${errors.phoneNumber ? 'border-red-500' : 'border-gray-300'}
-              `}
-              placeholder="例: 090-1234-5678"
-            />
-            {errors.phoneNumber && (
-              <p className="text-red-500 text-sm mt-1">{errors.phoneNumber}</p>
-            )}
-          </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            電話番号
+          </label>
+          <input
+            type="tel"
+            value={formData.phoneNumber}
+            onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="電話番号を入力"
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             備考
           </label>
           <textarea
             value={formData.notes}
             onChange={(e) => handleInputChange('notes', e.target.value)}
             rows={3}
-            className="
-              w-full px-3 py-2 border border-gray-300 rounded-md 
-              focus:outline-none focus:ring-2 focus:ring-blue-500
-            "
-            placeholder="特記事項があれば入力してください"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="その他の要望や注意事項があれば入力"
           />
         </div>
-      </form>
+      </div>
 
       <div className="flex justify-end pt-6">
-        <NexusButton onClick={handleNext} className="px-6">
-          次へ
+        <NexusButton variant="primary" onClick={handleNext}>
+          次へ進む
         </NexusButton>
       </div>
     </div>
