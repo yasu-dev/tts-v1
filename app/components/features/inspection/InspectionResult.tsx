@@ -205,13 +205,21 @@ export default function InspectionResult({
                     const itemLabel = categoryLabel.items[itemKey as keyof typeof categoryLabel.items];
                     return (
                       <div key={itemKey} className="flex items-center">
-                        <span
-                          className={`w-5 h-5 rounded-full mr-2 ${
+                        <div
+                          className={`w-5 h-5 rounded-full mr-2 flex items-center justify-center ${
                             value ? 'bg-green-500' : 'bg-red-500'
                           }`}
                         >
-                          {value ? '✓' : '✗'}
-                        </span>
+                          {value ? (
+                            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                          ) : (
+                            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          )}
+                        </div>
                         <span className="text-sm">{itemLabel}</span>
                       </div>
                     );
@@ -254,7 +262,11 @@ export default function InspectionResult({
       {/* 確認事項 */}
       <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4">
         <div className="flex items-start">
-          <span className="text-2xl mr-3">⚠️</span>
+          <div className="w-6 h-6 mr-3 text-yellow-600 flex-shrink-0">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
           <div>
             <h4 className="font-semibold text-yellow-800">送信前の確認</h4>
             <ul className="text-sm text-yellow-700 mt-2 space-y-1">

@@ -30,64 +30,67 @@ export default function StaffShippingPage() {
   const [selectedPackingItem, setSelectedPackingItem] = useState<ShippingItem | null>(null);
 
   useEffect(() => {
-    // Load shipping data from mock file
-    fetch('/api/staff/dashboard')
-      .then(res => res.json())
-      .then(data => {
-        // Convert staff shipping data to ShippingItem format
-        const convertedItems: ShippingItem[] = data.shippingData.todayShipments.map((shipment: any) => ({
-          id: shipment.id,
-          productName: shipment.productName,
-          productSku: shipment.productId,
-          orderNumber: shipment.orderId,
-          customer: shipment.customer,
-          shippingAddress: shipment.address,
-          status: shipment.status === '梱包待ち' ? 'pending_inspection' : 
-                 shipment.status === '準備完了' ? 'packed' : 'pending_inspection',
-          priority: shipment.priority === '高' ? 'urgent' : 
-                   shipment.priority === '中' ? 'normal' : 'low',
-          dueDate: shipment.deadline,
-          shippingMethod: shipment.shippingMethod,
-          trackingNumber: shipment.trackingNumber || undefined,
-          value: parseInt(shipment.value.replace(/[¥,]/g, '')),
-        }));
+    // モックデータを直接設定してロード時間を短縮
+    const mockItems: ShippingItem[] = [
+      {
+        id: 'ship-001',
+        productName: 'Canon EOS R5 ボディ',
+        productSku: 'TWD-CAM-001',
+        orderNumber: 'ORD-2024-0628-001',
+        customer: '山田太郎',
+        shippingAddress: '東京都渋谷区1-1-1',
+        status: 'pending_inspection',
+        priority: 'urgent',
+        dueDate: '17:00',
+        shippingMethod: 'ヤマト宅急便',
+        value: 450000,
+      },
+      {
+        id: 'ship-002',
+        productName: 'Sony α7R V ボディ',
+        productSku: 'TWD-CAM-002',
+        orderNumber: 'ORD-2024-0628-002',
+        customer: '鈴木花子',
+        shippingAddress: '神奈川県横浜市1-1-1',
+        status: 'packed',
+        priority: 'normal',
+        dueDate: '19:00',
+        inspectionNotes: '動作確認済み、外観良好',
+        shippingMethod: 'ヤマト宅急便',
+        value: 398000,
+      },
+      {
+        id: 'ship-003',
+        productName: 'Sony FE 24-70mm f/2.8',
+        productSku: 'TWD-LEN-005',
+        orderNumber: 'ORD-2024-0628-003',
+        customer: '田中一郎',
+        shippingAddress: '愛知県名古屋市中区栄1-1-1',
+        status: 'inspected',
+        priority: 'normal',
+        dueDate: '18:00',
+        inspectionNotes: '動作確認済み、レンズ内クリア',
+        shippingMethod: 'ヤマト宅急便',
+        value: 280000,
+      },
+      {
+        id: 'ship-004',
+        productName: 'Rolex GMT Master',
+        productSku: 'TWD-WAT-007',
+        orderNumber: 'ORD-2024-0628-004',
+        customer: '佐藤花子',
+        shippingAddress: '大阪府大阪市北区梅田1-1-1',
+        status: 'shipped',
+        priority: 'urgent',
+        dueDate: '16:00',
+        inspectionNotes: '高額商品・保険付き配送',
+        trackingNumber: 'YM-2024-062801',
+        shippingMethod: 'ヤマト宅急便（保険付き）',
+        value: 2100000,
+      }
+    ];
 
-        // Add additional demo items for better demonstration
-        const additionalItems: ShippingItem[] = [
-          {
-            id: 'ship-003',
-            productName: 'Sony FE 24-70mm f/2.8',
-            productSku: 'TWD-LEN-005',
-            orderNumber: 'ORD-2024-0628-003',
-            customer: '田中一郎',
-            shippingAddress: '愛知県名古屋市中区栄1-1-1',
-            status: 'inspected',
-            priority: 'normal',
-            dueDate: '18:00',
-            inspectionNotes: '動作確認済み、レンズ内クリア',
-            shippingMethod: 'ヤマト宅急便',
-            value: 280000,
-          },
-          {
-            id: 'ship-004',
-            productName: 'Rolex GMT Master',
-            productSku: 'TWD-WAT-007',
-            orderNumber: 'ORD-2024-0628-004',
-            customer: '佐藤花子',
-            shippingAddress: '大阪府大阪市北区梅田1-1-1',
-            status: 'shipped',
-            priority: 'urgent',
-            dueDate: '16:00',
-            inspectionNotes: '高額商品・保険付き配送',
-            trackingNumber: 'YM-2024-062801',
-            shippingMethod: 'ヤマト宅急便（保険付き）',
-            value: 2100000,
-          }
-        ];
-
-        setItems([...convertedItems, ...additionalItems]);
-      })
-      .catch(console.error);
+    setItems(mockItems);
   }, []);
 
   const filteredItems = items.filter(item => {
@@ -196,44 +199,47 @@ export default function StaffShippingPage() {
       <div className="space-y-6">
         {/* Header */}
         <div className="intelligence-card oceania">
-          <div className="p-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
+          <div className="p-3 sm:p-4 md:p-6 lg:p-8">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+              <div className="flex-1">
+                <h1 className="text-2xl sm:text-3xl font-display font-bold text-nexus-text-primary">
                   検品・出荷管理
                 </h1>
-                <p className="mt-1 text-sm text-nexus-text-secondary">
+                <p className="mt-1 text-xs sm:text-sm text-nexus-text-secondary">
                   商品検品から出荷までの一括管理
                 </p>
               </div>
-              <div className="flex space-x-3">
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
                 <button 
                   onClick={() => handlePrintLabel()}
-                  className="nexus-button"
+                  className="nexus-button text-xs sm:text-sm"
                 >
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H9.5a2 2 0 01-2-2V5a2 2 0 00-2-2H4a2 2 0 00-2 2v6a2 2 0 002 2h2.5" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m15 12-3-3-3 3" />
                   </svg>
-                  配送ラベル印刷
+                  <span className="hidden sm:inline">配送ラベル印刷</span>
+                  <span className="sm:hidden">ラベル印刷</span>
                 </button>
                 <button 
                   onClick={() => alert('一括処理機能（デモ版では利用できません）')}
-                  className="nexus-button"
+                  className="nexus-button text-xs sm:text-sm"
                 >
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                   </svg>
-                  一括処理
+                  <span className="hidden sm:inline">一括処理</span>
+                  <span className="sm:hidden">一括</span>
                 </button>
                 <button 
                   onClick={() => setIsBarcodeScannerOpen(true)}
-                  className="nexus-button primary"
+                  className="nexus-button primary text-xs sm:text-sm"
                 >
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V6a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1zm12 0h2a1 1 0 001-1V6a1 1 0 00-1-1h-2a1 1 0 00-1 1v1a1 1 0 001 1zM5 20h2a1 1 0 001-1v-1a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1z" />
                   </svg>
-                  バーコードスキャン
+                  <span className="hidden sm:inline">バーコードスキャン</span>
+                  <span className="sm:hidden">スキャン</span>
                 </button>
               </div>
             </div>
@@ -242,78 +248,78 @@ export default function StaffShippingPage() {
 
         {/* Stats Cards */}
         <div className="intelligence-metrics">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
             <div className="intelligence-card global">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="action-orb">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-3 sm:p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 sm:mb-4">
+                  <div className="action-orb w-6 h-6 sm:w-8 sm:h-8">
+                    <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                     </svg>
                   </div>
-                  <span className="status-badge info">総計</span>
+                  <span className="status-badge info text-[10px] sm:text-xs">総計</span>
                 </div>
-                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
+                <div className="metric-value font-display text-xl sm:text-2xl md:text-3xl font-bold text-nexus-text-primary">
                   {stats.total}
                 </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
+                <div className="metric-label text-nexus-text-secondary font-medium mt-1 sm:mt-2 text-xs sm:text-sm">
                   総件数
                 </div>
               </div>
             </div>
 
             <div className="intelligence-card americas">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="action-orb orange">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-3 sm:p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 sm:mb-4">
+                  <div className="action-orb orange w-6 h-6 sm:w-8 sm:h-8">
+                    <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                     </svg>
                   </div>
-                  <span className="status-badge warning">待機中</span>
+                  <span className="status-badge warning text-[10px] sm:text-xs">待機中</span>
                 </div>
-                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
+                <div className="metric-value font-display text-xl sm:text-2xl md:text-3xl font-bold text-nexus-text-primary">
                   {stats.pendingInspection}
                 </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
+                <div className="metric-label text-nexus-text-secondary font-medium mt-1 sm:mt-2 text-xs sm:text-sm">
                   検品待ち
                 </div>
               </div>
             </div>
 
             <div className="intelligence-card europe">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="action-orb purple">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-3 sm:p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 sm:mb-4">
+                  <div className="action-orb purple w-6 h-6 sm:w-8 sm:h-8">
+                    <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                     </svg>
                   </div>
-                  <span className="status-badge success">準備完了</span>
+                  <span className="status-badge success text-[10px] sm:text-xs">準備完了</span>
                 </div>
-                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
+                <div className="metric-value font-display text-xl sm:text-2xl md:text-3xl font-bold text-nexus-text-primary">
                   {stats.readyToShip}
                 </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
+                <div className="metric-label text-nexus-text-secondary font-medium mt-1 sm:mt-2 text-xs sm:text-sm">
                   出荷準備完了
                 </div>
               </div>
             </div>
 
             <div className="intelligence-card asia">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="action-orb red">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-3 sm:p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 sm:mb-4">
+                  <div className="action-orb red w-6 h-6 sm:w-8 sm:h-8">
+                    <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <span className="status-badge danger">緊急</span>
+                  <span className="status-badge danger text-[10px] sm:text-xs">緊急</span>
                 </div>
-                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
+                <div className="metric-value font-display text-xl sm:text-2xl md:text-3xl font-bold text-nexus-text-primary">
                   {stats.urgent}
                 </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
+                <div className="metric-label text-nexus-text-secondary font-medium mt-1 sm:mt-2 text-xs sm:text-sm">
                   緊急案件
                 </div>
               </div>

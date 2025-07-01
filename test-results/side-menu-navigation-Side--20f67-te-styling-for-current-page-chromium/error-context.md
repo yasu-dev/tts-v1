@@ -1,0 +1,102 @@
+# Page snapshot
+
+```yaml
+- complementary:
+  - text: W
+  - heading "THE WORLD DOOR" [level=2]
+  - paragraph: フルフィルメントサービス
+  - paragraph: スタッフ管理
+  - button "サイドバーを折りたたむ":
+    - img
+  - navigation:
+    - link "スタッフダッシュボード":
+      - /url: /staff/dashboard
+      - img
+      - text: スタッフダッシュボード
+    - link "緊急タスク 2":
+      - /url: /staff/tasks
+      - img
+      - text: 緊急タスク 2
+    - link "在庫管理":
+      - /url: /staff/inventory
+      - img
+      - text: 在庫管理
+    - link "検品・撮影 8":
+      - /url: /staff/inspection
+      - img
+      - text: 検品・撮影 8
+    - link "ロケーション管理":
+      - /url: /staff/location
+      - img
+      - text: ロケーション管理
+    - link "出荷管理 6":
+      - /url: /staff/shipping
+      - img
+      - text: 出荷管理 6
+    - link "返品処理 5":
+      - /url: /staff/returns
+      - img
+      - text: 返品処理 5
+    - link "業務レポート":
+      - /url: /staff/reports
+      - img
+      - text: 業務レポート
+- banner:
+  - textbox "商品を検索..."
+  - button:
+    - img
+  - img
+  - text: 01:36 日本時間
+  - button "通知":
+    - img
+  - button "S スタッフ 管理者":
+    - text: S スタッフ 管理者
+    - img
+- heading "業務フロー" [level=3]
+- button "フローを折りたたむ":
+  - img
+- text: フルフィルメントフロー読み込み中...
+- main:
+  - heading "検品・出荷管理" [level=1]
+  - paragraph: 商品検品から出荷までの一括管理
+  - button "配送ラベル印刷":
+    - img
+    - text: 配送ラベル印刷
+  - button "一括処理":
+    - img
+    - text: 一括処理
+  - button "バーコードスキャン":
+    - img
+    - text: バーコードスキャン
+  - img
+  - text: 総計 0 総件数
+  - img
+  - text: 待機中 0 検品待ち
+  - img
+  - text: 準備完了 0 出荷準備完了
+  - img
+  - text: 緊急 0 緊急案件 ステータス
+  - combobox:
+    - option "すべて" [selected]
+    - option "検品待ち"
+    - option "検品完了"
+    - option "梱包完了"
+    - option "出荷済み"
+    - option "配送完了"
+  - text: 優先度
+  - combobox:
+    - option "すべて" [selected]
+    - option "緊急"
+    - option "通常"
+    - option "低"
+  - text: 期限
+  - combobox:
+    - option "すべて" [selected]
+    - option "今日"
+    - option "明日"
+    - option "今週"
+    - option "期限超過"
+  - img
+  - heading "出荷案件がありません" [level=3]
+  - paragraph: 条件に一致する出荷案件が見つかりません。
+```

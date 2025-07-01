@@ -402,9 +402,9 @@ export default function DashboardLayout({
           </div>
 
           {/* ページコンテンツ - レスポンシブ対応 */}
-          <main className="flex-1 overflow-y-auto bg-gray-50">
-            <div className="p-3 sm:p-4 md:p-6 lg:p-8 max-w-[1600px] mx-auto">
-              <div className="min-h-[calc(100vh-200px)]">
+          <main className="flex-1 overflow-y-auto bg-gray-50 main-content" role="main" id="main-content">
+            <div className="p-2 sm:p-3 md:p-4 lg:p-6 xl:p-8 max-w-[1600px] mx-auto">
+              <div className="min-h-[calc(100vh-180px)] space-y-3 sm:space-y-4 md:space-y-6">
                 {children}
               </div>
             </div>

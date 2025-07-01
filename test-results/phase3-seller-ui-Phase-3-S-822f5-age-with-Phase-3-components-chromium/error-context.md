@@ -1,0 +1,118 @@
+# Page snapshot
+
+```yaml
+- alert
+- complementary:
+  - text: W
+  - heading "THE WORLD DOOR" [level=2]
+  - paragraph: フルフィルメントサービス
+  - paragraph: セラー管理
+  - button "サイドバーを折りたたむ":
+    - img
+  - navigation:
+    - link "ダッシュボード":
+      - /url: /dashboard
+      - img
+      - text: ダッシュボード
+    - link "納品管理 3":
+      - /url: /delivery
+      - img
+      - text: 納品管理 3
+    - link "在庫管理 234":
+      - /url: /inventory
+      - img
+      - text: 在庫管理 234
+    - link "販売管理 12":
+      - /url: /sales
+      - img
+      - text: 販売管理 12
+    - link "返品管理 5":
+      - /url: /returns
+      - img
+      - text: 返品管理 5
+    - link "請求・精算":
+      - /url: /billing
+      - img
+      - text: 請求・精算
+    - link "商品履歴":
+      - /url: /timeline
+      - img
+      - text: 商品履歴
+- banner:
+  - textbox "商品を検索..."
+  - button:
+    - img
+  - img
+  - text: 01:33 日本時間
+  - button "通知":
+    - img
+    - text: "3"
+  - button "U セラー 管理者":
+    - text: U セラー 管理者
+    - img
+- heading "業務フロー" [level=3]
+- button "フローを折りたたむ":
+  - img
+- text: フルフィルメントフロー読み込み中...
+- main:
+  - heading "在庫管理" [level=1]
+  - heading "商品在庫ビュー" [level=2]:
+    - img
+    - text: 商品在庫ビュー
+  - paragraph: 商品在庫の状況を確認・管理できます
+  - button "一括出品":
+    - img
+    - text: 一括出品
+  - button "検品依頼":
+    - img
+    - text: 検品依頼
+  - img
+  - text: 156点 156点 総在庫数
+  - img
+  - text: 出品中 89点 出品中
+  - img
+  - text: 検品中 45点 検品中
+  - img
+  - text: 総資産 ¥4,560万 総評価額
+  - heading "在庫リスト" [level=3]
+  - paragraph: 現在の在庫状況
+  - table:
+    - rowgroup:
+      - row "商品名 SKU カテゴリー ステータス 保管場所 評価額 認証":
+        - cell "商品名"
+        - cell "SKU"
+        - cell "カテゴリー"
+        - cell "ステータス"
+        - cell "保管場所"
+        - cell "評価額"
+        - cell "認証"
+    - rowgroup:
+      - row "Canon EOS R5 TWD-20240115-001 カメラ本体 出品中 A-01-03 ¥450,000 MINT AUTHENTIC":
+        - cell "Canon EOS R5"
+        - cell "TWD-20240115-001"
+        - cell "カメラ本体"
+        - cell "出品中"
+        - cell "A-01-03"
+        - cell "¥450,000"
+        - cell "MINT AUTHENTIC"
+      - row "Sony FE 24-70mm f/2.8 GM TWD-20240115-002 レンズ 検品中 B-02-05 ¥280,000 PREMIUM":
+        - cell "Sony FE 24-70mm f/2.8 GM"
+        - cell "TWD-20240115-002"
+        - cell "レンズ"
+        - cell "検品中"
+        - cell "B-02-05"
+        - cell "¥280,000"
+        - cell "PREMIUM"
+      - row "Rolex Submariner TWD-20240115-003 時計 保管中 C-01-01 ¥1,200,000 CERTIFIED LUXURY RARE":
+        - cell "Rolex Submariner"
+        - cell "TWD-20240115-003"
+        - cell "時計"
+        - cell "保管中"
+        - cell "C-01-01"
+        - cell "¥1,200,000"
+        - cell "CERTIFIED LUXURY RARE"
+- img
+- text: 2 errors
+- button "Hide Errors":
+  - img
+```

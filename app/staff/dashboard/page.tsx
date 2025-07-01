@@ -240,116 +240,116 @@ export default function StaffDashboard() {
 
         {/* Stats Cards */}
         <div className="intelligence-metrics">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 md:gap-6">
             <div className="intelligence-card global">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="action-orb">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-3 sm:p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 sm:mb-4">
+                  <div className="action-orb w-6 h-6 sm:w-8 sm:h-8">
+                    <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
                   </div>
-                  <span className="status-badge info">総計</span>
+                  <span className="status-badge info text-[10px] sm:text-xs">総計</span>
                 </div>
-                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
+                <div className="metric-value font-display text-xl sm:text-2xl md:text-3xl font-bold text-nexus-text-primary">
                   {stats.total}
                 </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
+                <div className="metric-label text-nexus-text-secondary font-medium mt-1 sm:mt-2 text-xs sm:text-sm">
                   総タスク数
                 </div>
               </div>
             </div>
 
             <div className="intelligence-card americas">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="action-orb red">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-3 sm:p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 sm:mb-4">
+                  <div className="action-orb red w-6 h-6 sm:w-8 sm:h-8">
+                    <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <span className="status-badge danger">緊急</span>
+                  <span className="status-badge danger text-[10px] sm:text-xs">緊急</span>
                 </div>
-                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
+                <div className="metric-value font-display text-xl sm:text-2xl md:text-3xl font-bold text-nexus-text-primary">
                   {stats.urgent}
                 </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
+                <div className="metric-label text-nexus-text-secondary font-medium mt-1 sm:mt-2 text-xs sm:text-sm">
                   緊急タスク
                 </div>
               </div>
             </div>
 
             <div className="intelligence-card europe">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="action-orb">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-3 sm:p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 sm:mb-4">
+                  <div className="action-orb w-6 h-6 sm:w-8 sm:h-8">
+                    <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <span className="status-badge">待機</span>
+                  <span className="status-badge text-[10px] sm:text-xs">待機</span>
                 </div>
-                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
+                <div className="metric-value font-display text-xl sm:text-2xl md:text-3xl font-bold text-nexus-text-primary">
                   {stats.pending}
                 </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
+                <div className="metric-label text-nexus-text-secondary font-medium mt-1 sm:mt-2 text-xs sm:text-sm">
                   待機中
                 </div>
               </div>
             </div>
 
             <div className="intelligence-card asia">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="action-orb blue">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-3 sm:p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 sm:mb-4">
+                  <div className="action-orb blue w-6 h-6 sm:w-8 sm:h-8">
+                    <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                   </div>
-                  <span className="status-badge info">実行中</span>
+                  <span className="status-badge info text-[10px] sm:text-xs">実行中</span>
                 </div>
-                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
+                <div className="metric-value font-display text-xl sm:text-2xl md:text-3xl font-bold text-nexus-text-primary">
                   {stats.inProgress}
                 </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
+                <div className="metric-label text-nexus-text-secondary font-medium mt-1 sm:mt-2 text-xs sm:text-sm">
                   作業中
                 </div>
               </div>
             </div>
 
             <div className="intelligence-card africa">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="action-orb green">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-3 sm:p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 sm:mb-4">
+                  <div className="action-orb green w-6 h-6 sm:w-8 sm:h-8">
+                    <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <span className="status-badge success">完了</span>
+                  <span className="status-badge success text-[10px] sm:text-xs">完了</span>
                 </div>
-                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
+                <div className="metric-value font-display text-xl sm:text-2xl md:text-3xl font-bold text-nexus-text-primary">
                   {stats.completed}
                 </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
+                <div className="metric-label text-nexus-text-secondary font-medium mt-1 sm:mt-2 text-xs sm:text-sm">
                   完了済み
                 </div>
               </div>
             </div>
 
             <div className="intelligence-card oceania">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="action-orb">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-3 sm:p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 sm:mb-4">
+                  <div className="action-orb w-6 h-6 sm:w-8 sm:h-8">
+                    <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <span className="status-badge success">本日</span>
+                  <span className="status-badge success text-[10px] sm:text-xs">本日</span>
                 </div>
-                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
+                <div className="metric-value font-display text-xl sm:text-2xl md:text-3xl font-bold text-nexus-text-primary">
                   {staffData.staffStats.daily.tasksCompleted}
                 </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
+                <div className="metric-label text-nexus-text-secondary font-medium mt-1 sm:mt-2 text-xs sm:text-sm">
                   本日完了
                 </div>
               </div>
@@ -359,78 +359,78 @@ export default function StaffDashboard() {
 
         {/* Performance Metrics */}
         <div className="intelligence-metrics">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
             <div className="intelligence-card americas">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="action-orb">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-3 sm:p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 sm:mb-4">
+                  <div className="action-orb w-6 h-6 sm:w-8 sm:h-8">
+                    <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <span className="status-badge success">売上</span>
+                  <span className="status-badge success text-[10px] sm:text-xs">売上</span>
                 </div>
-                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
+                <div className="metric-value font-display text-xl sm:text-2xl md:text-3xl font-bold text-nexus-text-primary">
                   {staffData.staffStats.daily.totalRevenue}
                 </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
+                <div className="metric-label text-nexus-text-secondary font-medium mt-1 sm:mt-2 text-xs sm:text-sm">
                   本日の売上
                 </div>
               </div>
             </div>
 
             <div className="intelligence-card europe">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="action-orb blue">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-3 sm:p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 sm:mb-4">
+                  <div className="action-orb blue w-6 h-6 sm:w-8 sm:h-8">
+                    <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                     </svg>
                   </div>
-                  <span className="status-badge info">{staffData.staffStats.daily.inspectionsCompleted}件</span>
+                  <span className="status-badge info text-[10px] sm:text-xs">{staffData.staffStats.daily.inspectionsCompleted}件</span>
                 </div>
-                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
+                <div className="metric-value font-display text-xl sm:text-2xl md:text-3xl font-bold text-nexus-text-primary">
                   {staffData.staffStats.daily.inspectionsCompleted}
                 </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
+                <div className="metric-label text-nexus-text-secondary font-medium mt-1 sm:mt-2 text-xs sm:text-sm">
                   検品完了
                 </div>
               </div>
             </div>
 
             <div className="intelligence-card asia">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="action-orb green">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-3 sm:p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 sm:mb-4">
+                  <div className="action-orb green w-6 h-6 sm:w-8 sm:h-8">
+                    <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
                     </svg>
                   </div>
-                  <span className="status-badge success">{staffData.staffStats.daily.shipmentsProcessed}件</span>
+                  <span className="status-badge success text-[10px] sm:text-xs">{staffData.staffStats.daily.shipmentsProcessed}件</span>
                 </div>
-                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
+                <div className="metric-value font-display text-xl sm:text-2xl md:text-3xl font-bold text-nexus-text-primary">
                   {staffData.staffStats.daily.shipmentsProcessed}
                 </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
+                <div className="metric-label text-nexus-text-secondary font-medium mt-1 sm:mt-2 text-xs sm:text-sm">
                   出荷処理
                 </div>
               </div>
             </div>
 
             <div className="intelligence-card africa">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="action-orb">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-3 sm:p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 sm:mb-4">
+                  <div className="action-orb w-6 h-6 sm:w-8 sm:h-8">
+                    <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                     </svg>
                   </div>
-                  <span className="status-badge success">{staffData.staffStats.weekly.efficiency}%</span>
+                  <span className="status-badge success text-[10px] sm:text-xs">{staffData.staffStats.weekly.efficiency}%</span>
                 </div>
-                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
+                <div className="metric-value font-display text-xl sm:text-2xl md:text-3xl font-bold text-nexus-text-primary">
                   {staffData.staffStats.weekly.efficiency}%
                 </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
+                <div className="metric-label text-nexus-text-secondary font-medium mt-1 sm:mt-2 text-xs sm:text-sm">
                   効率スコア
                 </div>
               </div>
@@ -474,32 +474,32 @@ export default function StaffDashboard() {
                 <label className="block text-sm font-medium text-nexus-text-secondary mb-2">作業種別フィルター</label>
                 <div className="flex space-x-1 bg-nexus-bg-secondary p-1 rounded-lg">
                   {[
-                                      { key: 'all', label: 'すべて', icon: (
-                    <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                    </svg>
-                  ) },
-                  { key: 'inspection', label: '検品', icon: (
-                    <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                  ) },
-                  { key: 'photography', label: '撮影', icon: (
-                    <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                  ) },
-                  { key: 'shipping', label: '出荷', icon: (
-                    <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
-                    </svg>
-                  ) },
-                  { key: 'returns', label: '返品', icon: (
-                    <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-                    </svg>
-                  ) },
+                    { key: 'all', label: 'すべて', icon: (
+                      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                      </svg>
+                    ) },
+                    { key: 'inspection', label: '検品', icon: (
+                      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    ) },
+                    { key: 'photography', label: '撮影', icon: (
+                      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    ) },
+                    { key: 'shipping', label: '出荷', icon: (
+                      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                      </svg>
+                    ) },
+                    { key: 'returns', label: '返品', icon: (
+                      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                      </svg>
+                    ) },
                   ].map((tab) => (
                     <button
                       key={tab.key}

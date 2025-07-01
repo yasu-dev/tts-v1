@@ -1,0 +1,156 @@
+# Page snapshot
+
+```yaml
+- complementary:
+  - text: W
+  - heading "THE WORLD DOOR" [level=2]
+  - paragraph: フルフィルメントサービス
+  - paragraph: セラー管理
+  - button:
+    - img
+  - navigation:
+    - link "ダッシュボード":
+      - /url: /dashboard
+      - img
+      - text: ダッシュボード
+    - link "納品管理 3":
+      - /url: /delivery
+      - img
+      - text: 納品管理 3
+    - link "在庫管理 234":
+      - /url: /inventory
+      - img
+      - text: 在庫管理 234
+    - link "販売管理 12":
+      - /url: /sales
+      - img
+      - text: 販売管理 12
+    - link "返品管理 5":
+      - /url: /returns
+      - img
+      - text: 返品管理 5
+    - link "請求・精算":
+      - /url: /billing
+      - img
+      - text: 請求・精算
+    - link "商品履歴":
+      - /url: /timeline
+      - img
+      - text: 商品履歴
+- banner:
+  - button "メニューを開く":
+    - img
+  - text: W WORLD DOOR
+  - textbox "商品を検索..."
+  - button:
+    - img
+  - button "通知":
+    - img
+    - text: "3"
+  - button "U":
+    - text: U
+    - img
+- heading "業務フロー" [level=3]
+- button "フローを折りたたむ":
+  - img
+- heading "フルフィルメント作業フロー" [level=3]
+- img
+- text: "セラー 担当作業: 0件 進行中: 0 完了: 0 総計: 0"
+- button "準備 セラー作業 商品仕入れ 納品プラン作成":
+  - img
+  - text: 準備 セラー作業
+  - img
+  - text: 商品仕入れ 納品プラン作成
+- button "入庫 スタッフ作業 商品受取 検品・撮影":
+  - img
+  - text: 入庫 スタッフ作業
+  - img
+  - text: 商品受取 検品・撮影
+- button "販売 自動処理 eBay自動出品 商品注文":
+  - img
+  - text: 販売 自動処理
+  - img
+  - text: eBay自動出品 商品注文
+- button "出荷 スタッフ作業 ピッキング 梱包・発送":
+  - img
+  - text: 出荷 スタッフ作業
+  - img
+  - text: ピッキング 梱包・発送
+- button "完了 セラー作業 売上計算 精算確認":
+  - img
+  - text: 完了 セラー作業
+  - img
+  - text: 売上計算 精算確認
+- main:
+  - heading "ダッシュボード" [level=1]
+  - heading "グローバル統合ビュー" [level=2]:
+    - img
+    - text: グローバル統合ビュー
+  - paragraph: 全体の業績と主要指標を一目で確認
+  - button "新規輸出":
+    - img
+    - text: 新規輸出
+  - button "レポート出力":
+    - img
+    - text: レポート出力
+  - heading "在庫サマリー" [level=3]
+  - paragraph: リアルタイム在庫状況
+  - img
+  - text: 総計 0 総在庫数
+  - img
+  - text: 価値 ¥0 総在庫価値
+  - heading "ステータス別在庫" [level=3]
+  - heading "カテゴリー別在庫" [level=3]
+  - img
+  - text: 30秒ごとに自動更新
+  - img
+  - text: +12.5% ¥48,470,000 グローバル収益
+  - img
+  - text: アクティブ 2,386 アクティブ輸出
+  - img
+  - text: 最適 94.2% 在庫効率
+  - img
+  - text: 急成長 126% 市場拡大率
+  - heading "グローバル取引モニター" [level=3]
+  - paragraph: リアルタイムの注文状況
+  - table:
+    - rowgroup:
+      - row "注文ID 顧客 販売者 認証 商品数 金額 ステータス 地域":
+        - cell "注文ID"
+        - cell "顧客"
+        - cell "販売者"
+        - cell "認証"
+        - cell "商品数"
+        - cell "金額"
+        - cell "ステータス"
+        - cell "地域"
+    - rowgroup:
+      - row "WD-2024-0847 NEXUS Global Trading APEX Industries ELITE 156 ¥2,847,300 最適 北米":
+        - cell "WD-2024-0847"
+        - cell "NEXUS Global Trading"
+        - cell "APEX Industries"
+        - cell "ELITE"
+        - cell "156"
+        - cell "¥2,847,300"
+        - cell "最適"
+        - cell "北米"
+      - row "WD-2024-0846 EuroTech Solutions Quantum Exports PREMIUM 89 ¥1,234,500 監視中 欧州":
+        - cell "WD-2024-0846"
+        - cell "EuroTech Solutions"
+        - cell "Quantum Exports"
+        - cell "PREMIUM"
+        - cell "89"
+        - cell "¥1,234,500"
+        - cell "監視中"
+        - cell "欧州"
+      - row "WD-2024-0845 AsiaLink Corp Global Dynamics GLOBAL 234 ¥3,456,700 最適 アジア":
+        - cell "WD-2024-0845"
+        - cell "AsiaLink Corp"
+        - cell "Global Dynamics"
+        - cell "GLOBAL"
+        - cell "234"
+        - cell "¥3,456,700"
+        - cell "最適"
+        - cell "アジア"
+- alert
+```

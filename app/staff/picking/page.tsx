@@ -298,24 +298,49 @@ export default function PickingPage() {
 
         {/* View Mode Tabs */}
         <div className="intelligence-card global">
-          <div className="p-8">
-            <div className="flex space-x-1 bg-nexus-bg-secondary p-1 rounded-lg mb-6">
+          <div className="p-4 sm:p-8">
+            <div className="flex space-x-1 bg-nexus-bg-secondary p-1 rounded-lg mb-4 sm:mb-6">
               {[
-                { key: 'active', label: 'アクティブリスト', icon: '📋' },
-                { key: 'progress', label: '進行状況', icon: '⏱️' },
-                { key: 'history', label: '完了履歴', icon: '✅' },
+                { 
+                  key: 'active', 
+                  label: 'アクティブリスト', 
+                  icon: (
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 8l2 2 4-4" />
+                    </svg>
+                  )
+                },
+                { 
+                  key: 'progress', 
+                  label: '進行状況', 
+                  icon: (
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  )
+                },
+                { 
+                  key: 'history', 
+                  label: '完了履歴', 
+                  icon: (
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  )
+                },
               ].map((tab) => (
                 <button
                   key={tab.key}
                   onClick={() => setViewMode(tab.key as any)}
-                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 flex items-center justify-center space-x-2 ${
+                  className={`flex-1 py-2 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 flex items-center justify-center space-x-1 sm:space-x-2 ${
                     viewMode === tab.key
                       ? 'bg-nexus-bg-primary text-nexus-yellow shadow-sm'
                       : 'text-nexus-text-secondary hover:text-nexus-text-primary'
                   }`}
                 >
-                  <span className="text-lg">{tab.icon}</span>
-                  <span>{tab.label}</span>
+                  <div className="text-blue-600">{tab.icon}</div>
+                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span className="sm:hidden">{tab.label.slice(0, 2)}</span>
                 </button>
               ))}
             </div>
@@ -329,7 +354,7 @@ export default function PickingPage() {
 
         {/* Filter Controls */}
         <div className="intelligence-card global">
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             <div className="flex gap-1 bg-nexus-bg-secondary p-1 rounded-lg">
               {[
                 { key: 'all', label: 'すべて' },
@@ -340,7 +365,7 @@ export default function PickingPage() {
                 <button
                   key={tab.key}
                   onClick={() => setFilter(tab.key as any)}
-                  className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all duration-200 ${
+                  className={`flex-1 py-2 px-2 sm:px-3 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 ${
                     filter === tab.key
                       ? 'bg-nexus-bg-primary text-nexus-yellow shadow-sm'
                       : 'text-nexus-text-secondary hover:text-nexus-text-primary'
@@ -355,98 +380,100 @@ export default function PickingPage() {
 
         {/* Picking Tasks List */}
         <div className="intelligence-card global">
-          <div className="p-8">
-            <div className="holo-table">
-              <table className="w-full">
-                <thead className="holo-header">
-                  <tr>
-                    <th className="text-left py-3 px-4">注文情報</th>
-                    <th className="text-left py-3 px-4">顧客</th>
-                    <th className="text-center py-3 px-4">優先度</th>
-                    <th className="text-center py-3 px-4">商品数</th>
-                    <th className="text-center py-3 px-4">進捗</th>
-                    <th className="text-left py-3 px-4">担当者</th>
-                    <th className="text-center py-3 px-4">ステータス</th>
-                    <th className="text-center py-3 px-4">アクション</th>
-                  </tr>
-                </thead>
-                <tbody className="holo-body">
-                  {getFilteredTasks().map((task) => {
-                    const progress = task.totalItems > 0 
-                      ? Math.round((task.pickedItems / task.totalItems) * 100)
-                      : 0;
-                    
-                    return (
-                      <tr key={task.id} className="holo-row">
-                        <td className="py-4 px-4">
-                          <div>
-                            <p className="font-medium text-nexus-text-primary">{task.orderId}</p>
-                            <p className="text-sm text-nexus-text-secondary font-mono">{task.id}</p>
-                          </div>
-                        </td>
-                        <td className="py-4 px-4">
-                          <p className="font-medium">{task.customerName}</p>
-                          <p className="text-sm text-nexus-text-secondary">{task.shippingMethod}</p>
-                        </td>
-                        <td className="py-4 px-4 text-center">
-                          <span className={`status-badge ${priorityConfig[task.priority].badge}`}>
-                            {priorityConfig[task.priority].label}
-                          </span>
-                        </td>
-                        <td className="py-4 px-4 text-center font-display">
-                          {task.totalItems}
-                        </td>
-                        <td className="py-4 px-4">
-                          <div className="flex items-center gap-3">
-                            <div className="flex-1 bg-nexus-bg-secondary rounded-full h-2">
-                              <div
-                                className={`h-2 rounded-full transition-all duration-300 ${
-                                  progress === 100 ? 'bg-nexus-green' :
-                                  progress > 0 ? 'bg-nexus-blue' :
-                                  'bg-gray-300'
-                                }`}
-                                style={{ width: `${progress}%` }}
-                              />
+          <div className="p-3 sm:p-4 md:p-6 lg:p-8">
+            <div className="overflow-x-auto -mx-3 sm:-mx-4 md:-mx-6 lg:-mx-8">
+              <div className="holo-table min-w-[800px] px-3 sm:px-4 md:px-6 lg:px-8">
+                <table className="w-full">
+                  <thead className="holo-header">
+                    <tr>
+                      <th className="text-left py-2 sm:py-3 px-1 sm:px-2 md:px-4 text-xs sm:text-sm">注文情報</th>
+                      <th className="text-left py-2 sm:py-3 px-1 sm:px-2 md:px-4 text-xs sm:text-sm">顧客</th>
+                      <th className="text-center py-2 sm:py-3 px-1 sm:px-2 md:px-4 text-xs sm:text-sm">優先度</th>
+                      <th className="text-center py-2 sm:py-3 px-1 sm:px-2 md:px-4 text-xs sm:text-sm">商品数</th>
+                      <th className="text-center py-2 sm:py-3 px-1 sm:px-2 md:px-4 text-xs sm:text-sm">進捗</th>
+                      <th className="text-left py-2 sm:py-3 px-1 sm:px-2 md:px-4 text-xs sm:text-sm">担当者</th>
+                      <th className="text-center py-2 sm:py-3 px-1 sm:px-2 md:px-4 text-xs sm:text-sm">ステータス</th>
+                      <th className="text-center py-2 sm:py-3 px-1 sm:px-2 md:px-4 text-xs sm:text-sm">アクション</th>
+                    </tr>
+                  </thead>
+                  <tbody className="holo-body">
+                    {getFilteredTasks().map((task) => {
+                      const progress = task.totalItems > 0 
+                        ? Math.round((task.pickedItems / task.totalItems) * 100)
+                        : 0;
+                      
+                      return (
+                        <tr key={task.id} className="holo-row">
+                          <td className="py-2 sm:py-4 px-1 sm:px-2 md:px-4">
+                            <div>
+                              <p className="font-medium text-nexus-text-primary text-xs sm:text-sm">{task.orderId}</p>
+                              <p className="text-xs text-nexus-text-secondary font-mono">{task.id}</p>
                             </div>
-                            <span className="text-sm font-medium">
-                              {task.pickedItems}/{task.totalItems}
+                          </td>
+                          <td className="py-2 sm:py-4 px-1 sm:px-2 md:px-4">
+                            <p className="font-medium text-xs sm:text-sm">{task.customerName}</p>
+                            <p className="text-xs text-nexus-text-secondary">{task.shippingMethod}</p>
+                          </td>
+                          <td className="py-2 sm:py-4 px-1 sm:px-2 md:px-4 text-center">
+                            <span className={`status-badge ${priorityConfig[task.priority].badge} text-xs`}>
+                              {priorityConfig[task.priority].label}
                             </span>
-                          </div>
-                        </td>
-                        <td className="py-4 px-4 text-sm">
-                          {task.assignee || '-'}
-                        </td>
-                        <td className="py-4 px-4 text-center">
-                          <span className={`status-badge ${statusConfig[task.status].badge}`}>
-                            {statusConfig[task.status].label}
-                          </span>
-                        </td>
-                        <td className="py-4 px-4 text-center">
-                          {task.status === 'pending' ? (
-                            <button
-                              onClick={() => handleStartPicking(task)}
-                              className="nexus-button primary"
-                            >
-                              開始
-                            </button>
-                          ) : task.status === 'in_progress' ? (
-                            <button
-                              onClick={() => setSelectedTask(task)}
-                              className="nexus-button"
-                            >
-                              詳細
-                            </button>
-                          ) : (
-                            <button className="nexus-button" disabled>
-                              完了
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                          </td>
+                          <td className="py-2 sm:py-4 px-1 sm:px-2 md:px-4 text-center font-display text-sm sm:text-base">
+                            {task.totalItems}
+                          </td>
+                          <td className="py-2 sm:py-4 px-1 sm:px-2 md:px-4">
+                            <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
+                              <div className="flex-1 bg-nexus-bg-secondary rounded-full h-2">
+                                <div
+                                  className={`h-2 rounded-full transition-all duration-300 ${
+                                    progress === 100 ? 'bg-nexus-green' :
+                                    progress > 0 ? 'bg-nexus-blue' :
+                                    'bg-gray-300'
+                                  }`}
+                                  style={{ width: `${progress}%` }}
+                                />
+                              </div>
+                              <span className="text-xs font-medium whitespace-nowrap">
+                                {task.pickedItems}/{task.totalItems}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-2 sm:py-4 px-1 sm:px-2 md:px-4 text-xs sm:text-sm">
+                            {task.assignee || '-'}
+                          </td>
+                          <td className="py-2 sm:py-4 px-1 sm:px-2 md:px-4 text-center">
+                            <span className={`status-badge ${statusConfig[task.status].badge} text-xs`}>
+                              {statusConfig[task.status].label}
+                            </span>
+                          </td>
+                          <td className="py-2 sm:py-4 px-1 sm:px-2 md:px-4 text-center">
+                            {task.status === 'pending' ? (
+                              <button
+                                onClick={() => handleStartPicking(task)}
+                                className="nexus-button primary text-xs px-1.5 sm:px-2 py-1"
+                              >
+                                開始
+                              </button>
+                            ) : task.status === 'in_progress' ? (
+                              <button
+                                onClick={() => setSelectedTask(task)}
+                                className="nexus-button text-xs px-1.5 sm:px-2 py-1"
+                              >
+                                詳細
+                              </button>
+                            ) : (
+                              <button className="nexus-button text-xs px-1.5 sm:px-2 py-1" disabled>
+                                完了
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>

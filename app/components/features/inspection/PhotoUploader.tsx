@@ -92,7 +92,12 @@ export default function PhotoUploader({
       {/* 説明カード */}
       <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
         <div className="flex items-start">
-          <span className="text-2xl mr-3">📸</span>
+          <div className="w-8 h-8 mr-3 text-blue-600 flex-shrink-0">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </div>
           <div>
             <h4 className="font-semibold text-blue-800">写真撮影ガイドライン</h4>
             <ul className="text-sm text-blue-700 mt-2 space-y-1">
@@ -121,7 +126,9 @@ export default function PhotoUploader({
               <div className="flex items-center justify-between mb-2">
                 <span className="font-medium">{req.label}</span>
                 {index < uploadedPhotos.length && (
-                  <span className="text-green-600">✓</span>
+                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
                 )}
               </div>
               <p className="text-sm text-gray-600">{req.description}</p>
@@ -149,9 +156,12 @@ export default function PhotoUploader({
               variant="primary"
               size="lg"
               disabled={loading}
-              className="px-8 py-4 text-lg"
+              className="flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
-              <span className="mr-2">📷</span>
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
               カメラで撮影
             </NexusButton>
           </div>
@@ -191,7 +201,9 @@ export default function PhotoUploader({
                   onClick={() => handleRemovePhoto(index)}
                   className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                 >
-                  ✕
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </button>
                 <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm">
                   {index < photoRequirements.length

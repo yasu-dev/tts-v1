@@ -1,0 +1,180 @@
+# Page snapshot
+
+```yaml
+- alert
+- complementary:
+  - text: W
+  - heading "THE WORLD DOOR" [level=2]
+  - paragraph: フルフィルメントサービス
+  - paragraph: セラー管理
+  - button "サイドバーを折りたたむ":
+    - img
+  - navigation:
+    - link "ダッシュボード":
+      - /url: /dashboard
+      - img
+      - text: ダッシュボード
+    - link "納品管理 3":
+      - /url: /delivery
+      - img
+      - text: 納品管理 3
+    - link "在庫管理 234":
+      - /url: /inventory
+      - img
+      - text: 在庫管理 234
+    - link "販売管理 12":
+      - /url: /sales
+      - img
+      - text: 販売管理 12
+    - link "返品管理 5":
+      - /url: /returns
+      - img
+      - text: 返品管理 5
+    - link "請求・精算":
+      - /url: /billing
+      - img
+      - text: 請求・精算
+    - link "商品履歴":
+      - /url: /timeline
+      - img
+      - text: 商品履歴
+- banner:
+  - textbox "商品を検索..."
+  - button:
+    - img
+  - img
+  - text: 01:33 日本時間
+  - button "通知":
+    - img
+    - text: "3"
+  - button "U セラー 管理者":
+    - text: U セラー 管理者
+    - img
+- heading "業務フロー" [level=3]
+- button "フローを折りたたむ":
+  - img
+- heading "フルフィルメント作業フロー" [level=3]
+- img
+- text: "セラー 担当作業: 0件 進行中: 0 完了: 0 総計: 0"
+- button "準備 セラー作業 商品仕入れ 納品プラン作成":
+  - img
+  - text: 準備 セラー作業
+  - img
+  - text: 商品仕入れ 納品プラン作成
+- button "入庫 スタッフ作業 商品受取 検品・撮影":
+  - img
+  - text: 入庫 スタッフ作業
+  - img
+  - text: 商品受取 検品・撮影
+- button "販売 自動処理 eBay自動出品 商品注文":
+  - img
+  - text: 販売 自動処理
+  - img
+  - text: eBay自動出品 商品注文
+- button "出荷 スタッフ作業 ピッキング 梱包・発送":
+  - img
+  - text: 出荷 スタッフ作業
+  - img
+  - text: ピッキング 梱包・発送
+- button "完了 セラー作業 売上計算 精算確認":
+  - img
+  - text: 完了 セラー作業
+  - img
+  - text: 売上計算 精算確認
+- main:
+  - heading "納品管理" [level=1]
+  - heading "納品管理" [level=2]:
+    - img
+    - text: 納品管理
+  - paragraph: 商品の納品プランを作成・管理します
+  - button "新規納品プラン作成":
+    - img
+    - text: 新規納品プラン作成
+  - button "バーコード発行":
+    - img
+    - text: バーコード発行
+  - heading "新規納品プラン" [level=3]
+  - text: SKU（自動採番/手動入力）
+  - textbox "TWD-20240115-00001"
+  - text: ブランド
+  - textbox "Canon, Sony, Rolex..."
+  - text: モデル/型番
+  - textbox "EOS R5, FE 24-70mm..."
+  - text: シリアル番号
+  - textbox "シリアル番号を入力"
+  - text: カテゴリー
+  - radio "カメラ本体"
+  - text: カメラ本体
+  - radio "レンズ"
+  - text: レンズ
+  - radio "時計"
+  - text: 時計 保険申告価値
+  - spinbutton
+  - text: 付属品
+  - checkbox "元箱"
+  - text: 元箱
+  - checkbox "保証書"
+  - text: 保証書
+  - checkbox "説明書"
+  - text: 説明書
+  - checkbox "充電器"
+  - text: 充電器
+  - checkbox "レンズキャップ"
+  - text: レンズキャップ
+  - checkbox "ストラップ"
+  - text: ストラップ
+  - button "納品プラン確定":
+    - img
+    - text: 納品プラン確定
+  - button "下書き保存":
+    - img
+    - text: 下書き保存
+  - heading "納品履歴" [level=3]
+  - table:
+    - rowgroup:
+      - row "納品ID 作成日 ステータス 商品数 総価値 アクション":
+        - cell "納品ID"
+        - cell "作成日"
+        - cell "ステータス"
+        - cell "商品数"
+        - cell "総価値"
+        - cell "アクション"
+    - rowgroup:
+      - row "TWD-20240115-001 2024-01-15 準備中 5点 ¥450,000":
+        - cell "TWD-20240115-001"
+        - cell "2024-01-15"
+        - cell "準備中"
+        - cell "5点"
+        - cell "¥450,000"
+        - cell:
+          - button:
+            - img
+          - button:
+            - img
+      - row "TWD-20240112-002 2024-01-12 発送済 3点 ¥280,000":
+        - cell "TWD-20240112-002"
+        - cell "2024-01-12"
+        - cell "発送済"
+        - cell "3点"
+        - cell "¥280,000"
+        - cell:
+          - button:
+            - img
+          - button:
+            - img
+      - row "TWD-20240110-003 2024-01-10 到着済 8点 ¥620,000":
+        - cell "TWD-20240110-003"
+        - cell "2024-01-10"
+        - cell "到着済"
+        - cell "8点"
+        - cell "¥620,000"
+        - cell:
+          - button:
+            - img
+          - button:
+            - img
+- img
+- text: 2 errors
+- button "Hide Errors":
+  - img
+```

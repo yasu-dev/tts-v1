@@ -126,13 +126,29 @@ export default function ListingHistory() {
   const getPlatformIcon = (platform: string) => {
     switch (platform) {
       case 'ebay':
-        return '🌐';
+        return (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9" />
+          </svg>
+        );
       case 'yahoo':
-        return '🇯🇵';
+        return (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        );
       case 'mercari':
-        return '📱';
+        return (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+          </svg>
+        );
       default:
-        return '📦';
+        return (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+        );
     }
   };
 
@@ -168,41 +184,41 @@ export default function ListingHistory() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Stats Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <NexusCard className="p-4">
-          <div className="text-sm text-nexus-text-secondary">販売数</div>
-          <div className="text-2xl font-display font-bold text-nexus-text-primary">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        <NexusCard className="p-3 sm:p-4">
+          <div className="text-xs sm:text-sm text-nexus-text-secondary">販売数</div>
+          <div className="text-xl sm:text-2xl font-display font-bold text-nexus-text-primary">
             {stats.totalSold}
           </div>
         </NexusCard>
-        <NexusCard className="p-4">
-          <div className="text-sm text-nexus-text-secondary">総売上</div>
-          <div className="text-2xl font-display font-bold text-nexus-text-primary">
+        <NexusCard className="p-3 sm:p-4">
+          <div className="text-xs sm:text-sm text-nexus-text-secondary">総売上</div>
+          <div className="text-xl sm:text-2xl font-display font-bold text-nexus-text-primary">
             ¥{stats.totalRevenue.toLocaleString()}
           </div>
         </NexusCard>
-        <NexusCard className="p-4">
-          <div className="text-sm text-nexus-text-secondary">平均販売価格</div>
-          <div className="text-2xl font-display font-bold text-nexus-text-primary">
+        <NexusCard className="p-3 sm:p-4">
+          <div className="text-xs sm:text-sm text-nexus-text-secondary">平均販売価格</div>
+          <div className="text-xl sm:text-2xl font-display font-bold text-nexus-text-primary">
             ¥{Math.floor(stats.avgSoldPrice).toLocaleString()}
           </div>
         </NexusCard>
-        <NexusCard className="p-4">
-          <div className="text-sm text-nexus-text-secondary">総閲覧数</div>
-          <div className="text-2xl font-display font-bold text-nexus-text-primary">
+        <NexusCard className="p-3 sm:p-4">
+          <div className="text-xs sm:text-sm text-nexus-text-secondary">総閲覧数</div>
+          <div className="text-xl sm:text-2xl font-display font-bold text-nexus-text-primary">
             {stats.totalViews.toLocaleString()}
           </div>
         </NexusCard>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-4">
+      <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
         <select
           value={filterPeriod}
           onChange={(e) => setFilterPeriod(e.target.value)}
-          className="px-4 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue text-nexus-text-primary"
+          className="px-3 sm:px-4 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue text-nexus-text-primary text-sm"
         >
           <option value="7days">過去7日間</option>
           <option value="30days">過去30日間</option>
@@ -213,7 +229,7 @@ export default function ListingHistory() {
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
-          className="px-4 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue text-nexus-text-primary"
+          className="px-3 sm:px-4 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue text-nexus-text-primary text-sm"
         >
           <option value="all">すべてのステータス</option>
           <option value="active">出品中</option>
@@ -225,7 +241,7 @@ export default function ListingHistory() {
         <select
           value={filterPlatform}
           onChange={(e) => setFilterPlatform(e.target.value)}
-          className="px-4 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue text-nexus-text-primary"
+          className="px-3 sm:px-4 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue text-nexus-text-primary text-sm"
         >
           <option value="all">すべてのプラットフォーム</option>
           <option value="ebay">eBay</option>
@@ -235,89 +251,104 @@ export default function ListingHistory() {
       </div>
 
       {/* History Table */}
-      <div className="holo-table">
-        <table className="w-full">
-          <thead className="holo-header">
-            <tr>
-              <th className="text-left">商品情報</th>
-              <th className="text-left">プラットフォーム</th>
-              <th className="text-left">出品日</th>
-              <th className="text-left">販売価格</th>
-              <th className="text-left">閲覧/ウォッチ</th>
-              <th className="text-left">ステータス</th>
-              <th className="text-right">アクション</th>
-            </tr>
-          </thead>
-          <tbody className="holo-body">
-            {filteredRecords.map((record) => (
-              <tr key={record.id} className="holo-row">
-                <td>
-                  <div>
-                    <p className="font-semibold text-nexus-text-primary">
-                      {record.productName}
-                    </p>
-                    <p className="text-sm text-nexus-text-secondary">
-                      {record.sku}
-                    </p>
-                  </div>
-                </td>
-                <td>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">{getPlatformIcon(record.platform)}</span>
-                    <span className="text-sm text-nexus-text-primary">
-                      {record.platform.toUpperCase()}
-                    </span>
-                  </div>
-                </td>
-                <td>
-                  <div>
-                    <p className="text-sm text-nexus-text-primary">
-                      {new Date(record.listingDate).toLocaleDateString('ja-JP')}
-                    </p>
-                    {record.soldDate && (
-                      <p className="text-xs text-nexus-text-secondary">
-                        売却: {new Date(record.soldDate).toLocaleDateString('ja-JP')}
-                      </p>
-                    )}
-                  </div>
-                </td>
-                <td>
-                  <div>
-                    <p className="font-display font-bold text-nexus-text-primary">
-                      ¥{record.listingPrice.toLocaleString()}
-                    </p>
-                    {record.soldPrice && (
-                      <p className="text-sm text-green-600">
-                        売却: ¥{record.soldPrice.toLocaleString()}
-                      </p>
-                    )}
-                  </div>
-                </td>
-                <td>
-                  <div className="text-sm">
-                    <p className="text-nexus-text-primary">
-                      👁 {record.viewCount.toLocaleString()}
-                    </p>
-                    <p className="text-nexus-text-secondary">
-                      ⭐ {record.watchCount}
-                    </p>
-                  </div>
-                </td>
-                <td>{getStatusBadge(record.status)}</td>
-                <td className="text-right">
-                  <button className="nexus-button">
-                    詳細
-                  </button>
-                </td>
+      <div className="overflow-x-auto">
+        <div className="holo-table min-w-full">
+          <table className="w-full">
+            <thead className="holo-header">
+              <tr>
+                <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm">商品情報</th>
+                <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm">プラットフォーム</th>
+                <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm">出品日</th>
+                <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm">販売価格</th>
+                <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm">閲覧/ウォッチ</th>
+                <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm">ステータス</th>
+                <th className="text-right py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm">アクション</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="holo-body">
+              {filteredRecords.map((record) => (
+                <tr key={record.id} className="holo-row">
+                  <td className="py-2 sm:py-4 px-2 sm:px-4">
+                    <div>
+                      <p className="font-semibold text-nexus-text-primary text-xs sm:text-sm">
+                        {record.productName}
+                      </p>
+                      <p className="text-xs text-nexus-text-secondary">
+                        {record.sku}
+                      </p>
+                    </div>
+                  </td>
+                  <td className="py-2 sm:py-4 px-2 sm:px-4">
+                    <div className="flex items-center gap-2">
+                      <div className="text-blue-600">
+                        {getPlatformIcon(record.platform)}
+                      </div>
+                      <span className="text-xs sm:text-sm text-nexus-text-primary">
+                        {record.platform.toUpperCase()}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="py-2 sm:py-4 px-2 sm:px-4">
+                    <div>
+                      <p className="text-xs sm:text-sm text-nexus-text-primary">
+                        {new Date(record.listingDate).toLocaleDateString('ja-JP')}
+                      </p>
+                      {record.soldDate && (
+                        <p className="text-xs text-nexus-text-secondary">
+                          売却: {new Date(record.soldDate).toLocaleDateString('ja-JP')}
+                        </p>
+                      )}
+                    </div>
+                  </td>
+                  <td className="py-2 sm:py-4 px-2 sm:px-4">
+                    <div>
+                      <p className="font-display font-bold text-nexus-text-primary text-xs sm:text-sm">
+                        ¥{record.listingPrice.toLocaleString()}
+                      </p>
+                      {record.soldPrice && (
+                        <p className="text-xs text-green-600">
+                          売却: ¥{record.soldPrice.toLocaleString()}
+                        </p>
+                      )}
+                    </div>
+                  </td>
+                  <td className="py-2 sm:py-4 px-2 sm:px-4">
+                    <div className="text-xs sm:text-sm">
+                      <div className="flex items-center gap-1">
+                        <svg className="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        <span className="text-nexus-text-primary">
+                          {record.viewCount.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 mt-1">
+                        <svg className="w-3 h-3 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                        </svg>
+                        <span className="text-nexus-text-secondary">
+                          {record.watchCount}
+                        </span>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-2 sm:py-4 px-2 sm:px-4">{getStatusBadge(record.status)}</td>
+                  <td className="text-right py-2 sm:py-4 px-2 sm:px-4">
+                    <button className="nexus-button text-xs px-2 py-1">
+                      詳細
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {filteredRecords.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-nexus-text-secondary">該当する履歴が見つかりません</p>
+        <div className="text-center py-8 sm:py-12">
+          <p className="text-nexus-text-secondary text-sm">該当する履歴が見つかりません</p>
         </div>
       )}
     </div>

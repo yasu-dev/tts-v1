@@ -29,12 +29,12 @@ export default function NexusCard({
     intelligence-card
     bg-nexus-surface backdrop-blur-nexus backdrop-saturate-nexus
     border-[3px] rounded-nexus-xl
-    p-8 relative overflow-hidden
+    p-3 sm:p-4 md:p-6 lg:p-8 relative overflow-hidden
     transition-all duration-300 ease-out
     cursor-pointer
     shadow-nexus-card
     hover:shadow-[0_25px_50px_rgba(0,0,0,0.18),0_0_40px_rgba(0,100,210,0.25)]
-    hover:-translate-y-2 hover:scale-[1.03]
+    hover:-translate-y-1 sm:hover:-translate-y-2 hover:scale-[1.01] sm:hover:scale-[1.03]
   `;
 
   // 地域別カラーリングシステム
@@ -81,14 +81,14 @@ export default function NexusCard({
 
       {/* ヘッダー部分 */}
       {(title || subtitle) && (
-        <div className="relative z-10 mb-6">
+        <div className="relative z-10 mb-3 sm:mb-4 md:mb-6">
           {title && (
-            <h3 className="text-xl font-bold font-display text-nexus-text-primary mb-2 tracking-wide">
+            <h3 className="text-base sm:text-lg md:text-xl font-bold font-display text-nexus-text-primary mb-1 sm:mb-2 tracking-wide">
               {title}
             </h3>
           )}
           {subtitle && (
-            <p className="text-sm font-medium text-nexus-text-secondary tracking-wide">
+            <p className="text-xs sm:text-sm font-medium text-nexus-text-secondary tracking-wide">
               {subtitle}
             </p>
           )}

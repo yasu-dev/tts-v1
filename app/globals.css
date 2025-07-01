@@ -446,6 +446,121 @@
     .nav-item {
       min-height: 48px;
     }
+    
+    /* タッチターゲットの最適化 */
+    .holo-table td,
+    .holo-table th {
+      padding: 0.75rem 0.5rem;
+    }
+    
+    .intelligence-card {
+      padding: 1rem;
+      margin: 0.75rem 0;
+    }
+    
+    /* フォームコントロールの最適化 */
+    input, select, textarea {
+      min-height: 44px;
+      padding: 0.75rem;
+      font-size: 1rem;
+    }
+    
+    /* ボタンの最適化 */
+    .nexus-button {
+      padding: 0.75rem 1rem;
+      min-height: 44px;
+      font-size: 0.875rem;
+    }
+  }
+
+  /* ノートPC最適化 (1024px - 1440px) */
+  @media (min-width: 1025px) and (max-width: 1440px) {
+    .intelligence-card {
+      padding: 1.25rem;
+    }
+    
+    .holo-table th,
+    .holo-table td {
+      padding: 0.75rem 1rem;
+    }
+    
+    /* コンテンツ密度の最適化 */
+    .page-container {
+      padding: 1rem;
+    }
+    
+    .space-y-6 > * + * {
+      margin-top: 1.25rem;
+    }
+    
+    .space-y-4 > * + * {
+      margin-top: 1rem;
+    }
+  }
+
+  /* デスクトップ最適化 (1440px+) */
+  @media (min-width: 1441px) {
+    .intelligence-card {
+      padding: 2rem;
+    }
+    
+    .page-container {
+      padding: 1.5rem;
+    }
+  }
+
+  /* 無駄な余白の削除 */
+  .compact-layout {
+    gap: 0.75rem;
+  }
+  
+  .compact-layout .intelligence-card {
+    margin-bottom: 0.75rem;
+  }
+  
+  /* テーブルの最適化 */
+  .holo-table {
+    border-spacing: 0;
+    border-collapse: collapse;
+  }
+  
+  .holo-table th {
+    padding: 0.5rem 0.75rem;
+    white-space: nowrap;
+  }
+  
+  .holo-table td {
+    padding: 0.5rem 0.75rem;
+    vertical-align: top;
+  }
+  
+  /* レスポンシブテキスト */
+  @media (max-width: 640px) {
+    .text-responsive {
+      font-size: 0.875rem;
+    }
+    
+    .text-responsive-lg {
+      font-size: 1rem;
+    }
+    
+    .text-responsive-xl {
+      font-size: 1.125rem;
+    }
+  }
+  
+  @media (min-width: 641px) and (max-width: 1024px) {
+    .text-responsive {
+      font-size: 0.9375rem;
+    }
+    
+    .text-responsive-lg {
+      font-size: 1.125rem;
+    }
+    
+    .text-responsive-xl {
+      font-size: 1.25rem;
+    }
   }
 
   /* High DPI Display Optimizations */
@@ -683,12 +798,38 @@
     font-weight: 600;
   }
 
-  /* Main Content Area */
+  /* Main Content Area - Enhanced Responsive */
   .main-content {
     flex: 1;
-    margin-left: 240px;
     min-height: 100vh;
     background: var(--background);
+    overflow-y: auto;
+    position: relative;
+  }
+
+  /* Mobile First Responsive Breakpoints */
+  @media (max-width: 640px) {
+    .main-content {
+      padding: 0.5rem;
+    }
+  }
+
+  @media (min-width: 641px) and (max-width: 768px) {
+    .main-content {
+      padding: 0.75rem;
+    }
+  }
+
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .main-content {
+      padding: 1rem;
+    }
+  }
+
+  @media (min-width: 1025px) {
+    .main-content {
+      padding: 1.5rem;
+    }
   }
 
   /* Header */
@@ -1585,5 +1726,53 @@
 
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.2);
+}
+
+/* Enhanced Mobile Support */
+@media (max-width: 480px) {
+  .nexus-header {
+    height: 40px;
+    min-height: 40px;
+    padding: 0 0.5rem;
+  }
+  
+  .nexus-sidebar {
+    width: 100%;
+  }
+  
+  .nexus-sidebar.collapsed {
+    width: 100%;
+  }
+  
+  .intelligence-card {
+    padding: 0.75rem !important;
+  }
+  
+  .holo-table {
+    font-size: 0.75rem;
+  }
+  
+  .nexus-button {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* Tablet Specific Adjustments */
+@media (min-width: 481px) and (max-width: 1024px) {
+  .app-container {
+    grid-template-columns: 200px 1fr;
+  }
+  
+  .nexus-sidebar {
+    width: 200px;
+  }
+}
+
+/* Desktop Optimizations */
+@media (min-width: 1025px) {
+  .app-container {
+    grid-template-columns: 260px 1fr 300px;
+  }
 }
 }

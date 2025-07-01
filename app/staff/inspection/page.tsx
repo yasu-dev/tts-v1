@@ -247,28 +247,30 @@ export default function InspectionPage() {
       <div className="space-y-6">
         {/* Header */}
         <div className="intelligence-card global">
-          <div className="p-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
+          <div className="p-3 sm:p-4 md:p-6 lg:p-8">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+              <div className="flex-1">
+                <h1 className="text-2xl sm:text-3xl font-display font-bold text-nexus-text-primary">
                   検品管理
                 </h1>
-                <p className="mt-1 text-sm text-nexus-text-secondary">
+                <p className="mt-1 text-xs sm:text-sm text-nexus-text-secondary">
                   商品の検品状況を確認し、検品作業を実施します
                 </p>
               </div>
-              <div className="flex space-x-3">
-                <button className="nexus-button">
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
+                <button className="nexus-button text-xs sm:text-sm">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  レポート出力
+                  <span className="hidden sm:inline">レポート出力</span>
+                  <span className="sm:hidden">レポート</span>
                 </button>
-                <button className="nexus-button primary">
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button className="nexus-button primary text-xs sm:text-sm">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
-                  バッチ検品開始
+                  <span className="hidden sm:inline">バッチ検品開始</span>
+                  <span className="sm:hidden">バッチ検品</span>
                 </button>
               </div>
             </div>
@@ -277,78 +279,78 @@ export default function InspectionPage() {
 
         {/* Stats Cards */}
         <div className="intelligence-metrics">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
             <div className="intelligence-card americas">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="action-orb yellow">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-3 sm:p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 sm:mb-4">
+                  <div className="action-orb yellow w-6 h-6 sm:w-8 sm:h-8">
+                    <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <span className="status-badge warning">待機中</span>
+                  <span className="status-badge warning text-[10px] sm:text-xs">待機中</span>
                 </div>
-                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
+                <div className="metric-value font-display text-xl sm:text-2xl md:text-3xl font-bold text-nexus-text-primary">
                   {groupedProducts.pending_inspection?.length || 0}
                 </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
+                <div className="metric-label text-nexus-text-secondary font-medium mt-1 sm:mt-2 text-xs sm:text-sm">
                   検品待ち
                 </div>
               </div>
             </div>
 
             <div className="intelligence-card europe">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="action-orb blue">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-3 sm:p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 sm:mb-4">
+                  <div className="action-orb blue w-6 h-6 sm:w-8 sm:h-8">
+                    <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                   </div>
-                  <span className="status-badge info">進行中</span>
+                  <span className="status-badge info text-[10px] sm:text-xs">進行中</span>
                 </div>
-                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
+                <div className="metric-value font-display text-xl sm:text-2xl md:text-3xl font-bold text-nexus-text-primary">
                   {groupedProducts.inspecting?.length || 0}
                 </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
+                <div className="metric-label text-nexus-text-secondary font-medium mt-1 sm:mt-2 text-xs sm:text-sm">
                   検品中
                 </div>
               </div>
             </div>
 
             <div className="intelligence-card asia">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="action-orb green">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-3 sm:p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 sm:mb-4">
+                  <div className="action-orb green w-6 h-6 sm:w-8 sm:h-8">
+                    <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <span className="status-badge success">完了</span>
+                  <span className="status-badge success text-[10px] sm:text-xs">完了</span>
                 </div>
-                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
+                <div className="metric-value font-display text-xl sm:text-2xl md:text-3xl font-bold text-nexus-text-primary">
                   {groupedProducts.completed?.length || 0}
                 </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
+                <div className="metric-label text-nexus-text-secondary font-medium mt-1 sm:mt-2 text-xs sm:text-sm">
                   完了
                 </div>
               </div>
             </div>
 
             <div className="intelligence-card africa">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="action-orb red">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-3 sm:p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 sm:mb-4">
+                  <div className="action-orb red w-6 h-6 sm:w-8 sm:h-8">
+                    <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <span className="status-badge danger">要対応</span>
+                  <span className="status-badge danger text-[10px] sm:text-xs">要対応</span>
                 </div>
-                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
+                <div className="metric-value font-display text-xl sm:text-2xl md:text-3xl font-bold text-nexus-text-primary">
                   {groupedProducts.failed?.length || 0}
                 </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
+                <div className="metric-label text-nexus-text-secondary font-medium mt-1 sm:mt-2 text-xs sm:text-sm">
                   不合格
                 </div>
               </div>

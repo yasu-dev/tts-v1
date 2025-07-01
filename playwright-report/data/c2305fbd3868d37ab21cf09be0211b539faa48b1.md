@@ -1,0 +1,221 @@
+# Page snapshot
+
+```yaml
+- complementary:
+  - text: W
+  - heading "THE WORLD DOOR" [level=2]
+  - paragraph: フルフィルメントサービス
+  - paragraph: スタッフ管理
+  - button "サイドバーを折りたたむ":
+    - img
+  - navigation:
+    - link "スタッフダッシュボード":
+      - /url: /staff/dashboard
+      - img
+      - text: スタッフダッシュボード
+    - link "緊急タスク 2":
+      - /url: /staff/tasks
+      - img
+      - text: 緊急タスク 2
+    - link "在庫管理":
+      - /url: /staff/inventory
+      - img
+      - text: 在庫管理
+    - link "検品・撮影 8":
+      - /url: /staff/inspection
+      - img
+      - text: 検品・撮影 8
+    - link "ロケーション管理":
+      - /url: /staff/location
+      - img
+      - text: ロケーション管理
+    - link "出荷管理 6":
+      - /url: /staff/shipping
+      - img
+      - text: 出荷管理 6
+    - link "返品処理 5":
+      - /url: /staff/returns
+      - img
+      - text: 返品処理 5
+    - link "業務レポート":
+      - /url: /staff/reports
+      - img
+      - text: 業務レポート
+- banner:
+  - textbox "商品を検索..."
+  - button:
+    - img
+  - img
+  - text: 01:33 日本時間
+  - button "通知":
+    - img
+    - text: "3"
+  - button "S スタッフ 管理者":
+    - text: S スタッフ 管理者
+    - img
+- heading "業務フロー" [level=3]
+- button "フローを折りたたむ":
+  - img
+- heading "フルフィルメント作業フロー" [level=3]
+- img
+- text: "スタッフ 担当作業: 0件 進行中: 0 完了: 0 総計: 0"
+- button "準備 セラー作業 商品仕入れ 納品プラン作成":
+  - img
+  - text: 準備 セラー作業
+  - img
+  - text: 商品仕入れ 納品プラン作成
+- button "入庫 スタッフ作業 商品受取 検品・撮影":
+  - img
+  - text: 入庫 スタッフ作業
+  - img
+  - text: 商品受取 検品・撮影
+- button "販売 自動処理 eBay自動出品 商品注文":
+  - img
+  - text: 販売 自動処理
+  - img
+  - text: eBay自動出品 商品注文
+- button "出荷 スタッフ作業 ピッキング 梱包・発送":
+  - img
+  - text: 出荷 スタッフ作業
+  - img
+  - text: ピッキング 梱包・発送
+- button "完了 セラー作業 売上計算 精算確認":
+  - img
+  - text: 完了 セラー作業
+  - img
+  - text: 売上計算 精算確認
+- main:
+  - heading "スタッフダッシュボード" [level=1]
+  - paragraph: 本日のタスクと進捗状況
+  - button "レポート出力":
+    - img
+    - text: レポート出力
+  - button "新規タスク作成":
+    - img
+    - text: 新規タスク作成
+  - img
+  - text: 総計 5 総タスク数
+  - img
+  - text: 緊急 2 緊急タスク
+  - img
+  - text: 待機 4 待機中
+  - img
+  - text: 実行中 1 作業中
+  - img
+  - text: 完了 0 完了済み
+  - img
+  - text: 本日 12 本日完了
+  - img
+  - text: 売上 ¥2,150,000 本日の売上
+  - img
+  - text: 8件 8 検品完了
+  - img
+  - text: 5件 5 出荷処理
+  - img
+  - text: 89% 89% 効率スコア 優先度フィルター
+  - button "すべて"
+  - button "緊急タスク"
+  - button "通常タスク"
+  - button "高優先度"
+  - button "中優先度"
+  - button "低優先度"
+  - text: 作業種別フィルター
+  - button "すべて":
+    - img
+    - text: すべて
+  - button "検品":
+    - img
+    - text: 検品
+  - button "撮影":
+    - img
+    - text: 撮影
+  - button "出荷":
+    - img
+    - text: 出荷
+  - button "返品":
+    - img
+    - text: 返品
+  - table:
+    - rowgroup:
+      - row "タスク情報 担当者 期限 ステータス アクション":
+        - cell "タスク情報"
+        - cell "担当者"
+        - cell "期限"
+        - cell "ステータス"
+        - cell "アクション"
+    - rowgroup:
+      - row "Canon EOS R5 緊急検品 TWD-CAM-015 ¥450,000 顧客クレーム対応 | 要即時対応 田中次郎•2024-06-28 高 待機中 開始 詳細":
+        - cell "Canon EOS R5 緊急検品 TWD-CAM-015 ¥450,000 顧客クレーム対応 | 要即時対応":
+          - img
+          - heading "Canon EOS R5 緊急検品" [level=3]
+          - text: TWD-CAM-015 ¥450,000
+          - paragraph: 顧客クレーム対応 | 要即時対応
+        - cell "田中次郎•2024-06-28":
+          - img
+          - text: 田中次郎•
+          - img
+          - text: 2024-06-28
+        - cell "高 待機中"
+        - cell "開始 詳細":
+          - button "開始"
+          - button "詳細"
+      - row "Rolex GMT Master 検品完了 TWD-WAT-007 ¥2,100,000 高額商品24時間経過 | 金庫室保管 田中次郎•2024-06-28 高 待機中 開始 詳細":
+        - cell "Rolex GMT Master 検品完了 TWD-WAT-007 ¥2,100,000 高額商品24時間経過 | 金庫室保管":
+          - img
+          - heading "Rolex GMT Master 検品完了" [level=3]
+          - text: TWD-WAT-007 ¥2,100,000
+          - paragraph: 高額商品24時間経過 | 金庫室保管
+        - cell "田中次郎•2024-06-28":
+          - img
+          - text: 田中次郎•
+          - img
+          - text: 2024-06-28
+        - cell "高 待機中"
+        - cell "開始 詳細":
+          - button "開始"
+          - button "詳細"
+      - row "Sony α7R V バッチ検品 入庫商品 8件 | バッチ処理 進捗 37% 佐藤花子•2024-06-29 中 作業中 完了 詳細":
+        - cell "Sony α7R V バッチ検品 入庫商品 8件 | バッチ処理 進捗 37%":
+          - img
+          - heading "Sony α7R V バッチ検品" [level=3]
+          - paragraph: 入庫商品 8件 | バッチ処理
+          - text: 進捗 37%
+        - cell "佐藤花子•2024-06-29":
+          - img
+          - text: 佐藤花子•
+          - img
+          - text: 2024-06-29
+        - cell "中 作業中"
+        - cell "完了 詳細":
+          - button "完了"
+          - button "詳細"
+      - row "商品撮影バッチ Nikon Z9, Canon 24-70mm 他2件 鈴木太郎•2024-06-29 中 待機中 開始 詳細":
+        - cell "商品撮影バッチ Nikon Z9, Canon 24-70mm 他2件":
+          - img
+          - heading "商品撮影バッチ" [level=3]
+          - paragraph: Nikon Z9, Canon 24-70mm 他2件
+        - cell "鈴木太郎•2024-06-29":
+          - img
+          - text: 鈴木太郎•
+          - img
+          - text: 2024-06-29
+        - cell "中 待機中"
+        - cell "開始 詳細":
+          - button "開始"
+          - button "詳細"
+      - row "出荷準備作業 本日出荷予定 3件 山田太郎•2024-06-28 低 待機中 開始 詳細":
+        - cell "出荷準備作業 本日出荷予定 3件":
+          - img
+          - heading "出荷準備作業" [level=3]
+          - paragraph: 本日出荷予定 3件
+        - cell "山田太郎•2024-06-28":
+          - img
+          - text: 山田太郎•
+          - img
+          - text: 2024-06-28
+        - cell "低 待機中"
+        - cell "開始 詳細":
+          - button "開始"
+          - button "詳細"
+- alert
+```
