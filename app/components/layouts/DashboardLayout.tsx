@@ -23,6 +23,8 @@ export default function DashboardLayout({
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isFlowCollapsed, setIsFlowCollapsed] = useState(false);
   const pathname = usePathname();
 
   const getCurrentTime = () => {
@@ -259,56 +261,101 @@ export default function DashboardLayout({
 
       {/* モダンレイアウト */}
       <div className="flex h-screen">
-        {/* サイドバー */}
-        <aside className={`${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:relative z-50 lg:z-0 w-64 h-full bg-white shadow-xl transition-transform duration-300 ease-in-out flex flex-col`}>
+        {/* 改善されたサイドバー */}
+        <aside className={`
+          ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} 
+          lg:translate-x-0 fixed lg:relative z-50 lg:z-0 
+          ${isSidebarCollapsed ? 'w-16' : 'w-64'} 
+          h-full bg-white shadow-xl transition-all duration-300 ease-in-out flex flex-col
+        `}>
           <div className="h-full flex flex-col">
             {/* サイドバーヘッダー */}
             <div className="p-4 border-b flex-shrink-0">
-              <div className="flex items-center justify-between lg:justify-start">
-                <div>
-                  <h2 className="text-base font-bold text-gray-900">THE WORLD DOOR</h2>
-                  <p className="text-xs text-gray-600">
-                    フルフィルメントサービス
-                  </p>
-                  <p className="text-[10px] text-gray-500 mt-0.5">
-                    {userType === 'seller' ? 'セラー管理' : 'スタッフ管理'}
-                  </p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                    W
+                  </div>
+                  {!isSidebarCollapsed && (
+                    <div className="transition-opacity duration-200">
+                      <h2 className="text-base font-bold text-gray-900">THE WORLD DOOR</h2>
+                      <p className="text-xs text-gray-600">
+                        フルフィルメントサービス
+                      </p>
+                      <p className="text-[10px] text-gray-500 mt-0.5">
+                        {userType === 'seller' ? 'セラー管理' : 'スタッフ管理'}
+                      </p>
+                    </div>
+                  )}
                 </div>
-                <button
-                  onClick={toggleMobileMenu}
-                  className="lg:hidden p-2 text-gray-500 hover:text-gray-700"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                    className="hidden lg:flex p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+                    title={isSidebarCollapsed ? 'サイドバーを展開' : 'サイドバーを折りたたむ'}
+                  >
+                    <svg 
+                      className={`w-4 h-4 transition-transform ${isSidebarCollapsed ? 'rotate-180' : ''}`} 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={toggleMobileMenu}
+                    className="lg:hidden p-2 text-gray-500 hover:text-gray-700"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* ナビゲーションメニュー - スクロール可能エリア */}
+            {/* ナビゲーションメニュー - レスポンシブ対応 */}
             <nav className="flex-1 p-3 overflow-y-auto">
-              {menuItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2.5 mb-1 rounded-lg transition-all duration-200 whitespace-nowrap min-h-[40px] ${
-                    pathname === item.href
-                      ? 'bg-blue-50 text-blue-600'
-                      : 'text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="flex-shrink-0 w-5 h-5">
-                    {item.icon}
-                  </div>
-                  <span className="font-medium text-sm flex-1 overflow-hidden text-ellipsis">{item.label}</span>
-                  {item.badge && (
-                    <span className="ml-auto bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0">
-                      {item.badge}
-                    </span>
-                  )}
-                </Link>
-              ))}
+              <div className="space-y-1">
+                {menuItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    title={isSidebarCollapsed ? item.label : undefined}
+                    className={`
+                      flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 
+                      ${isSidebarCollapsed ? 'justify-center' : ''} 
+                      ${pathname === item.href
+                        ? 'bg-blue-50 text-blue-600'
+                        : 'text-gray-700 hover:bg-gray-50'
+                      }
+                    `}
+                  >
+                    <div className="flex-shrink-0 w-5 h-5">
+                      {item.icon}
+                    </div>
+                    {!isSidebarCollapsed && (
+                      <>
+                        <span className="font-medium text-sm flex-1 overflow-hidden text-ellipsis">
+                          {item.label}
+                        </span>
+                        {item.badge && (
+                          <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0">
+                            {item.badge}
+                          </span>
+                        )}
+                      </>
+                    )}
+                    {isSidebarCollapsed && item.badge && (
+                      <span className="absolute top-1 right-1 w-3 h-3 bg-red-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
+                        {item.badge > 9 ? '9+' : item.badge}
+                      </span>
+                    )}
+                  </Link>
+                ))}
+              </div>
             </nav>
           </div>
         </aside>
@@ -326,17 +373,40 @@ export default function DashboardLayout({
             isMobileMenuOpen={isMobileMenuOpen}
           />
 
-          {/* Unified Product Flow */}
-          <UnifiedProductFlow 
-            currentStage={getCurrentStage()} 
-            userType={userType}
-            compact={true} 
-          />
+          {/* Unified Product Flow - 折りたたみ機能付き */}
+          <div className="border-b bg-white">
+            <div className="flex items-center justify-between px-4 py-2">
+              <h3 className="text-sm font-medium text-gray-700">業務フロー</h3>
+              <button
+                onClick={() => setIsFlowCollapsed(!isFlowCollapsed)}
+                className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+                title={isFlowCollapsed ? 'フローを展開' : 'フローを折りたたむ'}
+              >
+                <svg 
+                  className={`w-4 h-4 transition-transform ${isFlowCollapsed ? 'rotate-180' : ''}`} 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </div>
+            {!isFlowCollapsed && (
+              <UnifiedProductFlow 
+                currentStage={getCurrentStage()} 
+                userType={userType}
+                compact={true} 
+              />
+            )}
+          </div>
 
-          {/* ページコンテンツ */}
+          {/* ページコンテンツ - レスポンシブ対応 */}
           <main className="flex-1 overflow-y-auto bg-gray-50">
-            <div className="p-4 md:p-6 lg:p-8 max-w-[1600px] mx-auto">
-              {children}
+            <div className="p-3 sm:p-4 md:p-6 lg:p-8 max-w-[1600px] mx-auto">
+              <div className="min-h-[calc(100vh-200px)]">
+                {children}
+              </div>
             </div>
           </main>
         </div>

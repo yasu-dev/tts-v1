@@ -40,14 +40,14 @@
     --font-display: 'Orbitron', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     --font-mono: 'Orbitron', 'Courier New', monospace;
     
-    /* Font Sizes - Compact for Business Applications */
-    --text-xs: 0.625rem;   /* 10px */
-    --text-sm: 0.6875rem;  /* 11px */
-    --text-base: 0.75rem;  /* 12px */
-    --text-lg: 0.8125rem;  /* 13px */
-    --text-xl: 0.875rem;   /* 14px */
-    --text-2xl: 1rem;      /* 16px */
-    --text-3xl: 1.25rem;   /* 20px */
+    /* Font Sizes - Optimized for Laptop/Mobile Business Use */
+    --text-xs: 0.6875rem;  /* 11px - ラベル、バッジ */
+    --text-sm: 0.75rem;    /* 12px - 補助テキスト */
+    --text-base: 0.8125rem; /* 13px - 標準テキスト */
+    --text-lg: 0.875rem;   /* 14px - メニュー、ボタン */
+    --text-xl: 0.9375rem;  /* 15px - 見出し */
+    --text-2xl: 1rem;      /* 16px - 大見出し */
+    --text-3xl: 1.125rem;  /* 18px - タイトル */
     
     /* Spacing Scale - Compact for better density */
     --space-xs: 0.125rem;  /* 2px */
@@ -211,31 +211,49 @@
 }
 
 @layer components {
-  /* App Container - Grid Layout System */
+  /* App Container - Responsive Grid Layout System */
   .app-container {
     display: grid;
     grid-template-areas: 
       "header header header"
       "sidebar main-display analytics"
       "sidebar main-display analytics";
-    grid-template-columns: 240px 1fr 280px;
-    grid-template-rows: 64px 1fr; /* 40px → 64px に変更 */
+    grid-template-columns: 260px 1fr 300px;
+    grid-template-rows: 56px 1fr;
     height: 100vh;
     background: transparent;
   }
 
-  /* Mobile and Tablet Layout */
+  /* Laptop Layout (1024px - 1440px) */
+  @media (max-width: 1440px) {
+    .app-container {
+      grid-template-areas: 
+        "header header"
+        "sidebar main-display";
+      grid-template-columns: 240px 1fr;
+      grid-template-rows: 52px 1fr;
+    }
+  }
+
+  /* Tablet Layout (768px - 1024px) */
   @media (max-width: 1024px) {
     .app-container {
       grid-template-areas: 
         "header header"
         "main-display main-display";
       grid-template-columns: 1fr;
-      grid-template-rows: 40px 1fr;
+      grid-template-rows: 48px 1fr;
+    }
+  }
+
+  /* Mobile Layout (< 768px) */
+  @media (max-width: 768px) {
+    .app-container {
+      grid-template-rows: 44px 1fr;
     }
   }
   
-  /* Nexus Header */
+  /* Nexus Header - Responsive Design */
   .nexus-header {
     grid-area: header;
     background: linear-gradient(135deg, #0064D2 0%, #0078FF 50%, #00A0FF 100%);
@@ -245,11 +263,39 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0;
+    padding: 0 1rem;
     position: relative;
     overflow: hidden;
     z-index: 50;
-    height: 64px;
+    height: 56px;
+    min-height: 56px;
+  }
+
+  /* Laptop Header */
+  @media (max-width: 1440px) {
+    .nexus-header {
+      height: 52px;
+      min-height: 52px;
+      padding: 0 0.75rem;
+    }
+  }
+
+  /* Tablet Header */
+  @media (max-width: 1024px) {
+    .nexus-header {
+      height: 48px;
+      min-height: 48px;
+      padding: 0 0.75rem;
+    }
+  }
+
+  /* Mobile Header */
+  @media (max-width: 768px) {
+    .nexus-header {
+      height: 44px;
+      min-height: 44px;
+      padding: 0 0.5rem;
+    }
   }
   
   .nexus-header::before {
@@ -277,22 +323,51 @@
     position: relative;
   }
   
-  /* Nexus Sidebar */
+  /* Nexus Sidebar - Enhanced Responsive Design */
   .nexus-sidebar {
     grid-area: sidebar;
     background: rgba(255, 255, 255, 0.97);
     backdrop-filter: blur(25px);
     border-right: 3px solid;
     border-image: linear-gradient(180deg, #0064D2, #FFCE00, #E53238, #86B817, #7B1FA2, #00BCD4) 1;
-    overflow-y: hidden; /* auto → hidden に変更 */
-    overflow-x: hidden; /* 横スクロールも防止 */
+    overflow-y: hidden;
+    overflow-x: hidden;
     position: relative;
-    transition: transform 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
     display: flex;
     flex-direction: column;
+    width: 260px;
   }
 
-  /* Mobile Sidebar Behavior */
+  /* Collapsed State */
+  .nexus-sidebar.collapsed {
+    width: 64px;
+    min-width: 64px;
+  }
+
+  .nexus-sidebar.collapsed .sidebar-text {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+
+  .nexus-sidebar.collapsed .sidebar-logo h2,
+  .nexus-sidebar.collapsed .sidebar-logo p {
+    display: none;
+  }
+
+  /* Laptop Responsive (1024px - 1440px) */
+  @media (max-width: 1440px) {
+    .nexus-sidebar {
+      width: 240px;
+    }
+    
+    .nexus-sidebar.collapsed {
+      width: 60px;
+      min-width: 60px;
+    }
+  }
+
+  /* Tablet/Mobile Sidebar Behavior */
   @media (max-width: 1024px) {
     .nexus-sidebar {
       position: fixed;
@@ -308,11 +383,77 @@
     .nexus-sidebar.open {
       transform: translateX(0);
     }
+
+    .nexus-sidebar.collapsed {
+      width: 280px; /* モバイルでは折りたたみ無効 */
+    }
   }
 
   @media (max-width: 640px) {
     .nexus-sidebar {
       width: 260px;
+      max-width: 90vw;
+    }
+  }
+
+  /* Sidebar Text Animation */
+  .sidebar-text {
+    transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+  }
+
+  /* Mobile-First Responsive Utilities */
+  @media (max-width: 640px) {
+    .nexus-header {
+      font-size: 0.875rem;
+    }
+    
+    .nexus-button {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.75rem;
+    }
+    
+    .intelligence-card {
+      padding: 0.75rem;
+    }
+    
+    .holo-table th,
+    .holo-table td {
+      padding: 0.5rem 0.25rem;
+      font-size: 0.75rem;
+    }
+  }
+
+  /* Tablet Optimizations */
+  @media (min-width: 641px) and (max-width: 1024px) {
+    .nexus-header {
+      font-size: 0.9375rem;
+    }
+    
+    .intelligence-card {
+      padding: 1rem;
+    }
+  }
+
+  /* Enhanced Touch Targets for Mobile */
+  @media (max-width: 1024px) {
+    .nav-node,
+    .nexus-button,
+    button {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    .nav-item {
+      min-height: 48px;
+    }
+  }
+
+  /* High DPI Display Optimizations */
+  @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .nexus-logo,
+    .sidebar-logo-icon {
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
     }
   }
   

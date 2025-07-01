@@ -62,13 +62,14 @@ module.exports = {
         primary: ['Noto Sans JP', 'Inter', '-apple-system', 'system-ui', 'sans-serif'],
       },
       fontSize: {
-        'xs': '0.7rem',
-        'sm': '0.8rem', 
-        'base': '0.9rem',
-        'lg': '1rem',
-        'xl': '1.1rem',
-        '2xl': '1.2rem',
-        '3xl': '2rem',
+        'xs': '0.6875rem',  // 11px - ラベル、バッジ
+        'sm': '0.75rem',    // 12px - 補助テキスト
+        'base': '0.8125rem', // 13px - 標準テキスト
+        'lg': '0.875rem',   // 14px - メニュー、ボタン
+        'xl': '0.9375rem',  // 15px - 見出し
+        '2xl': '1rem',      // 16px - 大見出し
+        '3xl': '1.125rem',  // 18px - タイトル
+        '4xl': '1.25rem',   // 20px - 大タイトル
       },
       // ホバーエフェクトのみ許可（@keyframes禁止準拠）
       transitionProperty: {

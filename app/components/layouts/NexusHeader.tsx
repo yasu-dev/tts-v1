@@ -63,20 +63,20 @@ export default function NexusHeader({
   };
 
   return (
-    <header className="nexus-header flex items-center justify-between px-4 md:px-6 lg:px-8 relative overflow-hidden h-16">
+    <header className="nexus-header flex items-center justify-between relative overflow-hidden">
       {/* 背景シャインエフェクト */}
       <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/5 to-transparent" />
       
-      <div className="flex items-center gap-3 md:gap-4 lg:gap-6 z-10">
+      <div className="flex items-center gap-2 sm:gap-3 md:gap-4 lg:gap-6 z-10 flex-1">
         {/* モバイルハンバーガーメニューボタン */}
         <button
           id="mobile-menu-button"
           onClick={onMobileMenuToggle}
-          className="lg:hidden p-2 text-white hover:bg-white/20 rounded-lg transition-all duration-200"
+          className="lg:hidden p-2 text-white hover:bg-white/20 rounded-lg transition-all duration-200 flex-shrink-0"
           aria-label="メニューを開く"
           aria-expanded={isMobileMenuOpen}
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             {isMobileMenuOpen ? (
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             ) : (
@@ -85,18 +85,29 @@ export default function NexusHeader({
           </svg>
         </button>
         
-        {/* 検索バー */}
-        <div className="flex-1 max-w-xl">
+        {/* ブランドロゴ（モバイルで表示） */}
+        <div className="lg:hidden flex items-center gap-2 flex-shrink-0">
+          <div className="w-6 h-6 bg-white/20 rounded-md flex items-center justify-center text-white font-bold text-xs">
+            W
+          </div>
+          <span className="hidden sm:block text-white font-bold text-sm">WORLD DOOR</span>
+        </div>
+        
+        {/* 検索バー - レスポンシブ対応 */}
+        <div className="flex-1 max-w-sm sm:max-w-md lg:max-w-xl">
           <form onSubmit={handleSearchSubmit} className="relative">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="商品を検索..."
-              className="w-full px-4 py-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg text-white placeholder-white/50 focus:bg-white/20 focus:border-white/40 transition-all duration-200"
+              className="w-full px-3 py-1.5 sm:px-4 sm:py-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg text-white placeholder-white/50 focus:bg-white/20 focus:border-white/40 transition-all duration-200 text-sm"
             />
-            <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2">
-              <svg className="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button 
+              type="submit" 
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-white/10 rounded transition-colors"
+            >
+              <svg className="w-4 h-4 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </button>
@@ -104,9 +115,9 @@ export default function NexusHeader({
         </div>
       </div>
       
-      <div className="flex items-center gap-3 md:gap-4 z-10">
-        {/* 日本時間のみ表示 */}
-        <div className="hidden md:block bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg px-3 py-1.5 text-white">
+      <div className="flex items-center gap-1 sm:gap-2 md:gap-3 z-10 flex-shrink-0">
+        {/* 日本時間表示 - レスポンシブ対応 */}
+        <div className="hidden lg:block bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg px-3 py-1.5 text-white">
           <div className="flex items-center gap-2">
             <svg className="w-4 h-4 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -118,33 +129,38 @@ export default function NexusHeader({
           </div>
         </div>
         
-        {/* 通知ボタン */}
+        {/* コンパクト時間表示（タブレット用） */}
+        <div className="hidden md:block lg:hidden bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg px-2 py-1 text-white">
+          <div className="font-mono text-xs font-semibold">{currentTime.jst}</div>
+        </div>
+        
+        {/* 通知ボタン - レスポンシブ対応 */}
         <button
           ref={notificationRef}
           onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-          className="relative p-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg text-white hover:bg-white/20 transition-all duration-200"
+          className="relative p-1.5 sm:p-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg text-white hover:bg-white/20 transition-all duration-200"
           aria-label="通知"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
           </svg>
           {notificationCount > 0 && (
-            <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-[11px] font-bold rounded-full flex items-center justify-center shadow-lg animate-pulse">
+            <span className="absolute -top-1 -right-1 h-4 w-4 sm:h-5 sm:w-5 bg-red-500 text-white text-[9px] sm:text-[11px] font-bold rounded-full flex items-center justify-center shadow-lg animate-pulse">
               {notificationCount > 9 ? '9+' : notificationCount}
             </span>
           )}
         </button>
         
-        {/* ユーザープロファイル */}
+        {/* ユーザープロファイル - レスポンシブ対応 */}
         <button 
           ref={profileRef as any}
           onClick={() => setIsProfileOpen(!isProfileOpen)}
-          className="flex items-center gap-2.5 bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg px-3 py-2 hover:bg-white/20 transition-all duration-200"
+          className="flex items-center gap-1 sm:gap-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 hover:bg-white/20 transition-all duration-200"
         >
-          <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center font-bold text-sm text-white border border-white/30">
+          <div className="w-6 h-6 sm:w-8 sm:h-8 bg-white/20 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm text-white border border-white/30">
             {userType === 'staff' ? 'S' : 'U'}
           </div>
-          <div className="hidden sm:block text-left">
+          <div className="hidden md:block text-left">
             <div className="text-white font-semibold text-sm">
               {userType === 'staff' ? 'スタッフ' : 'セラー'}
             </div>
@@ -152,7 +168,7 @@ export default function NexusHeader({
               管理者
             </div>
           </div>
-          <svg className="w-4 h-4 text-white/60 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </button>

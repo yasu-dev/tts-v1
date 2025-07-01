@@ -3,13 +3,23 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-interface FlowStage {
+interface FlowStep {
   id: string;
   name: string;
+  shortName: string;
+  description: string;
+  role: 'seller' | 'staff' | 'system' | 'customer';
   color: string;
-  count: number;
-  avgDays: number;
+  bgColor: string;
   icon: React.ReactNode;
+  tasks: {
+    id: string;
+    name: string;
+    count: number;
+    avgDays: number;
+    status: 'active' | 'waiting' | 'completed';
+    priority: 'high' | 'medium' | 'low';
+  }[];
 }
 
 interface UnifiedProductFlowProps {
@@ -26,34 +36,31 @@ export default function UnifiedProductFlow({
   showCounts = true 
 }: UnifiedProductFlowProps) {
   const router = useRouter();
-  const [flowData, setFlowData] = useState<FlowStage[]>([]);
+  const [flowData, setFlowData] = useState<FlowStep[]>([]);
   const [loading, setLoading] = useState(true);
+  const [totalStats, setTotalStats] = useState({
+    total: 0,
+    inProgress: 0,
+    completed: 0,
+    returns: 0,
+    userActiveTasks: 0
+  });
 
-  // SVGアイコンの定義
-  const icons = {
+  // 洗練されたSVGアイコンセット
+  const stepIcons = {
+    preparation: (
+      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 8l2 2 4-4" />
+      </svg>
+    ),
     inbound: (
       <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
       </svg>
     ),
-    inspection: (
+    sales: (
       <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-      </svg>
-    ),
-    storage: (
-      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-      </svg>
-    ),
-    listing: (
-      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-      </svg>
-    ),
-    ordered: (
-      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
       </svg>
     ),
     shipping: (
@@ -61,22 +68,91 @@ export default function UnifiedProductFlow({
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
       </svg>
     ),
-    delivery: (
-      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-      </svg>
-    ),
-    sold: (
+    completion: (
       <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
-    ),
-    returned: (
-      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-      </svg>
-    ),
+    )
   };
+
+  // フルフィルメントサービスの5ステップ構造
+  const getFlowSteps = (): FlowStep[] => [
+    {
+      id: 'preparation',
+      name: 'STEP 1: 準備フェーズ',
+      shortName: '準備',
+      description: 'セラー商品仕入れ・納品プラン作成・ATW倉庫発送',
+      role: 'seller',
+      color: '#1565c0',
+      bgColor: '#e3f2fd',
+      icon: stepIcons.preparation,
+      tasks: [
+        { id: 'sourcing', name: '商品仕入れ', count: 0, avgDays: 3, status: 'active', priority: 'high' },
+        { id: 'plan', name: '納品プラン作成', count: 0, avgDays: 1, status: 'waiting', priority: 'medium' },
+        { id: 'shipping', name: 'ATW倉庫発送', count: 0, avgDays: 2, status: 'waiting', priority: 'medium' }
+      ]
+    },
+    {
+      id: 'inbound',
+      name: 'STEP 2: 入庫フェーズ',
+      shortName: '入庫',
+      description: 'スタッフ商品受取・検品撮影・在庫登録',
+      role: 'staff',
+      color: '#8e24aa',
+      bgColor: '#f3e5f5',
+      icon: stepIcons.inbound,
+      tasks: [
+        { id: 'receive', name: '商品受取', count: 0, avgDays: 1, status: 'active', priority: 'high' },
+        { id: 'inspection', name: '検品・撮影', count: 0, avgDays: 2, status: 'waiting', priority: 'high' },
+        { id: 'register', name: '在庫登録', count: 0, avgDays: 1, status: 'waiting', priority: 'medium' }
+      ]
+    },
+    {
+      id: 'sales',
+      name: 'STEP 3: 販売フェーズ',
+      shortName: '販売',
+      description: 'システム自動出品・購入者注文・受注処理',
+      role: 'system',
+      color: '#43a047',
+      bgColor: '#e8f5e8',
+      icon: stepIcons.sales,
+      tasks: [
+        { id: 'listing', name: 'eBay自動出品', count: 0, avgDays: 1, status: 'active', priority: 'medium' },
+        { id: 'order', name: '商品注文', count: 0, avgDays: 0, status: 'waiting', priority: 'low' },
+        { id: 'process', name: '受注処理', count: 0, avgDays: 1, status: 'waiting', priority: 'high' }
+      ]
+    },
+    {
+      id: 'shipping',
+      name: 'STEP 4: 出荷フェーズ',
+      shortName: '出荷',
+      description: 'スタッフピッキング・梱包発送・購入者受取',
+      role: 'staff',
+      color: '#8e24aa',
+      bgColor: '#f3e5f5',
+      icon: stepIcons.shipping,
+      tasks: [
+        { id: 'picking', name: 'ピッキング', count: 0, avgDays: 1, status: 'active', priority: 'high' },
+        { id: 'packing', name: '梱包・発送', count: 0, avgDays: 1, status: 'waiting', priority: 'high' },
+        { id: 'delivery', name: '購入者受取', count: 0, avgDays: 3, status: 'waiting', priority: 'low' }
+      ]
+    },
+    {
+      id: 'completion',
+      name: 'STEP 5: 完了フェーズ',
+      shortName: '完了',
+      description: 'システム売上計算・セラー精算確認・次回仕入れ',
+      role: 'seller',
+      color: '#1565c0',
+      bgColor: '#e3f2fd',
+      icon: stepIcons.completion,
+      tasks: [
+        { id: 'calculation', name: '売上計算', count: 0, avgDays: 1, status: 'active', priority: 'medium' },
+        { id: 'settlement', name: '精算確認', count: 0, avgDays: 2, status: 'waiting', priority: 'high' },
+        { id: 'next', name: '次回仕入れ', count: 0, avgDays: 0, status: 'waiting', priority: 'low' }
+      ]
+    }
+  ];
 
   useEffect(() => {
     const loadFlowData = async () => {
@@ -84,86 +160,62 @@ export default function UnifiedProductFlow({
         const response = await fetch('/api/inventory/stats');
         const data = await response.json();
         
-        // Transform API data to flow stages
-        const stages: FlowStage[] = [
-          {
-            id: 'inbound',
-            name: '入庫',
-            color: '#3B82F6',
-            count: data.statusStats['入庫'] || 0,
-            avgDays: 1,
-            icon: icons.inbound
-          },
-          {
-            id: 'inspection',
-            name: '検品',
-            color: '#F59E0B',
-            count: data.statusStats['検品'] || 0,
-            avgDays: 2,
-            icon: icons.inspection
-          },
-          {
-            id: 'storage',
-            name: '保管',
-            color: '#10B981',
-            count: data.statusStats['保管'] || 0,
-            avgDays: 30,
-            icon: icons.storage
-          },
-          {
-            id: 'listing',
-            name: '出品',
-            color: '#8B5CF6',
-            count: data.statusStats['出品'] || 0,
-            avgDays: 7,
-            icon: icons.listing
-          },
-          {
-            id: 'ordered',
-            name: '受注',
-            color: '#F97316',
-            count: data.statusStats['受注'] || 0,
-            avgDays: 1,
-            icon: icons.ordered
-          },
-          {
-            id: 'shipping',
-            name: '出荷',
-            color: '#6366F1',
-            count: data.statusStats['出荷'] || 0,
-            avgDays: 1,
-            icon: icons.shipping
-          },
-          {
-            id: 'delivery',
-            name: '配送',
-            color: '#06B6D4',
-            count: data.statusStats['配送'] || 0,
-            avgDays: 3,
-            icon: icons.delivery
-          },
-          {
-            id: 'sold',
-            name: '売約済み',
-            color: '#6B7280',
-            count: data.statusStats['売約済み'] || 0,
-            avgDays: 0,
-            icon: icons.sold
-          },
-          {
-            id: 'returned',
-            name: '返品',
-            color: '#EF4444',
-            count: data.statusStats['返品'] || 0,
-            avgDays: 7,
-            icon: icons.returned
-          }
-        ];
+        const steps = getFlowSteps();
+        let userActiveTasks = 0;
         
-        setFlowData(stages);
+        // APIデータを各ステップのタスクにマッピング
+        steps.forEach(step => {
+          step.tasks.forEach(task => {
+            switch (task.id) {
+              case 'receive':
+                task.count = data.statusStats['入庫'] || 0;
+                break;
+              case 'inspection':
+                task.count = data.statusStats['検品'] || 0;
+                break;
+              case 'register':
+                task.count = data.statusStats['保管'] || 0;
+                break;
+              case 'listing':
+                task.count = data.statusStats['出品'] || 0;
+                break;
+              case 'order':
+                task.count = data.statusStats['受注'] || 0;
+                break;
+              case 'picking':
+                task.count = data.statusStats['出荷'] || 0;
+                break;
+              case 'delivery':
+                task.count = data.statusStats['配送'] || 0;
+                break;
+              case 'calculation':
+                task.count = data.statusStats['売約済み'] || 0;
+                break;
+              default:
+                task.count = 0;
+            }
+
+            // ユーザーの担当タスクをカウント
+            if ((userType === 'seller' && step.role === 'seller') || 
+                (userType === 'staff' && step.role === 'staff')) {
+              userActiveTasks += task.count;
+            }
+          });
+        });
+        
+        setFlowData(steps);
+        
+        // 統計情報を計算
+        const total = Object.values(data.statusStats).reduce((sum: number, count: any) => sum + (count || 0), 0);
+        const inProgress = (data.statusStats['入庫'] || 0) + (data.statusStats['検品'] || 0) + (data.statusStats['出荷'] || 0);
+        const completed = data.statusStats['売約済み'] || 0;
+        const returns = data.statusStats['返品'] || 0;
+        
+        setTotalStats({ total, inProgress, completed, returns, userActiveTasks });
+        
       } catch (error) {
         console.error('Flow data loading error:', error);
-        setFlowData([]);
+        setFlowData(getFlowSteps());
       } finally {
         setLoading(false);
       }
@@ -171,44 +223,97 @@ export default function UnifiedProductFlow({
 
     loadFlowData();
     
-    // Auto-refresh every 5 minutes
-    const interval = setInterval(loadFlowData, 5 * 60 * 1000);
+    // Auto-refresh every 30 seconds
+    const interval = setInterval(loadFlowData, 30 * 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [userType]);
 
-  const handleStageClick = (stageId: string) => {
+  const handleStepClick = (stepId: string, taskId?: string) => {
     const baseRoute = userType === 'staff' ? '/staff' : '';
     
-    switch (stageId) {
+    switch (stepId) {
+      case 'preparation':
+        router.push(userType === 'seller' ? '/delivery' : '/staff/dashboard');
+        break;
       case 'inbound':
-        router.push(`${baseRoute}/inventory?filter=inbound`);
+        if (taskId === 'inspection') {
+          router.push('/staff/inspection');
+        } else {
+          router.push(`${baseRoute}/inventory?filter=inbound`);
+        }
         break;
-      case 'inspection':
-        router.push(userType === 'staff' ? '/staff/inspection' : '/inventory?filter=inspection');
-        break;
-      case 'storage':
-        router.push(`${baseRoute}/inventory?filter=storage`);
-        break;
-      case 'listing':
-        router.push(`${baseRoute}/inventory?filter=listing`);
-        break;
-      case 'ordered':
-        router.push(userType === 'staff' ? '/staff/tasks?filter=orders' : '/sales');
+      case 'sales':
+        router.push(userType === 'staff' ? '/staff/inventory?filter=listing' : '/sales');
         break;
       case 'shipping':
-        router.push(userType === 'staff' ? '/staff/shipping' : '/delivery');
+        if (taskId === 'picking') {
+          router.push('/staff/picking');
+        } else {
+          router.push(userType === 'staff' ? '/staff/shipping' : '/delivery');
+        }
         break;
-      case 'delivery':
-        router.push(userType === 'staff' ? '/staff/shipping?filter=delivery' : '/delivery?filter=delivery');
-        break;
-      case 'sold':
-        router.push(`${baseRoute}/inventory?filter=sold`);
-        break;
-      case 'returned':
-        router.push(userType === 'staff' ? '/staff/returns' : '/returns');
+      case 'completion':
+        router.push(userType === 'staff' ? '/staff/reports' : '/billing');
         break;
       default:
         router.push(userType === 'staff' ? '/staff/dashboard' : '/dashboard');
+    }
+  };
+
+  const getCurrentStep = () => {
+    if (!currentStage) return null;
+    
+    // 現在のパスから対応するステップを特定
+    if (currentStage.includes('delivery') || currentStage.includes('preparation')) return 'preparation';
+    if (currentStage.includes('inbound') || currentStage.includes('inspection')) return 'inbound';
+    if (currentStage.includes('listing') || currentStage.includes('sales')) return 'sales';
+    if (currentStage.includes('shipping') || currentStage.includes('picking')) return 'shipping';
+    if (currentStage.includes('billing') || currentStage.includes('completion')) return 'completion';
+    
+    return null;
+  };
+
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case 'seller': 
+        return (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        );
+      case 'staff': 
+        return (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+        );
+      case 'system': 
+        return (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+        );
+      case 'customer': 
+        return (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+          </svg>
+        );
+      default: 
+        return (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        );
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'bg-red-100 text-red-700';
+      case 'medium': return 'bg-yellow-100 text-yellow-700';
+      case 'low': return 'bg-gray-100 text-gray-700';
+      default: return 'bg-gray-100 text-gray-700';
     }
   };
 
@@ -217,7 +322,7 @@ export default function UnifiedProductFlow({
       <div className={`bg-white border-b border-gray-200 ${compact ? 'py-2' : 'py-4'}`}>
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center">
-            <div className="animate-pulse text-gray-400">フロー情報を読み込み中...</div>
+            <div className="animate-pulse text-gray-400">フルフィルメントフロー読み込み中...</div>
           </div>
         </div>
       </div>
@@ -225,109 +330,208 @@ export default function UnifiedProductFlow({
   }
 
   return (
-    <div className={`bg-white border-b border-gray-200 shadow-sm ${compact ? 'py-2' : 'py-4'}`}>
+    <div className={`bg-white border-b border-gray-200 shadow-sm ${compact ? 'py-3' : 'py-4'}`}>
       <div className="px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-2">
-          {/* ヘッダー */}
+        <div className="flex flex-col gap-4">
+          {/* ヘッダー統計と作業者ステータス */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <h3 className={`font-semibold text-gray-900 ${compact ? 'text-sm' : 'text-base'}`}>
-                商品フロー
+            <div className="flex items-center gap-4">
+              <h3 className={`font-bold text-gray-900 ${compact ? 'text-sm' : 'text-lg'}`}>
+                フルフィルメント作業フロー
               </h3>
-              {!compact && (
-                <span className="text-xs text-gray-500">クリックで各工程にジャンプ</span>
-              )}
+              {/* 作業者の現在の作業状況 */}
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
+                  {getRoleIcon(userType === 'seller' ? 'seller' : 'staff')}
+                  <span className="text-sm font-medium text-gray-700">
+                    {userType === 'seller' ? 'セラー' : 'スタッフ'}
+                  </span>
+                </div>
+                <div className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                  担当作業: {totalStats.userActiveTasks}件
+                </div>
+              </div>
             </div>
-            <div className={`flex items-center gap-2 ${compact ? 'text-xs' : 'text-sm'}`}>
-              <span className="text-gray-500">
-                総在庫: {flowData.reduce((sum, stage) => sum + stage.count, 0)}件
-              </span>
+            <div className="flex items-center gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                <span className="text-gray-600">進行中: {totalStats.inProgress}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-gray-600">完了: {totalStats.completed}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                <span className="text-gray-600">総計: {totalStats.total}</span>
+              </div>
             </div>
           </div>
 
-          {/* フローステージ - スクロールバーなし、レスポンシブ対応 */}
-          <div className="w-full">
-            <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-7 lg:grid-cols-9 gap-2">
-              {flowData.map((stage, index) => {
-                const isActive = currentStage === stage.id;
-                
-                return (
-                  <button
-                    key={stage.id}
-                    onClick={() => handleStageClick(stage.id)}
-                    className={`
-                      relative flex flex-col items-center p-2 rounded-lg transition-all duration-200 
-                      hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500
-                      ${isActive ? 'bg-blue-50 ring-2 ring-blue-300' : ''}
-                      w-full
-                    `}
-                    style={{
-                      borderColor: isActive ? stage.color : 'transparent',
-                      borderWidth: isActive ? '2px' : '0px'
-                    }}
-                  >
-                    {/* アイコン */}
-                    <div 
-                      className={`
-                        flex items-center justify-center rounded-full p-1.5
-                        ${compact ? 'w-5 h-5 sm:w-6 sm:h-6' : 'w-6 h-6 sm:w-8 sm:h-8'}
-                      `}
-                      style={{ 
-                        backgroundColor: `${stage.color}20`,
-                        color: stage.color 
-                      }}
-                    >
-                      {stage.icon}
-                    </div>
-                    
-                    {/* ステージ名 */}
-                    <span className={`
-                      mt-1 font-medium text-center leading-tight
-                      ${compact ? 'text-[10px] sm:text-xs' : 'text-xs'}
-                      ${isActive ? 'text-gray-900' : 'text-gray-600'}
-                    `}>
-                      {stage.name}
-                    </span>
-                    
-                    {/* カウントバッジ */}
-                    {showCounts && stage.count > 0 && (
+          {/* フローステップ */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            {flowData.map((step, index) => {
+              const isCurrentStep = getCurrentStep() === step.id;
+              const isUserRelevant = (userType === 'seller' && step.role === 'seller') || 
+                                   (userType === 'staff' && step.role === 'staff') || 
+                                   step.role === 'system';
+              const hasUserTasks = (userType === 'seller' && step.role === 'seller') || 
+                                 (userType === 'staff' && step.role === 'staff');
+              const totalStepTasks = step.tasks.reduce((sum, task) => sum + task.count, 0);
+              
+              return (
+                <button
+                  key={step.id}
+                  onClick={() => handleStepClick(step.id)}
+                  className={`
+                    relative p-4 rounded-xl transition-all duration-300 text-left group
+                    hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500
+                    ${isCurrentStep ? 'ring-2 ring-blue-400 shadow-lg scale-105' : ''}
+                    ${hasUserTasks && totalStepTasks > 0 ? 'ring-2 ring-orange-300 bg-orange-50' : ''}
+                    ${!isUserRelevant ? 'opacity-60' : 'opacity-100'}
+                  `}
+                  style={{
+                    backgroundColor: hasUserTasks && totalStepTasks > 0 ? '#fff7ed' : step.bgColor,
+                    borderLeft: `4px solid ${step.color}`
+                  }}
+                >
+                  {/* ステップヘッダー */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
                       <div 
-                        className={`
-                          mt-1 px-1 py-0.5 rounded-full text-white font-medium
-                          ${compact ? 'text-[8px] sm:text-[10px]' : 'text-[10px] sm:text-xs'}
-                        `}
-                        style={{ backgroundColor: stage.color }}
+                        className="p-2 rounded-lg"
+                        style={{ 
+                          backgroundColor: `${step.color}20`,
+                          color: step.color 
+                        }}
                       >
-                        {stage.count}
+                        <div className="w-5 h-5">
+                          {step.icon}
+                        </div>
                       </div>
-                    )}
-                    
-                    {/* 平均日数 - モバイルでは非表示 */}
-                    {!compact && stage.avgDays > 0 && (
-                      <div className="hidden sm:block text-[10px] text-gray-400 mt-0.5">
-                        平均{stage.avgDays}日
+                      <div>
+                        <div className="text-sm font-bold text-gray-900">
+                          {step.shortName}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {step.role === 'seller' ? 'セラー作業' : 
+                           step.role === 'staff' ? 'スタッフ作業' : 
+                           step.role === 'system' ? '自動処理' : '顧客対応'}
+                        </div>
                       </div>
-                    )}
-                    
-                    {/* アクティブインジケーター */}
-                    {isActive && (
-                      <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
-                        <div 
-                          className="w-2 h-2 rotate-45"
-                          style={{ backgroundColor: stage.color }}
-                        />
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {getRoleIcon(step.role)}
+                      {isCurrentStep && (
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                      )}
+                      {hasUserTasks && totalStepTasks > 0 && (
+                        <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce"></div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* タスクリスト */}
+                  <div className="space-y-2">
+                    {step.tasks.slice(0, compact ? 2 : 3).map((task) => (
+                      <div
+                        key={task.id}
+                        className="flex items-center justify-between text-xs group-hover:bg-white/50 p-2 rounded transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStepClick(step.id, task.id);
+                        }}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-700 font-medium">{task.name}</span>
+                          {task.priority === 'high' && task.count > 0 && (
+                            <span className={`px-1 py-0.5 rounded text-[10px] font-medium ${getPriorityColor(task.priority)}`}>
+                              緊急
+                            </span>
+                          )}
+                        </div>
+                        {showCounts && task.count > 0 && (
+                          <span 
+                            className="px-2 py-1 rounded-full text-white font-bold text-[10px] min-w-[20px] text-center"
+                            style={{ backgroundColor: step.color }}
+                          >
+                            {task.count}
+                          </span>
+                        )}
                       </div>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+                    ))}
+                  </div>
+
+                  {/* 進捗インジケーター */}
+                  {!compact && (
+                    <div className="mt-3 pt-2 border-t border-gray-200">
+                      <div className="flex items-center justify-between text-[10px] text-gray-500">
+                        <span>平均処理時間</span>
+                        <span>{Math.max(...step.tasks.map(t => t.avgDays))}日</span>
+                      </div>
+                      {totalStepTasks > 0 && (
+                        <div className="mt-1">
+                          <div className="w-full bg-gray-200 rounded-full h-1">
+                            <div 
+                              className="h-1 rounded-full transition-all duration-500"
+                              style={{ 
+                                backgroundColor: step.color,
+                                width: `${Math.min(100, (totalStepTasks / 50) * 100)}%`
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 接続線（デスクトップのみ） */}
+                  {index < flowData.length - 1 && (
+                    <div className="hidden lg:block absolute -right-4 top-1/2 transform -translate-y-1/2 z-10">
+                      <div className="w-8 h-0.5 bg-gray-300 relative">
+                        <div className="absolute -right-1 -top-1 w-2 h-2 bg-gray-300 rotate-45 transform origin-center"></div>
+                      </div>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
-          {/* ヒント */}
+          {/* 返品フロー */}
+          {totalStats.returns > 0 && (
+            <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-1 bg-red-100 rounded">
+                    <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                    </svg>
+                  </div>
+                  <span className="text-sm font-medium text-red-700">返品処理中</span>
+                </div>
+                <button
+                  onClick={() => router.push(userType === 'staff' ? '/staff/returns' : '/returns')}
+                  className="px-3 py-1 bg-red-100 text-red-700 text-sm font-medium rounded hover:bg-red-200 transition-colors"
+                >
+                  {totalStats.returns}件 →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* クイックアクションヒント */}
           {!compact && (
-            <div className="text-xs text-gray-500 text-center">
-              各工程をクリックして詳細画面に移動できます
+            <div className="text-center border-t pt-3">
+              <span className="text-xs text-gray-500">
+                各ステップをクリックして対応する画面に移動 • 
+                <span className="font-medium text-blue-600"> リアルタイム更新中</span>
+                {totalStats.userActiveTasks > 0 && (
+                  <span className="ml-2 px-2 py-1 bg-orange-100 text-orange-700 rounded text-[10px] font-medium">
+                    あなたの作業: {totalStats.userActiveTasks}件待機中
+                  </span>
+                )}
+              </span>
             </div>
           )}
         </div>
