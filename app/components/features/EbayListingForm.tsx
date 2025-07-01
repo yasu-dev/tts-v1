@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { ebayAdapter } from '@/lib/services/adapters/ebay.adapter';
 
 interface Product {
   id: string;
@@ -62,6 +63,45 @@ export default function EbayListingForm({ product, onSuccess, onCancel }: EbayLi
     setError(null);
 
     try {
+      const template = templates.find(t => t.id === selectedTemplate);
+      if (!template) {
+        throw new Error('テンプレートが選択されていません');
+      }
+
+      const title = customTitle || template.template.title
+        .replace('{name}', product.name)
+        .replace('{sku}', product.sku);
+        
+      const description = customDescription || template.template.description
+        .replace(/{name}/g, product.name)
+        .replace(/{sku}/g, product.sku)
+        .replace(/{condition}/g, product.condition)
+        .replace(/{description}/g, product.description || '詳細は画像をご確認ください');
+
+      // eBayアダプターを使用して出品
+      const result = await ebayAdapter.createListing({
+        title,
+        description,
+        price: buyItNowPrice,
+        currency: 'JPY',
+        categoryId: getCategoryId(product.category),
+        condition: product.condition,
+        images: product.imageUrl ? [product.imageUrl] : [],
+        duration: 10, // 10日間
+        shippingOptions: [
+          {
+            service: 'FedEx International',
+            cost: 0, // Free shipping
+            type: 'Flat'
+          }
+        ]
+      });
+
+      if (!result.success) {
+        throw new Error(result.error || 'eBay出品に失敗しました');
+      }
+
+      // 出品成功後、ローカルデータベースに記録
       const response = await fetch('/api/ebay/listing', {
         method: 'POST',
         headers: {
@@ -69,27 +109,44 @@ export default function EbayListingForm({ product, onSuccess, onCancel }: EbayLi
         },
         body: JSON.stringify({
           productId: product.id,
+          ebayListingId: result.listingId,
+          ebayUrl: result.url,
           template: selectedTemplate,
-          customTitle: customTitle || undefined,
-          customDescription: customDescription || undefined,
+          title,
+          description,
           startingPrice,
           buyItNowPrice
         }),
       });
 
       if (!response.ok) {
-        throw new Error('出品に失敗しました');
+        console.error('Failed to save listing to database');
       }
 
-      const data = await response.json();
       if (onSuccess) {
-        onSuccess(data.listing);
+        onSuccess({
+          ...result,
+          productId: product.id,
+          title,
+          price: buyItNowPrice
+        });
       }
     } catch (err) {
-      setError('eBay出品中にエラーが発生しました');
+      setError(err instanceof Error ? err.message : 'eBay出品中にエラーが発生しました');
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const getCategoryId = (category: string): string => {
+    // カテゴリーマッピング（実際のeBayカテゴリーIDに変更する必要があります）
+    const categoryMap: Record<string, string> = {
+      'camera_body': '625', // Cameras & Photo > Digital Cameras
+      'lens': '3323', // Lenses & Filters
+      'watch': '14324', // Watches
+      'accessory': '15200' // Camera Accessories
+    };
+    return categoryMap[category] || '625';
   };
 
   const getPreviewData = () => {

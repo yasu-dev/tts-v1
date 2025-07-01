@@ -132,11 +132,11 @@ export async function POST(request: NextRequest) {
         description: `商品 ${product.name} が ${product.currentLocation?.code || '未設定'} から ${targetLocation.code} に移動されました`,
         userId: user.id,
         productId,
-        metadata: {
+        metadata: JSON.stringify({
           fromLocation: product.currentLocation?.code,
           toLocation: targetLocation.code,
           notes,
-        },
+        }),
       },
     });
 
@@ -224,12 +224,12 @@ export async function DELETE(request: NextRequest) {
         description: `商品 ${movement.product.name} の移動記録が削除されました`,
         userId: user.id,
         productId: movement.productId,
-        metadata: {
+        metadata: JSON.stringify({
           deletedMovement: {
             from: movement.fromLocation?.code,
             to: movement.toLocation?.code,
           },
-        },
+        }),
       },
     });
 

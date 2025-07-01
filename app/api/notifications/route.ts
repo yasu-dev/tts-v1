@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sendNotification } from './stream/route';
 
 interface Notification {
   id: string;
@@ -163,13 +162,13 @@ export async function POST(request: NextRequest) {
       priority: notification.priority || 'medium'
     };
     
-    // SSEでリアルタイム配信
-    if (userId) {
-      sendNotification(userId, {
-        type: 'new_notification',
-        notification: newNotification
-      });
-    }
+    // SSEでリアルタイム配信（一時的に無効化）
+    // if (userId) {
+    //   sendNotification(userId, {
+    //     type: 'new_notification',
+    //     notification: newNotification
+    //   });
+    // }
     
     // データベースに保存（実際の実装では）
     console.log('Creating new notification:', newNotification);

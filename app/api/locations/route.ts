@@ -76,10 +76,10 @@ export async function POST(request: NextRequest) {
         type: 'location_create',
         description: `新しいロケーション ${code} (${name}) が作成されました`,
         userId: user.id,
-        metadata: {
+        metadata: JSON.stringify({
           locationCode: code,
           zone,
-        },
+        }),
       },
     });
 
@@ -139,10 +139,10 @@ export async function PUT(request: NextRequest) {
         type: 'location_update',
         description: `ロケーション ${existingLocation.code} が更新されました`,
         userId: user.id,
-        metadata: {
+        metadata: JSON.stringify({
           locationCode: existingLocation.code,
           changes: { name, capacity, isActive },
-        },
+        }),
       },
     });
 

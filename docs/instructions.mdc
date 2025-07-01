@@ -1,8 +1,0 @@
-# FE：在庫管理 Web アプリ骨子生成
-
-1. Next.js v14.2.25 & React v18.2.0 をセットアップ
-2. TypeScript 設定ファイルを生成
-3. Tailwind CSS を導入
-4. shadcn/ui ベースレイアウトを配置
-5. src/lib/api.ts に fetchItems() をモック利用で実装
-6. @todo.md に初期タスクを登録

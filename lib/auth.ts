@@ -164,3 +164,21 @@ export class AuthService {
     }
   }
 }
+
+// APIルート用のrequireAuth高階関数
+export function requireAuth(
+  handler: (req: NextRequest, context: { user: AuthUser }) => Promise<Response>
+) {
+  return async (req: NextRequest) => {
+    const user = await AuthService.getUserFromRequest(req);
+    
+    if (!user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    
+    return handler(req, { user });
+  };
+}

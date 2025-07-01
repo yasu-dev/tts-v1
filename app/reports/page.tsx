@@ -5,9 +5,6 @@ import KPIDashboard from '../components/features/kpi/KPIDashboard';
 import { useState, useEffect } from 'react';
 import PageWrapper from '@/app/components/ui/PageWrapper';
 import NexusCard from '@/app/components/ui/NexusCard';
-import SalesForecast from '@/app/components/features/analytics/SalesForecast';
-import InventoryTurnoverAnalysis from '@/app/components/features/analytics/InventoryTurnoverAnalysis';
-import CategoryProfitabilityAnalysis from '@/app/components/features/analytics/CategoryProfitabilityAnalysis';
 
 interface SalesData {
   period: string;
@@ -182,11 +179,26 @@ export default function ReportsPage() {
           </div>
         )}
 
-        {activeTab === 'sales-forecast' && <SalesForecast />}
+        {activeTab === 'sales-forecast' && (
+          <NexusCard className="p-6">
+            <h3 className="text-lg font-semibold mb-4">売上予測</h3>
+            <p className="text-gray-600">売上予測分析機能は現在準備中です。</p>
+          </NexusCard>
+        )}
 
-        {activeTab === 'inventory-turnover' && <InventoryTurnoverAnalysis />}
+        {activeTab === 'inventory-turnover' && (
+          <NexusCard className="p-6">
+            <h3 className="text-lg font-semibold mb-4">在庫回転率分析</h3>
+            <p className="text-gray-600">在庫回転率分析機能は現在準備中です。</p>
+          </NexusCard>
+        )}
 
-        {activeTab === 'category-profitability' && <CategoryProfitabilityAnalysis />}
+        {activeTab === 'category-profitability' && (
+          <NexusCard className="p-6">
+            <h3 className="text-lg font-semibold mb-4">カテゴリー別収益性</h3>
+            <p className="text-gray-600">カテゴリー別収益性分析機能は現在準備中です。</p>
+          </NexusCard>
+        )}
       </div>
     </PageWrapper>
   );

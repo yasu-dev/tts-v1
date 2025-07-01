@@ -208,12 +208,12 @@ export async function POST(request: NextRequest) {
         description: `商品 ${product.name} をeBayに出品しました`,
         userId: user.id,
         productId: product.id,
-        metadata: {
+        metadata: JSON.stringify({
           ebayItemId: ebayResponse.itemId,
           listingUrl: ebayResponse.listingUrl,
           startingPrice: listingData.startingPrice,
           buyItNowPrice: listingData.buyItNowPrice
-        }
+        })
       }
     });
 

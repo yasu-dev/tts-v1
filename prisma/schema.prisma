@@ -24,6 +24,9 @@ model User {
   orders      Order[]
   activities  Activity[]
   sessions    Session[]
+  videoRecords VideoRecord[] @relation("VideoStaff")
+  twoFactorAuth TwoFactorAuth[]
+  externalServices ExternalService[]
 
   @@map("users")
 }
@@ -71,6 +74,7 @@ model Product {
   movements    InventoryMovement[]
   orderItems   OrderItem[]
   activities   Activity[]
+  videoRecords VideoRecord[]
 
   @@map("products")
 }
@@ -89,6 +93,7 @@ model Location {
   products    Product[]
   movementsFrom InventoryMovement[] @relation("MovementFrom")
   movementsTo   InventoryMovement[] @relation("MovementTo")
+  barcodeScanners BarcodeScanner[]
 
   @@map("locations")
 }
@@ -131,6 +136,7 @@ model Order {
   customer      User @relation(fields: [customerId], references: [id])
   items         OrderItem[]
   activities    Activity[]
+  videoRecords  VideoRecord[]
 
   @@map("orders")
 }
@@ -165,4 +171,74 @@ model Activity {
   order       Order? @relation(fields: [orderId], references: [id])
 
   @@map("activities")
+}
+
+model VideoRecord {
+  id          String   @id @default(cuid())
+  productId   String?
+  orderId     String?
+  type        String   // inspection, packing, shipping, etc.
+  fileName    String
+  fileUrl     String   // S3 URL or local path
+  fileSize    Int?
+  duration    Int?     // seconds
+  staffId     String
+  notes       String?
+  createdAt   DateTime @default(now())
+  
+  // Relations
+  product     Product? @relation(fields: [productId], references: [id])
+  order       Order?   @relation(fields: [orderId], references: [id])
+  staff       User     @relation("VideoStaff", fields: [staffId], references: [id])
+
+  @@map("video_records")
+}
+
+model TwoFactorAuth {
+  id          String   @id @default(cuid())
+  userId      String
+  code        String
+  expiresAt   DateTime
+  verified    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  
+  // Relations
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("two_factor_auth")
+}
+
+model ExternalService {
+  id          String   @id @default(cuid())
+  service     String   // ebay, yamato, sagawa, stripe, etc.
+  type        String   // api_call, webhook, etc.
+  endpoint    String
+  method      String
+  requestBody String?  // JSON string
+  response    String?  // JSON string
+  status      String   // success, error, pending
+  errorMessage String?
+  userId      String?
+  createdAt   DateTime @default(now())
+  
+  // Relations
+  user        User? @relation(fields: [userId], references: [id])
+
+  @@map("external_services")
+}
+
+model BarcodeScanner {
+  id          String   @id @default(cuid())
+  locationId  String
+  deviceName  String
+  ipAddress   String?
+  isActive    Boolean  @default(true)
+  lastUsedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  location    Location @relation(fields: [locationId], references: [id])
+
+  @@map("barcode_scanners")
 }

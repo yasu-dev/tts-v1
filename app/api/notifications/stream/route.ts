@@ -5,7 +5,7 @@ import { AuthService } from '@/lib/auth';
 const notificationChannels = new Map<string, ReadableStreamDefaultController>();
 
 // 通知を配信する関数
-export function sendNotification(userId: string, notification: any) {
+function sendNotification(userId: string, notification: any) {
   const controller = notificationChannels.get(userId);
   if (controller) {
     const data = `data: ${JSON.stringify(notification)}\n\n`;
