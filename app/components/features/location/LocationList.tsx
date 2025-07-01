@@ -1,252 +1,534 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import NexusCard from '@/app/components/ui/NexusCard';
-import NexusButton from '@/app/components/ui/NexusButton';
 
-interface ProductLocation {
+interface Location {
+  code: string;
+  name: string;
+  type: 'standard' | 'controlled' | 'secure' | 'processing';
+  capacity: number;
+  used: number;
+  temperature?: string;
+  humidity?: string;
+  products: ProductInLocation[];
+}
+
+interface ProductInLocation {
+  id: string;
+  name: string;
+  sku: string;
+  category: string;
+  registeredAt: string;
+  registeredBy: string;
+}
+
+interface LocationMovement {
   id: string;
   productId: string;
   productName: string;
-  location: string;
-  area: string;
-  category: string;
-  status: string;
-  lastUpdated: string;
-  value: string;
+  fromLocation: string;
+  toLocation: string;
+  movedBy: string;
+  movedAt: string;
+  reason: string;
 }
 
-interface LocationListProps {
-  searchQuery?: string;
-  filterByArea?: string;
-  onProductMove?: (product: ProductLocation) => void;
-}
-
-export default function LocationList({ 
-  searchQuery = '', 
-  filterByArea,
-  onProductMove 
-}: LocationListProps) {
-  const [products, setProducts] = useState<ProductLocation[]>([]);
+export default function LocationList() {
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [movements, setMovements] = useState<LocationMovement[]>([]);
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState<'location' | 'lastUpdated' | 'productId'>('location');
+  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'movement'>('grid');
 
-  // モックデータ（実際にはAPIから取得）
   useEffect(() => {
-    setLoading(true);
-    setTimeout(() => {
-      const mockProducts: ProductLocation[] = [
-        {
-          id: '1',
-          productId: 'TWD-CAM-001',
-          productName: 'Canon EOS R5',
-          location: 'A-01',
-          area: '標準棚',
-          category: 'カメラ本体',
-          status: '保管中',
-          lastUpdated: '2024-06-28T10:30:00',
-          value: '¥450,000',
-        },
-        {
-          id: '2',
-          productId: 'TWD-LEN-005',
-          productName: 'Canon RF 24-70mm F2.8',
-          location: 'A-15',
-          area: '標準棚',
-          category: 'レンズ',
-          status: '出荷準備',
-          lastUpdated: '2024-06-27T14:20:00',
-          value: '¥198,000',
-        },
-        {
-          id: '3',
-          productId: 'TWD-WAT-007',
-          productName: 'Rolex GMT Master',
-          location: 'V-03',
-          area: '金庫室',
-          category: '腕時計',
-          status: '保管中',
-          lastUpdated: '2024-06-27T09:15:00',
-          value: '¥2,100,000',
-        },
-        {
-          id: '4',
-          productId: 'TWD-CAM-012',
-          productName: 'Sony α7R V',
-          location: 'H2-08',
-          area: '防湿庫',
-          category: 'カメラ本体',
-          status: '保管中',
-          lastUpdated: '2024-06-25T16:45:00',
-          value: '¥320,000',
-        },
-      ];
-      setProducts(mockProducts);
-      setLoading(false);
-    }, 500);
+    fetchLocations();
+    fetchMovements();
   }, []);
 
-  // フィルタリングとソート
-  const filteredProducts = products
-    .filter(product => {
-      const matchesSearch = 
-        product.productId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.location.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      const matchesArea = !filterByArea || product.area === filterByArea;
-      
-      return matchesSearch && matchesArea;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'location':
-          return a.location.localeCompare(b.location);
-        case 'lastUpdated':
-          return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
-        case 'productId':
-          return a.productId.localeCompare(b.productId);
-        default:
-          return 0;
-      }
-    });
+  const fetchLocations = async () => {
+    try {
+      // モックデータ（実際はAPIから取得）
+      const mockLocations: Location[] = [
+        {
+          code: 'STD-A-01',
+          name: '標準棚A-01',
+          type: 'standard',
+          capacity: 50,
+          used: 32,
+          products: [
+            {
+              id: 'TWD-2024-001',
+              name: 'Canon EOS R5 ボディ',
+              sku: 'CAM-001',
+              category: 'camera_body',
+              registeredAt: '2024-01-20T10:00:00',
+              registeredBy: '田中太郎',
+            },
+            {
+              id: 'TWD-2024-003',
+              name: 'Nikon Z9 ボディ',
+              sku: 'CAM-003',
+              category: 'camera_body',
+              registeredAt: '2024-01-19T15:00:00',
+              registeredBy: '佐藤花子',
+            },
+          ],
+        },
+        {
+          code: 'HUM-01',
+          name: '防湿庫01',
+          type: 'controlled',
+          capacity: 30,
+          used: 25,
+          temperature: '22°C',
+          humidity: '45%',
+          products: [
+            {
+              id: 'TWD-2024-002',
+              name: 'Sony FE 24-70mm F2.8 GM',
+              sku: 'LENS-001',
+              category: 'lens',
+              registeredAt: '2024-01-18T14:00:00',
+              registeredBy: '鈴木一郎',
+            },
+          ],
+        },
+        {
+          code: 'VAULT-01',
+          name: '金庫室01',
+          type: 'secure',
+          capacity: 10,
+          used: 5,
+          products: [],
+        },
+        {
+          code: 'INSP-A',
+          name: '検品室A',
+          type: 'processing',
+          capacity: 100,
+          used: 15,
+          products: [],
+        },
+      ];
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case '検品中': return 'bg-blue-100 text-blue-800';
-      case '保管中': return 'bg-green-100 text-green-800';
-      case '出荷準備': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+      setLocations(mockLocations);
+    } catch (error) {
+      console.error('[ERROR] Fetch locations:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getAreaIcon = (area: string) => {
-    switch (area) {
-      case '標準棚':
-        return (
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-          </svg>
-        );
-      case '防湿庫':
-        return (
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-          </svg>
-        );
-      case '金庫室':
-        return (
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-          </svg>
-        );
+  const fetchMovements = async () => {
+    try {
+      // モックデータ（実際はAPIから取得）
+      const mockMovements: LocationMovement[] = [
+        {
+          id: 'MOV-001',
+          productId: 'TWD-2024-001',
+          productName: 'Canon EOS R5 ボディ',
+          fromLocation: 'INSP-A',
+          toLocation: 'STD-A-01',
+          movedBy: '田中太郎',
+          movedAt: '2024-01-20T10:00:00',
+          reason: '検品完了',
+        },
+        {
+          id: 'MOV-002',
+          productId: 'TWD-2024-002',
+          productName: 'Sony FE 24-70mm F2.8 GM',
+          fromLocation: 'INSP-B',
+          toLocation: 'HUM-01',
+          movedBy: '鈴木一郎',
+          movedAt: '2024-01-18T14:00:00',
+          reason: '検品完了',
+        },
+      ];
+
+      setMovements(mockMovements);
+    } catch (error) {
+      console.error('[ERROR] Fetch movements:', error);
+    }
+  };
+
+  const getLocationTypeLabel = (type: string) => {
+    switch (type) {
+      case 'standard':
+        return { label: '標準保管', badge: 'info' };
+      case 'controlled':
+        return { label: '環境管理', badge: 'warning' };
+      case 'secure':
+        return { label: '高セキュリティ', badge: 'danger' };
+      case 'processing':
+        return { label: '作業エリア', badge: 'success' };
       default:
-        return null;
+        return { label: 'その他', badge: 'info' };
     }
   };
+
+  const getOccupancyStatus = (used: number, capacity: number) => {
+    const percentage = (used / capacity) * 100;
+    if (percentage >= 90) return 'critical';
+    if (percentage >= 70) return 'monitoring';
+    return 'optimal';
+  };
+
+  const filteredLocations = locations.filter(
+    (loc) =>
+      loc.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      loc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      loc.products.some(
+        (p) =>
+          p.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          p.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+  );
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin h-12 w-12 border-b-2 border-blue-600 rounded-full"></div>
+      <div className="intelligence-card global">
+        <div className="p-8">
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin h-12 w-12 border-b-4 border-nexus-yellow rounded-full"></div>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      {/* ソートオプション */}
-      <div className="flex justify-between items-center">
-        <p className="text-sm text-gray-600">
-          {filteredProducts.length} 件の商品
-        </p>
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-          className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="location">ロケーション順</option>
-          <option value="lastUpdated">更新日時順</option>
-          <option value="productId">商品ID順</option>
-        </select>
-      </div>
+    <div className="space-y-6">
+      <div className="intelligence-card oceania">
+        <div className="p-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <h2 className="text-xl font-display font-bold text-nexus-text-primary">ロケーション一覧</h2>
+            
+            {/* ビューモード切り替え */}
+            <div className="flex gap-1 bg-nexus-bg-secondary p-1 rounded-lg">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                  viewMode === 'grid'
+                    ? 'bg-nexus-bg-primary text-nexus-yellow shadow-sm'
+                    : 'text-nexus-text-secondary hover:text-nexus-text-primary'
+                }`}
+              >
+                グリッド
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                  viewMode === 'list'
+                    ? 'bg-nexus-bg-primary text-nexus-yellow shadow-sm'
+                    : 'text-nexus-text-secondary hover:text-nexus-text-primary'
+                }`}
+              >
+                リスト
+              </button>
+              <button
+                onClick={() => setViewMode('movement')}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                  viewMode === 'movement'
+                    ? 'bg-nexus-bg-primary text-nexus-yellow shadow-sm'
+                    : 'text-nexus-text-secondary hover:text-nexus-text-primary'
+                }`}
+              >
+                移動履歴
+              </button>
+            </div>
+          </div>
 
-      {/* 商品リスト */}
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b">
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                商品情報
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                ロケーション
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                ステータス
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                最終更新
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                アクション
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {filteredProducts.map((product) => (
-              <tr key={product.id} className="hover:bg-gray-50">
-                <td className="px-4 py-4 whitespace-nowrap">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      {product.productName}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {product.productId} | {product.value}
-                    </p>
+          {/* 検索バー */}
+          <div className="mb-6">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="ロケーションコード、名前、商品で検索..."
+              className="w-full px-4 py-3 bg-nexus-bg-secondary border border-nexus-border rounded-lg focus:outline-none focus:border-nexus-yellow focus:ring-2 focus:ring-nexus-yellow/20 text-nexus-text-primary transition-all duration-200"
+            />
+          </div>
+
+          {/* グリッドビュー */}
+          {viewMode === 'grid' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredLocations.map((location) => {
+                const typeInfo = getLocationTypeLabel(location.type);
+                const occupancyStatus = getOccupancyStatus(location.used, location.capacity);
+                return (
+                  <div
+                    key={location.code}
+                    className="holo-card p-6 cursor-pointer"
+                    onClick={() => setSelectedLocation(location)}
+                  >
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="font-semibold text-lg text-nexus-text-primary">{location.name}</h3>
+                        <p className="text-sm text-nexus-text-secondary font-mono">{location.code}</p>
+                      </div>
+                      <span className={`status-badge ${typeInfo.badge}`}>
+                        {typeInfo.label}
+                      </span>
+                    </div>
+
+                    {/* 使用状況 */}
+                    <div className="mb-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm text-nexus-text-secondary">使用状況</span>
+                        <div className="flex items-center gap-2">
+                          <div className={`status-orb status-${occupancyStatus}`} />
+                          <span className="font-medium text-sm">
+                            {location.used}/{location.capacity}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="w-full bg-nexus-bg-secondary rounded-full h-2">
+                        <div
+                          className={`h-2 rounded-full transition-all duration-300 ${
+                            occupancyStatus === 'critical' ? 'bg-nexus-red' :
+                            occupancyStatus === 'monitoring' ? 'bg-nexus-yellow' :
+                            'bg-nexus-green'
+                          }`}
+                          style={{
+                            width: `${(location.used / location.capacity) * 100}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* 環境情報 */}
+                    {location.type === 'controlled' && (
+                      <div className="flex gap-4 text-sm text-nexus-text-secondary">
+                        {location.temperature && (
+                          <span className="flex items-center gap-1">
+                            <div className="action-orb w-5 h-5">🌡️</div>
+                            {location.temperature}
+                          </span>
+                        )}
+                        {location.humidity && (
+                          <span className="flex items-center gap-1">
+                            <div className="action-orb blue w-5 h-5">💧</div>
+                            {location.humidity}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* 商品数 */}
+                    <div className="mt-3 text-sm text-nexus-text-secondary">
+                      保管商品: <span className="font-medium text-nexus-text-primary">{location.products.length}件</span>
+                    </div>
                   </div>
-                </td>
-                <td className="px-4 py-4 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <span className="flex items-center text-sm">
-                      {getAreaIcon(product.area)}
-                      <span className="ml-2 font-medium">{product.location}</span>
-                      <span className="ml-2 text-gray-500">({product.area})</span>
-                    </span>
-                  </div>
-                </td>
-                <td className="px-4 py-4 whitespace-nowrap">
-                  <span className={`inline-flex text-xs leading-5 font-semibold rounded-full px-2 py-1 ${getStatusColor(product.status)}`}>
-                    {product.status}
-                  </span>
-                </td>
-                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(product.lastUpdated).toLocaleString('ja-JP', {
-                    month: 'numeric',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
+                );
+              })}
+            </div>
+          )}
+
+          {/* リストビュー */}
+          {viewMode === 'list' && (
+            <div className="holo-table">
+              <table className="w-full">
+                <thead className="holo-header">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-medium">コード</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium">名前</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium">タイプ</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium">使用状況</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium">商品数</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium">環境</th>
+                  </tr>
+                </thead>
+                <tbody className="holo-body">
+                  {filteredLocations.map((location) => {
+                    const typeInfo = getLocationTypeLabel(location.type);
+                    const occupancyStatus = getOccupancyStatus(location.used, location.capacity);
+                    return (
+                      <tr
+                        key={location.code}
+                        className="holo-row cursor-pointer"
+                        onClick={() => setSelectedLocation(location)}
+                      >
+                        <td className="px-4 py-4 text-sm font-mono">{location.code}</td>
+                        <td className="px-4 py-4 text-sm font-medium">{location.name}</td>
+                        <td className="px-4 py-4 text-sm">
+                          <span className={`status-badge ${typeInfo.badge}`}>
+                            {typeInfo.label}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 text-sm">
+                          <div className="flex items-center gap-3">
+                            <div className="w-24 bg-nexus-bg-secondary rounded-full h-2">
+                              <div
+                                className={`h-2 rounded-full ${
+                                  occupancyStatus === 'critical' ? 'bg-nexus-red' :
+                                  occupancyStatus === 'monitoring' ? 'bg-nexus-yellow' :
+                                  'bg-nexus-green'
+                                }`}
+                                style={{
+                                  width: `${(location.used / location.capacity) * 100}%`,
+                                }}
+                              />
+                            </div>
+                            <span className="text-xs font-medium">
+                              {location.used}/{location.capacity}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 text-sm text-center font-display">
+                          {location.products.length}
+                        </td>
+                        <td className="px-4 py-4 text-sm">
+                          {location.temperature && `🌡️ ${location.temperature} `}
+                          {location.humidity && `💧 ${location.humidity}`}
+                          {!location.temperature && !location.humidity && '-'}
+                        </td>
+                      </tr>
+                    );
                   })}
-                </td>
-                <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  {onProductMove && (
-                    <button
-                      onClick={() => onProductMove(product)}
-                      className="text-blue-600 hover:text-blue-900"
-                    >
-                      移動
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* 移動履歴ビュー */}
+          {viewMode === 'movement' && (
+            <div className="space-y-4">
+              {movements.map((movement) => (
+                <div
+                  key={movement.id}
+                  className="holo-card p-6"
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="font-medium text-nexus-text-primary">{movement.productName}</h4>
+                      <p className="text-sm text-nexus-text-secondary font-mono">ID: {movement.productId}</p>
+                      <div className="flex items-center gap-3 mt-3">
+                        <span className="text-sm font-medium">
+                          {movement.fromLocation} → {movement.toLocation}
+                        </span>
+                        <span className="status-badge info">
+                          {movement.reason}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-nexus-text-primary">{movement.movedBy}</p>
+                      <p className="text-sm text-nexus-text-secondary">
+                        {new Date(movement.movedAt).toLocaleString('ja-JP')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
-      {filteredProducts.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-gray-500">該当する商品が見つかりません</p>
+      {/* ロケーション詳細モーダル */}
+      {selectedLocation && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="intelligence-card global max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div className="p-6 border-b border-nexus-border">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="text-xl font-display font-bold text-nexus-text-primary">
+                    {selectedLocation.name}
+                  </h3>
+                  <p className="text-nexus-text-secondary font-mono">{selectedLocation.code}</p>
+                </div>
+                <button
+                  onClick={() => setSelectedLocation(null)}
+                  className="action-orb"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <h4 className="font-semibold mb-3 text-nexus-text-primary">基本情報</h4>
+                  <dl className="space-y-3 text-sm">
+                    <div className="flex justify-between">
+                      <dt className="text-nexus-text-secondary">タイプ:</dt>
+                      <dd>
+                        <span className={`status-badge ${getLocationTypeLabel(selectedLocation.type).badge}`}>
+                          {getLocationTypeLabel(selectedLocation.type).label}
+                        </span>
+                      </dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="text-nexus-text-secondary">容量:</dt>
+                      <dd className="font-medium">{selectedLocation.capacity}</dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="text-nexus-text-secondary">使用中:</dt>
+                      <dd className="font-medium">{selectedLocation.used}</dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="text-nexus-text-secondary">空き:</dt>
+                      <dd className="font-medium">{selectedLocation.capacity - selectedLocation.used}</dd>
+                    </div>
+                  </dl>
+                </div>
+
+                {selectedLocation.type === 'controlled' && (
+                  <div>
+                    <h4 className="font-semibold mb-3 text-nexus-text-primary">環境情報</h4>
+                    <dl className="space-y-3 text-sm">
+                      <div className="flex justify-between">
+                        <dt className="text-nexus-text-secondary">温度:</dt>
+                        <dd className="font-medium">{selectedLocation.temperature || '-'}</dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="text-nexus-text-secondary">湿度:</dt>
+                        <dd className="font-medium">{selectedLocation.humidity || '-'}</dd>
+                      </div>
+                    </dl>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <h4 className="font-semibold mb-4 text-nexus-text-primary">
+                  保管商品 ({selectedLocation.products.length}件)
+                </h4>
+                {selectedLocation.products.length > 0 ? (
+                  <div className="holo-table">
+                    <div className="holo-body">
+                      {selectedLocation.products.map((product) => (
+                        <div key={product.id} className="holo-row p-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="font-medium text-nexus-text-primary">{product.name}</p>
+                              <p className="text-sm text-nexus-text-secondary font-mono">
+                                ID: {product.id} | SKU: {product.sku}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-medium">{product.registeredBy}</p>
+                              <p className="text-sm text-nexus-text-secondary">
+                                {new Date(product.registeredAt).toLocaleDateString('ja-JP')}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-nexus-text-secondary text-center py-8">
+                    このロケーションに商品はありません
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

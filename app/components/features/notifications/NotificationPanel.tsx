@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface Notification {
@@ -23,6 +23,8 @@ export default function NotificationPanel({ showAll = false, limit = 5 }: Notifi
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const eventSourceRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
     const loadNotifications = async () => {
@@ -38,6 +40,74 @@ export default function NotificationPanel({ showAll = false, limit = 5 }: Notifi
     };
 
     loadNotifications();
+  }, []);
+
+  // SSE接続の確立
+  useEffect(() => {
+    // SSE接続を作成
+    const connectSSE = () => {
+      try {
+        const eventSource = new EventSource('/api/notifications/stream');
+        eventSourceRef.current = eventSource;
+
+        eventSource.onopen = () => {
+          console.log('SSE接続が確立されました');
+          setIsConnected(true);
+        };
+
+        eventSource.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            
+            if (data.type === 'connected') {
+              console.log('通知チャンネルに接続されました:', data.userId);
+            } else if (data.type === 'new_notification') {
+              // 新しい通知を追加
+              setNotifications(prev => [data.notification, ...prev]);
+              
+              // ブラウザ通知を表示（権限がある場合）
+              if (Notification.permission === 'granted') {
+                new Notification(data.notification.title, {
+                  body: data.notification.message,
+                  icon: '/icon.svg',
+                  badge: '/icon.svg'
+                });
+              }
+            }
+          } catch (error) {
+            console.error('メッセージ解析エラー:', error);
+          }
+        };
+
+        eventSource.onerror = (error) => {
+          console.error('SSE接続エラー:', error);
+          setIsConnected(false);
+          
+          // 再接続の試行
+          setTimeout(() => {
+            console.log('SSE再接続を試行中...');
+            connectSSE();
+          }, 5000);
+        };
+      } catch (error) {
+        console.error('SSE接続の確立に失敗:', error);
+      }
+    };
+
+    // ブラウザ通知の権限をリクエスト
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
+    connectSSE();
+
+    // クリーンアップ
+    return () => {
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
+    };
   }, []);
 
   const getTypeIcon = (type: string) => {
@@ -174,6 +244,12 @@ export default function NotificationPanel({ showAll = false, limit = 5 }: Notifi
             {unreadCount > 0 && (
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
                 {unreadCount}件の未読
+              </span>
+            )}
+            {isConnected && (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <span className="w-2 h-2 bg-green-500 rounded-full mr-1 animate-pulse"></span>
+                リアルタイム
               </span>
             )}
           </div>

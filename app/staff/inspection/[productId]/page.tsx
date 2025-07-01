@@ -1,67 +1,36 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { Metadata } from 'next';
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
-import InspectionChecklist from '@/app/components/features/inspection/InspectionChecklist';
+import InspectionForm from '@/app/components/features/inspection/InspectionForm';
 
-interface Product {
-  id: string;
-  name: string;
-  sku: string;
-  category: string;
-  brand: string;
-  model: string;
-  status: string;
+export const metadata: Metadata = {
+  title: '商品検品 - THE WORLD DOOR',
+  description: '商品の検品チェックリスト',
+};
+
+interface PageProps {
+  params: {
+    productId: string;
+  };
 }
 
-export default function InspectionPage() {
-  const params = useParams();
-  const productId = params.productId as string;
-  const [product, setProduct] = useState<Product | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // 商品情報を取得（デモ用のモックデータ）
-    setLoading(true);
-    setTimeout(() => {
-      setProduct({
-        id: productId,
-        name: 'Canon EOS R5',
-        sku: `TWD-${productId}`,
-        category: 'camera_body',
-        brand: 'Canon',
-        model: 'EOS R5',
-        status: 'pending_inspection',
-      });
-      setLoading(false);
-    }, 500);
-  }, [productId]);
-
+export default function InspectionPage({ params }: PageProps) {
   return (
     <DashboardLayout userType="staff">
-      <div className="p-4 sm:p-6 max-w-7xl mx-auto">
-        {/* タブレット最適化：ヘッダー */}
-        <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            商品検品
-          </h1>
-          <p className="text-gray-600 mt-2">
-            商品の状態を詳しく検査し、写真を撮影してください
-          </p>
-        </div>
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-6xl mx-auto p-4 md:p-6">
+          {/* タブレット最適化：大きめのタイトル */}
+          <div className="mb-6">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+              商品検品チェックリスト
+            </h1>
+            <p className="text-gray-600 mt-2">
+              商品ID: {params.productId}
+            </p>
+          </div>
 
-        {loading ? (
-          <div className="flex justify-center items-center min-h-[400px]">
-            <div className="animate-spin h-12 w-12 border-b-2 border-blue-600 rounded-full"></div>
-          </div>
-        ) : product ? (
-          <InspectionChecklist product={product} />
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-gray-500">商品が見つかりません</p>
-          </div>
-        )}
+          {/* 検品フォーム */}
+          <InspectionForm productId={params.productId} />
+        </div>
       </div>
     </DashboardLayout>
   );

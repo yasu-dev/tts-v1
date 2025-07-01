@@ -1,213 +1,230 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
+import EnhancedImageUploader from '@/app/components/features/EnhancedImageUploader';
 
-interface PhotoUploaderProps {
-  onComplete: (photos: string[]) => void;
-  minPhotos: number;
-  productCategory: string;
+export interface PhotoUploaderProps {
+  productId: string;
+  photos: string[];
+  onUpdate: (photos: string[]) => void;
+  onNext: () => void;
+  onPrev: () => void;
+}
+
+interface PhotoRequirement {
+  id: string;
+  label: string;
+  description: string;
+  example?: string;
 }
 
 export default function PhotoUploader({
-  onComplete,
-  minPhotos,
-  productCategory,
+  productId,
+  photos,
+  onUpdate,
+  onNext,
+  onPrev,
 }: PhotoUploaderProps) {
-  const [photos, setPhotos] = useState<string[]>([]);
-  const [isDragging, setIsDragging] = useState(false);
+  const [uploadedPhotos, setUploadedPhotos] = useState<string[]>(photos || []);
+  const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const photoRequirements = {
-    camera_body: [
-      '正面',
-      '背面',
-      '上面',
-      'マウント部',
-      'センサー部',
-      '液晶画面',
-    ],
-    lens: [
-      '正面',
-      '側面',
-      'マウント部',
-      '前玉',
-      '後玉',
-      '絞り羽根',
-    ],
-    watch: [
-      '文字盤正面',
-      '裏蓋',
-      'ケース側面',
-      'バンド全体',
-      'バックル部',
-      '動作確認',
-    ],
-    accessory: [
-      '全体正面',
-      '全体背面',
-      '詳細部分1',
-      '詳細部分2',
-      '付属品',
-      '状態確認',
-    ],
-  };
+  // 写真要件（最低6枚）
+  const photoRequirements: PhotoRequirement[] = [
+    { id: 'front', label: '正面', description: '商品全体が見える正面からの写真' },
+    { id: 'back', label: '背面', description: '背面全体が見える写真' },
+    { id: 'left', label: '左側面', description: '左側から見た全体写真' },
+    { id: 'right', label: '右側面', description: '右側から見た全体写真' },
+    { id: 'top', label: '上面', description: '上から見た写真' },
+    { id: 'detail', label: '詳細', description: '傷や特徴的な部分のクローズアップ' },
+  ];
 
-  const requirements = photoRequirements[productCategory as keyof typeof photoRequirements] || photoRequirements.accessory;
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    processFiles(files);
-  };
+    setLoading(true);
+    try {
+      const newPhotos: string[] = [];
 
-  const processFiles = (files: File[]) => {
-    files.forEach((file) => {
-      if (file.type.startsWith('image/')) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        
+        // 画像をBase64に変換（実際はサーバーにアップロード）
         const reader = new FileReader();
-        reader.onload = (e) => {
-          const result = e.target?.result as string;
-          setPhotos((prev) => [...prev, result]);
-        };
-        reader.readAsDataURL(file);
+        const base64 = await new Promise<string>((resolve) => {
+          reader.onload = (e) => resolve(e.target?.result as string);
+          reader.readAsDataURL(file);
+        });
+
+        newPhotos.push(base64);
       }
-    });
-  };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const files = Array.from(e.dataTransfer.files);
-    processFiles(files);
+      const updatedPhotos = [...uploadedPhotos, ...newPhotos];
+      setUploadedPhotos(updatedPhotos);
+      onUpdate(updatedPhotos);
+    } catch (error) {
+      console.error('[ERROR] Photo upload:', error);
+      alert('写真のアップロードに失敗しました');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleRemovePhoto = (index: number) => {
-    setPhotos((prev) => prev.filter((_, i) => i !== index));
+    const updatedPhotos = uploadedPhotos.filter((_, i) => i !== index);
+    setUploadedPhotos(updatedPhotos);
+    onUpdate(updatedPhotos);
   };
 
-  const handleComplete = () => {
-    if (photos.length < minPhotos) {
-      alert(`最低${minPhotos}枚の写真が必要です`);
-      return;
+  const handleCameraCapture = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
     }
-    onComplete(photos);
   };
+
+  const canProceed = uploadedPhotos.length >= 6;
 
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold mb-2">商品写真の撮影</h3>
-        <p className="text-gray-600 text-sm">
-          以下の角度から商品を撮影してください（最低{minPhotos}枚必須）
-        </p>
-      </div>
-
-      {/* 撮影ガイド */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h4 className="font-medium text-blue-900 mb-2">撮影ガイド</h4>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm text-blue-800">
-          {requirements.map((req, index) => (
-            <div key={index} className="flex items-center">
-              <span className="inline-block w-6 h-6 bg-blue-600 text-white rounded-full text-xs flex items-center justify-center mr-2">
-                {index + 1}
-              </span>
-              {req}
-            </div>
-          ))}
+      {/* 説明カード */}
+      <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+        <div className="flex items-start">
+          <span className="text-2xl mr-3">📸</span>
+          <div>
+            <h4 className="font-semibold text-blue-800">写真撮影ガイドライン</h4>
+            <ul className="text-sm text-blue-700 mt-2 space-y-1">
+              <li>• 最低6枚の写真が必要です（現在: {uploadedPhotos.length}枚）</li>
+              <li>• 明るい場所で撮影してください</li>
+              <li>• ピントを合わせて鮮明に撮影してください</li>
+              <li>• 傷や汚れがある場合は、その部分も撮影してください</li>
+            </ul>
+          </div>
         </div>
       </div>
 
-      {/* アップロードエリア（タブレット最適化） */}
-      <div
-        className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-          isDragging
-            ? 'border-blue-500 bg-blue-50'
-            : 'border-gray-300 hover:border-gray-400'
-        }`}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        onClick={() => fileInputRef.current?.click()}
-      >
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          accept="image/*"
-          onChange={handleFileSelect}
-          className="hidden"
-        />
-        <svg
-          className="mx-auto h-12 w-12 text-gray-400"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-          />
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-          />
-        </svg>
-        <p className="mt-4 text-gray-600">
-          写真をドラッグ&ドロップまたはタップして選択
-        </p>
-        <p className="text-sm text-gray-500 mt-1">
-          JPEG, PNG, HEIC形式対応
-        </p>
-      </div>
+      {/* 写真要件グリッド */}
+      <NexusCard className="p-6">
+        <h3 className="text-lg font-semibold mb-4">必須撮影箇所</h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {photoRequirements.map((req, index) => (
+            <div
+              key={req.id}
+              className={`p-4 rounded-lg border-2 ${
+                index < uploadedPhotos.length
+                  ? 'border-green-400 bg-green-50'
+                  : 'border-gray-300 bg-gray-50'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-medium">{req.label}</span>
+                {index < uploadedPhotos.length && (
+                  <span className="text-green-600">✓</span>
+                )}
+              </div>
+              <p className="text-sm text-gray-600">{req.description}</p>
+            </div>
+          ))}
+        </div>
+      </NexusCard>
 
-      {/* アップロード済み写真（グリッド表示） */}
-      {photos.length > 0 && (
-        <div>
-          <h4 className="font-medium mb-3">
-            アップロード済み写真（{photos.length}枚）
-          </h4>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-            {photos.map((photo, index) => (
+      {/* 画像アップローダー（タブレット最適化） */}
+      <NexusCard className="p-6">
+        <div className="space-y-4">
+          {/* カメラ撮影ボタン（タブレット用） */}
+          <div className="flex justify-center">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              multiple
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+            <NexusButton
+              onClick={handleCameraCapture}
+              variant="primary"
+              size="lg"
+              disabled={loading}
+              className="px-8 py-4 text-lg"
+            >
+              <span className="mr-2">📷</span>
+              カメラで撮影
+            </NexusButton>
+          </div>
+
+          {/* または既存のアップローダーを使用 */}
+          <div className="text-center text-gray-500 my-4">または</div>
+
+          {/* EnhancedImageUploader コンポーネント */}
+          <EnhancedImageUploader
+            onUploadComplete={(processedImages) => {
+              const urls = processedImages.map(img => img.url);
+              const updatedPhotos = [...uploadedPhotos, ...urls];
+              setUploadedPhotos(updatedPhotos);
+              onUpdate(updatedPhotos);
+            }}
+            maxImages={12}
+            productId={productId}
+          />
+        </div>
+      </NexusCard>
+
+      {/* アップロード済み写真一覧 */}
+      {uploadedPhotos.length > 0 && (
+        <NexusCard className="p-6">
+          <h3 className="text-lg font-semibold mb-4">
+            アップロード済み写真（{uploadedPhotos.length}枚）
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {uploadedPhotos.map((photo, index) => (
               <div key={index} className="relative group">
                 <img
                   src={photo}
                   alt={`商品写真 ${index + 1}`}
-                  className="w-full h-24 object-cover rounded-lg"
+                  className="w-full h-40 object-cover rounded-lg"
                 />
                 <button
                   onClick={() => handleRemovePhoto(index)}
-                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  ✕
                 </button>
+                <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm">
+                  {index < photoRequirements.length
+                    ? photoRequirements[index].label
+                    : `追加写真 ${index - photoRequirements.length + 1}`}
+                </div>
               </div>
             ))}
           </div>
-        </div>
+        </NexusCard>
       )}
 
-      <div className="flex justify-end">
+      {/* ナビゲーションボタン */}
+      <div className="flex justify-between pt-4">
         <NexusButton
-          onClick={handleComplete}
-          disabled={photos.length < minPhotos}
-          className="px-6"
+          onClick={onPrev}
+          variant="secondary"
+          size="lg"
         >
-          次へ（検品項目へ）
+          戻る
+        </NexusButton>
+        <NexusButton
+          onClick={onNext}
+          variant="primary"
+          size="lg"
+          disabled={!canProceed}
+        >
+          次へ（確認画面）
+          {!canProceed && (
+            <span className="ml-2 text-sm">
+              （あと{6 - uploadedPhotos.length}枚必要）
+            </span>
+          )}
         </NexusButton>
       </div>
     </div>

@@ -1,7 +1,7 @@
 'use client';
 
-import NexusButton from '@/app/components/ui/NexusButton';
 import NexusCard from '@/app/components/ui/NexusCard';
+import NexusButton from '@/app/components/ui/NexusButton';
 
 interface Product {
   id: string;
@@ -13,161 +13,283 @@ interface Product {
   status: string;
 }
 
-interface InspectionResultProps {
-  product: Product;
+interface InspectionData {
+  productId: string;
+  checklist: {
+    exterior: {
+      scratches: boolean;
+      dents: boolean;
+      discoloration: boolean;
+      dust: boolean;
+    };
+    functionality: {
+      powerOn: boolean;
+      allButtonsWork: boolean;
+      screenDisplay: boolean;
+      connectivity: boolean;
+    };
+    optical?: {
+      lensClarity: boolean;
+      aperture: boolean;
+      focusAccuracy: boolean;
+      stabilization: boolean;
+    };
+  };
   photos: string[];
-  inspectionData: any;
-  onSubmit: () => void;
-  onBack: () => void;
+  notes: string;
+  inspectionDate: string;
+  inspectorId: string;
+  result: 'passed' | 'failed' | 'conditional';
+}
+
+export interface InspectionResultProps {
+  product: Product;
+  inspectionData: InspectionData;
+  onNotesChange: (notes: string) => void;
+  onSubmit: () => Promise<void>;
+  onPrev: () => void;
   loading: boolean;
 }
 
 export default function InspectionResult({
   product,
-  photos,
   inspectionData,
+  onNotesChange,
   onSubmit,
-  onBack,
+  onPrev,
   loading,
 }: InspectionResultProps) {
-  const getConditionScore = () => {
-    const inspection = inspectionData?.inspection || {};
-    const conditions = Object.values(inspection);
+  // チェック項目の集計
+  const getChecklistSummary = () => {
+    const allChecks = Object.values(inspectionData.checklist).flatMap(category =>
+      Object.entries(category || {})
+    );
+    const passedChecks = allChecks.filter(([_, value]) => value === true);
+    const failedChecks = allChecks.filter(([_, value]) => value === false);
     
-    // 簡易的なスコア計算
-    const scoreMap: Record<string, number> = {
-      '新品同様': 5,
-      '美品': 4,
-      '良品': 3,
-      '並品': 2,
-      '難あり': 1,
-      '正常': 5,
-      '無傷': 5,
-      '汚れなし': 5,
-      '全て正常': 5,
-      'スムーズ': 5,
-      '若干重い': 3,
-      '重い': 2,
-      '動作不良': 1,
+    return {
+      total: allChecks.length,
+      passed: passedChecks.length,
+      failed: failedChecks.length,
+      percentage: Math.round((passedChecks.length / allChecks.length) * 100),
     };
-
-    let totalScore = 0;
-    let count = 0;
-
-    conditions.forEach((condition: any) => {
-      const score = scoreMap[condition] || 3;
-      totalScore += score;
-      count++;
-    });
-
-    return count > 0 ? Math.round((totalScore / count) * 20) : 0;
   };
 
-  const conditionScore = getConditionScore();
-  const conditionGrade = 
-    conditionScore >= 90 ? 'S' :
-    conditionScore >= 80 ? 'A' :
-    conditionScore >= 70 ? 'B' :
-    conditionScore >= 60 ? 'C' : 'D';
+  const summary = getChecklistSummary();
+
+  // 検品結果の判定
+  const getResultStatus = () => {
+    if (summary.percentage >= 90) {
+      return { label: 'A級品', color: 'text-green-600', bg: 'bg-green-100' };
+    } else if (summary.percentage >= 70) {
+      return { label: 'B級品', color: 'text-yellow-600', bg: 'bg-yellow-100' };
+    } else {
+      return { label: 'C級品', color: 'text-red-600', bg: 'bg-red-100' };
+    }
+  };
+
+  const resultStatus = getResultStatus();
+
+  const checklistLabels = {
+    exterior: {
+      title: '外観チェック',
+      items: {
+        scratches: '傷の有無',
+        dents: 'へこみ',
+        discoloration: '変色・退色',
+        dust: 'ホコリ・汚れ',
+      },
+    },
+    functionality: {
+      title: '機能チェック',
+      items: {
+        powerOn: '電源ON/OFF',
+        allButtonsWork: 'ボタン動作',
+        screenDisplay: '画面表示',
+        connectivity: '接続端子',
+      },
+    },
+    optical: {
+      title: '光学系チェック',
+      items: {
+        lensClarity: 'レンズ透明度',
+        aperture: '絞り動作',
+        focusAccuracy: 'フォーカス精度',
+        stabilization: '手ぶれ補正',
+      },
+    },
+  };
 
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold mb-2">検品結果の確認</h3>
-        <p className="text-gray-600 text-sm">
-          検品内容を確認し、送信してください
-        </p>
-      </div>
+      {/* 検品結果サマリー */}
+      <NexusCard className="p-6 border-2 border-blue-200">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-bold text-gray-900">検品結果サマリー</h3>
+          <div className={`px-6 py-2 rounded-full font-bold ${resultStatus.bg} ${resultStatus.color}`}>
+            {resultStatus.label}
+          </div>
+        </div>
 
-      {/* 総合評価 */}
-      <NexusCard className="p-6 bg-gradient-to-r from-blue-50 to-purple-50">
-        <div className="text-center">
-          <p className="text-sm text-gray-600 mb-2">総合コンディション</p>
-          <div className="flex justify-center items-baseline gap-4">
-            <span className="text-5xl font-bold text-blue-600">{conditionGrade}</span>
-            <span className="text-2xl text-gray-600">{conditionScore}点</span>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="text-center p-4 bg-gray-50 rounded-lg">
+            <p className="text-3xl font-bold text-gray-900">{summary.total}</p>
+            <p className="text-sm text-gray-600">検査項目数</p>
+          </div>
+          <div className="text-center p-4 bg-green-50 rounded-lg">
+            <p className="text-3xl font-bold text-green-600">{summary.passed}</p>
+            <p className="text-sm text-gray-600">合格項目</p>
+          </div>
+          <div className="text-center p-4 bg-red-50 rounded-lg">
+            <p className="text-3xl font-bold text-red-600">{summary.failed}</p>
+            <p className="text-sm text-gray-600">不合格項目</p>
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-medium text-gray-700">合格率</span>
+            <span className="text-sm font-bold text-gray-900">{summary.percentage}%</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-4">
+            <div
+              className={`h-4 rounded-full transition-all duration-500 ${
+                summary.percentage >= 90
+                  ? 'bg-green-500'
+                  : summary.percentage >= 70
+                  ? 'bg-yellow-500'
+                  : 'bg-red-500'
+              }`}
+              style={{ width: `${summary.percentage}%` }}
+            />
           </div>
         </div>
       </NexusCard>
 
       {/* 商品情報 */}
-      <NexusCard className="p-4">
-        <h4 className="font-medium mb-3">商品情報</h4>
-        <dl className="grid grid-cols-2 gap-2 text-sm">
+      <NexusCard className="p-6">
+        <h4 className="text-lg font-semibold mb-4">商品情報</h4>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
-            <dt className="text-gray-600">商品名:</dt>
-            <dd className="font-medium">{product.name}</dd>
+            <p className="text-sm text-gray-600">商品名</p>
+            <p className="font-medium">{product.name}</p>
           </div>
           <div>
-            <dt className="text-gray-600">SKU:</dt>
-            <dd className="font-medium">{product.sku}</dd>
+            <p className="text-sm text-gray-600">SKU</p>
+            <p className="font-medium">{product.sku}</p>
           </div>
           <div>
-            <dt className="text-gray-600">ブランド:</dt>
-            <dd className="font-medium">{product.brand}</dd>
+            <p className="text-sm text-gray-600">ブランド</p>
+            <p className="font-medium">{product.brand}</p>
           </div>
           <div>
-            <dt className="text-gray-600">モデル:</dt>
-            <dd className="font-medium">{product.model}</dd>
+            <p className="text-sm text-gray-600">モデル</p>
+            <p className="font-medium">{product.model}</p>
           </div>
-        </dl>
+        </div>
       </NexusCard>
 
-      {/* 撮影写真サマリー */}
-      <NexusCard className="p-4">
-        <h4 className="font-medium mb-3">撮影写真（{photos.length}枚）</h4>
-        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-          {photos.slice(0, 6).map((photo, index) => (
+      {/* チェックリスト詳細 */}
+      <NexusCard className="p-6">
+        <h4 className="text-lg font-semibold mb-4">チェックリスト詳細</h4>
+        <div className="space-y-4">
+          {Object.entries(inspectionData.checklist).map(([categoryKey, categoryData]) => {
+            const categoryLabel = checklistLabels[categoryKey as keyof typeof checklistLabels];
+            if (!categoryLabel || !categoryData) return null;
+
+            return (
+              <div key={categoryKey} className="border rounded-lg p-4">
+                <h5 className="font-medium mb-3">{categoryLabel.title}</h5>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {Object.entries(categoryData).map(([itemKey, value]) => {
+                    const itemLabel = categoryLabel.items[itemKey as keyof typeof categoryLabel.items];
+                    return (
+                      <div key={itemKey} className="flex items-center">
+                        <span
+                          className={`w-5 h-5 rounded-full mr-2 ${
+                            value ? 'bg-green-500' : 'bg-red-500'
+                          }`}
+                        >
+                          {value ? '✓' : '✗'}
+                        </span>
+                        <span className="text-sm">{itemLabel}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </NexusCard>
+
+      {/* 撮影写真 */}
+      <NexusCard className="p-6">
+        <h4 className="text-lg font-semibold mb-4">撮影写真（{inspectionData.photos.length}枚）</h4>
+        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+          {inspectionData.photos.map((photo, index) => (
             <img
               key={index}
               src={photo}
-              alt={`商品写真 ${index + 1}`}
-              className="w-full h-16 object-cover rounded"
+              alt={`検品写真 ${index + 1}`}
+              className="w-full h-24 object-cover rounded-lg cursor-pointer hover:opacity-90"
+              onClick={() => window.open(photo, '_blank')}
             />
           ))}
-          {photos.length > 6 && (
-            <div className="flex items-center justify-center bg-gray-100 rounded">
-              <span className="text-gray-600 text-sm">+{photos.length - 6}</span>
-            </div>
-          )}
         </div>
       </NexusCard>
 
-      {/* 検品項目サマリー */}
-      <NexusCard className="p-4">
-        <h4 className="font-medium mb-3">検品項目</h4>
-        <div className="space-y-2">
-          {Object.entries(inspectionData?.inspection || {}).map(([key, value]) => (
-            <div key={key} className="flex justify-between text-sm">
-              <span className="text-gray-600 capitalize">{key.replace(/_/g, ' ')}:</span>
-              <span className="font-medium">{value as string}</span>
-            </div>
-          ))}
-        </div>
-        {inspectionData?.notes && (
-          <div className="mt-4 pt-4 border-t">
-            <p className="text-sm text-gray-600 mb-1">備考:</p>
-            <p className="text-sm">{inspectionData.notes}</p>
+      {/* 備考欄 */}
+      <NexusCard className="p-6">
+        <h4 className="text-lg font-semibold mb-4">備考・特記事項</h4>
+        <textarea
+          value={inspectionData.notes}
+          onChange={(e) => onNotesChange(e.target.value)}
+          rows={4}
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="傷の詳細、特記事項、注意点などを記入してください..."
+        />
+      </NexusCard>
+
+      {/* 確認事項 */}
+      <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4">
+        <div className="flex items-start">
+          <span className="text-2xl mr-3">⚠️</span>
+          <div>
+            <h4 className="font-semibold text-yellow-800">送信前の確認</h4>
+            <ul className="text-sm text-yellow-700 mt-2 space-y-1">
+              <li>• すべての検品項目を正確にチェックしましたか？</li>
+              <li>• 必要な写真はすべて撮影しましたか？</li>
+              <li>• 特記事項がある場合は備考欄に記入しましたか？</li>
+            </ul>
           </div>
-        )}
-      </NexusCard>
+        </div>
+      </div>
 
-      <div className="flex justify-between">
-        <NexusButton onClick={onBack} variant="secondary" className="px-6">
+      {/* アクションボタン */}
+      <div className="flex justify-between pt-4">
+        <NexusButton
+          onClick={onPrev}
+          variant="secondary"
+          size="lg"
+          disabled={loading}
+        >
           戻る
         </NexusButton>
         <NexusButton
           onClick={onSubmit}
+          variant="primary"
+          size="lg"
           disabled={loading}
-          className="px-8"
+          className="min-w-[200px]"
         >
           {loading ? (
             <span className="flex items-center">
-              <span className="animate-spin h-4 w-4 border-b-2 border-white rounded-full mr-2"></span>
+              <span className="animate-spin h-5 w-5 mr-3 border-b-2 border-white rounded-full"></span>
               送信中...
             </span>
           ) : (
-            '検品完了'
+            '検品結果を送信'
           )}
         </NexusButton>
       </div>

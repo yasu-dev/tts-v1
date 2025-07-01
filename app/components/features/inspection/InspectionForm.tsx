@@ -1,215 +1,311 @@
 'use client';
 
-import { useState } from 'react';
-import NexusButton from '@/app/components/ui/NexusButton';
+import { useState, useEffect } from 'react';
 import NexusCard from '@/app/components/ui/NexusCard';
+import NexusButton from '@/app/components/ui/NexusButton';
+import InspectionChecklist from './InspectionChecklist';
+import PhotoUploader from './PhotoUploader';
+import InspectionResult from './InspectionResult';
 
-interface InspectionFormProps {
-  productCategory: string;
-  onComplete: (data: any) => void;
-  onBack: () => void;
+export interface InspectionFormProps {
+  productId: string;
 }
 
-interface InspectionItem {
+interface Product {
   id: string;
-  label: string;
-  options: string[];
+  name: string;
+  sku: string;
+  category: string;
+  brand: string;
+  model: string;
+  status: string;
+  imageUrl?: string;
 }
 
-export default function InspectionForm({
-  productCategory,
-  onComplete,
-  onBack,
-}: InspectionFormProps) {
-  const [inspectionData, setInspectionData] = useState<Record<string, string>>({});
-  const [notes, setNotes] = useState('');
-
-  // カテゴリー別の検品項目
-  const inspectionItems: Record<string, InspectionItem[]> = {
-    camera_body: [
-      {
-        id: 'exterior',
-        label: '外観状態',
-        options: ['新品同様', '美品', '良品', '並品', '難あり'],
-      },
-      {
-        id: 'sensor',
-        label: 'センサー状態',
-        options: ['汚れなし', '微細なゴミ', '清掃必要', '要修理'],
-      },
-      {
-        id: 'lcd',
-        label: '液晶画面',
-        options: ['無傷', '保護フィルムあり', '軽微な傷', '傷あり', '割れ'],
-      },
-      {
-        id: 'shutter',
-        label: 'シャッター動作',
-        options: ['正常', '違和感あり', '動作不良'],
-      },
-      {
-        id: 'buttons',
-        label: 'ボタン・ダイヤル',
-        options: ['全て正常', '一部違和感', '動作不良あり'],
-      },
-      {
-        id: 'battery',
-        label: 'バッテリー',
-        options: ['純正・良好', '純正・劣化', '互換品', 'なし'],
-      },
-    ],
-    lens: [
-      {
-        id: 'exterior',
-        label: '外観状態',
-        options: ['新品同様', '美品', '良品', '並品', '難あり'],
-      },
-      {
-        id: 'front_element',
-        label: '前玉状態',
-        options: ['無傷', '微細な傷', '清掃跡', '傷あり', 'カビ・曇り'],
-      },
-      {
-        id: 'rear_element',
-        label: '後玉状態',
-        options: ['無傷', '微細な傷', '清掃跡', '傷あり', 'カビ・曇り'],
-      },
-      {
-        id: 'aperture',
-        label: '絞り羽根',
-        options: ['正常・油なし', '正常・微油', '粘りあり', '動作不良'],
-      },
-      {
-        id: 'focus',
-        label: 'フォーカス動作',
-        options: ['スムーズ', '若干重い', '重い', '動作不良'],
-      },
-      {
-        id: 'zoom',
-        label: 'ズーム動作',
-        options: ['スムーズ', '若干重い', '重い', '動作不良', '単焦点'],
-      },
-    ],
-    watch: [
-      {
-        id: 'exterior',
-        label: '外観状態',
-        options: ['新品同様', '美品', '良品', '並品', '難あり'],
-      },
-      {
-        id: 'crystal',
-        label: '風防状態',
-        options: ['無傷', '微細な傷', '傷あり', '欠け・割れ'],
-      },
-      {
-        id: 'movement',
-        label: '動作精度',
-        options: ['日差±5秒', '日差±15秒', '日差±30秒', '要調整'],
-      },
-      {
-        id: 'band',
-        label: 'バンド状態',
-        options: ['新品同様', '使用感少', '使用感あり', '要交換'],
-      },
-    ],
-    accessory: [
-      {
-        id: 'exterior',
-        label: '外観状態',
-        options: ['新品同様', '美品', '良品', '並品', '難あり'],
-      },
-      {
-        id: 'function',
-        label: '機能動作',
-        options: ['全て正常', '一部不具合', '動作不良'],
-      },
-      {
-        id: 'completeness',
-        label: '付属品',
-        options: ['完品', '一部欠品', '本体のみ'],
-      },
-    ],
+interface InspectionData {
+  productId: string;
+  checklist: {
+    exterior: {
+      scratches: boolean;
+      dents: boolean;
+      discoloration: boolean;
+      dust: boolean;
+    };
+    functionality: {
+      powerOn: boolean;
+      allButtonsWork: boolean;
+      screenDisplay: boolean;
+      connectivity: boolean;
+    };
+    optical?: {
+      lensClarity: boolean;
+      aperture: boolean;
+      focusAccuracy: boolean;
+      stabilization: boolean;
+    };
   };
+  photos: string[];
+  notes: string;
+  inspectionDate: string;
+  inspectorId: string;
+  result: 'passed' | 'failed' | 'conditional';
+}
 
-  const items = inspectionItems[productCategory] || inspectionItems.accessory;
+export default function InspectionForm({ productId }: InspectionFormProps) {
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [inspectionData, setInspectionData] = useState<InspectionData>({
+    productId,
+    checklist: {
+      exterior: {
+        scratches: false,
+        dents: false,
+        discoloration: false,
+        dust: false,
+      },
+      functionality: {
+        powerOn: false,
+        allButtonsWork: false,
+        screenDisplay: false,
+        connectivity: false,
+      },
+      optical: {
+        lensClarity: false,
+        aperture: false,
+        focusAccuracy: false,
+        stabilization: false,
+      },
+    },
+    photos: [],
+    notes: '',
+    inspectionDate: new Date().toISOString(),
+    inspectorId: 'staff-001', // 実際はAuthから取得
+    result: 'passed',
+  });
 
-  const handleOptionSelect = (itemId: string, value: string) => {
-    setInspectionData((prev) => ({
+  const steps = [
+    { id: 0, title: '基本情報', icon: '📋' },
+    { id: 1, title: '検品項目', icon: '✅' },
+    { id: 2, title: '写真撮影', icon: '📸' },
+    { id: 3, title: '確認・完了', icon: '📝' },
+  ];
+
+  useEffect(() => {
+    // 商品情報を取得（実際はAPIから）
+    setTimeout(() => {
+      setProduct({
+        id: productId,
+        name: 'Canon EOS R5 ボディ',
+        sku: `TWD-2024-${productId}`,
+        category: 'camera_body',
+        brand: 'Canon',
+        model: 'EOS R5',
+        status: 'pending_inspection',
+        imageUrl: '/api/placeholder/400/300',
+      });
+      setLoading(false);
+    }, 500);
+  }, [productId]);
+
+  const updateChecklist = (category: string, item: string, value: boolean) => {
+    setInspectionData(prev => ({
       ...prev,
-      [itemId]: value,
+      checklist: {
+        ...prev.checklist,
+        [category]: {
+          ...prev.checklist[category as keyof typeof prev.checklist],
+          [item]: value,
+        },
+      },
     }));
   };
 
-  const handleComplete = () => {
-    // 全項目が選択されているかチェック
-    const allSelected = items.every((item) => inspectionData[item.id]);
-    
-    if (!allSelected) {
-      alert('すべての検品項目を選択してください');
-      return;
-    }
-
-    onComplete({
-      inspection: inspectionData,
-      notes,
-    });
+  const updatePhotos = (photos: string[]) => {
+    setInspectionData(prev => ({
+      ...prev,
+      photos,
+    }));
   };
+
+  const submitInspection = async () => {
+    try {
+      setLoading(true);
+      
+      // 検品結果を判定
+      const allChecks = Object.values(inspectionData.checklist).flatMap(category =>
+        Object.values(category || {})
+      );
+      const passedChecks = allChecks.filter(check => check).length;
+      const totalChecks = allChecks.length;
+      
+      let result: 'passed' | 'failed' | 'conditional' = 'passed';
+      if (passedChecks < totalChecks * 0.6) {
+        result = 'failed';
+      } else if (passedChecks < totalChecks * 0.9) {
+        result = 'conditional';
+      }
+
+      const finalData = {
+        ...inspectionData,
+        result,
+      };
+
+      // APIに送信（実際の実装）
+      const response = await fetch(`/api/products/${productId}/inspection`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(finalData),
+      });
+
+      if (!response.ok) {
+        throw new Error('検品結果の保存に失敗しました');
+      }
+
+      alert('検品が完了しました');
+      window.location.href = '/staff/inspection';
+    } catch (error) {
+      console.error('[ERROR] Inspection submission:', error);
+      alert('エラーが発生しました');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading && !product) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <div className="animate-spin h-12 w-12 border-b-4 border-blue-500 rounded-full"></div>
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <NexusCard className="p-6 text-center">
+        <p className="text-gray-500">商品が見つかりません</p>
+      </NexusCard>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold mb-2">検品項目チェック</h3>
-        <p className="text-gray-600 text-sm">
-          各項目について該当する状態を選択してください
-        </p>
-      </div>
-
-      {/* 検品項目 */}
-      <div className="space-y-4">
-        {items.map((item) => (
-          <NexusCard key={item.id} className="p-4">
-            <h4 className="font-medium mb-3">{item.label}</h4>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-              {item.options.map((option) => (
-                <button
-                  key={option}
-                  onClick={() => handleOptionSelect(item.id, option)}
-                  className={`
-                    px-3 py-2 text-sm rounded-lg border transition-colors
-                    ${
-                      inspectionData[item.id] === option
-                        ? 'bg-blue-600 text-white border-blue-600'
-                        : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
-                    }
-                  `}
-                >
-                  {option}
-                </button>
-              ))}
+      {/* 商品情報カード */}
+      <NexusCard className="p-6">
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="md:w-1/3">
+            <img
+              src={product.imageUrl || '/api/placeholder/400/300'}
+              alt={product.name}
+              className="w-full rounded-lg"
+            />
+          </div>
+          <div className="md:w-2/3 space-y-2">
+            <h2 className="text-xl font-bold text-gray-900">{product.name}</h2>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-gray-600">SKU:</span>
+                <span className="ml-2 font-medium">{product.sku}</span>
+              </div>
+              <div>
+                <span className="text-gray-600">ブランド:</span>
+                <span className="ml-2 font-medium">{product.brand}</span>
+              </div>
+              <div>
+                <span className="text-gray-600">モデル:</span>
+                <span className="ml-2 font-medium">{product.model}</span>
+              </div>
+              <div>
+                <span className="text-gray-600">カテゴリ:</span>
+                <span className="ml-2 font-medium">
+                  {product.category === 'camera_body' ? 'カメラボディ' : product.category}
+                </span>
+              </div>
             </div>
-          </NexusCard>
+          </div>
+        </div>
+      </NexusCard>
+
+      {/* ステップインジケーター（タブレット最適化） */}
+      <div className="flex justify-between items-center bg-white rounded-lg p-4 shadow-sm">
+        {steps.map((step, index) => (
+          <button
+            key={step.id}
+            onClick={() => setCurrentStep(step.id)}
+            className={`flex-1 flex flex-col items-center p-3 rounded-lg transition-all ${
+              currentStep === step.id
+                ? 'bg-blue-50 text-blue-600'
+                : index < currentStep
+                ? 'text-green-600'
+                : 'text-gray-400'
+            }`}
+          >
+            <span className="text-2xl mb-1">{step.icon}</span>
+            <span className="text-sm font-medium hidden md:block">{step.title}</span>
+          </button>
         ))}
       </div>
 
-      {/* 備考欄 */}
-      <NexusCard className="p-4">
-        <h4 className="font-medium mb-3">備考・特記事項</h4>
-        <textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          rows={4}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="傷の詳細、動作の特記事項、付属品の状態など"
-        />
-      </NexusCard>
+      {/* ステップコンテンツ */}
+      <div className="min-h-[500px]">
+        {currentStep === 0 && (
+          <NexusCard className="p-6">
+            <h3 className="text-lg font-semibold mb-4">検品開始前の確認</h3>
+            <div className="space-y-4">
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <p className="text-blue-800">
+                  これから商品の検品を開始します。以下の点をご確認ください：
+                </p>
+                <ul className="mt-3 space-y-2 text-sm text-blue-700">
+                  <li>• 商品を清潔な場所に置いてください</li>
+                  <li>• 十分な照明を確保してください</li>
+                  <li>• カメラやタブレットの準備ができているか確認してください</li>
+                  <li>• 手袋を着用することを推奨します</li>
+                </ul>
+              </div>
+              <div className="flex justify-end">
+                <NexusButton
+                  onClick={() => setCurrentStep(1)}
+                  variant="primary"
+                  size="lg"
+                >
+                  検品を開始
+                </NexusButton>
+              </div>
+            </div>
+          </NexusCard>
+        )}
 
-      <div className="flex justify-between">
-        <NexusButton onClick={onBack} variant="secondary" className="px-6">
-          戻る
-        </NexusButton>
-        <NexusButton onClick={handleComplete} className="px-6">
-          次へ（確認画面へ）
-        </NexusButton>
+        {currentStep === 1 && (
+          <InspectionChecklist
+            category={product.category}
+            checklist={inspectionData.checklist}
+            onUpdate={updateChecklist}
+            onNext={() => setCurrentStep(2)}
+            onPrev={() => setCurrentStep(0)}
+          />
+        )}
+
+        {currentStep === 2 && (
+          <PhotoUploader
+            productId={productId}
+            photos={inspectionData.photos}
+            onUpdate={updatePhotos}
+            onNext={() => setCurrentStep(3)}
+            onPrev={() => setCurrentStep(1)}
+          />
+        )}
+
+        {currentStep === 3 && (
+          <InspectionResult
+            product={product}
+            inspectionData={inspectionData}
+            onNotesChange={(notes) => setInspectionData(prev => ({ ...prev, notes }))}
+            onSubmit={submitInspection}
+            onPrev={() => setCurrentStep(2)}
+            loading={loading}
+          />
+        )}
       </div>
     </div>
   );

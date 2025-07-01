@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { sendNotification } from './stream/route';
 
 interface Notification {
   id: string;
@@ -141,12 +142,39 @@ export async function PUT(request: NextRequest) {
 
 // 全ての通知を既読にする
 export async function POST(request: NextRequest) {
-  const { action, role } = await request.json();
+  const { action, role, userId, notification } = await request.json();
   
   if (action === 'mark-all-read') {
     // 実際の実装では、データベースで全通知を既読に更新
     console.log(`Marking all notifications as read for ${role}`);
     return NextResponse.json({ success: true });
+  }
+  
+  // 新しい通知を作成
+  if (action === 'create') {
+    const newNotification = {
+      id: Date.now().toString(),
+      type: notification.type || 'info',
+      title: notification.title,
+      message: notification.message,
+      timestamp: new Date().toISOString(),
+      read: false,
+      action: notification.action,
+      priority: notification.priority || 'medium'
+    };
+    
+    // SSEでリアルタイム配信
+    if (userId) {
+      sendNotification(userId, {
+        type: 'new_notification',
+        notification: newNotification
+      });
+    }
+    
+    // データベースに保存（実際の実装では）
+    console.log('Creating new notification:', newNotification);
+    
+    return NextResponse.json({ success: true, notification: newNotification });
   }
   
   return NextResponse.json({ error: 'Invalid action' }, { status: 400 });

@@ -2,6 +2,7 @@
 
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import BarcodeScanner from '../../components/BarcodeScanner';
+import PackingInstructions from '@/app/components/features/shipping/PackingInstructions';
 import { useState, useEffect } from 'react';
 
 interface ShippingItem {
@@ -26,6 +27,7 @@ export default function StaffShippingPage() {
   const [selectedPriority, setSelectedPriority] = useState<string>('all');
   const [isBarcodeScannerOpen, setIsBarcodeScannerOpen] = useState(false);
   const [scannedItems, setScannedItems] = useState<string[]>([]);
+  const [selectedPackingItem, setSelectedPackingItem] = useState<ShippingItem | null>(null);
 
   useEffect(() => {
     // Load shipping data from mock file
@@ -166,7 +168,20 @@ export default function StaffShippingPage() {
   };
 
   const handlePackingInstruction = (item: ShippingItem) => {
-    alert(`梱包指示\n商品: ${item.productName}\n価値: ¥${item.value.toLocaleString()}\n配送方法: ${item.shippingMethod}`);
+    setSelectedPackingItem(item);
+  };
+
+  const handlePackingComplete = () => {
+    if (selectedPackingItem) {
+      // 梱包完了処理
+      setItems(prev => prev.map(item => 
+        item.id === selectedPackingItem.id 
+          ? { ...item, status: 'packed' as const }
+          : item
+      ));
+      alert(`${selectedPackingItem.productName}の梱包が完了しました`);
+      setSelectedPackingItem(null);
+    }
   };
 
   const stats = {
@@ -503,6 +518,25 @@ export default function StaffShippingPage() {
           onClose={() => setIsBarcodeScannerOpen(false)}
           onScan={handleBarcodeScanned}
         />
+
+        {/* Packing Instructions Modal */}
+        {selectedPackingItem && (
+          <PackingInstructions
+            item={{
+              id: selectedPackingItem.id,
+              productName: selectedPackingItem.productName,
+              productSku: selectedPackingItem.productSku,
+              category: selectedPackingItem.productName.includes('Canon') || selectedPackingItem.productName.includes('Nikon') ? 'カメラ本体' :
+                       selectedPackingItem.productName.includes('mm') ? 'レンズ' :
+                       selectedPackingItem.productName.includes('Rolex') || selectedPackingItem.productName.includes('Omega') ? '腕時計' :
+                       'アクセサリ',
+              value: selectedPackingItem.value,
+              fragile: selectedPackingItem.value > 500000
+            }}
+            onComplete={handlePackingComplete}
+            onClose={() => setSelectedPackingItem(null)}
+          />
+        )}
       </div>
     </DashboardLayout>
   );

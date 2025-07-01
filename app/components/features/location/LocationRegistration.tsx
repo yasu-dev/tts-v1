@@ -1,152 +1,336 @@
 'use client';
 
 import { useState } from 'react';
-import LocationScanner from '../LocationScanner';
-import NexusCard from '@/app/components/ui/NexusCard';
-import NexusButton from '@/app/components/ui/NexusButton';
+import BarcodeScanner from '@/app/components/BarcodeScanner';
 
 interface LocationRegistrationProps {
   onRegisterComplete?: (productId: string, location: string) => void;
 }
 
-interface RegistrationResult {
-  productId: string;
-  productName: string;
-  location: string;
-  timestamp: string;
-  status: 'success' | 'error';
-  message?: string;
+interface Product {
+  id: string;
+  name: string;
+  sku: string;
+  category: string;
+  currentLocation?: string;
+  status: string;
 }
 
 export default function LocationRegistration({ onRegisterComplete }: LocationRegistrationProps) {
-  const [registrationHistory, setRegistrationHistory] = useState<RegistrationResult[]>([]);
-  const [isRegistering, setIsRegistering] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState('');
+  const [notes, setNotes] = useState('');
+  const [showScanner, setShowScanner] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [searchResults, setSearchResults] = useState<Product[]>([]);
 
-  const handleProductScanned = (productId: string) => {
-    console.log('Product scanned:', productId);
+  // ロケーションのマスターデータ（実際はAPIから取得）
+  const locations = {
+    standard: [
+      { code: 'STD-A-01', name: '標準棚A-01', capacity: 50 },
+      { code: 'STD-A-02', name: '標準棚A-02', capacity: 50 },
+      { code: 'STD-B-01', name: '標準棚B-01', capacity: 40 },
+      { code: 'STD-B-02', name: '標準棚B-02', capacity: 40 },
+    ],
+    controlled: [
+      { code: 'HUM-01', name: '防湿庫01', capacity: 30 },
+      { code: 'HUM-02', name: '防湿庫02', capacity: 30 },
+      { code: 'TEMP-01', name: '温度管理庫01', capacity: 20 },
+    ],
+    secure: [
+      { code: 'VAULT-01', name: '金庫室01', capacity: 10 },
+      { code: 'VAULT-02', name: '金庫室02', capacity: 10 },
+    ],
+    processing: [
+      { code: 'INSP-A', name: '検品室A', capacity: 100 },
+      { code: 'INSP-B', name: '検品室B', capacity: 100 },
+      { code: 'PHOTO', name: '撮影室', capacity: 50 },
+      { code: 'PACK', name: '梱包室', capacity: 200 },
+    ],
   };
 
-  const handleLocationScanned = (locationCode: string) => {
-    console.log('Location scanned:', locationCode);
-  };
+  // 商品検索（実際はAPIコール）
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
 
-  const handleComplete = async (productId: string, locationCode: string) => {
-    setIsRegistering(true);
-    
+    setLoading(true);
     try {
-      // APIコール（実装時にはactual API endpointを使用）
+      // モックデータ
+      const mockResults: Product[] = [
+        {
+          id: 'TWD-2024-001',
+          name: 'Canon EOS R5 ボディ',
+          sku: 'CAM-001',
+          category: 'camera_body',
+          currentLocation: 'INSP-A',
+          status: 'inspected',
+        },
+        {
+          id: 'TWD-2024-002',
+          name: 'Sony FE 24-70mm F2.8 GM',
+          sku: 'LENS-001',
+          category: 'lens',
+          status: 'pending_inspection',
+        },
+      ];
+
+      // 検索クエリでフィルタリング
+      const filtered = mockResults.filter(
+        (p) =>
+          p.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          p.sku.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+
+      setSearchResults(filtered);
+    } catch (error) {
+      console.error('[ERROR] Product search:', error);
+      alert('商品検索エラーが発生しました');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // バーコードスキャン処理
+  const handleBarcodeScan = (code: string) => {
+    setSearchQuery(code);
+    setShowScanner(false);
+    handleSearch();
+  };
+
+  // ロケーション登録
+  const handleRegister = async () => {
+    if (!selectedProduct || !selectedLocation) {
+      alert('商品とロケーションを選択してください');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // APIコール（実際の実装）
       const response = await fetch('/api/locations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          productId,
-          location: locationCode,
-          action: 'register',
+          productId: selectedProduct.id,
+          locationCode: selectedLocation,
+          notes,
         }),
       });
 
       if (!response.ok) {
-        throw new Error('登録に失敗しました');
+        throw new Error('ロケーション登録に失敗しました');
       }
 
-      const result: RegistrationResult = {
-        productId,
-        productName: `商品 ${productId}`, // 実際にはAPIから取得
-        location: locationCode,
-        timestamp: new Date().toISOString(),
-        status: 'success',
-      };
-
-      setRegistrationHistory(prev => [result, ...prev].slice(0, 10)); // 最新10件を保持
+      alert(`${selectedProduct.name} を ${selectedLocation} に登録しました`);
       
       if (onRegisterComplete) {
-        onRegisterComplete(productId, locationCode);
+        onRegisterComplete(selectedProduct.id, selectedLocation);
       }
 
-      // 成功通知
-      alert(`商品 ${productId} を ${locationCode} に登録しました`);
+      // フォームをリセット
+      setSelectedProduct(null);
+      setSelectedLocation('');
+      setNotes('');
+      setSearchQuery('');
+      setSearchResults([]);
     } catch (error) {
       console.error('[ERROR] Location registration:', error);
-      
-      const errorResult: RegistrationResult = {
-        productId,
-        productName: `商品 ${productId}`,
-        location: locationCode,
-        timestamp: new Date().toISOString(),
-        status: 'error',
-        message: error instanceof Error ? error.message : 'エラーが発生しました',
-      };
-
-      setRegistrationHistory(prev => [errorResult, ...prev].slice(0, 10));
-      alert('登録に失敗しました');
+      alert('ロケーション登録エラーが発生しました');
     } finally {
-      setIsRegistering(false);
+      setLoading(false);
     }
+  };
+
+  const getLocationRecommendation = (product: Product) => {
+    // カテゴリに基づいてロケーションを推奨
+    if (product.category === 'camera_body' || product.category === 'lens') {
+      return '防湿庫を推奨';
+    } else if (product.category === 'watch') {
+      return '金庫室を推奨';
+    }
+    return '標準棚を推奨';
   };
 
   return (
     <div className="space-y-6">
-      {/* スキャナーセクション */}
-      <LocationScanner
-        onProductScanned={handleProductScanned}
-        onLocationScanned={handleLocationScanned}
-        onComplete={handleComplete}
-      />
+      <div className="intelligence-card europe">
+        <div className="p-8">
+          <div className="mb-6">
+            <h2 className="text-xl font-display font-bold text-nexus-text-primary">
+              ロケーション登録
+            </h2>
+            <p className="text-sm text-nexus-text-secondary mt-1">
+              商品を適切なロケーションに配置します
+            </p>
+          </div>
 
-      {/* 登録履歴セクション */}
-      {registrationHistory.length > 0 && (
-        <NexusCard className="p-6">
-          <h3 className="text-lg font-semibold mb-4">最近の登録履歴</h3>
-          <div className="space-y-2">
-            {registrationHistory.map((result, index) => (
-              <div
-                key={`${result.productId}-${result.timestamp}-${index}`}
-                className={`p-4 rounded-lg border ${
-                  result.status === 'success'
-                    ? 'bg-green-50 border-green-200'
-                    : 'bg-red-50 border-red-200'
-                }`}
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="font-medium">
-                      {result.productName}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {result.productId} → {result.location}
-                    </p>
-                    {result.message && (
-                      <p className="text-sm text-red-600 mt-1">{result.message}</p>
-                    )}
-                  </div>
-                  <div className="text-right">
-                    <span
-                      className={`inline-block px-2 py-1 text-xs rounded ${
-                        result.status === 'success'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
+          {/* 商品検索 */}
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                商品検索
+              </label>
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  placeholder="商品ID、SKU、商品名で検索"
+                  className="flex-1 px-4 py-3 bg-nexus-bg-secondary border border-nexus-border rounded-lg focus:outline-none focus:border-nexus-yellow focus:ring-2 focus:ring-nexus-yellow/20 text-nexus-text-primary transition-all duration-200"
+                />
+                <button
+                  onClick={() => setShowScanner(!showScanner)}
+                  className="nexus-button"
+                >
+                  📷 スキャン
+                </button>
+                <button
+                  onClick={handleSearch}
+                  className="nexus-button primary"
+                  disabled={loading}
+                >
+                  検索
+                </button>
+              </div>
+            </div>
+
+            {/* バーコードスキャナー */}
+            <BarcodeScanner 
+              isOpen={showScanner}
+              onClose={() => setShowScanner(false)}
+              onScan={handleBarcodeScan} 
+            />
+
+            {/* 検索結果 */}
+            {searchResults.length > 0 && (
+              <div className="holo-table">
+                <div className="holo-body">
+                  {searchResults.map((product) => (
+                    <div
+                      key={product.id}
+                      className={`holo-row p-4 cursor-pointer transition-all ${
+                        selectedProduct?.id === product.id ? 'bg-nexus-yellow/10 border-nexus-yellow' : ''
                       }`}
+                      onClick={() => setSelectedProduct(product)}
                     >
-                      {result.status === 'success' ? '成功' : 'エラー'}
-                    </span>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {new Date(result.timestamp).toLocaleString('ja-JP')}
-                    </p>
-                  </div>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-medium text-nexus-text-primary">{product.name}</h4>
+                          <p className="text-sm text-nexus-text-secondary">
+                            ID: {product.id} | SKU: {product.sku}
+                          </p>
+                          {product.currentLocation && (
+                            <p className="text-sm text-nexus-yellow mt-1">
+                              現在地: {product.currentLocation}
+                            </p>
+                          )}
+                        </div>
+                        <span className={`status-badge ${
+                          product.status === 'inspected'
+                            ? 'success'
+                            : 'warning'
+                        }`}>
+                          {product.status === 'inspected' ? '検品済' : '検品待ち'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            ))}
+            )}
           </div>
-        </NexusCard>
-      )}
+        </div>
+      </div>
 
-      {/* 処理中インジケーター */}
-      {isRegistering && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg">
-            <div className="flex items-center space-x-3">
-              <div className="animate-spin h-8 w-8 border-b-2 border-blue-600 rounded-full"></div>
-              <p className="text-lg">登録処理中...</p>
+      {/* 選択した商品の詳細とロケーション割り当て */}
+      {selectedProduct && (
+        <div className="intelligence-card asia">
+          <div className="p-8">
+            <h3 className="text-lg font-display font-bold text-nexus-text-primary mb-4">
+              ロケーション割り当て
+            </h3>
+            
+            <div className="bg-nexus-bg-secondary p-4 rounded-lg mb-6 border border-nexus-border">
+              <h4 className="font-medium text-nexus-text-primary">{selectedProduct.name}</h4>
+              <p className="text-sm text-nexus-text-secondary">ID: {selectedProduct.id}</p>
+              <p className="text-sm text-nexus-blue mt-2 flex items-center">
+                <span className="action-orb blue w-5 h-5 mr-2">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </span>
+                {getLocationRecommendation(selectedProduct)}
+              </p>
+            </div>
+
+            {/* ロケーション選択 */}
+            <div className="space-y-6">
+              {Object.entries(locations).map(([type, locs]) => (
+                <div key={type}>
+                  <h4 className="font-medium text-sm text-nexus-text-secondary mb-3">
+                    {type === 'standard' && '標準保管'}
+                    {type === 'controlled' && '環境管理保管'}
+                    {type === 'secure' && '高セキュリティ保管'}
+                    {type === 'processing' && '作業エリア'}
+                  </h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    {locs.map((loc) => (
+                      <button
+                        key={loc.code}
+                        onClick={() => setSelectedLocation(loc.code)}
+                        className={`p-4 text-left border rounded-lg transition-all ${
+                          selectedLocation === loc.code
+                            ? 'border-nexus-yellow bg-nexus-yellow/10'
+                            : 'border-nexus-border hover:border-nexus-text-secondary bg-nexus-bg-secondary'
+                        }`}
+                      >
+                        <div className="font-medium text-sm text-nexus-text-primary">{loc.name}</div>
+                        <div className="text-xs text-nexus-text-secondary">
+                          容量: {loc.capacity}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* 備考 */}
+            <div className="mt-6">
+              <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                備考（任意）
+              </label>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={3}
+                className="w-full px-4 py-3 bg-nexus-bg-secondary border border-nexus-border rounded-lg focus:outline-none focus:border-nexus-yellow focus:ring-2 focus:ring-nexus-yellow/20 text-nexus-text-primary transition-all duration-200"
+                placeholder="特記事項があれば入力してください"
+              />
+            </div>
+
+            {/* アクションボタン */}
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setSelectedProduct(null);
+                  setSelectedLocation('');
+                  setNotes('');
+                }}
+                className="nexus-button"
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={handleRegister}
+                className="nexus-button primary"
+                disabled={!selectedLocation || loading}
+              >
+                {loading ? '登録中...' : 'ロケーション登録'}
+              </button>
             </div>
           </div>
         </div>
