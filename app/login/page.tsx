@@ -34,8 +34,7 @@ export default function LoginPage() {
         setError(data.error || 'ログインに失敗しました');
       }
     } catch (error) {
-      console.error('Login error:', error);
-      setError('ログインに失敗しました');
+      setError('ログインに失敗しました。メールアドレスとパスワードを確認してください。');
     } finally {
       setIsLoading(false);
     }

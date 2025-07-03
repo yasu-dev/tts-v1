@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await AuthService.login({ email, password });
+    const result = await AuthService.login(email, password);
 
     if (!result) {
       return NextResponse.json(
@@ -38,7 +38,6 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('Login API error:', error);
     return NextResponse.json(
       { error: 'ログイン処理中にエラーが発生しました' },
       { status: 500 }
