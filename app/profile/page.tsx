@@ -24,13 +24,13 @@ export default function ProfilePage() {
   const [userType, setUserType] = useState<'staff' | 'seller'>('staff');
 
   useEffect(() => {
-    // 実際の実裁E��はAPIから取征E
+    // 実際の実装はAPIから取得
     const mockProfile: UserProfile = {
-      name: '鈴木 花孁E,
+      name: '鈴木 花子',
       email: 'suzuki@theworlddoor.com',
-      role: 'シニアスタチE��',
-      joinDate: '2022年10朁E,
-      lastLogin: '2025年1朁E6日 08:00',
+      role: 'シニアスタッフ',
+      joinDate: '2022年10月',
+      lastLogin: '2025年1月6日 08:00',
       phone: '090-1234-5678',
       department: '検品・撮影部',
       employeeId: 'STF-2022-001',
@@ -75,10 +75,10 @@ export default function ProfilePage() {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
-                  プロフィール設宁E
+                  プロフィール設定
                 </h1>
                 <p className="mt-1 text-sm text-nexus-text-secondary">
-                  個人惁E��とアカウント設定を管琁E
+                  個人情報とアカウント設定を管理
                 </p>
               </div>
               <div className="flex space-x-3">
@@ -90,7 +90,7 @@ export default function ProfilePage() {
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
-                    編雁E
+                    編集
                   </button>
                 ) : (
                   <>
@@ -104,7 +104,7 @@ export default function ProfilePage() {
                       onClick={handleSave}
                       className="nexus-button primary"
                     >
-                      保孁E
+                      保存
                     </button>
                   </>
                 )}
@@ -134,7 +134,7 @@ export default function ProfilePage() {
           {/* Profile Details */}
           <div className="lg:col-span-2 intelligence-card global">
             <div className="p-6">
-              <h3 className="text-lg font-bold text-nexus-text-primary mb-6">基本惁E��</h3>
+              <h3 className="text-lg font-bold text-nexus-text-primary mb-6">基本情報</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -181,7 +181,7 @@ export default function ProfilePage() {
                       className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg text-nexus-text-primary"
                     />
                   ) : (
-                    <p className="text-nexus-text-primary">{profile.phone || '未設宁E}</p>
+                    <p className="text-nexus-text-primary">{profile.phone || '未設定'}</p>
                   )}
                 </div>
 
@@ -197,7 +197,7 @@ export default function ProfilePage() {
                       className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg text-nexus-text-primary"
                     />
                   ) : (
-                    <p className="text-nexus-text-primary">{profile.department || '未設宁E}</p>
+                    <p className="text-nexus-text-primary">{profile.department || '未設定'}</p>
                   )}
                 </div>
 
@@ -222,13 +222,13 @@ export default function ProfilePage() {
         {/* Security Settings */}
         <div className="intelligence-card global">
           <div className="p-6">
-            <h3 className="text-lg font-bold text-nexus-text-primary mb-6">セキュリチE��設宁E/h3>
+            <h3 className="text-lg font-bold text-nexus-text-primary mb-6">セキュリティ設定</h3>
             
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 bg-nexus-bg-secondary rounded-lg">
                 <div>
                   <h4 className="font-medium text-nexus-text-primary">パスワード変更</h4>
-                  <p className="text-sm text-nexus-text-secondary">アカウント�EセキュリチE��を保護するため定期皁E��パスワードを変更してください</p>
+                  <p className="text-sm text-nexus-text-secondary">アカウントのセキュリティを保護するために定期的にパスワードを変更してください</p>
                 </div>
                 <button className="nexus-button">
                   変更
@@ -238,10 +238,10 @@ export default function ProfilePage() {
               <div className="flex items-center justify-between p-4 bg-nexus-bg-secondary rounded-lg">
                 <div>
                   <h4 className="font-medium text-nexus-text-primary">二段階認証</h4>
-                  <p className="text-sm text-nexus-text-secondary">追加のセキュリチE��レイヤーでアカウントを保護</p>
+                  <p className="text-sm text-nexus-text-secondary">追加のセキュリティレイヤーでアカウントを保護</p>
                 </div>
                 <button className="nexus-button primary">
-                  有効匁E
+                  有効
                 </button>
               </div>
             </div>
