@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import { ContentCard } from '@/app/components/ui';
 import { ReturnInspection } from '@/app/components/features/returns/ReturnInspection';
 import { ReturnRelistingFlow } from '@/app/components/features/returns/ReturnRelistingFlow';
 import { ReturnReasonAnalysis } from '@/app/components/features/returns/ReturnReasonAnalysis';
 import { Package, Clock, TrendingUp, AlertCircle, ChevronLeft } from 'lucide-react';
+import { ExclamationCircleIcon } from '@heroicons/react/24/outline';
 
 interface ReturnItem {
   id: string;
@@ -39,6 +41,7 @@ interface ReturnsData {
 }
 
 export default function ReturnsPage() {
+  const router = useRouter();
   const [returnsData, setReturnsData] = useState<ReturnsData | null>(null);
   const [selectedReturn, setSelectedReturn] = useState<ReturnItem | null>(null);
   const [inspectionPhotos, setInspectionPhotos] = useState<File[]>([]);
@@ -186,22 +189,23 @@ export default function ReturnsPage() {
       <div className="space-y-6">
         {/* Header */}
         <div className="intelligence-card global">
-          <div className="p-8">
+          <div className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
                   返品処理
                 </h1>
                 <p className="mt-1 text-sm text-nexus-text-secondary">
-                  返品商品の検品と再出品を管理します
+                  顧客からの返品リクエストを処理
                 </p>
               </div>
-              <div className="flex space-x-3">
-                <button className="nexus-button">
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  レポート出力
+              <div className="flex">
+                <button
+                  onClick={() => router.push('/staff/returns/unsellable')}
+                  className="nexus-button primary"
+                >
+                  <ExclamationCircleIcon className="w-5 h-5 mr-2" />
+                  再販不可リスト
                 </button>
               </div>
             </div>

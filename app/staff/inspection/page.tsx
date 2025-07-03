@@ -6,6 +6,10 @@ import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
 import StatusIndicator from '@/app/components/ui/StatusIndicator';
+import {
+  BookOpenIcon,
+  CameraIcon,
+} from '@heroicons/react/24/outline';
 
 interface ChecklistItem {
   id: string;
@@ -123,6 +127,8 @@ export default function InspectionPage() {
   const [notes, setNotes] = useState('');
   const [showScanner, setShowScanner] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isStandardsModalOpen, setIsStandardsModalOpen] = useState(false);
+  const [isCameraModalOpen, setIsCameraModalOpen] = useState(false);
 
   const statusConfig = {
     pending_inspection: { label: '検品待ち', status: 'warning' as const, color: 'bg-yellow-100 text-yellow-800' },
@@ -220,6 +226,11 @@ export default function InspectionPage() {
     setCurrentChecklist(null);
   };
 
+  const handleSaveCameraSettings = () => {
+    alert('カメラ設定を保存しました。');
+    setIsCameraModalOpen(false);
+  };
+
   if (!inspectionData) {
     return (
       <DashboardLayout userType="staff">
@@ -247,35 +258,64 @@ export default function InspectionPage() {
       <div className="space-y-6">
         {/* Header */}
         <div className="intelligence-card global">
-          <div className="p-3 sm:p-4 md:p-6 lg:p-8">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
-              <div className="flex-1">
-                <h1 className="text-2xl sm:text-3xl font-display font-bold text-nexus-text-primary">
-                  検品管理
+          <div className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
+                  検品・撮影
                 </h1>
-                <p className="mt-1 text-xs sm:text-sm text-nexus-text-secondary">
-                  商品の検品状況を確認し、検品作業を実施します
+                <p className="mt-1 text-sm text-nexus-text-secondary">
+                  商品の検品と撮影作業を実施
                 </p>
               </div>
-              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
-                <button className="nexus-button text-xs sm:text-sm">
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  <span className="hidden sm:inline">レポート出力</span>
-                  <span className="sm:hidden">レポート</span>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setIsStandardsModalOpen(true)}
+                  className="nexus-button"
+                >
+                  <BookOpenIcon className="w-5 h-5 mr-2" />
+                  検品基準を確認
                 </button>
-                <button className="nexus-button primary text-xs sm:text-sm">
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                  <span className="hidden sm:inline">バッチ検品開始</span>
-                  <span className="sm:hidden">バッチ検品</span>
+                <button
+                  onClick={() => setIsCameraModalOpen(true)}
+                  className="nexus-button primary"
+                >
+                  <CameraIcon className="w-5 h-5 mr-2" />
+                  カメラ設定
                 </button>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Standards Modal */}
+        {isStandardsModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl">
+              <h2 className="text-lg font-bold mb-4">検品基準</h2>
+              <p className="text-sm text-gray-600 mb-4">
+                ここに検品マニュアルや注意事項が表示されます。
+              </p>
+              <div className="text-right mt-6">
+                <button onClick={() => setIsStandardsModalOpen(false)} className="nexus-button primary">閉じる</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Camera Settings Modal */}
+        {isCameraModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
+              <h2 className="text-lg font-bold mb-4">カメラ設定</h2>
+              {/* TODO: カメラ設定フォームを実装 */}
+              <div className="text-right mt-6">
+                <button onClick={() => setIsCameraModalOpen(false)} className="nexus-button mr-2">キャンセル</button>
+                <button onClick={handleSaveCameraSettings} className="nexus-button primary">保存</button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Stats Cards */}
         <div className="intelligence-metrics">

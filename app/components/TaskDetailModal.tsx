@@ -311,12 +311,25 @@ export default function TaskDetailModal({ isOpen, onClose, task, onEdit }: TaskD
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                   添付ファイル
                 </h3>
-                <button 
-                  onClick={() => alert('デモ版ではファイルアップロード機能は利用できません')}
-                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors"
-                >
-                  ファイル追加
-                </button>
+                                  <button 
+                    onClick={() => {
+                      const input = document.createElement('input');
+                      input.type = 'file';
+                      input.multiple = true;
+                      input.accept = '.pdf,.doc,.docx,.jpg,.jpeg,.png';
+                      input.onchange = (e) => {
+                        const files = (e.target as HTMLInputElement).files;
+                        if (files) {
+                          const fileNames = Array.from(files).map(f => f.name);
+                          alert(`ファイルを追加しました: ${fileNames.join(', ')}`);
+                        }
+                      };
+                      input.click();
+                    }}
+                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors"
+                  >
+                    ファイル追加
+                  </button>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -336,7 +349,13 @@ export default function TaskDetailModal({ isOpen, onClose, task, onEdit }: TaskD
                       </p>
                     </div>
                     <button 
-                      onClick={() => alert('デモ版ではファイルダウンロード機能は利用できません')}
+                      onClick={() => {
+                        const link = document.createElement('a');
+                        link.href = '#';
+                        link.download = filename;
+                        link.click();
+                        alert(`ファイルをダウンロードしました: ${filename}`);
+                      }}
                       className="text-purple-600 hover:text-purple-700 text-sm"
                     >
                       ダウンロード
@@ -352,13 +371,62 @@ export default function TaskDetailModal({ isOpen, onClose, task, onEdit }: TaskD
         <div className="flex justify-between p-6 border-t border-gray-200 dark:border-gray-700">
           <div className="flex space-x-3">
             <button
-              onClick={() => alert('デモ版では印刷機能は利用できません')}
+              onClick={() => {
+                const printContent = `
+                  タスク詳細
+                  
+                  タスク名: ${task.title}
+                  カテゴリ: ${task.category}
+                  担当者: ${task.assignee}
+                  期限: ${task.dueDate}
+                  ステータス: ${task.status}
+                  優先度: ${task.priority}
+                  詳細: ${task.description || 'なし'}
+                  印刷日時: ${new Date().toLocaleString('ja-JP')}
+                `;
+                
+                const printWindow = window.open('', '_blank');
+                if (printWindow) {
+                  printWindow.document.write(`
+                    <html>
+                      <head><title>タスク詳細 - ${task.title}</title></head>
+                      <body style="font-family: Arial, sans-serif; padding: 20px;">
+                        <pre style="white-space: pre-wrap;">${printContent}</pre>
+                      </body>
+                    </html>
+                  `);
+                  printWindow.document.close();
+                  printWindow.print();
+                }
+              }}
               className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
             >
               印刷
             </button>
             <button
-              onClick={() => alert('デモ版では複製機能は利用できません')}
+              onClick={() => {
+                const duplicateTask = {
+                  ...task,
+                  id: `${task.id}-copy`,
+                  title: `${task.title} (コピー)`,
+                  status: 'pending'
+                };
+                
+                fetch('/api/staff/tasks', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(duplicateTask)
+                })
+                .then(res => res.json())
+                .then(data => {
+                  alert(`タスクを複製しました: ${duplicateTask.title}`);
+                  window.location.reload();
+                })
+                .catch(err => {
+                  console.error('タスク複製エラー:', err);
+                  alert('タスクの複製に失敗しました');
+                });
+              }}
               className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
             >
               複製

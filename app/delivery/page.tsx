@@ -2,6 +2,7 @@
 
 import DashboardLayout from '../components/layouts/DashboardLayout';
 import { useState } from 'react';
+import Link from 'next/link';
 
 export default function DeliveryPage() {
   const [deliveryPlans] = useState([
@@ -9,6 +10,13 @@ export default function DeliveryPage() {
     { id: 2, date: '2024-01-12', status: '発送済', items: 3, value: 280000 },
     { id: 3, date: '2024-01-10', status: '到着済', items: 8, value: 620000 },
   ]);
+
+  const [isBarcodeModalOpen, setIsBarcodeModalOpen] = useState(false);
+
+  const handleBarcodeIssue = () => {
+    // TODO: バーコード発行機能を実装
+    alert('バーコード発行機能は現在開発中です。');
+  };
 
   return (
     <DashboardLayout userType="seller">
@@ -30,15 +38,18 @@ export default function DeliveryPage() {
                 </p>
               </div>
               <div className="flex gap-4">
-                <button className="nexus-button primary">
+                <Link href="/delivery-plan" className="nexus-button primary">
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
                   新規納品プラン作成
-                </button>
-                <button className="nexus-button">
+                </Link>
+                <button 
+                  onClick={() => setIsBarcodeModalOpen(true)}
+                  className="nexus-button"
+                >
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-2 0h-2v4m0-11v3m0 0h-2m2 0h2m-8 3H3M8 8H3m4-3h2M3 4h2m0 2H3"></path>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10m0-10h16M4 7h16M4 17h16m0-10L8 3M20 7L16 3"></path>
                   </svg>
                   バーコード発行
                 </button>
@@ -46,6 +57,33 @@ export default function DeliveryPage() {
             </div>
           </div>
         </div>
+
+        {/* Barcode Modal */}
+        {isBarcodeModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+              <h2 className="text-lg font-bold mb-4">バーコード発行</h2>
+              <p className="text-sm text-gray-600 mb-4">
+                発行したい商品を選択し、数量を入力してください。
+              </p>
+              {/* TODO: 商品選択のUIを実装 */}
+              <div className="text-right mt-6">
+                <button
+                  onClick={() => setIsBarcodeModalOpen(false)}
+                  className="nexus-button mr-2"
+                >
+                  キャンセル
+                </button>
+                <button
+                  onClick={handleBarcodeIssue}
+                  className="nexus-button primary"
+                >
+                  発行
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* New Delivery Plan Form - Intelligence Card Style */}
         <div className="intelligence-card americas">

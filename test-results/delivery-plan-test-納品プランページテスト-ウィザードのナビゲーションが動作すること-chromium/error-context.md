@@ -42,7 +42,7 @@
   - button:
     - img
   - img
-  - text: 01:30 日本時間
+  - text: 21:16 日本時間
   - button "通知":
     - img
     - text: "3"

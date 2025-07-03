@@ -1,6 +1,6 @@
 'use client';
 
-import React, { ReactNode, useState, useEffect } from 'react';
+import React, { ReactNode, useState, useEffect, useRef } from 'react';
 import NexusHeader from './NexusHeader';
 import SearchModal from '../SearchModal';
 import UnifiedProductFlow from '../features/flow-nav/UnifiedProductFlow';
@@ -373,8 +373,8 @@ export default function DashboardLayout({
             isMobileMenuOpen={isMobileMenuOpen}
           />
 
-          {/* Unified Product Flow - 折りたたみ機能付き */}
-          <div className="border-b bg-white">
+          {/* Unified Product Flow */}
+          <div className="bg-white border-b">
             <div className="flex items-center justify-between px-4 py-2">
               <h3 className="text-sm font-medium text-gray-700">業務フロー</h3>
               <button

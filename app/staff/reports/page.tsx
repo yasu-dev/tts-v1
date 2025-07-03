@@ -1,7 +1,11 @@
 'use client';
 
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import {
+  ArrowDownTrayIcon,
+  ChartBarIcon,
+} from '@heroicons/react/24/outline';
 
 interface WorkloadData {
   staff: string;
@@ -24,6 +28,8 @@ export default function StaffReportsPage() {
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'quarter'>('week');
   const [selectedMetric, setSelectedMetric] = useState<'productivity' | 'quality' | 'efficiency'>('productivity');
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const performanceRef = useRef<HTMLDivElement>(null);
 
   // デモデータ
   useEffect(() => {
@@ -106,12 +112,21 @@ export default function StaffReportsPage() {
   const totalIssues = performanceData.reduce((sum, data) => sum + data.issues, 0);
   const qualityRate = ((totalInspections - totalIssues) / totalInspections) * 100;
 
+  const handleCreateReport = () => {
+    alert('カスタムレポートを作成しました。');
+    setIsReportModalOpen(false);
+  };
+
+  const scrollToPerformance = () => {
+    performanceRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <DashboardLayout userType="staff">
       <div className="space-y-6">
         {/* Header */}
         <div className="intelligence-card global">
-          <div className="p-8">
+          <div className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
@@ -122,40 +137,38 @@ export default function StaffReportsPage() {
                 </p>
               </div>
               <div className="flex space-x-3">
-                <select
-                  value={selectedPeriod}
-                  onChange={(e) => setSelectedPeriod(e.target.value as any)}
-                  className="px-4 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg text-sm text-nexus-text-primary"
+                <button
+                  onClick={() => setIsReportModalOpen(true)}
+                  className="nexus-button"
                 >
-                  <option value="week">週間</option>
-                  <option value="month">月間</option>
-                  <option value="quarter">四半期</option>
-                </select>
-                <select
-                  value={selectedMetric}
-                  onChange={(e) => setSelectedMetric(e.target.value as any)}
-                  className="px-4 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg text-sm text-nexus-text-primary"
-                >
-                  <option value="productivity">生産性</option>
-                  <option value="quality">品質</option>
-                  <option value="efficiency">効率性</option>
-                </select>
-                <button className="nexus-button">
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  詳細レポート出力
+                  <ArrowDownTrayIcon className="w-5 h-5 mr-2" />
+                  カスタムレポート作成
                 </button>
-                <button className="nexus-button primary">
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
+                <button
+                  onClick={scrollToPerformance}
+                  className="nexus-button primary"
+                >
+                  <ChartBarIcon className="w-5 h-5 mr-2" />
                   パフォーマンス分析
                 </button>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Report Modal */}
+        {isReportModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
+              <h2 className="text-lg font-bold mb-4">カスタムレポート作成</h2>
+              {/* TODO: レポート条件フォームを実装 */}
+              <div className="text-right mt-6">
+                <button onClick={() => setIsReportModalOpen(false)} className="nexus-button mr-2">キャンセル</button>
+                <button onClick={handleCreateReport} className="nexus-button primary">作成</button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Summary Cards */}
         <div className="intelligence-metrics">
@@ -480,6 +493,11 @@ export default function StaffReportsPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Performance Analysis Section */}
+        <div ref={performanceRef} className="intelligence-card global">
+          {/* ... (パフォーマンス分析のコンテンツ) */}
         </div>
       </div>
     </DashboardLayout>

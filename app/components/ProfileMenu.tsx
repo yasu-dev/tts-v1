@@ -17,9 +17,6 @@ interface UserProfile {
   avatar?: string;
   joinDate: string;
   lastLogin: string;
-  stats?: {
-    [key: string]: string | number;
-  };
 }
 
 export default function ProfileMenu({ userType, isOpen, onClose, anchorRef }: ProfileMenuProps) {
@@ -36,13 +33,7 @@ export default function ProfileMenu({ userType, isOpen, onClose, anchorRef }: Pr
         email: 'yamada@example.com',
         role: 'プレミアムセラー',
         joinDate: '2023年4月',
-        lastLogin: '2025年1月26日 10:30',
-        stats: {
-          totalSales: '¥12,456,789',
-          activeListings: 58,
-          monthlyRevenue: '¥2,345,678',
-          rating: '4.9'
-        }
+        lastLogin: '2025年1月26日 10:30'
       });
     } else {
       setProfile({
@@ -50,13 +41,7 @@ export default function ProfileMenu({ userType, isOpen, onClose, anchorRef }: Pr
         email: 'suzuki@theworlddoor.com',
         role: 'シニアスタッフ',
         joinDate: '2022年10月',
-        lastLogin: '2025年1月26日 08:00',
-        stats: {
-          tasksCompleted: 1234,
-          accuracy: '99.8%',
-          efficiency: '95%',
-          level: 'エキスパート'
-        }
+        lastLogin: '2025年1月26日 08:00'
       });
     }
   }, [userType]);
@@ -135,34 +120,6 @@ export default function ProfileMenu({ userType, isOpen, onClose, anchorRef }: Pr
             <span>最終ログイン: {profile.lastLogin}</span>
           </div>
         </div>
-
-        {/* 統計情報 */}
-        {profile.stats && (
-          <div className="border-t border-gray-200 pt-3">
-            <h4 className="text-xs font-semibold text-gray-700 mb-2">
-              {userType === 'seller' ? '販売統計' : '業務統計'}
-            </h4>
-            <div className="grid grid-cols-2 gap-2">
-              {Object.entries(profile.stats).slice(0, 4).map(([key, value]) => (
-                <div key={key} className="bg-gray-50 rounded p-2">
-                  <div className="text-[10px] text-gray-500">
-                    {key === 'totalSales' && '総売上'}
-                    {key === 'activeListings' && '出品中'}
-                    {key === 'monthlyRevenue' && '月間売上'}
-                    {key === 'rating' && '評価'}
-                    {key === 'tasksCompleted' && '完了タスク'}
-                    {key === 'accuracy' && '正確性'}
-                    {key === 'efficiency' && '効率性'}
-                    {key === 'level' && 'レベル'}
-                  </div>
-                  <div className="text-xs font-semibold text-gray-800 mt-0.5">
-                    {value}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* アクションボタン */}
         <div className="border-t border-gray-200 pt-3 space-y-1">

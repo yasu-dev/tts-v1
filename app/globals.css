@@ -1208,6 +1208,7 @@
   position: relative;
   overflow: hidden;
   transition: all 0.2s ease;
+  padding: 0.25rem;
 }
 
 /* Intelligence Card 内部のパディング最適化 */
@@ -1216,7 +1217,7 @@
 }
 
 .intelligence-card.compact > div:first-child {
-  padding: 0.75rem; /* コンパクト版 */
+  padding: 0.5rem; /* コンパクト版 */
 }
 
 .intelligence-card::before {

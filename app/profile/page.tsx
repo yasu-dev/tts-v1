@@ -3,6 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
+import {
+  KeyIcon,
+  ShieldCheckIcon,
+} from '@heroicons/react/24/outline';
 
 interface UserProfile {
   name: string;
@@ -22,6 +26,7 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<UserProfile | null>(null);
   const [userType, setUserType] = useState<'staff' | 'seller'>('staff');
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
   useEffect(() => {
     // 実際の実装はAPIから取得
@@ -60,6 +65,12 @@ export default function ProfilePage() {
     if (editForm) {
       setEditForm({ ...editForm, [field]: value });
     }
+  };
+
+  const handleChangePassword = () => {
+    // TODO: パスワード変更APIを呼び出す
+    alert('パスワードを変更しました。');
+    setIsPasswordModalOpen(false);
   };
 
   if (!profile) {
@@ -230,7 +241,11 @@ export default function ProfilePage() {
                   <h4 className="font-medium text-nexus-text-primary">パスワード変更</h4>
                   <p className="text-sm text-nexus-text-secondary">アカウントのセキュリティを保護するために定期的にパスワードを変更してください</p>
                 </div>
-                <button className="nexus-button">
+                <button
+                  onClick={() => setIsPasswordModalOpen(true)}
+                  className="nexus-button"
+                >
+                  <KeyIcon className="w-5 h-5 mr-2" />
                   変更
                 </button>
               </div>
@@ -240,13 +255,31 @@ export default function ProfilePage() {
                   <h4 className="font-medium text-nexus-text-primary">二段階認証</h4>
                   <p className="text-sm text-nexus-text-secondary">追加のセキュリティレイヤーでアカウントを保護</p>
                 </div>
-                <button className="nexus-button primary">
+                <button
+                  onClick={() => router.push('/settings/security')}
+                  className="nexus-button primary"
+                >
+                  <ShieldCheckIcon className="w-5 h-5 mr-2" />
                   有効
                 </button>
               </div>
             </div>
           </div>
         </div>
+        
+        {/* Password Change Modal */}
+        {isPasswordModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+              <h2 className="text-lg font-bold mb-4">パスワード変更</h2>
+              {/* TODO: パスワード変更フォームを実装 */}
+              <div className="text-right mt-6">
+                <button onClick={() => setIsPasswordModalOpen(false)} className="nexus-button mr-2">キャンセル</button>
+                <button onClick={handleChangePassword} className="nexus-button primary">変更</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

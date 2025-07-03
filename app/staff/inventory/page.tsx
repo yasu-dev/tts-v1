@@ -2,7 +2,13 @@
 
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import QRCodeModal from '../../components/QRCodeModal';
+import ItemDetailModal from '../../components/ItemDetailModal';
 import { useState, useEffect } from 'react';
+import {
+  PencilIcon,
+  ArrowsRightLeftIcon,
+  ArrowDownTrayIcon,
+} from '@heroicons/react/24/outline';
 
 interface InventoryItem {
   id: string;
@@ -32,7 +38,11 @@ export default function StaffInventoryPage() {
   const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const [isQRModalOpen, setIsQRModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
 
   // デモデータ（スタッフ向けに詳細情報を追加）
   useEffect(() => {
@@ -130,6 +140,7 @@ export default function StaffInventoryPage() {
     ];
     setItems(demoData);
     setFilteredItems(demoData);
+    setLoading(false);
   }, []);
 
   // フィルタリング
@@ -239,70 +250,62 @@ export default function StaffInventoryPage() {
 
   const staffMembers = Array.from(new Set(items.map(item => item.assignedStaff).filter(Boolean)));
 
+  const handleExportCsv = () => {
+    alert('CSVエクスポート機能は現在開発中です。');
+  };
+  
+  const handleEditItem = () => {
+    alert('商品詳細を保存しました。');
+    setIsEditModalOpen(false);
+  };
+  
+  const handleMoveItem = () => {
+    alert('ロケーションを移動しました。');
+    setIsMoveModalOpen(false);
+  };
+
+  if (loading) {
+    return <div>読み込み中...</div>;
+  }
+
   return (
     <DashboardLayout userType="staff">
       <div className="space-y-6">
         {/* Header */}
-        <div className="intelligence-card europe">
-          <div className="p-8">
+        <div className="intelligence-card global">
+          <div className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
                   スタッフ在庫管理
                 </h1>
                 <p className="mt-1 text-sm text-nexus-text-secondary">
-                  {filteredItems.length}件の商品が表示されています（詳細管理）
+                  倉庫内の全在庫を管理・操作
                 </p>
               </div>
               <div className="flex space-x-3">
-                <div className="flex rounded-lg bg-nexus-bg-secondary p-1">
-                  <button
-                    onClick={() => setViewMode('card')}
-                    className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                      viewMode === 'card'
-                        ? 'bg-nexus-bg-primary text-nexus-yellow shadow-sm'
-                        : 'text-nexus-text-secondary hover:text-nexus-text-primary'
-                    }`}
-                  >
-                    カード
-                  </button>
-                  <button
-                    onClick={() => setViewMode('table')}
-                    className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                      viewMode === 'table'
-                        ? 'bg-nexus-bg-primary text-nexus-yellow shadow-sm'
-                        : 'text-nexus-text-secondary hover:text-nexus-text-primary'
-                    }`}
-                  >
-                    テーブル
-                  </button>
-                </div>
-                <button 
-                  onClick={handleBulkQRPrint}
+                <button
+                  onClick={() => setIsEditModalOpen(true)}
+                  disabled={selectedItems.length === 0}
                   className="nexus-button"
                 >
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V6a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1zm12 0h2a1 1 0 001-1V6a1 1 0 00-1-1h-2a1 1 0 00-1 1v1a1 1 0 001 1zM5 20h2a1 1 0 001-1v-1a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1z" />
-                  </svg>
-                  QRコード印刷
+                  <PencilIcon className="w-5 h-5 mr-2" />
+                  商品詳細を編集
                 </button>
-                <button 
-                  onClick={handleBulkMove}
+                <button
+                  onClick={() => setIsMoveModalOpen(true)}
+                  disabled={selectedItems.length === 0}
                   className="nexus-button"
                 >
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                  </svg>
-                  一括移動
+                  <ArrowsRightLeftIcon className="w-5 h-5 mr-2" />
+                  ロケーション移動
                 </button>
-                <button 
-                  onClick={() => alert('バーコードスキャン機能（デモ版では利用できません）')}
+                <button
+                  onClick={handleExportCsv}
                   className="nexus-button primary"
                 >
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V6a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1zm12 0h2a1 1 0 001-1V6a1 1 0 00-1-1h-2a1 1 0 00-1 1v1a1 1 0 001 1zM5 20h2a1 1 0 001-1v-1a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1z" />
-                  </svg>
-                  バーコードスキャン
+                  <ArrowDownTrayIcon className="w-5 h-5 mr-2" />
+                  CSVエクスポート
                 </button>
               </div>
             </div>
@@ -484,7 +487,10 @@ export default function StaffInventoryPage() {
 
                     <div className="flex space-x-2">
                       <button 
-                        onClick={() => alert(`詳細情報\n商品: ${item.name}\nSKU: ${item.sku}\n状態: ${item.condition}\n備考: ${item.notes || 'なし'}`)}
+                        onClick={() => {
+                          setSelectedItem(item);
+                          setIsDetailModalOpen(true);
+                        }}
                         className="nexus-button primary flex-1 text-sm"
                       >
                         詳細
@@ -578,7 +584,10 @@ export default function StaffInventoryPage() {
                         <td className="text-right">
                           <div className="flex justify-end space-x-2">
                             <button 
-                              onClick={() => alert(`詳細情報\n商品: ${item.name}\nSKU: ${item.sku}\n状態: ${item.condition}\n備考: ${item.notes || 'なし'}`)}
+                              onClick={() => {
+                                setSelectedItem(item);
+                                setIsDetailModalOpen(true);
+                              }}
                               className="nexus-button text-xs"
                             >
                               詳細
@@ -628,6 +637,53 @@ export default function StaffInventoryPage() {
           itemName={selectedItem?.name || ''}
           itemSku={selectedItem?.sku || ''}
         />
+
+        {/* Item Detail Modal */}
+        <ItemDetailModal
+          isOpen={isDetailModalOpen}
+          onClose={() => setIsDetailModalOpen(false)}
+          item={selectedItem}
+          onEdit={(item) => {
+            setIsDetailModalOpen(false);
+            setIsEditModalOpen(true);
+          }}
+          onMove={(item) => {
+            setIsDetailModalOpen(false);
+            setIsMoveModalOpen(true);
+          }}
+          onGenerateQR={(item) => {
+            setIsDetailModalOpen(false);
+            setIsQRModalOpen(true);
+          }}
+        />
+
+        {/* Edit Modal */}
+        {isEditModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
+              <h2 className="text-lg font-bold mb-4">商品詳細を編集</h2>
+              {/* TODO: 編集フォームを実装 */}
+              <div className="text-right mt-6">
+                <button onClick={() => setIsEditModalOpen(false)} className="nexus-button mr-2">キャンセル</button>
+                <button onClick={handleEditItem} className="nexus-button primary">保存</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Move Modal */}
+        {isMoveModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
+              <h2 className="text-lg font-bold mb-4">ロケーション移動</h2>
+              {/* TODO: 移動フォームを実装 */}
+              <div className="text-right mt-6">
+                <button onClick={() => setIsMoveModalOpen(false)} className="nexus-button mr-2">キャンセル</button>
+                <button onClick={handleMoveItem} className="nexus-button primary">移動</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

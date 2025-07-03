@@ -4,6 +4,13 @@ import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import BarcodeScanner from '../../components/BarcodeScanner';
 import PackingInstructions from '@/app/components/features/shipping/PackingInstructions';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  TruckIcon,
+  ArchiveBoxIcon,
+} from '@heroicons/react/24/outline';
+import CarrierSettingsModal from '@/app/components/modals/CarrierSettingsModal';
+import PackingMaterialsModal from '@/app/components/modals/PackingMaterialsModal';
 
 interface ShippingItem {
   id: string;
@@ -28,6 +35,20 @@ export default function StaffShippingPage() {
   const [isBarcodeScannerOpen, setIsBarcodeScannerOpen] = useState(false);
   const [scannedItems, setScannedItems] = useState<string[]>([]);
   const [selectedPackingItem, setSelectedPackingItem] = useState<ShippingItem | null>(null);
+  const [shippingData, setShippingData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [isMaterialsModalOpen, setIsMaterialsModalOpen] = useState(false);
+  const [isCarrierModalOpen, setIsCarrierModalOpen] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    fetch('/api/shipping')
+      .then(res => res.json())
+      .then(data => {
+        setShippingData(data);
+        setLoading(false);
+      });
+  }, []);
 
   useEffect(() => {
     // モックデータを直接設定してロード時間を短縮
@@ -187,6 +208,49 @@ export default function StaffShippingPage() {
     }
   };
 
+  const handleCarrierSettings = () => {
+    setIsCarrierModalOpen(true);
+  };
+
+  const handleMaterialsCheck = () => {
+    setIsMaterialsModalOpen(true);
+  };
+
+  const handleCarrierSave = (settings: any) => {
+    console.log('配送業者設定保存:', settings);
+    fetch('/api/shipping', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'updateCarrierSettings', data: settings })
+    })
+    .then(res => res.json())
+    .then(data => {
+      alert('配送業者設定を保存しました');
+    })
+    .catch(err => {
+      console.error('設定保存エラー:', err);
+      alert('設定の保存に失敗しました');
+    });
+  };
+
+  const handleMaterialsOrder = (materials: any[]) => {
+    console.log('梱包資材発注:', materials);
+    fetch('/api/shipping', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'checkMaterials', data: materials })
+    })
+    .then(res => res.json())
+    .then(data => {
+      const totalCost = materials.reduce((sum, item) => sum + (item.orderQuantity * item.price), 0);
+      alert(`梱包資材を発注しました (合計: ¥${totalCost.toLocaleString()})`);
+    })
+    .catch(err => {
+      console.error('発注エラー:', err);
+      alert('発注処理に失敗しました');
+    });
+  };
+
   const stats = {
     total: filteredItems.length,
     pendingInspection: filteredItems.filter(i => i.status === 'pending_inspection').length,
@@ -194,57 +258,58 @@ export default function StaffShippingPage() {
     urgent: filteredItems.filter(i => i.priority === 'urgent' && i.status !== 'delivered').length,
   };
 
+  if (loading) {
+    return <div>読み込み中...</div>;
+  }
+
   return (
     <DashboardLayout userType="staff">
       <div className="space-y-6">
         {/* Header */}
-        <div className="intelligence-card oceania">
-          <div className="p-3 sm:p-4 md:p-6 lg:p-8">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
-              <div className="flex-1">
-                <h1 className="text-2xl sm:text-3xl font-display font-bold text-nexus-text-primary">
-                  検品・出荷管理
+        <div className="intelligence-card global">
+          <div className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
+                  出荷管理
                 </h1>
-                <p className="mt-1 text-xs sm:text-sm text-nexus-text-secondary">
-                  商品検品から出荷までの一括管理
+                <p className="mt-1 text-sm text-nexus-text-secondary">
+                  出荷待ち商品のピッキングと梱包
                 </p>
               </div>
-              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
-                <button 
-                  onClick={() => handlePrintLabel()}
-                  className="nexus-button text-xs sm:text-sm"
+              <div className="flex space-x-3">
+                <button
+                  onClick={handleCarrierSettings}
+                  className="nexus-button"
                 >
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H9.5a2 2 0 01-2-2V5a2 2 0 00-2-2H4a2 2 0 00-2 2v6a2 2 0 002 2h2.5" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m15 12-3-3-3 3" />
-                  </svg>
-                  <span className="hidden sm:inline">配送ラベル印刷</span>
-                  <span className="sm:hidden">ラベル印刷</span>
+                  <TruckIcon className="w-5 h-5 mr-2" />
+                  配送業者設定
                 </button>
-                <button 
-                  onClick={() => alert('一括処理機能（デモ版では利用できません）')}
-                  className="nexus-button text-xs sm:text-sm"
+                <button
+                  onClick={handleMaterialsCheck}
+                  className="nexus-button primary"
                 >
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
-                  <span className="hidden sm:inline">一括処理</span>
-                  <span className="sm:hidden">一括</span>
-                </button>
-                <button 
-                  onClick={() => setIsBarcodeScannerOpen(true)}
-                  className="nexus-button primary text-xs sm:text-sm"
-                >
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V6a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1zm12 0h2a1 1 0 001-1V6a1 1 0 00-1-1h-2a1 1 0 00-1 1v1a1 1 0 001 1zM5 20h2a1 1 0 001-1v-1a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1z" />
-                  </svg>
-                  <span className="hidden sm:inline">バーコードスキャン</span>
-                  <span className="sm:hidden">スキャン</span>
+                  <ArchiveBoxIcon className="w-5 h-5 mr-2" />
+                  梱包資材確認
                 </button>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Carrier Settings Modal */}
+        <CarrierSettingsModal
+          isOpen={isCarrierModalOpen}
+          onClose={() => setIsCarrierModalOpen(false)}
+          onSave={handleCarrierSave}
+        />
+
+        {/* Packing Materials Modal */}
+        <PackingMaterialsModal
+          isOpen={isMaterialsModalOpen}
+          onClose={() => setIsMaterialsModalOpen(false)}
+          onOrder={handleMaterialsOrder}
+        />
 
         {/* Stats Cards */}
         <div className="intelligence-metrics">

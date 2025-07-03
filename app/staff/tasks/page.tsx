@@ -4,6 +4,10 @@ import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import TaskDetailModal from '../../components/TaskDetailModal';
 import EditModal from '../../components/EditModal';
 import { useState, useEffect } from 'react';
+import {
+  FunnelIcon,
+  UsersIcon,
+} from '@heroicons/react/24/outline';
 
 interface Task {
   id: string;
@@ -29,6 +33,9 @@ export default function StaffTasksPage() {
   const [selectedTask, setSelectedTask] = useState<any>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [isBulkAssignModalOpen, setIsBulkAssignModalOpen] = useState(false);
 
   // デモデータ
   useEffect(() => {
@@ -118,6 +125,7 @@ export default function StaffTasksPage() {
       },
     ];
     setTasks(demoTasks);
+    setLoading(false);
   }, []);
 
   const filteredTasks = tasks.filter(task => {
@@ -230,6 +238,20 @@ export default function StaffTasksPage() {
     // Implementation
   };
 
+  const handleApplyFilter = () => {
+    alert('フィルターを適用しました。');
+    setIsFilterModalOpen(false);
+  };
+  
+  const handleBulkAssign = () => {
+    alert('タスクを一括で割り当てました。');
+    setIsBulkAssignModalOpen(false);
+  };
+
+  if (loading) {
+    return <div>読み込み中...</div>;
+  }
+
   return (
     <DashboardLayout userType="staff">
       <div className="space-y-6">
@@ -260,6 +282,20 @@ export default function StaffTasksPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
                   新規タスク作成
+                </button>
+                <button
+                  onClick={() => setIsFilterModalOpen(true)}
+                  className="nexus-button"
+                >
+                  <FunnelIcon className="w-5 h-5 mr-2" />
+                  フィルター設定
+                </button>
+                <button
+                  onClick={() => setIsBulkAssignModalOpen(true)}
+                  className="nexus-button primary"
+                >
+                  <UsersIcon className="w-5 h-5 mr-2" />
+                  タスク一括割当
                 </button>
               </div>
             </div>
@@ -611,6 +647,34 @@ export default function StaffTasksPage() {
           title={selectedTask?.title || ''}
           data={selectedTask || {}}
         />
+
+        {/* Filter Modal */}
+        {isFilterModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
+              <h2 className="text-lg font-bold mb-4">フィルター設定</h2>
+              {/* TODO: フィルターフォームを実装 */}
+              <div className="text-right mt-6">
+                <button onClick={() => setIsFilterModalOpen(false)} className="nexus-button mr-2">キャンセル</button>
+                <button onClick={handleApplyFilter} className="nexus-button primary">適用</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Bulk Assign Modal */}
+        {isBulkAssignModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
+              <h2 className="text-lg font-bold mb-4">タスク一括割当</h2>
+              {/* TODO: 割当フォームを実装 */}
+              <div className="text-right mt-6">
+                <button onClick={() => setIsBulkAssignModalOpen(false)} className="nexus-button mr-2">キャンセル</button>
+                <button onClick={handleBulkAssign} className="nexus-button primary">割当</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

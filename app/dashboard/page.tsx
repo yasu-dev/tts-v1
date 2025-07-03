@@ -1,61 +1,111 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import DashboardLayout from '../components/layouts/DashboardLayout';
 import InventorySummary from '../components/features/InventorySummary';
-import { useState } from 'react';
+import { AreaChart, Card, Title } from '@tremor/react';
+import {
+  ClockIcon,
+  ArchiveBoxIcon,
+  BanknotesIcon,
+  ScaleIcon,
+  TruckIcon,
+  ArrowPathIcon,
+} from '@heroicons/react/24/outline';
+import { DateRangePicker } from 'react-date-range';
+import 'react-date-range/dist/styles.css';
+import 'react-date-range/dist/theme/default.css';
 
 export default function DashboardPage() {
-  const [dashboardData] = useState({
-    globalRevenue: 48470000,
-    activeExports: 2386,
-    inventoryEfficiency: 94.2,
-    marketExpansionRate: 126,
-  });
-
-  const [orders] = useState([
-    { id: 'WD-2024-0847', customer: 'NEXUS Global Trading', seller: 'APEX Industries', certification: 'ELITE', items: 156, value: '¥2,847,300', status: 'optimal', region: '北米' },
-    { id: 'WD-2024-0846', customer: 'EuroTech Solutions', seller: 'Quantum Exports', certification: 'PREMIUM', items: 89, value: '¥1,234,500', status: 'monitoring', region: '欧州' },
-    { id: 'WD-2024-0845', customer: 'AsiaLink Corp', seller: 'Global Dynamics', certification: 'GLOBAL', items: 234, value: '¥3,456,700', status: 'optimal', region: 'アジア' },
+  const [loading, setLoading] = useState(true);
+  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [dateRange, setDateRange] = useState([
+    {
+      startDate: new Date(),
+      endDate: new Date(),
+      key: 'selection'
+    }
   ]);
+
+  useEffect(() => {
+    fetch('/api/dashboard')
+      .then((res) => res.json())
+      .then((data) => {
+        setDashboardData(data);
+        setLoading(false);
+      });
+  }, []);
+
+  const handleDownloadReport = () => {
+    // TODO: CSVエクスポート機能を実装
+    alert('レポートのダウンロード機能は現在開発中です。');
+  };
+
+  if (loading) {
+    return <div>読み込み中...</div>;
+  }
 
   return (
     <DashboardLayout userType="seller">
-      <div className="space-y-4">
-        {/* Page Header - Intelligence Card Style */}
+      <div className="space-y-6">
+        {/* Header */}
         <div className="intelligence-card global">
-          <div className="p-3 sm:p-4 md:p-6 lg:p-8">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
-              <div className="flex-1">
-                <h1 className="text-2xl sm:text-3xl font-display font-bold text-nexus-text-primary mb-1">ダッシュボード</h1>
-                <h2 className="text-sm sm:text-base font-bold text-nexus-text-primary flex items-center gap-2">
-                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2h8a2 2 0 002-2v-1a2 2 0 012-2h1.945M7.737 11l-.56-5.602A2 2 0 019.155 3h5.69a2 2 0 011.978 2.398L16.263 11m-8.526 0l-1.42 7.087A2 2 0 007.294 21h9.412a2 2 0 001.978-2.913L16.263 11"></path>
-                  </svg>
-                  グローバル統合ビュー
-                </h2>
-                <p className="text-nexus-text-secondary mt-2 text-xs sm:text-sm">
-                  全体の業績と主要指標を一目で確認
+          <div className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
+                  セラーダッシュボード
+                </h1>
+                <p className="mt-1 text-sm text-nexus-text-secondary">
+                  販売実績と在庫状況の概要
                 </p>
               </div>
-              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                <button className="nexus-button primary text-xs px-2.5 py-1">
-                  <svg className="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+              <div className="flex space-x-3">
+                <button 
+                  onClick={() => setIsDatePickerOpen(true)}
+                  className="nexus-button"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
-                  <span className="hidden sm:inline">新規輸出</span>
-                  <span className="sm:hidden">新規</span>
+                  レポート期間を選択
                 </button>
-                <button className="nexus-button text-xs px-2.5 py-1">
-                  <svg className="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                <button
+                  onClick={handleDownloadReport}
+                  className="nexus-button primary"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
-                  <span className="hidden sm:inline">レポート出力</span>
-                  <span className="sm:hidden">レポート</span>
+                  レポートをダウンロード
                 </button>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Date Picker Modal */}
+        {isDatePickerOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+            <div className="bg-white p-4 rounded-lg shadow-xl">
+              <DateRangePicker
+                onChange={(item: any) => setDateRange([item.selection])}
+                ranges={dateRange}
+                months={2}
+                direction="horizontal"
+              />
+              <div className="text-right mt-2">
+                <button
+                  onClick={() => setIsDatePickerOpen(false)}
+                  className="nexus-button"
+                >
+                  閉じる
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Real-time Inventory Summary */}
         <InventorySummary />
@@ -74,7 +124,7 @@ export default function DashboardPage() {
                   <span className="status-badge success text-[10px] px-1.5 py-0.5">+12.5%</span>
                 </div>
                 <div className="metric-value font-display text-xl font-bold text-nexus-text-primary">
-                  ¥{dashboardData.globalRevenue.toLocaleString()}
+                  ¥{dashboardData?.globalRevenue?.toLocaleString() || '0'}
                 </div>
                 <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
                   グローバル収益
@@ -93,7 +143,7 @@ export default function DashboardPage() {
                   <span className="status-badge info text-[10px] px-1.5 py-0.5">アクティブ</span>
                 </div>
                 <div className="metric-value font-display text-xl font-bold text-nexus-text-primary">
-                  {dashboardData.activeExports.toLocaleString()}
+                  {dashboardData?.activeExports?.toLocaleString() || '0'}
                 </div>
                 <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
                   アクティブ輸出
@@ -112,7 +162,7 @@ export default function DashboardPage() {
                   <span className="status-badge success text-[10px] px-1.5 py-0.5">最適</span>
                 </div>
                 <div className="metric-value font-display text-xl font-bold text-nexus-text-primary">
-                  {dashboardData.inventoryEfficiency}%
+                  {dashboardData?.inventoryEfficiency || '0'}%
                 </div>
                 <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
                   在庫効率
@@ -131,7 +181,7 @@ export default function DashboardPage() {
                   <span className="status-badge warning text-[10px] px-1.5 py-0.5">急成長</span>
                 </div>
                 <div className="metric-value font-display text-xl font-bold text-nexus-text-primary">
-                  {dashboardData.marketExpansionRate}%
+                  {dashboardData?.marketExpansionRate || '0'}%
                 </div>
                 <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
                   市場拡大率
@@ -165,7 +215,7 @@ export default function DashboardPage() {
                     </tr>
                   </thead>
                   <tbody className="holo-body">
-                    {orders.map((order) => (
+                    {dashboardData?.orders?.map((order: any) => (
                       <tr key={order.id} className="holo-row">
                         <td className="font-mono text-nexus-text-primary py-1.5 px-1 sm:px-2 md:px-2.5 text-xs">{order.id}</td>
                         <td className="font-medium py-1.5 px-1 sm:px-2 md:px-2.5 text-xs">{order.customer}</td>
@@ -187,7 +237,7 @@ export default function DashboardPage() {
                         </td>
                         <td className="py-1.5 px-1 sm:px-2 md:px-2.5 text-xs">{order.region}</td>
                       </tr>
-                    ))}
+                    )) || []}
                   </tbody>
                 </table>
               </div>

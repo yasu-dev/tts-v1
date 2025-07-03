@@ -31,11 +31,75 @@ export default function QRCodeModal({ isOpen, onClose, itemId, itemName, itemSku
   };
 
   const handlePrint = () => {
-    alert('デモ版では印刷機能は利用できません');
+    const printContent = `
+      QRコード印刷
+      
+      商品名: ${itemName}
+      SKU: ${itemSku}
+      QRコード: ${JSON.stringify(qrData, null, 2)}
+      印刷日時: ${new Date().toLocaleString('ja-JP')}
+    `;
+    
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head><title>QRコード - ${itemName}</title></head>
+          <body style="font-family: Arial, sans-serif; padding: 20px;">
+            <div style="text-align: center;">
+              <h2>QRコード</h2>
+              <p>${itemName} (${itemSku})</p>
+              <div style="margin: 20px 0;">
+                <div style="width: 256px; height: 256px; margin: 0 auto; border: 2px solid #000; display: flex; align-items: center; justify-content: center;">
+                  QRコード画像
+                </div>
+              </div>
+              <pre style="font-size: 12px; text-align: left;">${JSON.stringify(qrData, null, 2)}</pre>
+            </div>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
   };
 
   const handleDownload = () => {
-    alert('デモ版ではダウンロード機能は利用できません');
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const size = qrSizes[qrSize].size;
+    
+    canvas.width = size;
+    canvas.height = size;
+    
+    if (ctx) {
+      // 白い背景
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, size, size);
+      
+      // 黒いパターン（デモ用）
+      ctx.fillStyle = 'black';
+      const patternSize = size / 16;
+      for (let i = 0; i < 16; i++) {
+        for (let j = 0; j < 16; j++) {
+          if ((i + j) % 2 === 0) {
+            ctx.fillRect(i * patternSize, j * patternSize, patternSize, patternSize);
+          }
+        }
+      }
+      
+      // ダウンロード
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `qrcode_${itemSku}_${Date.now()}.png`;
+          link.click();
+          URL.revokeObjectURL(url);
+        }
+      });
+    }
   };
 
   const handleCopyData = () => {

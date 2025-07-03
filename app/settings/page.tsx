@@ -71,8 +71,8 @@ export default function SettingsPage() {
     }
   };
 
-  const handleSave = () => {
-    alert('設定を保存しました');
+  const handleSave = (settingName: string) => {
+    alert(`${settingName}の設定を保存しました。`);
   };
 
   if (!settings) {
@@ -96,7 +96,7 @@ export default function SettingsPage() {
               </div>
               <div className="flex space-x-3">
                 <button
-                  onClick={handleSave}
+                  onClick={() => handleSave('設定')}
                   className="nexus-button primary"
                 >
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -176,6 +176,9 @@ export default function SettingsPage() {
                   </select>
                 </div>
               </div>
+              <div className="text-right mt-6">
+                <button onClick={() => handleSave('表示')} className="nexus-button primary">保存</button>
+              </div>
             </div>
           </div>
 
@@ -232,6 +235,9 @@ export default function SettingsPage() {
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
+              </div>
+              <div className="text-right mt-6">
+                <button onClick={() => handleSave('通知')} className="nexus-button primary">保存</button>
               </div>
             </div>
           </div>

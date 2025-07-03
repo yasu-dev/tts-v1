@@ -1,7 +1,14 @@
 'use client';
 
 import DashboardLayout from '../components/layouts/DashboardLayout';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import {
+  ArchiveBoxIcon,
+  PlusIcon,
+  ArrowUpTrayIcon,
+  ArrowDownTrayIcon,
+} from '@heroicons/react/24/outline';
+import ProductRegistrationModal from '../components/modals/ProductRegistrationModal';
 
 export default function InventoryPage() {
   const [inventoryStats] = useState({
@@ -17,6 +24,87 @@ export default function InventoryPage() {
     { id: 2, name: 'Sony FE 24-70mm f/2.8 GM', sku: 'TWD-20240115-002', category: 'レンズ', status: '検品中', location: 'B-02-05', value: 280000, certifications: ['PREMIUM'] },
     { id: 3, name: 'Rolex Submariner', sku: 'TWD-20240115-003', category: '時計', status: '保管中', location: 'C-01-01', value: 1200000, certifications: ['CERTIFIED', 'LUXURY', 'RARE'] },
   ]);
+
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [isNewItemModalOpen, setIsNewItemModalOpen] = useState(false);
+  const [isCsvImportModalOpen, setIsCsvImportModalOpen] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/inventory')
+      .then((res) => res.json())
+      .then((data) => {
+        setItems(data.items);
+        setLoading(false);
+      });
+  }, []);
+
+  const handleExportCsv = () => {
+    // 在庫データをCSV形式で生成
+    const csvData = [
+      ['商品名', 'SKU', 'カテゴリ', 'ステータス', '保管場所', '価値', '認証'],
+      ...inventory.map(item => [
+        item.name,
+        item.sku,
+        item.category,
+        item.status,
+        item.location,
+        item.value.toLocaleString(),
+        item.certifications.join('|')
+      ])
+    ];
+
+    const csvContent = csvData.map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `inventory_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+  };
+
+  const handleRegisterItem = (productData: any) => {
+    console.log('新規商品登録:', productData);
+    
+    // APIに送信
+    fetch('/api/inventory', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(productData)
+    })
+    .then(res => res.json())
+    .then(data => {
+      alert(`商品を登録しました: ${productData.name}`);
+      // データを再取得
+      window.location.reload();
+    })
+    .catch(err => {
+      console.error('商品登録エラー:', err);
+      alert('商品の登録に失敗しました');
+    });
+  };
+
+  const handleImportCsv = (file: File) => {
+    const formData = new FormData();
+    formData.append('csvFile', file);
+    
+    fetch('/api/inventory/import', {
+      method: 'POST',
+      body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+      alert(`CSVインポートが完了しました: ${data.importedCount}件の商品を追加`);
+      window.location.reload();
+    })
+    .catch(err => {
+      console.error('CSVインポートエラー:', err);
+      alert('CSVインポートに失敗しました');
+    });
+  };
+
+  if (loading) {
+    return <div>読み込み中...</div>;
+  }
 
   return (
     <DashboardLayout userType="seller">
@@ -38,24 +126,64 @@ export default function InventoryPage() {
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
-                <button className="nexus-button primary text-xs sm:text-sm">
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                  </svg>
-                  <span className="hidden sm:inline">一括出品</span>
-                  <span className="sm:hidden">出品</span>
+                <button 
+                  onClick={() => setIsNewItemModalOpen(true)}
+                  className="nexus-button primary text-xs sm:text-sm"
+                >
+                  <PlusIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">新規商品登録</span>
                 </button>
-                <button className="nexus-button text-xs sm:text-sm">
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                  </svg>
-                  <span className="hidden sm:inline">検品依頼</span>
-                  <span className="sm:hidden">検品</span>
+                <button
+                  onClick={() => setIsCsvImportModalOpen(true)}
+                  className="nexus-button text-xs sm:text-sm"
+                >
+                  <ArrowUpTrayIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">CSVインポート</span>
+                </button>
+                <button
+                  onClick={handleExportCsv}
+                  className="nexus-button text-xs sm:text-sm"
+                >
+                  <ArrowDownTrayIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">CSVエクスポート</span>
                 </button>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Product Registration Modal */}
+        <ProductRegistrationModal
+          isOpen={isNewItemModalOpen}
+          onClose={() => setIsNewItemModalOpen(false)}
+          onSubmit={handleRegisterItem}
+        />
+
+        {/* CSV Import Modal */}
+        {isCsvImportModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
+              <h2 className="text-lg font-bold mb-4">CSVインポート</h2>
+              <div className="mb-4">
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      handleImportCsv(file);
+                      setIsCsvImportModalOpen(false);
+                    }
+                  }}
+                  className="w-full border border-gray-300 rounded px-3 py-2"
+                />
+              </div>
+              <div className="text-right mt-6">
+                <button onClick={() => setIsCsvImportModalOpen(false)} className="nexus-button">キャンセル</button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Stats Overview - Intelligence Metrics Style */}
         <div className="intelligence-metrics">

@@ -1,7 +1,13 @@
 'use client';
 
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
+import TaskCreationModal from '@/app/components/modals/TaskCreationModal';
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  DocumentTextIcon,
+  PlusIcon,
+} from '@heroicons/react/24/outline';
 
 interface StaffTask {
   id: string;
@@ -48,6 +54,9 @@ export default function StaffDashboard() {
   const [filter, setFilter] = useState<'all' | 'urgent' | 'normal' | 'high' | 'medium' | 'low'>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'inspection' | 'photography' | 'shipping' | 'returns'>('all');
   const timelineRef = useRef<HTMLDivElement>(null);
+  const [loading, setLoading] = useState(true);
+  const [isNewTaskModalOpen, setIsNewTaskModalOpen] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     // Load staff data from API
@@ -55,6 +64,7 @@ export default function StaffDashboard() {
       .then(res => res.json())
       .then((data: StaffData) => {
         setStaffData(data);
+        setLoading(false);
       })
       .catch(console.error);
   }, []);
@@ -183,7 +193,32 @@ export default function StaffDashboard() {
     { key: 'returns', label: '返品', icon: '' },
   ];
 
-  if (!staffData) {
+  const handleCreateTask = () => {
+    setIsNewTaskModalOpen(true);
+  };
+
+  const handleTaskSubmit = (taskData: any) => {
+    console.log('新規タスク作成:', taskData);
+    // APIに送信
+    fetch('/api/staff/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(taskData)
+    })
+    .then(res => res.json())
+    .then(data => {
+      alert(`タスクを作成しました: ${taskData.title}`);
+      setIsNewTaskModalOpen(false);
+             // データを再取得
+       window.location.reload();
+    })
+    .catch(err => {
+      console.error('タスク作成エラー:', err);
+      alert('タスクの作成に失敗しました');
+    });
+  };
+
+  if (loading) {
     return (
       <DashboardLayout userType="staff">
         <div className="space-y-6">
@@ -210,7 +245,7 @@ export default function StaffDashboard() {
       <div className="space-y-6">
         {/* Header */}
         <div className="intelligence-card global">
-          <div className="p-8">
+          <div className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
@@ -221,22 +256,30 @@ export default function StaffDashboard() {
                 </p>
               </div>
               <div className="flex space-x-3">
-                <button className="nexus-button">
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
+                <button
+                  onClick={() => router.push('/staff/reports')}
+                  className="nexus-button"
+                >
+                  <DocumentTextIcon className="w-5 h-5 mr-2" />
                   レポート出力
                 </button>
-                <button className="nexus-button primary">
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
+                <button 
+                  onClick={() => setIsNewTaskModalOpen(true)}
+                  className="nexus-button primary">
+                  <PlusIcon className="w-5 h-5 mr-2" />
                   新規タスク作成
                 </button>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Task Creation Modal */}
+        <TaskCreationModal
+          isOpen={isNewTaskModalOpen}
+          onClose={() => setIsNewTaskModalOpen(false)}
+          onSubmit={handleTaskSubmit}
+        />
 
         {/* Stats Cards */}
         <div className="intelligence-metrics">

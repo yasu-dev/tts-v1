@@ -1,58 +1,86 @@
 'use client';
 
-import DashboardLayout from '../components/layouts/DashboardLayout';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import DashboardLayout from '@/app/components/layouts/DashboardLayout';
+import {
+  Cog6ToothIcon,
+  TicketIcon,
+} from '@heroicons/react/24/outline';
 
 export default function SalesPage() {
-  const [salesData] = useState({
-    todaySales: 456789,
-    monthSales: 12456789,
-    totalOrders: 45,
-    avgOrderValue: 276817,
-  });
+  const [salesData, setSalesData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const router = useRouter();
 
-  const [orders] = useState([
-    { id: 1, product: 'Canon EOS R5', buyer: 'user123', price: 450000, status: '受注', date: '2024-01-15' },
-    { id: 2, product: 'Sony FE 24-70mm', buyer: 'camera_lover', price: 280000, status: '出荷済', date: '2024-01-14' },
-    { id: 3, product: 'Rolex Submariner', buyer: 'watch_collector', price: 1200000, status: '配送中', date: '2024-01-13' },
-  ]);
+  useEffect(() => {
+    fetch('/api/sales')
+      .then((res) => res.json())
+      .then((data) => {
+        setSalesData(data);
+        setLoading(false);
+      });
+  }, []);
+  
+  const handleSaveSettings = () => {
+    // TODO: 出品設定の保存機能を実装
+    alert('出品設定を保存しました。');
+    setIsSettingsModalOpen(false);
+  };
+
+  if (loading) {
+    return <div>読み込み中...</div>;
+  }
 
   return (
     <DashboardLayout userType="seller">
-      <div className="space-y-8">
-        {/* Page Header - Intelligence Card Style */}
-        <div className="intelligence-card asia">
-          <div className="p-8">
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="intelligence-card global">
+          <div className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-display font-bold text-nexus-text-primary mb-2">販売管理</h1>
-                <h2 className="text-xl font-bold text-nexus-text-primary flex items-center gap-3">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-                  </svg>
-                  売上・受注管理
-                </h2>
-                <p className="text-nexus-text-secondary mt-1">
-                  受注状況と売上を管理します
+                <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
+                  販売管理
+                </h1>
+                <p className="mt-1 text-sm text-nexus-text-secondary">
+                  出品状況と販売パフォーマンスを管理
                 </p>
               </div>
-              <div className="flex gap-4">
-                <button className="nexus-button primary">
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                  </svg>
-                  価格設定
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setIsSettingsModalOpen(true)}
+                  className="nexus-button"
+                >
+                  <Cog6ToothIcon className="w-5 h-5 mr-2" />
+                  出品設定
                 </button>
-                <button className="nexus-button">
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                  </svg>
-                  レポート出力
+                <button
+                  onClick={() => router.push('/promotions/create')}
+                  className="nexus-button primary"
+                >
+                  <TicketIcon className="w-5 h-5 mr-2" />
+                  プロモーション作成
                 </button>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Settings Modal */}
+        {isSettingsModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
+              <h2 className="text-lg font-bold mb-4">出品設定</h2>
+              {/* TODO: 出品設定フォームを実装 */}
+              <div className="text-right mt-6">
+                <button onClick={() => setIsSettingsModalOpen(false)} className="nexus-button mr-2">キャンセル</button>
+                <button onClick={handleSaveSettings} className="nexus-button primary">保存</button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Stats Overview - Intelligence Metrics Style */}
         <div className="intelligence-metrics">
@@ -68,7 +96,7 @@ export default function SalesPage() {
                   <span className="status-badge success">+23%</span>
                 </div>
                 <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
-                  ¥{salesData.todaySales.toLocaleString()}
+                  ¥{salesData?.totalSales?.toLocaleString() || '0'}
                 </div>
                 <div className="metric-label text-nexus-text-secondary font-medium mt-2">
                   本日の売上
@@ -87,7 +115,7 @@ export default function SalesPage() {
                   <span className="status-badge info">好調</span>
                 </div>
                 <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
-                  ¥{(salesData.monthSales / 10000).toLocaleString()}
+                  ¥{((salesData?.totalSales || 0) / 10000).toLocaleString()}
                   <span className="text-lg font-normal text-nexus-text-secondary ml-1">万</span>
                 </div>
                 <div className="metric-label text-nexus-text-secondary font-medium mt-2">
@@ -107,7 +135,7 @@ export default function SalesPage() {
                   <span className="text-xs font-bold text-nexus-yellow">注文</span>
                 </div>
                 <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
-                  {salesData.totalOrders}
+                  {salesData?.totalOrders || 0}
                   <span className="text-lg font-normal text-nexus-text-secondary ml-1">件</span>
                 </div>
                 <div className="metric-label text-nexus-text-secondary font-medium mt-2">
@@ -127,7 +155,7 @@ export default function SalesPage() {
                   <span className="status-badge success">高単価</span>
                 </div>
                 <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
-                  ¥{salesData.avgOrderValue.toLocaleString()}
+                  ¥{salesData?.averageOrderValue?.toLocaleString() || '0'}
                 </div>
                 <div className="metric-label text-nexus-text-secondary font-medium mt-2">
                   平均注文額
@@ -158,12 +186,12 @@ export default function SalesPage() {
                   </tr>
                 </thead>
                 <tbody className="holo-body">
-                  {orders.map((order) => (
+                  {(salesData?.recentOrders || []).map((order: any) => (
                     <tr key={order.id} className="holo-row">
                       <td className="font-mono text-nexus-text-primary">ORD-{String(order.id).padStart(6, '0')}</td>
                       <td className="font-medium text-nexus-text-primary">{order.product}</td>
-                      <td className="text-nexus-text-secondary">{order.buyer}</td>
-                      <td className="text-right font-display font-bold">¥{order.price.toLocaleString()}</td>
+                      <td className="text-nexus-text-secondary">{order.customer}</td>
+                      <td className="text-right font-display font-bold">¥{order.amount?.toLocaleString() || '0'}</td>
                       <td className="text-center">
                         <div className="flex items-center justify-center gap-2">
                           <div className={`status-orb status-${

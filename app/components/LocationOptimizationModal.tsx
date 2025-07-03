@@ -1,0 +1,175 @@
+'use client';
+
+import { useState } from 'react';
+import { XMarkIcon, SparklesIcon } from '@heroicons/react/24/outline';
+
+interface LocationOptimizationModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function LocationOptimizationModal({ isOpen, onClose }: LocationOptimizationModalProps) {
+  const [isOptimizing, setIsOptimizing] = useState(false);
+  const [optimizationResult, setOptimizationResult] = useState<any>(null);
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+
+  const demoItems = [
+    { id: '1', name: 'Canon EOS R5', currentLocation: 'A-1-001', suggestedLocation: 'A-2-003', reason: 'アクセス頻度が高い' },
+    { id: '2', name: 'Nikon D850', currentLocation: 'B-3-015', suggestedLocation: 'A-1-005', reason: 'カテゴリ統合' },
+    { id: '3', name: 'Sony α7R IV', currentLocation: 'C-2-008', suggestedLocation: 'A-2-001', reason: 'ピッキング効率向上' },
+  ];
+
+  const handleOptimize = async () => {
+    setIsOptimizing(true);
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    setOptimizationResult({
+      totalItems: demoItems.length,
+      optimizedItems: demoItems.length,
+      estimatedTimeSaving: '25%',
+      suggestions: demoItems
+    });
+    setIsOptimizing(false);
+  };
+
+  const handleApplyOptimization = async () => {
+    if (selectedItems.length === 0) {
+      alert('適用する商品を選択してください');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/location/optimize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: selectedItems })
+      });
+
+      if (response.ok) {
+        alert(`${selectedItems.length}件の商品ロケーションを最適化しました`);
+        onClose();
+        window.location.reload();
+      }
+    } catch (error) {
+      alert('ロケーション最適化に失敗しました');
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+        <div className="flex items-center justify-between p-6 border-b">
+          <div className="flex items-center">
+            <SparklesIcon className="w-8 h-8 text-purple-600 mr-3" />
+            <div>
+              <h2 className="text-xl font-bold">ロケーション最適化</h2>
+              <p className="text-sm text-gray-500">AI分析による最適な商品配置を提案</p>
+            </div>
+          </div>
+          <button onClick={onClose}>
+            <XMarkIcon className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+          {!optimizationResult ? (
+            <div className="text-center py-12">
+              {isOptimizing ? (
+                <div>
+                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mb-4"></div>
+                  <h3 className="text-lg font-semibold mb-2">最適化を実行中...</h3>
+                  <p className="text-gray-600">商品配置を分析しています。</p>
+                </div>
+              ) : (
+                <div>
+                  <SparklesIcon className="mx-auto h-16 w-16 text-purple-600 mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">ロケーション最適化を開始</h3>
+                  <p className="text-gray-600 mb-6">AI分析により、効率的な商品配置を提案します。</p>
+                  <button
+                    onClick={handleOptimize}
+                    className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg"
+                  >
+                    最適化を実行
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-green-900 mb-4">最適化結果</h3>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-green-600">{optimizationResult.totalItems}</p>
+                    <p className="text-sm text-green-700">分析対象商品</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-green-600">{optimizationResult.optimizedItems}</p>
+                    <p className="text-sm text-green-700">最適化提案</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-green-600">{optimizationResult.estimatedTimeSaving}</p>
+                    <p className="text-sm text-green-700">時間短縮</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold mb-4">最適化提案</h3>
+                <div className="space-y-3">
+                  {optimizationResult.suggestions.map((item: any) => (
+                    <div
+                      key={item.id}
+                      className={`p-4 border rounded-lg cursor-pointer ${
+                        selectedItems.includes(item.id) ? 'border-purple-500 bg-purple-50' : 'border-gray-200'
+                      }`}
+                      onClick={() => setSelectedItems(prev => 
+                        prev.includes(item.id) ? prev.filter(id => id !== item.id) : [...prev, item.id]
+                      )}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={selectedItems.includes(item.id)}
+                            className="h-4 w-4 text-purple-600 rounded mr-3"
+                          />
+                          <div>
+                            <h4 className="font-medium">{item.name}</h4>
+                            <p className="text-sm text-gray-600">{item.currentLocation} → {item.suggestedLocation}</p>
+                          </div>
+                        </div>
+                        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                          {item.reason}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-between p-6 border-t">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
+          >
+            閉じる
+          </button>
+          {optimizationResult && (
+            <button
+              onClick={handleApplyOptimization}
+              disabled={selectedItems.length === 0}
+              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg disabled:opacity-50"
+            >
+              選択した提案を適用 ({selectedItems.length})
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+} 

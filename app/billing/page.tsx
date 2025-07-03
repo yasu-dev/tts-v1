@@ -2,8 +2,15 @@
 
 import DashboardLayout from '../components/layouts/DashboardLayout';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  ArrowDownTrayIcon,
+  CreditCardIcon,
+} from '@heroicons/react/24/outline';
 
 export default function BillingPage() {
+  const router = useRouter();
+
   const [billingData] = useState({
     currentBalance: 2456789,
     pendingPayment: 456789,
@@ -26,6 +33,23 @@ export default function BillingPage() {
     taxAmount: 2279692,
   });
 
+  const handleExportHistory = () => {
+    // CSVエクスポート機能を実装
+    const csvData = transactions.map(t => 
+      `${t.date},${t.type},${t.description},${t.amount},${t.status}`
+    ).join('\n');
+    
+    const blob = new Blob([`日付,種別,詳細,金額,ステータス\n${csvData}`], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `支払履歴_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <DashboardLayout userType="seller">
       <div className="space-y-8">
@@ -46,17 +70,19 @@ export default function BillingPage() {
                 </p>
               </div>
               <div className="flex gap-4">
-                <button className="nexus-button primary">
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                  </svg>
-                  請求書発行
+                <button
+                  onClick={handleExportHistory}
+                  className="nexus-button"
+                >
+                  <ArrowDownTrayIcon className="w-5 h-5 mr-2" />
+                  支払履歴をエクスポート
                 </button>
-                <button className="nexus-button">
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                  </svg>
-                  明細ダウンロード
+                <button
+                  onClick={() => router.push('/settings/payment')}
+                  className="nexus-button primary"
+                >
+                  <CreditCardIcon className="w-5 h-5 mr-2" />
+                  支払い方法を登録
                 </button>
               </div>
             </div>
@@ -184,9 +210,15 @@ export default function BillingPage() {
                       </td>
                       <td className="text-center">
                         <div className="flex items-center justify-center gap-2">
-                          <div className={`status-orb status-${transaction.status === '完了' ? 'optimal' : 'monitoring'}`} />
+                          <div className={`status-orb status-${
+                            transaction.status === '確定' ? 'optimal' :
+                            transaction.status === '完了' ? 'success' :
+                            'monitoring'
+                          }`} />
                           <span className={`status-badge ${
-                            transaction.status === '完了' ? 'success' : 'info'
+                            transaction.status === '確定' ? 'success' :
+                            transaction.status === '完了' ? 'info' :
+                            'warning'
                           }`}>
                             {transaction.status}
                           </span>
@@ -205,84 +237,35 @@ export default function BillingPage() {
           <div className="p-8">
             <div className="mb-6">
               <h3 className="text-2xl font-display font-bold text-nexus-text-primary">月次レポート</h3>
-              <p className="text-nexus-text-secondary mt-1">2024年1月の売上サマリー</p>
+              <p className="text-nexus-text-secondary mt-1">今月の売上・手数料・税金の概要</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="p-6 bg-nexus-blue/10 rounded-xl border-3 border-nexus-blue/30">
-                <div className="text-nexus-blue text-sm font-medium mb-2">総売上高</div>
-                <div className="text-3xl font-display font-bold text-nexus-text-primary">
-                  ¥{(monthlyReport.totalSales / 10000).toLocaleString()}
-                  <span className="text-lg font-normal text-nexus-text-secondary ml-1">万</span>
+              <div className="bg-nexus-bg-secondary rounded-lg p-6 border border-nexus-border">
+                <div className="text-sm text-nexus-text-secondary mb-2">総売上</div>
+                <div className="text-2xl font-display font-bold text-nexus-text-primary">
+                  ¥{monthlyReport.totalSales.toLocaleString()}
                 </div>
               </div>
-
-              <div className="p-6 bg-nexus-yellow/10 rounded-xl border-3 border-nexus-yellow/30">
-                <div className="text-nexus-yellow text-sm font-medium mb-2">手数料合計</div>
-                <div className="text-3xl font-display font-bold text-nexus-text-primary">
-                  ¥{(monthlyReport.totalFees / 10000).toLocaleString()}
-                  <span className="text-lg font-normal text-nexus-text-secondary ml-1">万</span>
+              
+              <div className="bg-nexus-bg-secondary rounded-lg p-6 border border-nexus-border">
+                <div className="text-sm text-nexus-text-secondary mb-2">手数料</div>
+                <div className="text-2xl font-display font-bold text-nexus-red">
+                  -¥{monthlyReport.totalFees.toLocaleString()}
                 </div>
               </div>
-
-              <div className="p-6 bg-nexus-green/10 rounded-xl border-3 border-nexus-green/30">
-                <div className="text-nexus-green text-sm font-medium mb-2">純利益</div>
-                <div className="text-3xl font-display font-bold text-nexus-text-primary">
-                  ¥{(monthlyReport.netIncome / 10000).toLocaleString()}
-                  <span className="text-lg font-normal text-nexus-text-secondary ml-1">万</span>
+              
+              <div className="bg-nexus-bg-secondary rounded-lg p-6 border border-nexus-border">
+                <div className="text-sm text-nexus-text-secondary mb-2">純利益</div>
+                <div className="text-2xl font-display font-bold text-nexus-green">
+                  ¥{monthlyReport.netIncome.toLocaleString()}
                 </div>
               </div>
-
-              <div className="p-6 bg-nexus-purple/10 rounded-xl border-3 border-nexus-purple/30">
-                <div className="text-nexus-purple text-sm font-medium mb-2">消費税額</div>
-                <div className="text-3xl font-display font-bold text-nexus-text-primary">
-                  ¥{(monthlyReport.taxAmount / 10000).toLocaleString()}
-                  <span className="text-lg font-normal text-nexus-text-secondary ml-1">万</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Fee Structure - Intelligence Card Style */}
-        <div className="intelligence-card oceania">
-          <div className="p-8">
-            <h3 className="text-2xl font-display font-bold text-nexus-text-primary mb-6">手数料体系</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div>
-                <h4 className="font-display font-bold text-lg text-nexus-text-primary mb-4">基本手数料</h4>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center p-4 bg-nexus-cyan/10 rounded-xl border-2 border-nexus-cyan/20">
-                    <span className="text-nexus-text-primary font-medium">販売手数料</span>
-                    <span className="font-display font-bold text-nexus-cyan">8.5%</span>
-                  </div>
-                  <div className="flex justify-between items-center p-4 bg-nexus-cyan/10 rounded-xl border-2 border-nexus-cyan/20">
-                    <span className="text-nexus-text-primary font-medium">撮影手数料</span>
-                    <span className="font-display font-bold text-nexus-cyan">¥300/商品</span>
-                  </div>
-                  <div className="flex justify-between items-center p-4 bg-nexus-cyan/10 rounded-xl border-2 border-nexus-cyan/20">
-                    <span className="text-nexus-text-primary font-medium">保管手数料</span>
-                    <span className="font-display font-bold text-nexus-cyan">¥100/日</span>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-display font-bold text-lg text-nexus-text-primary mb-4">オプション手数料</h4>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center p-4 bg-nexus-purple/10 rounded-xl border-2 border-nexus-purple/20">
-                    <span className="text-nexus-text-primary font-medium">優先出品</span>
-                    <span className="font-display font-bold text-nexus-purple">¥500/商品</span>
-                  </div>
-                  <div className="flex justify-between items-center p-4 bg-nexus-purple/10 rounded-xl border-2 border-nexus-purple/20">
-                    <span className="text-nexus-text-primary font-medium">国際配送</span>
-                    <span className="font-display font-bold text-nexus-purple">¥800/件</span>
-                  </div>
-                  <div className="flex justify-between items-center p-4 bg-nexus-purple/10 rounded-xl border-2 border-nexus-purple/20">
-                    <span className="text-nexus-text-primary font-medium">返品処理</span>
-                    <span className="font-display font-bold text-nexus-purple">¥1,000/件</span>
-                  </div>
+              
+              <div className="bg-nexus-bg-secondary rounded-lg p-6 border border-nexus-border">
+                <div className="text-sm text-nexus-text-secondary mb-2">予想税額</div>
+                <div className="text-2xl font-display font-bold text-nexus-text-primary">
+                  ¥{monthlyReport.taxAmount.toLocaleString()}
                 </div>
               </div>
             </div>
@@ -291,4 +274,4 @@ export default function BillingPage() {
       </div>
     </DashboardLayout>
   );
-} 
+}

@@ -4,6 +4,10 @@ import DashboardLayout from '../components/layouts/DashboardLayout';
 import { ProductTimeline } from '../components/ProductTimeline';
 import { useState } from 'react';
 import { Package, Calendar, Activity, Filter, Download } from 'lucide-react';
+import {
+  FunnelIcon,
+  ArrowDownTrayIcon,
+} from '@heroicons/react/24/outline';
 
 // Mock products data
 const mockProducts = [
@@ -23,39 +27,65 @@ const statusColors = {
 export default function TimelinePage() {
   const [selectedProduct, setSelectedProduct] = useState<string>(mockProducts[0].id);
   const selectedProductData = mockProducts.find(p => p.id === selectedProduct);
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+
+  const handleExportHistory = () => {
+    alert('履歴のエクスポート機能は現在開発中です。');
+  };
+  
+  const handleApplyFilter = () => {
+    alert('フィルターを適用しました。');
+    setIsFilterModalOpen(false);
+  };
 
   return (
     <DashboardLayout userType="seller">
-      <div className="space-y-4">
+      <div className="space-y-6">
         {/* Header */}
         <div className="intelligence-card global">
-          <div className="p-8">
+          <div className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
-                  商品履歴タイムライン
+                  商品履歴
                 </h1>
                 <p className="mt-1 text-sm text-nexus-text-secondary">
-                  商品の入庫から出荷までの履歴を確認します
+                  商品のステータス変更履歴を追跡
                 </p>
               </div>
               <div className="flex space-x-3">
-                <button className="nexus-button">
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                  </svg>
-                  フィルター
+                <button
+                  onClick={() => setIsFilterModalOpen(true)}
+                  className="nexus-button"
+                >
+                  <FunnelIcon className="w-5 h-5 mr-2" />
+                  期間でフィルター
                 </button>
-                <button className="nexus-button">
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                  エクスポート
+                <button
+                  onClick={handleExportHistory}
+                  className="nexus-button primary"
+                >
+                  <ArrowDownTrayIcon className="w-5 h-5 mr-2" />
+                  履歴をエクスポート
                 </button>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Filter Modal */}
+        {isFilterModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+              <h2 className="text-lg font-bold mb-4">期間でフィルター</h2>
+              {/* TODO: 日付選択UIを実装 */}
+              <div className="text-right mt-6">
+                <button onClick={() => setIsFilterModalOpen(false)} className="nexus-button mr-2">キャンセル</button>
+                <button onClick={handleApplyFilter} className="nexus-button primary">適用</button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* メインコンテンツをグリッドレイアウトに */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

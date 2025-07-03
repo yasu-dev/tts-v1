@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import BarcodeScannerSettingsModal from './BarcodeScannerSettingsModal';
 
 interface BarcodeScannerProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface BarcodeScannerProps {
 export default function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScannerProps) {
   const [manualInput, setManualInput] = useState('');
   const [isScanning, setIsScanning] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
   if (!isOpen) return null;
 
@@ -145,7 +147,7 @@ export default function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScann
               {isScanning ? 'スキャン中...' : 'デモスキャン'}
             </button>
             <button
-              onClick={() => alert('デモ版では設定機能は利用できません')}
+              onClick={() => setIsSettingsModalOpen(true)}
               className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
             >
               設定
@@ -153,6 +155,12 @@ export default function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScann
           </div>
         </div>
       </div>
+
+      {/* Settings Modal */}
+      <BarcodeScannerSettingsModal
+        isOpen={isSettingsModalOpen}
+        onClose={() => setIsSettingsModalOpen(false)}
+      />
     </div>
   );
 }
