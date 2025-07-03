@@ -9,8 +9,13 @@ import {
   ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline';
 import ProductRegistrationModal from '../components/modals/ProductRegistrationModal';
+import { ContentCard } from '@/app/components/ui';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
+import { useRouter } from 'next/navigation';
 
 export default function InventoryPage() {
+  const router = useRouter();
+  const { showToast } = useToast();
   const [inventoryStats] = useState({
     totalItems: 156,
     listed: 89,
@@ -29,6 +34,7 @@ export default function InventoryPage() {
   const [loading, setLoading] = useState(true);
   const [isNewItemModalOpen, setIsNewItemModalOpen] = useState(false);
   const [isCsvImportModalOpen, setIsCsvImportModalOpen] = useState(false);
+  const [inventoryData, setInventoryData] = useState<any>(null);
 
   useEffect(() => {
     fetch('/api/inventory')
@@ -62,44 +68,77 @@ export default function InventoryPage() {
     link.click();
   };
 
-  const handleRegisterItem = (productData: any) => {
-    console.log('新規商品登録:', productData);
-    
-    // APIに送信
-    fetch('/api/inventory', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(productData)
-    })
-    .then(res => res.json())
-    .then(data => {
-      alert(`商品を登録しました: ${productData.name}`);
-      // データを再取得
-      window.location.reload();
-    })
-    .catch(err => {
-      console.error('商品登録エラー:', err);
-      alert('商品の登録に失敗しました');
-    });
+  const handleProductRegistration = async (productData: any) => {
+    try {
+      const response = await fetch('/api/inventory', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(productData),
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        showToast({
+          title: '商品登録完了',
+          message: `${productData.name}を登録しました`,
+          type: 'success'
+        });
+        setIsNewItemModalOpen(false);
+        // データを再取得
+        const updatedResponse = await fetch('/api/inventory');
+        const updatedData = await updatedResponse.json();
+        setInventoryData(updatedData);
+      } else {
+        showToast({
+          title: '登録エラー',
+          message: '商品の登録に失敗しました',
+          type: 'error'
+        });
+      }
+    } catch (error) {
+      showToast({
+        title: 'エラー',
+        message: '商品の登録中にエラーが発生しました',
+        type: 'error'
+      });
+    }
   };
 
-  const handleImportCsv = (file: File) => {
-    const formData = new FormData();
-    formData.append('csvFile', file);
-    
-    fetch('/api/inventory/import', {
-      method: 'POST',
-      body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-      alert(`CSVインポートが完了しました: ${data.importedCount}件の商品を追加`);
-      window.location.reload();
-    })
-    .catch(err => {
-      console.error('CSVインポートエラー:', err);
-      alert('CSVインポートに失敗しました');
-    });
+  const handleCsvImport = async (file: File) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await fetch('/api/inventory/import', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        showToast({
+          title: 'インポート完了',
+          message: `${data.importedCount}件の商品を追加しました`,
+          type: 'success'
+        });
+        // データを再取得
+        const updatedResponse = await fetch('/api/inventory');
+        const updatedData = await updatedResponse.json();
+        setInventoryData(updatedData);
+      } else {
+        showToast({
+          title: 'インポートエラー',
+          message: 'CSVインポートに失敗しました',
+          type: 'error'
+        });
+      }
+    } catch (error) {
+      showToast({
+        title: 'エラー',
+        message: 'CSVインポート中にエラーが発生しました',
+        type: 'error'
+      });
+    }
   };
 
   if (loading) {
@@ -156,7 +195,7 @@ export default function InventoryPage() {
         <ProductRegistrationModal
           isOpen={isNewItemModalOpen}
           onClose={() => setIsNewItemModalOpen(false)}
-          onSubmit={handleRegisterItem}
+          onSubmit={handleProductRegistration}
         />
 
         {/* CSV Import Modal */}
@@ -171,7 +210,7 @@ export default function InventoryPage() {
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) {
-                      handleImportCsv(file);
+                      handleCsvImport(file);
                       setIsCsvImportModalOpen(false);
                     }
                   }}

@@ -7,6 +7,7 @@ import {
   KeyIcon,
   ShieldCheckIcon,
 } from '@heroicons/react/24/outline';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 interface UserProfile {
   name: string;
@@ -22,6 +23,7 @@ interface UserProfile {
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<UserProfile | null>(null);
@@ -52,7 +54,11 @@ export default function ProfilePage() {
     if (editForm) {
       setProfile(editForm);
       setIsEditing(false);
-      alert('プロフィールを更新しました');
+      showToast({
+        title: '保存完了',
+        message: 'プロフィールを更新しました',
+        type: 'success'
+      });
     }
   };
 
@@ -68,8 +74,11 @@ export default function ProfilePage() {
   };
 
   const handleChangePassword = () => {
-    // TODO: パスワード変更APIを呼び出す
-    alert('パスワードを変更しました。');
+    showToast({
+      title: 'パスワード変更',
+      message: 'パスワードを変更しました',
+      type: 'success'
+    });
     setIsPasswordModalOpen(false);
   };
 

@@ -8,9 +8,12 @@ import { useRouter } from 'next/navigation';
 import {
   TruckIcon,
   ArchiveBoxIcon,
+  InformationCircleIcon,
+  ChevronDownIcon,
 } from '@heroicons/react/24/outline';
 import CarrierSettingsModal from '@/app/components/modals/CarrierSettingsModal';
 import PackingMaterialsModal from '@/app/components/modals/PackingMaterialsModal';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 interface ShippingItem {
   id: string;
@@ -39,7 +42,9 @@ export default function StaffShippingPage() {
   const [loading, setLoading] = useState(true);
   const [isMaterialsModalOpen, setIsMaterialsModalOpen] = useState(false);
   const [isCarrierModalOpen, setIsCarrierModalOpen] = useState(false);
+  const [openStatusDropdown, setOpenStatusDropdown] = useState<string | null>(null);
   const router = useRouter();
+  const { showToast } = useToast();
 
   useEffect(() => {
     fetch('/api/shipping')
@@ -146,28 +151,18 @@ export default function StaffShippingPage() {
     setItems(prev => prev.map(item => 
       item.id === itemId ? { ...item, status: newStatus } : item
     ));
+    showToast({
+      title: 'ステータス更新',
+      message: `ステータスを${statusLabels[newStatus]}に更新しました`,
+      type: 'success'
+    });
+    setOpenStatusDropdown(null);
   };
 
-  const getNextStatus = (currentStatus: ShippingItem['status']): ShippingItem['status'] | null => {
-    const statusFlow: Record<ShippingItem['status'], ShippingItem['status'] | null> = {
-      pending_inspection: 'inspected',
-      inspected: 'packed',
-      packed: 'shipped',
-      shipped: 'delivered',
-      delivered: null,
-    };
-    return statusFlow[currentStatus];
-  };
-
-  const getNextStatusLabel = (currentStatus: ShippingItem['status']): string => {
-    const labels: Record<ShippingItem['status'], string> = {
-      pending_inspection: '検品完了',
-      inspected: '梱包完了',
-      packed: '出荷',
-      shipped: '配送完了',
-      delivered: '',
-    };
-    return labels[currentStatus] || '';
+  const getAvailableStatuses = (currentStatus: ShippingItem['status']): ShippingItem['status'][] => {
+    const allStatuses: ShippingItem['status'][] = ['pending_inspection', 'inspected', 'packed', 'shipped', 'delivered'];
+    const currentIndex = allStatuses.indexOf(currentStatus);
+    return allStatuses.filter((_, index) => index > currentIndex);
   };
 
   const handleBarcodeScanned = (barcode: string) => {
@@ -177,17 +172,33 @@ export default function StaffShippingPage() {
       item.productSku === barcode.split('-')[0] + '-' + barcode.split('-')[1]
     );
     if (matchedItem) {
-      alert(`商品が見つかりました: ${matchedItem.productName}\nSKU: ${matchedItem.productSku}`);
+      showToast({
+        title: '商品発見',
+        message: `${matchedItem.productName} (SKU: ${matchedItem.productSku})`,
+        type: 'success'
+      });
     } else {
-      alert(`バーコード ${barcode} に対応する商品が見つかりません`);
+      showToast({
+        title: '商品未発見',
+        message: `バーコード ${barcode} に対応する商品が見つかりません`,
+        type: 'warning'
+      });
     }
   };
 
   const handlePrintLabel = (item?: ShippingItem) => {
     if (item) {
-      alert(`配送ラベルを印刷します\n商品: ${item.productName}\n注文番号: ${item.orderNumber}`);
+      showToast({
+        title: '印刷開始',
+        message: `${item.productName}の配送ラベルを印刷します`,
+        type: 'info'
+      });
     } else {
-      alert('一括配送ラベル印刷を開始します');
+      showToast({
+        title: '一括印刷開始',
+        message: '一括配送ラベル印刷を開始します',
+        type: 'info'
+      });
     }
   };
 
@@ -203,7 +214,11 @@ export default function StaffShippingPage() {
           ? { ...item, status: 'packed' as const }
           : item
       ));
-      alert(`${selectedPackingItem.productName}の梱包が完了しました`);
+      showToast({
+        title: '梱包完了',
+        message: `${selectedPackingItem.productName}の梱包が完了しました`,
+        type: 'success'
+      });
       setSelectedPackingItem(null);
     }
   };
@@ -225,11 +240,19 @@ export default function StaffShippingPage() {
     })
     .then(res => res.json())
     .then(data => {
-      alert('配送業者設定を保存しました');
+      showToast({
+        title: '設定保存完了',
+        message: '配送業者設定を保存しました',
+        type: 'success'
+      });
     })
     .catch(err => {
       console.error('設定保存エラー:', err);
-      alert('設定の保存に失敗しました');
+      showToast({
+        title: 'エラー',
+        message: '設定の保存に失敗しました',
+        type: 'error'
+      });
     });
   };
 
@@ -243,11 +266,19 @@ export default function StaffShippingPage() {
     .then(res => res.json())
     .then(data => {
       const totalCost = materials.reduce((sum, item) => sum + (item.orderQuantity * item.price), 0);
-      alert(`梱包資材を発注しました (合計: ¥${totalCost.toLocaleString()})`);
+      showToast({
+        title: '発注完了',
+        message: `梱包資材を発注しました (合計: ¥${totalCost.toLocaleString()})`,
+        type: 'success'
+      });
     })
     .catch(err => {
       console.error('発注エラー:', err);
-      alert('発注処理に失敗しました');
+      showToast({
+        title: 'エラー',
+        message: '発注処理に失敗しました',
+        type: 'error'
+      });
     });
   };
 
@@ -528,16 +559,43 @@ export default function StaffShippingPage() {
 
                     <div className="flex items-center justify-between">
                       <div className="flex space-x-2">
-                        {getNextStatus(item.status) && (
-                          <button
-                            onClick={() => updateItemStatus(item.id, getNextStatus(item.status)!)}
-                            className="nexus-button primary text-sm"
-                          >
-                            {getNextStatusLabel(item.status)}
-                          </button>
+                        {/* ステータス変更ドロップダウン */}
+                        {item.status !== 'delivered' && (
+                          <div className="relative">
+                            <button
+                              onClick={() => setOpenStatusDropdown(openStatusDropdown === item.id ? null : item.id)}
+                              className="nexus-button primary text-sm flex items-center gap-2"
+                            >
+                              ステータス変更
+                              <ChevronDownIcon className={`w-4 h-4 transition-transform ${openStatusDropdown === item.id ? 'rotate-180' : ''}`} />
+                            </button>
+                            
+                            {openStatusDropdown === item.id && (
+                              <div className="absolute left-0 mt-2 w-48 bg-nexus-bg-primary border border-nexus-border rounded-lg shadow-lg z-10">
+                                <div className="py-1">
+                                  {getAvailableStatuses(item.status).map((status) => (
+                                    <button
+                                      key={status}
+                                      onClick={() => updateItemStatus(item.id, status)}
+                                      className="w-full text-left px-4 py-2 text-sm text-nexus-text-primary hover:bg-nexus-bg-secondary transition-colors duration-200"
+                                    >
+                                      <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full mr-2 ${statusColors[status]}`}>
+                                        {statusLabels[status]}
+                                      </span>
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         )}
+                        
                         <button 
-                          onClick={() => alert(`詳細情報\n商品: ${item.productName}\n注文: ${item.orderNumber}\n顧客: ${item.customer}`)}
+                          onClick={() => showToast({
+                            title: '詳細情報',
+                            message: `商品: ${item.productName}, 注文: ${item.orderNumber}, 顧客: ${item.customer}`,
+                            type: 'info'
+                          })}
                           className="nexus-button text-sm"
                         >
                           詳細

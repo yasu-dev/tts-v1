@@ -37,7 +37,6 @@ export default function LocationList() {
   const [locations, setLocations] = useState<Location[]>([]);
   const [movements, setMovements] = useState<LocationMovement[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list' | 'movement'>('grid');
 
@@ -174,17 +173,6 @@ export default function LocationList() {
     return 'optimal';
   };
 
-  const filteredLocations = locations.filter(
-    (loc) =>
-      loc.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      loc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      loc.products.some(
-        (p) =>
-          p.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.name.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-  );
-
   if (loading) {
     return (
       <div className="intelligence-card global">
@@ -239,21 +227,10 @@ export default function LocationList() {
             </div>
           </div>
 
-          {/* 検索バー */}
-          <div className="mb-6">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="ロケーションコード、名前、商品で検索..."
-              className="w-full px-4 py-3 bg-nexus-bg-secondary border border-nexus-border rounded-lg focus:outline-none focus:border-nexus-yellow focus:ring-2 focus:ring-nexus-yellow/20 text-nexus-text-primary transition-all duration-200"
-            />
-          </div>
-
           {/* グリッドビュー */}
           {viewMode === 'grid' && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredLocations.map((location) => {
+              {locations.map((location) => {
                 const typeInfo = getLocationTypeLabel(location.type);
                 const occupancyStatus = getOccupancyStatus(location.used, location.capacity);
                 return (
@@ -340,7 +317,7 @@ export default function LocationList() {
                   </tr>
                 </thead>
                 <tbody className="holo-body">
-                  {filteredLocations.map((location) => {
+                  {locations.map((location) => {
                     const typeInfo = getLocationTypeLabel(location.type);
                     const occupancyStatus = getOccupancyStatus(location.used, location.capacity);
                     return (

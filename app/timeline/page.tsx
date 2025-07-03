@@ -30,12 +30,34 @@ export default function TimelinePage() {
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 
   const handleExportHistory = () => {
-    alert('履歴のエクスポート機能は現在開発中です。');
+    // 履歴データをCSV形式に変換
+    const csvContent = [
+      ['日時', 'アクティビティ', '詳細', 'ユーザー', 'ステータス'],
+      ...activities.map(activity => [
+        activity.timestamp,
+        activity.activity,
+        activity.details,
+        activity.user,
+        activity.status
+      ])
+    ].map(row => row.join(',')).join('\n');
+
+    // CSVファイルとしてダウンロード
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `timeline_history_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
   
   const handleApplyFilter = () => {
-    alert('フィルターを適用しました。');
+    // フィルター適用のロジック
     setIsFilterModalOpen(false);
+    // 実際の実装では、フィルター条件に基づいてactivitiesを更新
   };
 
   return (

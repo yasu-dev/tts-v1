@@ -37,6 +37,8 @@ temp-*/
 # Test outputs
 coverage/
 .nyc_output/
+test-results/
+playwright-report/
 
 # Backup files
 *.backup

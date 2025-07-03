@@ -140,10 +140,6 @@ test.describe('All Pages Content Tests', () => {
       !error.includes('staff-mock.json')
     );
     
-    if (significantErrors.length > 0) {
-      console.log('Console errors found:', significantErrors);
-    }
-    
     // We expect minimal console errors for this demo app
     expect(significantErrors.length).toBeLessThanOrEqual(10);
   });

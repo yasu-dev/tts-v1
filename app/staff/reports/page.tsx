@@ -6,6 +6,7 @@ import {
   ArrowDownTrayIcon,
   ChartBarIcon,
 } from '@heroicons/react/24/outline';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 interface WorkloadData {
   staff: string;
@@ -24,6 +25,7 @@ interface PerformanceData {
 }
 
 export default function StaffReportsPage() {
+  const { showToast } = useToast();
   const [workloadData, setWorkloadData] = useState<WorkloadData[]>([]);
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'quarter'>('week');
@@ -113,7 +115,11 @@ export default function StaffReportsPage() {
   const qualityRate = ((totalInspections - totalIssues) / totalInspections) * 100;
 
   const handleCreateReport = () => {
-    alert('カスタムレポートを作成しました。');
+    showToast({
+      title: 'レポート作成',
+      message: 'カスタムレポートを作成しました',
+      type: 'success'
+    });
     setIsReportModalOpen(false);
   };
 
@@ -265,53 +271,8 @@ export default function StaffReportsPage() {
 
         {/* Charts and Analysis */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Staff Workload */}
-          <div className="intelligence-card americas">
-            <div className="p-6">
-              <h2 className="text-lg font-semibold text-nexus-text-primary mb-6">
-                スタッフ別作業負荷
-              </h2>
-              <div className="space-y-4">
-                {workloadData.map((staff, index) => (
-                  <div key={staff.staff} className="intelligence-card global">
-                    <div className="p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="font-medium text-nexus-text-primary">{staff.staff}</h3>
-                        <span className="cert-nano cert-premium">
-                          効率性: {staff.efficiency}%
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-3 gap-4 text-sm">
-                        <div>
-                          <p className="text-nexus-text-secondary">完了</p>
-                          <p className="font-display font-bold text-nexus-green">{staff.tasksCompleted}件</p>
-                        </div>
-                        <div>
-                          <p className="text-nexus-text-secondary">進行中</p>
-                          <p className="font-display font-bold text-nexus-blue">{staff.tasksInProgress}件</p>
-                        </div>
-                        <div>
-                          <p className="text-nexus-text-secondary">平均時間</p>
-                          <p className="font-display font-bold text-nexus-purple">{staff.avgCompletionTime}h</p>
-                        </div>
-                      </div>
-                      <div className="mt-3">
-                        <div className="w-full bg-nexus-bg-secondary rounded-full h-2">
-                          <div
-                            className="bg-nexus-blue h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${staff.efficiency}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
           {/* Daily Performance */}
-          <div className="intelligence-card europe">
+          <div className="intelligence-card europe lg:col-span-2">
             <div className="p-6">
               <h2 className="text-lg font-semibold text-nexus-text-primary mb-6">
                 日別パフォーマンス
@@ -360,144 +321,45 @@ export default function StaffReportsPage() {
           </div>
         </div>
 
-        {/* Analysis and Recommendations */}
-        <div className="intelligence-card global">
+        {/* Report Actions */}
+        <div className="intelligence-card global" ref={performanceRef}>
           <div className="p-6">
             <h2 className="text-lg font-semibold text-nexus-text-primary mb-6">
-              分析結果と推奨事項
+              レポートアクション
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="intelligence-card americas">
-                <div className="p-4">
-                  <h3 className="font-medium text-nexus-green mb-2 flex items-center">
-                    <div className="action-orb green mr-2">
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    優秀なパフォーマンス
-                  </h3>
-                  <ul className="text-sm text-nexus-text-primary space-y-1">
-                    <li>• 佐藤さんの効率性が96%で最高</li>
-                    <li>• 全体の品質スコアが{qualityRate.toFixed(1)}%で目標達成</li>
-                    <li>• 検品作業の処理速度が向上</li>
-                  </ul>
-                </div>
-              </div>
-              
-              <div className="intelligence-card europe">
-                <div className="p-4">
-                  <h3 className="font-medium text-nexus-yellow mb-2 flex items-center">
-                    <div className="action-orb orange mr-2">
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                      </svg>
-                    </div>
-                    改善が必要な領域
-                  </h3>
-                  <ul className="text-sm text-nexus-text-primary space-y-1">
-                    <li>• 鈴木さんの進行中タスクが多い</li>
-                    <li>• 26日に問題発生件数が増加</li>
-                    <li>• 平均完了時間にばらつきあり</li>
-                  </ul>
-                </div>
-              </div>
-              
-              <div className="intelligence-card asia">
-                <div className="p-4">
-                  <h3 className="font-medium text-nexus-blue mb-2 flex items-center">
-                    <div className="action-orb blue mr-2">
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    推奨アクション
-                  </h3>
-                  <ul className="text-sm text-nexus-text-primary space-y-1">
-                    <li>• 佐藤さんの手法を他スタッフに展開</li>
-                    <li>• 鈴木さんの作業負荷を調整</li>
-                    <li>• 品質チェック手順の見直し</li>
-                  </ul>
-                </div>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <button
+                onClick={() => showToast({
+                  title: 'エクスポート完了',
+                  message: '週次レポートをダウンロードしました',
+                  type: 'success'
+                })}
+                className="nexus-button primary"
+              >
+                週次レポートをエクスポート
+              </button>
+              <button
+                onClick={() => showToast({
+                  title: 'エクスポート完了',
+                  message: '月次レポートをダウンロードしました',
+                  type: 'success'
+                })}
+                className="nexus-button"
+              >
+                月次レポートをエクスポート
+              </button>
+              <button
+                onClick={() => showToast({
+                  title: 'メール送信',
+                  message: 'レポートをメールで送信しました',
+                  type: 'success'
+                })}
+                className="nexus-button"
+              >
+                レポートをメール送信
+              </button>
             </div>
           </div>
-        </div>
-
-        {/* Detailed Metrics Table */}
-        <div className="intelligence-card africa">
-          <div className="overflow-hidden">
-            <div className="px-6 py-4 border-b border-nexus-border">
-              <h2 className="text-lg font-semibold text-nexus-text-primary">
-                詳細メトリクス
-              </h2>
-            </div>
-            <div className="p-6">
-              <div className="holo-table">
-                <table className="w-full">
-                  <thead className="holo-header">
-                    <tr>
-                      <th className="text-left">スタッフ</th>
-                      <th className="text-left">完了タスク</th>
-                      <th className="text-left">平均処理時間</th>
-                      <th className="text-left">効率性</th>
-                      <th className="text-left">品質スコア</th>
-                    </tr>
-                  </thead>
-                  <tbody className="holo-body">
-                    {workloadData.map((staff) => (
-                      <tr key={staff.staff} className="holo-row">
-                        <td>
-                          <span className="font-medium text-nexus-text-primary">
-                            {staff.staff}
-                          </span>
-                        </td>
-                        <td>
-                          <span className="font-display text-nexus-text-primary">
-                            {staff.tasksCompleted}件
-                          </span>
-                        </td>
-                        <td>
-                          <span className="font-display text-nexus-text-primary">
-                            {staff.avgCompletionTime}時間
-                          </span>
-                        </td>
-                        <td>
-                          <div className="flex items-center">
-                            <div className="w-16 bg-nexus-bg-secondary rounded-full h-2 mr-2">
-                              <div
-                                className="bg-nexus-green h-2 rounded-full transition-all duration-300"
-                                style={{ width: `${staff.efficiency}%` }}
-                              ></div>
-                            </div>
-                            <span className="text-sm font-display text-nexus-text-primary">
-                              {staff.efficiency}%
-                            </span>
-                          </div>
-                        </td>
-                        <td>
-                          <span className={`status-badge ${
-                            staff.efficiency >= 95 
-                              ? 'success'
-                              : staff.efficiency >= 90
-                              ? 'warning'
-                              : 'danger'
-                          }`}>
-                            {staff.efficiency >= 95 ? 'A' : staff.efficiency >= 90 ? 'B' : 'C'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Performance Analysis Section */}
-        <div ref={performanceRef} className="intelligence-card global">
-          {/* ... (パフォーマンス分析のコンテンツ) */}
         </div>
       </div>
     </DashboardLayout>

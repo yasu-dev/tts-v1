@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { ToastProvider } from '@/app/components/features/notifications/ToastProvider';
 
 export const metadata: Metadata = {
   title: "THE WORLD DOOR - フルフィルメントサービス",
@@ -40,7 +41,9 @@ export default function RootLayout({
         />
       </head>
       <body suppressHydrationWarning>
-        {children}
+        <ToastProvider>
+          {children}
+        </ToastProvider>
       </body>
     </html>
   );

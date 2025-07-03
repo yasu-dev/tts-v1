@@ -8,6 +8,7 @@ import {
   FunnelIcon,
   UsersIcon,
 } from '@heroicons/react/24/outline';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 interface Task {
   id: string;
@@ -25,6 +26,7 @@ interface Task {
 }
 
 export default function StaffTasksPage() {
+  const { showToast } = useToast();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [filter, setFilter] = useState<'all' | 'pending' | 'in_progress' | 'completed'>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
@@ -36,6 +38,7 @@ export default function StaffTasksPage() {
   const [loading, setLoading] = useState(true);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isBulkAssignModalOpen, setIsBulkAssignModalOpen] = useState(false);
+  const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
 
   // デモデータ
   useEffect(() => {
@@ -239,13 +242,24 @@ export default function StaffTasksPage() {
   };
 
   const handleApplyFilter = () => {
-    alert('フィルターを適用しました。');
+    showToast({
+      title: 'フィルター適用',
+      message: 'フィルターを適用しました',
+      type: 'success'
+    });
     setIsFilterModalOpen(false);
   };
   
   const handleBulkAssign = () => {
-    alert('タスクを一括で割り当てました。');
-    setIsBulkAssignModalOpen(false);
+    const selectedTasksCount = tasks.filter(t => selectedTasks.includes(t.id)).length;
+    if (selectedTasksCount > 0) {
+      showToast({
+        title: '一括割り当て完了',
+        message: `${selectedTasksCount}件のタスクを割り当てました`,
+        type: 'success'
+      });
+      setSelectedTasks([]);
+    }
   };
 
   if (loading) {

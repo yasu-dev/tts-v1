@@ -25,6 +25,7 @@ export default function DashboardLayout({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFlowCollapsed, setIsFlowCollapsed] = useState(false);
+  const [lastScrollY, setLastScrollY] = useState(0);
   const pathname = usePathname();
 
   const getCurrentTime = () => {
@@ -62,6 +63,26 @@ export default function DashboardLayout({
       document.body.style.overflow = '';
     };
   }, [isMobileMenuOpen]);
+
+  // 自動スクロール検知によるフロー開閉
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      if (currentScrollY < 10) {
+        // 最上部に戻った時は開く
+        setIsFlowCollapsed(false);
+      } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        // 下スクロール時は閉じる
+        setIsFlowCollapsed(true);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
 
   const handleSearchSubmit = (query: string) => {
     setSearchQuery(query);
@@ -161,14 +182,13 @@ export default function DashboardLayout({
       )
     },
     { 
-      label: '緊急タスク', 
+      label: 'タスク管理', 
       href: '/staff/tasks',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
         </svg>
-      ),
-      badge: 2 
+      )
     },
     { 
       label: '在庫管理', 
@@ -187,8 +207,7 @@ export default function DashboardLayout({
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
-      ),
-      badge: 8 
+      )
     },
     { 
       label: 'ロケーション管理', 
@@ -207,8 +226,7 @@ export default function DashboardLayout({
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
         </svg>
-      ),
-      badge: 6 
+      )
     },
     { 
       label: '返品処理', 
@@ -217,8 +235,7 @@ export default function DashboardLayout({
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
         </svg>
-      ),
-      badge: 5 
+      )
     },
     { 
       label: '業務レポート', 
@@ -341,16 +358,16 @@ export default function DashboardLayout({
                         <span className="font-medium text-sm flex-1 overflow-hidden text-ellipsis">
                           {item.label}
                         </span>
-                        {item.badge && (
+                        {(item as any).badge && (
                           <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0">
-                            {item.badge}
+                            {(item as any).badge}
                           </span>
                         )}
                       </>
                     )}
-                    {isSidebarCollapsed && item.badge && (
+                    {isSidebarCollapsed && (item as any).badge && (
                       <span className="absolute top-1 right-1 w-3 h-3 bg-red-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
-                        {item.badge > 9 ? '9+' : item.badge}
+                        {(item as any).badge > 9 ? '9+' : (item as any).badge}
                       </span>
                     )}
                   </Link>

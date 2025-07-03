@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 interface AppSettings {
   language: string;
@@ -25,6 +26,7 @@ interface AppSettings {
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [userType, setUserType] = useState<'staff' | 'seller'>('staff');
 
@@ -72,7 +74,11 @@ export default function SettingsPage() {
   };
 
   const handleSave = (settingName: string) => {
-    alert(`${settingName}の設定を保存しました。`);
+    showToast({
+      title: '設定保存',
+      message: `${settingName}の設定を保存しました`,
+      type: 'success'
+    });
   };
 
   if (!settings) {

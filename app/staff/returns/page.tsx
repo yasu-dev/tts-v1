@@ -9,6 +9,7 @@ import { ReturnRelistingFlow } from '@/app/components/features/returns/ReturnRel
 import { ReturnReasonAnalysis } from '@/app/components/features/returns/ReturnReasonAnalysis';
 import { Package, Clock, TrendingUp, AlertCircle, ChevronLeft } from 'lucide-react';
 import { ExclamationCircleIcon } from '@heroicons/react/24/outline';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 interface ReturnItem {
   id: string;
@@ -42,6 +43,7 @@ interface ReturnsData {
 
 export default function ReturnsPage() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [returnsData, setReturnsData] = useState<ReturnsData | null>(null);
   const [selectedReturn, setSelectedReturn] = useState<ReturnItem | null>(null);
   const [inspectionPhotos, setInspectionPhotos] = useState<File[]>([]);
@@ -81,15 +83,26 @@ export default function ReturnsPage() {
   };
 
   const handleCompleteInspection = () => {
-    if (!selectedReturn || !finalDecision) {
-      alert('最終判定を選択してください。');
+    if (!selectedReturn) return;
+    
+    if (!finalDecision) {
+      showToast({
+        title: '判定未選択',
+        message: '最終判定を選択してください',
+        type: 'warning'
+      });
       return;
     }
-
-    // In real app, would call API
-    alert(`返品検品が完了しました。\n商品: ${selectedReturn.productName}\n判定: ${getDecisionLabel(finalDecision)}`);
+    
+    showToast({
+      title: '検品完了',
+      message: `${selectedReturn.productName}の返品検品が完了しました (判定: ${getDecisionLabel(finalDecision)})`,
+      type: 'success'
+    });
+    
     setSelectedReturn(null);
-    setViewMode('list');
+    setInspectionNote('');
+    setFinalDecision('');
   };
 
   const getStatusLabel = (status: string) => {
@@ -110,6 +123,38 @@ export default function ReturnsPage() {
       case 'dispose': return '廃棄';
       default: return decision;
     }
+  };
+
+  const handleViewDetails = (returnItem: ReturnItem) => {
+    showToast({
+      title: '返品詳細',
+      message: `注文: ${returnItem.orderId}\n商品: ${returnItem.productName}\n顧客: ${returnItem.customer}\n理由: ${returnItem.returnReason}\nメモ: ${returnItem.customerNote}`,
+      type: 'info'
+    });
+  };
+
+  const handleApproveReturn = (returnItem: ReturnItem) => {
+    showToast({
+      title: '返品承認',
+      message: `${returnItem.productName}の返品を承認しました`,
+      type: 'success'
+    });
+  };
+
+  const handleRejectReturn = (returnItem: ReturnItem) => {
+    showToast({
+      title: '返品拒否',
+      message: `${returnItem.productName}の返品を拒否しました`,
+      type: 'warning'
+    });
+  };
+
+  const handleProcessRefund = (returnItem: ReturnItem) => {
+    showToast({
+      title: '返金処理',
+      message: `${returnItem.refundAmount}の返金処理を開始しました`,
+      type: 'success'
+    });
   };
 
   if (!returnsData) {
@@ -413,12 +458,46 @@ export default function ReturnsPage() {
                                 </span>
                               </td>
                               <td className="text-center py-4 px-4">
-                                <button
-                                  onClick={() => handleStartInspection(item)}
-                                  className="nexus-button primary"
-                                >
-                                  検品開始
-                                </button>
+                                <div className="flex gap-2 justify-center">
+                                  <button
+                                    onClick={() => handleViewDetails(item)}
+                                    className="nexus-button text-sm"
+                                  >
+                                    詳細
+                                  </button>
+                                  {item.status === 'pending' && (
+                                    <button
+                                      onClick={() => handleStartInspection(item)}
+                                      className="nexus-button primary text-sm"
+                                    >
+                                      検品開始
+                                    </button>
+                                  )}
+                                  {item.status === 'inspecting' && (
+                                    <>
+                                      <button
+                                        onClick={() => handleApproveReturn(item)}
+                                        className="nexus-button primary text-sm"
+                                      >
+                                        承認
+                                      </button>
+                                      <button
+                                        onClick={() => handleRejectReturn(item)}
+                                        className="nexus-button text-sm"
+                                      >
+                                        拒否
+                                      </button>
+                                    </>
+                                  )}
+                                  {item.status === 'approved' && (
+                                    <button
+                                      onClick={() => handleProcessRefund(item)}
+                                      className="nexus-button primary text-sm"
+                                    >
+                                      返金処理
+                                    </button>
+                                  )}
+                                </div>
                               </td>
                             </tr>
                           ))}

@@ -2,9 +2,17 @@
 
 import DashboardLayout from '../components/layouts/DashboardLayout';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { 
+  TruckIcon, 
+  CalendarIcon, 
+  QrCodeIcon,
+  DocumentTextIcon 
+} from '@heroicons/react/24/outline';
 
 export default function DeliveryPage() {
+  const router = useRouter();
   const [deliveryPlans] = useState([
     { id: 1, date: '2024-01-15', status: '準備中', items: 5, value: 450000 },
     { id: 2, date: '2024-01-12', status: '発送済', items: 3, value: 280000 },
@@ -12,10 +20,10 @@ export default function DeliveryPage() {
   ]);
 
   const [isBarcodeModalOpen, setIsBarcodeModalOpen] = useState(false);
+  const [selectedShipment, setSelectedShipment] = useState<any>(null);
 
-  const handleBarcodeIssue = () => {
-    // TODO: バーコード発行機能を実装
-    alert('バーコード発行機能は現在開発中です。');
+  const handleGenerateBarcode = () => {
+    setIsBarcodeModalOpen(true);
   };
 
   return (
@@ -45,7 +53,7 @@ export default function DeliveryPage() {
                   新規納品プラン作成
                 </Link>
                 <button 
-                  onClick={() => setIsBarcodeModalOpen(true)}
+                  onClick={handleGenerateBarcode}
                   className="nexus-button"
                 >
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -58,28 +66,60 @@ export default function DeliveryPage() {
           </div>
         </div>
 
-        {/* Barcode Modal */}
+        {/* Barcode Generation Modal */}
         {isBarcodeModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
-            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
-              <h2 className="text-lg font-bold mb-4">バーコード発行</h2>
-              <p className="text-sm text-gray-600 mb-4">
-                発行したい商品を選択し、数量を入力してください。
-              </p>
-              {/* TODO: 商品選択のUIを実装 */}
-              <div className="text-right mt-6">
-                <button
-                  onClick={() => setIsBarcodeModalOpen(false)}
-                  className="nexus-button mr-2"
-                >
-                  キャンセル
-                </button>
-                <button
-                  onClick={handleBarcodeIssue}
-                  className="nexus-button primary"
-                >
-                  発行
-                </button>
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-nexus-bg-primary rounded-lg p-8 max-w-md w-full">
+              <h3 className="text-xl font-bold text-nexus-text-primary mb-4">バーコード生成</h3>
+              
+              <div className="space-y-4">
+                <div className="text-center p-8 border-2 border-dashed border-nexus-border rounded-lg">
+                  <QrCodeIcon className="w-16 h-16 mx-auto text-nexus-text-secondary mb-4" />
+                  <p className="text-nexus-text-secondary">
+                    選択した配送のバーコードを生成します
+                  </p>
+                </div>
+
+                <div className="bg-nexus-bg-secondary p-4 rounded-lg">
+                  <p className="text-sm text-nexus-text-secondary">
+                    生成されたバーコードは、配送ラベルに印刷して使用できます。
+                  </p>
+                </div>
+
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => {
+                      // バーコード生成処理
+                      const barcodeData = {
+                        type: 'delivery',
+                        id: Date.now().toString(),
+                        timestamp: new Date().toISOString()
+                      };
+                      
+                      // ダウンロード処理
+                      const dataStr = JSON.stringify(barcodeData);
+                      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                      
+                      const exportFileDefaultName = `barcode_${barcodeData.id}.json`;
+                      
+                      const linkElement = document.createElement('a');
+                      linkElement.setAttribute('href', dataUri);
+                      linkElement.setAttribute('download', exportFileDefaultName);
+                      linkElement.click();
+                      
+                      setIsBarcodeModalOpen(false);
+                    }}
+                    className="nexus-button primary flex-1"
+                  >
+                    バーコードを生成
+                  </button>
+                  <button
+                    onClick={() => setIsBarcodeModalOpen(false)}
+                    className="nexus-button flex-1"
+                  >
+                    キャンセル
+                  </button>
+                </div>
               </div>
             </div>
           </div>

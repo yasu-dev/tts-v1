@@ -38,8 +38,31 @@ export default function DashboardPage() {
   }, []);
 
   const handleDownloadReport = () => {
-    // TODO: CSVエクスポート機能を実装
-    alert('レポートのダウンロード機能は現在開発中です。');
+    // レポートデータを生成
+    const reportData = {
+      period: {
+        start: dateRange[0].startDate.toISOString(),
+        end: dateRange[0].endDate.toISOString()
+      },
+      sales: {
+        total: dashboardData?.salesData.total || 0,
+        growth: dashboardData?.salesData.growth || 0,
+        items: dashboardData?.salesData.recentSales || []
+      },
+      inventory: dashboardData?.inventoryData || {},
+      generated: new Date().toISOString()
+    };
+
+    // JSONファイルとしてダウンロード
+    const dataStr = JSON.stringify(reportData, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = `report_${dateRange[0].startDate.toISOString().split('T')[0]}_${dateRange[0].endDate.toISOString().split('T')[0]}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
   };
 
   if (loading) {

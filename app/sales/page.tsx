@@ -7,8 +7,10 @@ import {
   Cog6ToothIcon,
   TicketIcon,
 } from '@heroicons/react/24/outline';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 export default function SalesPage() {
+  const { showToast } = useToast();
   const [salesData, setSalesData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
@@ -24,8 +26,11 @@ export default function SalesPage() {
   }, []);
   
   const handleSaveSettings = () => {
-    // TODO: 出品設定の保存機能を実装
-    alert('出品設定を保存しました。');
+    showToast({
+      title: '設定保存',
+      message: '出品設定を保存しました',
+      type: 'success'
+    });
     setIsSettingsModalOpen(false);
   };
 

@@ -10,6 +10,7 @@ import {
   BookOpenIcon,
   CameraIcon,
 } from '@heroicons/react/24/outline';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 interface ChecklistItem {
   id: string;
@@ -119,6 +120,7 @@ const mockProducts: Product[] = [
 ];
 
 export default function InspectionPage() {
+  const { showToast } = useToast();
   const [inspectionData, setInspectionData] = useState<InspectionData | null>(null);
   const [activeTask, setActiveTask] = useState<InspectionTask | null>(null);
   const [currentChecklist, setCurrentChecklist] = useState<ChecklistTemplate | null>(null);
@@ -129,6 +131,8 @@ export default function InspectionPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isStandardsModalOpen, setIsStandardsModalOpen] = useState(false);
   const [isCameraModalOpen, setIsCameraModalOpen] = useState(false);
+  const [isInspectionModalOpen, setIsInspectionModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const statusConfig = {
     pending_inspection: { label: '検品待ち', status: 'warning' as const, color: 'bg-yellow-100 text-yellow-800' },
@@ -168,7 +172,29 @@ export default function InspectionPage() {
       .catch(console.error);
   }, []);
 
-  const handleStartInspection = (task: InspectionTask) => {
+  const handleStartInspection = (product: Product) => {
+    setSelectedProduct(product);
+    setIsInspectionModalOpen(true);
+    
+    // Create task from product
+    const task: InspectionTask = {
+      id: product.id,
+      title: `${product.name}の検品`,
+      productId: product.id,
+      productName: product.name,
+      type: product.category === 'camera_body' ? 'camera' : 
+            product.category === 'lens' ? 'lens' : 
+            product.category === 'watch' ? 'watch' : 'accessory',
+      priority: product.priority === 'high' ? 'high' : 
+                product.priority === 'normal' ? 'medium' : 'low',
+      assignee: '現在のユーザー',
+      status: 'in_progress',
+      dueDate: new Date().toISOString().split('T')[0],
+      location: 'A-01',
+      value: '¥100,000',
+      category: product.category
+    };
+    
     setActiveTask(task);
     
     // Select appropriate checklist template
@@ -206,28 +232,38 @@ export default function InspectionPage() {
   const handleCompleteInspection = () => {
     if (!activeTask || !currentChecklist) return;
     
-    // Calculate completion percentage
-    const totalRequired = currentChecklist.categories
-      .flatMap(cat => cat.items.filter(item => item.required)).length;
-    const completedRequired = Object.keys(completedItems).filter(key => {
-      const [catIndex, itemIndex] = key.split('-').map(Number);
-      const item = currentChecklist.categories[catIndex]?.items[itemIndex];
-      return item?.required && completedItems[key] !== undefined;
-    }).length;
-
-    if (completedRequired < totalRequired) {
-      alert('必須項目がすべて完了していません。');
+    // Check if all required items are completed
+    const allCompleted = currentChecklist.categories.every((category, catIndex) =>
+      category.items.every((item, itemIndex) => {
+        const key = `${catIndex}-${itemIndex}`;
+        return !item.required || completedItems[key] !== undefined;
+      })
+    );
+    
+    if (!allCompleted) {
+      showToast({
+        title: '検品未完了',
+        message: '必須項目がすべて完了していません',
+        type: 'warning'
+      });
       return;
     }
-
-    // Save inspection result (in real app, would call API)
-    alert('検品が完了しました！');
+    
+    showToast({
+      title: '検品完了',
+      message: '検品が完了しました！',
+      type: 'success'
+    });
     setActiveTask(null);
     setCurrentChecklist(null);
   };
 
   const handleSaveCameraSettings = () => {
-    alert('カメラ設定を保存しました。');
+    showToast({
+      title: '設定保存',
+      message: 'カメラ設定を保存しました',
+      type: 'success'
+    });
     setIsCameraModalOpen(false);
   };
 
@@ -452,11 +488,12 @@ export default function InspectionPage() {
                           </span>
                         </td>
                         <td className="py-4 px-4 text-center">
-                          <Link href={`/staff/inspection/${product.id}`}>
-                            <button className="nexus-button primary">
-                              検品開始
-                            </button>
-                          </Link>
+                          <button 
+                            onClick={() => handleStartInspection(product)}
+                            className="nexus-button primary"
+                          >
+                            検品開始
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -536,6 +573,182 @@ export default function InspectionPage() {
             </div>
           );
         })}
+
+        {/* Inspection Modal */}
+        {isInspectionModalOpen && selectedProduct && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    商品検品
+                  </h2>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {selectedProduct.name} - {selectedProduct.sku}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setIsInspectionModalOpen(false);
+                    setSelectedProduct(null);
+                    setActiveTask(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+                {currentChecklist ? (
+                  <div className="space-y-6">
+                    {currentChecklist.categories.map((category, catIndex) => (
+                      <div key={catIndex} className="bg-gray-50 rounded-lg p-4">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                          {category.name}
+                        </h3>
+                        <div className="space-y-3">
+                          {category.items.map((item, itemIndex) => (
+                            <div key={item.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+                              <div className="flex items-center space-x-3">
+                                <input
+                                  type="checkbox"
+                                  id={`${catIndex}-${itemIndex}`}
+                                  checked={completedItems[`${catIndex}-${itemIndex}`] || false}
+                                  onChange={(e) => handleItemComplete(catIndex, itemIndex, e.target.checked)}
+                                  className="h-5 w-5 text-blue-600 rounded"
+                                />
+                                <label htmlFor={`${catIndex}-${itemIndex}`} className="text-sm text-gray-700">
+                                  {item.label}
+                                  {item.required && <span className="text-red-500 ml-1">*</span>}
+                                </label>
+                              </div>
+                              {item.type === 'rating' && (
+                                <div className="flex space-x-1">
+                                  {[1, 2, 3, 4, 5].map((rating) => (
+                                    <button
+                                      key={rating}
+                                      onClick={() => handleItemComplete(catIndex, itemIndex, rating)}
+                                      className={`w-8 h-8 rounded ${
+                                        completedItems[`${catIndex}-${itemIndex}`] >= rating
+                                          ? 'bg-yellow-400'
+                                          : 'bg-gray-200'
+                                      }`}
+                                    >
+                                      ★
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* 写真アップロード */}
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                        商品写真
+                      </h3>
+                      <div className="space-y-4">
+                        <div className="flex flex-wrap gap-4">
+                          {photos.map((photo, index) => (
+                            <div key={index} className="relative">
+                              <img
+                                src={URL.createObjectURL(photo)}
+                                alt={`Photo ${index + 1}`}
+                                className="w-24 h-24 object-cover rounded-lg"
+                              />
+                              <button
+                                onClick={() => removePhoto(index)}
+                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          onChange={(e) => handlePhotoUpload(e.target.files)}
+                          className="hidden"
+                        />
+                        <button
+                          onClick={() => fileInputRef.current?.click()}
+                          className="nexus-button"
+                        >
+                          <CameraIcon className="w-5 h-5 mr-2" />
+                          写真を追加
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 備考 */}
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                        備考
+                      </h3>
+                      <textarea
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        className="w-full p-3 border border-gray-200 rounded-lg"
+                        rows={4}
+                        placeholder="検品時の気づきや特記事項を入力してください..."
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">チェックリストを読み込み中...</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-between p-6 border-t border-gray-200">
+                <button
+                  onClick={() => {
+                    setIsInspectionModalOpen(false);
+                    setSelectedProduct(null);
+                    setActiveTask(null);
+                  }}
+                  className="nexus-button"
+                >
+                  キャンセル
+                </button>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => {
+                      showToast({
+                        title: '一時保存',
+                        message: '検品データを一時保存しました',
+                        type: 'info'
+                      });
+                    }}
+                    className="nexus-button"
+                  >
+                    一時保存
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleCompleteInspection();
+                      setIsInspectionModalOpen(false);
+                      setSelectedProduct(null);
+                    }}
+                    className="nexus-button primary"
+                  >
+                    検品完了
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

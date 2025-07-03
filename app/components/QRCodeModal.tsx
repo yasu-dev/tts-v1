@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useToast } from './features/notifications/ToastProvider';
 
 interface QRCodeModalProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface QRCodeModalProps {
 }
 
 export default function QRCodeModal({ isOpen, onClose, itemId, itemName, itemSku }: QRCodeModalProps) {
+  const { showToast } = useToast();
   const [qrSize, setQrSize] = useState<'small' | 'medium' | 'large'>('medium');
 
   if (!isOpen) return null;
@@ -61,6 +63,11 @@ export default function QRCodeModal({ isOpen, onClose, itemId, itemName, itemSku
       `);
       printWindow.document.close();
       printWindow.print();
+      showToast({
+        title: '印刷開始',
+        message: 'QRコードの印刷を開始しました',
+        type: 'success'
+      });
     }
   };
 
@@ -97,6 +104,11 @@ export default function QRCodeModal({ isOpen, onClose, itemId, itemName, itemSku
           link.download = `qrcode_${itemSku}_${Date.now()}.png`;
           link.click();
           URL.revokeObjectURL(url);
+          showToast({
+            title: 'ダウンロード完了',
+            message: 'QRコード画像をダウンロードしました',
+            type: 'success'
+          });
         }
       });
     }
@@ -104,7 +116,11 @@ export default function QRCodeModal({ isOpen, onClose, itemId, itemName, itemSku
 
   const handleCopyData = () => {
     navigator.clipboard.writeText(JSON.stringify(qrData, null, 2));
-    alert('QRコードデータをクリップボードにコピーしました');
+    showToast({
+      title: 'コピー完了',
+      message: 'QRコードデータをクリップボードにコピーしました',
+      type: 'success'
+    });
   };
 
   return (

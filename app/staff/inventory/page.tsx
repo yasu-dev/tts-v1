@@ -9,6 +9,8 @@ import {
   ArrowsRightLeftIcon,
   ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline';
+import { ContentCard } from '@/app/components/ui';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 interface InventoryItem {
   id: string;
@@ -25,9 +27,14 @@ interface InventoryItem {
   lastModified: string;
   qrCode?: string;
   notes?: string;
+  quantity: number;
+  lastChecked: string;
+  value?: number;
+  images?: string[];
 }
 
 export default function StaffInventoryPage() {
+  const { showToast } = useToast();
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<InventoryItem[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
@@ -35,7 +42,7 @@ export default function StaffInventoryPage() {
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
   const [selectedStaff, setSelectedStaff] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
+  const [viewMode, setViewMode] = useState<'card' | 'table'>('table');
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const [isQRModalOpen, setIsQRModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -61,6 +68,8 @@ export default function StaffInventoryPage() {
         lastModified: '2024-06-28T10:30:00Z',
         qrCode: 'QR-CAM-001',
         notes: '付属品完備、シャッター回数要確認',
+        quantity: 1,
+        lastChecked: '2024-06-28T10:30:00Z',
       },
       {
         id: '2',
@@ -76,6 +85,8 @@ export default function StaffInventoryPage() {
         lastModified: '2024-06-27T15:20:00Z',
         qrCode: 'QR-LEN-002',
         notes: 'レンズ内クリア、外観良好',
+        quantity: 1,
+        lastChecked: '2024-06-27T15:20:00Z',
       },
       {
         id: '3',
@@ -91,6 +102,8 @@ export default function StaffInventoryPage() {
         lastModified: '2024-06-26T16:45:00Z',
         qrCode: 'QR-WAT-001',
         notes: '真贋確認済み、オーバーホール済み',
+        quantity: 1,
+        lastChecked: '2024-06-26T16:45:00Z',
       },
       {
         id: '4',
@@ -106,6 +119,8 @@ export default function StaffInventoryPage() {
         lastModified: '2024-06-28T14:15:00Z',
         qrCode: 'QR-ACC-003',
         notes: 'プレミアム商品、特別管理',
+        quantity: 1,
+        lastChecked: '2024-06-28T14:15:00Z',
       },
       {
         id: '5',
@@ -121,6 +136,8 @@ export default function StaffInventoryPage() {
         lastModified: '2024-06-28T11:00:00Z',
         qrCode: 'QR-CAM-005',
         notes: '入庫予定：明日午前',
+        quantity: 1,
+        lastChecked: '2024-06-28T11:00:00Z',
       },
       {
         id: '6',
@@ -136,6 +153,8 @@ export default function StaffInventoryPage() {
         lastModified: '2024-06-28T09:30:00Z',
         qrCode: 'QR-CAM-006',
         notes: 'ファインダー調整中',
+        quantity: 1,
+        lastChecked: '2024-06-28T09:30:00Z',
       },
     ];
     setItems(demoData);
@@ -209,14 +228,6 @@ export default function StaffInventoryPage() {
     setIsQRModalOpen(true);
   };
 
-  const handleBulkQRPrint = () => {
-    if (selectedItems.length > 0) {
-      alert(`${selectedItems.length}件の商品のQRコード印刷を開始します`);
-    } else {
-      alert('全商品のQRコード印刷を開始します');
-    }
-  };
-
   const handleBulkMove = () => {
     if (selectedItems.length > 0) {
       const newLocation = prompt('移動先を入力してください:');
@@ -225,10 +236,18 @@ export default function StaffInventoryPage() {
           updateItemLocation(itemId, newLocation);
         });
         setSelectedItems([]);
-        alert(`${selectedItems.length}件の商品を${newLocation}に移動しました`);
+        showToast({
+          title: '移動完了',
+          message: `${selectedItems.length}件の商品を${newLocation}に移動しました`,
+          type: 'success'
+        });
       }
     } else {
-      alert('移動する商品を選択してください');
+      showToast({
+        title: '選択エラー',
+        message: '移動する商品を選択してください',
+        type: 'warning'
+      });
     }
   };
 
@@ -236,7 +255,11 @@ export default function StaffInventoryPage() {
     const newLocation = prompt(`${item.name}の移動先を入力してください:`, item.location);
     if (newLocation && newLocation !== item.location) {
       updateItemLocation(item.id, newLocation);
-      alert(`${item.name}を${newLocation}に移動しました`);
+      showToast({
+        title: '移動完了',
+        message: `${item.name}を${newLocation}に移動しました`,
+        type: 'success'
+      });
     }
   };
 
@@ -251,17 +274,68 @@ export default function StaffInventoryPage() {
   const staffMembers = Array.from(new Set(items.map(item => item.assignedStaff).filter(Boolean)));
 
   const handleExportCsv = () => {
-    alert('CSVエクスポート機能は現在開発中です。');
+    const csvContent = [
+      ['ID', '商品名', 'SKU', 'ロケーション', '数量', 'ステータス', '担当者'],
+      ...items.map(item => [
+        item.id,
+        item.name,
+        item.sku,
+        item.location,
+        item.quantity,
+        item.status,
+        item.assignedStaff || ''
+      ])
+    ].map(row => row.join(',')).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `inventory_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    showToast({
+      title: 'エクスポート完了',
+      message: 'CSVファイルをダウンロードしました',
+      type: 'success'
+    });
   };
   
   const handleEditItem = () => {
-    alert('商品詳細を保存しました。');
+    showToast({
+      title: '保存完了',
+      message: '商品詳細を保存しました',
+      type: 'success'
+    });
     setIsEditModalOpen(false);
   };
   
   const handleMoveItem = () => {
-    alert('ロケーションを移動しました。');
+    showToast({
+      title: '移動完了',
+      message: 'ロケーションを移動しました',
+      type: 'success'
+    });
     setIsMoveModalOpen(false);
+  };
+
+  const handlePrintQRCode = () => {
+    if (selectedItems.length > 0) {
+      showToast({
+        title: '印刷開始',
+        message: `${selectedItems.length}件の商品のQRコード印刷を開始します`,
+        type: 'info'
+      });
+    } else {
+      showToast({
+        title: '印刷開始',
+        message: '全商品のQRコード印刷を開始します',
+        type: 'info'
+      });
+    }
   };
 
   if (loading) {
@@ -314,88 +388,123 @@ export default function StaffInventoryPage() {
 
         {/* Filters */}
         <div className="intelligence-card global">
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
+          <div className="p-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
               <div>
                 <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
                   ステータス
                 </label>
-                <select
-                  value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg text-sm text-nexus-text-primary"
-                >
-                  <option value="all">すべて</option>
-                  <option value="inbound">入庫待ち</option>
-                  <option value="inspection">検品中</option>
-                  <option value="storage">保管中</option>
-                  <option value="listing">出品中</option>
-                  <option value="sold">売約済み</option>
-                  <option value="maintenance">メンテナンス</option>
-                </select>
+                <div className="relative">
+                  <select
+                    value={selectedStatus}
+                    onChange={(e) => setSelectedStatus(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-xl text-sm text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 appearance-none cursor-pointer"
+                  >
+                    <option value="all">すべて</option>
+                    <option value="inbound">入庫待ち</option>
+                    <option value="inspection">検品中</option>
+                    <option value="storage">保管中</option>
+                    <option value="listing">出品中</option>
+                    <option value="sold">売約済み</option>
+                    <option value="maintenance">メンテナンス</option>
+                  </select>
+                  <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
                   カテゴリー
                 </label>
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg text-sm text-nexus-text-primary"
-                >
-                  <option value="all">すべて</option>
-                  <option value="カメラ本体">カメラ本体</option>
-                  <option value="レンズ">レンズ</option>
-                  <option value="腕時計">腕時計</option>
-                  <option value="アクセサリ">アクセサリ</option>
-                </select>
+                <div className="relative">
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-xl text-sm text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 appearance-none cursor-pointer"
+                  >
+                    <option value="all">すべて</option>
+                    <option value="カメラ本体">カメラ本体</option>
+                    <option value="レンズ">レンズ</option>
+                    <option value="腕時計">腕時計</option>
+                    <option value="アクセサリ">アクセサリ</option>
+                  </select>
+                  <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
                   保管場所
                 </label>
-                <select
-                  value={selectedLocation}
-                  onChange={(e) => setSelectedLocation(e.target.value)}
-                  className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg text-sm text-nexus-text-primary"
-                >
-                  <option value="all">すべて</option>
-                  <option value="A区画">A区画</option>
-                  <option value="H区画">H区画</option>
-                  <option value="V区画">V区画</option>
-                  <option value="メンテナンス室">メンテナンス室</option>
-                </select>
+                <div className="relative">
+                  <select
+                    value={selectedLocation}
+                    onChange={(e) => setSelectedLocation(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-xl text-sm text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 appearance-none cursor-pointer"
+                  >
+                    <option value="all">すべて</option>
+                    <option value="A区画">A区画</option>
+                    <option value="H区画">H区画</option>
+                    <option value="V区画">V区画</option>
+                    <option value="メンテナンス室">メンテナンス室</option>
+                  </select>
+                  <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
                   担当者
                 </label>
-                <select
-                  value={selectedStaff}
-                  onChange={(e) => setSelectedStaff(e.target.value)}
-                  className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg text-sm text-nexus-text-primary"
-                >
-                  <option value="all">すべて</option>
-                  {staffMembers.map(staff => (
-                    <option key={staff} value={staff}>{staff}</option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <select
+                    value={selectedStaff}
+                    onChange={(e) => setSelectedStaff(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-xl text-sm text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 appearance-none cursor-pointer"
+                  >
+                    <option value="all">すべて</option>
+                    {staffMembers.map(staff => (
+                      <option key={staff} value={staff}>{staff}</option>
+                    ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
                   検索
                 </label>
-                <input
-                  type="text"
-                  placeholder="商品名・SKU・QR検索"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg text-sm text-nexus-text-primary"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="商品名・SKU・QR検索"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full px-3 py-2 pl-10 bg-white border-2 border-gray-200 rounded-xl text-sm text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                  />
+                  <div className="absolute inset-y-0 left-0 flex items-center px-3 pointer-events-none">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -516,10 +625,10 @@ export default function StaffInventoryPage() {
         ) : (
           /* Table View */
           <div className="intelligence-card global">
-            <div className="p-6">
-              <div className="holo-table">
+            <div className="p-4">
+              <div className="holo-table max-h-96 overflow-y-auto">
                 <table className="w-full">
-                  <thead className="holo-header">
+                  <thead className="holo-header sticky top-0 bg-white z-10">
                     <tr>
                       <th className="text-left">商品</th>
                       <th className="text-left">ステータス</th>
@@ -593,13 +702,19 @@ export default function StaffInventoryPage() {
                               詳細
                             </button>
                             <button 
-                              onClick={() => handleItemMove(item)}
+                              onClick={() => {
+                                setSelectedItem(item);
+                                setIsMoveModalOpen(true);
+                              }}
                               className="nexus-button text-xs"
                             >
                               移動
                             </button>
                             <button 
-                              onClick={() => handleQRCode(item)}
+                              onClick={() => {
+                                setSelectedItem(item);
+                                setIsQRModalOpen(true);
+                              }}
                               className="nexus-button text-xs"
                             >
                               QR

@@ -8,6 +8,7 @@ import {
   DocumentTextIcon,
   PlusIcon,
 } from '@heroicons/react/24/outline';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 interface StaffTask {
   id: string;
@@ -50,6 +51,7 @@ interface StaffData {
 }
 
 export default function StaffDashboard() {
+  const { showToast } = useToast();
   const [staffData, setStaffData] = useState<StaffData | null>(null);
   const [filter, setFilter] = useState<'all' | 'urgent' | 'normal' | 'high' | 'medium' | 'low'>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'inspection' | 'photography' | 'shipping' | 'returns'>('all');
@@ -57,6 +59,7 @@ export default function StaffDashboard() {
   const [loading, setLoading] = useState(true);
   const [isNewTaskModalOpen, setIsNewTaskModalOpen] = useState(false);
   const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     // Load staff data from API
@@ -90,6 +93,15 @@ export default function StaffDashboard() {
     // Apply type filter
     if (typeFilter !== 'all') {
       filtered = filtered.filter(task => task.type === typeFilter);
+    }
+
+    // Apply search filter
+    if (searchQuery) {
+      filtered = filtered.filter(task => 
+        task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        task.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        task.assignee.toLowerCase().includes(searchQuery.toLowerCase())
+      );
     }
 
     return filtered;
@@ -197,44 +209,47 @@ export default function StaffDashboard() {
     setIsNewTaskModalOpen(true);
   };
 
-  const handleTaskSubmit = (taskData: any) => {
-    console.log('新規タスク作成:', taskData);
-    // APIに送信
-    fetch('/api/staff/tasks', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(taskData)
-    })
-    .then(res => res.json())
-    .then(data => {
-      alert(`タスクを作成しました: ${taskData.title}`);
-      setIsNewTaskModalOpen(false);
-             // データを再取得
-       window.location.reload();
-    })
-    .catch(err => {
-      console.error('タスク作成エラー:', err);
-      alert('タスクの作成に失敗しました');
-    });
+  const handleTaskCreation = async (taskData: any) => {
+    try {
+      const response = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(taskData)
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        showToast({
+          title: 'タスク作成完了',
+          message: `タスクを作成しました: ${taskData.title}`,
+          type: 'success'
+        });
+        setIsNewTaskModalOpen(false);
+        // データを再取得
+        fetch('/api/staff/dashboard')
+          .then(res => res.json())
+          .then((data: StaffData) => {
+            setStaffData(data);
+            setLoading(false);
+          })
+          .catch(console.error);
+      } else {
+        throw new Error('タスク作成に失敗しました');
+      }
+    } catch (error) {
+      showToast({
+        title: 'エラー',
+        message: 'タスクの作成に失敗しました',
+        type: 'error'
+      });
+    }
   };
 
-  if (loading) {
+  if (loading || !staffData) {
     return (
       <DashboardLayout userType="staff">
-        <div className="space-y-6">
-          <div className="intelligence-card global">
-            <div className="p-8">
-              <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
-                スタッフダッシュボード
-              </h1>
-              <p className="mt-1 text-sm text-nexus-text-secondary">
-                データを読み込み中...
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center justify-center h-64">
-            <div className="text-lg text-nexus-text-secondary">データを読み込み中...</div>
-          </div>
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin h-12 w-12 border-b-4 border-nexus-yellow rounded-full"></div>
         </div>
       </DashboardLayout>
     );
@@ -252,20 +267,14 @@ export default function StaffDashboard() {
                   スタッフダッシュボード
                 </h1>
                 <p className="mt-1 text-sm text-nexus-text-secondary">
-                  本日のタスクと進捗状況
+                  日々のタスクとワークフローの管理
                 </p>
               </div>
               <div className="flex space-x-3">
                 <button
-                  onClick={() => router.push('/staff/reports')}
-                  className="nexus-button"
+                  onClick={handleCreateTask}
+                  className="nexus-button primary"
                 >
-                  <DocumentTextIcon className="w-5 h-5 mr-2" />
-                  レポート出力
-                </button>
-                <button 
-                  onClick={() => setIsNewTaskModalOpen(true)}
-                  className="nexus-button primary">
                   <PlusIcon className="w-5 h-5 mr-2" />
                   新規タスク作成
                 </button>
@@ -278,14 +287,14 @@ export default function StaffDashboard() {
         <TaskCreationModal
           isOpen={isNewTaskModalOpen}
           onClose={() => setIsNewTaskModalOpen(false)}
-          onSubmit={handleTaskSubmit}
+          onSubmit={handleTaskCreation}
         />
 
         {/* Stats Cards */}
         <div className="intelligence-metrics">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 md:gap-6">
             <div className="intelligence-card global">
-              <div className="p-3 sm:p-4 md:p-6">
+              <div className="p-2 sm:p-3 md:p-4">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
                   <div className="action-orb w-6 h-6 sm:w-8 sm:h-8">
                     <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -304,7 +313,7 @@ export default function StaffDashboard() {
             </div>
 
             <div className="intelligence-card americas">
-              <div className="p-3 sm:p-4 md:p-6">
+              <div className="p-2 sm:p-3 md:p-4">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
                   <div className="action-orb red w-6 h-6 sm:w-8 sm:h-8">
                     <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -323,7 +332,7 @@ export default function StaffDashboard() {
             </div>
 
             <div className="intelligence-card europe">
-              <div className="p-3 sm:p-4 md:p-6">
+              <div className="p-2 sm:p-3 md:p-4">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
                   <div className="action-orb w-6 h-6 sm:w-8 sm:h-8">
                     <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -342,7 +351,7 @@ export default function StaffDashboard() {
             </div>
 
             <div className="intelligence-card asia">
-              <div className="p-3 sm:p-4 md:p-6">
+              <div className="p-2 sm:p-3 md:p-4">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
                   <div className="action-orb blue w-6 h-6 sm:w-8 sm:h-8">
                     <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -361,7 +370,7 @@ export default function StaffDashboard() {
             </div>
 
             <div className="intelligence-card africa">
-              <div className="p-3 sm:p-4 md:p-6">
+              <div className="p-2 sm:p-3 md:p-4">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
                   <div className="action-orb green w-6 h-6 sm:w-8 sm:h-8">
                     <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -380,7 +389,7 @@ export default function StaffDashboard() {
             </div>
 
             <div className="intelligence-card oceania">
-              <div className="p-3 sm:p-4 md:p-6">
+              <div className="p-2 sm:p-3 md:p-4">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
                   <div className="action-orb w-6 h-6 sm:w-8 sm:h-8">
                     <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -404,7 +413,7 @@ export default function StaffDashboard() {
         <div className="intelligence-metrics">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
             <div className="intelligence-card americas">
-              <div className="p-3 sm:p-4 md:p-6">
+              <div className="p-2 sm:p-3 md:p-4">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
                   <div className="action-orb w-6 h-6 sm:w-8 sm:h-8">
                     <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -423,7 +432,7 @@ export default function StaffDashboard() {
             </div>
 
             <div className="intelligence-card europe">
-              <div className="p-3 sm:p-4 md:p-6">
+              <div className="p-2 sm:p-3 md:p-4">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
                   <div className="action-orb blue w-6 h-6 sm:w-8 sm:h-8">
                     <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -442,7 +451,7 @@ export default function StaffDashboard() {
             </div>
 
             <div className="intelligence-card asia">
-              <div className="p-3 sm:p-4 md:p-6">
+              <div className="p-2 sm:p-3 md:p-4">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
                   <div className="action-orb green w-6 h-6 sm:w-8 sm:h-8">
                     <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -461,7 +470,7 @@ export default function StaffDashboard() {
             </div>
 
             <div className="intelligence-card africa">
-              <div className="p-3 sm:p-4 md:p-6">
+              <div className="p-2 sm:p-3 md:p-4">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
                   <div className="action-orb w-6 h-6 sm:w-8 sm:h-8">
                     <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -481,90 +490,91 @@ export default function StaffDashboard() {
           </div>
         </div>
 
-        {/* Filter Controls and Task List */}
+        {/* Filters */}
         <div className="intelligence-card global">
-          <div className="p-8">
-            <div className="flex flex-col space-y-4 mb-6">
+          <div className="p-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {/* Priority Filter */}
               <div>
-                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">優先度フィルター</label>
-                <div className="flex space-x-1 bg-nexus-bg-secondary p-1 rounded-lg">
-                  {[
-                    { key: 'all', label: 'すべて' },
-                    { key: 'urgent', label: '緊急タスク' },
-                    { key: 'normal', label: '通常タスク' },
-                    { key: 'high', label: '高優先度' },
-                    { key: 'medium', label: '中優先度' },
-                    { key: 'low', label: '低優先度' },
-                  ].map((tab) => (
-                    <button
-                      key={tab.key}
-                      onClick={() => setFilter(tab.key as any)}
-                      className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all duration-200 ${
-                        filter === tab.key
-                          ? 'bg-nexus-bg-primary text-nexus-yellow shadow-sm'
-                          : 'text-nexus-text-secondary hover:text-nexus-text-primary'
-                      }`}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  優先度フィルター
+                </label>
+                <div className="relative">
+                  <select
+                    value={filter}
+                    onChange={(e) => setFilter(e.target.value as any)}
+                    className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-xl text-sm text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 appearance-none cursor-pointer"
+                  >
+                    <option value="all">すべて</option>
+                    <option value="urgent">緊急タスク</option>
+                    <option value="normal">通常タスク</option>
+                    <option value="high">高優先度</option>
+                    <option value="medium">中優先度</option>
+                    <option value="low">低優先度</option>
+                  </select>
+                  <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
                 </div>
               </div>
 
               {/* Type Filter */}
               <div>
-                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">作業種別フィルター</label>
-                <div className="flex space-x-1 bg-nexus-bg-secondary p-1 rounded-lg">
-                  {[
-                    { key: 'all', label: 'すべて', icon: (
-                      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                      </svg>
-                    ) },
-                    { key: 'inspection', label: '検品', icon: (
-                      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
-                    ) },
-                    { key: 'photography', label: '撮影', icon: (
-                      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                    ) },
-                    { key: 'shipping', label: '出荷', icon: (
-                      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
-                      </svg>
-                    ) },
-                    { key: 'returns', label: '返品', icon: (
-                      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-                      </svg>
-                    ) },
-                  ].map((tab) => (
-                    <button
-                      key={tab.key}
-                      onClick={() => setTypeFilter(tab.key as any)}
-                      className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all duration-200 flex items-center justify-center space-x-1 ${
-                        typeFilter === tab.key
-                          ? 'bg-nexus-bg-primary text-nexus-yellow shadow-sm'
-                          : 'text-nexus-text-secondary hover:text-nexus-text-primary'
-                      }`}
-                    >
-                      <div className="w-4 h-4">{tab.icon}</div>
-                      <span>{tab.label}</span>
-                    </button>
-                  ))}
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  作業種別フィルター
+                </label>
+                <div className="relative">
+                  <select
+                    value={typeFilter}
+                    onChange={(e) => setTypeFilter(e.target.value as any)}
+                    className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-xl text-sm text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 appearance-none cursor-pointer"
+                  >
+                    <option value="all">すべて</option>
+                    <option value="inspection">検品</option>
+                    <option value="photography">撮影</option>
+                    <option value="shipping">出荷</option>
+                    <option value="returns">返品</option>
+                  </select>
+                  <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Search */}
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  検索
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="タスク名・担当者で検索"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full px-3 py-2 pl-10 bg-white border-2 border-gray-200 rounded-xl text-sm text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                  />
+                  <div className="absolute inset-y-0 left-0 flex items-center px-3 pointer-events-none">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
 
-            {/* Task List */}
-            <div className="holo-table">
+        {/* Task List */}
+        <div className="intelligence-card global">
+          <div className="p-4">
+            <div className="holo-table max-h-96 overflow-y-auto">
               <table className="w-full">
-                <thead className="holo-header">
+                <thead className="holo-header sticky top-0 bg-white z-10">
                   <tr>
                     <th className="text-left">タスク情報</th>
                     <th className="text-left">担当者</th>
