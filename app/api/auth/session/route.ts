@@ -7,8 +7,12 @@ export async function GET(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json(
-        { error: '認証が必要です' },
-        { status: 401 }
+        { 
+          success: false,
+          error: '認証が必要です',
+          authenticated: false 
+        },
+        { status: 200 }
       );
     }
 

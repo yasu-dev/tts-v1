@@ -192,8 +192,12 @@ export function requireAuth(
     const user = await AuthService.getUserFromRequest(req);
     
     if (!user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: 'Unauthorized',
+        authenticated: false 
+      }), {
+        status: 200,
         headers: { 'Content-Type': 'application/json' },
       });
     }
