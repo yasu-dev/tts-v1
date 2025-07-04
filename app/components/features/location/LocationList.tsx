@@ -365,6 +365,7 @@ export default function LocationList() {
                   })}
                 </tbody>
               </table>
+              </div>
             </div>
           )}
 

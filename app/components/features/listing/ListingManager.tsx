@@ -204,26 +204,27 @@ export default function ListingManager() {
       </div>
 
       {/* Product List */}
-      <div className="holo-table">
-        <table className="w-full">
-          <thead className="holo-header">
-            <tr>
-              <th className="w-12 px-4 py-3">
-                <input
-                  type="checkbox"
-                  checked={selectedProducts.length === filteredProducts.length && filteredProducts.length > 0}
-                  onChange={handleSelectAll}
-                  className="w-4 h-4 text-nexus-blue rounded border-nexus-border focus:ring-nexus-blue"
-                />
-              </th>
-              <th className="text-left">商品情報</th>
-              <th className="text-left">カテゴリー</th>
-              <th className="text-left">価格</th>
-              <th className="text-left">コンディション</th>
-              <th className="text-left">ステータス</th>
-              <th className="text-right">アクション</th>
-            </tr>
-          </thead>
+      <div className="overflow-x-auto">
+        <div className="holo-table">
+          <table className="w-full">
+            <thead className="holo-header">
+              <tr>
+                <th className="w-12 px-4 py-3">
+                  <input
+                    type="checkbox"
+                    checked={selectedProducts.length === filteredProducts.length && filteredProducts.length > 0}
+                    onChange={handleSelectAll}
+                    className="w-4 h-4 text-nexus-blue rounded border-nexus-border focus:ring-nexus-blue"
+                  />
+                </th>
+                <th className="text-left">商品情報</th>
+                <th className="text-left">カテゴリー</th>
+                <th className="text-left">価格</th>
+                <th className="text-left">コンディション</th>
+                <th className="text-left">ステータス</th>
+                <th className="text-right">アクション</th>
+              </tr>
+            </thead>
           <tbody className="holo-body">
             {filteredProducts.map((product) => (
               <tr key={product.id} className="holo-row">
@@ -274,9 +275,10 @@ export default function ListingManager() {
                   </button>
                 </td>
               </tr>
-            ))}
-          </tbody>
-        </table>
+                      ))}
+        </tbody>
+      </table>
+        </div>
       </div>
 
       {filteredProducts.length === 0 && (

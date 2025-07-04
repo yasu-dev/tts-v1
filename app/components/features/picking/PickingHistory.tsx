@@ -202,19 +202,20 @@ export default function PickingHistory() {
       </div>
 
       {/* History Table */}
-      <div className="holo-table">
-        <table className="w-full">
-          <thead className="holo-header">
-            <tr>
-              <th className="text-left">注文情報</th>
-              <th className="text-left">担当者</th>
-              <th className="text-left">作業時間</th>
-              <th className="text-left">アイテム数</th>
-              <th className="text-left">効率</th>
-              <th className="text-left">配送方法</th>
-              <th className="text-right">完了時刻</th>
-            </tr>
-          </thead>
+      <div className="overflow-x-auto">
+        <div className="holo-table">
+          <table className="w-full">
+            <thead className="holo-header">
+              <tr>
+                <th className="text-left">注文情報</th>
+                <th className="text-left">担当者</th>
+                <th className="text-left">作業時間</th>
+                <th className="text-left">アイテム数</th>
+                <th className="text-left">効率</th>
+                <th className="text-left">配送方法</th>
+                <th className="text-right">完了時刻</th>
+              </tr>
+            </thead>
           <tbody className="holo-body">
             {historyRecords.map((record) => (
               <tr key={record.id} className="holo-row">
@@ -270,9 +271,10 @@ export default function PickingHistory() {
                   </p>
                 </td>
               </tr>
-            ))}
-          </tbody>
-        </table>
+                      ))}
+        </tbody>
+      </table>
+        </div>
       </div>
 
       {historyRecords.length === 0 && (

@@ -241,19 +241,20 @@ export default function ListingPage() {
               <h2 className="text-xl font-display font-bold text-nexus-text-primary mb-6">
                 出品可能商品
               </h2>
-              <div className="holo-table">
-                <table className="w-full">
-                  <thead className="holo-header">
-                    <tr>
-                      <th className="text-left py-3 px-4">商品情報</th>
-                      <th className="text-left py-3 px-4">SKU</th>
-                      <th className="text-left py-3 px-4">カテゴリ</th>
-                      <th className="text-right py-3 px-4">価格</th>
-                      <th className="text-center py-3 px-4">ステータス</th>
-                      <th className="text-center py-3 px-4">出品状況</th>
-                      <th className="text-center py-3 px-4">アクション</th>
-                    </tr>
-                  </thead>
+              <div className="overflow-x-auto">
+                <div className="holo-table">
+                  <table className="w-full">
+                    <thead className="holo-header">
+                      <tr>
+                        <th className="text-left py-3 px-4">商品情報</th>
+                        <th className="text-left py-3 px-4">SKU</th>
+                        <th className="text-left py-3 px-4">カテゴリ</th>
+                        <th className="text-right py-3 px-4">価格</th>
+                        <th className="text-center py-3 px-4">ステータス</th>
+                        <th className="text-center py-3 px-4">出品状況</th>
+                        <th className="text-center py-3 px-4">アクション</th>
+                      </tr>
+                    </thead>
                   <tbody className="holo-body">
                     {products.map((product) => (
                       <tr key={product.id} className="holo-row">
@@ -304,9 +305,10 @@ export default function ListingPage() {
                           </button>
                         </td>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                                      ))}
+                </tbody>
+              </table>
+                </div>
               </div>
             </div>
           </div>
