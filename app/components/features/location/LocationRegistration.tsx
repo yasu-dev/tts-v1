@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import BarcodeScanner from '@/app/components/BarcodeScanner';
+import BarcodeScanner from '../BarcodeScanner';
 
 interface LocationRegistrationProps {
   onRegisterComplete?: (productId: string, location: string) => void;
@@ -202,11 +202,24 @@ export default function LocationRegistration({ onRegisterComplete }: LocationReg
             </div>
 
             {/* バーコードスキャナー */}
-            <BarcodeScanner 
-              isOpen={showScanner}
-              onClose={() => setShowScanner(false)}
-              onScan={handleBarcodeScan} 
-            />
+            {showScanner && (
+              <div className="p-4 border border-nexus-border rounded-lg bg-nexus-bg-secondary">
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="font-medium text-nexus-text-primary">バーコードスキャン</h4>
+                  <button
+                    onClick={() => setShowScanner(false)}
+                    className="text-nexus-text-secondary hover:text-nexus-text-primary"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <BarcodeScanner 
+                  onScan={handleBarcodeScan}
+                  scanType="product"
+                  placeholder="商品バーコードをスキャンしてください"
+                />
+              </div>
+            )}
 
             {/* 検索結果 */}
             {searchResults.length > 0 && (

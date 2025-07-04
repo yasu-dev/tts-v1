@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import BarcodeScanner from '../BarcodeScanner';
+import BarcodeScanner from './BarcodeScanner';
 
 interface LocationScannerProps {
   onProductScanned: (productId: string) => void;
@@ -111,7 +111,8 @@ export default function LocationScanner({
           <div className="mb-6">
             <BarcodeScanner
               onScan={handleScan}
-              onError={(error) => console.error('Scan error:', error)}
+              scanType={scanMode}
+              placeholder={scanMode === 'product' ? '商品バーコードをスキャン' : 'ロケーションバーコードをスキャン'}
             />
             <button
               onClick={() => setIsScanning(false)}

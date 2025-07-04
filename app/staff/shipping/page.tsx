@@ -1,7 +1,7 @@
 'use client';
 
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
-import BarcodeScanner from '../../components/BarcodeScanner';
+import BarcodeScanner from '../../components/features/BarcodeScanner';
 import PackingInstructions from '@/app/components/features/shipping/PackingInstructions';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -642,11 +642,26 @@ export default function StaffShippingPage() {
         </div>
 
         {/* Barcode Scanner Modal */}
-        <BarcodeScanner
-          isOpen={isBarcodeScannerOpen}
-          onClose={() => setIsBarcodeScannerOpen(false)}
-          onScan={handleBarcodeScanned}
-        />
+        {isBarcodeScannerOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium">バーコードスキャン</h3>
+                <button
+                  onClick={() => setIsBarcodeScannerOpen(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+              <BarcodeScanner
+                onScan={handleBarcodeScanned}
+                scanType="product"
+                placeholder="商品バーコードをスキャンしてください"
+              />
+            </div>
+          </div>
+        )}
 
         {/* Packing Instructions Modal */}
         {selectedPackingItem && (

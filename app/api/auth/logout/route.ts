@@ -13,14 +13,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const success = await AuthService.logout(token);
-
-    if (!success) {
-      return NextResponse.json(
-        { error: 'ログアウト処理に失敗しました' },
-        { status: 500 }
-      );
-    }
+    await AuthService.logout(token);
 
     const response = NextResponse.json({
       success: true,
