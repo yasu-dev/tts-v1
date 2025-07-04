@@ -97,7 +97,7 @@
     background: var(--background);
     color: var(--text-primary);
     min-height: 100vh;
-    overflow: hidden;
+    overflow: auto;
     position: relative;
     margin: 0;
     /* Reduce paint areas */
@@ -330,7 +330,7 @@
     backdrop-filter: blur(25px);
     border-right: 3px solid;
     border-image: linear-gradient(180deg, #0064D2, #FFCE00, #E53238, #86B817, #7B1FA2, #00BCD4) 1;
-    overflow-y: hidden;
+    overflow-y: auto;
     overflow-x: hidden;
     position: relative;
     transition: all 0.3s ease-in-out;
@@ -592,32 +592,79 @@
     flex-direction: column;
     overflow: hidden;
     position: relative;
+    height: 100%;
   }
 
-  .nexus-display > * {
+  /* Page Scroll Container - 適切なスクロール制御 */
+  .page-scroll-container {
+    flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    /* スクロール性能向上 */
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Bottom padding for ensuring scrollability */
+  .page-scroll-container > div:last-child {
+    padding-bottom: env(safe-area-inset-bottom, 0);
   }
 
   /* カスタムスクロールバー - メインコンテンツ用 */
-  .nexus-display *::-webkit-scrollbar {
+  .page-scroll-container::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+
+  .page-scroll-container::-webkit-scrollbar-track {
+    background: rgba(0, 100, 210, 0.05);
+    border-radius: 6px;
+    margin: 4px;
+  }
+
+  .page-scroll-container::-webkit-scrollbar-thumb {
+    background: rgba(0, 100, 210, 0.3);
+    border-radius: 6px;
+    border: 2px solid rgba(248, 250, 254, 0.85);
+    transition: all 0.2s ease;
+    min-height: 40px;
+  }
+
+  .page-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 100, 210, 0.5);
+    border-width: 1px;
+  }
+
+  .page-scroll-container::-webkit-scrollbar-thumb:active {
+    background: rgba(0, 100, 210, 0.7);
+  }
+
+  /* テーブル内のスクロールバー */
+  .holo-table::-webkit-scrollbar,
+  .overflow-x-auto::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
 
-  .nexus-display *::-webkit-scrollbar-track {
+  .holo-table::-webkit-scrollbar-track,
+  .overflow-x-auto::-webkit-scrollbar-track {
     background: rgba(0, 100, 210, 0.02);
     border-radius: 4px;
   }
 
-  .nexus-display *::-webkit-scrollbar-thumb {
-    background: rgba(0, 100, 210, 0.15);
+  .holo-table::-webkit-scrollbar-thumb,
+  .overflow-x-auto::-webkit-scrollbar-thumb {
+    background: rgba(0, 100, 210, 0.2);
     border-radius: 4px;
     transition: background 0.2s ease;
   }
 
-  .nexus-display *::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 100, 210, 0.25);
+  .holo-table::-webkit-scrollbar-thumb:hover,
+  .overflow-x-auto::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 100, 210, 0.3);
   }
 
   @media (max-width: 1024px) {
@@ -848,11 +895,33 @@
     justify-content: space-between;
   }
 
-  /* Page Container */
+  /* Page Container - スクロール対応 */
   .page-container {
-    padding: 0.75rem;
+    padding: 0;
     max-width: 1400px;
     margin: 0 auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0; /* フレックスアイテムのサイズ制限 */
+  }
+
+  /* Page Content - 実際のコンテンツエリア */
+  .page-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    min-height: 0;
+    padding: 1.5rem;
+  }
+
+  /* Ensure minimum content height for scrollability */
+  .content-section {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
   }
 
   /* Card Component */
@@ -929,7 +998,6 @@
 
   /* Nexus Input - Search and Forms */
   .nexus-input {
-    @apply w-full;
   background: rgba(248, 250, 254, 0.97);
   border: 1px solid rgba(0, 100, 210, 0.25);
   border-radius: 6px;

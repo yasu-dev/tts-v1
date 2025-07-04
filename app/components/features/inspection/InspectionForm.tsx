@@ -6,6 +6,8 @@ import NexusButton from '@/app/components/ui/NexusButton';
 import InspectionChecklist from './InspectionChecklist';
 import PhotoUploader from './PhotoUploader';
 import InspectionResult from './InspectionResult';
+import WebRTCVideoRecorder from '@/app/components/features/video/WebRTCVideoRecorder';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 export interface InspectionFormProps {
   productId: string;
@@ -52,9 +54,11 @@ interface InspectionData {
 }
 
 export default function InspectionForm({ productId }: InspectionFormProps) {
+  const { showToast } = useToast();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentStep, setCurrentStep] = useState(0);
+  const [videoId, setVideoId] = useState<string | null>(null);
   const [inspectionData, setInspectionData] = useState<InspectionData>({
     productId,
     checklist: {
@@ -105,6 +109,15 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
     },
     { 
       id: 2, 
+      title: '動画記録', 
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+        </svg>
+      )
+    },
+    { 
+      id: 3, 
       title: '写真撮影', 
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -114,7 +127,7 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
       )
     },
     { 
-      id: 3, 
+      id: 4, 
       title: '確認・完了', 
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -320,22 +333,67 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
         )}
 
         {currentStep === 2 && (
+          <div className="space-y-6">
+            <NexusCard className="p-6">
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold mb-2">検品作業の動画記録</h3>
+                <p className="text-sm text-gray-600">
+                  検品作業の様子を動画で記録します。これにより、後から作業内容を確認できます。
+                </p>
+              </div>
+            </NexusCard>
+            
+            <WebRTCVideoRecorder
+              productId={productId}
+              phase="phase2"
+              type="inspection"
+              onRecordingComplete={(id) => {
+                setVideoId(id);
+                showToast({
+                  title: '動画記録が完了しました',
+                  type: 'success'
+                });
+              }}
+            />
+            
+            <div className="flex justify-between">
+              <NexusButton
+                onClick={() => setCurrentStep(1)}
+                variant="secondary"
+                size="lg"
+              >
+                戻る
+              </NexusButton>
+              <NexusButton
+                onClick={() => setCurrentStep(3)}
+                variant="primary"
+                size="lg"
+                disabled={!videoId}
+              >
+                次へ（写真撮影）
+              </NexusButton>
+            </div>
+          </div>
+        )}
+
+        {currentStep === 3 && (
           <PhotoUploader
             productId={productId}
             photos={inspectionData.photos}
             onUpdate={updatePhotos}
-            onNext={() => setCurrentStep(3)}
-            onPrev={() => setCurrentStep(1)}
+            onNext={() => setCurrentStep(4)}
+            onPrev={() => setCurrentStep(2)}
+            category={product.category}
           />
         )}
 
-        {currentStep === 3 && (
+        {currentStep === 4 && (
           <InspectionResult
             product={product}
             inspectionData={inspectionData}
             onNotesChange={(notes) => setInspectionData(prev => ({ ...prev, notes }))}
             onSubmit={submitInspection}
-            onPrev={() => setCurrentStep(2)}
+            onPrev={() => setCurrentStep(3)}
             loading={loading}
           />
         )}

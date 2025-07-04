@@ -4,6 +4,9 @@ import { useState, useRef } from 'react';
 import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
 import EnhancedImageUploader from '@/app/components/features/EnhancedImageUploader';
+import AIQualityResult from '@/app/components/features/inspection/AIQualityResult';
+import { Zap } from 'lucide-react';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 export interface PhotoUploaderProps {
   productId: string;
@@ -11,6 +14,7 @@ export interface PhotoUploaderProps {
   onUpdate: (photos: string[]) => void;
   onNext: () => void;
   onPrev: () => void;
+  category?: string; // AI判定用のカテゴリ
 }
 
 interface PhotoRequirement {
@@ -26,9 +30,14 @@ export default function PhotoUploader({
   onUpdate,
   onNext,
   onPrev,
+  category = 'accessory',
 }: PhotoUploaderProps) {
+  const { showToast } = useToast();
   const [uploadedPhotos, setUploadedPhotos] = useState<string[]>(photos || []);
   const [loading, setLoading] = useState(false);
+  const [aiAnalyzing, setAiAnalyzing] = useState(false);
+  const [aiResult, setAiResult] = useState<any>(null);
+  const [showAiResult, setShowAiResult] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 写真要件（最低6枚）
@@ -77,11 +86,80 @@ export default function PhotoUploader({
     const updatedPhotos = uploadedPhotos.filter((_, i) => i !== index);
     setUploadedPhotos(updatedPhotos);
     onUpdate(updatedPhotos);
+    // 写真が変更されたらAI結果をクリア
+    setAiResult(null);
+    setShowAiResult(false);
   };
 
   const handleCameraCapture = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
+    }
+  };
+
+  // AI品質判定の実行
+  const handleAIAnalysis = async () => {
+    if (uploadedPhotos.length < 6) {
+      showToast({
+        title: 'AI判定を実行するには最低6枚の写真が必要です',
+        type: 'warning'
+      });
+      return;
+    }
+
+    setAiAnalyzing(true);
+    setShowAiResult(true);
+
+    try {
+      // FormDataを作成
+      const formData = new FormData();
+      formData.append('productId', productId);
+      formData.append('category', category);
+
+      // Base64画像をBlobに変換してFormDataに追加
+      for (let i = 0; i < uploadedPhotos.length; i++) {
+        const base64 = uploadedPhotos[i];
+        const response = await fetch(base64);
+        const blob = await response.blob();
+        formData.append('images', blob, `photo-${i}.jpg`);
+      }
+
+      // AI判定APIを呼び出し
+      const response = await fetch('/api/ai/quality-inspection', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error('AI判定に失敗しました');
+      }
+
+      const data = await response.json();
+      setAiResult(data.result);
+
+      // 判定結果に応じてトースト通知
+      if (data.result.qualityGrade === 'S' || data.result.qualityGrade === 'A') {
+        showToast({
+          title: '優良品質です！',
+          message: `品質グレード: ${data.result.qualityGrade}`,
+          type: 'success'
+        });
+      } else if (data.result.requiresManualReview) {
+        showToast({
+          title: '手動確認を推奨します',
+          message: `品質グレード: ${data.result.qualityGrade}`,
+          type: 'warning'
+        });
+      }
+
+    } catch (error) {
+      console.error('AI analysis error:', error);
+      showToast({
+        title: 'AI品質判定に失敗しました',
+        type: 'error'
+      });
+    } finally {
+      setAiAnalyzing(false);
     }
   };
 
@@ -105,6 +183,7 @@ export default function PhotoUploader({
               <li>• 明るい場所で撮影してください</li>
               <li>• ピントを合わせて鮮明に撮影してください</li>
               <li>• 傷や汚れがある場合は、その部分も撮影してください</li>
+              <li>• AI品質判定で自動的に品質を評価できます</li>
             </ul>
           </div>
         </div>
@@ -171,14 +250,26 @@ export default function PhotoUploader({
 
           {/* EnhancedImageUploader コンポーネント */}
           <EnhancedImageUploader
-            onUploadComplete={(processedImages) => {
-              const urls = processedImages.map(img => img.url);
-              const updatedPhotos = [...uploadedPhotos, ...urls];
+            onUpload={async (files: File[]) => {
+              // 画像をBase64に変換
+              const newPhotos: string[] = [];
+              for (const file of files) {
+                const reader = new FileReader();
+                const base64 = await new Promise<string>((resolve) => {
+                  reader.onload = (e) => resolve(e.target?.result as string);
+                  reader.readAsDataURL(file);
+                });
+                newPhotos.push(base64);
+              }
+              
+              const updatedPhotos = [...uploadedPhotos, ...newPhotos];
               setUploadedPhotos(updatedPhotos);
               onUpdate(updatedPhotos);
+              // 新しい写真が追加されたらAI結果をクリア
+              setAiResult(null);
+              setShowAiResult(false);
             }}
-            maxImages={12}
-            productId={productId}
+            maxFiles={12}
           />
         </div>
       </NexusCard>
@@ -186,9 +277,23 @@ export default function PhotoUploader({
       {/* アップロード済み写真一覧 */}
       {uploadedPhotos.length > 0 && (
         <NexusCard className="p-6">
-          <h3 className="text-lg font-semibold mb-4">
-            アップロード済み写真（{uploadedPhotos.length}枚）
-          </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold">
+              アップロード済み写真（{uploadedPhotos.length}枚）
+            </h3>
+            {uploadedPhotos.length >= 6 && (
+              <NexusButton
+                onClick={handleAIAnalysis}
+                variant="primary"
+                size="md"
+                disabled={aiAnalyzing}
+                className="flex items-center gap-2"
+              >
+                <Zap className="h-4 w-4" />
+                {aiAnalyzing ? 'AI分析中...' : 'AI品質判定'}
+              </NexusButton>
+            )}
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {uploadedPhotos.map((photo, index) => (
               <div key={index} className="relative group">
@@ -214,6 +319,35 @@ export default function PhotoUploader({
             ))}
           </div>
         </NexusCard>
+      )}
+
+      {/* AI品質判定結果 */}
+      {showAiResult && (
+        <AIQualityResult
+          result={aiResult}
+          loading={aiAnalyzing}
+          onAccept={() => {
+            showToast({
+              title: 'AI判定を承認しました',
+              type: 'success'
+            });
+            onNext();
+          }}
+          onReject={() => {
+            showToast({
+              title: '品質基準を満たしていません',
+              message: '再撮影または返品処理を検討してください',
+              type: 'error'
+            });
+          }}
+          onRequestManualReview={() => {
+            showToast({
+              title: '手動確認モードに切り替えました',
+              type: 'info'
+            });
+            setShowAiResult(false);
+          }}
+        />
       )}
 
       {/* ナビゲーションボタン */}

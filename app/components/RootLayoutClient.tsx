@@ -8,9 +8,9 @@ interface RootLayoutClientProps {
 
 export default function RootLayoutClient({ children }: RootLayoutClientProps) {
   return (
-    <>
+    <div className="app-container">
       {/* Skip to main content for accessibility */}
-      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-primary-blue text-white px-4 py-2 rounded-md">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-primary-blue text-white px-4 py-2 rounded-md z-50">
         メインコンテンツへスキップ
       </a>
       
@@ -46,9 +46,13 @@ export default function RootLayoutClient({ children }: RootLayoutClientProps) {
       {/* Sidebar */}
       <Sidebar />
       
-      {/* Main Content */}
-      <main id="main-content" className="main-display overflow-y-auto" role="main">
-        {children}
+      {/* Main Content with proper scroll container */}
+      <main id="main-content" className="nexus-display" role="main">
+        <div className="page-scroll-container">
+          {children}
+          {/* Scroll anchor for ensuring scrollability */}
+          <div className="scroll-anchor" aria-hidden="true"></div>
+        </div>
       </main>
       
       {/* Intel Panel - Hidden on mobile */}
@@ -78,6 +82,6 @@ export default function RootLayoutClient({ children }: RootLayoutClientProps) {
           </div>
         </div>
       </aside>
-    </>
+    </div>
   );
 } 

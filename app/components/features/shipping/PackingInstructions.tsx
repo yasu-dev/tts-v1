@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
+import WebRTCVideoRecorder from '@/app/components/features/video/WebRTCVideoRecorder';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 interface PackingInstructionsProps {
   item: {
@@ -32,8 +34,11 @@ export default function PackingInstructions({
   onComplete,
   onClose
 }: PackingInstructionsProps) {
+  const { showToast } = useToast();
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const [currentStep, setCurrentStep] = useState(0);
+  const [showVideoRecorder, setShowVideoRecorder] = useState(false);
+  const [videoId, setVideoId] = useState<string | null>(null);
 
   // 商品価値に応じた梱包レベルを決定
   const getPackingLevel = (value: number) => {
@@ -83,6 +88,16 @@ export default function PackingInstructions({
         id: 3,
         title: '撮影',
         description: '梱包前の最終状態を撮影（4方向から）'
+      },
+      {
+        id: 4,
+        title: '動画記録開始',
+        description: '梱包作業の様子を動画で記録します',
+        icon: (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+        )
       }
     ];
 
@@ -95,17 +110,17 @@ export default function PackingInstructions({
     if (packingLevel === 'premium') {
       packingSteps.push(
         {
-          id: 4,
+          id: 5,
           title: 'プレミアム保護',
           description: '商品を専用ハードケースに収納'
         },
         {
-          id: 5,
+          id: 6,
           title: '多層緩衝',
           description: 'エアキャップ（大粒）で3重に包装'
         },
         {
-          id: 6,
+          id: 7,
           title: '防水対策',
           description: '防水シートで完全密封'
         }
@@ -113,12 +128,12 @@ export default function PackingInstructions({
     } else if (packingLevel === 'high') {
       packingSteps.push(
         {
-          id: 4,
+          id: 5,
           title: '高級保護',
           description: 'エアキャップ（大粒）で2重に包装'
         },
         {
-          id: 5,
+          id: 6,
           title: '緩衝材配置',
           description: '周囲に高密度緩衝材を配置'
         }
@@ -126,12 +141,12 @@ export default function PackingInstructions({
     } else {
       packingSteps.push(
         {
-          id: 4,
+          id: 5,
           title: '標準保護',
           description: 'エアキャップで包装'
         },
         {
-          id: 5,
+          id: 6,
           title: '緩衝材',
           description: '適切な緩衝材で周囲を保護'
         }
@@ -141,19 +156,19 @@ export default function PackingInstructions({
     // 最終手順
     packingSteps.push(
       {
-        id: 7,
+        id: 8,
         title: '箱詰め',
         description: packingLevel === 'premium' ? '新品強化段ボール（二重構造）を使用' :
                     packingLevel === 'high' ? '新品段ボール（厚手）を使用' :
                     '適切なサイズの段ボールを使用'
       },
       {
-        id: 8,
+        id: 9,
         title: 'シール貼付',
         description: '取扱注意シール（精密機器・天地無用・水濡れ注意）を貼付'
       },
       {
-        id: 9,
+        id: 10,
         title: '最終確認',
         description: '梱包状態を撮影し、伝票を貼付'
       }
@@ -165,6 +180,14 @@ export default function PackingInstructions({
   const steps = getBasePackingSteps();
 
   const handleStepComplete = (stepId: number) => {
+    // 動画記録ステップの場合
+    if (stepId === 4) {
+      if (!videoId) {
+        setShowVideoRecorder(true);
+        return;
+      }
+    }
+
     const newCompleted = new Set(completedSteps);
     newCompleted.add(stepId);
     setCompletedSteps(newCompleted);
@@ -326,8 +349,14 @@ export default function PackingInstructions({
                             onClick={() => handleStepComplete(step.id)}
                             className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                           >
-                            完了
+                            {step.id === 4 && !videoId ? '動画記録を開始' : '完了'}
                           </button>
+                        )}
+                        
+                        {step.id === 4 && videoId && (
+                          <p className="mt-2 text-sm text-green-600">
+                            動画記録済み (ID: {videoId})
+                          </p>
                         )}
                       </div>
                     </div>
@@ -336,6 +365,44 @@ export default function PackingInstructions({
               })}
             </div>
           </div>
+
+          {/* 動画記録モーダル */}
+          {showVideoRecorder && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+              <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold">梱包作業の動画記録</h3>
+                    <button
+                      onClick={() => setShowVideoRecorder(false)}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  
+                  <WebRTCVideoRecorder
+                    productId={item.id}
+                    phase="phase4"
+                    type="packing"
+                    onRecordingComplete={(id) => {
+                      setVideoId(id);
+                      setShowVideoRecorder(false);
+                      showToast({
+                        title: '動画記録が完了しました',
+                        message: '梱包作業の動画を保存しました',
+                        type: 'success'
+                      });
+                      // 動画記録ステップを完了としてマーク
+                      handleStepComplete(4);
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer */}

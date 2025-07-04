@@ -419,10 +419,14 @@ export default function DashboardLayout({
           </div>
 
           {/* ページコンテンツ - レスポンシブ対応 */}
-          <main className="flex-1 overflow-y-auto bg-gray-50 main-content" role="main" id="main-content">
-            <div className="p-2 sm:p-3 md:p-4 lg:p-6 xl:p-8 max-w-[1600px] mx-auto">
-              <div className="min-h-[calc(100vh-180px)] space-y-3 sm:space-y-4 md:space-y-6">
-                {children}
+          <main className="flex-1 bg-gray-50 main-content" role="main" id="main-content">
+            <div className="min-h-full overflow-y-auto page-scroll-container">
+              <div className="p-2 sm:p-3 md:p-4 lg:p-6 xl:p-8 max-w-[1600px] mx-auto">
+                <div className="space-y-3 sm:space-y-4 md:space-y-6">
+                  {children}
+                </div>
+                {/* Bottom padding for scrollability */}
+                <div className="h-screen flex-shrink-0" aria-hidden="true"></div>
               </div>
             </div>
           </main>
