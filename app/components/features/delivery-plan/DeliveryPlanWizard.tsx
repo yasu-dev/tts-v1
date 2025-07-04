@@ -6,6 +6,7 @@ import NexusCard from '@/app/components/ui/NexusCard';
 import BasicInfoStep from './BasicInfoStep';
 import ProductRegistrationStep from './ProductRegistrationStep';
 import ConfirmationStep from './ConfirmationStep';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 interface WizardStep {
   id: number;
@@ -43,6 +44,7 @@ const steps: WizardStep[] = [
 ];
 
 export default function DeliveryPlanWizard() {
+  const { showToast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -95,7 +97,12 @@ export default function DeliveryPlanWizard() {
       }
       
       // 成功メッセージ表示後、リダイレクト
-      alert('納品プランが作成されました');
+      showToast({
+        type: 'success',
+        title: '納品プラン作成完了',
+        message: 'デモモードのため、実際の保存は行われません。プランは一時的に表示されます。',
+        duration: 4000
+      });
       window.location.href = '/inventory';
     } catch (err) {
       setError(err instanceof Error ? err.message : 'エラーが発生しました');

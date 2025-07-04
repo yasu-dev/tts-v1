@@ -208,11 +208,21 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
         throw new Error('検品結果の保存に失敗しました');
       }
 
-      alert('検品が完了しました');
+      showToast({
+        type: 'success',
+        title: '検品完了',
+        message: 'デモモードのため、実際の保存は行われません。検品結果は一時的に表示されます。',
+        duration: 4000
+      });
       window.location.href = '/staff/inspection';
     } catch (error) {
       console.error('[ERROR] Inspection submission:', error);
-      alert('エラーが発生しました');
+      showToast({
+        type: 'error',
+        title: 'エラー',
+        message: 'デモモードでの検品処理中にエラーが発生しました。',
+        duration: 4000
+      });
     } finally {
       setLoading(false);
     }

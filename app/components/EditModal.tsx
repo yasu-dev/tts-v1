@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 interface EditModalProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ interface EditModalProps {
 export default function EditModal({ isOpen, onClose, type, title, data }: EditModalProps) {
   const [formData, setFormData] = useState(data);
   const [isLoading, setIsLoading] = useState(false);
+  const { showToast } = useToast();
 
   if (!isOpen) return null;
 
@@ -23,7 +25,12 @@ export default function EditModal({ isOpen, onClose, type, title, data }: EditMo
     // デモ用の保存処理
     setTimeout(() => {
       setIsLoading(false);
-      alert('デモ版では実際の保存は行われません');
+      showToast({
+        type: 'info',
+        title: 'デモモードのお知らせ',
+        message: 'デモ版では実際の保存は行われません。データは一時的に表示されますが、永続化されません。',
+        duration: 4000
+      });
       onClose();
     }, 1000);
   };

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import NexusButton from '@/app/components/ui/NexusButton';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 interface BasicInfoStepProps {
   data: any;
@@ -16,6 +17,7 @@ export default function BasicInfoStep({
   onNext, 
   isFirstStep 
 }: BasicInfoStepProps) {
+  const { showToast } = useToast();
   const [formData, setFormData] = useState(data.basicInfo || {
     sellerName: '',
     deliveryAddress: '',
@@ -34,7 +36,12 @@ export default function BasicInfoStep({
     if (formData.sellerName && formData.deliveryAddress && formData.contactEmail) {
       onNext();
     } else {
-      alert('必須項目を入力してください');
+      showToast({
+        type: 'warning',
+        title: '入力エラー',
+        message: '必須項目（セラー名、納品先住所、連絡先メール）を入力してください。',
+        duration: 3000
+      });
     }
   };
 
