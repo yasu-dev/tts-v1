@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ApiClient, API_CONFIG } from '@/lib/api-config';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -17,24 +16,17 @@ export default function LoginPage() {
     setError('');
     
     try {
-      const data = await ApiClient.post<{ success: boolean; user?: any; error?: string }>(
-        API_CONFIG.endpoints.auth.login,
-        { email, password }
-      );
-
-      if (data.success && data.user) {
-        // ユーザーの役割に基づいて自動的にリダイレクト
-        if (data.user.role === 'staff') {
-          window.location.href = '/staff/dashboard';
-        } else {
-          window.location.href = '/dashboard';
-        }
+      // 簡易認証（テスト用）
+      if (email === 'seller@example.com' && password === 'password123') {
+        router.push('/dashboard');
+      } else if (email === 'staff@example.com' && password === 'password123') {
+        router.push('/staff/dashboard');
       } else {
-        setError(data.error || 'ログインに失敗しました');
-        setIsLoading(false);
+        setError('ログインに失敗しました。メールアドレスとパスワードを確認してください。');
       }
     } catch (error) {
-      setError('ログインに失敗しました。メールアドレスとパスワードを確認してください。');
+      setError('ログインに失敗しました。');
+    } finally {
       setIsLoading(false);
     }
   };

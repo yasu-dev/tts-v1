@@ -1081,6 +1081,20 @@
   color: white;
 }
 
+.nexus-button.danger {
+  background: linear-gradient(135deg, #E53238 0%, #FF6B6B 100%);
+  color: white;
+  border: 2px solid transparent;
+  font-weight: 600;
+}
+
+.nexus-button.danger:hover {
+  background: linear-gradient(135deg, #FF6B6B 0%, #FF8A8A 100%);
+  box-shadow: 0 4px 20px rgba(229, 50, 56, 0.35);
+  transform: translateY(-1px);
+  color: white;
+}
+
 /* Nexus Button - セラー/スタッフ切り替え用スタイル */
 .nexus-button.seller-active {
   background: linear-gradient(135deg, #0064D2 0%, #0078FF 100%);

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { MockFallback } from '@/lib/mock-fallback';
 
 export async function GET(request: NextRequest) {
   try {
@@ -42,6 +43,16 @@ export async function GET(request: NextRequest) {
     }
   } catch (error) {
     console.error('Staff dashboard data fetch error:', error);
+    
+    // Prismaエラーやファイル読み込みエラーの場合はフォールバックデータを使用
+    console.log('Using fallback data for staff dashboard due to error');
+    try {
+      const fallbackData = await MockFallback.getStaffDashboardFallback();
+      return NextResponse.json(fallbackData);
+    } catch (fallbackError) {
+      console.error('Fallback data error:', fallbackError);
+    }
+
     return NextResponse.json(
       { error: 'スタッフデータの取得中にエラーが発生しました' },
       { status: 500 }

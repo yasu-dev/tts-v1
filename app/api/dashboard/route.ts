@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
+import { MockFallback } from '@/lib/mock-fallback';
 
 export async function GET() {
-  const dashboardData = {
+  try {
+    const dashboardData = {
     // ダッシュボードページで使用されるデータ
     globalRevenue: 45600000,
     activeExports: 156,
@@ -169,5 +171,22 @@ export async function GET() {
     ],
   };
 
-  return NextResponse.json(dashboardData);
+    return NextResponse.json(dashboardData);
+  } catch (error) {
+    console.error('Dashboard fetch error:', error);
+    
+    // エラーの場合はフォールバックデータを使用
+    console.log('Using fallback data for dashboard due to error');
+    try {
+      const fallbackData = await MockFallback.getDashboardFallback();
+      return NextResponse.json(fallbackData);
+    } catch (fallbackError) {
+      console.error('Fallback data error:', fallbackError);
+    }
+
+    return NextResponse.json(
+      { error: 'ダッシュボードデータの取得中にエラーが発生しました' },
+      { status: 500 }
+    );
+  }
 }

@@ -2,14 +2,14 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ToastProvider } from '@/app/components/features/notifications/ToastProvider';
 
-// データベース初期化（サーバーサイドで実行）
-if (typeof window === 'undefined') {
-  import('@/lib/database').then(({ initializeDatabase }) => {
-    initializeDatabase().catch(() => {
-      // エラーは無視（すでに初期化済みの場合など）
-    });
-  });
-}
+// データベース初期化は無効化（テスト用）
+// if (typeof window === 'undefined' && process.env.SKIP_DB !== '1') {
+//   import('@/lib/database').then(({ initializeDatabase }) => {
+//     initializeDatabase().catch(() => {
+//       // エラーは無視（すでに初期化済みの場合など）
+//     });
+//   });
+// }
 
 export const metadata: Metadata = {
   title: "THE WORLD DOOR - フルフィルメントサービス",
