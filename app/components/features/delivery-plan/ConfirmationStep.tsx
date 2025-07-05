@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import NexusButton from '@/app/components/ui/NexusButton';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 interface ConfirmationStepProps {
   data: any;
@@ -20,6 +21,7 @@ export default function ConfirmationStep({
   isLastStep,
   loading
 }: ConfirmationStepProps) {
+  const { showToast } = useToast();
   const [agreedToTerms, setAgreedToTerms] = useState(data.confirmation?.agreedToTerms || false);
   const [generateBarcodes, setGenerateBarcodes] = useState(data.confirmation?.generateBarcodes ?? true);
 
@@ -45,7 +47,11 @@ export default function ConfirmationStep({
 
   const handleSubmit = () => {
     if (!agreedToTerms) {
-      alert('利用規約に同意してください');
+      showToast({
+        type: 'warning',
+        title: '同意が必要',
+        message: '利用規約に同意してください'
+      });
       return;
     }
     onSubmit();

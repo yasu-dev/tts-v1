@@ -10,6 +10,7 @@ import {
   QrCodeIcon,
   DocumentTextIcon 
 } from '@heroicons/react/24/outline';
+import HoloTable from '../components/ui/HoloTable';
 
 export default function DeliveryPage() {
   const router = useRouter();
@@ -243,62 +244,67 @@ export default function DeliveryPage() {
           <div className="p-8">
             <h3 className="text-2xl font-display font-bold text-nexus-text-primary mb-6">納品履歴</h3>
             
-            <div className="holo-table">
-              <table className="w-full">
-                <thead className="holo-header">
-                  <tr>
-                    <th className="text-left">納品ID</th>
-                    <th className="text-left">作成日</th>
-                    <th className="text-center">ステータス</th>
-                    <th className="text-right">商品数</th>
-                    <th className="text-right">総価値</th>
-                    <th className="text-center">アクション</th>
-                  </tr>
-                </thead>
-                <tbody className="holo-body">
-                  {deliveryPlans.map((plan) => (
-                    <tr key={plan.id} className="holo-row">
-                      <td className="font-mono text-nexus-text-primary">
-                        TWD-{plan.date.replace(/-/g, '')}-{String(plan.id).padStart(3, '0')}
-                      </td>
-                      <td>{plan.date}</td>
-                      <td className="text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <div className={`status-orb status-${
-                            plan.status === '準備中' ? 'monitoring' :
-                            plan.status === '発送済' ? 'optimal' :
-                            'optimal'
-                          }`} />
-                          <span className={`status-badge ${
-                            plan.status === '準備中' ? 'warning' :
-                            plan.status === '発送済' ? 'info' :
-                            'success'
-                          }`}>
-                            {plan.status}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="text-right font-display">{plan.items}点</td>
-                      <td className="text-right font-display font-bold">¥{plan.value.toLocaleString()}</td>
-                      <td className="text-center">
-                        <div className="flex gap-3 justify-center">
-                          <button className="action-orb blue">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                          </button>
-                          <button className="action-orb green">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-2 0h-2v4m0-11v3m0 0h-2m2 0h2m-8 3H3M8 8H3m4-3h2M3 4h2m0 2H3"></path>
-                            </svg>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <HoloTable
+              columns={[
+                { key: 'deliveryId', label: '納品ID', width: '20%' },
+                { key: 'date', label: '作成日', width: '15%' },
+                { key: 'status', label: 'ステータス', width: '15%', align: 'center' },
+                { key: 'items', label: '商品数', width: '12%', align: 'right' },
+                { key: 'value', label: '総価値', width: '18%', align: 'right' },
+                { key: 'actions', label: 'アクション', width: '20%', align: 'center' }
+              ]}
+              data={deliveryPlans.map((plan) => ({
+                ...plan,
+                deliveryId: `TWD-${plan.date.replace(/-/g, '')}-${String(plan.id).padStart(3, '0')}`
+              }))}
+              renderCell={(value, column, row) => {
+                if (column.key === 'deliveryId') {
+                  return <span className="font-mono text-nexus-text-primary">{value}</span>;
+                }
+                if (column.key === 'status') {
+                  return (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className={`status-orb status-${
+                        value === '準備中' ? 'monitoring' :
+                        value === '発送済' ? 'optimal' :
+                        'optimal'
+                      }`} />
+                      <span className={`status-badge ${
+                        value === '準備中' ? 'warning' :
+                        value === '発送済' ? 'info' :
+                        'success'
+                      }`}>
+                        {value}
+                      </span>
+                    </div>
+                  );
+                }
+                if (column.key === 'items') {
+                  return <span className="font-display">{value}点</span>;
+                }
+                if (column.key === 'value') {
+                  return <span className="font-display font-bold">¥{value.toLocaleString()}</span>;
+                }
+                if (column.key === 'actions') {
+                  return (
+                    <div className="flex gap-3 justify-center">
+                      <button className="action-orb blue">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                      </button>
+                      <button className="action-orb green">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-2 0h-2v4m0-11v3m0 0h-2m2 0h2m-8 3H3M8 8H3m4-3h2M3 4h2m0 2H3"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  );
+                }
+                return value;
+              }}
+              emptyMessage="納品履歴がありません"
+            />
           </div>
         </div>
       </div>

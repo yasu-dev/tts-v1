@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
 import EbayListingForm from '../EbayListingForm';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 interface Product {
   id: string;
@@ -19,6 +20,7 @@ interface Product {
 }
 
 export default function ListingManager() {
+  const { showToast } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -107,7 +109,11 @@ export default function ListingManager() {
 
   const handleBatchList = async () => {
     if (selectedProducts.length === 0) {
-      alert('出品する商品を選択してください');
+      showToast({
+        type: 'warning',
+        title: '選択が必要',
+        message: '出品する商品を選択してください'
+      });
       return;
     }
 
@@ -115,7 +121,11 @@ export default function ListingManager() {
     if (!confirmed) return;
 
     // 一括出品処理（実装時にはAPIを呼び出す）
-    alert(`${selectedProducts.length}件の商品を出品処理中...`);
+    showToast({
+      type: 'info',
+      title: '出品処理開始',
+      message: `${selectedProducts.length}件の商品を出品処理中...`
+    });
     setSelectedProducts([]);
   };
 
@@ -155,7 +165,11 @@ export default function ListingManager() {
       <EbayListingForm
         product={selectedProduct}
         onSuccess={(listing) => {
-          alert('出品が完了しました');
+          showToast({
+            type: 'success',
+            title: '出品完了',
+            message: '出品が完了しました'
+          });
           setShowListingForm(false);
           setSelectedProduct(null);
           fetchProducts();

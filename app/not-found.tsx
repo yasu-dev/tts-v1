@@ -1,5 +1,7 @@
 'use client';
 
+import { NexusButton } from '@/app/components/ui';
+
 export default function NotFound() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -11,12 +13,12 @@ export default function NotFound() {
         <p className="text-gray-600 mb-8">
           お探しのページは存在しないか、移動された可能性があります。
         </p>
-        <a 
-          href="/login"
-          className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        <NexusButton 
+          variant="primary"
+          onClick={() => window.location.href = '/login'}
         >
           ログインページへ
-        </a>
+        </NexusButton>
       </div>
     </div>
   );

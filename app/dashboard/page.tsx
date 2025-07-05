@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import DashboardLayout from '../components/layouts/DashboardLayout';
 import InventorySummary from '../components/features/InventorySummary';
 import ProductDetailModal from '../components/ProductDetailModal';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import { AreaChart, Card, Title } from '@tremor/react';
 import {
   ClockIcon,
@@ -16,8 +17,10 @@ import {
 import { DateRangePicker } from 'react-date-range';
 import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
+import HoloTable from '../components/ui/HoloTable';
 
 export default function DashboardPage() {
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
@@ -109,7 +112,11 @@ export default function DashboardPage() {
       console.log('レポートダウンロード完了:', exportFileDefaultName);
     } catch (error) {
       console.error('レポートダウンロード中にエラーが発生しました:', error);
-      alert('レポートの生成に失敗しました。もう一度お試しください。');
+      showToast({
+        type: 'error',
+        title: 'レポート生成エラー',
+        message: 'レポートの生成に失敗しました。もう一度お試しください。'
+      });
     }
   };
 
@@ -145,7 +152,7 @@ export default function DashboardPage() {
                 <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
                   セラーダッシュボード
                 </h1>
-                <p className="mt-1 text-sm text-nexus-text-secondary">
+                <p className="text-nexus-text-secondary">
                   販売実績と在庫状況の概要
                 </p>
               </div>
@@ -287,58 +294,68 @@ export default function DashboardPage() {
               <p className="text-nexus-text-secondary mt-0.5 text-xs">リアルタイムの注文状況</p>
             </div>
             
-            <div className="overflow-x-auto -mx-3 sm:-mx-4 md:-mx-6 lg:-mx-8">
-              <div className="holo-table min-w-[700px] px-3 sm:px-4 md:px-6 lg:px-8">
-                <table className="w-full text-xs">
-                  <thead className="holo-header">
-                    <tr>
-                      <th className="text-left py-1.5 px-1 sm:px-2 md:px-2.5 text-xs">注文ID</th>
-                      <th className="text-left py-1.5 px-1 sm:px-2 md:px-2.5 text-xs">顧客</th>
-                      <th className="text-left py-1.5 px-1 sm:px-2 md:px-2.5 text-xs">販売者</th>
-                      <th className="text-center py-1.5 px-1 sm:px-2 md:px-2.5 text-xs">認証</th>
-                      <th className="text-right py-1.5 px-1 sm:px-2 md:px-2.5 text-xs">商品数</th>
-                      <th className="text-right py-1.5 px-1 sm:px-2 md:px-2.5 text-xs">金額</th>
-                      <th className="text-center py-1.5 px-1 sm:px-2 md:px-2.5 text-xs">ステータス</th>
-                      <th className="text-left py-1.5 px-1 sm:px-2 md:px-2.5 text-xs">地域</th>
-                      <th className="text-center py-1.5 px-1 sm:px-2 md:px-2.5 text-xs">操作</th>
-                    </tr>
-                  </thead>
-                  <tbody className="holo-body">
-                    {dashboardData?.orders?.map((order: any) => (
-                      <tr key={order.id} className="holo-row">
-                        <td className="font-mono text-nexus-text-primary py-1.5 px-1 sm:px-2 md:px-2.5 text-xs">{order.id}</td>
-                        <td className="font-medium py-1.5 px-1 sm:px-2 md:px-2.5 text-xs">{order.customer}</td>
-                        <td className="py-1.5 px-1 sm:px-2 md:px-2.5 text-xs">{order.seller}</td>
-                        <td className="text-center py-1.5 px-1 sm:px-2 md:px-2.5">
-                          <span className={`cert-nano cert-${order.certification.toLowerCase()} text-[10px] px-1.5 py-0.5`}>
-                            {order.certification}
-                          </span>
-                        </td>
-                        <td className="text-right font-display py-1.5 px-1 sm:px-2 md:px-2.5 text-xs">{order.items}</td>
-                        <td className="text-right font-display font-bold py-1.5 px-1 sm:px-2 md:px-2.5 text-xs">{order.value}</td>
-                        <td className="text-center py-1.5 px-1 sm:px-2 md:px-2.5">
-                          <div className="flex items-center justify-center gap-1">
-                            <div className={`status-orb status-${order.status} w-2 h-2`} />
-                            <span className={`status-badge ${order.status} text-[10px] px-1.5 py-0.5`}>
-                              {order.status === 'optimal' ? '最適' : order.status === 'monitoring' ? '監視中' : order.status}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="py-1.5 px-1 sm:px-2 md:px-2.5 text-xs">{order.region}</td>
-                        <td className="text-center py-1.5 px-1 sm:px-2 md:px-2.5">
-                          <button
-                            onClick={() => handleOrderDetail(order)}
-                            className="text-purple-600 hover:text-purple-800 text-xs font-medium transition-colors"
-                          >
-                            詳細
-                          </button>
-                        </td>
-                      </tr>
-                    )) || []}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <HoloTable
+              columns={[
+                { key: 'id', label: '注文ID', width: '12%' },
+                { key: 'customer', label: '顧客', width: '12%' },
+                { key: 'seller', label: '販売者', width: '12%' },
+                { key: 'certification', label: '認証', width: '10%', align: 'center' },
+                { key: 'items', label: '商品数', width: '8%', align: 'right' },
+                { key: 'value', label: '金額', width: '10%', align: 'right' },
+                { key: 'status', label: 'ステータス', width: '15%', align: 'center' },
+                { key: 'region', label: '地域', width: '12%' },
+                { key: 'actions', label: '操作', width: '9%', align: 'center' }
+              ]}
+              data={dashboardData?.orders || []}
+              onRowClick={(row) => handleOrderDetail(row)}
+              renderCell={(value, column, row) => {
+                if (column.key === 'id') {
+                  return <span className="font-mono text-nexus-text-primary text-xs">{value}</span>;
+                }
+                if (column.key === 'customer') {
+                  return <span className="font-medium text-xs">{value}</span>;
+                }
+                if (column.key === 'certification') {
+                  return (
+                    <span className={`cert-nano cert-${value.toLowerCase()} text-[10px] px-1.5 py-0.5`}>
+                      {value}
+                    </span>
+                  );
+                }
+                if (column.key === 'items') {
+                  return <span className="font-display text-xs">{value}</span>;
+                }
+                if (column.key === 'value') {
+                  return <span className="font-display font-bold text-xs">{value}</span>;
+                }
+                if (column.key === 'status') {
+                  return (
+                    <div className="flex items-center justify-center gap-1">
+                      <div className={`status-orb status-${value} w-2 h-2`} />
+                      <span className={`status-badge ${value} text-[10px] px-1.5 py-0.5`}>
+                        {value === 'optimal' ? '最適' : value === 'monitoring' ? '監視中' : value}
+                      </span>
+                    </div>
+                  );
+                }
+                if (column.key === 'actions') {
+                  return (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOrderDetail(row);
+                      }}
+                      className="text-purple-600 hover:text-purple-800 text-xs font-medium transition-colors"
+                    >
+                      詳細
+                    </button>
+                  );
+                }
+                return <span className="text-xs">{value}</span>;
+              }}
+              emptyMessage="取引データがありません"
+              className="min-w-[700px]"
+            />
           </div>
         </div>
 

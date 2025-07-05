@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 interface PickingItem {
   id: string;
@@ -34,6 +35,7 @@ export default function PickingListManager() {
   const [loading, setLoading] = useState(true);
   const [filterPriority, setFilterPriority] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const { showToast } = useToast();
 
   useEffect(() => {
     fetchPickingLists();
@@ -166,7 +168,12 @@ export default function PickingListManager() {
   const handleCompletePicking = (list: PickingList) => {
     const allItemsPicked = list.items.every(item => item.status === 'completed');
     if (!allItemsPicked) {
-      alert('すべての商品をピッキングしてください');
+      showToast({
+        type: 'warning',
+        title: 'ピッキング未完了',
+        message: 'すべての商品をピッキングしてから完了してください',
+        duration: 4000
+      });
       return;
     }
 

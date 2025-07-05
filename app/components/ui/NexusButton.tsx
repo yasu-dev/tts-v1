@@ -11,6 +11,7 @@ interface NexusButtonProps {
   onClick?: () => void;
   className?: string;
   icon?: ReactNode;
+  type?: 'button' | 'submit' | 'reset';
 }
 
 export default function NexusButton({
@@ -20,7 +21,8 @@ export default function NexusButton({
   disabled = false,
   onClick,
   className = '',
-  icon
+  icon,
+  type = 'button'
 }: NexusButtonProps) {
   
   const baseClasses = `
@@ -75,7 +77,7 @@ export default function NexusButton({
       className={combinedClasses}
       onClick={onClick}
       disabled={disabled}
-      type="button"
+      type={type}
     >
       {icon && (
         <span className="flex-shrink-0">

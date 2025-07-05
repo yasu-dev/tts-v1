@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { XMarkIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/outline';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
+import { BaseModal, NexusButton } from './ui';
 
 interface InventoryCountModalProps {
   isOpen: boolean;
@@ -12,6 +14,7 @@ export default function InventoryCountModal({ isOpen, onClose }: InventoryCountM
   const [countMode, setCountMode] = useState<'full' | 'partial'>('full');
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const [isStarting, setIsStarting] = useState(false);
+  const { showToast } = useToast();
 
   const locations = [
     { id: 'A-1', name: 'エリアA 棚1', items: 25 },
@@ -39,12 +42,22 @@ export default function InventoryCountModal({ isOpen, onClose }: InventoryCountM
       });
 
       if (response.ok) {
-        alert('棚卸しを開始しました');
+        showToast({
+          type: 'success',
+          title: '棚卸し開始',
+          message: '棚卸しを開始しました。本番環境では在庫状態が更新されます。',
+          duration: 4000
+        });
         onClose();
-        window.location.reload();
+        // 本番運用では親コンポーネントの状態を更新
+        // window.location.reload()は削除し、適切な状態管理を使用
       }
     } catch (error) {
-      alert('棚卸しの開始に失敗しました');
+      showToast({
+        type: 'error',
+        title: 'エラー',
+        message: '棚卸しの開始に失敗しました'
+      });
     } finally {
       setIsStarting(false);
     }
@@ -53,22 +66,19 @@ export default function InventoryCountModal({ isOpen, onClose }: InventoryCountM
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-200">
-        <div className="flex items-center justify-between p-6 border-b">
-          <div className="flex items-center">
-            <ClipboardDocumentListIcon className="w-8 h-8 text-blue-600 mr-3" />
-            <div>
-              <h2 className="text-xl font-bold">棚卸し開始</h2>
-              <p className="text-sm text-gray-500">在庫数量の確認・更新を行います</p>
-            </div>
-          </div>
-          <button onClick={onClose}>
-            <XMarkIcon className="w-6 h-6" />
-          </button>
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="棚卸し開始"
+      size="lg"
+    >
+      <div className="p-6">
+        <div className="flex items-center mb-4">
+          <ClipboardDocumentListIcon className="w-8 h-8 text-blue-600 mr-3" />
+          <p className="text-sm text-gray-500">在庫数量の確認・更新を行います</p>
         </div>
-
-        <div className="p-6 space-y-6">
+        
+        <div className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">
               棚卸しモード
@@ -149,22 +159,24 @@ export default function InventoryCountModal({ isOpen, onClose }: InventoryCountM
           </div>
         </div>
 
-        <div className="flex justify-between p-6 border-t">
-          <button
+        <div className="flex justify-between pt-6 border-t">
+          <NexusButton
+            variant="default"
+            size="md"
             onClick={onClose}
-            className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
           >
             キャンセル
-          </button>
-          <button
+          </NexusButton>
+          <NexusButton
+            variant="primary"
+            size="md"
             onClick={handleStartCount}
             disabled={isStarting || (countMode === 'partial' && selectedLocations.length === 0)}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50"
           >
             {isStarting ? '開始中...' : '棚卸し開始'}
-          </button>
+          </NexusButton>
         </div>
       </div>
-    </div>
+    </BaseModal>
   );
 } 

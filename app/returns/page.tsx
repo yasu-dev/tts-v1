@@ -31,7 +31,7 @@ export default function ReturnsPage() {
                 <h1 className="text-3xl font-display font-bold text-nexus-text-primary mb-2">返品管理</h1>
                 <h2 className="text-xl font-bold text-nexus-text-primary flex items-center gap-3">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
                   </svg>
                   返品管理
                 </h2>
@@ -65,7 +65,7 @@ export default function ReturnsPage() {
                 <div className="flex items-center justify-between mb-4">
                   <div className="action-orb red">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
                     </svg>
                   </div>
                   <span className="status-badge error">{returnStats.totalReturns}</span>
@@ -286,7 +286,7 @@ export default function ReturnsPage() {
         {/* Return Process Flow - Intelligence Card Style */}
         <div className="intelligence-card africa">
           <div className="p-8">
-            <h3 className="text-2xl font-display font-bold text-nexus-text-primary mb-8">返品処理フロー</h3>
+            <h3 className="text-2xl font-display font-bold text-nexus-text-primary mb-8">返品業務フロー</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               <div className="text-center">
@@ -302,7 +302,7 @@ export default function ReturnsPage() {
               <div className="text-center">
                 <div className="w-20 h-20 bg-nexus-blue/20 rounded-2xl flex items-center justify-center mx-auto mb-4 border-3 border-nexus-blue/50">
                   <svg className="w-10 h-10 text-nexus-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
                   </svg>
                 </div>
                 <h4 className="font-display font-bold text-nexus-text-primary mb-2">2. 受領</h4>
@@ -340,7 +340,7 @@ export default function ReturnsPage() {
                 <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
                   返品管理
                 </h1>
-                <p className="mt-1 text-sm text-nexus-text-secondary">
+                <p className="text-nexus-text-secondary">
                   返品リクエストと処理状況を管理
                 </p>
               </div>

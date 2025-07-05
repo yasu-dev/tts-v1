@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import NexusButton from '@/app/components/ui/NexusButton';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 interface ProductRegistrationStepProps {
   data: any;
@@ -20,6 +21,7 @@ export default function ProductRegistrationStep({
   isFirstStep,
   isLastStep
 }: ProductRegistrationStepProps) {
+  const { showToast } = useToast();
   const [products, setProducts] = useState(data.products || []);
 
   const addProduct = () => {
@@ -53,7 +55,11 @@ export default function ProductRegistrationStep({
 
   const handleNext = () => {
     if (products.length === 0) {
-      alert('少なくとも1つの商品を登録してください');
+      showToast({
+        type: 'warning',
+        title: '商品が必要',
+        message: '少なくとも1つの商品を登録してください'
+      });
       return;
     }
     
@@ -62,7 +68,11 @@ export default function ProductRegistrationStep({
     );
     
     if (hasIncompleteProducts) {
-      alert('すべての商品の必須項目を入力してください');
+      showToast({
+        type: 'warning',
+        title: '入力不完全',
+        message: 'すべての商品の必須項目を入力してください'
+      });
       return;
     }
     

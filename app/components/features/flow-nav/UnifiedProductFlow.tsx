@@ -72,10 +72,15 @@ export default function UnifiedProductFlow({
       <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
+    ),
+    returns: (
+      <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
+      </svg>
     )
   };
 
-  // フルフィルメントサービスの5ステップ構造
+  // フルフィルメントサービスの6ステップ構造（心理学的・経済学的配色最適化）
   const getFlowSteps = (): FlowStep[] => [
     {
       id: 'preparation',
@@ -83,7 +88,7 @@ export default function UnifiedProductFlow({
       shortName: '準備',
       description: 'セラー商品仕入れ・納品プラン作成・ATW倉庫発送',
       role: 'seller',
-      color: '#1565c0',
+      color: '#0064D2', // 信頼性・安定性を表すプライマリーブルー（経済学：投資・準備段階）
       bgColor: '#e3f2fd',
       icon: stepIcons.preparation,
       tasks: [
@@ -98,7 +103,7 @@ export default function UnifiedProductFlow({
       shortName: '入庫',
       description: 'スタッフ商品受取・検品撮影・在庫登録',
       role: 'staff',
-      color: '#8e24aa',
+      color: '#7B1FA2', // 集中力・専門性を表すパープル（心理学：検品・品質管理）
       bgColor: '#f3e5f5',
       icon: stepIcons.inbound,
       tasks: [
@@ -113,7 +118,7 @@ export default function UnifiedProductFlow({
       shortName: '販売',
       description: 'システム自動出品・購入者注文・受注処理',
       role: 'system',
-      color: '#43a047',
+      color: '#86B817', // 成長・収益を表すグリーン（経済学：売上創出・収益化）
       bgColor: '#e8f5e8',
       icon: stepIcons.sales,
       tasks: [
@@ -128,8 +133,8 @@ export default function UnifiedProductFlow({
       shortName: '出荷',
       description: 'スタッフピッキング・梱包発送・購入者受取',
       role: 'staff',
-      color: '#8e24aa',
-      bgColor: '#f3e5f5',
+      color: '#00BCD4', // 効率性・スピードを表すシアン（心理学：迅速な配送・顧客満足）
+      bgColor: '#e0f7fa',
       icon: stepIcons.shipping,
       tasks: [
         { id: 'picking', name: 'ピッキング', count: 0, avgDays: 1, status: 'active', priority: 'high' },
@@ -143,13 +148,28 @@ export default function UnifiedProductFlow({
       shortName: '完了',
       description: 'システム売上計算・セラー精算確認・次回仕入れ',
       role: 'seller',
-      color: '#1565c0',
-      bgColor: '#e3f2fd',
+      color: '#FFCE00', // 達成感・満足感を表すゴールド（経済学：利益確定・成功）
+      bgColor: '#fff8e1',
       icon: stepIcons.completion,
       tasks: [
         { id: 'calculation', name: '売上計算', count: 0, avgDays: 1, status: 'active', priority: 'medium' },
         { id: 'settlement', name: '精算確認', count: 0, avgDays: 2, status: 'waiting', priority: 'high' },
         { id: 'next', name: '次回仕入れ', count: 0, avgDays: 0, status: 'waiting', priority: 'low' }
+      ]
+    },
+    {
+      id: 'returns',
+      name: 'STEP 6: 返品フェーズ',
+      shortName: '返品',
+      description: 'スタッフ返品受付・検品・再出品または廃棄',
+      role: 'staff',
+      color: '#FF6F00', // 注意喚起だが建設的なオレンジ（心理学：問題解決・改善機会）
+      bgColor: '#fff3e0',
+      icon: stepIcons.returns,
+      tasks: [
+        { id: 'return-receive', name: '返品受付', count: 0, avgDays: 1, status: 'active', priority: 'high' },
+        { id: 'return-inspect', name: '返品検品', count: 0, avgDays: 2, status: 'waiting', priority: 'high' },
+        { id: 'return-process', name: '再出品・廃棄', count: 0, avgDays: 1, status: 'waiting', priority: 'medium' }
       ]
     }
   ];
@@ -190,6 +210,15 @@ export default function UnifiedProductFlow({
                 break;
               case 'calculation':
                 task.count = data.statusStats['売約済み'] || 0;
+                break;
+              case 'return-receive':
+                task.count = Math.floor((data.statusStats['返品'] || 0) * 0.4);
+                break;
+              case 'return-inspect':
+                task.count = Math.floor((data.statusStats['返品'] || 0) * 0.4);
+                break;
+              case 'return-process':
+                task.count = Math.floor((data.statusStats['返品'] || 0) * 0.2);
                 break;
               default:
                 task.count = 0;
@@ -255,6 +284,9 @@ export default function UnifiedProductFlow({
       case 'completion':
         router.push(userType === 'staff' ? '/staff/reports' : '/billing');
         break;
+      case 'returns':
+        router.push(userType === 'staff' ? '/staff/returns' : '/returns');
+        break;
       default:
         router.push(userType === 'staff' ? '/staff/dashboard' : '/dashboard');
     }
@@ -269,6 +301,7 @@ export default function UnifiedProductFlow({
     if (currentStage.includes('listing') || currentStage.includes('sales')) return 'sales';
     if (currentStage.includes('shipping') || currentStage.includes('picking')) return 'shipping';
     if (currentStage.includes('billing') || currentStage.includes('completion')) return 'completion';
+    if (currentStage.includes('returns')) return 'returns';
     
     return null;
   };
@@ -322,7 +355,7 @@ export default function UnifiedProductFlow({
       <div className={`bg-white border-b border-gray-200 ${compact ? 'py-2' : 'py-4'}`}>
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center">
-            <div className="animate-pulse text-gray-400">フルフィルメントフロー読み込み中...</div>
+            <div className="animate-pulse text-gray-400">フルフィルメント業務フロー読み込み中...</div>
           </div>
         </div>
       </div>
@@ -337,7 +370,7 @@ export default function UnifiedProductFlow({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <h3 className={`font-bold text-gray-900 ${compact ? 'text-sm' : 'text-lg'}`}>
-                フルフィルメント作業フロー
+                フルフィルメント業務フロー
               </h3>
               {/* 作業者の現在の作業状況 */}
               <div className="flex items-center gap-2">
@@ -369,7 +402,7 @@ export default function UnifiedProductFlow({
           </div>
 
           {/* フローステップ */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
             {flowData.map((step, index) => {
               const isCurrentStep = getCurrentStep() === step.id;
               const isUserRelevant = (userType === 'seller' && step.role === 'seller') || 
@@ -497,28 +530,6 @@ export default function UnifiedProductFlow({
               );
             })}
           </div>
-
-          {/* 返品フロー */}
-          {totalStats.returns > 0 && (
-            <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-1 bg-red-100 rounded">
-                    <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-                    </svg>
-                  </div>
-                  <span className="text-sm font-medium text-red-700">返品処理中</span>
-                </div>
-                <button
-                  onClick={() => router.push(userType === 'staff' ? '/staff/returns' : '/returns')}
-                  className="px-3 py-1 bg-red-100 text-red-700 text-sm font-medium rounded hover:bg-red-200 transition-colors"
-                >
-                  {totalStats.returns}件 →
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* クイックアクションヒント */}
           {!compact && (

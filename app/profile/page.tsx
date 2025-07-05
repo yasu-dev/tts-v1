@@ -97,7 +97,7 @@ export default function ProfilePage() {
                 <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
                   プロフィール設定
                 </h1>
-                <p className="mt-1 text-sm text-nexus-text-secondary">
+                <p className="text-nexus-text-secondary">
                   個人情報とアカウント設定を管理
                 </p>
               </div>

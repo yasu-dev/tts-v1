@@ -3,10 +3,12 @@
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import TaskDetailModal from '../../components/TaskDetailModal';
 import EditModal from '../../components/EditModal';
-import { useState, useEffect } from 'react';
+import TaskCreationModal from '../../components/modals/TaskCreationModal';
+import { useState, useEffect, useMemo } from 'react';
 import {
   FunnelIcon,
   UsersIcon,
+  PlusIcon,
 } from '@heroicons/react/24/outline';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
@@ -31,6 +33,9 @@ export default function StaffTasksPage() {
   const [filter, setFilter] = useState<'all' | 'pending' | 'in_progress' | 'completed'>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [assigneeFilter, setAssigneeFilter] = useState<string>('all');
+  const [dueDateFilter, setDueDateFilter] = useState<string>('all');
+  const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState<any>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -131,12 +136,66 @@ export default function StaffTasksPage() {
     setLoading(false);
   }, []);
 
-  const filteredTasks = tasks.filter(task => {
-    const statusMatch = filter === 'all' || task.status === filter;
-    const categoryMatch = categoryFilter === 'all' || task.category === categoryFilter;
-    const assigneeMatch = assigneeFilter === 'all' || task.assignedTo === assigneeFilter;
-    return statusMatch && categoryMatch && assigneeMatch;
-  });
+  const filteredTasks = useMemo(() => {
+    return tasks.filter(task => {
+      // ステータスフィルター
+      if (filter !== 'all' && task.status !== filter) return false;
+      
+      // カテゴリーフィルター
+      if (categoryFilter !== 'all' && task.category !== categoryFilter) return false;
+      
+      // 担当者フィルター
+      if (assigneeFilter !== 'all' && task.assignedTo !== assigneeFilter) return false;
+      
+      // 優先度フィルター
+      if (priorityFilter !== 'all' && task.priority !== priorityFilter) return false;
+      
+      // 期限フィルター
+      if (dueDateFilter !== 'all') {
+        const taskDate = new Date(task.dueDate);
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const weekEnd = new Date(today);
+        weekEnd.setDate(weekEnd.getDate() + 7);
+        
+        switch (dueDateFilter) {
+          case 'today':
+            if (taskDate.toDateString() !== today.toDateString()) return false;
+            break;
+          case 'tomorrow':
+            if (taskDate.toDateString() !== tomorrow.toDateString()) return false;
+            break;
+          case 'week':
+            if (taskDate < today || taskDate > weekEnd) return false;
+            break;
+          case 'overdue':
+            if (taskDate >= today) return false;
+            break;
+          default:
+            break;
+        }
+      }
+      
+      // 検索クエリフィルター
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        const matchesTitle = task.title.toLowerCase().includes(query);
+        const matchesDescription = task.description.toLowerCase().includes(query);
+        const matchesProductName = task.productName?.toLowerCase().includes(query);
+        const matchesProductSku = task.productSku?.toLowerCase().includes(query);
+        const matchesAssignee = task.assignedTo.toLowerCase().includes(query);
+        const matchesNotes = task.notes?.toLowerCase().includes(query);
+        
+        if (!matchesTitle && !matchesDescription && !matchesProductName && 
+            !matchesProductSku && !matchesAssignee && !matchesNotes) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
+  }, [tasks, filter, categoryFilter, assigneeFilter, priorityFilter, dueDateFilter, searchQuery]);
 
   const priorityLabels: Record<string, string> = {
     high: '高',
@@ -174,7 +233,7 @@ export default function StaffTasksPage() {
     ),
     returns: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
       </svg>
     ),
     photography: (
@@ -219,15 +278,19 @@ export default function StaffTasksPage() {
     setIsEditModalOpen(true);
   };
 
-  const assignees = Array.from(new Set(tasks.map(task => task.assignedTo)));
+  const assignees = useMemo(() => {
+    return Array.from(new Set(tasks.map(task => task.assignedTo)));
+  }, [tasks]);
 
-  const stats = {
-    total: filteredTasks.length,
-    pending: filteredTasks.filter(t => t.status === 'pending').length,
-    inProgress: filteredTasks.filter(t => t.status === 'in_progress').length,
-    completed: filteredTasks.filter(t => t.status === 'completed').length,
-    highPriority: filteredTasks.filter(t => t.priority === 'high' && t.status !== 'completed').length,
-  };
+  const stats = useMemo(() => {
+    return {
+      total: filteredTasks.length,
+      pending: filteredTasks.filter(t => t.status === 'pending').length,
+      inProgress: filteredTasks.filter(t => t.status === 'in_progress').length,
+      completed: filteredTasks.filter(t => t.status === 'completed').length,
+      highPriority: filteredTasks.filter(t => t.priority === 'high' && t.status !== 'completed').length,
+    };
+  }, [filteredTasks]);
 
   const taskCategories = [
     { id: 'urgent', name: '緊急タスク', icon: '🔥', color: 'americas' },
@@ -270,46 +333,58 @@ export default function StaffTasksPage() {
     <DashboardLayout userType="staff">
       <div className="space-y-6">
         {/* Header */}
-        <div className="intelligence-card americas">
+        <div className="intelligence-card global">
           <div className="p-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
-                  タスク管理
-                </h1>
-                <p className="mt-1 text-sm text-nexus-text-secondary">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+              {/* Title Section */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-3 mb-2">
+                  <svg className="w-8 h-8 text-nexus-yellow flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                  <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
+                    タスク管理
+                  </h1>
+                </div>
+                <p className="text-nexus-text-secondary">
                   作業タスクの詳細管理と進捗追跡
                 </p>
               </div>
-              <div className="flex space-x-3">
-                <button className="nexus-button">
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
+                <button 
+                  className="nexus-button flex items-center justify-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
                   </svg>
-                  一括操作
-                </button>
-                <button 
-                  onClick={() => setShowCreateModal(true)}
-                  className="nexus-button primary"
-                >
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                  新規タスク作成
+                  <span className="hidden sm:inline">一括操作</span>
+                  <span className="sm:hidden">一括</span>
                 </button>
                 <button
                   onClick={() => setIsFilterModalOpen(true)}
-                  className="nexus-button"
+                  className="nexus-button flex items-center justify-center gap-2"
                 >
-                  <FunnelIcon className="w-5 h-5 mr-2" />
-                  フィルター設定
+                  <FunnelIcon className="w-5 h-5" />
+                  <span className="hidden sm:inline">フィルター設定</span>
+                  <span className="sm:hidden">フィルター</span>
                 </button>
                 <button
                   onClick={() => setIsBulkAssignModalOpen(true)}
-                  className="nexus-button primary"
+                  className="nexus-button flex items-center justify-center gap-2"
                 >
-                  <UsersIcon className="w-5 h-5 mr-2" />
-                  タスク一括割当
+                  <UsersIcon className="w-5 h-5" />
+                  <span className="hidden sm:inline">タスク一括割当</span>
+                  <span className="sm:hidden">一括割当</span>
+                </button>
+                <button 
+                  onClick={() => setShowCreateModal(true)}
+                  className="nexus-button primary flex items-center justify-center gap-2"
+                >
+                  <PlusIcon className="w-5 h-5" />
+                  <span className="hidden sm:inline">新規タスク作成</span>
+                  <span className="sm:hidden">新規作成</span>
                 </button>
               </div>
             </div>
@@ -419,8 +494,36 @@ export default function StaffTasksPage() {
         {/* Filters and Task List */}
         <div className="intelligence-card global">
           <div className="p-8">
+            {/* Search Bar */}
+            <div className="mb-6">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="タスク名、商品名、SKU、担当者、備考で検索..."
+                  className="block w-full pl-10 pr-3 py-3 border border-nexus-border rounded-lg bg-nexus-bg-secondary text-nexus-text-primary placeholder-nexus-text-secondary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  >
+                    <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            </div>
+
             {/* Filters */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
               <div>
                 <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
                   ステータス
@@ -473,9 +576,29 @@ export default function StaffTasksPage() {
 
               <div>
                 <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  優先度
+                </label>
+                <select
+                  value={priorityFilter}
+                  onChange={(e) => setPriorityFilter(e.target.value)}
+                  className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg text-sm text-nexus-text-primary"
+                >
+                  <option value="all">すべて</option>
+                  <option value="high">高</option>
+                  <option value="medium">中</option>
+                  <option value="low">低</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
                   期限
                 </label>
-                <select className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg text-sm text-nexus-text-primary">
+                <select
+                  value={dueDateFilter}
+                  onChange={(e) => setDueDateFilter(e.target.value)}
+                  className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg text-sm text-nexus-text-primary"
+                >
                   <option value="all">すべて</option>
                   <option value="today">今日</option>
                   <option value="tomorrow">明日</option>
@@ -619,27 +742,20 @@ export default function StaffTasksPage() {
           </div>
         </div>
 
-        {/* New Task Modal (簡易実装) */}
-        {showCreateModal && (
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-30 flex items-center justify-center z-50">
-            <div className="intelligence-card global mx-4 max-w-lg w-full">
-              <div className="p-6">
-                <h3 className="text-lg font-display font-medium text-nexus-text-primary mb-4">
-                  新規タスク作成
-                </h3>
-                <p className="text-sm text-nexus-text-secondary mb-4">
-                  デモ版では新規タスク作成機能は実装されていません。
-                </p>
-                <button
-                  onClick={() => setShowCreateModal(false)}
-                  className="nexus-button primary w-full"
-                >
-                  閉じる
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Task Creation Modal */}
+        <TaskCreationModal
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          onSubmit={(newTask) => {
+            // デモ版: 新しいタスクを既存のタスクリストに追加
+            setTasks(prev => [...prev, newTask]);
+            showToast({
+              type: 'success',
+              title: 'タスク作成完了',
+              message: `新しいタスクが作成されました: ${newTask.title}`
+            });
+          }}
+        />
 
         {/* Task Detail Modal */}
         <TaskDetailModal
@@ -664,13 +780,99 @@ export default function StaffTasksPage() {
 
         {/* Filter Modal */}
         {isFilterModalOpen && (
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-30 z-50 flex justify-center items-center">
-            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
-              <h2 className="text-lg font-bold mb-4">フィルター設定</h2>
-              {/* TODO: フィルターフォームを実装 */}
-              <div className="text-right mt-6">
-                <button onClick={() => setIsFilterModalOpen(false)} className="nexus-button mr-2">キャンセル</button>
-                <button onClick={handleApplyFilter} className="nexus-button primary">適用</button>
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 z-50 flex justify-center items-center">
+            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl">
+              <h2 className="text-lg font-bold mb-4">高度なフィルター設定</h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    作成日範囲
+                  </label>
+                  <div className="space-y-2">
+                    <input
+                      type="date"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      placeholder="開始日"
+                    />
+                    <input
+                      type="date"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      placeholder="終了日"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    推定作業時間
+                  </label>
+                  <div className="space-y-2">
+                    <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                      <option value="">すべて</option>
+                      <option value="short">短時間（30分以下）</option>
+                      <option value="medium">中時間（30分-2時間）</option>
+                      <option value="long">長時間（2時間以上）</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    商品カテゴリー
+                  </label>
+                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                    <option value="">すべて</option>
+                    <option value="camera">カメラ</option>
+                    <option value="watch">時計</option>
+                    <option value="bag">バッグ</option>
+                    <option value="jewelry">ジュエリー</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    タスクタグ
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {['緊急', '重要', '簡単', '複雑', '要確認'].map(tag => (
+                      <label key={tag} className="flex items-center">
+                        <input type="checkbox" className="mr-1" />
+                        <span className="text-sm">{tag}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={() => {
+                    // フィルターリセット
+                    setFilter('all');
+                    setCategoryFilter('all');
+                    setAssigneeFilter('all');
+                    setPriorityFilter('all');
+                    setDueDateFilter('all');
+                    setSearchQuery('');
+                    showToast({
+                      title: 'フィルターリセット',
+                      message: 'すべてのフィルターをリセットしました',
+                      type: 'info'
+                    });
+                  }}
+                  className="nexus-button"
+                >
+                  リセット
+                </button>
+                <div className="space-x-2">
+                  <button onClick={() => setIsFilterModalOpen(false)} className="nexus-button">
+                    キャンセル
+                  </button>
+                  <button onClick={handleApplyFilter} className="nexus-button primary">
+                    適用
+                  </button>
+                </div>
               </div>
             </div>
           </div>

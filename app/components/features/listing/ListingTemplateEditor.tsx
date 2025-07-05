@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 interface Template {
   id: string;
@@ -20,6 +21,7 @@ export default function ListingTemplateEditor() {
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { showToast } = useToast();
 
   // フォーム状態
   const [formData, setFormData] = useState({
@@ -107,12 +109,22 @@ export default function ListingTemplateEditor() {
 
   const handleSave = async () => {
     if (!formData.name || !formData.titleTemplate) {
-      alert('テンプレート名とタイトルは必須です');
+      showToast({
+        type: 'warning',
+        title: '入力エラー',
+        message: 'テンプレート名とタイトルは必須です',
+        duration: 4000
+      });
       return;
     }
 
     // 保存処理（実装時にはAPIを呼び出す）
-    alert('テンプレートを保存しました');
+    showToast({
+      type: 'success',
+      title: 'テンプレート保存完了',
+      message: 'テンプレートを保存しました',
+      duration: 3000
+    });
     setIsEditing(false);
     fetchTemplates();
   };
@@ -122,7 +134,12 @@ export default function ListingTemplateEditor() {
     if (!confirmed) return;
 
     // 削除処理（実装時にはAPIを呼び出す）
-    alert('テンプレートを削除しました');
+    showToast({
+      type: 'success',
+      title: 'テンプレート削除完了',
+      message: 'テンプレートを削除しました',
+      duration: 3000
+    });
     setSelectedTemplate(null);
     fetchTemplates();
   };

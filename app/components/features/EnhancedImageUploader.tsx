@@ -280,14 +280,14 @@ export default function EnhancedImageUploader({
               )}
               
               {/* Actions */}
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+              <div className="absolute top-2 right-2 flex gap-2">
                 {enableEdit && image.status === 'pending' && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       applyFilter(image.id, 'brightness(1.2) contrast(1.1)');
                     }}
-                    className="p-2 bg-white rounded-full hover:bg-gray-100"
+                    className="p-2 bg-white rounded-full hover:bg-gray-100 shadow-md"
                     title="フィルター適用"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -301,7 +301,7 @@ export default function EnhancedImageUploader({
                     e.stopPropagation();
                     removeImage(image.id);
                   }}
-                  className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600"
+                  className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 shadow-md"
                   title="削除"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

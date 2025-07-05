@@ -249,7 +249,7 @@ export default function AdvancedKPIDashboard() {
                     onClick={() => setTimeRange(range)}
                     className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
                       timeRange === range
-                        ? 'bg-white text-[#0064D2] shadow-sm'
+                        ? 'bg-white text-primary-blue shadow-sm'
                         : 'text-nexus-text-secondary hover:text-nexus-text-primary'
                     }`}
                   >

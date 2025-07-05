@@ -9,9 +9,10 @@ import {
   ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline';
 import ProductRegistrationModal from '../components/modals/ProductRegistrationModal';
-import { ContentCard } from '@/app/components/ui';
+import { ContentCard, NexusInput, NexusButton } from '@/app/components/ui';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import { useRouter } from 'next/navigation';
+import HoloTable from '../components/ui/HoloTable';
 
 export default function InventoryPage() {
   const router = useRouter();
@@ -160,7 +161,7 @@ export default function InventoryPage() {
                   </svg>
                   商品在庫ビュー
                 </h2>
-                <p className="text-nexus-text-secondary mt-1 text-xs sm:text-sm">
+                <p className="text-nexus-text-secondary">
                   商品在庫の状況を確認・管理できます
                 </p>
               </div>
@@ -204,7 +205,7 @@ export default function InventoryPage() {
             <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
               <h2 className="text-lg font-bold mb-4">CSVインポート</h2>
               <div className="mb-4">
-                <input
+                <NexusInput
                   type="file"
                   accept=".csv"
                   onChange={(e) => {
@@ -214,7 +215,6 @@ export default function InventoryPage() {
                       setIsCsvImportModalOpen(false);
                     }
                   }}
-                  className="w-full border border-gray-300 rounded px-3 py-2"
                 />
               </div>
               <div className="text-right mt-6">
@@ -318,51 +318,56 @@ export default function InventoryPage() {
               <p className="text-nexus-text-secondary mt-1 text-xs sm:text-sm">現在の在庫状況</p>
             </div>
             
-            <div className="overflow-x-auto -mx-3 sm:-mx-4 md:-mx-6 lg:-mx-8">
-              <div className="holo-table min-w-[700px] px-3 sm:px-4 md:px-6 lg:px-8">
-                <table className="w-full">
-                  <thead className="holo-header">
-                    <tr>
-                      <th className="text-left py-2 px-1 sm:px-2 text-xs sm:text-sm">商品名</th>
-                      <th className="text-left py-2 px-1 sm:px-2 text-xs sm:text-sm">SKU</th>
-                      <th className="text-left py-2 px-1 sm:px-2 text-xs sm:text-sm">カテゴリー</th>
-                      <th className="text-center py-2 px-1 sm:px-2 text-xs sm:text-sm">ステータス</th>
-                      <th className="text-left py-2 px-1 sm:px-2 text-xs sm:text-sm">保管場所</th>
-                      <th className="text-right py-2 px-1 sm:px-2 text-xs sm:text-sm">評価額</th>
-                      <th className="text-center py-2 px-1 sm:px-2 text-xs sm:text-sm">認証</th>
-                    </tr>
-                  </thead>
-                  <tbody className="holo-body">
-                    {inventory.map((item) => (
-                      <tr key={item.id} className="holo-row">
-                        <td className="font-medium text-nexus-text-primary py-2 px-1 sm:px-2 text-xs sm:text-sm">{item.name}</td>
-                        <td className="font-mono text-nexus-text-primary py-2 px-1 sm:px-2 text-xs sm:text-sm">{item.sku}</td>
-                        <td className="py-2 px-1 sm:px-2 text-xs sm:text-sm">{item.category}</td>
-                        <td className="text-center py-2 px-1 sm:px-2">
-                          <div className="flex items-center justify-center gap-1 sm:gap-2">
-                            <div className={`status-orb status-${item.status === '出品中' ? 'optimal' : 'monitoring'} w-2 h-2`} />
-                            <span className={`status-badge ${item.status === '出品中' ? 'success' : 'warning'} text-[10px] sm:text-xs`}>
-                              {item.status}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="font-mono py-2 px-1 sm:px-2 text-xs sm:text-sm">{item.location}</td>
-                        <td className="text-right font-display font-bold py-2 px-1 sm:px-2 text-xs sm:text-sm">¥{item.value.toLocaleString()}</td>
-                        <td className="text-center py-2 px-1 sm:px-2">
-                          <div className="flex justify-center gap-1 flex-wrap">
-                            {item.certifications.map(cert => (
-                              <span key={cert} className={`cert-nano cert-${cert.toLowerCase()} text-[8px] sm:text-[10px]`}>
-                                {cert}
-                              </span>
-                            ))}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <HoloTable
+              columns={[
+                { key: 'name', label: '商品名', width: '20%' },
+                { key: 'sku', label: 'SKU', width: '15%' },
+                { key: 'category', label: 'カテゴリー', width: '12%' },
+                { key: 'status', label: 'ステータス', width: '12%', align: 'center' },
+                { key: 'location', label: '保管場所', width: '12%' },
+                { key: 'value', label: '評価額', width: '15%', align: 'right' },
+                { key: 'certifications', label: '認証', width: '14%', align: 'center' }
+              ]}
+              data={inventory}
+              renderCell={(value, column, row) => {
+                if (column.key === 'name') {
+                  return <span className="font-medium text-nexus-text-primary text-xs sm:text-sm">{value}</span>;
+                }
+                if (column.key === 'sku') {
+                  return <span className="font-mono text-nexus-text-primary text-xs sm:text-sm">{value}</span>;
+                }
+                if (column.key === 'status') {
+                  return (
+                    <div className="flex items-center justify-center gap-1 sm:gap-2">
+                      <div className={`status-orb status-${value === '出品中' ? 'optimal' : 'monitoring'} w-2 h-2`} />
+                      <span className={`status-badge ${value === '出品中' ? 'success' : 'warning'} text-[10px] sm:text-xs`}>
+                        {value}
+                      </span>
+                    </div>
+                  );
+                }
+                if (column.key === 'location') {
+                  return <span className="font-mono text-xs sm:text-sm">{value}</span>;
+                }
+                if (column.key === 'value') {
+                  return <span className="font-display font-bold text-xs sm:text-sm">¥{value.toLocaleString()}</span>;
+                }
+                if (column.key === 'certifications') {
+                  return (
+                    <div className="flex justify-center gap-1 flex-wrap">
+                      {value.map((cert: string) => (
+                        <span key={cert} className={`cert-nano cert-${cert.toLowerCase()} text-[8px] sm:text-[10px]`}>
+                          {cert}
+                        </span>
+                      ))}
+                    </div>
+                  );
+                }
+                return <span className="text-xs sm:text-sm">{value}</span>;
+              }}
+              emptyMessage="在庫データがありません"
+              className="min-w-[700px]"
+            />
           </div>
         </div>
       </div>

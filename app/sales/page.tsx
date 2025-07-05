@@ -8,6 +8,7 @@ import {
   TicketIcon,
 } from '@heroicons/react/24/outline';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
+import HoloTable from '@/app/components/ui/HoloTable';
 
 export default function SalesPage() {
   const { showToast } = useToast();
@@ -49,7 +50,7 @@ export default function SalesPage() {
                 <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
                   販売管理
                 </h1>
-                <p className="mt-1 text-sm text-nexus-text-secondary">
+                <p className="text-nexus-text-secondary">
                   出品状況と販売パフォーマンスを管理
                 </p>
               </div>
@@ -178,47 +179,57 @@ export default function SalesPage() {
               <p className="text-nexus-text-secondary mt-1">最新の注文状況</p>
             </div>
             
-            <div className="holo-table">
-              <table className="w-full">
-                <thead className="holo-header">
-                  <tr>
-                    <th className="text-left">注文ID</th>
-                    <th className="text-left">商品名</th>
-                    <th className="text-left">購入者</th>
-                    <th className="text-right">価格</th>
-                    <th className="text-center">ステータス</th>
-                    <th className="text-left">注文日</th>
-                  </tr>
-                </thead>
-                <tbody className="holo-body">
-                  {(salesData?.recentOrders || []).map((order: any) => (
-                    <tr key={order.id} className="holo-row">
-                      <td className="font-mono text-nexus-text-primary">ORD-{String(order.id).padStart(6, '0')}</td>
-                      <td className="font-medium text-nexus-text-primary">{order.product}</td>
-                      <td className="text-nexus-text-secondary">{order.customer}</td>
-                      <td className="text-right font-display font-bold">¥{order.amount?.toLocaleString() || '0'}</td>
-                      <td className="text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <div className={`status-orb status-${
-                            order.status === '出荷済' ? 'optimal' : 
-                            order.status === '配送中' ? 'optimal' : 
-                            'monitoring'
-                          }`} />
-                          <span className={`status-badge ${
-                            order.status === '出荷済' ? 'success' : 
-                            order.status === '配送中' ? 'info' :
-                            'warning'
-                          }`}>
-                            {order.status}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="font-mono text-sm">{order.date}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <HoloTable
+              columns={[
+                { key: 'orderId', label: '注文ID', width: '15%' },
+                { key: 'product', label: '商品名', width: '25%' },
+                { key: 'customer', label: '購入者', width: '15%' },
+                { key: 'amount', label: '価格', width: '15%', align: 'right' },
+                { key: 'status', label: 'ステータス', width: '15%', align: 'center' },
+                { key: 'date', label: '注文日', width: '15%' }
+              ]}
+              data={(salesData?.recentOrders || []).map((order: any) => ({
+                ...order,
+                orderId: `ORD-${String(order.id).padStart(6, '0')}`
+              }))}
+              renderCell={(value, column, row) => {
+                if (column.key === 'orderId') {
+                  return <span className="font-mono text-nexus-text-primary">{value}</span>;
+                }
+                if (column.key === 'product') {
+                  return <span className="font-medium text-nexus-text-primary">{value}</span>;
+                }
+                if (column.key === 'customer') {
+                  return <span className="text-nexus-text-secondary">{value}</span>;
+                }
+                if (column.key === 'amount') {
+                  return <span className="font-display font-bold">¥{value?.toLocaleString() || '0'}</span>;
+                }
+                if (column.key === 'status') {
+                  return (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className={`status-orb status-${
+                        value === '出荷済' ? 'optimal' : 
+                        value === '配送中' ? 'optimal' : 
+                        'monitoring'
+                      }`} />
+                      <span className={`status-badge ${
+                        value === '出荷済' ? 'success' : 
+                        value === '配送中' ? 'info' :
+                        'warning'
+                      }`}>
+                        {value}
+                      </span>
+                    </div>
+                  );
+                }
+                if (column.key === 'date') {
+                  return <span className="font-mono text-sm">{value}</span>;
+                }
+                return value;
+              }}
+              emptyMessage="注文データがありません"
+            />
           </div>
         </div>
       </div>

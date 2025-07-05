@@ -33,12 +33,17 @@ interface LocationMovement {
   reason: string;
 }
 
-export default function LocationList() {
+interface LocationListProps {
+  searchQuery?: string;
+}
+
+export default function LocationList({ searchQuery = '' }: LocationListProps) {
   const [locations, setLocations] = useState<Location[]>([]);
   const [movements, setMovements] = useState<LocationMovement[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list' | 'movement'>('grid');
+  const [filteredLocations, setFilteredLocations] = useState<Location[]>([]);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -46,6 +51,24 @@ export default function LocationList() {
     fetchLocations();
     fetchMovements();
   }, []);
+
+  // Filter locations based on search query
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredLocations(locations);
+    } else {
+      const filtered = locations.filter(location =>
+        location.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        location.products.some(product =>
+          product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.id.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+      );
+      setFilteredLocations(filtered);
+    }
+  }, [searchQuery, locations]);
 
   const fetchLocations = async () => {
     try {
@@ -114,6 +137,7 @@ export default function LocationList() {
       ];
 
       setLocations(mockLocations);
+      setFilteredLocations(mockLocations);
     } catch (error) {
       console.error('[ERROR] Fetch locations:', error);
     } finally {
@@ -229,10 +253,20 @@ export default function LocationList() {
             </div>
           </div>
 
+          {/* Search Results Info */}
+          {searchQuery && (
+            <div className="mb-4 p-3 bg-nexus-bg-secondary rounded-lg border border-nexus-border">
+              <p className="text-sm text-nexus-text-secondary">
+                「<span className="font-medium text-nexus-text-primary">{searchQuery}</span>」の検索結果: 
+                <span className="font-medium text-nexus-yellow ml-1">{filteredLocations.length}件</span>
+              </p>
+            </div>
+          )}
+
           {/* グリッドビュー */}
           {viewMode === 'grid' && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {locations.map((location) => {
+              {filteredLocations.map((location) => {
                 const typeInfo = getLocationTypeLabel(location.type);
                 const occupancyStatus = getOccupancyStatus(location.used, location.capacity);
                 return (
@@ -319,7 +353,7 @@ export default function LocationList() {
                   </tr>
                 </thead>
                 <tbody className="holo-body">
-                  {locations.map((location) => {
+                  {filteredLocations.map((location) => {
                     const typeInfo = getLocationTypeLabel(location.type);
                     const occupancyStatus = getOccupancyStatus(location.used, location.capacity);
                     return (
@@ -373,7 +407,12 @@ export default function LocationList() {
           {/* 移動履歴ビュー */}
           {viewMode === 'movement' && (
             <div className="space-y-4">
-              {movements.map((movement) => (
+              {movements.filter(movement => 
+                !searchQuery || 
+                movement.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                movement.fromLocation.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                movement.toLocation.toLowerCase().includes(searchQuery.toLowerCase())
+              ).map((movement) => (
                 <div
                   key={movement.id}
                   className="holo-card p-6"

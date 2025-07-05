@@ -1,0 +1,98 @@
+'use client';
+
+import React, { forwardRef } from 'react';
+
+interface NexusTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  label?: string;
+  error?: string;
+  variant?: 'default' | 'nexus' | 'enterprise';
+  size?: 'sm' | 'md' | 'lg';
+  resize?: 'none' | 'vertical' | 'horizontal' | 'both';
+}
+
+const NexusTextarea = forwardRef<HTMLTextAreaElement, NexusTextareaProps>(({
+  label,
+  error,
+  variant = 'nexus',
+  size = 'md',
+  resize = 'vertical',
+  className = '',
+  disabled,
+  rows = 3,
+  ...props
+}, ref) => {
+  
+  const baseClasses = `
+    w-full
+    border rounded-lg
+    transition-all duration-200
+    focus:outline-none focus:ring-2
+    disabled:opacity-50 disabled:cursor-not-allowed
+  `;
+
+  const variantClasses = {
+    default: `
+      border-gray-300 bg-white text-gray-900
+      focus:ring-blue-500 focus:border-blue-500
+      placeholder-gray-500
+    `,
+    nexus: `
+      bg-nexus-bg-secondary border-nexus-border text-nexus-text-primary
+      focus:ring-[#0064D2] focus:border-[#0064D2]
+      placeholder-nexus-text-secondary
+    `,
+    enterprise: `
+      border-nexus-border bg-white text-nexus-text-primary
+      focus:ring-primary-blue focus:border-transparent
+      placeholder-nexus-text-muted font-primary
+      hover:border-primary-blue/30
+    `
+  };
+
+  const sizeClasses = {
+    sm: 'px-2 py-1.5 text-sm',
+    md: 'px-3 py-2 text-base',
+    lg: 'px-4 py-3 text-lg'
+  };
+
+  const resizeClasses = {
+    none: 'resize-none',
+    vertical: 'resize-y',
+    horizontal: 'resize-x',
+    both: 'resize'
+  };
+
+  const combinedClasses = `
+    ${baseClasses}
+    ${variantClasses[variant]}
+    ${sizeClasses[size]}
+    ${resizeClasses[resize]}
+    ${className}
+  `.replace(/\s+/g, ' ').trim();
+
+  return (
+    <div className="w-full">
+      {label && (
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          {label}
+        </label>
+      )}
+      <textarea
+        ref={ref}
+        className={combinedClasses}
+        disabled={disabled}
+        rows={rows}
+        {...props}
+      />
+      {error && (
+        <p className="mt-1 text-sm text-red-600">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+});
+
+NexusTextarea.displayName = 'NexusTextarea';
+
+export default NexusTextarea;

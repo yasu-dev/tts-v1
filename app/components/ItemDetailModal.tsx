@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { BaseModal } from './ui';
+import { BaseModal, NexusButton } from './ui';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import { 
   XMarkIcon, 
   PencilIcon, 
@@ -44,6 +45,7 @@ export default function ItemDetailModal({
   onGenerateQR 
 }: ItemDetailModalProps) {
   const [activeTab, setActiveTab] = useState<'details' | 'history' | 'notes'>('details');
+  const { showToast } = useToast();
 
   if (!isOpen || !item) return null;
 
@@ -121,13 +123,23 @@ export default function ItemDetailModal({
     })
     .then(res => res.json())
     .then(data => {
-      alert(`商品を複製しました: ${duplicateData.name}`);
+      showToast({
+        type: 'success',
+        title: '商品複製',
+        message: `商品を複製しました: ${duplicateData.name}。本番環境では在庫リストが更新されます。`,
+        duration: 4000
+      });
       onClose();
-      window.location.reload();
+      // 本番運用では親コンポーネントの状態を更新
+      // window.location.reload()は削除し、適切な状態管理を使用
     })
     .catch(err => {
       console.error('商品複製エラー:', err);
-      alert('商品の複製に失敗しました');
+      showToast({
+        type: 'error',
+        title: 'エラー',
+        message: '商品の複製に失敗しました'
+      });
     });
   };
 
@@ -309,54 +321,54 @@ export default function ItemDetailModal({
         {/* Footer */}
         <div className="flex justify-between mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
           <div className="flex space-x-3">
-            <button
+            <NexusButton
               onClick={handlePrint}
-              className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center"
+              variant="default"
+              icon={<PrinterIcon className="w-4 h-4" />}
             >
-              <PrinterIcon className="w-4 h-4 mr-2" />
               印刷
-            </button>
-            <button
+            </NexusButton>
+            <NexusButton
               onClick={handleDuplicate}
-              className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center"
+              variant="default"
+              icon={<DocumentDuplicateIcon className="w-4 h-4" />}
             >
-              <DocumentDuplicateIcon className="w-4 h-4 mr-2" />
               複製
-            </button>
+            </NexusButton>
           </div>
           <div className="flex space-x-3">
-            <button
+            <NexusButton
               onClick={onClose}
-              className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              variant="default"
             >
               閉じる
-            </button>
+            </NexusButton>
             {onGenerateQR && (
-              <button
+              <NexusButton
                 onClick={() => onGenerateQR(item)}
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center"
+                variant="secondary"
+                icon={<QrCodeIcon className="w-4 h-4" />}
               >
-                <QrCodeIcon className="w-4 h-4 mr-2" />
                 QR生成
-              </button>
+              </NexusButton>
             )}
             {onMove && (
-              <button
+              <NexusButton
                 onClick={() => onMove(item)}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center"
+                variant="secondary"
+                icon={<ArrowPathIcon className="w-4 h-4" />}
               >
-                <ArrowPathIcon className="w-4 h-4 mr-2" />
                 移動
-              </button>
+              </NexusButton>
             )}
             {onEdit && (
-              <button
+              <NexusButton
                 onClick={() => onEdit(item)}
-                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors flex items-center"
+                variant="primary"
+                icon={<PencilIcon className="w-4 h-4" />}
               >
-                <PencilIcon className="w-4 h-4 mr-2" />
                 編集
-              </button>
+              </NexusButton>
             )}
           </div>
         </div>

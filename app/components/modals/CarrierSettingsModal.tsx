@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import { BaseModal, NexusButton } from '../ui';
 
 interface CarrierSettingsModalProps {
   isOpen: boolean;
@@ -66,17 +67,15 @@ export default function CarrierSettingsModal({ isOpen, onClose, onSave }: Carrie
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto border border-gray-200">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">配送業者設定</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <XMarkIcon className="w-6 h-6" />
-          </button>
-        </div>
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="配送業者設定"
+      size="lg"
+      className="max-w-4xl"
+    >
+      <div className="max-h-[90vh] overflow-y-auto">
+
         
         <div className="space-y-6">
           {carriers.map((carrier) => (
@@ -150,20 +149,22 @@ export default function CarrierSettingsModal({ isOpen, onClose, onSave }: Carrie
         </div>
         
         <div className="flex gap-2 pt-6">
-          <button
+          <NexusButton
             onClick={handleSave}
-            className="flex-1 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
+            variant="primary"
+            className="flex-1"
           >
             保存
-          </button>
-          <button
+          </NexusButton>
+          <NexusButton
             onClick={onClose}
-            className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded hover:bg-gray-400"
+            variant="secondary"
+            className="flex-1"
           >
             キャンセル
-          </button>
+          </NexusButton>
         </div>
       </div>
-    </div>
+    </BaseModal>
   );
 } 

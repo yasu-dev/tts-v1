@@ -5,6 +5,7 @@ import KPIDashboard from '../components/features/kpi/KPIDashboard';
 import { useState, useEffect } from 'react';
 import PageWrapper from '@/app/components/ui/PageWrapper';
 import NexusCard from '@/app/components/ui/NexusCard';
+import { NexusButton } from '@/app/components/ui';
 
 interface SalesData {
   period: string;
@@ -100,9 +101,9 @@ export default function ReportsPage() {
       title="レポート・分析"
       description="売上実績と分析データを確認できます"
       actions={
-        <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+        <NexusButton variant="primary">
           レポートをエクスポート
-        </button>
+        </NexusButton>
       }
     >
       <div className="space-y-6">

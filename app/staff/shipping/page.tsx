@@ -1,7 +1,7 @@
 'use client';
 
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
-import BarcodeScanner from '../../components/BarcodeScanner';
+import BarcodeScanner from '@/app/components/features/BarcodeScanner';
 import PackingInstructions from '@/app/components/features/shipping/PackingInstructions';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -126,11 +126,11 @@ export default function StaffShippingPage() {
   });
 
   const statusColors = {
-    pending_inspection: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
-    inspected: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    packed: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-    shipped: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
-    delivered: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+    pending_inspection: 'bg-nexus-yellow bg-opacity-20 text-nexus-yellow',
+    inspected: 'bg-nexus-blue bg-opacity-20 text-nexus-blue',
+    packed: 'bg-nexus-purple bg-opacity-20 text-nexus-purple',
+    shipped: 'bg-nexus-blue bg-opacity-30 text-nexus-blue',
+    delivered: 'bg-nexus-green bg-opacity-20 text-nexus-green',
   };
 
   const statusLabels: Record<string, string> = {
@@ -298,30 +298,48 @@ export default function StaffShippingPage() {
       <div className="space-y-6">
         {/* Header */}
         <div className="intelligence-card global">
-          <div className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
-                  出荷管理
-                </h1>
-                <p className="mt-1 text-sm text-nexus-text-secondary">
-                  出荷待ち商品のピッキングと梱包
+          <div className="p-8">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+              {/* Title Section */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-3 mb-2">
+                  <TruckIcon className="w-8 h-8 text-nexus-yellow flex-shrink-0" />
+                  <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
+                    出荷管理
+                  </h1>
+                </div>
+                <p className="text-nexus-text-secondary">
+                  出荷待ち商品のピッキング・梱包・配送管理
                 </p>
               </div>
-              <div className="flex space-x-3">
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
+                <button
+                  onClick={() => setIsBarcodeScannerOpen(true)}
+                  className="nexus-button flex items-center justify-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V6a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1zm12 0h2a1 1 0 001-1V6a1 1 0 00-1-1h-2a1 1 0 00-1 1v1a1 1 0 001 1zM5 20h2a1 1 0 001-1v-1a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1z" />
+                  </svg>
+                  <span className="hidden sm:inline">バーコードスキャン</span>
+                  <span className="sm:hidden">スキャン</span>
+                </button>
                 <button
                   onClick={handleCarrierSettings}
-                  className="nexus-button"
+                  className="nexus-button flex items-center justify-center gap-2"
                 >
-                  <TruckIcon className="w-5 h-5 mr-2" />
-                  配送業者設定
+                  <TruckIcon className="w-5 h-5" />
+                  <span className="hidden sm:inline">配送業者設定</span>
+                  <span className="sm:hidden">配送設定</span>
                 </button>
                 <button
                   onClick={handleMaterialsCheck}
-                  className="nexus-button primary"
+                  className="nexus-button primary flex items-center justify-center gap-2"
                 >
-                  <ArchiveBoxIcon className="w-5 h-5 mr-2" />
-                  梱包資材確認
+                  <ArchiveBoxIcon className="w-5 h-5" />
+                  <span className="hidden sm:inline">梱包資材確認</span>
+                  <span className="sm:hidden">資材確認</span>
                 </button>
               </div>
             </div>
@@ -641,12 +659,27 @@ export default function StaffShippingPage() {
           </div>
         </div>
 
-        {/* Barcode Scanner Modal */}
-        <BarcodeScanner
-          isOpen={isBarcodeScannerOpen}
-          onClose={() => setIsBarcodeScannerOpen(false)}
-          onScan={handleBarcodeScanned}
-        />
+        {/* Barcode Scanner Section */}
+        {isBarcodeScannerOpen && (
+          <div className="intelligence-card global">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-nexus-text-primary">バーコードスキャナー</h3>
+                <button
+                  onClick={() => setIsBarcodeScannerOpen(false)}
+                  className="nexus-button"
+                >
+                  閉じる
+                </button>
+              </div>
+              <BarcodeScanner
+                onScan={handleBarcodeScanned}
+                placeholder="商品バーコードをスキャンしてください"
+                scanType="product"
+              />
+            </div>
+          </div>
+        )}
 
         {/* Packing Instructions Modal */}
         {selectedPackingItem && (

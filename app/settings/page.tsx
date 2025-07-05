@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
+import { NexusSelect, NexusButton } from '@/app/components/ui';
 
 interface AppSettings {
   language: string;
@@ -96,7 +97,7 @@ export default function SettingsPage() {
                 <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
                   アカウント設定
                 </h1>
-                <p className="mt-1 text-sm text-nexus-text-secondary">
+                <p className="text-nexus-text-secondary">
                   アプリケーションの動作と表示設定を管理
                 </p>
               </div>
@@ -127,59 +128,59 @@ export default function SettingsPage() {
                   <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
                     言語
                   </label>
-                  <select
+                  <NexusSelect
                     value={settings.language}
                     onChange={(e) => handleSettingChange('language', 'language', e.target.value)}
-                    className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg text-nexus-text-primary"
-                  >
-                    <option value="ja">日本語</option>
-                    <option value="en">English</option>
-                  </select>
+                    options={[
+                      { value: "ja", label: "日本語" },
+                      { value: "en", label: "English" }
+                    ]}
+                  />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
                     テーマ
                   </label>
-                  <select
+                  <NexusSelect
                     value={settings.theme}
                     onChange={(e) => handleSettingChange('theme', 'theme', e.target.value)}
-                    className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg text-nexus-text-primary"
-                  >
-                    <option value="light">ライト</option>
-                    <option value="dark">ダーク</option>
-                    <option value="auto">自動</option>
-                  </select>
+                    options={[
+                      { value: "light", label: "ライト" },
+                      { value: "dark", label: "ダーク" },
+                      { value: "auto", label: "自動" }
+                    ]}
+                  />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
                     タイムゾーン
                   </label>
-                  <select
+                  <NexusSelect
                     value={settings.preferences.timezone}
                     onChange={(e) => handleSettingChange('preferences', 'timezone', e.target.value)}
-                    className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg text-nexus-text-primary"
-                  >
-                    <option value="Asia/Tokyo">Asia/Tokyo (JST)</option>
-                    <option value="America/New_York">America/New_York (EST)</option>
-                    <option value="Europe/London">Europe/London (GMT)</option>
-                  </select>
+                    options={[
+                      { value: "Asia/Tokyo", label: "Asia/Tokyo (JST)" },
+                      { value: "America/New_York", label: "America/New_York (EST)" },
+                      { value: "Europe/London", label: "Europe/London (GMT)" }
+                    ]}
+                  />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
                     日付形式
                   </label>
-                  <select
+                  <NexusSelect
                     value={settings.preferences.dateFormat}
                     onChange={(e) => handleSettingChange('preferences', 'dateFormat', e.target.value)}
-                    className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg text-nexus-text-primary"
-                  >
-                    <option value="YYYY/MM/DD">YYYY/MM/DD</option>
-                    <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-                    <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-                  </select>
+                    options={[
+                      { value: "YYYY/MM/DD", label: "YYYY/MM/DD" },
+                      { value: "MM/DD/YYYY", label: "MM/DD/YYYY" },
+                      { value: "DD/MM/YYYY", label: "DD/MM/YYYY" }
+                    ]}
+                  />
                 </div>
               </div>
               <div className="text-right mt-6">
@@ -258,15 +259,15 @@ export default function SettingsPage() {
                   <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
                     プロフィール表示
                   </label>
-                  <select
+                  <NexusSelect
                     value={settings.privacy.profileVisibility}
                     onChange={(e) => handleSettingChange('privacy', 'profileVisibility', e.target.value)}
-                    className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg text-nexus-text-primary"
-                  >
-                    <option value="public">公開</option>
-                    <option value="private">非公開</option>
-                    <option value="team">チームのみ</option>
-                  </select>
+                    options={[
+                      { value: "public", label: "公開" },
+                      { value: "private", label: "非公開" },
+                      { value: "team", label: "チームのみ" }
+                    ]}
+                  />
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -299,9 +300,9 @@ export default function SettingsPage() {
                     <h4 className="font-medium text-nexus-text-primary">データエクスポート</h4>
                     <p className="text-sm text-nexus-text-secondary">個人データをダウンロード</p>
                   </div>
-                  <button className="nexus-button">
+                  <NexusButton variant="secondary">
                     エクスポート
-                  </button>
+                  </NexusButton>
                 </div>
 
                 <div className="flex items-center justify-between p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -309,9 +310,9 @@ export default function SettingsPage() {
                     <h4 className="font-medium text-red-800">アカウント削除</h4>
                     <p className="text-sm text-red-600">この操作は元に戻せません</p>
                   </div>
-                  <button className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
+                  <NexusButton variant="danger">
                     削除
-                  </button>
+                  </NexusButton>
                 </div>
               </div>
             </div>

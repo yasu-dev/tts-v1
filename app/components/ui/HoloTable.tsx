@@ -118,18 +118,14 @@ export default function HoloTable({
                   hover:shadow-[0_6px_25px_rgba(0,100,210,0.15)]
                   ${onRowClick ? 'cursor-pointer' : ''}
                   group
+                  before:absolute before:top-0 before:left-0 before:w-0 before:h-full
+                  before:bg-gradient-to-r before:from-primary-blue/20 before:to-transparent
+                  before:transition-all before:duration-300 before:ease-out
+                  before:group-hover:w-full
+                  before:pointer-events-none
                 `}
                 onClick={() => onRowClick?.(row, rowIndex)}
               >
-                {/* ホバー時の左側アクセント */}
-                <div className="
-                  absolute top-0 left-0 w-0 h-full
-                  bg-gradient-to-r from-primary-blue/20 to-transparent
-                  transition-all duration-300 ease-out
-                  group-hover:w-full
-                  pointer-events-none
-                " />
-
                 {columns.map((column) => (
                   <td
                     key={column.key}

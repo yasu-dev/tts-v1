@@ -6,6 +6,7 @@ import SearchModal from '../SearchModal';
 import UnifiedProductFlow from '../features/flow-nav/UnifiedProductFlow';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -25,8 +26,9 @@ export default function DashboardLayout({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFlowCollapsed, setIsFlowCollapsed] = useState(false);
-  const [lastScrollY, setLastScrollY] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+  const { showToast } = useToast();
 
   const getCurrentTime = () => {
     const now = new Date();
@@ -66,23 +68,107 @@ export default function DashboardLayout({
 
   // 自動スクロール検知によるフロー開閉
   useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    console.log('スクロール検知初期化:', scrollContainer);
+    if (!scrollContainer) {
+      console.log('scrollContainer が null です');
+      return;
+    }
+
+    let ticking = false;
+    let scrollTimeout: NodeJS.Timeout;
+    let currentLastScrollY = 0;
+    
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      
-      if (currentScrollY < 10) {
-        // 最上部に戻った時は開く
-        setIsFlowCollapsed(false);
-      } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
-        // 下スクロール時は閉じる
-        setIsFlowCollapsed(true);
+      console.log('🚀 handleScroll が呼ばれました - scrollTop:', scrollContainer.scrollTop);
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const currentScrollY = scrollContainer.scrollTop;
+          const scrollDelta = currentScrollY - currentLastScrollY;
+          const isScrollingDown = scrollDelta > 0;
+          const isScrollingUp = scrollDelta < 0;
+          const scrollThreshold = 25;
+          const topThreshold = 15;
+          
+          console.log('スクロール検知:', {
+            currentScrollY,
+            scrollDelta,
+            isScrollingDown,
+            isScrollingUp,
+            isFlowCollapsed
+          });
+          
+          // 最上部付近では常に展開
+          if (currentScrollY < topThreshold) {
+            console.log('最上部: フロー展開');
+            setIsFlowCollapsed(false);
+          }
+          // 十分な下スクロールで折りたたみ
+          else if (isScrollingDown && Math.abs(scrollDelta) > scrollThreshold && currentScrollY > 60) {
+            console.log('下スクロール: フロー折りたたみ');
+            setIsFlowCollapsed(true);
+          }
+          // 十分な上スクロールで展開
+          else if (isScrollingUp && Math.abs(scrollDelta) > scrollThreshold && currentScrollY > topThreshold) {
+            console.log('上スクロール: フロー展開');
+            setIsFlowCollapsed(false);
+          }
+          
+          currentLastScrollY = currentScrollY;
+          ticking = false;
+        });
+        ticking = true;
       }
       
-      setLastScrollY(currentScrollY);
+      // スクロール終了検知
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        // スクロール停止時の最上部チェック
+        if (scrollContainer.scrollTop < 15) {
+          console.log('スクロール停止: 最上部でフロー展開');
+          setIsFlowCollapsed(false);
+        }
+      }, 200);
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
+    console.log('スクロールイベントリスナー追加');
+    const scrollDetails = {
+      scrollHeight: scrollContainer.scrollHeight,
+      clientHeight: scrollContainer.clientHeight,
+      scrollTop: scrollContainer.scrollTop,
+      hasScrollbar: scrollContainer.scrollHeight > scrollContainer.clientHeight,
+      offsetHeight: scrollContainer.offsetHeight,
+      className: scrollContainer.className,
+      tagName: scrollContainer.tagName,
+      style: {
+        overflow: scrollContainer.style.overflow,
+        overflowY: scrollContainer.style.overflowY,
+        height: scrollContainer.style.height,
+        maxHeight: scrollContainer.style.maxHeight
+      }
+    };
+    console.log('scrollContainer の詳細:', scrollDetails);
+    
+    // スクロール可能性をテスト
+    if (scrollContainer.scrollHeight <= scrollContainer.clientHeight) {
+      console.warn('⚠️ スクロール不可: scrollHeight <= clientHeight');
+    } else {
+      console.log('✅ スクロール可能');
+    }
+    
+    // 手動でスクロールイベントをテスト
+    const testScroll = () => {
+      console.log('🧪 手動スクロールテスト実行');
+      scrollContainer.scrollTop = 50;
+    };
+    setTimeout(testScroll, 1000);
+    scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      console.log('スクロールイベントリスナー削除');
+      scrollContainer.removeEventListener('scroll', handleScroll);
+      clearTimeout(scrollTimeout);
+    };
+  }, []);
 
   const handleSearchSubmit = (query: string) => {
     setSearchQuery(query);
@@ -94,7 +180,12 @@ export default function DashboardLayout({
   };
 
   const handleSettingsClick = () => {
-    alert('設定パネルはデモ版では利用できません');
+    showToast({
+      type: 'info',
+      title: '設定パネル',
+      message: 'デモ版では設定パネルは利用できません。本番環境では各種設定が可能です。',
+      duration: 4000
+    });
   };
 
   const toggleMobileMenu = () => {
@@ -146,7 +237,7 @@ export default function DashboardLayout({
       href: '/returns',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
         </svg>
       ),
       badge: 5 
@@ -233,7 +324,7 @@ export default function DashboardLayout({
       href: '/staff/returns',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
         </svg>
       )
     },
@@ -420,13 +511,13 @@ export default function DashboardLayout({
 
           {/* ページコンテンツ - レスポンシブ対応 */}
           <main className="flex-1 bg-gray-50 main-content" role="main" id="main-content">
-            <div className="min-h-full overflow-y-auto page-scroll-container">
+            <div ref={scrollContainerRef} className="h-full overflow-y-auto page-scroll-container">
               <div className="p-2 sm:p-3 md:p-4 lg:p-6 xl:p-8 max-w-[1600px] mx-auto">
                 <div className="space-y-3 sm:space-y-4 md:space-y-6">
                   {children}
                 </div>
-                {/* Bottom padding for scrollability */}
-                <div className="h-screen flex-shrink-0" aria-hidden="true"></div>
+                {/* Bottom padding for scrollability - 確実にスクロール可能にする */}
+                <div className="h-[200vh] flex-shrink-0" aria-hidden="true"></div>
               </div>
             </div>
           </main>

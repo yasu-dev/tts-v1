@@ -1,5 +1,7 @@
 'use client';
 
+import { NexusButton } from '@/app/components/ui';
+
 export default function GlobalError({
   error,
   reset,
@@ -18,12 +20,12 @@ export default function GlobalError({
             <p className="text-gray-600 mb-6">
               申し訳ございません。予期しないエラーが発生しました。
             </p>
-            <button
+            <NexusButton
               onClick={() => reset()}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              variant="primary"
             >
               再試行
-            </button>
+            </NexusButton>
           </div>
         </div>
       </body>

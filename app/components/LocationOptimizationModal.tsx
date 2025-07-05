@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { XMarkIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
+import { BaseModal, NexusButton } from './ui';
 
 interface LocationOptimizationModalProps {
   isOpen: boolean;
@@ -12,6 +14,7 @@ export default function LocationOptimizationModal({ isOpen, onClose }: LocationO
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [optimizationResult, setOptimizationResult] = useState<any>(null);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const { showToast } = useToast();
 
   const demoItems = [
     { id: '1', name: 'Canon EOS R5', currentLocation: 'A-1-001', suggestedLocation: 'A-2-003', reason: 'アクセス頻度が高い' },
@@ -33,7 +36,11 @@ export default function LocationOptimizationModal({ isOpen, onClose }: LocationO
 
   const handleApplyOptimization = async () => {
     if (selectedItems.length === 0) {
-      alert('適用する商品を選択してください');
+      showToast({
+        type: 'warning',
+        title: '選択が必要',
+        message: '適用する商品を選択してください'
+      });
       return;
     }
 
@@ -45,31 +52,41 @@ export default function LocationOptimizationModal({ isOpen, onClose }: LocationO
       });
 
       if (response.ok) {
-        alert(`${selectedItems.length}件の商品ロケーションを最適化しました`);
+        showToast({
+          type: 'success',
+          title: '最適化完了',
+          message: `${selectedItems.length}件の商品ロケーションを最適化しました。本番環境では実際にロケーションが更新されます。`,
+          duration: 4000
+        });
         onClose();
-        window.location.reload();
+        // 本番運用では親コンポーネントの状態を更新
+        // window.location.reload()は削除し、適切な状態管理を使用
       }
     } catch (error) {
-      alert('ロケーション最適化に失敗しました');
+      showToast({
+        type: 'error',
+        title: 'エラー',
+        message: 'ロケーション最適化に失敗しました'
+      });
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border border-gray-200">
-        <div className="flex items-center justify-between p-6 border-b">
-          <div className="flex items-center">
-            <SparklesIcon className="w-8 h-8 text-purple-600 mr-3" />
-            <div>
-              <h2 className="text-xl font-bold">ロケーション最適化</h2>
-              <p className="text-sm text-gray-500">AI分析による最適な商品配置を提案</p>
-            </div>
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="ロケーション最適化"
+      size="lg"
+      className="max-w-4xl"
+    >
+      <div className="max-h-[90vh] overflow-hidden">
+        <div className="flex items-center p-6 border-b">
+          <SparklesIcon className="w-8 h-8 text-purple-600 mr-3" />
+          <div>
+            <p className="text-sm text-gray-500">AI分析による最適な商品配置を提案</p>
           </div>
-          <button onClick={onClose}>
-            <XMarkIcon className="w-6 h-6" />
-          </button>
         </div>
 
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
@@ -170,6 +187,6 @@ export default function LocationOptimizationModal({ isOpen, onClose }: LocationO
           )}
         </div>
       </div>
-    </div>
+    </BaseModal>
   );
 } 

@@ -76,7 +76,11 @@ export default function PhotoUploader({
       onUpdate(updatedPhotos);
     } catch (error) {
       console.error('[ERROR] Photo upload:', error);
-      alert('写真のアップロードに失敗しました');
+      showToast({
+        type: 'error',
+        title: 'アップロードエラー',
+        message: '写真のアップロードに失敗しました'
+      });
     } finally {
       setLoading(false);
     }
@@ -304,7 +308,7 @@ export default function PhotoUploader({
                 />
                 <button
                   onClick={() => handleRemovePhoto(index)}
-                  className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full shadow-md hover:bg-red-600"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

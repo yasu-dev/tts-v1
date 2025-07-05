@@ -123,8 +123,8 @@ export function ProductTimeline({ productId }: ProductTimelineProps) {
                         </div>
                       )}
                     </div>
-                    {/* アクションボタン（ホバー時に表示） */}
-                    <button className="opacity-0 group-hover:opacity-100 transition-opacity text-xs text-nexus-primary hover:underline">
+                    {/* アクションボタン */}
+                    <button className="text-xs text-nexus-primary hover:underline">
                       詳細
                     </button>
                   </div>

@@ -203,7 +203,12 @@ export default function PackingInstructions({
     if (completedSteps.size === steps.length) {
       onComplete?.();
     } else {
-      alert('すべての手順を完了してください');
+      showToast({
+        type: 'warning',
+        title: '梱包手順未完了',
+        message: 'すべての手順を完了してから梱包を完了してください',
+        duration: 4000
+      });
     }
   };
 
@@ -345,12 +350,14 @@ export default function PackingInstructions({
                         <p className="text-gray-600">{step.description}</p>
                         
                         {isCurrent && !isCompleted && (
-                          <button
+                          <NexusButton
                             onClick={() => handleStepComplete(step.id)}
-                            className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                            variant="primary"
+                            size="sm"
+                            className="mt-3"
                           >
                             {step.id === 4 && !videoId ? '動画記録を開始' : '完了'}
-                          </button>
+                          </NexusButton>
                         )}
                         
                         {step.id === 4 && videoId && (

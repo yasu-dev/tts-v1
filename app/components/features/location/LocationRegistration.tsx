@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import BarcodeScanner from '@/app/components/features/BarcodeScanner';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
+import { PlusIcon } from '@heroicons/react/24/outline';
 
 interface LocationRegistrationProps {
   onRegisterComplete?: (productId: string, location: string) => void;
@@ -17,6 +19,7 @@ interface Product {
 }
 
 export default function LocationRegistration({ onRegisterComplete }: LocationRegistrationProps) {
+  const { showToast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedLocation, setSelectedLocation] = useState('');
@@ -91,7 +94,11 @@ export default function LocationRegistration({ onRegisterComplete }: LocationReg
       setSearchResults(filtered);
     } catch (error) {
       console.error('[ERROR] Product search:', error);
-      alert('商品検索エラーが発生しました');
+      showToast({
+        type: 'error',
+        title: '検索エラー',
+        message: '商品検索エラーが発生しました'
+      });
     } finally {
       setLoading(false);
     }
@@ -107,7 +114,11 @@ export default function LocationRegistration({ onRegisterComplete }: LocationReg
   // ロケーション登録
   const handleRegister = async () => {
     if (!selectedProduct || !selectedLocation) {
-      alert('商品とロケーションを選択してください');
+      showToast({
+        type: 'warning',
+        title: '選択が必要',
+        message: '商品とロケーションを選択してください'
+      });
       return;
     }
 
@@ -128,7 +139,11 @@ export default function LocationRegistration({ onRegisterComplete }: LocationReg
         throw new Error('ロケーション登録に失敗しました');
       }
 
-      alert(`${selectedProduct.name} を ${selectedLocation} に登録しました`);
+      showToast({
+        type: 'success',
+        title: '登録完了',
+        message: `${selectedProduct.name} を ${selectedLocation} に登録しました`
+      });
       
       if (onRegisterComplete) {
         onRegisterComplete(selectedProduct.id, selectedLocation);
@@ -142,7 +157,11 @@ export default function LocationRegistration({ onRegisterComplete }: LocationReg
       setSearchResults([]);
     } catch (error) {
       console.error('[ERROR] Location registration:', error);
-      alert('ロケーション登録エラーが発生しました');
+      showToast({
+        type: 'error',
+        title: '登録エラー',
+        message: 'ロケーション登録エラーが発生しました'
+      });
     } finally {
       setLoading(false);
     }
@@ -173,13 +192,18 @@ export default function LocationRegistration({ onRegisterComplete }: LocationReg
   return (
     <div className="space-y-6">
       <div className="intelligence-card europe">
-        <div className="p-8">
+        <div className="p-6">
           <div className="mb-6">
-            <h2 className="text-xl font-display font-bold text-nexus-text-primary">
-              ロケーション登録
-            </h2>
-            <p className="text-sm text-nexus-text-secondary mt-1">
-              商品を適切なロケーションに配置します
+            <div className="flex items-center gap-3 mb-2">
+              <div className="action-orb blue">
+                <PlusIcon className="w-5 h-5" />
+              </div>
+              <h2 className="text-xl font-display font-bold text-nexus-text-primary">
+                クイック登録
+              </h2>
+            </div>
+            <p className="text-sm text-nexus-text-secondary">
+              商品を素早く効率的にロケーションに配置
             </p>
           </div>
 
@@ -279,7 +303,7 @@ export default function LocationRegistration({ onRegisterComplete }: LocationReg
       {/* 選択した商品の詳細とロケーション割り当て */}
       {selectedProduct && (
         <div className="intelligence-card asia">
-          <div className="p-8">
+          <div className="p-4 sm:p-6 lg:p-8">
             <h3 className="text-lg font-display font-bold text-nexus-text-primary mb-4">
               ロケーション割り当て
             </h3>
@@ -307,18 +331,18 @@ export default function LocationRegistration({ onRegisterComplete }: LocationReg
                     {type === 'secure' && '高セキュリティ保管'}
                     {type === 'processing' && '作業エリア'}
                   </h4>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {locs.map((loc) => (
                       <button
                         key={loc.code}
                         onClick={() => setSelectedLocation(loc.code)}
-                        className={`p-4 text-left border rounded-lg transition-all ${
+                        className={`p-3 text-left border rounded-lg transition-all min-h-[60px] ${
                           selectedLocation === loc.code
                             ? 'border-nexus-yellow bg-nexus-yellow/10'
                             : 'border-nexus-border hover:border-nexus-text-secondary bg-nexus-bg-secondary'
                         }`}
                       >
-                        <div className="font-medium text-sm text-nexus-text-primary">{loc.name}</div>
+                        <div className="font-medium text-sm text-nexus-text-primary truncate">{loc.name}</div>
                         <div className="text-xs text-nexus-text-secondary">
                           容量: {loc.capacity}
                         </div>
@@ -338,26 +362,26 @@ export default function LocationRegistration({ onRegisterComplete }: LocationReg
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
-                className="w-full px-4 py-3 bg-nexus-bg-secondary border border-nexus-border rounded-lg focus:outline-none focus:border-nexus-yellow focus:ring-2 focus:ring-nexus-yellow/20 text-nexus-text-primary transition-all duration-200"
+                className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg focus:outline-none focus:border-nexus-yellow focus:ring-2 focus:ring-nexus-yellow/20 text-nexus-text-primary transition-all duration-200 resize-none"
                 placeholder="特記事項があれば入力してください"
               />
             </div>
 
             {/* アクションボタン */}
-            <div className="flex justify-end gap-3 mt-6">
+            <div className="flex flex-col sm:flex-row sm:justify-end gap-3 mt-6">
               <button
                 onClick={() => {
                   setSelectedProduct(null);
                   setSelectedLocation('');
                   setNotes('');
                 }}
-                className="nexus-button"
+                className="nexus-button order-2 sm:order-1"
               >
                 キャンセル
               </button>
               <button
                 onClick={handleRegister}
-                className="nexus-button primary"
+                className="nexus-button primary order-1 sm:order-2"
                 disabled={!selectedLocation || loading}
               >
                 {loading ? '登録中...' : 'ロケーション登録'}

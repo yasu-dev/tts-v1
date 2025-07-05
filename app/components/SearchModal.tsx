@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { BaseModal } from './ui';
 
 interface SearchResult {
   id: string;
@@ -105,22 +106,13 @@ export default function SearchModal({ isOpen, onClose, query }: SearchModalProps
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-start justify-center pt-20 z-50">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 border border-gray-200">
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              検索結果: "{query}"
-            </h3>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`検索結果: "${query}"`}
+      size="lg"
+    >
+      <div className="p-6">
 
           {loading ? (
             <div className="flex items-center justify-center py-8">
@@ -177,8 +169,7 @@ export default function SearchModal({ isOpen, onClose, query }: SearchModalProps
               </p>
             </div>
           )}
-        </div>
       </div>
-    </div>
+    </BaseModal>
   );
 }

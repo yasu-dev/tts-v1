@@ -55,7 +55,7 @@ export function ReturnRelistingFlow() {
   return (
     <div className="space-y-6">
       <ContentCard>
-        <h2 className="text-2xl font-bold mb-6">返品商品再出品フロー</h2>
+        <h2 className="text-2xl font-bold mb-6">返品商品再出品業務フロー</h2>
 
         {/* ステップインジケーター */}
         <div className="mb-8">

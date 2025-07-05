@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { BaseModal } from './ui';
+import { BaseModal, NexusButton } from './ui';
 import { useToast } from './features/notifications/ToastProvider';
 
 interface QRCodeModalProps {
@@ -239,25 +239,25 @@ export default function QRCodeModal({ isOpen, onClose, itemId, itemName, itemSku
 
         {/* Footer */}
         <div className="flex justify-between mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-          <button
+          <NexusButton
             onClick={onClose}
-            className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            variant="default"
           >
             閉じる
-          </button>
+          </NexusButton>
           <div className="flex space-x-3">
-            <button
+            <NexusButton
               onClick={handleDownload}
-              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+              variant="secondary"
             >
               ダウンロード
-            </button>
-            <button
+            </NexusButton>
+            <NexusButton
               onClick={handlePrint}
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+              variant="primary"
             >
               印刷
-            </button>
+            </NexusButton>
           </div>
         </div>
       </div>

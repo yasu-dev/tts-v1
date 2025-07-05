@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
+import { BaseModal, NexusButton, NexusInput, NexusSelect, NexusTextarea } from './ui';
 
 interface EditModalProps {
   isOpen: boolean;
@@ -22,213 +23,230 @@ export default function EditModal({ isOpen, onClose, type, title, data }: EditMo
     e.preventDefault();
     setIsLoading(true);
     
-    // デモ用の保存処理
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      // バリデーション
+      const validationResult = validateFormData(type, formData);
+      if (!validationResult.isValid) {
+        showToast({
+          type: 'warning',
+          title: '入力エラー',
+          message: validationResult.errors.join(', '),
+          duration: 4000
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // API呼び出し（本番運用と同じ処理）
+      const apiEndpoint = getApiEndpoint(type);
+      const response = await fetch(apiEndpoint, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: formData.id,
+          ...formData,
+          lastModified: new Date().toISOString()
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`保存に失敗しました: ${response.status}`);
+      }
+
+      const result = await response.json();
+      
       showToast({
-        type: 'info',
-        title: 'デモモードのお知らせ',
-        message: 'デモ版では実際の保存は行われません。データは一時的に表示されますが、永続化されません。',
+        type: 'success',
+        title: '保存完了',
+        message: `${title}を正常に更新しました。本番環境では実際にデータが保存されます。`,
+        duration: 3000
+      });
+      
+      onClose();
+      
+      // 本番運用では親コンポーネントの状態を更新
+      // 実際のアプリでは onUpdate コールバックを呼び出し
+      
+    } catch (error) {
+      console.error('保存エラー:', error);
+      showToast({
+        type: 'error',
+        title: '保存失敗',
+        message: error instanceof Error ? error.message : '保存中にエラーが発生しました',
         duration: 4000
       });
-      onClose();
-    }, 1000);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  // バリデーション関数
+  const validateFormData = (type: string, data: Record<string, any>) => {
+    const errors: string[] = [];
+
+    if (type === 'product') {
+      if (!data.name?.trim()) errors.push('商品名は必須です');
+      if (!data.sku?.trim()) errors.push('SKUは必須です');
+      if (!data.category?.trim()) errors.push('カテゴリーは必須です');
+      if (!data.price || isNaN(Number(data.price)) || Number(data.price) <= 0) {
+        errors.push('正しい価格を入力してください');
+      }
+    } else if (type === 'task') {
+      if (!data.title?.trim()) errors.push('タスク名は必須です');
+      if (!data.category?.trim()) errors.push('カテゴリーは必須です');
+      if (!data.assignee?.trim()) errors.push('担当者は必須です');
+      if (!data.dueDate) errors.push('期限は必須です');
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  };
+
+  // API エンドポイント取得関数
+  const getApiEndpoint = (type: string) => {
+    switch (type) {
+      case 'product':
+        return '/api/inventory';
+      case 'task':
+        return '/api/staff/tasks';
+      case 'customer':
+        return '/api/customers';
+      default:
+        return '/api/generic';
+    }
+  };
+
   const renderProductForm = () => (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            商品名
-          </label>
-          <input
-            type="text"
-            value={formData.name || ''}
-            onChange={(e) => handleInputChange('name', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            SKU
-          </label>
-          <input
-            type="text"
-            value={formData.sku || ''}
-            onChange={(e) => handleInputChange('sku', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            カテゴリー
-          </label>
-          <select
-            value={formData.category || ''}
-            onChange={(e) => handleInputChange('category', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          >
-            <option value="">選択してください</option>
-            <option value="カメラ">カメラ</option>
-            <option value="時計">時計</option>
-            <option value="バッグ">バッグ</option>
-            <option value="ジュエリー">ジュエリー</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            価格
-          </label>
-          <input
-            type="number"
-            value={formData.price || ''}
-            onChange={(e) => handleInputChange('price', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            在庫数
-          </label>
-          <input
-            type="number"
-            value={formData.stock || ''}
-            onChange={(e) => handleInputChange('stock', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            保管場所
-          </label>
-          <input
-            type="text"
-            value={formData.location || ''}
-            onChange={(e) => handleInputChange('location', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          />
-        </div>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          商品説明
-        </label>
-        <textarea
-          value={formData.description || ''}
-          onChange={(e) => handleInputChange('description', e.target.value)}
-          rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+        <NexusInput
+          label="商品名"
+          type="text"
+          value={formData.name || ''}
+          onChange={(e) => handleInputChange('name', e.target.value)}
+        />
+        <NexusInput
+          label="SKU"
+          type="text"
+          value={formData.sku || ''}
+          onChange={(e) => handleInputChange('sku', e.target.value)}
+        />
+        <NexusSelect
+          label="カテゴリー"
+          value={formData.category || ''}
+          onChange={(e) => handleInputChange('category', e.target.value)}
+          options={[
+            { value: "", label: "選択してください" },
+            { value: "カメラ", label: "カメラ" },
+            { value: "時計", label: "時計" },
+            { value: "バッグ", label: "バッグ" },
+            { value: "ジュエリー", label: "ジュエリー" }
+          ]}
+        />
+        <NexusInput
+          label="価格"
+          type="number"
+          value={formData.price || ''}
+          onChange={(e) => handleInputChange('price', e.target.value)}
+        />
+        <NexusInput
+          label="在庫数"
+          type="number"
+          value={formData.stock || ''}
+          onChange={(e) => handleInputChange('stock', e.target.value)}
+        />
+        <NexusInput
+          label="保管場所"
+          type="text"
+          value={formData.location || ''}
+          onChange={(e) => handleInputChange('location', e.target.value)}
         />
       </div>
+      <NexusTextarea
+        label="商品説明"
+        value={formData.description || ''}
+        onChange={(e) => handleInputChange('description', e.target.value)}
+        rows={3}
+      />
     </div>
   );
 
   const renderTaskForm = () => (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            タスク名
-          </label>
-          <input
-            type="text"
-            value={formData.title || ''}
-            onChange={(e) => handleInputChange('title', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            カテゴリー
-          </label>
-          <select
-            value={formData.category || ''}
-            onChange={(e) => handleInputChange('category', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          >
-            <option value="">選択してください</option>
-            <option value="inspection">検品</option>
-            <option value="shipping">出荷</option>
-            <option value="returns">返品処理</option>
-            <option value="maintenance">メンテナンス</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            担当者
-          </label>
-          <select
-            value={formData.assignee || ''}
-            onChange={(e) => handleInputChange('assignee', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          >
-            <option value="">選択してください</option>
-            <option value="田中">田中</option>
-            <option value="佐藤">佐藤</option>
-            <option value="山田">山田</option>
-            <option value="鈴木">鈴木</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            期限
-          </label>
-          <input
-            type="date"
-            value={formData.dueDate || ''}
-            onChange={(e) => handleInputChange('dueDate', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            優先度
-          </label>
-          <select
-            value={formData.priority || ''}
-            onChange={(e) => handleInputChange('priority', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          >
-            <option value="">選択してください</option>
-            <option value="low">低</option>
-            <option value="medium">中</option>
-            <option value="high">高</option>
-            <option value="urgent">緊急</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            ステータス
-          </label>
-          <select
-            value={formData.status || ''}
-            onChange={(e) => handleInputChange('status', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          >
-            <option value="">選択してください</option>
-            <option value="pending">未開始</option>
-            <option value="in_progress">進行中</option>
-            <option value="completed">完了</option>
-            <option value="cancelled">キャンセル</option>
-          </select>
-        </div>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          詳細説明
-        </label>
-        <textarea
-          value={formData.description || ''}
-          onChange={(e) => handleInputChange('description', e.target.value)}
-          rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+        <NexusInput
+          label="タスク名"
+          type="text"
+          value={formData.title || ''}
+          onChange={(e) => handleInputChange('title', e.target.value)}
+        />
+        <NexusSelect
+          label="カテゴリー"
+          value={formData.category || ''}
+          onChange={(e) => handleInputChange('category', e.target.value)}
+          options={[
+            { value: "", label: "選択してください" },
+            { value: "inspection", label: "検品" },
+            { value: "shipping", label: "出荷" },
+            { value: "returns", label: "返品処理" },
+            { value: "maintenance", label: "メンテナンス" }
+          ]}
+        />
+        <NexusSelect
+          label="担当者"
+          value={formData.assignee || ''}
+          onChange={(e) => handleInputChange('assignee', e.target.value)}
+          options={[
+            { value: "", label: "選択してください" },
+            { value: "田中", label: "田中" },
+            { value: "佐藤", label: "佐藤" },
+            { value: "山田", label: "山田" },
+            { value: "鈴木", label: "鈴木" }
+          ]}
+        />
+        <NexusInput
+          label="期限"
+          type="date"
+          value={formData.dueDate || ''}
+          onChange={(e) => handleInputChange('dueDate', e.target.value)}
+        />
+        <NexusSelect
+          label="優先度"
+          value={formData.priority || ''}
+          onChange={(e) => handleInputChange('priority', e.target.value)}
+          options={[
+            { value: "", label: "選択してください" },
+            { value: "low", label: "低" },
+            { value: "medium", label: "中" },
+            { value: "high", label: "高" },
+            { value: "urgent", label: "緊急" }
+          ]}
+        />
+        <NexusSelect
+          label="ステータス"
+          value={formData.status || ''}
+          onChange={(e) => handleInputChange('status', e.target.value)}
+          options={[
+            { value: "", label: "選択してください" },
+            { value: "pending", label: "未開始" },
+            { value: "in_progress", label: "進行中" },
+            { value: "completed", label: "完了" },
+            { value: "cancelled", label: "キャンセル" }
+          ]}
         />
       </div>
+      <NexusTextarea
+        label="詳細説明"
+        value={formData.description || ''}
+        onChange={(e) => handleInputChange('description', e.target.value)}
+        rows={3}
+      />
     </div>
   );
 
@@ -248,58 +266,46 @@ export default function EditModal({ isOpen, onClose, type, title, data }: EditMo
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border border-gray-200">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-            {title}の編集
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`${title}の編集`}
+      size="xl"
+    >
+      <form id="edit-form" onSubmit={handleSubmit} className="flex flex-col h-full">
+        <div className="flex-1 overflow-y-auto p-6">
+          {renderForm()}
         </div>
 
-        {/* Form Content */}
-        <form onSubmit={handleSubmit} className="flex flex-col h-full">
-          <div className="flex-1 overflow-y-auto p-6">
-            {renderForm()}
-          </div>
-
-          {/* Footer */}
-          <div className="flex justify-end space-x-3 p-6 border-t border-gray-200 dark:border-gray-700">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-            >
-              キャンセル
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50"
-            >
-              {isLoading ? (
-                <div className="flex items-center space-x-2">
-                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  <span>保存中...</span>
-                </div>
-              ) : (
-                '保存'
-              )}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        {/* Footer */}
+        <div className="flex justify-end space-x-3 p-6 border-t border-gray-200 dark:border-gray-700">
+          <NexusButton
+            variant="default"
+            size="md"
+            onClick={onClose}
+          >
+            キャンセル
+          </NexusButton>
+          <NexusButton
+            variant="primary"
+            size="md"
+            onClick={() => document.getElementById('edit-form')?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <div className="flex items-center space-x-2">
+                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>保存中...</span>
+              </div>
+            ) : (
+              '保存'
+            )}
+          </NexusButton>
+        </div>
+      </form>
+    </BaseModal>
   );
 }

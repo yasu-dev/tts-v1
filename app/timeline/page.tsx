@@ -65,30 +65,40 @@ export default function TimelinePage() {
       <div className="space-y-6">
         {/* Header */}
         <div className="intelligence-card global">
-          <div className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
-                  商品履歴
-                </h1>
-                <p className="mt-1 text-sm text-nexus-text-secondary">
+          <div className="p-8">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+              {/* Title Section */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-3 mb-2">
+                  <svg className="w-8 h-8 text-nexus-yellow flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
+                    商品履歴
+                  </h1>
+                </div>
+                <p className="text-nexus-text-secondary">
                   商品のステータス変更履歴を追跡
                 </p>
               </div>
-              <div className="flex space-x-3">
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
                 <button
                   onClick={() => setIsFilterModalOpen(true)}
-                  className="nexus-button"
+                  className="nexus-button flex items-center justify-center gap-2"
                 >
-                  <FunnelIcon className="w-5 h-5 mr-2" />
-                  期間でフィルター
+                  <FunnelIcon className="w-5 h-5" />
+                  <span className="hidden sm:inline">期間でフィルター</span>
+                  <span className="sm:hidden">フィルター</span>
                 </button>
                 <button
                   onClick={handleExportHistory}
-                  className="nexus-button primary"
+                  className="nexus-button primary flex items-center justify-center gap-2"
                 >
-                  <ArrowDownTrayIcon className="w-5 h-5 mr-2" />
-                  履歴をエクスポート
+                  <ArrowDownTrayIcon className="w-5 h-5" />
+                  <span className="hidden sm:inline">履歴をエクスポート</span>
+                  <span className="sm:hidden">エクスポート</span>
                 </button>
               </div>
             </div>

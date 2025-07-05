@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
+import { BaseModal, NexusButton, NexusInput, NexusSelect, NexusTextarea } from '../ui';
 
 interface ProductRegistrationModalProps {
   isOpen: boolean;
@@ -22,23 +24,103 @@ export default function ProductRegistrationModal({ isOpen, onClose, onSubmit }: 
     location: '',
     notes: ''
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const { showToast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
-    onClose();
-    setFormData({
-      name: '',
-      sku: '',
-      category: '',
-      brand: '',
-      condition: 'excellent',
-      purchasePrice: '',
-      sellingPrice: '',
-      description: '',
-      location: '',
-      notes: ''
-    });
+    setIsLoading(true);
+
+    try {
+      // バリデーション
+      const validationResult = validateProductData(formData);
+      if (!validationResult.isValid) {
+        showToast({
+          type: 'warning',
+          title: '入力エラー',
+          message: validationResult.errors.join(', '),
+          duration: 4000
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // API呼び出し（本番運用と同じ処理）
+      const response = await fetch('/api/inventory', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...formData,
+          price: Number(formData.sellingPrice),
+          purchasePrice: Number(formData.purchasePrice),
+          createdAt: new Date().toISOString(),
+          status: 'storage'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`商品登録に失敗しました: ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      showToast({
+        type: 'success',
+        title: '商品登録完了',
+        message: `${formData.name}を正常に登録しました。本番環境では在庫リストに追加されます。`,
+        duration: 3000
+      });
+
+      // 親コンポーネントに通知
+      onSubmit(result);
+      
+      // フォームリセット
+      setFormData({
+        name: '',
+        sku: '',
+        category: '',
+        brand: '',
+        condition: 'excellent',
+        purchasePrice: '',
+        sellingPrice: '',
+        description: '',
+        location: '',
+        notes: ''
+      });
+      
+      onClose();
+      
+    } catch (error) {
+      console.error('商品登録エラー:', error);
+      showToast({
+        type: 'error',
+        title: '登録失敗',
+        message: error instanceof Error ? error.message : '商品登録中にエラーが発生しました',
+        duration: 4000
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // バリデーション関数
+  const validateProductData = (data: typeof formData) => {
+    const errors: string[] = [];
+
+    if (!data.name.trim()) errors.push('商品名は必須です');
+    if (!data.sku.trim()) errors.push('SKUは必須です');
+    if (!data.category.trim()) errors.push('カテゴリーは必須です');
+    if (!data.sellingPrice || isNaN(Number(data.sellingPrice)) || Number(data.sellingPrice) <= 0) {
+      errors.push('正しい販売価格を入力してください');
+    }
+    if (data.purchasePrice && (isNaN(Number(data.purchasePrice)) || Number(data.purchasePrice) < 0)) {
+      errors.push('正しい仕入価格を入力してください');
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -52,29 +134,25 @@ export default function ProductRegistrationModal({ isOpen, onClose, onSubmit }: 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto border border-gray-200">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">新規商品登録</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <XMarkIcon className="w-6 h-6" />
-          </button>
-        </div>
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="新規商品登録"
+      size="md"
+      className="max-w-2xl"
+    >
+      <div className="max-h-[90vh] overflow-y-auto">
+
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">商品名 *</label>
-              <input
-                type="text"
+              <NexusInput
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
                 required
-                className="w-full border border-gray-300 rounded px-3 py-2"
                 placeholder="例: Canon EOS R5 ボディ"
               />
             </div>
@@ -201,22 +279,35 @@ export default function ProductRegistrationModal({ isOpen, onClose, onSubmit }: 
           </div>
           
           <div className="flex gap-2 pt-4">
-            <button
+            <NexusButton
               type="submit"
-              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
+              disabled={isLoading}
+              variant="primary"
+              className="flex-1"
             >
-              登録
-            </button>
-            <button
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <svg className="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  登録中...
+                </div>
+              ) : (
+                '登録'
+              )}
+            </NexusButton>
+            <NexusButton
               type="button"
               onClick={onClose}
-              className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded hover:bg-gray-400"
+              variant="secondary"
+              className="flex-1"
             >
               キャンセル
-            </button>
+            </NexusButton>
           </div>
         </form>
       </div>
-    </div>
+    </BaseModal>
   );
 } 

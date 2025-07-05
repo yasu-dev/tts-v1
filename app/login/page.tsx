@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { ApiClient, API_CONFIG } from '@/lib/api-config';
 
 export default function LoginPage() {
-  const [userType, setUserType] = useState<'seller' | 'staff'>('seller');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -24,24 +23,24 @@ export default function LoginPage() {
       );
 
       if (data.success && data.user) {
-        // ユーザータイプに基づいてリダイレクト
+        // ユーザーの役割に基づいて自動的にリダイレクト
         if (data.user.role === 'staff') {
-          router.push('/staff/dashboard');
+          window.location.href = '/staff/dashboard';
         } else {
-          router.push('/dashboard');
+          window.location.href = '/dashboard';
         }
       } else {
         setError(data.error || 'ログインに失敗しました');
+        setIsLoading(false);
       }
     } catch (error) {
       setError('ログインに失敗しました。メールアドレスとパスワードを確認してください。');
-    } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-[#F8FAFE]">
+    <div className="min-h-screen relative overflow-hidden bg-nexus-background">
       {/* Global background effects */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute inset-0"
@@ -71,8 +70,8 @@ export default function LoginPage() {
         <div className="max-w-md w-full space-y-8">
           {/* Logo and Title */}
           <div className="text-center">
-            <h2 className="text-4xl font-black text-[#1A1A1A] mb-2" style={{fontFamily: 'Poppins, Montserrat, sans-serif'}}>THE WORLD DOOR</h2>
-            <p className="text-lg text-[#666666]" style={{fontFamily: 'Noto Sans JP, ヒラギノ角ゴ W4 JIS2004, sans-serif'}}>
+            <h2 className="text-4xl font-black text-nexus-text-primary mb-2 font-display">THE WORLD DOOR</h2>
+            <p className="text-lg text-nexus-text-secondary font-primary">
               フルフィルメントサービス
             </p>
           </div>
@@ -80,41 +79,9 @@ export default function LoginPage() {
           {/* Login Form */}
           <div className="intelligence-card global shadow-xl">
             <div className="p-8">
-              {/* User Type Selector */}
-              <div className="flex rounded-2xl bg-[rgba(248,250,254,0.8)] p-1 mb-8 border-2 border-[rgba(0,100,210,0.15)]">
-                <button
-                  type="button"
-                  onClick={() => setUserType('seller')}
-                  className={`flex-1 py-3 px-6 rounded-xl text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 ${
-                    userType === 'seller'
-                      ? 'nexus-button seller-active'
-                      : 'text-[#666666] hover:text-[#1A1A1A] hover:bg-[rgba(0,100,210,0.05)]'
-                  }`}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                  </svg>
-                  <span style={{fontFamily: 'Noto Sans JP, ヒラギノ角ゴ W4 JIS2004, sans-serif'}}>セラー</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setUserType('staff')}
-                  className={`flex-1 py-3 px-6 rounded-xl text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 ${
-                    userType === 'staff'
-                      ? 'nexus-button staff-active'
-                      : 'text-[#666666] hover:text-[#1A1A1A] hover:bg-[rgba(255,206,0,0.08)]'
-                  }`}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                  </svg>
-                  <span style={{fontFamily: 'Noto Sans JP, ヒラギノ角ゴ W4 JIS2004, sans-serif'}}>スタッフ</span>
-                </button>
-              </div>
-
               <form className="space-y-6" onSubmit={handleSubmit}>
                 {error && (
-                  <div className="bg-[rgba(229,50,56,0.08)] border-2 border-[rgba(229,50,56,0.2)] text-[#E53238] p-4 rounded-lg text-sm font-medium flex items-center">
+                  <div className="bg-nexus-red/8 border-2 border-nexus-red/20 text-nexus-red p-4 rounded-lg text-sm font-medium flex items-center font-primary">
                     <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -123,8 +90,8 @@ export default function LoginPage() {
                 )}
 
                 <div>
-                  <label htmlFor="email" className="block text-sm font-bold text-[#1A1A1A] mb-2 flex items-center" style={{fontFamily: 'Noto Sans JP, ヒラギノ角ゴ W4 JIS2004, sans-serif'}}>
-                    <svg className="w-4 h-4 mr-2 text-[#0064D2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <label htmlFor="email" className="block text-sm font-bold text-nexus-text-primary mb-2 flex items-center font-primary">
+                    <svg className="w-4 h-4 mr-2 text-primary-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 7.89a2 2 0 002.83 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                     メールアドレス
@@ -137,14 +104,14 @@ export default function LoginPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-[rgba(0,100,210,0.2)] rounded-lg bg-white text-[#1A1A1A] placeholder-[#999999] focus:outline-none focus:ring-2 focus:ring-[#0064D2] focus:border-transparent transition-all duration-300 hover:border-[rgba(0,100,210,0.3)]"
+                    className="w-full px-4 py-3 border-2 border-nexus-border rounded-lg bg-white text-nexus-text-primary placeholder-nexus-text-muted focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all duration-300 hover:border-primary-blue/30 font-primary"
                     placeholder="email@example.com"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="password" className="block text-sm font-bold text-[#1A1A1A] mb-2 flex items-center" style={{fontFamily: 'Noto Sans JP, ヒラギノ角ゴ W4 JIS2004, sans-serif'}}>
-                    <svg className="w-4 h-4 mr-2 text-[#0064D2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <label htmlFor="password" className="block text-sm font-bold text-nexus-text-primary mb-2 flex items-center font-primary">
+                    <svg className="w-4 h-4 mr-2 text-primary-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
                     パスワード
@@ -157,7 +124,7 @@ export default function LoginPage() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-[rgba(0,100,210,0.2)] rounded-lg bg-white text-[#1A1A1A] placeholder-[#999999] focus:outline-none focus:ring-2 focus:ring-[#0064D2] focus:border-transparent transition-all duration-300 hover:border-[rgba(0,100,210,0.3)]"
+                    className="w-full px-4 py-3 border-2 border-nexus-border rounded-lg bg-white text-nexus-text-primary placeholder-nexus-text-muted focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all duration-300 hover:border-primary-blue/30 font-primary"
                     placeholder="••••••••"
                   />
                 </div>
@@ -168,9 +135,9 @@ export default function LoginPage() {
                     id="remember-me"
                     name="remember-me"
                     type="checkbox"
-                    className="h-4 w-4 text-[#0064D2] focus:ring-[#0064D2] border-2 border-[rgba(0,100,210,0.2)] rounded cursor-pointer"
+                    className="h-4 w-4 text-primary-blue focus:ring-primary-blue border-2 border-nexus-border rounded cursor-pointer"
                   />
-                  <label htmlFor="remember-me" className="ml-3 block text-sm text-[#666666] cursor-pointer select-none hover:text-[#1A1A1A] transition-colors" style={{fontFamily: 'Noto Sans JP, ヒラギノ角ゴ W4 JIS2004, sans-serif'}}>
+                  <label htmlFor="remember-me" className="ml-3 block text-sm text-nexus-text-secondary cursor-pointer select-none hover:text-nexus-text-primary transition-colors font-primary">
                     ログイン状態を保持する
                   </label>
                 </div>
@@ -179,19 +146,23 @@ export default function LoginPage() {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className={`nexus-button login-button ${userType} ${isLoading ? 'opacity-60' : ''}`}
+                    className={`w-full py-3 px-6 rounded-xl font-bold text-white transition-all duration-300 flex items-center justify-center gap-2 font-primary ${
+                      isLoading 
+                        ? 'bg-gray-400 cursor-not-allowed' 
+                        : 'bg-primary-blue hover:bg-primary-blue-light hover:shadow-lg hover:shadow-primary-blue/30 active:scale-95'
+                    }`}
                   >
                     {isLoading ? (
                       <div className="flex items-center">
                         <div className="animate-spin h-5 w-5 border-b-2 border-current rounded-full mr-3"></div>
-                        <span style={{fontFamily: 'Noto Sans JP, ヒラギノ角ゴ W4 JIS2004, sans-serif'}}>認証中...</span>
+                        <span className="font-primary">認証中...</span>
                       </div>
                     ) : (
                       <>
-                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                         </svg>
-                        <span style={{fontFamily: 'Noto Sans JP, ヒラギノ角ゴ W4 JIS2004, sans-serif'}}>ログイン</span>
+                        <span className="font-primary">ログイン</span>
                       </>
                     )}
                   </button>
@@ -201,8 +172,7 @@ export default function LoginPage() {
                 <div className="text-center pt-3">
                   <a 
                     href="#" 
-                    className="text-sm font-medium text-[#0064D2] hover:text-[#0078FF] transition-colors inline-flex items-center gap-1 hover:underline" 
-                    style={{fontFamily: 'Noto Sans JP, ヒラギノ角ゴ W4 JIS2004, sans-serif'}}
+                    className="text-sm font-medium text-primary-blue hover:text-primary-blue-light transition-colors inline-flex items-center gap-1 hover:underline font-primary"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 11-4 0 2 2 0 014 0zm0 0v1a2 2 0 01-2 2H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -213,21 +183,21 @@ export default function LoginPage() {
               </form>
 
               {/* Demo Credentials */}
-              <div className="mt-8 p-4 bg-[rgba(0,100,210,0.05)] rounded-xl border-2 border-[rgba(0,100,210,0.15)]">
-                <p className="text-xs text-[#666666] mb-3 font-bold flex items-center" style={{fontFamily: 'Noto Sans JP, ヒラギノ角ゴ W4 JIS2004, sans-serif'}}>
-                  <svg className="w-4 h-4 mr-2 text-[#0064D2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="mt-8 p-4 bg-primary-blue/5 rounded-xl border-2 border-primary-blue/15">
+                <p className="text-xs text-nexus-text-secondary mb-3 font-bold flex items-center font-primary">
+                  <svg className="w-4 h-4 mr-2 text-primary-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   テスト用ログイン情報
                 </p>
-                <div className="space-y-2 text-xs" style={{fontFamily: 'Noto Sans JP, ヒラギノ角ゴ W4 JIS2004, sans-serif'}}>
+                <div className="space-y-2 text-xs font-primary">
                   <div className="flex items-center justify-between p-2 rounded-lg bg-white/50">
-                    <span className="text-[#666666] font-medium">セラー:</span>
-                    <span className="text-[#1A1A1A] font-mono bg-white px-2 py-1 rounded border border-[rgba(0,100,210,0.1)]">seller@example.com / password123</span>
+                    <span className="text-nexus-text-secondary font-medium">セラー:</span>
+                    <span className="text-nexus-text-primary font-mono bg-white px-2 py-1 rounded border border-primary-blue/10">seller@example.com / password123</span>
                   </div>
                   <div className="flex items-center justify-between p-2 rounded-lg bg-white/50">
-                    <span className="text-[#666666] font-medium">スタッフ:</span>
-                    <span className="text-[#1A1A1A] font-mono bg-white px-2 py-1 rounded border border-[rgba(255,206,0,0.15)]">staff@example.com / password123</span>
+                    <span className="text-nexus-text-secondary font-medium">スタッフ:</span>
+                    <span className="text-nexus-text-primary font-mono bg-white px-2 py-1 rounded border border-nexus-yellow/15">staff@example.com / password123</span>
                   </div>
                 </div>
               </div>
@@ -235,8 +205,8 @@ export default function LoginPage() {
           </div>
 
           {/* Footer Info */}
-          <div className="text-center text-xs text-[#999999] mt-8">
-            <p style={{fontFamily: 'Noto Sans JP, ヒラギノ角ゴ W4 JIS2004, sans-serif'}}>
+          <div className="text-center text-xs text-nexus-text-muted mt-8">
+            <p className="font-primary">
               © 2024 THE WORLD DOOR. All rights reserved.
             </p>
           </div>

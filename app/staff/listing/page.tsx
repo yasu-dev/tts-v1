@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
+import HoloTable from '@/app/components/ui/HoloTable';
 
 interface ListingTemplate {
   id: string;
@@ -241,75 +242,78 @@ export default function ListingPage() {
               <h2 className="text-xl font-display font-bold text-nexus-text-primary mb-6">
                 出品可能商品
               </h2>
-              <div className="overflow-x-auto">
-                <div className="holo-table">
-                  <table className="w-full">
-                    <thead className="holo-header">
-                      <tr>
-                        <th className="text-left py-3 px-4">商品情報</th>
-                        <th className="text-left py-3 px-4">SKU</th>
-                        <th className="text-left py-3 px-4">カテゴリ</th>
-                        <th className="text-right py-3 px-4">価格</th>
-                        <th className="text-center py-3 px-4">ステータス</th>
-                        <th className="text-center py-3 px-4">出品状況</th>
-                        <th className="text-center py-3 px-4">アクション</th>
-                      </tr>
-                    </thead>
-                  <tbody className="holo-body">
-                    {products.map((product) => (
-                      <tr key={product.id} className="holo-row">
-                        <td className="py-4 px-4">
-                          <div className="flex items-center gap-3">
-                            <img
-                              src={product.images[0] || '/api/placeholder/60/60'}
-                              alt={product.name}
-                              className="w-12 h-12 object-cover rounded-lg"
-                            />
-                            <div>
-                              <p className="font-medium text-nexus-text-primary">{product.name}</p>
-                              <p className="text-sm text-nexus-text-secondary">{product.id}</p>
-                            </div>
+              <HoloTable
+                columns={[
+                  { key: 'info', label: '商品情報', width: '25%' },
+                  { key: 'sku', label: 'SKU', width: '12%' },
+                  { key: 'category', label: 'カテゴリ', width: '12%' },
+                  { key: 'price', label: '価格', width: '12%', align: 'right' },
+                  { key: 'status', label: 'ステータス', width: '12%', align: 'center' },
+                  { key: 'listingStatus', label: '出品状況', width: '15%', align: 'center' },
+                  { key: 'actions', label: 'アクション', width: '12%', align: 'center' }
+                ]}
+                data={products}
+                renderCell={(value, column, row) => {
+                  if (column.key === 'info') {
+                    return (
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={row.images[0] || '/api/placeholder/60/60'}
+                          alt={row.name}
+                          className="w-12 h-12 object-cover rounded-lg"
+                        />
+                        <div>
+                          <p className="font-medium text-nexus-text-primary">{row.name}</p>
+                          <p className="text-sm text-nexus-text-secondary">{row.id}</p>
+                        </div>
+                      </div>
+                    );
+                  }
+                  if (column.key === 'sku') {
+                    return <span className="font-mono text-sm">{value}</span>;
+                  }
+                  if (column.key === 'price') {
+                    return <span className="font-display">¥{value?.toLocaleString()}</span>;
+                  }
+                  if (column.key === 'status') {
+                    return (
+                      <span className={`status-badge ${getStatusConfig(value).badge}`}>
+                        {getStatusConfig(value).label}
+                      </span>
+                    );
+                  }
+                  if (column.key === 'listingStatus') {
+                    return (
+                      <div className="flex justify-center gap-2">
+                        {Object.entries(platformConfig).map(([key, config]) => (
+                          <div
+                            key={key}
+                            className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                              row.listingStatus?.[key as keyof typeof row.listingStatus]
+                                ? config.color
+                                : 'bg-gray-200'
+                            }`}
+                          >
+                            <span className="text-white text-xs font-bold">
+                              {config.name.charAt(0)}
+                            </span>
                           </div>
-                        </td>
-                        <td className="py-4 px-4 font-mono text-sm">{product.sku}</td>
-                        <td className="py-4 px-4 text-sm">{product.category}</td>
-                        <td className="py-4 px-4 text-right font-display">
-                          ¥{product.price?.toLocaleString()}
-                        </td>
-                        <td className="py-4 px-4 text-center">
-                          <span className={`status-badge ${getStatusConfig(product.status).badge}`}>
-                            {getStatusConfig(product.status).label}
-                          </span>
-                        </td>
-                        <td className="py-4 px-4">
-                          <div className="flex justify-center gap-2">
-                            {Object.entries(platformConfig).map(([key, config]) => (
-                              <div
-                                key={key}
-                                className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                                  product.listingStatus?.[key as keyof typeof product.listingStatus]
-                                    ? config.color
-                                    : 'bg-gray-200'
-                                }`}
-                              >
-                                <span className="text-white text-xs font-bold">
-                                  {config.name.charAt(0)}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </td>
-                        <td className="py-4 px-4 text-center">
-                          <button className="nexus-button primary">
-                            出品設定
-                          </button>
-                        </td>
-                      </tr>
-                                      ))}
-                </tbody>
-              </table>
-                </div>
-              </div>
+                        ))}
+                      </div>
+                    );
+                  }
+                  if (column.key === 'actions') {
+                    return (
+                      <button className="nexus-button primary">
+                        出品設定
+                      </button>
+                    );
+                  }
+                  return value;
+                }}
+                emptyMessage="出品可能な商品がありません"
+                className="w-full"
+              />
             </div>
           </div>
         )}

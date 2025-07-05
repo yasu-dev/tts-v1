@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { NexusLoadingSpinner } from '@/app/components/ui';
 
 interface MenuItem {
   label: string;
@@ -32,7 +33,9 @@ export default function Sidebar({ userType }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<string[]>(['current']);
   const [isMobile, setIsMobile] = useState(false);
+  const [loadingPath, setLoadingPath] = useState<string | null>(null);
   const pathname = usePathname();
+  const router = useRouter();
 
   // モバイル判定
   useEffect(() => {
@@ -45,12 +48,31 @@ export default function Sidebar({ userType }: SidebarProps) {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // パスが変わったらローディング状態をリセット
+  useEffect(() => {
+    setLoadingPath(null);
+  }, [pathname]);
+
   const toggleGroup = (groupId: string) => {
     setExpandedGroups(prev => 
       prev.includes(groupId) 
         ? prev.filter(id => id !== groupId)
         : [...prev, groupId]
     );
+  };
+
+  // ナビゲーション処理
+  const handleNavigation = (href: string, label: string) => {
+    if (href === pathname) return; // 同じページの場合は何もしない
+    
+    // 認証済みユーザーのページ間移動では、ローディング画面をスキップ
+    // 内部ページ間の移動は即座に実行
+    setLoadingPath(href);
+    
+    // ローディング表示のために少し遅延してから直接遷移
+    setTimeout(() => {
+      window.location.href = href;
+    }, 150);
   };
 
   // 共通アイコンセット
@@ -557,41 +579,51 @@ export default function Sidebar({ userType }: SidebarProps) {
                   <div className="ml-3 mt-2 space-y-1">
                     {group.items.map((item) => {
                       const itemFlowStepBadge = getFlowStepBadge(item.flowStep);
+                      const isLoading = loadingPath === item.href;
+                      const isActive = pathname === item.href;
                       
                       return (
-                        <Link
+                        <button
                           key={item.href}
-                          href={item.href}
+                          onClick={() => handleNavigation(item.href, item.label)}
+                          disabled={isLoading}
                           className={`
-                            flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200
+                            w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200
                             hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500
-                            ${pathname === item.href ? 'bg-blue-50 text-blue-600 ring-1 ring-blue-200' : 'text-gray-700'}
+                            ${isActive ? 'bg-blue-50 text-blue-600 ring-1 ring-blue-200' : 'text-gray-700'}
+                            ${isLoading ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer'}
                           `}
                         >
                           <div className="flex-shrink-0 w-5 h-5">
-                            {item.icon}
+                            {isLoading ? (
+                              <NexusLoadingSpinner size="sm" variant="primary" />
+                            ) : (
+                              item.icon
+                            )}
                           </div>
                           <div className="flex-1 min-w-0 sidebar-text">
                             <div className="flex items-center gap-2">
-                              <span className="font-medium text-sm truncate">{item.label}</span>
-                              {itemFlowStepBadge && (
+                              <span className="font-medium text-sm truncate">
+                                {isLoading ? `${item.label}を読み込み中...` : item.label}
+                              </span>
+                              {itemFlowStepBadge && !isLoading && (
                                 <span className="px-1 py-0.5 bg-blue-100 text-blue-600 text-[8px] font-bold rounded">
                                   {itemFlowStepBadge}
                                 </span>
                               )}
                             </div>
-                            {item.description && (
+                            {item.description && !isLoading && (
                               <div className="text-[10px] text-gray-500 truncate mt-0.5">
                                 {item.description}
                               </div>
                             )}
                           </div>
-                          {item.badge && (
+                          {item.badge && !isLoading && (
                             <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0">
                               {item.badge}
                             </span>
                           )}
-                        </Link>
+                        </button>
                       );
                     })}
                   </div>
@@ -600,27 +632,38 @@ export default function Sidebar({ userType }: SidebarProps) {
                 {/* Collapsed State - Show Icons Only */}
                 {isCollapsed && !isMobile && (
                   <div className="mt-1 space-y-1">
-                    {group.items.map((item) => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        title={`${item.label}${item.description ? ` - ${item.description}` : ''}`}
-                        className={`
-                          flex items-center justify-center p-2 rounded-lg transition-all duration-200
-                          hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 relative
-                          ${pathname === item.href ? 'bg-blue-50 text-blue-600 ring-1 ring-blue-200' : 'text-gray-700'}
-                        `}
-                      >
-                        <div className="w-5 h-5">
-                          {item.icon}
-                        </div>
-                        {item.badge && (
-                          <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
-                            {item.badge > 9 ? '9+' : item.badge}
-                          </span>
-                        )}
-                      </Link>
-                    ))}
+                    {group.items.map((item) => {
+                      const isLoading = loadingPath === item.href;
+                      const isActive = pathname === item.href;
+                      
+                      return (
+                        <button
+                          key={item.href}
+                          onClick={() => handleNavigation(item.href, item.label)}
+                          disabled={isLoading}
+                          title={isLoading ? `${item.label}を読み込み中...` : `${item.label}${item.description ? ` - ${item.description}` : ''}`}
+                          className={`
+                            flex items-center justify-center p-2 rounded-lg transition-all duration-200
+                            hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 relative
+                            ${isActive ? 'bg-blue-50 text-blue-600 ring-1 ring-blue-200' : 'text-gray-700'}
+                            ${isLoading ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer'}
+                          `}
+                        >
+                          <div className="w-5 h-5">
+                            {isLoading ? (
+                              <NexusLoadingSpinner size="sm" variant="primary" />
+                            ) : (
+                              item.icon
+                            )}
+                          </div>
+                          {item.badge && !isLoading && (
+                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
+                              {item.badge > 9 ? '9+' : item.badge}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>

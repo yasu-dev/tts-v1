@@ -294,30 +294,40 @@ export default function InspectionPage() {
       <div className="space-y-6">
         {/* Header */}
         <div className="intelligence-card global">
-          <div className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
-                  検品・撮影
-                </h1>
-                <p className="mt-1 text-sm text-nexus-text-secondary">
+          <div className="p-8">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+              {/* Title Section */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-3 mb-2">
+                  <svg className="w-8 h-8 text-nexus-yellow flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
+                    検品・撮影
+                  </h1>
+                </div>
+                <p className="text-nexus-text-secondary">
                   商品の検品と撮影作業を実施
                 </p>
               </div>
-              <div className="flex space-x-3">
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
                 <button
                   onClick={() => setIsStandardsModalOpen(true)}
-                  className="nexus-button"
+                  className="nexus-button flex items-center justify-center gap-2"
                 >
-                  <BookOpenIcon className="w-5 h-5 mr-2" />
-                  検品基準を確認
+                  <BookOpenIcon className="w-5 h-5" />
+                  <span className="hidden sm:inline">検品基準を確認</span>
+                  <span className="sm:hidden">検品基準</span>
                 </button>
                 <button
                   onClick={() => setIsCameraModalOpen(true)}
-                  className="nexus-button primary"
+                  className="nexus-button primary flex items-center justify-center gap-2"
                 >
-                  <CameraIcon className="w-5 h-5 mr-2" />
-                  カメラ設定
+                  <CameraIcon className="w-5 h-5" />
+                  <span className="hidden sm:inline">カメラ設定</span>
+                  <span className="sm:hidden">カメラ</span>
                 </button>
               </div>
             </div>
@@ -326,10 +336,10 @@ export default function InspectionPage() {
 
         {/* Standards Modal */}
         {isStandardsModalOpen && (
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-30 z-50 flex justify-center items-center">
-            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl">
+          <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex justify-center items-center">
+            <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-2xl">
               <h2 className="text-lg font-bold mb-4">検品基準</h2>
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-sm text-nexus-text-secondary mb-4">
                 ここに検品マニュアルや注意事項が表示されます。
               </p>
               <div className="text-right mt-6">
@@ -341,8 +351,8 @@ export default function InspectionPage() {
 
         {/* Camera Settings Modal */}
         {isCameraModalOpen && (
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-30 z-50 flex justify-center items-center">
-            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
+          <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex justify-center items-center">
+            <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-lg">
               <h2 className="text-lg font-bold mb-4">カメラ設定</h2>
               {/* TODO: カメラ設定フォームを実装 */}
               <div className="text-right mt-6">

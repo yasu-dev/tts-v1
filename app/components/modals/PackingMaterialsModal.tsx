@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { XMarkIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { BaseModal, NexusButton, NexusInput } from '../ui';
 
 interface PackingMaterialsModalProps {
   isOpen: boolean;
@@ -109,17 +110,14 @@ export default function PackingMaterialsModal({ isOpen, onClose, onOrder }: Pack
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto border border-gray-200">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">梱包資材確認・発注</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <XMarkIcon className="w-6 h-6" />
-          </button>
-        </div>
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="梱包資材確認・発注"
+      size="lg"
+      className="max-w-4xl"
+    >
+      <div className="max-h-[90vh] overflow-y-auto">
 
         {lowStockItems.length > 0 && (
           <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -199,25 +197,23 @@ export default function PackingMaterialsModal({ isOpen, onClose, onOrder }: Pack
         </div>
         
         <div className="flex gap-2 pt-6">
-          <button
+          <NexusButton
             onClick={handleOrder}
             disabled={totalOrderCost === 0}
-            className={`flex-1 py-2 px-4 rounded ${
-              totalOrderCost > 0 
-                ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
+            variant="primary"
+            className="flex-1"
           >
             発注する ({materials.filter(m => m.orderQuantity > 0).length}件)
-          </button>
-          <button
+          </NexusButton>
+          <NexusButton
             onClick={onClose}
-            className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded hover:bg-gray-400"
+            variant="secondary"
+            className="flex-1"
           >
             閉じる
-          </button>
+          </NexusButton>
         </div>
       </div>
-    </div>
+    </BaseModal>
   );
 } 

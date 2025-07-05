@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { BaseModal } from './ui';
+import { BaseModal, NexusButton } from './ui';
 
 interface Product {
   id: string;
@@ -215,21 +215,21 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
 
         {/* Footer */}
         <div className="flex justify-end space-x-3 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-          <button
+          <NexusButton
             onClick={onClose}
-            className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            variant="default"
           >
             閉じる
-          </button>
-          <button
+          </NexusButton>
+          <NexusButton
             onClick={() => {
               console.log('編集機能: 詳細編集画面への遷移をシミュレート');
               // 実際の実装では編集モーダルまたは編集ページに遷移
             }}
-            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+            variant="primary"
           >
             編集
-          </button>
+          </NexusButton>
         </div>
       </div>
     </BaseModal>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
+import { NexusButton } from '../../components/ui';
 
 interface MonthlyData {
   month: string;
@@ -258,13 +259,14 @@ export default function MonthlyReportsPage() {
                 </option>
               ))}
             </select>
-            <button
+            <NexusButton
               onClick={generatePDFReport}
               disabled={isGeneratingPDF}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              variant="primary"
+              size="sm"
             >
               {isGeneratingPDF ? '生成中...' : 'PDF生成'}
-            </button>
+            </NexusButton>
           </div>
         </div>
 

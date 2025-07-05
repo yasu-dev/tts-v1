@@ -100,15 +100,7 @@ export default function NexusCard({
         {children}
       </div>
 
-      {/* ホバー時のグローエフェクト */}
-      <div className="
-        absolute inset-0 
-        bg-gradient-to-br from-transparent via-primary-blue/5 to-transparent
-        opacity-0 transition-opacity duration-300
-        group-hover:opacity-100
-        rounded-nexus-xl
-        pointer-events-none
-      " />
+
     </div>
   );
 }

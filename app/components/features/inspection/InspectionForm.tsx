@@ -178,6 +178,19 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
     try {
       setLoading(true);
       
+      // バリデーション
+      const validationResult = validateInspectionData(inspectionData);
+      if (!validationResult.isValid) {
+        showToast({
+          type: 'warning',
+          title: '検品データ不備',
+          message: validationResult.errors.join(', '),
+          duration: 4000
+        });
+        setLoading(false);
+        return;
+      }
+      
       // 検品結果を判定
       const allChecks = Object.values(inspectionData.checklist).flatMap(category =>
         Object.values(category || {})
@@ -195,9 +208,11 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
       const finalData = {
         ...inspectionData,
         result,
+        completedAt: new Date().toISOString(),
+        videoId: videoId || undefined,
       };
 
-      // APIに送信（実際の実装）
+      // APIに送信（本番運用と同じ処理）
       const response = await fetch(`/api/products/${productId}/inspection`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -205,27 +220,77 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
       });
 
       if (!response.ok) {
-        throw new Error('検品結果の保存に失敗しました');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `検品結果の保存に失敗しました: ${response.status}`);
       }
+
+      const savedData = await response.json();
+
+      // 商品ステータスの更新
+      await fetch(`/api/inventory/${productId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: result === 'passed' ? 'ready_for_listing' : 
+                  result === 'conditional' ? 'needs_review' : 'rejected',
+          inspectionId: savedData.id,
+          lastInspectionDate: new Date().toISOString()
+        })
+      });
 
       showToast({
         type: 'success',
         title: '検品完了',
-        message: 'デモモードのため、実際の保存は行われません。検品結果は一時的に表示されます。',
+        message: `検品結果を保存しました。商品ステータスが「${
+          result === 'passed' ? '出品準備完了' : 
+          result === 'conditional' ? '要確認' : '不合格'
+        }」に更新されました。`,
         duration: 4000
       });
-      window.location.href = '/staff/inspection';
+      
+      // 本番運用では適切な画面遷移を行う
+      setTimeout(() => {
+        window.location.href = '/staff/inspection';
+      }, 2000);
+      
     } catch (error) {
       console.error('[ERROR] Inspection submission:', error);
       showToast({
         type: 'error',
-        title: 'エラー',
-        message: 'デモモードでの検品処理中にエラーが発生しました。',
+        title: '検品保存エラー',
+        message: error instanceof Error ? error.message : '検品結果の保存中にエラーが発生しました',
         duration: 4000
       });
     } finally {
       setLoading(false);
     }
+  };
+
+  // バリデーション関数
+  const validateInspectionData = (data: InspectionData) => {
+    const errors: string[] = [];
+
+    // 必須チェック項目の確認
+    const exteriorChecks = Object.values(data.checklist.exterior);
+    const functionalityChecks = Object.values(data.checklist.functionality);
+    
+    if (exteriorChecks.every(check => check === false)) {
+      errors.push('外観チェック項目を少なくとも1つ確認してください');
+    }
+    
+    if (functionalityChecks.every(check => check === false)) {
+      errors.push('機能チェック項目を少なくとも1つ確認してください');
+    }
+
+    // 写真の確認
+    if (data.photos.length === 0) {
+      errors.push('検品写真を少なくとも1枚撮影してください');
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
   };
 
   if (loading && !product) {

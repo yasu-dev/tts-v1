@@ -202,8 +202,8 @@ export default function EbayListingForm({ product, onSuccess, onCancel }: EbayLi
                 className={`
                   p-3 rounded-lg border-2 transition-all duration-200
                   ${selectedTemplate === template.id 
-                    ? 'border-[#0064D2] bg-[#0064D2]/5' 
-                    : 'border-nexus-border hover:border-[#0064D2]/50'
+                                    ? 'border-primary-blue bg-primary-blue/5'
+                : 'border-nexus-border hover:border-primary-blue/50'
                   }
                 `}
               >

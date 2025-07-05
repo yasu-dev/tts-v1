@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
+import { BaseModal, NexusButton } from './ui';
 
 interface Task {
   id: string;
@@ -30,6 +32,7 @@ interface TaskDetailModalProps {
 export default function TaskDetailModal({ isOpen, onClose, task, onEdit }: TaskDetailModalProps) {
   const [activeTab, setActiveTab] = useState('details');
   const [newComment, setNewComment] = useState('');
+  const { showToast } = useToast();
 
   if (!isOpen || !task) return null;
 
@@ -104,18 +107,32 @@ export default function TaskDetailModal({ isOpen, onClose, task, onEdit }: TaskD
 
   const handleAddComment = () => {
     if (newComment.trim()) {
-      alert('デモ版ではコメントの追加は実装されていません');
+      showToast({
+        type: 'info',
+        title: 'デモモード',
+        message: 'デモ版ではコメントの追加は実装されていません'
+      });
       setNewComment('');
     }
   };
 
   const handleStatusChange = (newStatus: string) => {
-    alert(`デモ版ではステータス変更は実装されていません\n変更予定: ${newStatus}`);
+    showToast({
+      type: 'info',
+      title: 'デモモード',
+      message: `デモ版ではステータス変更は実装されていません\n変更予定: ${newStatus}`
+    });
   };
 
   return (
-          <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border border-gray-200">
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={task.title}
+      size="lg"
+      className="max-w-4xl"
+    >
+      <div className="max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex-1">
@@ -274,12 +291,13 @@ export default function TaskDetailModal({ isOpen, onClose, task, onEdit }: TaskD
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       />
                     <div className="flex justify-end mt-2">
-                      <button
+                      <NexusButton
                         onClick={handleAddComment}
-                        className="px-4 py-1 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors"
+                        variant="primary"
+                        size="sm"
                       >
                         追加
-                      </button>
+                      </NexusButton>
                     </div>
                   </div>
                 </div>
@@ -323,7 +341,7 @@ export default function TaskDetailModal({ isOpen, onClose, task, onEdit }: TaskD
                 <h3 className="text-lg font-semibold text-gray-900">
                   添付ファイル
                 </h3>
-                                  <button 
+                                  <NexusButton 
                     onClick={() => {
                       const input = document.createElement('input');
                       input.type = 'file';
@@ -333,15 +351,20 @@ export default function TaskDetailModal({ isOpen, onClose, task, onEdit }: TaskD
                         const files = (e.target as HTMLInputElement).files;
                         if (files) {
                           const fileNames = Array.from(files).map(f => f.name);
-                          alert(`ファイルを追加しました: ${fileNames.join(', ')}`);
+                          showToast({
+                            type: 'success',
+                            title: 'ファイル追加',
+                            message: `ファイルを追加しました: ${fileNames.join(', ')}`
+                          });
                         }
                       };
                       input.click();
                     }}
-                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors"
+                    variant="primary"
+                    size="sm"
                   >
                     ファイル追加
-                  </button>
+                  </NexusButton>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -366,7 +389,11 @@ export default function TaskDetailModal({ isOpen, onClose, task, onEdit }: TaskD
                         link.href = '#';
                         link.download = filename;
                         link.click();
-                        alert(`ファイルをダウンロードしました: ${filename}`);
+                        showToast({
+                          type: 'success',
+                          title: 'ファイルダウンロード',
+                          message: `ファイルをダウンロードしました: ${filename}`
+                        });
                       }}
                       className="text-purple-600 hover:text-purple-700 text-sm"
                     >
@@ -431,12 +458,23 @@ export default function TaskDetailModal({ isOpen, onClose, task, onEdit }: TaskD
                 })
                 .then(res => res.json())
                 .then(data => {
-                  alert(`タスクを複製しました: ${duplicateTask.title}`);
-                  window.location.reload();
+                  showToast({
+                    type: 'success',
+                    title: 'タスク複製',
+                    message: `タスクを複製しました: ${duplicateTask.title}。本番環境ではタスクリストが更新されます。`,
+                    duration: 4000
+                  });
+                  onClose();
+                  // 本番運用では親コンポーネントの状態を更新
+                  // window.location.reload()は削除し、適切な状態管理を使用
                 })
                 .catch(err => {
                   console.error('タスク複製エラー:', err);
-                  alert('タスクの複製に失敗しました');
+                  showToast({
+                    type: 'error',
+                    title: 'エラー',
+                    message: 'タスクの複製に失敗しました'
+                  });
                 });
               }}
               className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
@@ -451,15 +489,15 @@ export default function TaskDetailModal({ isOpen, onClose, task, onEdit }: TaskD
             >
               閉じる
             </button>
-            <button
+            <NexusButton
               onClick={() => onEdit && onEdit(task)}
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+              variant="primary"
             >
               編集
-            </button>
+            </NexusButton>
           </div>
         </div>
       </div>
-    </div>
+    </BaseModal>
   );
 }
