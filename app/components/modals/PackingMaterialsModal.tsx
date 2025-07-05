@@ -109,8 +109,8 @@ export default function PackingMaterialsModal({ isOpen, onClose, onOrder }: Pack
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto border border-gray-200">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">梱包資材確認・発注</h3>
           <button

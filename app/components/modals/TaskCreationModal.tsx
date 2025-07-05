@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { BaseModal } from '../ui';
 
 interface TaskCreationModalProps {
   isOpen: boolean;
@@ -45,21 +45,14 @@ export default function TaskCreationModal({ isOpen, onClose, onSubmit }: TaskCre
     }));
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">新規タスク作成</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <XMarkIcon className="w-6 h-6" />
-          </button>
-        </div>
-        
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="新規タスク作成"
+      size="lg"
+    >
+      <div className="p-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">タスク名 *</label>
@@ -194,6 +187,6 @@ export default function TaskCreationModal({ isOpen, onClose, onSubmit }: TaskCre
           </div>
         </form>
       </div>
-    </div>
+    </BaseModal>
   );
 } 

@@ -97,7 +97,7 @@ export default function TimelinePage() {
 
         {/* Filter Modal */}
         {isFilterModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-30 z-50 flex justify-center items-center">
             <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
               <h2 className="text-lg font-bold mb-4">期間でフィルター</h2>
               {/* TODO: 日付選択UIを実装 */}

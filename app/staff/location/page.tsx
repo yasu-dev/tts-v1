@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import LocationList from '@/app/components/features/location/LocationList';
 import LocationRegistration from '@/app/components/features/location/LocationRegistration';
@@ -16,6 +16,11 @@ export default function LocationPage() {
   const [activeView, setActiveView] = useState<'list' | 'registration'>('list');
   const [isOptimizationModalOpen, setIsOptimizationModalOpen] = useState(false);
   const [isCountModalOpen, setIsCountModalOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleOptimizeLocations = () => {
     setIsOptimizationModalOpen(true);
@@ -24,6 +29,10 @@ export default function LocationPage() {
   const handleStartInventoryCount = () => {
     setIsCountModalOpen(true);
   };
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <DashboardLayout userType="staff">

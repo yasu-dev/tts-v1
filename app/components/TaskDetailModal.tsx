@@ -38,19 +38,31 @@ export default function TaskDetailModal({ isOpen, onClose, task, onEdit }: TaskD
       id: '1',
       user: '田中スタッフ',
       timestamp: '2024-12-25 14:30',
-      content: '検品作業を開始しました。外観に問題はありません。'
+      content: '注文確認完了。商品の在庫確認を行いました。Canon EOS R5 在庫あり。'
     },
     {
       id: '2',
-      user: '佐藤マネージャー',
-      timestamp: '2024-12-25 10:15',
-      content: '優先度を高に変更しました。至急対応をお願いします。'
+      user: '佐藤スタッフ',
+      timestamp: '2024-12-25 12:15',
+      content: '検品作業完了。商品状態良好、付属品すべて揃っています。'
     },
     {
       id: '3',
+      user: '山田スタッフ',
+      timestamp: '2024-12-25 10:45',
+      content: '梱包作業開始。専用ケースに入れて丁寧に梱包します。'
+    },
+    {
+      id: '4',
+      user: '配送チーム',
+      timestamp: '2024-12-25 16:00',
+      content: '出荷完了。追跡番号: 1234567890123'
+    },
+    {
+      id: '5',
       user: 'システム',
-      timestamp: '2024-12-24 16:45',
-      content: 'タスクが自動生成されました。'
+      timestamp: '2024-12-24 09:30',
+      content: '注文 ORD-2024-005 を受付ました。自動処理を開始します。'
     }
   ];
 
@@ -102,12 +114,12 @@ export default function TaskDetailModal({ isOpen, onClose, task, onEdit }: TaskD
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+          <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border border-gray-200">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex-1">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h2 className="text-2xl font-bold text-gray-900">
               {task.title}
             </h2>
             <div className="flex items-center space-x-4 mt-2">
@@ -130,10 +142,10 @@ export default function TaskDetailModal({ isOpen, onClose, task, onEdit }: TaskD
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-200 dark:border-gray-700">
+        <div className="flex border-b border-gray-200">
           {[
-            { id: 'details', label: 'タスク詳細' },
-            { id: 'comments', label: 'コメント' },
+            { id: 'details', label: '詳細情報' },
+            { id: 'comments', label: '履歴' },
             { id: 'attachments', label: '添付ファイル' }
           ].map((tab) => (
             <button
@@ -157,16 +169,16 @@ export default function TaskDetailModal({ isOpen, onClose, task, onEdit }: TaskD
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       担当者
                     </label>
-                    <p className="text-lg text-gray-900 dark:text-white">{task.assignee}</p>
+                    <p className="text-lg text-gray-900">{task.assignee}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       カテゴリー
                     </label>
-                    <p className="text-gray-900 dark:text-white">
+                    <p className="text-gray-900">
                       {task.category === 'inspection' ? '検品' : 
                        task.category === 'shipping' ? '出荷' : 
                        task.category === 'returns' ? '返品処理' : 
@@ -174,21 +186,21 @@ export default function TaskDetailModal({ isOpen, onClose, task, onEdit }: TaskD
                     </p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       期限
                     </label>
-                    <p className="text-lg text-gray-900 dark:text-white">{task.dueDate}</p>
+                    <p className="text-lg text-gray-900">{task.dueDate}</p>
                   </div>
                 </div>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       作成日時
                     </label>
-                    <p className="text-gray-900 dark:text-white">2024-12-24 10:00</p>
+                    <p className="text-gray-900">2024-12-24 10:00</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       進捗率
                     </label>
                     <div className="flex items-center space-x-3">
@@ -204,7 +216,7 @@ export default function TaskDetailModal({ isOpen, onClose, task, onEdit }: TaskD
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       ステータス変更
                     </label>
                     <select 
@@ -222,11 +234,11 @@ export default function TaskDetailModal({ isOpen, onClose, task, onEdit }: TaskD
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
                   タスク詳細
                 </label>
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                  <p className="text-gray-900 dark:text-white">
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <p className="text-gray-900">
                     {task.description || 'Canon EOS R5の検品作業を実施します。外観チェック、動作確認、付属品確認を行い、問題がないことを確認してください。'}
                   </p>
                 </div>
@@ -237,16 +249,16 @@ export default function TaskDetailModal({ isOpen, onClose, task, onEdit }: TaskD
           {activeTab === 'comments' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  コメント履歴
+                <h3 className="text-lg font-semibold text-gray-900">
+                  注文履歴
                 </h3>
                 <span className="text-sm text-gray-500">
-                  {demoComments.length}件のコメント
+                  {demoComments.length}件の履歴
                 </span>
               </div>
               
               {/* Add Comment */}
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                 <div className="flex space-x-3">
                   <div className="flex-shrink-0">
                     <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
@@ -254,13 +266,13 @@ export default function TaskDetailModal({ isOpen, onClose, task, onEdit }: TaskD
                     </div>
                   </div>
                   <div className="flex-1">
-                    <textarea
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                      placeholder="コメントを追加..."
-                      rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
+                                          <textarea
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        placeholder="履歴メモを追加..."
+                        rows={2}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      />
                     <div className="flex justify-end mt-2">
                       <button
                         onClick={handleAddComment}
@@ -285,16 +297,16 @@ export default function TaskDetailModal({ isOpen, onClose, task, onEdit }: TaskD
                       </div>
                     </div>
                     <div className="flex-1">
-                      <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-600">
+                      <div className="bg-white rounded-lg p-3 border border-gray-200">
                         <div className="flex items-center justify-between mb-1">
-                          <span className="font-medium text-gray-900 dark:text-white text-sm">
+                          <span className="font-medium text-gray-900 text-sm">
                             {comment.user}
                           </span>
                           <span className="text-xs text-gray-500">
                             {comment.timestamp}
                           </span>
                         </div>
-                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                        <p className="text-sm text-gray-700">
                           {comment.content}
                         </p>
                       </div>
@@ -308,7 +320,7 @@ export default function TaskDetailModal({ isOpen, onClose, task, onEdit }: TaskD
           {activeTab === 'attachments' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                <h3 className="text-lg font-semibold text-gray-900">
                   添付ファイル
                 </h3>
                                   <button 
@@ -334,14 +346,14 @@ export default function TaskDetailModal({ isOpen, onClose, task, onEdit }: TaskD
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {demoAttachments.map((filename, index) => (
-                  <div key={index} className="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg">
+                  <div key={index} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg bg-white">
                     <div className="flex-shrink-0">
                       <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                      <p className="text-sm font-medium text-gray-900 truncate">
                         {filename}
                       </p>
                       <p className="text-xs text-gray-500">
@@ -368,7 +380,7 @@ export default function TaskDetailModal({ isOpen, onClose, task, onEdit }: TaskD
         </div>
 
         {/* Footer */}
-        <div className="flex justify-between p-6 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex justify-between p-6 border-t border-gray-200">
           <div className="flex space-x-3">
             <button
               onClick={() => {

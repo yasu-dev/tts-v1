@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { BaseModal } from './ui';
 import { 
   XMarkIcon, 
   PencilIcon, 
@@ -131,29 +132,23 @@ export default function ItemDetailModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-              商品詳細
-            </h2>
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="商品詳細"
+      size="xl"
+      className="max-h-[90vh] overflow-hidden"
+    >
+      <div className="p-6">
+        <div className="mb-4">
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {item.name} ({item.sku})
             </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <XMarkIcon className="w-6 h-6" />
-          </button>
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-gray-200 dark:border-gray-700">
-          <nav className="flex space-x-8 px-6">
+        <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
+          <nav className="flex space-x-8">
             {[
               { id: 'details', label: '詳細情報' },
               { id: 'history', label: '履歴' },
@@ -175,7 +170,7 @@ export default function ItemDetailModal({
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-96">
+        <div className="overflow-y-auto max-h-96">
           {activeTab === 'details' && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Basic Information */}
@@ -312,7 +307,7 @@ export default function ItemDetailModal({
         </div>
 
         {/* Footer */}
-        <div className="flex justify-between p-6 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex justify-between mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
           <div className="flex space-x-3">
             <button
               onClick={handlePrint}
@@ -366,6 +361,6 @@ export default function ItemDetailModal({
           </div>
         </div>
       </div>
-    </div>
+    </BaseModal>
   );
 } 

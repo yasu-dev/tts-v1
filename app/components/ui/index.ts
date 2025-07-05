@@ -9,6 +9,7 @@ export { default as CertBadge } from './CertBadge';
 export { default as PageWrapper } from './PageWrapper';
 export { default as ContentCard } from './ContentCard';
 export { default as StatsGrid } from './StatsGrid';
+export { default as BaseModal } from './BaseModal';
 
 // Type exports
 export type { default as NexusButtonProps } from './NexusButton';

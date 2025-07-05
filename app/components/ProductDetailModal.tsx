@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { BaseModal } from './ui';
 
 interface Product {
   id: string;
@@ -64,30 +65,22 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              {product.name}
-            </h2>
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={product.name}
+      size="xl"
+      className="max-h-[90vh] overflow-hidden"
+    >
+      <div className="p-6">
+        <div className="mb-4">
             <p className="text-sm text-gray-500 dark:text-gray-400">
               SKU: {product.sku}
             </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-200 dark:border-gray-700">
+        <div className="flex border-b border-gray-200 dark:border-gray-700 mb-6">
           {[
             { id: 'details', label: '詳細情報' },
             { id: 'specs', label: '仕様' },
@@ -108,7 +101,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[60vh]">
+        <div className="overflow-y-auto max-h-[60vh]">
           {activeTab === 'details' && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -221,7 +214,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end space-x-3 p-6 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex justify-end space-x-3 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
           <button
             onClick={onClose}
             className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
@@ -229,13 +222,16 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
             閉じる
           </button>
           <button
-            onClick={() => alert('編集機能はデモ版では利用できません')}
+            onClick={() => {
+              console.log('編集機能: 詳細編集画面への遷移をシミュレート');
+              // 実際の実装では編集モーダルまたは編集ページに遷移
+            }}
             className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
           >
             編集
           </button>
         </div>
       </div>
-    </div>
+    </BaseModal>
   );
 }

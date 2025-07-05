@@ -774,8 +774,8 @@ export default function StaffInventoryPage() {
 
         {/* Edit Modal */}
         {isEditModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
-            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-30 z-50 flex justify-center items-center">
+            <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-lg">
               <h2 className="text-lg font-bold mb-4">商品詳細を編集</h2>
               {/* TODO: 編集フォームを実装 */}
               <div className="text-right mt-6">
@@ -788,8 +788,8 @@ export default function StaffInventoryPage() {
 
         {/* Move Modal */}
         {isMoveModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
-            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-30 z-50 flex justify-center items-center">
+            <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-lg">
               <h2 className="text-lg font-bold mb-4">ロケーション移動</h2>
               {/* TODO: 移動フォームを実装 */}
               <div className="text-right mt-6">

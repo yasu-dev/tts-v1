@@ -621,7 +621,7 @@ export default function StaffTasksPage() {
 
         {/* New Task Modal (簡易実装) */}
         {showCreateModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-30 flex items-center justify-center z-50">
             <div className="intelligence-card global mx-4 max-w-lg w-full">
               <div className="p-6">
                 <h3 className="text-lg font-display font-medium text-nexus-text-primary mb-4">
@@ -664,7 +664,7 @@ export default function StaffTasksPage() {
 
         {/* Filter Modal */}
         {isFilterModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-30 z-50 flex justify-center items-center">
             <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
               <h2 className="text-lg font-bold mb-4">フィルター設定</h2>
               {/* TODO: フィルターフォームを実装 */}
@@ -678,7 +678,7 @@ export default function StaffTasksPage() {
 
         {/* Bulk Assign Modal */}
         {isBulkAssignModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-30 z-50 flex justify-center items-center">
             <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
               <h2 className="text-lg font-bold mb-4">タスク一括割当</h2>
               {/* TODO: 割当フォームを実装 */}

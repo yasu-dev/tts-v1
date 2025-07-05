@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import BarcodeScanner from '../BarcodeScanner';
+import { useState, useEffect } from 'react';
+import BarcodeScanner from '@/app/components/features/BarcodeScanner';
 
 interface LocationRegistrationProps {
   onRegisterComplete?: (productId: string, location: string) => void;
@@ -24,6 +24,11 @@ export default function LocationRegistration({ onRegisterComplete }: LocationReg
   const [showScanner, setShowScanner] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchResults, setSearchResults] = useState<Product[]>([]);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // ロケーションのマスターデータ（実際はAPIから取得）
   const locations = {
@@ -153,6 +158,18 @@ export default function LocationRegistration({ onRegisterComplete }: LocationReg
     return '標準棚を推奨';
   };
 
+  if (!mounted) {
+    return (
+      <div className="intelligence-card europe">
+        <div className="p-8">
+          <div className="flex justify-center items-center h-32">
+            <div className="animate-spin h-8 w-8 border-b-2 border-nexus-yellow rounded-full"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="intelligence-card europe">
@@ -204,20 +221,17 @@ export default function LocationRegistration({ onRegisterComplete }: LocationReg
             {/* バーコードスキャナー */}
             {showScanner && (
               <div className="p-4 border border-nexus-border rounded-lg bg-nexus-bg-secondary">
-                <div className="flex justify-between items-center mb-3">
-                  <h4 className="font-medium text-nexus-text-primary">バーコードスキャン</h4>
-                  <button
-                    onClick={() => setShowScanner(false)}
-                    className="text-nexus-text-secondary hover:text-nexus-text-primary"
-                  >
-                    ✕
-                  </button>
-                </div>
                 <BarcodeScanner 
                   onScan={handleBarcodeScan}
+                  placeholder="商品バーコードをスキャン"
                   scanType="product"
-                  placeholder="商品バーコードをスキャンしてください"
                 />
+                <button
+                  onClick={() => setShowScanner(false)}
+                  className="nexus-button mt-3"
+                >
+                  スキャン終了
+                </button>
               </div>
             )}
 

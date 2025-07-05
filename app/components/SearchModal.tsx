@@ -105,8 +105,8 @@ export default function SearchModal({ isOpen, onClose, query }: SearchModalProps
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center pt-20 z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl mx-4">
+    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-start justify-center pt-20 z-50">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 border border-gray-200">
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">

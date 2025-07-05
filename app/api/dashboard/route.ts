@@ -2,6 +2,111 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   const dashboardData = {
+    // ダッシュボードページで使用されるデータ
+    globalRevenue: 45600000,
+    activeExports: 156,
+    inventoryEfficiency: 92,
+    marketExpansionRate: 15.8,
+    
+    // 注文データ（グローバル取引モニター用）
+    orders: [
+      {
+        id: 'ORD-2024-001',
+        customer: '田中商事',
+        seller: 'Global Electronics',
+        certification: 'PREMIUM',
+        items: 3,
+        value: '¥450,000',
+        status: 'optimal',
+        region: 'アジア太平洋'
+      },
+      {
+        id: 'ORD-2024-002',
+        customer: 'Smith Trading',
+        seller: 'Tech Solutions',
+        certification: 'STANDARD',
+        items: 1,
+        value: '¥280,000',
+        status: 'monitoring',
+        region: 'ヨーロッパ'
+      },
+      {
+        id: 'ORD-2024-003',
+        customer: '佐藤時計店',
+        seller: 'Luxury Imports',
+        certification: 'LUXURY',
+        items: 1,
+        value: '¥1,200,000',
+        status: 'optimal',
+        region: '北米'
+      },
+      {
+        id: 'ORD-2024-004',
+        customer: 'Johnson Corp',
+        seller: 'Camera World',
+        certification: 'CERTIFIED',
+        items: 2,
+        value: '¥320,000',
+        status: 'monitoring',
+        region: 'アフリカ'
+      },
+      {
+        id: 'ORD-2024-005',
+        customer: '鈴木貿易',
+        seller: 'Digital Pro',
+        certification: 'PREMIUM',
+        items: 4,
+        value: '¥680,000',
+        status: 'optimal',
+        region: 'アジア太平洋'
+      }
+    ],
+    
+    // 販売データ（レポート用）
+    salesData: {
+      total: 45600000,
+      growth: 12.5,
+      recentSales: [
+        { date: '2024-12-25', amount: 450000, product: 'Canon EOS R5' },
+        { date: '2024-12-24', amount: 280000, product: 'Sony FE 24-70mm' },
+        { date: '2024-12-23', amount: 1200000, product: 'Rolex Submariner' }
+      ]
+    },
+    
+    // 在庫データ（レポート用）
+    inventoryData: {
+      totalItems: 156,
+      totalValue: 45600000,
+      categories: {
+        camera: 45,
+        lens: 32,
+        watch: 28,
+        jewelry: 15,
+        bag: 20,
+        other: 16
+      }
+    },
+    
+    // チャート用データ
+    statusChartData: [
+      { name: '入庫待ち', value: 12, percentage: 7.7 },
+      { name: '検品中', value: 8, percentage: 5.1 },
+      { name: '保管中', value: 145, percentage: 92.9 },
+      { name: '出品中', value: 58, percentage: 37.2 },
+      { name: '配送中', value: 6, percentage: 3.8 },
+      { name: '返品', value: 5, percentage: 3.2 }
+    ],
+    
+    categoryChartData: [
+      { name: 'カメラ本体', value: 45, percentage: 28.8 },
+      { name: 'レンズ', value: 32, percentage: 20.5 },
+      { name: '腕時計', value: 28, percentage: 17.9 },
+      { name: 'ジュエリー', value: 15, percentage: 9.6 },
+      { name: 'バッグ', value: 20, percentage: 12.8 },
+      { name: 'その他', value: 16, percentage: 10.3 }
+    ],
+    
+    // 既存のデータも保持
     summary: {
       totalAssetValue: 12456789,
       inventoryCount: 234,

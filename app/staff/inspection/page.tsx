@@ -326,7 +326,7 @@ export default function InspectionPage() {
 
         {/* Standards Modal */}
         {isStandardsModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-30 z-50 flex justify-center items-center">
             <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl">
               <h2 className="text-lg font-bold mb-4">検品基準</h2>
               <p className="text-sm text-gray-600 mb-4">
@@ -341,7 +341,7 @@ export default function InspectionPage() {
 
         {/* Camera Settings Modal */}
         {isCameraModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-30 z-50 flex justify-center items-center">
             <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
               <h2 className="text-lg font-bold mb-4">カメラ設定</h2>
               {/* TODO: カメラ設定フォームを実装 */}
@@ -576,7 +576,7 @@ export default function InspectionPage() {
 
         {/* Inspection Modal */}
         {isInspectionModalOpen && selectedProduct && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-30 z-50 flex justify-center items-center p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
               <div className="flex items-center justify-between p-6 border-b border-gray-200">
                 <div>

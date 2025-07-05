@@ -39,8 +39,10 @@ export default function LocationList() {
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list' | 'movement'>('grid');
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     fetchLocations();
     fetchMovements();
   }, []);
@@ -173,7 +175,7 @@ export default function LocationList() {
     return 'optimal';
   };
 
-  if (loading) {
+  if (!mounted || loading) {
     return (
       <div className="intelligence-card global">
         <div className="p-8">
@@ -392,7 +394,13 @@ export default function LocationList() {
                     <div className="text-right">
                       <p className="text-sm font-medium text-nexus-text-primary">{movement.movedBy}</p>
                       <p className="text-sm text-nexus-text-secondary">
-                        {new Date(movement.movedAt).toLocaleString('ja-JP')}
+                        {new Date(movement.movedAt).toLocaleDateString('ja-JP', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
                       </p>
                     </div>
                   </div>
@@ -490,7 +498,11 @@ export default function LocationList() {
                             <div className="text-right">
                               <p className="text-sm font-medium">{product.registeredBy}</p>
                               <p className="text-sm text-nexus-text-secondary">
-                                {new Date(product.registeredAt).toLocaleDateString('ja-JP')}
+                                {new Date(product.registeredAt).toLocaleDateString('ja-JP', {
+                                  year: 'numeric',
+                                  month: '2-digit',
+                                  day: '2-digit'
+                                })}
                               </p>
                             </div>
                           </div>

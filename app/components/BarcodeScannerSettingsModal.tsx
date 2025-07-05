@@ -51,8 +51,8 @@ export default function BarcodeScannerSettingsModal({ isOpen, onClose }: Barcode
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-gray-200">
         <div className="flex items-center justify-between p-6 border-b">
           <div className="flex items-center">
             <Cog6ToothIcon className="w-6 h-6 text-purple-600 mr-3" />
