@@ -124,7 +124,7 @@ const createEbayListing = async (listingData: any) => {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await AuthService.requireAuth(request, ['staff', 'admin']);
+    const user = await AuthService.requireRole(request, ['staff', 'admin']);
     if (!user) {
       return NextResponse.json(
         { error: '認証が必要です' },
@@ -242,9 +242,9 @@ export async function POST(request: NextRequest) {
       
       const mockListing = {
         ...mockEbayResponse,
-        productId: productId || 'mock-product',
-        title: customTitle || `モック商品 ${productId}`,
-        price: buyItNowPrice || 100000
+        productId: 'mock-product',
+        title: `モック商品 ${Date.now()}`,
+        price: 100000
       };
       
       return NextResponse.json({
@@ -262,7 +262,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await AuthService.requireAuth(request, ['staff', 'admin']);
+    const user = await AuthService.requireRole(request, ['staff', 'admin']);
     if (!user) {
       return NextResponse.json(
         { error: '認証が必要です' },

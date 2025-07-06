@@ -118,7 +118,7 @@ export default function TaskCreationModal({ isOpen, onClose, onSubmit }: TaskCre
       title="新規タスク作成"
       size="lg"
     >
-      <div className="p-6">
+      <div>
         <form id="task-form" onSubmit={handleSubmit} className="space-y-4">
           <div>
             <NexusInput

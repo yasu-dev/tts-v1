@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await AuthService.requireAuth(request, ['staff', 'admin']);
+    const user = await AuthService.requireRole(request, ['staff', 'admin']);
     if (!user) {
       return NextResponse.json(
         { error: '認証が必要です' },
@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const user = await AuthService.requireAuth(request, ['admin']);
+    const user = await AuthService.requireRole(request, ['admin']);
     if (!user) {
       return NextResponse.json(
         { error: '管理者権限が必要です' },

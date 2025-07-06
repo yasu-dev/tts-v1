@@ -2,13 +2,19 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import NexusButton from '@/app/components/ui/NexusButton';
+import NexusInput from '@/app/components/ui/NexusInput';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
+import NexusCheckbox from '@/app/components/ui/NexusCheckbox';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const router = useRouter();
+  const { showToast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,13 +88,13 @@ export default function LoginPage() {
                 )}
 
                 <div>
-                  <label htmlFor="email" className="block text-sm font-bold text-nexus-text-primary mb-2 flex items-center font-primary">
+                  <label htmlFor="email" className="block text-sm font-medium text-nexus-text-secondary mb-2 flex items-center">
                     <svg className="w-4 h-4 mr-2 text-primary-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 7.89a2 2 0 002.83 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                     メールアドレス
                   </label>
-                  <input
+                  <NexusInput
                     id="email"
                     name="email"
                     type="email"
@@ -96,19 +102,19 @@ export default function LoginPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-nexus-border rounded-lg bg-white text-nexus-text-primary placeholder-nexus-text-muted focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all duration-300 hover:border-primary-blue/30 font-primary"
                     placeholder="email@example.com"
+                    variant="enterprise"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="password" className="block text-sm font-bold text-nexus-text-primary mb-2 flex items-center font-primary">
+                  <label htmlFor="password" className="block text-sm font-medium text-nexus-text-secondary mb-2 flex items-center">
                     <svg className="w-4 h-4 mr-2 text-primary-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
                     パスワード
                   </label>
-                  <input
+                  <NexusInput
                     id="password"
                     name="password"
                     type="password"
@@ -116,61 +122,63 @@ export default function LoginPage() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-nexus-border rounded-lg bg-white text-nexus-text-primary placeholder-nexus-text-muted focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all duration-300 hover:border-primary-blue/30 font-primary"
                     placeholder="••••••••"
+                    variant="enterprise"
                   />
                 </div>
 
                 {/* Remember Me Checkbox */}
-                <div className="flex items-center">
-                  <input
-                    id="remember-me"
-                    name="remember-me"
-                    type="checkbox"
-                    className="h-4 w-4 text-primary-blue focus:ring-primary-blue border-2 border-nexus-border rounded cursor-pointer"
-                  />
-                  <label htmlFor="remember-me" className="ml-3 block text-sm text-nexus-text-secondary cursor-pointer select-none hover:text-nexus-text-primary transition-colors font-primary">
-                    ログイン状態を保持する
-                  </label>
-                </div>
+                <NexusCheckbox
+                  id="remember-me"
+                  name="remember-me"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  label="ログイン状態を保持する"
+                  variant="nexus"
+                  size="md"
+                />
 
                 <div className="pt-2">
-                  <button
+                  <NexusButton
                     type="submit"
                     disabled={isLoading}
-                    className={`w-full py-3 px-6 rounded-xl font-bold text-white transition-all duration-300 flex items-center justify-center gap-2 font-primary ${
-                      isLoading 
-                        ? 'bg-gray-400 cursor-not-allowed' 
-                        : 'bg-primary-blue hover:bg-primary-blue-light hover:shadow-lg hover:shadow-primary-blue/30 active:scale-95'
-                    }`}
-                  >
-                    {isLoading ? (
-                      <div className="flex items-center">
-                        <div className="animate-spin h-5 w-5 border-b-2 border-current rounded-full mr-3"></div>
-                        <span className="font-primary">認証中...</span>
-                      </div>
-                    ) : (
-                      <>
+                    variant="primary"
+                    size="lg"
+                    className="w-full login-button"
+                    data-testid="login-button"
+                    icon={
+                      isLoading ? (
+                        <div className="animate-spin h-5 w-5 border-b-2 border-current rounded-full"></div>
+                      ) : (
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                         </svg>
-                        <span className="font-primary">ログイン</span>
-                      </>
-                    )}
-                  </button>
+                      )
+                    }
+                  >
+                    {isLoading ? '認証中...' : 'ログイン'}
+                  </NexusButton>
                 </div>
 
                 {/* Password Reset Link */}
                 <div className="text-center pt-3">
-                  <a 
-                    href="#" 
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      // TODO: BaseModalを使用した統一されたメッセージダイアログに変更
+        showToast({
+          title: 'パスワードリセット',
+          message: 'パスワードリセット機能は開発中です。システム管理者にお問い合わせください。',
+          type: 'info'
+        });
+                    }}
                     className="text-sm font-medium text-primary-blue hover:text-primary-blue-light transition-colors inline-flex items-center gap-1 hover:underline font-primary"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 11-4 0 2 2 0 014 0zm0 0v1a2 2 0 01-2 2H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     パスワードをお忘れですか？
-                  </a>
+                  </button>
                 </div>
               </form>
 
@@ -185,11 +193,43 @@ export default function LoginPage() {
                 <div className="space-y-2 text-xs font-primary">
                   <div className="flex items-center justify-between p-2 rounded-lg bg-white/50">
                     <span className="text-nexus-text-secondary font-medium">セラー:</span>
-                    <span className="text-nexus-text-primary font-mono bg-white px-2 py-1 rounded border border-primary-blue/10">seller@example.com / password123</span>
+                    <button 
+                      type="button"
+                      data-testid="seller-login"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setEmail('seller@example.com');
+                        setPassword('password123');
+                        // 値が設定されることを確実にするため少し待つ
+                        setTimeout(() => {
+                          console.log('セラーログイン情報設定完了');
+                        }, 100);
+                      }}
+                      className="text-nexus-text-primary font-mono bg-white px-2 py-1 rounded border border-primary-blue/10 hover:bg-primary-blue/10 transition-colors cursor-pointer"
+                    >
+                      seller@example.com / password123
+                    </button>
                   </div>
                   <div className="flex items-center justify-between p-2 rounded-lg bg-white/50">
                     <span className="text-nexus-text-secondary font-medium">スタッフ:</span>
-                    <span className="text-nexus-text-primary font-mono bg-white px-2 py-1 rounded border border-nexus-yellow/15">staff@example.com / password123</span>
+                    <button 
+                      type="button"
+                      data-testid="staff-login"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setEmail('staff@example.com');
+                        setPassword('password123');
+                        // 値が設定されることを確実にするため少し待つ
+                        setTimeout(() => {
+                          console.log('スタッフログイン情報設定完了');
+                        }, 100);
+                      }}
+                      className="text-nexus-text-primary font-mono bg-white px-2 py-1 rounded border border-nexus-yellow/15 hover:bg-nexus-yellow/10 transition-colors cursor-pointer"
+                    >
+                      staff@example.com / password123
+                    </button>
                   </div>
                 </div>
               </div>

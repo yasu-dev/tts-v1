@@ -7,9 +7,15 @@ import {
   ArrowDownTrayIcon,
   CreditCardIcon,
 } from '@heroicons/react/24/outline';
+import NexusButton from '@/app/components/ui/NexusButton';
+import HoloTable from '@/app/components/ui/HoloTable';
+import BaseModal from '@/app/components/ui/BaseModal';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 export default function BillingPage() {
   const router = useRouter();
+  const { showToast } = useToast();
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   const [billingData] = useState({
     currentBalance: 2456789,
@@ -50,6 +56,78 @@ export default function BillingPage() {
     document.body.removeChild(link);
   };
 
+  const handlePaymentMethod = async () => {
+    try {
+      // フォームデータの取得をシミュレート
+      const bankData = {
+        bankName: '実際のフォームから取得', 
+        branchName: '実際のフォームから取得',
+        branchCode: '実際のフォームから取得',
+        accountType: '実際のフォームから取得',
+        accountNumber: '実際のフォームから取得',
+        accountHolder: '実際のフォームから取得'
+      };
+      
+      // バリデーション
+      if (!bankData.bankName || !bankData.accountNumber || !bankData.accountHolder) {
+        showToast({
+          title: '入力エラー',
+          message: '銀行名、口座番号、口座名義は必須項目です',
+          type: 'warning'
+        });
+        return;
+      }
+      
+      // 口座番号の形式チェック
+      if (!/^\d{7,8}$/.test(bankData.accountNumber)) {
+        showToast({
+          title: '口座番号エラー',
+          message: '口座番号は7-8桁の数字で入力してください',
+          type: 'warning'
+        });
+        return;
+      }
+      
+      // APIシミュレーション（実際の銀行口座登録処理）
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // 銀行口座情報を暗号化して保存をシミュレート
+      const encryptedBankData = {
+        ...bankData,
+        registeredAt: new Date().toISOString(),
+        verified: false,
+        id: `bank_${Date.now()}`
+      };
+      
+      localStorage.setItem('paymentMethod', JSON.stringify(encryptedBankData));
+      
+      showToast({
+        title: '支払い方法登録完了',
+        message: '銀行口座情報を正常に登録しました。確認処理には1-2営業日かかります。',
+        type: 'success'
+      });
+      
+      setIsPaymentModalOpen(false);
+      // 支払い方法登録ログを記録
+      const paymentLog = {
+        action: 'payment_method_added',
+        timestamp: new Date().toISOString(),
+        user: 'current_user',
+        bank: encryptedBankData.bankName
+      };
+      const logs = JSON.parse(localStorage.getItem('paymentLogs') || '[]');
+      logs.push(paymentLog);
+      localStorage.setItem('paymentLogs', JSON.stringify(logs));
+      
+    } catch (error) {
+      showToast({
+        title: '登録エラー',
+        message: '支払い方法の登録に失敗しました。もう一度お試しください。',
+        type: 'error'
+      });
+    }
+  };
+
   return (
     <DashboardLayout userType="seller">
       <div className="space-y-8">
@@ -70,24 +148,110 @@ export default function BillingPage() {
                 </p>
               </div>
               <div className="flex gap-4">
-                <button
+                <NexusButton
                   onClick={handleExportHistory}
-                  className="nexus-button"
+                  icon={<ArrowDownTrayIcon className="w-5 h-5" />}
                 >
-                  <ArrowDownTrayIcon className="w-5 h-5 mr-2" />
                   支払履歴をエクスポート
-                </button>
-                <button
-                  onClick={() => router.push('/settings/payment')}
-                  className="nexus-button primary"
+                </NexusButton>
+                <NexusButton
+                  onClick={() => setIsPaymentModalOpen(true)}
+                  variant="primary"
+                  icon={<CreditCardIcon className="w-5 h-5" />}
                 >
-                  <CreditCardIcon className="w-5 h-5 mr-2" />
                   支払い方法を登録
-                </button>
+                </NexusButton>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Payment Method Modal */}
+        <BaseModal
+          isOpen={isPaymentModalOpen}
+          onClose={() => setIsPaymentModalOpen(false)}
+          title="支払い方法登録"
+          size="md"
+        >
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                銀行名
+              </label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
+                placeholder="例: みずほ銀行"
+              />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  支店名
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
+                  placeholder="例: 新宿支店"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  支店コード
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
+                  placeholder="例: 123"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  口座種別
+                </label>
+                <select className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue">
+                  <option value="">選択してください</option>
+                  <option value="ordinary">普通預金</option>
+                  <option value="current">当座預金</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  口座番号
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
+                  placeholder="例: 1234567"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                口座名義（カタカナ）
+              </label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
+                placeholder="例: ヤマダ タロウ"
+              />
+            </div>
+            
+            <div className="text-right mt-6 space-x-2">
+              <NexusButton onClick={() => setIsPaymentModalOpen(false)}>
+                キャンセル
+              </NexusButton>
+              <NexusButton onClick={handlePaymentMethod} variant="primary">
+                登録
+              </NexusButton>
+            </div>
+          </div>
+        </BaseModal>
 
         {/* Balance Overview - Intelligence Metrics Style */}
         <div className="intelligence-metrics">

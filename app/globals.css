@@ -49,6 +49,14 @@
     --text-2xl: 1rem;      /* 16px - 大見出し */
     --text-3xl: 1.125rem;  /* 18px - タイトル */
     
+    /* Font Weights - 統一されたパターン */
+    --font-light: 300;
+    --font-normal: 400;
+    --font-medium: 500;
+    --font-semibold: 600;
+    --font-bold: 700;
+    --font-black: 900;
+    
     /* Spacing Scale - Compact for better density */
     --space-xs: 0.125rem;  /* 2px */
     --space-sm: 0.1875rem; /* 3px */
@@ -68,6 +76,13 @@
     --shadow-md: 0 6px 20px rgba(0, 100, 210, 0.15);
     --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.12);
     --shadow-xl: 0 25px 50px rgba(0, 0, 0, 0.18);
+    
+    /* Icon Sizes - 統一されたサイズシステム */
+    --icon-xs: 1rem;    /* 16px */
+    --icon-sm: 1.25rem; /* 20px */
+    --icon-md: 1.5rem;  /* 24px */
+    --icon-lg: 2rem;    /* 32px */
+    --icon-xl: 2.5rem;  /* 40px */
 
     /* Nexus Design System Classes */
     --nexus-bg: linear-gradient(135deg, #0F1014 0%, #1A1A2E 50%, #0F1014 100%);

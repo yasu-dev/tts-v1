@@ -60,7 +60,7 @@ export default function BaseModal({
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50 p-4"
       onClick={handleOverlayClick}
       role="dialog"
       aria-modal="true"
@@ -68,8 +68,8 @@ export default function BaseModal({
     >
       <div 
         className={`
-          bg-white 
-          rounded-2xl 
+          bg-nexus-bg-primary 
+          rounded-xl 
           shadow-2xl 
           w-full 
           ${sizeClasses[size]} 
@@ -77,18 +77,18 @@ export default function BaseModal({
           overflow-hidden 
           flex 
           flex-col
-          border border-gray-200
+          border border-nexus-border
           ${className}
         `}
         onClick={(e) => e.stopPropagation()}
       >
         {/* ヘッダー */}
         {(title || showCloseButton) && (
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between p-6 border-b border-nexus-border">
             {title && (
               <h2 
                 id="modal-title" 
-                className="text-xl font-semibold text-gray-900"
+                className="text-xl font-semibold text-nexus-text-primary font-display"
               >
                 {title}
               </h2>
@@ -96,17 +96,17 @@ export default function BaseModal({
             {showCloseButton && (
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-nexus-bg-secondary rounded-lg transition-colors"
                 aria-label="モーダルを閉じる"
               >
-                <X size={20} className="text-gray-500" />
+                <X size={20} className="text-nexus-text-secondary" />
               </button>
             )}
           </div>
         )}
 
         {/* コンテンツ */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto p-6">
           {children}
         </div>
       </div>

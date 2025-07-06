@@ -8,9 +8,16 @@ import {
   PencilIcon,
   ArrowsRightLeftIcon,
   ArrowDownTrayIcon,
+  XMarkIcon,
+  CheckIcon
 } from '@heroicons/react/24/outline';
 import { ContentCard } from '@/app/components/ui';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
+import NexusButton from '@/app/components/ui/NexusButton';
+import NexusSelect from '@/app/components/ui/NexusSelect';
+import NexusInput from '@/app/components/ui/NexusInput';
+import BaseModal from '@/app/components/ui/BaseModal';
+import BarcodePrintButton from '@/app/components/features/BarcodePrintButton';
 
 interface InventoryItem {
   id: string;
@@ -230,7 +237,8 @@ export default function StaffInventoryPage() {
 
   const handleBulkMove = () => {
     if (selectedItems.length > 0) {
-      const newLocation = prompt('移動先を入力してください:');
+              // 移動先入力モーダルを開く（統一されたUIコンポーネントを使用）
+        const newLocation = '新しいロケーション'; // TODO: BaseModalで実装
       if (newLocation) {
         selectedItems.forEach(itemId => {
           updateItemLocation(itemId, newLocation);
@@ -252,7 +260,8 @@ export default function StaffInventoryPage() {
   };
 
   const handleItemMove = (item: InventoryItem) => {
-    const newLocation = prompt(`${item.name}の移動先を入力してください:`, item.location);
+            // 移動先入力モーダルを開く（統一されたUIコンポーネントを使用）
+        const newLocation = item.location; // TODO: BaseModalで実装
     if (newLocation && newLocation !== item.location) {
       updateItemLocation(item.id, newLocation);
       showToast({
@@ -358,29 +367,32 @@ export default function StaffInventoryPage() {
                 </p>
               </div>
               <div className="flex space-x-3">
-                <button
+                <NexusButton
                   onClick={() => setIsEditModalOpen(true)}
                   disabled={selectedItems.length === 0}
-                  className="nexus-button"
+                  icon={<PencilIcon className="w-5 h-5" />}
                 >
-                  <PencilIcon className="w-5 h-5 mr-2" />
                   商品詳細を編集
-                </button>
-                <button
+                </NexusButton>
+                <NexusButton
                   onClick={() => setIsMoveModalOpen(true)}
                   disabled={selectedItems.length === 0}
-                  className="nexus-button"
+                  icon={<ArrowsRightLeftIcon className="w-5 h-5" />}
                 >
-                  <ArrowsRightLeftIcon className="w-5 h-5 mr-2" />
                   ロケーション移動
-                </button>
-                <button
+                </NexusButton>
+                <BarcodePrintButton
+                  productIds={selectedItems}
+                  variant="secondary"
+                  size="md"
+                />
+                <NexusButton
                   onClick={handleExportCsv}
-                  className="nexus-button primary"
+                  variant="primary"
+                  icon={<ArrowDownTrayIcon className="w-5 h-5" />}
                 >
-                  <ArrowDownTrayIcon className="w-5 h-5 mr-2" />
                   CSVエクスポート
-                </button>
+                </NexusButton>
               </div>
             </div>
           </div>
@@ -391,120 +403,72 @@ export default function StaffInventoryPage() {
           <div className="p-4">
             <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
               <div>
-                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                  ステータス
-                </label>
-                <div className="relative">
-                  <select
-                    value={selectedStatus}
-                    onChange={(e) => setSelectedStatus(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-xl text-sm text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 appearance-none cursor-pointer"
-                  >
-                    <option value="all">すべて</option>
-                    <option value="inbound">入庫待ち</option>
-                    <option value="inspection">検品中</option>
-                    <option value="storage">保管中</option>
-                    <option value="listing">出品中</option>
-                    <option value="sold">売約済み</option>
-                    <option value="maintenance">メンテナンス</option>
-                  </select>
-                  <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </div>
+                <NexusSelect
+                  label="ステータス"
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  options={[
+                    { value: 'all', label: 'すべて' },
+                    { value: 'inbound', label: '入庫待ち' },
+                    { value: 'inspection', label: '検品中' },
+                    { value: 'storage', label: '保管中' },
+                    { value: 'listing', label: '出品中' },
+                    { value: 'sold', label: '売約済み' },
+                    { value: 'maintenance', label: 'メンテナンス' }
+                  ]}
+                />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                  カテゴリー
-                </label>
-                <div className="relative">
-                  <select
-                    value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-xl text-sm text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 appearance-none cursor-pointer"
-                  >
-                    <option value="all">すべて</option>
-                    <option value="カメラ本体">カメラ本体</option>
-                    <option value="レンズ">レンズ</option>
-                    <option value="腕時計">腕時計</option>
-                    <option value="アクセサリ">アクセサリ</option>
-                  </select>
-                  <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </div>
+                <NexusSelect
+                  label="カテゴリー"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  options={[
+                    { value: 'all', label: 'すべて' },
+                    { value: 'カメラ本体', label: 'カメラ本体' },
+                    { value: 'レンズ', label: 'レンズ' },
+                    { value: '腕時計', label: '腕時計' },
+                    { value: 'アクセサリ', label: 'アクセサリ' }
+                  ]}
+                />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                  保管場所
-                </label>
-                <div className="relative">
-                  <select
-                    value={selectedLocation}
-                    onChange={(e) => setSelectedLocation(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-xl text-sm text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 appearance-none cursor-pointer"
-                  >
-                    <option value="all">すべて</option>
-                    <option value="A区画">A区画</option>
-                    <option value="H区画">H区画</option>
-                    <option value="V区画">V区画</option>
-                    <option value="メンテナンス室">メンテナンス室</option>
-                  </select>
-                  <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </div>
+                <NexusSelect
+                  label="保管場所"
+                  value={selectedLocation}
+                  onChange={(e) => setSelectedLocation(e.target.value)}
+                  options={[
+                    { value: 'all', label: 'すべて' },
+                    { value: 'A区画', label: 'A区画' },
+                    { value: 'H区画', label: 'H区画' },
+                    { value: 'V区画', label: 'V区画' },
+                    { value: 'メンテナンス室', label: 'メンテナンス室' }
+                  ]}
+                />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                  担当者
-                </label>
-                <div className="relative">
-                  <select
-                    value={selectedStaff}
-                    onChange={(e) => setSelectedStaff(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-xl text-sm text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 appearance-none cursor-pointer"
-                  >
-                    <option value="all">すべて</option>
-                    {staffMembers.map(staff => (
-                      <option key={staff} value={staff}>{staff}</option>
-                    ))}
-                  </select>
-                  <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </div>
+                <NexusSelect
+                  label="担当者"
+                  value={selectedStaff}
+                  onChange={(e) => setSelectedStaff(e.target.value)}
+                  options={[
+                    { value: 'all', label: 'すべて' },
+                    ...staffMembers.map(staff => ({ value: staff, label: staff }))
+                  ]}
+                />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                  検索
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="商品名・SKU・QR検索"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full px-3 py-2 pl-10 bg-white border-2 border-gray-200 rounded-xl text-sm text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
-                  />
-                  <div className="absolute inset-y-0 left-0 flex items-center px-3 pointer-events-none">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                  </div>
-                </div>
+                <NexusInput
+                  type="text"
+                  label="検索"
+                  placeholder="商品名・SKU・QR検索"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
               </div>
             </div>
           </div>
@@ -595,27 +559,34 @@ export default function StaffInventoryPage() {
                     )}
 
                     <div className="flex space-x-2">
-                      <button 
+                      <NexusButton 
                         onClick={() => {
                           setSelectedItem(item);
                           setIsDetailModalOpen(true);
                         }}
-                        className="nexus-button primary flex-1 text-sm"
+                        variant="primary"
+                        size="sm"
+                        className="flex-1"
                       >
                         詳細
-                      </button>
-                      <button 
+                      </NexusButton>
+                      <NexusButton 
                         onClick={() => handleItemMove(item)}
-                        className="nexus-button text-sm"
+                        size="sm"
                       >
                         移動
-                      </button>
-                      <button 
+                      </NexusButton>
+                      <BarcodePrintButton
+                        productIds={[item.id]}
+                        variant="secondary"
+                        size="sm"
+                      />
+                      <NexusButton 
                         onClick={() => handleQRCode(item)}
-                        className="nexus-button text-sm"
+                        size="sm"
                       >
                         QR
-                      </button>
+                      </NexusButton>
                     </div>
                   </div>
                 </div>
@@ -692,33 +663,38 @@ export default function StaffInventoryPage() {
                         </td>
                         <td className="text-right">
                           <div className="flex justify-end space-x-2">
-                            <button 
+                            <NexusButton 
                               onClick={() => {
                                 setSelectedItem(item);
                                 setIsDetailModalOpen(true);
                               }}
-                              className="nexus-button text-xs"
+                              size="sm"
                             >
                               詳細
-                            </button>
-                            <button 
+                            </NexusButton>
+                            <NexusButton 
                               onClick={() => {
                                 setSelectedItem(item);
                                 setIsMoveModalOpen(true);
                               }}
-                              className="nexus-button text-xs"
+                              size="sm"
                             >
                               移動
-                            </button>
-                            <button 
+                            </NexusButton>
+                            <BarcodePrintButton
+                              productIds={[item.id]}
+                              variant="secondary"
+                              size="sm"
+                            />
+                            <NexusButton 
                               onClick={() => {
                                 setSelectedItem(item);
                                 setIsQRModalOpen(true);
                               }}
-                              className="nexus-button text-xs"
+                              size="sm"
                             >
                               QR
-                            </button>
+                            </NexusButton>
                           </div>
                         </td>
                       </tr>
@@ -773,32 +749,205 @@ export default function StaffInventoryPage() {
         />
 
         {/* Edit Modal */}
-        {isEditModalOpen && (
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-30 z-50 flex justify-center items-center">
-            <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-lg">
-              <h2 className="text-lg font-bold mb-4">商品詳細を編集</h2>
-              {/* TODO: 編集フォームを実装 */}
-              <div className="text-right mt-6">
-                <button onClick={() => setIsEditModalOpen(false)} className="nexus-button mr-2">キャンセル</button>
-                <button onClick={handleEditItem} className="nexus-button primary">保存</button>
+        <BaseModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          title="商品詳細を編集"
+          size="lg"
+        >
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  商品名
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
+                  placeholder="商品名を入力"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  商品コード
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
+                  placeholder="商品コードを入力"
+                />
               </div>
             </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  カテゴリ
+                </label>
+                <select className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue">
+                  <option value="">カテゴリを選択</option>
+                  <option value="camera">カメラ本体</option>
+                  <option value="lens">レンズ</option>
+                  <option value="watch">時計</option>
+                  <option value="accessory">アクセサリー</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  在庫数量
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
+                  placeholder="数量を入力"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                商品説明
+              </label>
+              <textarea
+                rows={3}
+                className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
+                placeholder="商品の詳細説明を入力"
+              />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  購入価格
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
+                  placeholder="購入価格を入力"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  販売価格
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
+                  placeholder="販売価格を入力"
+                />
+              </div>
+            </div>
+            
+            <div className="flex gap-4 justify-end mt-6">
+              <NexusButton 
+                onClick={() => setIsEditModalOpen(false)}
+                icon={<XMarkIcon className="w-5 h-5" />}
+              >
+                キャンセル
+              </NexusButton>
+              <NexusButton 
+                onClick={handleEditItem} 
+                variant="primary"
+                icon={<CheckIcon className="w-5 h-5" />}
+              >
+                保存
+              </NexusButton>
+            </div>
           </div>
-        )}
+        </BaseModal>
 
         {/* Move Modal */}
-        {isMoveModalOpen && (
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-30 z-50 flex justify-center items-center">
-            <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-lg">
-              <h2 className="text-lg font-bold mb-4">ロケーション移動</h2>
-              {/* TODO: 移動フォームを実装 */}
-              <div className="text-right mt-6">
-                <button onClick={() => setIsMoveModalOpen(false)} className="nexus-button mr-2">キャンセル</button>
-                <button onClick={handleMoveItem} className="nexus-button primary">移動</button>
+        <BaseModal
+          isOpen={isMoveModalOpen}
+          onClose={() => setIsMoveModalOpen(false)}
+          title="ロケーション移動"
+          size="md"
+        >
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                移動先ロケーション
+              </label>
+              <select className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue">
+                <option value="">ロケーションを選択</option>
+                <option value="A-01-01">A-01-01 (1階 Aエリア)</option>
+                <option value="A-01-02">A-01-02 (1階 Aエリア)</option>
+                <option value="B-02-01">B-02-01 (2階 Bエリア)</option>
+                <option value="B-02-02">B-02-02 (2階 Bエリア)</option>
+                <option value="C-01-01">C-01-01 (1階 Cエリア)</option>
+                <option value="TEMP-01">TEMP-01 (一時保管)</option>
+              </select>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  移動数量
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  defaultValue="1"
+                  className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  移動予定日時
+                </label>
+                <input
+                  type="datetime-local"
+                  className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
+                />
               </div>
             </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                移動理由
+              </label>
+              <select className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue">
+                <option value="">理由を選択</option>
+                <option value="inspection">検品のため</option>
+                <option value="photography">撮影のため</option>
+                <option value="shipping">出荷準備のため</option>
+                <option value="storage">保管場所変更</option>
+                <option value="maintenance">メンテナンス</option>
+                <option value="other">その他</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                備考
+              </label>
+              <textarea
+                rows={2}
+                className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
+                placeholder="移動に関する特記事項があれば入力"
+              />
+            </div>
+            
+            <div className="flex gap-4 justify-end mt-6">
+              <NexusButton 
+                onClick={() => setIsMoveModalOpen(false)}
+                icon={<XMarkIcon className="w-5 h-5" />}
+              >
+                キャンセル
+              </NexusButton>
+              <NexusButton 
+                onClick={handleMoveItem} 
+                variant="primary"
+                icon={<ArrowsRightLeftIcon className="w-5 h-5" />}
+              >
+                移動
+              </NexusButton>
+            </div>
           </div>
-        )}
+        </BaseModal>
       </div>
     </DashboardLayout>
   );

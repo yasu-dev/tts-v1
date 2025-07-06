@@ -68,7 +68,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await AuthService.requireAuth(request, ['staff', 'admin']);
+    const user = await AuthService.requireRole(request, ['staff', 'admin']);
     if (!user) {
       return NextResponse.json(
         { error: '認証が必要です' },
@@ -129,10 +129,10 @@ export async function POST(request: NextRequest) {
       console.log('Using fallback response for location creation due to Prisma error');
       const mockLocation = {
         id: `mock-location-${Date.now()}`,
-        code: code || `MOCK-${Date.now()}`,
-        name: name || 'モックロケーション',
-        zone: zone || 'A',
-        capacity: capacity ? parseInt(capacity) : null,
+        code: `MOCK-${Date.now()}`,
+        name: 'モックロケーション',
+        zone: 'A',
+        capacity: null,
         isActive: true,
         createdAt: new Date()
       };
@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const user = await AuthService.requireAuth(request, ['staff', 'admin']);
+    const user = await AuthService.requireRole(request, ['staff', 'admin']);
     if (!user) {
       return NextResponse.json(
         { error: '認証が必要です' },
@@ -207,12 +207,12 @@ export async function PUT(request: NextRequest) {
     if (MockFallback.isPrismaError(error)) {
       console.log('Using fallback response for location update due to Prisma error');
       const mockUpdatedLocation = {
-        id: id || `mock-${Date.now()}`,
-        code: `MOCK-${id}`,
-        name: name || '更新済みロケーション',
+        id: `mock-${Date.now()}`,
+        code: `MOCK-${Date.now()}`,
+        name: '更新済みロケーション',
         zone: 'A',
-        capacity: capacity ? parseInt(capacity) : null,
-        isActive: isActive !== undefined ? isActive : true,
+        capacity: null,
+        isActive: true,
         updatedAt: new Date()
       };
       return NextResponse.json({ success: true, location: mockUpdatedLocation });

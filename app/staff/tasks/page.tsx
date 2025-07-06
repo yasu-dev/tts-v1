@@ -4,6 +4,11 @@ import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import TaskDetailModal from '../../components/TaskDetailModal';
 import EditModal from '../../components/EditModal';
 import TaskCreationModal from '../../components/modals/TaskCreationModal';
+import BaseModal from '@/app/components/ui/BaseModal';
+import NexusInput from '@/app/components/ui/NexusInput';
+import NexusSelect from '@/app/components/ui/NexusSelect';
+import NexusTextarea from '@/app/components/ui/NexusTextarea';
+import NexusButton from '@/app/components/ui/NexusButton';
 import { useState, useEffect, useMemo } from 'react';
 import {
   FunnelIcon,
@@ -44,6 +49,8 @@ export default function StaffTasksPage() {
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isBulkAssignModalOpen, setIsBulkAssignModalOpen] = useState(false);
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
 
   // デモデータ
   useEffect(() => {
@@ -252,10 +259,39 @@ export default function StaffTasksPage() {
     photography: '撮影',
   };
 
-  const updateTaskStatus = (taskId: string, newStatus: Task['status']) => {
-    setTasks(prev => prev.map(task => 
-      task.id === taskId ? { ...task, status: newStatus } : task
-    ));
+  const updateTaskStatus = async (taskId: string, newStatus: Task['status']) => {
+    try {
+      // API呼び出し
+      const response = await fetch('/api/tasks', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: taskId, status: newStatus })
+      });
+      
+      if (response.ok) {
+        // UI状態更新
+        setTasks(prev => prev.map(task => 
+          task.id === taskId ? { ...task, status: newStatus } : task
+        ));
+        
+        showToast({
+          type: 'success',
+          title: 'ステータス更新完了',
+          message: `タスクのステータスを${newStatus === 'in_progress' ? '作業中' : '完了'}に変更しました`,
+          duration: 3000
+        });
+      } else {
+        throw new Error('ステータス更新に失敗しました');
+      }
+    } catch (error) {
+      console.error('Task status update error:', error);
+      showToast({
+        type: 'error',
+        title: 'ステータス更新エラー',
+        message: error instanceof Error ? error.message : 'ステータス更新中にエラーが発生しました',
+        duration: 4000
+      });
+    }
   };
 
   const handleTaskDetail = (task: Task) => {
@@ -276,6 +312,79 @@ export default function StaffTasksPage() {
   const handleTaskEdit = (task: Task) => {
     setSelectedTask(task);
     setIsEditModalOpen(true);
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    setTaskToDelete(taskId);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDeleteTask = async () => {
+    if (!taskToDelete) return;
+
+    try {
+      const response = await fetch(`/api/tasks?id=${taskToDelete}`, {
+        method: 'DELETE',
+      });
+      
+      if (response.ok) {
+        // タスクをリストから削除
+        setTasks(prev => prev.filter(t => t.id !== taskToDelete));
+        
+        showToast({
+          type: 'success',
+          title: 'タスク削除完了',
+          message: 'タスクを削除しました',
+          duration: 3000
+        });
+        
+        setIsDeleteModalOpen(false);
+        setTaskToDelete(null);
+      } else {
+        throw new Error('タスク削除に失敗しました');
+      }
+    } catch (error) {
+      showToast({
+        type: 'error',
+        title: 'エラー',
+        message: 'タスク削除中にエラーが発生しました',
+        duration: 4000
+      });
+    }
+  };
+
+  const handleUpdateTask = async (updatedTask: Task) => {
+    try {
+      const response = await fetch('/api/tasks', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedTask)
+      });
+      
+      if (response.ok) {
+        // タスクリストを更新
+        setTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t));
+        
+        showToast({
+          type: 'success',
+          title: 'タスク更新完了',
+          message: 'タスク情報を更新しました',
+          duration: 3000
+        });
+        
+        setIsEditModalOpen(false);
+        setSelectedTask(null);
+      } else {
+        throw new Error('タスク更新に失敗しました');
+      }
+    } catch (error) {
+      showToast({
+        type: 'error',
+        title: 'エラー',
+        message: 'タスク更新中にエラーが発生しました',
+        duration: 4000
+      });
+    }
   };
 
   const assignees = useMemo(() => {
@@ -313,15 +422,55 @@ export default function StaffTasksPage() {
     setIsFilterModalOpen(false);
   };
   
-  const handleBulkAssign = () => {
-    const selectedTasksCount = tasks.filter(t => selectedTasks.includes(t.id)).length;
-    if (selectedTasksCount > 0) {
+  const handleBulkAssign = async () => {
+    const selectedTasksCount = selectedTasks.length;
+    if (selectedTasksCount === 0) {
       showToast({
-        title: '一括割り当て完了',
-        message: `${selectedTasksCount}件のタスクを割り当てました`,
-        type: 'success'
+        title: '選択エラー',
+        message: 'タスクが選択されていません',
+        type: 'warning'
       });
-      setSelectedTasks([]);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/tasks/bulk-assign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          taskIds: selectedTasks,
+          assignee: '新しい担当者', // 実際はフォームから取得
+          priority: 'medium', // 実際はフォームから取得
+          dueDate: new Date().toISOString().split('T')[0] // 実際はフォームから取得
+        })
+      });
+      
+      if (response.ok) {
+        // 選択されたタスクの状態を更新
+        setTasks(prev => prev.map(task => 
+          selectedTasks.includes(task.id) 
+            ? { ...task, assignedTo: '新しい担当者' }
+            : task
+        ));
+        
+        showToast({
+          title: '一括割り当て完了',
+          message: `${selectedTasksCount}件のタスクを割り当てました`,
+          type: 'success'
+        });
+        
+        setSelectedTasks([]);
+        setIsBulkAssignModalOpen(false);
+      } else {
+        throw new Error('一括割り当てに失敗しました');
+      }
+    } catch (error) {
+      showToast({
+        type: 'error',
+        title: 'エラー',
+        message: '一括割り当て中にエラーが発生しました',
+        duration: 4000
+      });
     }
   };
 
@@ -353,39 +502,57 @@ export default function StaffTasksPage() {
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
-                <button 
-                  className="nexus-button flex items-center justify-center gap-2"
+                <NexusButton
+                  onClick={() => {
+                    showToast({
+                      type: 'info',
+                      title: '一括操作',
+                      message: '一括操作メニューを開きます',
+                      duration: 3000
+                    });
+                  }}
+                  variant="default"
+                  size="md"
+                  data-testid="bulk-operations-button"
+                  icon={
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                    </svg>
+                  }
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                  </svg>
                   <span className="hidden sm:inline">一括操作</span>
                   <span className="sm:hidden">一括</span>
-                </button>
-                <button
+                </NexusButton>
+                <NexusButton
                   onClick={() => setIsFilterModalOpen(true)}
-                  className="nexus-button flex items-center justify-center gap-2"
+                  variant="default"
+                  size="md"
+                  data-testid="filter-settings-button"
+                  icon={<FunnelIcon className="w-5 h-5" />}
                 >
-                  <FunnelIcon className="w-5 h-5" />
                   <span className="hidden sm:inline">フィルター設定</span>
                   <span className="sm:hidden">フィルター</span>
-                </button>
-                <button
+                </NexusButton>
+                <NexusButton
                   onClick={() => setIsBulkAssignModalOpen(true)}
-                  className="nexus-button flex items-center justify-center gap-2"
+                  variant="default"
+                  size="md"
+                  data-testid="bulk-assign-button"
+                  icon={<UsersIcon className="w-5 h-5" />}
                 >
-                  <UsersIcon className="w-5 h-5" />
                   <span className="hidden sm:inline">タスク一括割当</span>
                   <span className="sm:hidden">一括割当</span>
-                </button>
-                <button 
+                </NexusButton>
+                <NexusButton
                   onClick={() => setShowCreateModal(true)}
-                  className="nexus-button primary flex items-center justify-center gap-2"
+                  variant="primary"
+                  size="md"
+                  data-testid="create-task-button"
+                  icon={<PlusIcon className="w-5 h-5" />}
                 >
-                  <PlusIcon className="w-5 h-5" />
                   <span className="hidden sm:inline">新規タスク作成</span>
                   <span className="sm:hidden">新規作成</span>
-                </button>
+                </NexusButton>
               </div>
             </div>
           </div>
@@ -562,16 +729,15 @@ export default function StaffTasksPage() {
                 <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
                   担当者
                 </label>
-                <select
+                <NexusSelect
                   value={assigneeFilter}
                   onChange={(e) => setAssigneeFilter(e.target.value)}
-                  className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg text-sm text-nexus-text-primary"
-                >
-                  <option value="all">すべて</option>
-                  {assignees.map(assignee => (
-                    <option key={assignee} value={assignee}>{assignee}</option>
-                  ))}
-                </select>
+                  size="sm"
+                  options={[
+                    { value: "all", label: "すべて" },
+                    ...assignees.map(assignee => ({ value: assignee, label: assignee }))
+                  ]}
+                />
               </div>
 
               <div>
@@ -720,6 +886,12 @@ export default function StaffTasksPage() {
                           >
                             編集
                           </button>
+                          <button 
+                            onClick={() => handleDeleteTask(task.id)}
+                            className="nexus-button text-xs text-red-600 hover:text-red-700"
+                          >
+                            削除
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -746,14 +918,38 @@ export default function StaffTasksPage() {
         <TaskCreationModal
           isOpen={showCreateModal}
           onClose={() => setShowCreateModal(false)}
-          onSubmit={(newTask) => {
-            // デモ版: 新しいタスクを既存のタスクリストに追加
-            setTasks(prev => [...prev, newTask]);
-            showToast({
-              type: 'success',
-              title: 'タスク作成完了',
-              message: `新しいタスクが作成されました: ${newTask.title}`
-            });
+          onSubmit={async (newTask) => {
+            try {
+              // API呼び出し
+              const response = await fetch('/api/tasks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newTask)
+              });
+              
+              if (response.ok) {
+                const result = await response.json();
+                // 新しいタスクをリストに追加
+                setTasks(prev => [...prev, { ...newTask, id: result.task.id }]);
+                
+                showToast({
+                  type: 'success',
+                  title: 'タスク作成完了',
+                  message: `新しいタスクが作成されました: ${newTask.title}`
+                });
+                
+                setShowCreateModal(false);
+              } else {
+                throw new Error('タスク作成に失敗しました');
+              }
+            } catch (error) {
+              showToast({
+                type: 'error',
+                title: 'エラー',
+                message: 'タスク作成中にエラーが発生しました',
+                duration: 4000
+              });
+            }
           }}
         />
 
@@ -772,73 +968,79 @@ export default function StaffTasksPage() {
         {/* Edit Modal */}
         <EditModal
           isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setSelectedTask(null);
+          }}
           type="task"
           title={selectedTask?.title || ''}
           data={selectedTask || {}}
+          onSave={handleUpdateTask}
         />
 
         {/* Filter Modal */}
-        {isFilterModalOpen && (
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 z-50 flex justify-center items-center">
-            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl">
-              <h2 className="text-lg font-bold mb-4">高度なフィルター設定</h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <BaseModal
+          isOpen={isFilterModalOpen}
+          onClose={() => setIsFilterModalOpen(false)}
+          title="高度なフィルター設定"
+          size="lg"
+        >
+          <div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
                     作成日範囲
                   </label>
                   <div className="space-y-2">
-                    <input
+                    <NexusInput
                       type="date"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      size="sm"
                       placeholder="開始日"
                     />
-                    <input
+                    <NexusInput
                       type="date"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      size="sm"
                       placeholder="終了日"
                     />
                   </div>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    推定作業時間
-                  </label>
-                  <div className="space-y-2">
-                    <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                      <option value="">すべて</option>
-                      <option value="short">短時間（30分以下）</option>
-                      <option value="medium">中時間（30分-2時間）</option>
-                      <option value="long">長時間（2時間以上）</option>
-                    </select>
-                  </div>
+                  <NexusSelect
+                    label="推定作業時間"
+                    size="sm"
+                    options={[
+                      { value: "", label: "すべて" },
+                      { value: "short", label: "短時間（30分以下）" },
+                      { value: "medium", label: "中時間（30分-2時間）" },
+                      { value: "long", label: "長時間（2時間以上）" }
+                    ]}
+                  />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    商品カテゴリー
-                  </label>
-                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                    <option value="">すべて</option>
-                    <option value="camera">カメラ</option>
-                    <option value="watch">時計</option>
-                    <option value="bag">バッグ</option>
-                    <option value="jewelry">ジュエリー</option>
-                  </select>
+                  <NexusSelect
+                    label="商品カテゴリー"
+                    size="sm"
+                    options={[
+                      { value: "", label: "すべて" },
+                      { value: "camera", label: "カメラ" },
+                      { value: "watch", label: "時計" },
+                      { value: "bag", label: "バッグ" },
+                      { value: "jewelry", label: "ジュエリー" }
+                    ]}
+                  />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
                     タスクタグ
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {['緊急', '重要', '簡単', '複雑', '要確認'].map(tag => (
                       <label key={tag} className="flex items-center">
-                        <input type="checkbox" className="mr-1" />
-                        <span className="text-sm">{tag}</span>
+                        <input type="checkbox" className="mr-1 rounded border-nexus-border focus:ring-primary-blue" />
+                        <span className="text-sm text-nexus-text-primary">{tag}</span>
                       </label>
                     ))}
                   </div>
@@ -846,7 +1048,7 @@ export default function StaffTasksPage() {
               </div>
 
               <div className="flex items-center justify-between">
-                <button
+                <NexusButton
                   onClick={() => {
                     // フィルターリセット
                     setFilter('all');
@@ -861,36 +1063,153 @@ export default function StaffTasksPage() {
                       type: 'info'
                     });
                   }}
-                  className="nexus-button"
                 >
                   リセット
-                </button>
+                </NexusButton>
                 <div className="space-x-2">
-                  <button onClick={() => setIsFilterModalOpen(false)} className="nexus-button">
+                  <NexusButton onClick={() => setIsFilterModalOpen(false)}>
                     キャンセル
-                  </button>
-                  <button onClick={handleApplyFilter} className="nexus-button primary">
+                  </NexusButton>
+                  <NexusButton onClick={handleApplyFilter} variant="primary">
                     適用
-                  </button>
+                  </NexusButton>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+        </BaseModal>
 
         {/* Bulk Assign Modal */}
-        {isBulkAssignModalOpen && (
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-30 z-50 flex justify-center items-center">
-            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
-              <h2 className="text-lg font-bold mb-4">タスク一括割当</h2>
-              {/* TODO: 割当フォームを実装 */}
-              <div className="text-right mt-6">
-                <button onClick={() => setIsBulkAssignModalOpen(false)} className="nexus-button mr-2">キャンセル</button>
-                <button onClick={handleBulkAssign} className="nexus-button primary">割当</button>
+        <BaseModal
+          isOpen={isBulkAssignModalOpen}
+          onClose={() => setIsBulkAssignModalOpen(false)}
+          title="タスク一括割当"
+          size="md"
+        >
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                選択されたタスク ({selectedTasks.length}件)
+              </label>
+              <div className="max-h-32 overflow-y-auto border border-nexus-border rounded-lg p-3 bg-nexus-bg-secondary">
+                {selectedTasks.length > 0 ? (
+                  <div className="space-y-1">
+                    {selectedTasks.map(taskId => {
+                      const task = staffData?.staffTasks.urgentTasks.find(t => t.id === taskId) ||
+                                   staffData?.staffTasks.normalTasks.find(t => t.id === taskId);
+                      return (
+                        <div key={taskId} className="text-sm text-nexus-text-primary">
+                          {task?.title || taskId}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-sm text-nexus-text-secondary">タスクが選択されていません</div>
+                )}
               </div>
             </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                担当者選択 (複数選択可)
+              </label>
+              <div className="space-y-2 max-h-32 overflow-y-auto border border-nexus-border rounded-lg p-3">
+                <label className="flex items-center">
+                  <input type="checkbox" className="mr-2" />
+                  <span className="text-sm">田中太郎</span>
+                </label>
+                <label className="flex items-center">
+                  <input type="checkbox" className="mr-2" />
+                  <span className="text-sm">佐藤花子</span>
+                </label>
+                <label className="flex items-center">
+                  <input type="checkbox" className="mr-2" />
+                  <span className="text-sm">山田次郎</span>
+                </label>
+                <label className="flex items-center">
+                  <input type="checkbox" className="mr-2" />
+                  <span className="text-sm">鈴木美香</span>
+                </label>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  優先度設定
+                </label>
+                <select className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue">
+                  <option value="">優先度を選択</option>
+                  <option value="low">低</option>
+                  <option value="medium">中</option>
+                  <option value="high">高</option>
+                  <option value="urgent">緊急</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  期限設定
+                </label>
+                <input
+                  type="datetime-local"
+                  className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                割当理由・備考
+              </label>
+              <NexusTextarea
+                rows={3}
+                placeholder="割当理由や特記事項を入力してください"
+              />
+            </div>
+            
+            <div className="text-right mt-6 space-x-2">
+                <NexusButton onClick={() => setIsBulkAssignModalOpen(false)}>キャンセル</NexusButton>
+                <NexusButton onClick={handleBulkAssign} variant="primary">割当</NexusButton>
+              </div>
           </div>
-        )}
+        </BaseModal>
+
+        {/* Delete Confirmation Modal */}
+        <BaseModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => {
+            setIsDeleteModalOpen(false);
+            setTaskToDelete(null);
+          }}
+          title="タスク削除の確認"
+          size="md"
+        >
+          <div>
+            <p className="text-nexus-text-primary mb-4">
+              このタスクを削除しますか？
+            </p>
+            <p className="text-nexus-text-secondary text-sm mb-6">
+              この操作は元に戻せません。
+            </p>
+            <div className="flex justify-end gap-3">
+              <NexusButton
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setTaskToDelete(null);
+                }}
+                variant="default"
+              >
+                キャンセル
+              </NexusButton>
+              <NexusButton
+                onClick={confirmDeleteTask}
+                variant="danger"
+              >
+                削除する
+              </NexusButton>
+            </div>
+          </div>
+        </BaseModal>
 
         {/* 追加コンテンツ - スクロールテスト用 */}
         <div className="intelligence-card global">

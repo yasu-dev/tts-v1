@@ -135,50 +135,50 @@ export default function PackingMaterialsModal({ isOpen, onClose, onOrder }: Pack
           </div>
         )}
         
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse border border-gray-300">
+        <div className="holo-table">
+          <table className="w-full">
             <thead>
-              <tr className="bg-gray-50">
-                <th className="border border-gray-300 px-4 py-2 text-left">資材名</th>
-                <th className="border border-gray-300 px-4 py-2 text-center">現在在庫</th>
-                <th className="border border-gray-300 px-4 py-2 text-center">最小在庫</th>
-                <th className="border border-gray-300 px-4 py-2 text-center">単価</th>
-                <th className="border border-gray-300 px-4 py-2 text-center">発注数量</th>
-                <th className="border border-gray-300 px-4 py-2 text-center">小計</th>
-                <th className="border border-gray-300 px-4 py-2 text-center">供給元</th>
+              <tr className="border-b border-nexus-border">
+                <th className="text-left p-4 font-medium text-nexus-text-secondary">資材名</th>
+                <th className="text-center p-4 font-medium text-nexus-text-secondary">現在在庫</th>
+                <th className="text-center p-4 font-medium text-nexus-text-secondary">最小在庫</th>
+                <th className="text-center p-4 font-medium text-nexus-text-secondary">単価</th>
+                <th className="text-center p-4 font-medium text-nexus-text-secondary">発注数量</th>
+                <th className="text-center p-4 font-medium text-nexus-text-secondary">小計</th>
+                <th className="text-center p-4 font-medium text-nexus-text-secondary">供給元</th>
               </tr>
             </thead>
             <tbody>
               {materials.map((material) => (
-                <tr key={material.id} className={material.stock < material.minStock ? 'bg-red-50' : ''}>
-                  <td className="border border-gray-300 px-4 py-2">
+                <tr key={material.id} className={`border-b border-nexus-border hover:bg-nexus-bg-tertiary ${material.stock < material.minStock ? 'bg-red-50' : ''}`}>
+                  <td className="p-4">
                     {material.name}
                     {material.stock < material.minStock && (
                       <span className="ml-2 text-red-600 text-xs">⚠️ 在庫不足</span>
                     )}
                   </td>
-                  <td className="border border-gray-300 px-4 py-2 text-center">
+                  <td className="p-4 text-center">
                     {material.stock} {material.unit}
                   </td>
-                  <td className="border border-gray-300 px-4 py-2 text-center">
+                  <td className="p-4 text-center">
                     {material.minStock} {material.unit}
                   </td>
-                  <td className="border border-gray-300 px-4 py-2 text-center">
+                  <td className="p-4 text-center">
                     ¥{material.price.toLocaleString()}
                   </td>
-                  <td className="border border-gray-300 px-4 py-2 text-center">
-                    <input
+                  <td className="p-4 text-center">
+                    <NexusInput
                       type="number"
-                      value={material.orderQuantity}
+                      value={material.orderQuantity.toString()}
                       onChange={(e) => handleQuantityChange(material.id, parseInt(e.target.value) || 0)}
-                      className="w-20 border border-gray-300 rounded px-2 py-1 text-center"
+                      className="w-20 text-center"
                       min="0"
                     />
                   </td>
-                  <td className="border border-gray-300 px-4 py-2 text-center">
+                  <td className="p-4 text-center">
                     ¥{(material.orderQuantity * material.price).toLocaleString()}
                   </td>
-                  <td className="border border-gray-300 px-4 py-2 text-center text-sm">
+                  <td className="p-4 text-center text-sm">
                     {material.supplier}
                   </td>
                 </tr>

@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await AuthService.requireAuth(request, ['staff', 'admin']);
+    const user = await AuthService.requireRole(request, ['staff', 'admin']);
     if (!user) {
       return NextResponse.json(
         { error: '認証が必要です' },
@@ -91,13 +91,13 @@ export async function POST(request: NextRequest) {
         description: `注文 ${order.orderNumber} が出荷されました`,
         userId: user.id,
         orderId,
-        metadata: {
+        metadata: JSON.stringify({
           trackingNumber,
           carrier,
           shippingMethod,
           notes,
           productCount: productIds.length,
-        },
+        }),
       },
     });
 
@@ -110,10 +110,10 @@ export async function POST(request: NextRequest) {
           userId: user.id,
           productId: item.productId,
           orderId,
-          metadata: {
+          metadata: JSON.stringify({
             trackingNumber,
             carrier,
-          },
+          }),
         },
       });
     }
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const user = await AuthService.requireAuth(request, ['staff', 'admin']);
+    const user = await AuthService.requireRole(request, ['staff', 'admin']);
     if (!user) {
       return NextResponse.json(
         { error: '認証が必要です' },
@@ -234,10 +234,10 @@ export async function PUT(request: NextRequest) {
         description: `注文 ${order.orderNumber} の配送が完了しました`,
         userId: user.id,
         orderId,
-        metadata: {
+        metadata: JSON.stringify({
           deliveredAt: updatedOrder.deliveredAt,
           productCount: productIds.length,
-        },
+        }),
       },
     });
 

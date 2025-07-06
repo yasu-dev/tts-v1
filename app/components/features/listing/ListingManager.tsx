@@ -5,6 +5,8 @@ import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
 import EbayListingForm from '../EbayListingForm';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
+import BaseModal from '@/app/components/ui/BaseModal';
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 interface Product {
   id: string;
@@ -28,6 +30,7 @@ export default function ListingManager() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isBatchConfirmModalOpen, setIsBatchConfirmModalOpen] = useState(false);
 
   useEffect(() => {
     fetchProducts();
@@ -107,7 +110,7 @@ export default function ListingManager() {
     );
   };
 
-  const handleBatchList = async () => {
+  const handleBatchList = () => {
     if (selectedProducts.length === 0) {
       showToast({
         type: 'warning',
@@ -117,9 +120,12 @@ export default function ListingManager() {
       return;
     }
 
-    const confirmed = confirm(`${selectedProducts.length}件の商品を一括出品しますか？`);
-    if (!confirmed) return;
+    setIsBatchConfirmModalOpen(true);
+  };
 
+  const handleConfirmBatchList = async () => {
+    setIsBatchConfirmModalOpen(false);
+    
     // 一括出品処理（実装時にはAPIを呼び出す）
     showToast({
       type: 'info',
@@ -300,6 +306,47 @@ export default function ListingManager() {
           <p className="text-nexus-text-secondary">該当する商品が見つかりません</p>
         </div>
       )}
+
+      {/* Batch Listing Confirmation Modal */}
+      <BaseModal
+        isOpen={isBatchConfirmModalOpen}
+        onClose={() => setIsBatchConfirmModalOpen(false)}
+        title="一括出品確認"
+        size="md"
+      >
+        <div className="space-y-6">
+          <div className="flex items-center justify-center mb-4">
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+              <ExclamationTriangleIcon className="w-8 h-8 text-blue-600" />
+            </div>
+          </div>
+          
+          <div className="text-center space-y-3">
+            <h3 className="text-lg font-medium text-nexus-text-primary">
+              {selectedProducts.length}件の商品を一括出品しますか？
+            </h3>
+            <p className="text-nexus-text-secondary">
+              この操作により、選択された商品がeBayに出品されます。
+            </p>
+          </div>
+          
+          <div className="flex gap-4 justify-end">
+            <NexusButton
+              onClick={() => setIsBatchConfirmModalOpen(false)}
+              variant="default"
+            >
+              キャンセル
+            </NexusButton>
+            <NexusButton
+              onClick={handleConfirmBatchList}
+              variant="primary"
+              icon={<ExclamationTriangleIcon className="w-5 h-5" />}
+            >
+              出品する
+            </NexusButton>
+          </div>
+        </div>
+      </BaseModal>
     </div>
   );
 } 

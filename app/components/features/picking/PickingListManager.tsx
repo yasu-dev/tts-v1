@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
+import BaseModal from '@/app/components/ui/BaseModal';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 interface PickingItem {
@@ -35,6 +36,10 @@ export default function PickingListManager() {
   const [loading, setLoading] = useState(true);
   const [filterPriority, setFilterPriority] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isStartModalOpen, setIsStartModalOpen] = useState(false);
+  const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false);
+  const [listToStart, setListToStart] = useState<PickingList | null>(null);
+  const [listToComplete, setListToComplete] = useState<PickingList | null>(null);
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -138,16 +143,30 @@ export default function PickingListManager() {
   };
 
   const handleStartPicking = (list: PickingList) => {
-    const confirmed = confirm(`注文 ${list.orderId} のピッキングを開始しますか？`);
-    if (!confirmed) return;
+    setListToStart(list);
+    setIsStartModalOpen(true);
+  };
+
+  const confirmStartPicking = () => {
+    if (!listToStart) return;
 
     // ピッキング開始処理（実装時にはAPIを呼び出す）
     setPickingLists(prev => prev.map(l => 
-      l.id === list.id
+      l.id === listToStart.id
         ? { ...l, status: 'in_progress', assignedTo: '現在のスタッフ', startedAt: new Date().toISOString() }
         : l
     ));
-    setSelectedList({ ...list, status: 'in_progress' });
+    setSelectedList({ ...listToStart, status: 'in_progress' });
+    
+    showToast({
+      type: 'success',
+      title: 'ピッキング開始',
+      message: `注文 ${listToStart.orderId} のピッキングを開始しました`,
+      duration: 3000
+    });
+    
+    setIsStartModalOpen(false);
+    setListToStart(null);
   };
 
   const handleItemPicked = (listId: string, itemId: string) => {
@@ -177,16 +196,30 @@ export default function PickingListManager() {
       return;
     }
 
-    const confirmed = confirm('ピッキングを完了しますか？');
-    if (!confirmed) return;
+    setListToComplete(list);
+    setIsCompleteModalOpen(true);
+  };
+
+  const confirmCompletePicking = () => {
+    if (!listToComplete) return;
 
     // 完了処理（実装時にはAPIを呼び出す）
     setPickingLists(prev => prev.map(l => 
-      l.id === list.id
+      l.id === listToComplete.id
         ? { ...l, status: 'completed', completedAt: new Date().toISOString() }
         : l
     ));
     setSelectedList(null);
+    
+    showToast({
+      type: 'success',
+      title: 'ピッキング完了',
+      message: `注文 ${listToComplete.orderId} のピッキングが完了しました`,
+      duration: 3000
+    });
+    
+    setIsCompleteModalOpen(false);
+    setListToComplete(null);
   };
 
   const getPriorityBadge = (priority: string) => {
@@ -260,14 +293,19 @@ export default function PickingListManager() {
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-nexus-text-primary">ピッキングリスト</h3>
           {filteredLists.map((list) => (
-            <NexusCard
+            <div
               key={list.id}
-              className={`p-4 cursor-pointer transition-all ${
+              className={`p-4 cursor-pointer transition-all border-2 rounded-lg bg-nexus-surface ${
                 selectedList?.id === list.id
                   ? 'border-nexus-blue bg-nexus-blue/5'
-                  : 'hover:border-nexus-border-hover'
+                  : 'border-nexus-border hover:border-nexus-border-hover'
               }`}
-              onClick={() => setSelectedList(list)}
+              onClick={(e) => {
+                // ボタンクリックでない場合のみカードを選択
+                if (!(e.target as HTMLElement).closest('button')) {
+                  setSelectedList(list);
+                }
+              }}
             >
               <div className="flex justify-between items-start mb-3">
                 <div>
@@ -290,10 +328,7 @@ export default function PickingListManager() {
                 </span>
                 {list.status === 'pending' && (
                   <NexusButton
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleStartPicking(list);
-                    }}
+                    onClick={() => handleStartPicking(list)}
                     variant="primary"
                     size="sm"
                   >
@@ -306,7 +341,7 @@ export default function PickingListManager() {
                   </span>
                 )}
               </div>
-            </NexusCard>
+            </div>
           ))}
         </div>
 
@@ -393,6 +428,93 @@ export default function PickingListManager() {
           )}
         </div>
       </div>
+
+      {/* Start Picking Modal */}
+      <BaseModal
+        isOpen={isStartModalOpen}
+        onClose={() => {
+          setIsStartModalOpen(false);
+          setListToStart(null);
+        }}
+        title="ピッキング開始確認"
+        size="md"
+      >
+        <div>
+          <p className="text-nexus-text-primary mb-4">
+            注文 {listToStart?.orderId} のピッキングを開始しますか？
+          </p>
+          <div className="bg-nexus-bg-secondary rounded-lg p-3 mb-6">
+            <p className="text-sm text-nexus-text-secondary">
+              顧客: {listToStart?.customerName}
+            </p>
+            <p className="text-sm text-nexus-text-secondary">
+              商品数: {listToStart?.items.length}点
+            </p>
+          </div>
+          <div className="flex justify-end gap-3">
+            <NexusButton
+              onClick={() => {
+                setIsStartModalOpen(false);
+                setListToStart(null);
+              }}
+              variant="default"
+            >
+              キャンセル
+            </NexusButton>
+            <NexusButton
+              onClick={confirmStartPicking}
+              variant="primary"
+            >
+              開始する
+            </NexusButton>
+          </div>
+        </div>
+      </BaseModal>
+
+      {/* Complete Picking Modal */}
+      <BaseModal
+        isOpen={isCompleteModalOpen}
+        onClose={() => {
+          setIsCompleteModalOpen(false);
+          setListToComplete(null);
+        }}
+        title="ピッキング完了確認"
+        size="md"
+      >
+        <div>
+          <p className="text-nexus-text-primary mb-4">
+            ピッキングを完了しますか？
+          </p>
+          <div className="bg-nexus-bg-secondary rounded-lg p-3 mb-6">
+            <p className="text-sm text-nexus-text-secondary">
+              注文: {listToComplete?.orderId}
+            </p>
+            <p className="text-sm text-nexus-text-secondary">
+              顧客: {listToComplete?.customerName}
+            </p>
+            <p className="text-sm text-nexus-text-secondary">
+              ピック済商品: {listToComplete?.items.length}点
+            </p>
+          </div>
+          <div className="flex justify-end gap-3">
+            <NexusButton
+              onClick={() => {
+                setIsCompleteModalOpen(false);
+                setListToComplete(null);
+              }}
+              variant="default"
+            >
+              キャンセル
+            </NexusButton>
+            <NexusButton
+              onClick={confirmCompletePicking}
+              variant="primary"
+            >
+              完了する
+            </NexusButton>
+          </div>
+        </div>
+      </BaseModal>
     </div>
   );
 } 

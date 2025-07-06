@@ -73,7 +73,7 @@ const NexusTextarea = forwardRef<HTMLTextAreaElement, NexusTextareaProps>(({
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
           {label}
         </label>
       )}

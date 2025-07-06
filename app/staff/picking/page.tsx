@@ -175,7 +175,16 @@ export default function PickingPage() {
 
   const handleItemPicked = (taskId: string, itemId: string) => {
     // アイテムのピッキング完了処理
-    console.log(`Item ${itemId} picked for task ${taskId}`);
+    setPickingTasks(prev => prev.map(task => 
+      task.id === taskId 
+        ? {
+            ...task,
+            items: task.items.map(item =>
+              item.id === itemId ? { ...item, status: 'picked' as const, pickedQuantity: item.quantity } : item
+            )
+          }
+        : task
+    ));
   };
 
   if (loading) {

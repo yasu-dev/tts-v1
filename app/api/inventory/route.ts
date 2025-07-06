@@ -113,9 +113,9 @@ export async function GET(request: NextRequest) {
         const fallbackData = await MockFallback.getInventoryFallback({
           page: parseInt(searchParams.get('page') || '1'),
           limit: parseInt(searchParams.get('limit') || '20'),
-          status: searchParams.get('status'),
-          category: searchParams.get('category'),
-          search: searchParams.get('search')
+          status: searchParams.get('status') || undefined,
+          category: searchParams.get('category') || undefined,
+          search: searchParams.get('search') || undefined
         });
         return NextResponse.json(fallbackData);
       } catch (fallbackError) {
@@ -132,7 +132,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await AuthService.requireAuth(request, ['staff', 'admin']);
+    const user = await AuthService.requireRole(request, ['staff', 'admin']);
     if (!user) {
       return NextResponse.json(
         { error: '認証が必要です' },
@@ -203,13 +203,13 @@ export async function POST(request: NextRequest) {
       console.log('Using fallback response for product creation due to Prisma error');
       const mockProduct = {
         id: `mock-${Date.now()}`,
-        name: name || 'モック商品',
-        sku: sku || `MOCK-${Date.now()}`,
-        category: category || 'camera',
-        price: price ? parseInt(price) : 100000,
-        condition: condition || 'good',
-        description: description || 'モック商品の説明',
-        imageUrl: imageUrl || '/api/placeholder/200/200',
+        name: 'モック商品',
+        sku: `MOCK-${Date.now()}`,
+        category: 'camera',
+        price: 100000,
+        condition: 'good',
+        description: 'モック商品の説明',
+        imageUrl: '/api/placeholder/200/200',
         createdAt: new Date(),
       };
       return NextResponse.json({ success: true, product: mockProduct }, { status: 201 });
@@ -224,7 +224,7 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const user = await AuthService.requireAuth(request, ['staff', 'admin']);
+    const user = await AuthService.requireRole(request, ['staff', 'admin']);
     if (!user) {
       return NextResponse.json(
         { error: '認証が必要です' },
@@ -301,14 +301,14 @@ export async function PUT(request: NextRequest) {
     if (MockFallback.isPrismaError(error)) {
       console.log('Using fallback response for product update due to Prisma error');
       const mockUpdatedProduct = {
-        id: body.id,
-        name: body.name || '更新済み商品',
-        sku: `MOCK-${body.id}`,
-        price: body.price ? parseInt(body.price) : 100000,
-        condition: body.condition || 'good',
-        description: body.description,
-        imageUrl: body.imageUrl,
-        status: body.status || 'storage',
+        id: `mock-${Date.now()}`,
+        name: '更新済み商品',
+        sku: `MOCK-${Date.now()}`,
+        price: 100000,
+        condition: 'good',
+        description: 'モック更新済み商品の説明',
+        imageUrl: '/api/placeholder/200/200',
+        status: 'storage',
         updatedAt: new Date(),
       };
       return NextResponse.json({ success: true, product: mockUpdatedProduct });
@@ -323,7 +323,7 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const user = await AuthService.requireAuth(request, ['admin']);
+    const user = await AuthService.requireRole(request, ['admin']);
     if (!user) {
       return NextResponse.json(
         { error: '管理者権限が必要です' },

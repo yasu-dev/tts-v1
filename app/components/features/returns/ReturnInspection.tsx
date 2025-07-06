@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react'
 import { Camera, CheckCircle, XCircle, AlertTriangle, Upload } from 'lucide-react'
 import { ContentCard } from '@/app/components/ui'
+import BaseModal from '@/app/components/ui/BaseModal'
+import NexusButton from '@/app/components/ui/NexusButton'
 
 interface InspectionItem {
   id: string
@@ -41,6 +43,7 @@ export function ReturnInspection() {
 
   const [photos, setPhotos] = useState<string[]>([])
   const [overallStatus, setOverallStatus] = useState<'pass' | 'fail' | 'pending'>('pending')
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
 
   const handleItemCheck = (itemId: string, status: 'pass' | 'fail' | 'warning') => {
     setInspectionItems(prev =>
@@ -157,17 +160,84 @@ export function ReturnInspection() {
         </div>
 
         <div className="flex justify-end gap-4">
-          <button className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+          <button 
+            className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+            onClick={() => setIsCancelModalOpen(true)}
+          >
             キャンセル
           </button>
           <button
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
             disabled={overallStatus === 'pending'}
+            onClick={() => {
+              if (overallStatus === 'pending') return;
+              
+              // 検品完了処理
+              const inspectionResult = {
+                inspectionId: `INSPECT_${Date.now()}`,
+                completedAt: new Date().toISOString(),
+                status: overallStatus,
+                inspector: 'current_user', // 実際は現在のユーザーID
+                notes: '検品完了'
+              };
+              
+              // 検品結果をローカルストレージに保存
+              const existingResults = JSON.parse(localStorage.getItem('inspectionResults') || '[]');
+              existingResults.push(inspectionResult);
+              localStorage.setItem('inspectionResults', JSON.stringify(existingResults));
+              
+              alert('検品が完了しました。結果が保存されました。');
+              
+              // 実際の実装では親コンポーネントのコールバックを呼び出し
+              // onInspectionComplete(inspectionResult);
+            }}
           >
             検品完了
           </button>
         </div>
       </ContentCard>
+
+      {/* Cancel Confirmation Modal */}
+      <BaseModal
+        isOpen={isCancelModalOpen}
+        onClose={() => setIsCancelModalOpen(false)}
+        title="検品キャンセルの確認"
+        size="md"
+      >
+        <div>
+          <p className="text-nexus-text-primary mb-4">
+            検品をキャンセルしますか？
+          </p>
+          <p className="text-nexus-text-secondary text-sm mb-6">
+            入力内容は破棄されます。
+          </p>
+          <div className="flex justify-end gap-3">
+            <NexusButton
+              onClick={() => setIsCancelModalOpen(false)}
+              variant="default"
+            >
+              キャンセル
+            </NexusButton>
+            <NexusButton
+              onClick={() => {
+                // 検品データをリセット
+                setInspectionItems(prev => prev.map(item => ({ ...item, checked: false, status: null })));
+                setPhotos([]);
+                setOverallStatus('pending');
+                setIsCancelModalOpen(false);
+                
+                // 実際の実装では親コンポーネントのコールバックを呼び出し
+                if (typeof window !== 'undefined') {
+                  window.history.back();
+                }
+              }}
+              variant="danger"
+            >
+              破棄する
+            </NexusButton>
+          </div>
+        </div>
+      </BaseModal>
     </div>
   )
 } 

@@ -133,7 +133,7 @@ export default function QRCodeModal({ isOpen, onClose, itemId, itemName, itemSku
     >
       <div className="p-6">
         <div className="mb-4">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-nexus-text-secondary">
               {itemName} ({itemSku})
             </p>
         </div>
@@ -143,7 +143,7 @@ export default function QRCodeModal({ isOpen, onClose, itemId, itemName, itemSku
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* QR Code Display */}
             <div className="text-center">
-              <div className="bg-white p-8 rounded-lg border-2 border-gray-200 inline-block mb-4">
+              <div className="bg-nexus-bg-primary p-8 rounded-lg border-2 border-nexus-border inline-block mb-4">
                 {/* Placeholder for QR Code - Using pattern for demo */}
                 <div 
                   className="bg-black relative"
@@ -170,10 +170,10 @@ export default function QRCodeModal({ isOpen, onClose, itemId, itemName, itemSku
               </div>
               
               <div className="space-y-2">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                <p className="text-sm font-medium text-nexus-text-primary">
                   サイズ: {qrSizes[qrSize].label}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-nexus-text-secondary">
                   商品ID: {itemId}
                 </p>
               </div>
@@ -183,7 +183,7 @@ export default function QRCodeModal({ isOpen, onClose, itemId, itemName, itemSku
             <div className="space-y-6">
               {/* Size Selection */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                <label className="block text-sm font-medium text-nexus-text-primary mb-3">
                   QRコードサイズ
                 </label>
                 <div className="space-y-2">
@@ -197,7 +197,7 @@ export default function QRCodeModal({ isOpen, onClose, itemId, itemName, itemSku
                         onChange={(e) => setQrSize(e.target.value as any)}
                         className="h-4 w-4 text-purple-600 rounded"
                       />
-                      <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                      <span className="ml-2 text-sm text-nexus-text-primary">
                         {config.label}
                       </span>
                     </label>
@@ -207,26 +207,26 @@ export default function QRCodeModal({ isOpen, onClose, itemId, itemName, itemSku
 
               {/* QR Code Data */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-nexus-text-primary mb-2">
                   QRコードデータ
                 </label>
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 text-xs font-mono text-gray-700 dark:text-gray-300 max-h-32 overflow-y-auto">
+                <div className="bg-nexus-bg-secondary rounded-lg p-3 text-xs font-mono text-nexus-text-primary max-h-32 overflow-y-auto">
                   <pre>{JSON.stringify(qrData, null, 2)}</pre>
                 </div>
                 <button
                   onClick={handleCopyData}
-                  className="mt-2 text-xs text-purple-600 hover:text-purple-700 transition-colors"
+                  className="mt-2 text-xs text-nexus-blue hover:text-nexus-blue-light transition-colors"
                 >
                   データをコピー
                 </button>
               </div>
 
               {/* Usage Information */}
-              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">
+              <div className="bg-nexus-blue/10 border border-nexus-blue/20 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-nexus-blue mb-2">
                   使用方法
                 </h4>
-                <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+                <ul className="text-sm text-nexus-blue space-y-1">
                   <li>• 商品ラベルに印刷して在庫管理に使用</li>
                   <li>• スマートフォンでスキャンして詳細確認</li>
                   <li>• 梱包時の商品確認に使用</li>
@@ -238,7 +238,7 @@ export default function QRCodeModal({ isOpen, onClose, itemId, itemName, itemSku
         </div>
 
         {/* Footer */}
-        <div className="flex justify-between mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex justify-between mt-6 pt-6 border-t border-nexus-border">
           <NexusButton
             onClick={onClose}
             variant="default"

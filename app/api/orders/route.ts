@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await AuthService.requireAuth(request, ['staff', 'admin']);
+    const user = await AuthService.requireRole(request, ['staff', 'admin']);
     if (!user) {
       return NextResponse.json(
         { error: '認証が必要です' },
@@ -65,8 +65,8 @@ export async function GET(request: NextRequest) {
       try {
         const { searchParams } = new URL(request.url);
         const fallbackData = await MockFallback.getOrdersFallback({
-          status: searchParams.get('status'),
-          customerId: searchParams.get('customerId'),
+          status: searchParams.get('status') || undefined,
+          customerId: searchParams.get('customerId') || undefined,
           limit: parseInt(searchParams.get('limit') || '50')
         });
         return NextResponse.json(fallbackData);
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await AuthService.requireAuth(request, ['staff', 'admin']);
+    const user = await AuthService.requireRole(request, ['staff', 'admin']);
     if (!user) {
       return NextResponse.json(
         { error: '認証が必要です' },
@@ -195,11 +195,11 @@ export async function POST(request: NextRequest) {
         description: `新しい注文 ${orderNumber} が作成されました`,
         userId: user.id,
         orderId: order.id,
-        metadata: {
+        metadata: JSON.stringify({
           orderNumber,
           totalAmount,
           itemCount: items.length,
-        },
+        }),
       },
     });
 
@@ -213,30 +213,32 @@ export async function POST(request: NextRequest) {
       const mockOrder = {
         id: `mock-order-${Date.now()}`,
         orderNumber: `ORD-MOCK-${Date.now()}`,
-        customerId: body.customerId,
-        totalAmount: body.items.reduce((sum: number, item: any) => sum + (item.price || 0) * (item.quantity || 1), 0),
+        customerId: 'mock-customer',
+        totalAmount: 100000,
         status: 'pending',
-        shippingAddress: body.shippingAddress,
-        paymentMethod: body.paymentMethod,
-        notes: body.notes + ' (モックレスポンス)',
+        shippingAddress: 'モック住所',
+        paymentMethod: 'クレジットカード',
+        notes: 'モックレスポンス',
         createdAt: new Date(),
         customer: {
-          id: body.customerId,
+          id: 'mock-customer',
           username: 'モックユーザー',
           email: 'mock@example.com'
         },
-        items: body.items.map((item: any, index: number) => ({
-          id: `mock-item-${index}`,
-          productId: item.productId,
-          quantity: item.quantity || 1,
-          price: item.price || 100000,
-          product: {
-            id: item.productId,
-            name: 'モック商品',
-            sku: `MOCK-${item.productId}`,
-            imageUrl: '/api/placeholder/200/200'
+        items: [
+          {
+            id: 'mock-item',
+            productId: 'mock-product',
+            quantity: 1,
+            price: 100000,
+            product: {
+              id: 'mock-product',
+              name: 'モック商品',
+              sku: 'MOCK-PRODUCT',
+              imageUrl: '/api/placeholder/200/200'
+            }
           }
-        }))
+        ]
       };
       return NextResponse.json({ success: true, order: mockOrder }, { status: 201 });
     }
@@ -250,7 +252,7 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const user = await AuthService.requireAuth(request, ['staff', 'admin']);
+    const user = await AuthService.requireRole(request, ['staff', 'admin']);
     if (!user) {
       return NextResponse.json(
         { error: '認証が必要です' },
@@ -371,11 +373,11 @@ export async function PUT(request: NextRequest) {
         description: `注文 ${existingOrder.orderNumber} が更新されました`,
         userId: user.id,
         orderId,
-        metadata: {
+        metadata: JSON.stringify({
           fromStatus: existingOrder.status,
           toStatus: mappedStatus,
           changes: { status, shippingAddress, paymentMethod, notes },
-        },
+        }),
       },
     });
 
@@ -386,20 +388,13 @@ export async function PUT(request: NextRequest) {
     // Prismaエラーの場合はモック成功レスポンスを返す
     if (MockFallback.isPrismaError(error)) {
       console.log('Using fallback response for order update due to Prisma error');
-      const mockMappedStatus = body.status ? body.status.replace('保留中', 'pending')
-                                                     .replace('確認済み', 'confirmed')
-                                                     .replace('処理中', 'processing')
-                                                     .replace('出荷済み', 'shipped')
-                                                     .replace('配送完了', 'delivered')
-                                                     .replace('キャンセル', 'cancelled')
-                                                     .replace('返品', 'returned') : 'pending';
       const mockUpdatedOrder = {
-        id: body.orderId,
-        orderNumber: `ORD-MOCK-${body.orderId}`,
-        status: mockMappedStatus,
-        shippingAddress: body.shippingAddress,
-        paymentMethod: body.paymentMethod,
-        notes: body.notes ? body.notes + ' (モック更新)' : 'モック更新',
+        id: `mock-${Date.now()}`,
+        orderNumber: `ORD-MOCK-${Date.now()}`,
+        status: 'pending',
+        shippingAddress: 'モック住所',
+        paymentMethod: 'クレジットカード',
+        notes: 'モック更新',
         updatedAt: new Date(),
         customer: {
           id: 'mock-customer',

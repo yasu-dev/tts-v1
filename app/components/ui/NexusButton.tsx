@@ -12,6 +12,7 @@ interface NexusButtonProps {
   className?: string;
   icon?: ReactNode;
   type?: 'button' | 'submit' | 'reset';
+  'data-testid'?: string;
 }
 
 export default function NexusButton({
@@ -22,51 +23,26 @@ export default function NexusButton({
   onClick,
   className = '',
   icon,
-  type = 'button'
+  type = 'button',
+  'data-testid': testId
 }: NexusButtonProps) {
   
-  const baseClasses = `
-    nexus-button
-    inline-flex items-center justify-center gap-3
-    font-bold font-primary cursor-pointer
-    border-[3px] rounded-nexus
-    transition-nexus duration-nexus ease-nexus
-    shadow-nexus-button
-    disabled:opacity-50 disabled:cursor-not-allowed
-    hover:shadow-nexus-button-hover
-    hover:-translate-y-1 hover:scale-105
-  `;
-
+  // nexus-buttonクラスを使用（globals.cssで定義済み）
   const variantClasses = {
-    default: `
-      bg-nexus-surface text-primary-blue border-nexus-border
-      hover:bg-primary-blue hover:text-white hover:border-primary-blue
-    `,
-    primary: `
-      bg-gradient-to-r from-primary-blue via-primary-blue-light to-primary-blue-lighter
-      text-white border-primary-blue
-      hover:from-primary-blue-light hover:via-primary-blue-lighter hover:to-primary-blue-lighter
-    `,
-    secondary: `
-      bg-gradient-to-r from-nexus-purple via-nexus-cyan to-nexus-green
-      text-white border-nexus-purple
-      hover:from-nexus-cyan hover:via-nexus-green hover:to-nexus-yellow
-    `,
-    danger: `
-      bg-gradient-to-r from-nexus-red to-red-600
-      text-white border-nexus-red
-      hover:from-red-600 hover:to-red-700
-    `
+    default: '',
+    primary: 'primary',
+    secondary: '',  // nexus-buttonの基本スタイルを使用
+    danger: 'danger'
   };
 
   const sizeClasses = {
-    sm: 'px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm',
-    md: 'px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 text-sm sm:text-base',
-    lg: 'px-4 sm:px-6 md:px-8 py-2.5 sm:py-3 md:py-4 text-base sm:text-lg'
+    sm: 'text-xs',
+    md: '',  // nexus-buttonのデフォルトサイズ
+    lg: 'text-base'
   };
 
   const combinedClasses = `
-    ${baseClasses}
+    nexus-button
     ${variantClasses[variant]}
     ${sizeClasses[size]}
     ${className}
@@ -78,15 +54,10 @@ export default function NexusButton({
       onClick={onClick}
       disabled={disabled}
       type={type}
+      data-testid={testId}
     >
-      {icon && (
-        <span className="flex-shrink-0">
-          {icon}
-        </span>
-      )}
-      <span className="font-bold tracking-wide">
-        {children}
-      </span>
+      {icon && icon}
+      {children}
     </button>
   );
 }

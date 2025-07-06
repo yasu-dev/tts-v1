@@ -360,13 +360,7 @@ const generateMonthlyReportHTML = (data: MonthlyReportData) => {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await AuthService.requireAuth(request, ['staff', 'admin']);
-    if (!user) {
-      return NextResponse.json(
-        { error: '認証が必要です' },
-        { status: 401 }
-      );
-    }
+    const user = await AuthService.requireRole(request, ['staff', 'admin']);
 
     const body = await request.json();
     const { year, month } = body;
@@ -432,10 +426,10 @@ export async function POST(request: NextRequest) {
         type: 'report',
         description: `${year}年${month}月の月次レポートが生成されました`,
         userId: user.id,
-        metadata: {
+        metadata: JSON.stringify({
           reportType: 'monthly',
           period: `${year}-${month.toString().padStart(2, '0')}`
-        }
+        })
       }
     });
 
@@ -457,13 +451,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await AuthService.requireAuth(request, ['staff', 'admin']);
-    if (!user) {
-      return NextResponse.json(
-        { error: '認証が必要です' },
-        { status: 401 }
-      );
-    }
+    const user = await AuthService.requireRole(request, ['staff', 'admin']);
 
     // Get available report periods
     const currentDate = new Date();

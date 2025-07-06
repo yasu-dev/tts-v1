@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
+import BaseModal from '@/app/components/ui/BaseModal';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 interface Template {
@@ -21,6 +22,8 @@ export default function ListingTemplateEditor() {
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [templateToDelete, setTemplateToDelete] = useState<string | null>(null);
   const { showToast } = useToast();
 
   // フォーム状態
@@ -118,30 +121,135 @@ export default function ListingTemplateEditor() {
       return;
     }
 
-    // 保存処理（実装時にはAPIを呼び出す）
-    showToast({
-      type: 'success',
-      title: 'テンプレート保存完了',
-      message: 'テンプレートを保存しました',
-      duration: 3000
-    });
-    setIsEditing(false);
-    fetchTemplates();
+    try {
+      // API保存処理をシミュレート
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // テンプレートデータの準備
+      const templateData = {
+        ...formData,
+        id: selectedTemplate?.id || `template_${Date.now()}`,
+        updatedAt: new Date().toISOString(),
+        createdBy: 'current_user' // 実際は現在のユーザーID
+      };
+      
+      // ローカルストレージに保存
+      const existingTemplates = JSON.parse(localStorage.getItem('listingTemplates') || '[]');
+      
+      if (selectedTemplate?.id) {
+        // 既存テンプレートの更新
+        const updatedTemplates = existingTemplates.map((template: any) =>
+          template.id === selectedTemplate.id ? templateData : template
+        );
+        localStorage.setItem('listingTemplates', JSON.stringify(updatedTemplates));
+      } else {
+        // 新規テンプレートの作成
+        const newTemplateData = {
+          ...templateData,
+          createdAt: new Date().toISOString()
+        };
+        existingTemplates.push(newTemplateData);
+        localStorage.setItem('listingTemplates', JSON.stringify(existingTemplates));
+      }
+
+      showToast({
+        type: 'success',
+        title: 'テンプレート保存完了',
+        message: 'テンプレートを正常に保存しました',
+        duration: 3000
+      });
+      
+      setIsEditing(false);
+      fetchTemplates();
+      
+      // テンプレート保存ログをローカルストレージに記録
+      const saveLog = {
+        templateId: templateData.id,
+        action: 'template_save',
+        timestamp: new Date().toISOString(),
+        user: 'current_user'
+      };
+      const saveLogs = JSON.parse(localStorage.getItem('templateSaveLogs') || '[]');
+      saveLogs.push(saveLog);
+      localStorage.setItem('templateSaveLogs', JSON.stringify(saveLogs));
+      
+    } catch (error) {
+      console.error('テンプレート保存エラー:', error);
+      showToast({
+        type: 'error',
+        title: '保存エラー',
+        message: 'テンプレートの保存に失敗しました。もう一度お試しください。',
+        duration: 4000
+      });
+    }
   };
 
   const handleDelete = async (templateId: string) => {
-    const confirmed = confirm('このテンプレートを削除しますか？');
-    if (!confirmed) return;
+    setTemplateToDelete(templateId);
+    setIsDeleteModalOpen(true);
+  };
 
-    // 削除処理（実装時にはAPIを呼び出す）
-    showToast({
-      type: 'success',
-      title: 'テンプレート削除完了',
-      message: 'テンプレートを削除しました',
-      duration: 3000
-    });
-    setSelectedTemplate(null);
-    fetchTemplates();
+  const confirmDelete = async () => {
+    if (!templateToDelete) return;
+
+    try {
+      // 削除前バリデーション
+      if (!templateToDelete) {
+        showToast({
+          type: 'warning',
+          title: '削除エラー',
+          message: '削除対象のテンプレートが特定できません',
+          duration: 4000
+        });
+        return;
+      }
+
+      // API削除処理をシミュレート
+      await new Promise(resolve => setTimeout(resolve, 1200));
+      
+      // ローカルストレージからテンプレートを削除
+      const existingTemplates = JSON.parse(localStorage.getItem('listingTemplates') || '[]');
+      const updatedTemplates = existingTemplates.filter((template: any) => template.id !== templateToDelete);
+      localStorage.setItem('listingTemplates', JSON.stringify(updatedTemplates));
+      
+      // 削除ログを記録
+      const deleteLog = {
+        templateId: templateToDelete,
+        deletedAt: new Date().toISOString(),
+        deletedBy: 'current_user', // 実際は現在のユーザーID
+        action: 'template_delete'
+      };
+      
+      const deleteLogs = JSON.parse(localStorage.getItem('deleteLogs') || '[]');
+      deleteLogs.push(deleteLog);
+      localStorage.setItem('deleteLogs', JSON.stringify(deleteLogs));
+
+      showToast({
+        type: 'success',
+        title: 'テンプレート削除完了',
+        message: 'テンプレートを正常に削除しました',
+        duration: 3000
+      });
+      
+      // 選択状態をクリア
+      setSelectedTemplate(null);
+      
+      // テンプレートリストを再取得
+      fetchTemplates();
+      
+      // モーダルを閉じる
+      setIsDeleteModalOpen(false);
+      setTemplateToDelete(null);
+      
+    } catch (error) {
+      console.error('テンプレート削除エラー:', error);
+      showToast({
+        type: 'error',
+        title: '削除エラー',
+        message: 'テンプレートの削除に失敗しました。もう一度お試しください。',
+        duration: 4000
+      });
+    }
   };
 
   const getAvailableVariables = () => {
@@ -366,6 +474,43 @@ export default function ListingTemplateEditor() {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <BaseModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setTemplateToDelete(null);
+        }}
+        title="テンプレート削除の確認"
+        size="md"
+      >
+        <div>
+          <p className="text-nexus-text-primary mb-4">
+            このテンプレートを削除しますか？
+          </p>
+          <p className="text-nexus-text-secondary text-sm mb-6">
+            この操作は元に戻せません。
+          </p>
+          <div className="flex justify-end gap-3">
+            <NexusButton
+              onClick={() => {
+                setIsDeleteModalOpen(false);
+                setTemplateToDelete(null);
+              }}
+              variant="default"
+            >
+              キャンセル
+            </NexusButton>
+            <NexusButton
+              onClick={confirmDelete}
+              variant="danger"
+            >
+              削除する
+            </NexusButton>
+          </div>
+        </div>
+      </BaseModal>
     </div>
   );
 } 

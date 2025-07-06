@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import EnhancedNotificationPanel from '../EnhancedNotificationPanel';
 import ProfileMenu from '../ProfileMenu';
 
@@ -35,6 +36,9 @@ export default function NexusHeader({
   const [notificationCount, setNotificationCount] = useState(0);
   const notificationRef = useRef<HTMLButtonElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+  
+  // ユーザータイプ切り替えのためのrouter
+  const router = useRouter();
 
   // 通知数を取得
   useEffect(() => {
@@ -60,6 +64,11 @@ export default function NexusHeader({
     if (searchQuery.trim() && onSearchSubmit) {
       onSearchSubmit(searchQuery.trim());
     }
+  };
+
+  const handleUserTypeSwitch = () => {
+    const targetPath = userType === 'staff' ? '/dashboard' : '/staff/dashboard';
+    router.push(targetPath);
   };
 
   return (
@@ -151,6 +160,20 @@ export default function NexusHeader({
           )}
         </button>
         
+        {/* ユーザータイプ切り替えボタン */}
+        <button
+          onClick={handleUserTypeSwitch}
+          className="hidden sm:flex items-center gap-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg px-3 py-2 hover:bg-white/20 transition-all duration-200"
+          title={`${userType === 'staff' ? 'セラー' : 'スタッフ'}画面に切り替え`}
+        >
+          <svg className="w-4 h-4 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+          </svg>
+          <span className="text-white text-sm">
+            {userType === 'staff' ? 'セラー' : 'スタッフ'}
+          </span>
+        </button>
+
         {/* ユーザープロファイル - レスポンシブ対応 */}
         <button 
           ref={profileRef as any}

@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await AuthService.requireAuth(request, ['staff', 'admin']);
+    const user = await AuthService.requireRole(request, ['staff', 'admin']);
     if (!user) {
       return NextResponse.json(
         { error: '認証が必要です' },
@@ -104,13 +104,13 @@ export async function POST(request: NextRequest) {
         description: `注文 ${order.orderNumber} の${isFullReturn ? '全商品' : '一部商品'}が返品されました`,
         userId: user.id,
         orderId,
-        metadata: {
+        metadata: JSON.stringify({
           returnedProductIds: productIds,
           reason,
           refundAmount,
           notes,
           isFullReturn,
-        },
+        }),
       },
     });
 
@@ -124,10 +124,10 @@ export async function POST(request: NextRequest) {
           userId: user.id,
           productId: item.productId,
           orderId,
-          metadata: {
+          metadata: JSON.stringify({
             reason,
             refundAmount: refundAmount ? Math.floor(refundAmount / productIds.length) : null,
-          },
+          }),
         },
       });
     }
@@ -155,7 +155,7 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const user = await AuthService.requireAuth(request, ['staff', 'admin']);
+    const user = await AuthService.requireRole(request, ['staff', 'admin']);
     if (!user) {
       return NextResponse.json(
         { error: '認証が必要です' },
@@ -242,12 +242,12 @@ export async function PUT(request: NextRequest) {
         type: 'return_processing',
         description: `${productIds.length}点の返品商品が処理されました`,
         userId: user.id,
-        metadata: {
+        metadata: JSON.stringify({
           productIds,
           newStatus: mappedStatus,
           locationId,
           notes,
-        },
+        }),
       },
     });
 

@@ -1,7 +1,9 @@
 'use client';
 
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
+import PageHeader from '@/app/components/ui/PageHeader';
 import TaskCreationModal from '@/app/components/modals/TaskCreationModal';
+import TaskDetailModal from '@/app/components/TaskDetailModal';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
@@ -10,6 +12,9 @@ import {
 } from '@heroicons/react/24/outline';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import HoloTable from '@/app/components/ui/HoloTable';
+import NexusButton from '@/app/components/ui/NexusButton';
+import NexusSelect from '@/app/components/ui/NexusSelect';
+import NexusInput from '@/app/components/ui/NexusInput';
 
 interface StaffTask {
   id: string;
@@ -28,6 +33,18 @@ interface StaffTask {
   progress?: number;
   batchId?: string;
   productId?: string;
+}
+
+// TaskDetailModal用のTask型定義
+interface Task {
+  id: string;
+  title: string;
+  category: string;
+  assignee: string;
+  dueDate: string;
+  status: string;
+  priority: string;
+  description?: string;
 }
 
 interface StaffData {
@@ -59,6 +76,9 @@ export default function StaffDashboard() {
   const timelineRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
   const [isNewTaskModalOpen, setIsNewTaskModalOpen] = useState(false);
+  const [isTaskDetailModalOpen, setIsTaskDetailModalOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [isTaskEditModalOpen, setIsTaskEditModalOpen] = useState(false);
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -210,6 +230,50 @@ export default function StaffDashboard() {
     setIsNewTaskModalOpen(true);
   };
 
+  const handleEditTask = (task: StaffTask) => {
+    // StaffTaskをTask型に変換
+    const taskData: Task = {
+      id: task.id,
+      title: task.title,
+      category: task.type || 'inspection',
+      assignee: task.assignee,
+      dueDate: task.dueDate,
+      status: task.status,
+      priority: task.priority,
+      description: task.description
+    };
+    setSelectedTask(taskData);
+    setIsTaskEditModalOpen(true);
+    setIsTaskDetailModalOpen(false);
+  };
+
+  const handleSaveTaskEdit = (updatedTask: any) => {
+    if (!staffData || !selectedTask) return;
+    
+    const newStaffData = { ...staffData };
+    
+    // タスクの更新処理
+    const urgentIndex = newStaffData.staffTasks.urgentTasks.findIndex(t => t.id === selectedTask.id);
+    if (urgentIndex !== -1) {
+      newStaffData.staffTasks.urgentTasks[urgentIndex] = { ...selectedTask, ...updatedTask };
+    } else {
+      const normalIndex = newStaffData.staffTasks.normalTasks.findIndex(t => t.id === selectedTask.id);
+      if (normalIndex !== -1) {
+        newStaffData.staffTasks.normalTasks[normalIndex] = { ...selectedTask, ...updatedTask };
+      }
+    }
+    
+    setStaffData(newStaffData);
+    setIsTaskEditModalOpen(false);
+    setSelectedTask(null);
+    
+    showToast({
+      title: 'タスク更新',
+      message: 'タスク情報を更新しました',
+      type: 'success'
+    });
+  };
+
   const handleTaskCreation = async (taskData: any) => {
     try {
       // デモ版: 実際のAPIが存在しなくても動作するモック実装
@@ -251,6 +315,24 @@ export default function StaffDashboard() {
     }
   };
 
+  const handleTaskDetail = (task: StaffTask) => {
+    // StaffTaskをTaskDetailModalで使用するTask形式に変換
+    const taskDetailData = {
+      id: task.id,
+      title: task.title,
+      category: task.type || 'inspection', // typeがundefinedの場合のデフォルト値
+      assignee: task.assignee,
+      dueDate: task.dueDate,
+      status: task.status,
+      priority: task.priority,
+      description: task.description,
+      attachments: [],
+      comments: []
+    };
+    setSelectedTask(taskDetailData);
+    setIsTaskDetailModalOpen(true);
+  };
+
   if (loading || !staffData) {
     return (
       <DashboardLayout userType="staff">
@@ -261,40 +343,29 @@ export default function StaffDashboard() {
     );
   }
 
+  const headerActions = (
+    <NexusButton
+      onClick={handleCreateTask}
+      variant="primary"
+      icon={<PlusIcon className="w-5 h-5" />}
+    >
+      <span className="hidden sm:inline">新規タスク作成</span>
+      <span className="sm:hidden">新規作成</span>
+    </NexusButton>
+  );
+
   return (
     <DashboardLayout userType="staff">
       <div className="space-y-6">
-        {/* Header */}
+        {/* ヘッダー */}
         <div className="intelligence-card global">
           <div className="p-8">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-              {/* Title Section */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-3 mb-2">
-                  <svg className="w-8 h-8 text-nexus-yellow flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
-                  <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
-                    スタッフダッシュボード
-                  </h1>
-                </div>
-                <p className="text-nexus-text-secondary">
-                  日々のタスクと業務フローの管理
-                </p>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
-                <button
-                  onClick={handleCreateTask}
-                  className="nexus-button primary flex items-center justify-center gap-2"
-                >
-                  <PlusIcon className="w-5 h-5" />
-                  <span className="hidden sm:inline">新規タスク作成</span>
-                  <span className="sm:hidden">新規作成</span>
-                </button>
-              </div>
-            </div>
+            <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
+              スタッフダッシュボード
+            </h1>
+            <p className="mt-2 text-nexus-text-secondary">
+              作業進捗とタスク管理の統合画面
+            </p>
           </div>
         </div>
 
@@ -511,74 +582,46 @@ export default function StaffDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {/* Priority Filter */}
               <div>
-                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                  優先度フィルター
-                </label>
-                <div className="relative">
-                  <select
-                    value={filter}
-                    onChange={(e) => setFilter(e.target.value as any)}
-                    className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-xl text-sm text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 appearance-none cursor-pointer"
-                  >
-                    <option value="all">すべて</option>
-                    <option value="urgent">緊急タスク</option>
-                    <option value="normal">通常タスク</option>
-                    <option value="high">高優先度</option>
-                    <option value="medium">中優先度</option>
-                    <option value="low">低優先度</option>
-                  </select>
-                  <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </div>
+                <NexusSelect
+                  label="優先度フィルター"
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value as any)}
+                  options={[
+                    { value: 'all', label: 'すべて' },
+                    { value: 'urgent', label: '緊急タスク' },
+                    { value: 'normal', label: '通常タスク' },
+                    { value: 'high', label: '高優先度' },
+                    { value: 'medium', label: '中優先度' },
+                    { value: 'low', label: '低優先度' }
+                  ]}
+                />
               </div>
 
               {/* Type Filter */}
               <div>
-                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                  作業種別フィルター
-                </label>
-                <div className="relative">
-                  <select
-                    value={typeFilter}
-                    onChange={(e) => setTypeFilter(e.target.value as any)}
-                    className="w-full px-3 py-2 bg-white border-2 border-gray-200 rounded-xl text-sm text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 appearance-none cursor-pointer"
-                  >
-                    <option value="all">すべて</option>
-                    <option value="inspection">検品</option>
-                    <option value="photography">撮影</option>
-                    <option value="shipping">出荷</option>
-                    <option value="returns">返品</option>
-                  </select>
-                  <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </div>
+                <NexusSelect
+                  label="作業種別フィルター"
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value as any)}
+                  options={[
+                    { value: 'all', label: 'すべて' },
+                    { value: 'inspection', label: '検品' },
+                    { value: 'photography', label: '撮影' },
+                    { value: 'shipping', label: '出荷' },
+                    { value: 'returns', label: '返品' }
+                  ]}
+                />
               </div>
 
               {/* Search */}
               <div>
-                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                  検索
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="タスク名・担当者で検索"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full px-3 py-2 pl-10 bg-white border-2 border-gray-200 rounded-xl text-sm text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
-                  />
-                  <div className="absolute inset-y-0 left-0 flex items-center px-3 pointer-events-none">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                  </div>
-                </div>
+                <NexusInput
+                  type="text"
+                  label="検索"
+                  placeholder="タスク名・担当者で検索"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
               </div>
             </div>
           </div>
@@ -587,119 +630,155 @@ export default function StaffDashboard() {
         {/* Task List */}
         <div className="intelligence-card global">
           <div className="p-8">
-            <HoloTable
-              columns={[
-                { key: 'taskInfo', label: 'タスク情報', width: '35%' },
-                { key: 'assigneeDate', label: '担当者/期限', width: '20%' },
-                { key: 'statusInfo', label: 'ステータス', width: '20%' },
-                { key: 'actions', label: 'アクション', width: '25%', align: 'right' }
-              ]}
-              data={getFilteredTasks()}
-              renderCell={(value, column, row) => {
-                if (column.key === 'taskInfo') {
-                  return (
-                    <div className="flex items-start space-x-3">
-                      <div className="w-8 h-8 text-nexus-text-secondary">{typeIcons[row.type]}</div>
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <h3 className="font-semibold text-nexus-text-primary">
-                            {row.title}
-                          </h3>
-                          {row.productId && (
-                            <span className="cert-nano cert-premium">
-                              {row.productId}
-                            </span>
-                          )}
-                          {row.value && (
-                            <span className="cert-nano cert-mint">
-                              {row.value}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-nexus-text-secondary">
-                          {row.description}
-                        </p>
-                        {row.progress !== undefined && (
-                          <div className="mt-2 max-w-xs">
-                            <div className="flex justify-between text-xs text-nexus-text-secondary mb-1">
-                              <span>進捗</span>
-                              <span>{row.progress}%</span>
-                            </div>
-                            <div className="w-full bg-nexus-bg-secondary rounded-full h-2">
-                              <div 
-                                className="bg-nexus-blue h-2 rounded-full transition-all duration-300" 
-                                style={{ width: `${row.progress}%` }}
-                              ></div>
+            <div className="holo-table">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-nexus-border">
+                    <th className="text-left p-4 font-medium text-nexus-text-secondary w-[35%]">タスク情報</th>
+                    <th className="text-left p-4 font-medium text-nexus-text-secondary w-[20%]">担当者/期限</th>
+                    <th className="text-left p-4 font-medium text-nexus-text-secondary w-[20%]">ステータス</th>
+                    <th className="text-right p-4 font-medium text-nexus-text-secondary w-[25%]">アクション</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {getFilteredTasks().length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="text-center p-8 text-nexus-text-secondary">
+                        該当するタスクがありません。フィルター条件を変更してください。
+                      </td>
+                    </tr>
+                  ) : (
+                    getFilteredTasks().map((row) => (
+                      <tr key={row.id} className="border-b border-nexus-border hover:bg-nexus-bg-tertiary">
+                        <td className="p-4">
+                          <div className="flex items-start space-x-3">
+                            <div className="w-8 h-8 text-nexus-text-secondary">{typeIcons[row.type as keyof typeof typeIcons]}</div>
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2 mb-1">
+                                <h3 className="font-semibold text-nexus-text-primary">
+                                  {row.title}
+                                </h3>
+                                {row.productId && (
+                                  <span className="cert-nano cert-premium">
+                                    {row.productId}
+                                  </span>
+                                )}
+                                {row.value && (
+                                  <span className="cert-nano cert-mint">
+                                    {row.value}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm text-nexus-text-secondary">
+                                {row.description}
+                              </p>
+                              {row.progress !== undefined && (
+                                <div className="mt-2 max-w-xs">
+                                  <div className="flex justify-between text-xs text-nexus-text-secondary mb-1">
+                                    <span>進捗</span>
+                                    <span>{row.progress}%</span>
+                                  </div>
+                                  <div className="w-full bg-nexus-bg-secondary rounded-full h-2">
+                                    <div 
+                                      className="bg-nexus-blue h-2 rounded-full transition-all duration-300" 
+                                      style={{ width: `${row.progress}%` }}
+                                    ></div>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                }
-                if (column.key === 'assigneeDate') {
-                  return (
-                    <div className="space-y-1">
-                      <div className="text-sm text-nexus-text-primary">
-                        <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                        {row.assignee}
-                      </div>
-                      <div className="text-sm text-nexus-text-primary">
-                        <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        {row.dueDate}
-                      </div>
-                    </div>
-                  );
-                }
-                if (column.key === 'statusInfo') {
-                  return (
-                    <div className="flex items-center space-x-2">
-                      <span className="cert-nano cert-premium">
-                        {priorityLabels[row.priority]}
-                      </span>
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusColors[row.status]}`}>
-                        {statusLabels[row.status]}
-                      </span>
-                    </div>
-                  );
-                }
-                if (column.key === 'actions') {
-                  return (
-                    <div className="flex justify-end space-x-2">
-                      {row.status === 'pending' && (
-                        <button
-                          onClick={() => updateTaskStatus(row.id, 'in_progress')}
-                          className="nexus-button primary text-xs"
-                        >
-                          開始
-                        </button>
-                      )}
-                      {row.status === 'in_progress' && (
-                        <button
-                          onClick={() => updateTaskStatus(row.id, 'completed')}
-                          className="nexus-button primary text-xs"
-                        >
-                          完了
-                        </button>
-                      )}
-                      <button className="nexus-button text-xs">
-                        詳細
-                      </button>
-                    </div>
-                  );
-                }
-                return value;
-              }}
-              emptyMessage="該当するタスクがありません。フィルター条件を変更してください。"
-              className="max-h-96 overflow-y-auto"
-            />
+                        </td>
+                        <td className="p-4">
+                          <div className="space-y-1">
+                            <div className="text-sm text-nexus-text-primary">
+                              <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              </svg>
+                              {row.assignee}
+                            </div>
+                            <div className="text-sm text-nexus-text-primary">
+                              <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                              {row.dueDate}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center space-x-2">
+                            <span className="cert-nano cert-premium">
+                              {(priorityLabels[row.priority as keyof typeof priorityLabels] as unknown) as string}
+                            </span>
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusColors[row.status as keyof typeof statusColors]}`}>
+                              {(statusLabels[row.status as keyof typeof statusLabels] as unknown) as string}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex justify-end space-x-2">
+                            {row.status === 'pending' && (
+                              <NexusButton
+                                onClick={() => updateTaskStatus(row.id, 'in_progress')}
+                                variant="primary"
+                                size="sm"
+                              >
+                                開始
+                              </NexusButton>
+                            )}
+                            {row.status === 'in_progress' && (
+                              <NexusButton
+                                onClick={() => updateTaskStatus(row.id, 'completed')}
+                                variant="primary"
+                                size="sm"
+                              >
+                                完了
+                              </NexusButton>
+                            )}
+                            <NexusButton 
+                              onClick={() => handleTaskDetail(row as StaffTask)}
+                              size="sm"
+                            >
+                              詳細
+                            </NexusButton>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* TaskDetailModal */}
+      <TaskDetailModal
+        isOpen={isTaskDetailModalOpen}
+        onClose={() => {
+          setIsTaskDetailModalOpen(false);
+          setSelectedTask(null);
+        }}
+        task={selectedTask}
+        onEdit={(task: Task) => {
+          // Task型からStaffTask型への変換が必要な場合のハンドラー
+          // 現在はTask型のみを扱うため、直接処理
+          setSelectedTask(task);
+          setIsTaskEditModalOpen(true);
+          setIsTaskDetailModalOpen(false);
+        }}
+      />
+
+      {/* Task Edit Modal */}
+      <TaskCreationModal
+        isOpen={isTaskEditModalOpen}
+        onClose={() => {
+          setIsTaskEditModalOpen(false);
+          setSelectedTask(null);
+        }}
+        onSubmit={handleSaveTaskEdit}
+      />
     </DashboardLayout>
   );
 }

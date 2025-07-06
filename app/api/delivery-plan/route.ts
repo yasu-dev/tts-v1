@@ -4,13 +4,7 @@ import { AuthService } from '@/lib/auth';
 export async function POST(request: NextRequest) {
   try {
     // 認証チェック（セラーのみ）
-    const user = await AuthService.requireAuth(request, ['seller']);
-    if (!user) {
-      return NextResponse.json(
-        { error: '認証が必要です' },
-        { status: 401 }
-      );
-    }
+    const user = await AuthService.requireRole(request, ['seller']);
 
     const planData = await request.json();
 
@@ -80,13 +74,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     // 認証チェック
-    const user = await AuthService.requireAuth(request, ['seller', 'staff']);
-    if (!user) {
-      return NextResponse.json(
-        { error: '認証が必要です' },
-        { status: 401 }
-      );
-    }
+    const user = await AuthService.requireRole(request, ['seller', 'staff']);
 
     // デモ用の納品プラン一覧
     const deliveryPlans = [

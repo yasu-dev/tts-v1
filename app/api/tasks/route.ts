@@ -92,12 +92,85 @@ export async function PATCH(request: Request) {
   const body = await request.json();
   const { id, status } = body;
   
-  // デモ用のタスク状態更新レスポンス
-  const updatedTask = {
-    id,
-    status,
-    updatedAt: new Date().toISOString(),
-  };
+  if (!id || !status) {
+    return NextResponse.json(
+      { error: 'タスクIDとステータスが必要です' },
+      { status: 400 }
+    );
+  }
 
-  return NextResponse.json({ success: true, task: updatedTask });
+  try {
+    // API処理をシミュレート
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    // デモ用のタスク状態更新レスポンス
+    const updatedTask = {
+      id,
+      status,
+      updatedAt: new Date().toISOString(),
+    };
+
+    return NextResponse.json({ success: true, task: updatedTask });
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'タスク更新中にエラーが発生しました' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request: Request) {
+  const body = await request.json();
+  
+  if (!body.id) {
+    return NextResponse.json(
+      { error: 'タスクIDが必要です' },
+      { status: 400 }
+    );
+  }
+
+  try {
+    // API処理をシミュレート
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    const updatedTask = {
+      ...body,
+      updatedAt: new Date().toISOString(),
+    };
+
+    return NextResponse.json({ success: true, task: updatedTask });
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'タスク更新中にエラーが発生しました' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get('id');
+  
+  if (!id) {
+    return NextResponse.json(
+      { error: 'タスクIDが必要です' },
+      { status: 400 }
+    );
+  }
+
+  try {
+    // API処理をシミュレート
+    await new Promise(resolve => setTimeout(resolve, 600));
+
+    return NextResponse.json({ 
+      success: true, 
+      message: 'タスクを削除しました',
+      deletedTaskId: id 
+    });
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'タスク削除中にエラーが発生しました' },
+      { status: 500 }
+    );
+  }
 }

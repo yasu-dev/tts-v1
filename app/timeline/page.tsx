@@ -8,6 +8,8 @@ import {
   FunnelIcon,
   ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline';
+import NexusButton from '@/app/components/ui/NexusButton';
+import BaseModal from '@/app/components/ui/BaseModal';
 
 // Mock products data
 const mockProducts = [
@@ -84,40 +86,109 @@ export default function TimelinePage() {
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
-                <button
+                <NexusButton
                   onClick={() => setIsFilterModalOpen(true)}
-                  className="nexus-button flex items-center justify-center gap-2"
+                  icon={<FunnelIcon className="w-5 h-5" />}
                 >
-                  <FunnelIcon className="w-5 h-5" />
                   <span className="hidden sm:inline">期間でフィルター</span>
                   <span className="sm:hidden">フィルター</span>
-                </button>
-                <button
+                </NexusButton>
+                <NexusButton
                   onClick={handleExportHistory}
-                  className="nexus-button primary flex items-center justify-center gap-2"
+                  variant="primary"
+                  icon={<ArrowDownTrayIcon className="w-5 h-5" />}
                 >
-                  <ArrowDownTrayIcon className="w-5 h-5" />
                   <span className="hidden sm:inline">履歴をエクスポート</span>
                   <span className="sm:hidden">エクスポート</span>
-                </button>
+                </NexusButton>
               </div>
             </div>
           </div>
         </div>
 
         {/* Filter Modal */}
-        {isFilterModalOpen && (
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-30 z-50 flex justify-center items-center">
-            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
-              <h2 className="text-lg font-bold mb-4">期間でフィルター</h2>
-              {/* TODO: 日付選択UIを実装 */}
-              <div className="text-right mt-6">
-                <button onClick={() => setIsFilterModalOpen(false)} className="nexus-button mr-2">キャンセル</button>
-                <button onClick={handleApplyFilter} className="nexus-button primary">適用</button>
+        <BaseModal
+          isOpen={isFilterModalOpen}
+          onClose={() => setIsFilterModalOpen(false)}
+          title="期間でフィルター"
+          size="md"
+        >
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  開始日
+                </label>
+                <input
+                  type="date"
+                  className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  終了日
+                </label>
+                <input
+                  type="date"
+                  className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
+                />
               </div>
             </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                期間プリセット
+              </label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <NexusButton size="sm">
+                  今日
+                </NexusButton>
+                <NexusButton size="sm">
+                  今週
+                </NexusButton>
+                <NexusButton size="sm">
+                  今月
+                </NexusButton>
+                <NexusButton size="sm">
+                  先月
+                </NexusButton>
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                アクティビティタイプ
+              </label>
+              <div className="space-y-2">
+                <label className="flex items-center">
+                  <input type="checkbox" className="mr-2 w-4 h-4 text-primary-blue rounded border-nexus-border focus:ring-primary-blue" defaultChecked />
+                  <span className="text-sm">商品登録</span>
+                </label>
+                <label className="flex items-center">
+                  <input type="checkbox" className="mr-2 w-4 h-4 text-primary-blue rounded border-nexus-border focus:ring-primary-blue" defaultChecked />
+                  <span className="text-sm">検品完了</span>
+                </label>
+                <label className="flex items-center">
+                  <input type="checkbox" className="mr-2 w-4 h-4 text-primary-blue rounded border-nexus-border focus:ring-primary-blue" defaultChecked />
+                  <span className="text-sm">撮影完了</span>
+                </label>
+                <label className="flex items-center">
+                  <input type="checkbox" className="mr-2 w-4 h-4 text-primary-blue rounded border-nexus-border focus:ring-primary-blue" defaultChecked />
+                  <span className="text-sm">出品開始</span>
+                </label>
+              </div>
+            </div>
+            
+            <div className="text-right mt-6 space-x-2">
+              <NexusButton onClick={() => setIsFilterModalOpen(false)}>
+                キャンセル
+              </NexusButton>
+              <NexusButton onClick={handleApplyFilter} variant="primary">
+                適用
+              </NexusButton>
+            </div>
           </div>
-        )}
+        </BaseModal>
 
         {/* メインコンテンツをグリッドレイアウトに */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

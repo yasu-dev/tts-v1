@@ -10,6 +10,8 @@ import { ReturnReasonAnalysis } from '@/app/components/features/returns/ReturnRe
 import { Package, Clock, TrendingUp, AlertCircle, ChevronLeft } from 'lucide-react';
 import { ExclamationCircleIcon } from '@heroicons/react/24/outline';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
+import BaseModal from '@/app/components/ui/BaseModal';
+import NexusButton from '@/app/components/ui/NexusButton';
 
 interface ReturnItem {
   id: string;
@@ -53,6 +55,7 @@ export default function ReturnsPage() {
   const [filter, setFilter] = useState<'all' | 'pending' | 'inspecting' | 'completed'>('all');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState<'inspection' | 'relisting' | 'analysis'>('inspection');
+  const [isUnsellableModalOpen, setIsUnsellableModalOpen] = useState(false);
 
   useEffect(() => {
     fetch('/api/staff/dashboard')
@@ -103,6 +106,15 @@ export default function ReturnsPage() {
     setSelectedReturn(null);
     setInspectionNote('');
     setFinalDecision('');
+  };
+
+  const handleUnsellableList = () => {
+    showToast({
+      title: '再販不可リスト',
+      message: '再販不可商品リストを表示します。',
+      type: 'info'
+    });
+    setIsUnsellableModalOpen(false);
   };
 
   const getStatusLabel = (status: string) => {
@@ -245,13 +257,13 @@ export default function ReturnsPage() {
                 </p>
               </div>
               <div className="flex">
-                <button
-                  onClick={() => router.push('/staff/returns/unsellable')}
-                  className="nexus-button primary"
+                <NexusButton
+                  onClick={() => setIsUnsellableModalOpen(true)}
+                  variant="primary"
+                  icon={<ExclamationCircleIcon className="w-5 h-5" />}
                 >
-                  <ExclamationCircleIcon className="w-5 h-5 mr-2" />
                   再販不可リスト
-                </button>
+                </NexusButton>
               </div>
             </div>
           </div>
@@ -513,6 +525,65 @@ export default function ReturnsPage() {
 
         {activeTab === 'relisting' && <ReturnRelistingFlow />}
         {activeTab === 'analysis' && <ReturnReasonAnalysis />}
+
+        {/* Unsellable Items Modal */}
+        <BaseModal
+          isOpen={isUnsellableModalOpen}
+          onClose={() => setIsUnsellableModalOpen(false)}
+          title="再販不可商品リスト"
+          size="lg"
+        >
+          <div className="space-y-6">
+            <div className="text-sm text-nexus-text-secondary">
+              販売できない商品の一覧です。破損、欠陥、法的問題等で再販不可となった商品を表示しています。
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-nexus-border">
+                    <th className="text-left py-3 px-4 text-sm font-medium text-nexus-text-secondary">商品名</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-nexus-text-secondary">理由</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-nexus-text-secondary">日付</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-nexus-text-secondary">処理</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-nexus-border">
+                    <td className="py-3 px-4 text-sm text-nexus-text-primary">Canon EOS R5（破損品）</td>
+                    <td className="py-3 px-4 text-sm text-nexus-text-secondary">配送中破損・修理不能</td>
+                    <td className="py-3 px-4 text-sm text-nexus-text-secondary">2024-06-25</td>
+                    <td className="py-3 px-4 text-sm">
+                      <span className="status-badge danger">廃棄待ち</span>
+                    </td>
+                  </tr>
+                  <tr className="border-b border-nexus-border">
+                    <td className="py-3 px-4 text-sm text-nexus-text-primary">Rolex Submariner（偽物）</td>
+                    <td className="py-3 px-4 text-sm text-nexus-text-secondary">真贋鑑定で偽物判定</td>
+                    <td className="py-3 px-4 text-sm text-nexus-text-secondary">2024-06-24</td>
+                    <td className="py-3 px-4 text-sm">
+                      <span className="status-badge warning">調査中</span>
+                    </td>
+                  </tr>
+                  <tr className="border-b border-nexus-border">
+                    <td className="py-3 px-4 text-sm text-nexus-text-primary">iPhone 15 Pro（水没）</td>
+                    <td className="py-3 px-4 text-sm text-nexus-text-secondary">水没による基板損傷</td>
+                    <td className="py-3 px-4 text-sm text-nexus-text-secondary">2024-06-23</td>
+                    <td className="py-3 px-4 text-sm">
+                      <span className="status-badge info">部品取り</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            
+            <div className="text-right">
+              <NexusButton onClick={handleUnsellableList} variant="primary">
+                詳細管理画面へ
+              </NexusButton>
+            </div>
+          </div>
+        </BaseModal>
       </div>
     </DashboardLayout>
   );

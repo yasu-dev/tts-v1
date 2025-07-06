@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import { BaseModal, NexusButton } from '../ui';
+import { BaseModal, NexusButton, NexusInput, NexusTextarea, NexusCheckbox } from '../ui';
 
 interface CarrierSettingsModalProps {
   isOpen: boolean;
@@ -82,15 +82,12 @@ export default function CarrierSettingsModal({ isOpen, onClose, onSave }: Carrie
             <div key={carrier.id} className="border border-gray-200 rounded-lg p-4">
               <div className="flex items-center justify-between mb-4">
                 <h4 className="text-lg font-medium">{carrier.name}</h4>
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={carrier.active}
-                    onChange={(e) => handleCarrierChange(carrier.id, 'active', e.target.checked)}
-                    className="mr-2"
-                  />
-                  <span className="text-sm">有効</span>
-                </label>
+                <NexusCheckbox
+                  checked={carrier.active}
+                  onChange={(e) => handleCarrierChange(carrier.id, 'active', e.target.checked)}
+                  label="有効"
+                  variant="nexus"
+                />
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -98,11 +95,10 @@ export default function CarrierSettingsModal({ isOpen, onClose, onSave }: Carrie
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     基本配送料 (円)
                   </label>
-                  <input
+                  <NexusInput
                     type="number"
-                    value={carrier.defaultRate}
+                    value={carrier.defaultRate.toString()}
                     onChange={(e) => handleCarrierChange(carrier.id, 'defaultRate', parseInt(e.target.value))}
-                    className="w-full border border-gray-300 rounded px-3 py-2"
                   />
                 </div>
                 
@@ -110,11 +106,10 @@ export default function CarrierSettingsModal({ isOpen, onClose, onSave }: Carrie
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     API キー
                   </label>
-                  <input
+                  <NexusInput
                     type="password"
                     value={carrier.apiKey}
                     onChange={(e) => handleCarrierChange(carrier.id, 'apiKey', e.target.value)}
-                    className="w-full border border-gray-300 rounded px-3 py-2"
                     placeholder="API キーを入力"
                   />
                 </div>
@@ -124,11 +119,10 @@ export default function CarrierSettingsModal({ isOpen, onClose, onSave }: Carrie
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   追跡URL
                 </label>
-                <input
+                <NexusInput
                   type="url"
                   value={carrier.trackingUrl}
                   onChange={(e) => handleCarrierChange(carrier.id, 'trackingUrl', e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2"
                 />
               </div>
               
@@ -136,11 +130,10 @@ export default function CarrierSettingsModal({ isOpen, onClose, onSave }: Carrie
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   備考
                 </label>
-                <textarea
+                <NexusTextarea
                   value={carrier.notes}
                   onChange={(e) => handleCarrierChange(carrier.id, 'notes', e.target.value)}
                   rows={2}
-                  className="w-full border border-gray-300 rounded px-3 py-2"
                   placeholder="配送業者に関する備考"
                 />
               </div>

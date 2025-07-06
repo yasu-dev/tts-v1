@@ -103,12 +103,14 @@ export default function LocationOptimizationModal({ isOpen, onClose }: LocationO
                   <SparklesIcon className="mx-auto h-16 w-16 text-purple-600 mb-4" />
                   <h3 className="text-lg font-semibold mb-2">ロケーション最適化を開始</h3>
                   <p className="text-gray-600 mb-6">AI分析により、効率的な商品配置を提案します。</p>
-                  <button
+                  <NexusButton
                     onClick={handleOptimize}
-                    className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg"
+                    variant="primary"
+                    size="lg"
+                    icon={<SparklesIcon className="w-5 h-5" />}
                   >
                     最適化を実行
-                  </button>
+                  </NexusButton>
                 </div>
               )}
             </div>
@@ -170,20 +172,21 @@ export default function LocationOptimizationModal({ isOpen, onClose }: LocationO
         </div>
 
         <div className="flex justify-between p-6 border-t">
-          <button
+          <NexusButton
             onClick={onClose}
-            className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
+            icon={<XMarkIcon className="w-5 h-5" />}
           >
             閉じる
-          </button>
+          </NexusButton>
           {optimizationResult && (
-            <button
+            <NexusButton
               onClick={handleApplyOptimization}
               disabled={selectedItems.length === 0}
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg disabled:opacity-50"
+              variant="primary"
+              icon={<SparklesIcon className="w-5 h-5" />}
             >
               選択した提案を適用 ({selectedItems.length})
-            </button>
+            </NexusButton>
           )}
         </div>
       </div>

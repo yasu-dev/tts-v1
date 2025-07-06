@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import DashboardLayout from '../components/layouts/DashboardLayout';
+import PageHeader from '../components/ui/PageHeader';
+import { NexusButton, NexusCard } from '../components/ui';
+import BaseModal from '../components/ui/BaseModal';
 import InventorySummary from '../components/features/InventorySummary';
 import ProductDetailModal from '../components/ProductDetailModal';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
@@ -17,7 +20,6 @@ import {
 import { DateRangePicker } from 'react-date-range';
 import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
-import HoloTable from '../components/ui/HoloTable';
 
 export default function DashboardPage() {
   const { showToast } = useToast();
@@ -109,7 +111,16 @@ export default function DashboardPage() {
     linkElement.setAttribute('download', exportFileDefaultName);
     linkElement.click();
       
-      console.log('レポートダウンロード完了:', exportFileDefaultName);
+      // レポートダウンロードログを記録
+      const downloadLog = {
+        action: 'report_download',
+        timestamp: new Date().toISOString(),
+        user: 'current_user',
+        filename: exportFileDefaultName
+      };
+      const logs = JSON.parse(localStorage.getItem('downloadLogs') || '[]');
+      logs.push(downloadLog);
+      localStorage.setItem('downloadLogs', JSON.stringify(logs));
     } catch (error) {
       console.error('レポートダウンロード中にエラーが発生しました:', error);
       showToast({
@@ -137,6 +148,33 @@ export default function DashboardPage() {
     setIsProductDetailOpen(true);
   };
 
+  const headerActions = (
+    <>
+      <NexusButton
+        onClick={() => setIsDatePickerOpen(true)}
+        variant="default"
+        icon={
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        }
+      >
+        レポート期間を選択
+      </NexusButton>
+      <NexusButton
+        onClick={handleDownloadReport}
+        variant="primary"
+        icon={
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+        }
+      >
+        レポートをダウンロード
+      </NexusButton>
+    </>
+  );
+
   if (loading) {
     return <div>読み込み中...</div>;
   }
@@ -144,63 +182,49 @@ export default function DashboardPage() {
   return (
     <DashboardLayout userType="seller">
       <div className="space-y-6">
-        {/* Header */}
+        {/* ヘッダー */}
         <div className="intelligence-card global">
-          <div className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
+          <div className="p-8">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+              <div className="flex-1 min-w-0">
                 <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
                   セラーダッシュボード
                 </h1>
-                <p className="text-nexus-text-secondary">
-                  販売実績と在庫状況の概要
+                <p className="mt-2 text-nexus-text-secondary">
+                  売上管理と在庫状況の統合画面
                 </p>
               </div>
-              <div className="flex space-x-3">
-                <button 
-                  onClick={() => setIsDatePickerOpen(true)}
-                  className="nexus-button"
-                >
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  レポート期間を選択
-                </button>
-                <button
-                  onClick={handleDownloadReport}
-                  className="nexus-button primary"
-                >
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                  レポートをダウンロード
-                </button>
+              <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
+                {headerActions}
               </div>
             </div>
           </div>
         </div>
 
         {/* Date Picker Modal */}
-        {isDatePickerOpen && (
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-30 z-50 flex justify-center items-center">
-            <div className="bg-white p-6 rounded-2xl shadow-2xl">
-              <DateRangePicker
-                onChange={(item: any) => setDateRange([item.selection])}
-                ranges={dateRange}
-                months={2}
-                direction="horizontal"
-              />
-              <div className="text-right mt-2">
-                <button
-                  onClick={() => setIsDatePickerOpen(false)}
-                  className="nexus-button"
-                >
-                  閉じる
-                </button>
-              </div>
+        <BaseModal
+          isOpen={isDatePickerOpen}
+          onClose={() => setIsDatePickerOpen(false)}
+          title="期間選択"
+          size="lg"
+        >
+          <div>
+            <DateRangePicker
+              onChange={(item: any) => setDateRange([item.selection])}
+              ranges={dateRange}
+              months={2}
+              direction="horizontal"
+            />
+            <div className="text-right mt-4">
+              <NexusButton
+                onClick={() => setIsDatePickerOpen(false)}
+                variant="primary"
+              >
+                適用
+              </NexusButton>
             </div>
           </div>
-        )}
+        </BaseModal>
 
         {/* Real-time Inventory Summary */}
         <InventorySummary />
@@ -286,76 +310,138 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Orders Table - Holo Table Style */}
+        {/* Global Trade Monitor */}
         <div className="intelligence-card global">
-          <div className="p-3 sm:p-4 md:p-6 lg:p-8">
-            <div className="mb-3">
-              <h3 className="text-base sm:text-lg font-display font-bold text-nexus-text-primary">グローバル取引モニター</h3>
-              <p className="text-nexus-text-secondary mt-0.5 text-xs">リアルタイムの注文状況</p>
+          <div className="p-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-display font-bold text-nexus-text-primary">
+                グローバル取引モニター
+              </h2>
+              <span className="status-badge success">
+                リアルタイム
+              </span>
             </div>
             
-            <HoloTable
-              columns={[
-                { key: 'id', label: '注文ID', width: '12%' },
-                { key: 'customer', label: '顧客', width: '12%' },
-                { key: 'seller', label: '販売者', width: '12%' },
-                { key: 'certification', label: '認証', width: '10%', align: 'center' },
-                { key: 'items', label: '商品数', width: '8%', align: 'right' },
-                { key: 'value', label: '金額', width: '10%', align: 'right' },
-                { key: 'status', label: 'ステータス', width: '15%', align: 'center' },
-                { key: 'region', label: '地域', width: '12%' },
-                { key: 'actions', label: '操作', width: '9%', align: 'center' }
-              ]}
-              data={dashboardData?.orders || []}
-              onRowClick={(row) => handleOrderDetail(row)}
-              renderCell={(value, column, row) => {
-                if (column.key === 'id') {
-                  return <span className="font-mono text-nexus-text-primary text-xs">{value}</span>;
-                }
-                if (column.key === 'customer') {
-                  return <span className="font-medium text-xs">{value}</span>;
-                }
-                if (column.key === 'certification') {
-                  return (
-                    <span className={`cert-nano cert-${value.toLowerCase()} text-[10px] px-1.5 py-0.5`}>
-                      {value}
-                    </span>
-                  );
-                }
-                if (column.key === 'items') {
-                  return <span className="font-display text-xs">{value}</span>;
-                }
-                if (column.key === 'value') {
-                  return <span className="font-display font-bold text-xs">{value}</span>;
-                }
-                if (column.key === 'status') {
-                  return (
-                    <div className="flex items-center justify-center gap-1">
-                      <div className={`status-orb status-${value} w-2 h-2`} />
-                      <span className={`status-badge ${value} text-[10px] px-1.5 py-0.5`}>
-                        {value === 'optimal' ? '最適' : value === 'monitoring' ? '監視中' : value}
-                      </span>
-                    </div>
-                  );
-                }
-                if (column.key === 'actions') {
-                  return (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleOrderDetail(row);
-                      }}
-                      className="text-purple-600 hover:text-purple-800 text-xs font-medium transition-colors"
-                    >
-                      詳細
-                    </button>
-                  );
-                }
-                return <span className="text-xs">{value}</span>;
-              }}
-              emptyMessage="取引データがありません"
-              className="min-w-[700px]"
-            />
+            <div className="holo-table">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-nexus-border">
+                    <th className="text-left p-4 font-medium text-nexus-text-secondary">地域</th>
+                    <th className="text-left p-4 font-medium text-nexus-text-secondary">取引数</th>
+                    <th className="text-left p-4 font-medium text-nexus-text-secondary">売上</th>
+                    <th className="text-left p-4 font-medium text-nexus-text-secondary">成長率</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-nexus-border hover:bg-nexus-bg-tertiary">
+                    <td className="p-4 text-nexus-text-primary">北米</td>
+                    <td className="p-4 text-nexus-text-primary">1,247</td>
+                    <td className="p-4 text-nexus-text-primary">¥8,934,000</td>
+                    <td className="p-4">
+                      <span className="status-badge success">+12.5%</span>
+                    </td>
+                  </tr>
+                  <tr className="border-b border-nexus-border hover:bg-nexus-bg-tertiary">
+                    <td className="p-4 text-nexus-text-primary">ヨーロッパ</td>
+                    <td className="p-4 text-nexus-text-primary">892</td>
+                    <td className="p-4 text-nexus-text-primary">¥6,123,000</td>
+                    <td className="p-4">
+                      <span className="status-badge success">+8.3%</span>
+                    </td>
+                  </tr>
+                  <tr className="border-b border-nexus-border hover:bg-nexus-bg-tertiary">
+                    <td className="p-4 text-nexus-text-primary">アジア</td>
+                    <td className="p-4 text-nexus-text-primary">2,156</td>
+                    <td className="p-4 text-nexus-text-primary">¥15,678,000</td>
+                    <td className="p-4">
+                      <span className="status-badge success">+18.7%</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Orders Table - 統一されたintelligence-card形式 */}
+        <div className="intelligence-card global">
+          <div className="p-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-display font-bold text-nexus-text-primary">
+                注文管理
+              </h2>
+              <span className="status-badge info">
+                リアルタイム
+              </span>
+            </div>
+            
+            <div className="holo-table">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-nexus-border">
+                    <th className="text-left p-4 font-medium text-nexus-text-secondary">注文ID</th>
+                    <th className="text-left p-4 font-medium text-nexus-text-secondary">顧客</th>
+                    <th className="text-left p-4 font-medium text-nexus-text-secondary">販売者</th>
+                    <th className="text-center p-4 font-medium text-nexus-text-secondary">認証</th>
+                    <th className="text-right p-4 font-medium text-nexus-text-secondary">商品数</th>
+                    <th className="text-right p-4 font-medium text-nexus-text-secondary">金額</th>
+                    <th className="text-center p-4 font-medium text-nexus-text-secondary">ステータス</th>
+                    <th className="text-left p-4 font-medium text-nexus-text-secondary">地域</th>
+                    <th className="text-center p-4 font-medium text-nexus-text-secondary">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dashboardData?.orders?.map((order: any) => (
+                    <tr key={order.id} className="border-b border-nexus-border hover:bg-nexus-bg-tertiary">
+                      <td className="p-4">
+                        <span className="font-mono text-nexus-text-primary text-xs">{order.id}</span>
+                      </td>
+                      <td className="p-4">
+                        <span className="font-medium text-xs">{order.customer}</span>
+                      </td>
+                      <td className="p-4 text-xs">{order.seller}</td>
+                      <td className="p-4 text-center">
+                        <span className={`cert-nano cert-${order.certification.toLowerCase()} text-[10px] px-1.5 py-0.5`}>
+                          {order.certification}
+                        </span>
+                      </td>
+                      <td className="p-4 text-right">
+                        <span className="font-display text-xs">{order.items}</span>
+                      </td>
+                      <td className="p-4 text-right">
+                        <span className="font-display font-bold text-xs">{order.value}</span>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex items-center justify-center gap-1">
+                          <div className={`status-orb status-${order.status} w-2 h-2`} />
+                          <span className={`status-badge ${order.status} text-[10px] px-1.5 py-0.5`}>
+                            {order.status === 'optimal' ? '最適' : order.status === 'monitoring' ? '監視中' : order.status}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="p-4 text-xs">{order.region}</td>
+                      <td className="p-4 text-center">
+                        <NexusButton
+                          onClick={() => handleOrderDetail(order)}
+                          variant="default"
+                          size="sm"
+                          data-testid="order-detail-button"
+                        >
+                          詳細
+                        </NexusButton>
+                      </td>
+                    </tr>
+                  ))}
+                  {(!dashboardData?.orders || dashboardData.orders.length === 0) && (
+                    <tr>
+                      <td colSpan={9} className="p-8 text-center text-nexus-text-secondary">
+                        取引データがありません
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 

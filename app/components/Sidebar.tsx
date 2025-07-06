@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { NexusLoadingSpinner } from '@/app/components/ui';
+import NexusButton from '@/app/components/ui/NexusButton';
 
 interface MenuItem {
   label: string;
@@ -65,13 +66,12 @@ export default function Sidebar({ userType }: SidebarProps) {
   const handleNavigation = (href: string, label: string) => {
     if (href === pathname) return; // 同じページの場合は何もしない
     
-    // 認証済みユーザーのページ間移動では、ローディング画面をスキップ
-    // 内部ページ間の移動は即座に実行
+    // Next.jsルーターを使用した適切なナビゲーション
     setLoadingPath(href);
     
-    // ローディング表示のために少し遅延してから直接遷移
+    // ローディング表示のために少し遅延してからルーター遷移
     setTimeout(() => {
-      window.location.href = href;
+      router.push(href);
     }, 150);
   };
 
@@ -403,8 +403,25 @@ export default function Sidebar({ userType }: SidebarProps) {
 
   const menuGroups = userType === 'staff' ? staffMenuGroups : sellerMenuGroups;
 
-  const handleLogout = () => {
-    window.location.href = '/login';
+  const handleLogout = async () => {
+    try {
+      // ログアウトAPI呼び出し
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      
+      // セッションクリア
+      localStorage.removeItem('userSession');
+      sessionStorage.clear();
+      
+      // ログインページにリダイレクト
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // エラーが発生してもログインページにリダイレクト
+      router.push('/login');
+    }
   };
 
   const getCurrentGroup = () => {
@@ -712,18 +729,17 @@ export default function Sidebar({ userType }: SidebarProps) {
 
       {/* Logout Button */}
       <div className="sidebar-footer">
-        <button
+        <NexusButton
           onClick={handleLogout}
-          className="nexus-button w-full"
-          aria-label="システムからログアウト"
-          role="button"
-          tabIndex={0}
+          className="w-full"
+          icon={
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+          }
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-          <span>ログアウト</span>
-        </button>
+          ログアウト
+        </NexusButton>
       </div>
     </aside>
   );

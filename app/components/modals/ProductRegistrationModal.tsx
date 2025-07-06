@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import { BaseModal, NexusButton, NexusInput, NexusSelect, NexusTextarea } from '../ui';
@@ -9,9 +9,10 @@ interface ProductRegistrationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (productData: any) => void;
+  initialData?: any;
 }
 
-export default function ProductRegistrationModal({ isOpen, onClose, onSubmit }: ProductRegistrationModalProps) {
+export default function ProductRegistrationModal({ isOpen, onClose, onSubmit, initialData }: ProductRegistrationModalProps) {
   const [formData, setFormData] = useState({
     name: '',
     sku: '',
@@ -24,6 +25,24 @@ export default function ProductRegistrationModal({ isOpen, onClose, onSubmit }: 
     location: '',
     notes: ''
   });
+  
+  // 初期データがある場合はフォームに設定
+  useEffect(() => {
+    if (initialData && isOpen) {
+      setFormData({
+        name: initialData.name || '',
+        sku: initialData.sku || '',
+        category: initialData.category || '',
+        brand: initialData.brand || '',
+        condition: initialData.condition || 'excellent',
+        purchasePrice: initialData.purchasePrice?.toString() || '',
+        sellingPrice: initialData.value?.toString() || '',
+        description: initialData.description || '',
+        location: initialData.location || '',
+        notes: initialData.notes || ''
+      });
+    }
+  }, [initialData, isOpen]);
   const [isLoading, setIsLoading] = useState(false);
   const { showToast } = useToast();
 
@@ -47,14 +66,14 @@ export default function ProductRegistrationModal({ isOpen, onClose, onSubmit }: 
 
       // API呼び出し（本番運用と同じ処理）
       const response = await fetch('/api/inventory', {
-        method: 'POST',
+        method: initialData ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          ...(initialData ? { id: initialData.id } : {}),
           ...formData,
           price: Number(formData.sellingPrice),
           purchasePrice: Number(formData.purchasePrice),
-          createdAt: new Date().toISOString(),
-          status: 'storage'
+          ...(initialData ? { updatedAt: new Date().toISOString() } : { createdAt: new Date().toISOString(), status: 'storage' })
         })
       });
 
@@ -66,27 +85,29 @@ export default function ProductRegistrationModal({ isOpen, onClose, onSubmit }: 
       
       showToast({
         type: 'success',
-        title: '商品登録完了',
-        message: `${formData.name}を正常に登録しました。本番環境では在庫リストに追加されます。`,
+        title: initialData ? '商品更新完了' : '商品登録完了',
+        message: initialData ? `${formData.name}を正常に更新しました` : `${formData.name}を正常に登録しました。本番環境では在庫リストに追加されます。`,
         duration: 3000
       });
 
       // 親コンポーネントに通知
       onSubmit(result);
       
-      // フォームリセット
-      setFormData({
-        name: '',
-        sku: '',
-        category: '',
-        brand: '',
-        condition: 'excellent',
-        purchasePrice: '',
-        sellingPrice: '',
-        description: '',
-        location: '',
-        notes: ''
-      });
+      // フォームリセット（新規登録の場合のみ）
+      if (!initialData) {
+        setFormData({
+          name: '',
+          sku: '',
+          category: '',
+          brand: '',
+          condition: 'excellent',
+          purchasePrice: '',
+          sellingPrice: '',
+          description: '',
+          location: '',
+          notes: ''
+        });
+      }
       
       onClose();
       
@@ -95,7 +116,7 @@ export default function ProductRegistrationModal({ isOpen, onClose, onSubmit }: 
       showToast({
         type: 'error',
         title: '登録失敗',
-        message: error instanceof Error ? error.message : '商品登録中にエラーが発生しました',
+        message: error instanceof Error ? error.message : initialData ? '商品更新中にエラーが発生しました' : '商品登録中にエラーが発生しました',
         duration: 4000
       });
     } finally {
@@ -137,7 +158,7 @@ export default function ProductRegistrationModal({ isOpen, onClose, onSubmit }: 
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title="新規商品登録"
+      title={initialData ? '商品編集' : '新規商品登録'}
       size="md"
       className="max-w-2xl"
     >
@@ -158,13 +179,12 @@ export default function ProductRegistrationModal({ isOpen, onClose, onSubmit }: 
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">SKU *</label>
-              <input
+              <NexusInput
                 type="text"
                 name="sku"
                 value={formData.sku}
                 onChange={handleChange}
                 required
-                className="w-full border border-gray-300 rounded px-3 py-2"
                 placeholder="例: TWD-CAM-001"
               />
             </div>
@@ -173,30 +193,29 @@ export default function ProductRegistrationModal({ isOpen, onClose, onSubmit }: 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">カテゴリ *</label>
-              <select
+              <NexusSelect
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
                 required
-                className="w-full border border-gray-300 rounded px-3 py-2"
-              >
-                <option value="">カテゴリを選択</option>
-                <option value="camera">カメラ</option>
-                <option value="lens">レンズ</option>
-                <option value="watch">時計</option>
-                <option value="jewelry">ジュエリー</option>
-                <option value="bag">バッグ</option>
-                <option value="other">その他</option>
-              </select>
+                options={[
+                  { value: '', label: 'カテゴリを選択' },
+                  { value: 'camera', label: 'カメラ' },
+                  { value: 'lens', label: 'レンズ' },
+                  { value: 'watch', label: '時計' },
+                  { value: 'jewelry', label: 'ジュエリー' },
+                  { value: 'bag', label: 'バッグ' },
+                  { value: 'other', label: 'その他' }
+                ]}
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">ブランド</label>
-              <input
+              <NexusInput
                 type="text"
                 name="brand"
                 value={formData.brand}
                 onChange={handleChange}
-                className="w-full border border-gray-300 rounded px-3 py-2"
                 placeholder="例: Canon"
               />
             </div>
@@ -205,38 +224,36 @@ export default function ProductRegistrationModal({ isOpen, onClose, onSubmit }: 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">状態 *</label>
-              <select
+              <NexusSelect
                 name="condition"
                 value={formData.condition}
                 onChange={handleChange}
                 required
-                className="w-full border border-gray-300 rounded px-3 py-2"
-              >
-                <option value="excellent">優良</option>
-                <option value="good">良好</option>
-                <option value="fair">普通</option>
-                <option value="poor">要修理</option>
-              </select>
+                options={[
+                  { value: 'excellent', label: '優良' },
+                  { value: 'good', label: '良好' },
+                  { value: 'fair', label: '普通' },
+                  { value: 'poor', label: '要修理' }
+                ]}
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">仕入価格 (円)</label>
-              <input
+              <NexusInput
                 type="number"
                 name="purchasePrice"
                 value={formData.purchasePrice}
                 onChange={handleChange}
-                className="w-full border border-gray-300 rounded px-3 py-2"
                 placeholder="0"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">販売価格 (円)</label>
-              <input
+              <NexusInput
                 type="number"
                 name="sellingPrice"
                 value={formData.sellingPrice}
                 onChange={handleChange}
-                className="w-full border border-gray-300 rounded px-3 py-2"
                 placeholder="0"
               />
             </div>
@@ -244,36 +261,33 @@ export default function ProductRegistrationModal({ isOpen, onClose, onSubmit }: 
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">保管場所</label>
-            <input
+            <NexusInput
               type="text"
               name="location"
               value={formData.location}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded px-3 py-2"
               placeholder="例: A-1-001"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">商品説明</label>
-            <textarea
+            <NexusTextarea
               name="description"
               value={formData.description}
               onChange={handleChange}
               rows={3}
-              className="w-full border border-gray-300 rounded px-3 py-2"
               placeholder="商品の詳細な説明を入力してください"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">備考</label>
-            <textarea
+            <NexusTextarea
               name="notes"
               value={formData.notes}
               onChange={handleChange}
               rows={2}
-              className="w-full border border-gray-300 rounded px-3 py-2"
               placeholder="内部メモや特記事項"
             />
           </div>
@@ -294,7 +308,7 @@ export default function ProductRegistrationModal({ isOpen, onClose, onSubmit }: 
                   登録中...
                 </div>
               ) : (
-                '登録'
+                initialData ? '更新' : '登録'
               )}
             </NexusButton>
             <NexusButton

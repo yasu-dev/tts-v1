@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
-import { BaseModal, NexusButton } from './ui';
+import { BaseModal, NexusButton, NexusSelect, NexusInput, NexusCheckbox } from './ui';
 import { XMarkIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
 
 interface BarcodeScannerSettingsModalProps {
@@ -70,103 +70,82 @@ export default function BarcodeScannerSettingsModal({ isOpen, onClose }: Barcode
       className="max-w-md"
     >
       <div className="p-6 space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            スキャンモード
-          </label>
-          <select
-            value={settings.scanMode}
-            onChange={(e) => setSettings({...settings, scanMode: e.target.value})}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-          >
-            <option value="continuous">連続スキャン</option>
-            <option value="single">単発スキャン</option>
-          </select>
-        </div>
+        <NexusSelect
+          label="スキャンモード"
+          value={settings.scanMode}
+          onChange={(e) => setSettings({...settings, scanMode: e.target.value})}
+          variant="nexus"
+          options={[
+            { value: 'continuous', label: '連続スキャン' },
+            { value: 'single', label: '単発スキャン' }
+          ]}
+        />
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            スキャン間隔 (ミリ秒)
-          </label>
-          <input
-            type="number"
-            min="100"
-            max="5000"
-            step="100"
-            value={settings.scanDelay}
-            onChange={(e) => setSettings({...settings, scanDelay: parseInt(e.target.value)})}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+        <NexusInput
+          type="number"
+          label="スキャン間隔 (ミリ秒)"
+          min="100"
+          max="5000"
+          step="100"
+          value={settings.scanDelay.toString()}
+          onChange={(e) => setSettings({...settings, scanDelay: parseInt(e.target.value)})}
+          variant="nexus"
+        />
+
+        <NexusSelect
+          label="フラッシュライト"
+          value={settings.torchMode}
+          onChange={(e) => setSettings({...settings, torchMode: e.target.value})}
+          variant="nexus"
+          options={[
+            { value: 'auto', label: '自動' },
+            { value: 'on', label: '常時点灯' },
+            { value: 'off', label: '常時消灯' }
+          ]}
+        />
+
+        <div className="space-y-3">
+          <NexusCheckbox
+            checked={settings.soundEnabled}
+            onChange={(e) => setSettings({...settings, soundEnabled: e.target.checked})}
+            label="スキャン音を有効にする"
+            variant="nexus"
+          />
+
+          <NexusCheckbox
+            checked={settings.vibrationEnabled}
+            onChange={(e) => setSettings({...settings, vibrationEnabled: e.target.checked})}
+            label="バイブレーションを有効にする"
+            variant="nexus"
+          />
+
+          <NexusCheckbox
+            checked={settings.autoFocus}
+            onChange={(e) => setSettings({...settings, autoFocus: e.target.checked})}
+            label="オートフォーカスを有効にする"
+            variant="nexus"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            フラッシュライト
-          </label>
-          <select
-            value={settings.torchMode}
-            onChange={(e) => setSettings({...settings, torchMode: e.target.value})}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-          >
-            <option value="auto">自動</option>
-            <option value="on">常時点灯</option>
-            <option value="off">常時消灯</option>
-          </select>
-        </div>
-
-        <div className="space-y-3">
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={settings.soundEnabled}
-              onChange={(e) => setSettings({...settings, soundEnabled: e.target.checked})}
-              className="h-4 w-4 text-purple-600"
-            />
-            <span className="ml-2 text-sm">スキャン音を有効にする</span>
-          </label>
-
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={settings.vibrationEnabled}
-              onChange={(e) => setSettings({...settings, vibrationEnabled: e.target.checked})}
-              className="h-4 w-4 text-purple-600"
-            />
-            <span className="ml-2 text-sm">バイブレーションを有効にする</span>
-          </label>
-
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={settings.autoFocus}
-              onChange={(e) => setSettings({...settings, autoFocus: e.target.checked})}
-              className="h-4 w-4 text-purple-600"
-            />
-            <span className="ml-2 text-sm">オートフォーカスを有効にする</span>
-          </label>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
             対応バーコード形式
           </label>
           <div className="space-y-2">
             {['CODE128', 'QR_CODE', 'EAN13', 'EAN8', 'CODE39', 'ITF'].map((format) => (
-              <label key={format} className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={settings.barcodeFormats.includes(format)}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setSettings({...settings, barcodeFormats: [...settings.barcodeFormats, format]});
-                    } else {
-                      setSettings({...settings, barcodeFormats: settings.barcodeFormats.filter(f => f !== format)});
-                    }
-                  }}
-                  className="h-4 w-4 text-purple-600"
-                />
-                <span className="ml-2 text-sm">{format}</span>
-              </label>
+              <NexusCheckbox
+                key={format}
+                checked={settings.barcodeFormats.includes(format)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setSettings({...settings, barcodeFormats: [...settings.barcodeFormats, format]});
+                  } else {
+                    setSettings({...settings, barcodeFormats: settings.barcodeFormats.filter(f => f !== format)});
+                  }
+                }}
+                label={format}
+                variant="nexus"
+              />
             ))}
           </div>
         </div>

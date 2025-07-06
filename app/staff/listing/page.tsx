@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
-import HoloTable from '@/app/components/ui/HoloTable';
+import NexusButton from '@/app/components/ui/NexusButton';
+import NexusSelect from '@/app/components/ui/NexusSelect';
 
 interface ListingTemplate {
   id: string;
@@ -173,18 +174,18 @@ export default function ListingPage() {
                 </p>
               </div>
               <div className="flex space-x-3">
-                <button className="nexus-button">
+                <NexusButton variant="default">
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                   </svg>
                   一括出品
-                </button>
-                <button className="nexus-button primary">
+                </NexusButton>
+                <NexusButton variant="primary">
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
                   テンプレート作成
-                </button>
+                </NexusButton>
               </div>
             </div>
           </div>
@@ -219,17 +220,18 @@ export default function ListingPage() {
 
               {/* Platform Filter */}
               <div className="flex gap-2">
-                <select
+                <NexusSelect
                   value={selectedPlatform}
                   onChange={(e) => setSelectedPlatform(e.target.value as any)}
-                  className="px-4 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg focus:outline-none focus:border-nexus-yellow text-nexus-text-primary"
-                >
-                  <option value="all">全プラットフォーム</option>
-                  <option value="ebay">eBay</option>
-                  <option value="amazon">Amazon</option>
-                  <option value="mercari">メルカリ</option>
-                  <option value="yahoo">ヤフオク</option>
-                </select>
+                  size="sm"
+                  options={[
+                    { value: "all", label: "全プラットフォーム" },
+                    { value: "ebay", label: "eBay" },
+                    { value: "amazon", label: "Amazon" },
+                    { value: "mercari", label: "メルカリ" },
+                    { value: "yahoo", label: "ヤフオク" }
+                  ]}
+                />
               </div>
             </div>
           </div>
@@ -242,78 +244,82 @@ export default function ListingPage() {
               <h2 className="text-xl font-display font-bold text-nexus-text-primary mb-6">
                 出品可能商品
               </h2>
-              <HoloTable
-                columns={[
-                  { key: 'info', label: '商品情報', width: '25%' },
-                  { key: 'sku', label: 'SKU', width: '12%' },
-                  { key: 'category', label: 'カテゴリ', width: '12%' },
-                  { key: 'price', label: '価格', width: '12%', align: 'right' },
-                  { key: 'status', label: 'ステータス', width: '12%', align: 'center' },
-                  { key: 'listingStatus', label: '出品状況', width: '15%', align: 'center' },
-                  { key: 'actions', label: 'アクション', width: '12%', align: 'center' }
-                ]}
-                data={products}
-                renderCell={(value, column, row) => {
-                  if (column.key === 'info') {
-                    return (
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={row.images[0] || '/api/placeholder/60/60'}
-                          alt={row.name}
-                          className="w-12 h-12 object-cover rounded-lg"
-                        />
-                        <div>
-                          <p className="font-medium text-nexus-text-primary">{row.name}</p>
-                          <p className="text-sm text-nexus-text-secondary">{row.id}</p>
-                        </div>
-                      </div>
-                    );
-                  }
-                  if (column.key === 'sku') {
-                    return <span className="font-mono text-sm">{value}</span>;
-                  }
-                  if (column.key === 'price') {
-                    return <span className="font-display">¥{value?.toLocaleString()}</span>;
-                  }
-                  if (column.key === 'status') {
-                    return (
-                      <span className={`status-badge ${getStatusConfig(value).badge}`}>
-                        {getStatusConfig(value).label}
-                      </span>
-                    );
-                  }
-                  if (column.key === 'listingStatus') {
-                    return (
-                      <div className="flex justify-center gap-2">
-                        {Object.entries(platformConfig).map(([key, config]) => (
-                          <div
-                            key={key}
-                            className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                              row.listingStatus?.[key as keyof typeof row.listingStatus]
-                                ? config.color
-                                : 'bg-gray-200'
-                            }`}
-                          >
-                            <span className="text-white text-xs font-bold">
-                              {config.name.charAt(0)}
-                            </span>
+              <div className="holo-table">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-nexus-border">
+                      <th className="text-left p-4 font-medium text-nexus-text-secondary">商品情報</th>
+                      <th className="text-left p-4 font-medium text-nexus-text-secondary">SKU</th>
+                      <th className="text-left p-4 font-medium text-nexus-text-secondary">カテゴリ</th>
+                      <th className="text-right p-4 font-medium text-nexus-text-secondary">価格</th>
+                      <th className="text-center p-4 font-medium text-nexus-text-secondary">ステータス</th>
+                      <th className="text-center p-4 font-medium text-nexus-text-secondary">出品状況</th>
+                      <th className="text-center p-4 font-medium text-nexus-text-secondary">アクション</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {products.map((product) => (
+                      <tr key={product.id} className="border-b border-nexus-border hover:bg-nexus-bg-tertiary">
+                        <td className="p-4">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={product.images[0] || '/api/placeholder/60/60'}
+                              alt={product.name}
+                              className="w-12 h-12 object-cover rounded-lg"
+                            />
+                            <div>
+                              <p className="font-medium text-nexus-text-primary">{product.name}</p>
+                              <p className="text-sm text-nexus-text-secondary">{product.id}</p>
+                            </div>
                           </div>
-                        ))}
-                      </div>
-                    );
-                  }
-                  if (column.key === 'actions') {
-                    return (
-                      <button className="nexus-button primary">
-                        出品設定
-                      </button>
-                    );
-                  }
-                  return value;
-                }}
-                emptyMessage="出品可能な商品がありません"
-                className="w-full"
-              />
+                        </td>
+                        <td className="p-4">
+                          <span className="font-mono text-sm">{product.sku}</span>
+                        </td>
+                        <td className="p-4 text-sm">{product.category}</td>
+                        <td className="p-4 text-right">
+                          <span className="font-display">¥{product.price?.toLocaleString()}</span>
+                        </td>
+                        <td className="p-4 text-center">
+                          <span className={`status-badge ${getStatusConfig(product.status).badge}`}>
+                            {getStatusConfig(product.status).label}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex justify-center gap-2">
+                            {Object.entries(platformConfig).map(([key, config]) => (
+                              <div
+                                key={key}
+                                className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                                  product.listingStatus?.[key as keyof typeof product.listingStatus]
+                                    ? config.color
+                                    : 'bg-gray-200'
+                                }`}
+                              >
+                                <span className="text-white text-xs font-bold">
+                                  {config.name.charAt(0)}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="p-4 text-center">
+                          <NexusButton variant="primary">
+                            出品設定
+                          </NexusButton>
+                        </td>
+                      </tr>
+                    ))}
+                    {products.length === 0 && (
+                      <tr>
+                        <td colSpan={7} className="p-8 text-center text-nexus-text-secondary">
+                          出品可能な商品がありません
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
@@ -360,10 +366,13 @@ export default function ListingPage() {
                     </div>
 
                     <div className="flex gap-2 mt-4">
-                      <button className="nexus-button flex-1">編集</button>
-                      <button className={`nexus-button ${template.isActive ? '' : 'primary'} flex-1`}>
+                      <NexusButton variant="default" className="flex-1">編集</NexusButton>
+                      <NexusButton 
+                        variant={template.isActive ? "default" : "primary"} 
+                        className="flex-1"
+                      >
                         {template.isActive ? '無効化' : '有効化'}
-                      </button>
+                      </NexusButton>
                     </div>
                   </div>
                 </div>

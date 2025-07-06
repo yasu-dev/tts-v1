@@ -9,12 +9,15 @@ import {
 } from '@heroicons/react/24/outline';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import HoloTable from '@/app/components/ui/HoloTable';
+import NexusButton from '@/app/components/ui/NexusButton';
+import BaseModal from '@/app/components/ui/BaseModal';
 
 export default function SalesPage() {
   const { showToast } = useToast();
   const [salesData, setSalesData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isPromotionModalOpen, setIsPromotionModalOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -33,6 +36,16 @@ export default function SalesPage() {
       type: 'success'
     });
     setIsSettingsModalOpen(false);
+  };
+
+  const handleCreatePromotion = () => {
+    // 実際のプロモーション作成処理をここに実装
+    showToast({
+      title: 'プロモーション作成',
+      message: 'プロモーションを作成しました。設定内容が反映されます。',
+      type: 'success'
+    });
+    setIsPromotionModalOpen(false);
   };
 
   if (loading) {
@@ -55,38 +68,170 @@ export default function SalesPage() {
                 </p>
               </div>
               <div className="flex space-x-3">
-                <button
+                <NexusButton
                   onClick={() => setIsSettingsModalOpen(true)}
-                  className="nexus-button"
+                  icon={<Cog6ToothIcon className="w-5 h-5" />}
                 >
-                  <Cog6ToothIcon className="w-5 h-5 mr-2" />
                   出品設定
-                </button>
-                <button
-                  onClick={() => router.push('/promotions/create')}
-                  className="nexus-button primary"
+                </NexusButton>
+                <NexusButton
+                  onClick={() => setIsPromotionModalOpen(true)}
+                  variant="primary"
+                  icon={<TicketIcon className="w-5 h-5" />}
                 >
-                  <TicketIcon className="w-5 h-5 mr-2" />
                   プロモーション作成
-                </button>
+                </NexusButton>
               </div>
             </div>
           </div>
         </div>
 
         {/* Settings Modal */}
-        {isSettingsModalOpen && (
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-30 z-50 flex justify-center items-center">
-            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
-              <h2 className="text-lg font-bold mb-4">出品設定</h2>
-              {/* TODO: 出品設定フォームを実装 */}
-              <div className="text-right mt-6">
-                <button onClick={() => setIsSettingsModalOpen(false)} className="nexus-button mr-2">キャンセル</button>
-                <button onClick={handleSaveSettings} className="nexus-button primary">保存</button>
-              </div>
+        <BaseModal
+          isOpen={isSettingsModalOpen}
+          onClose={() => setIsSettingsModalOpen(false)}
+          title="出品設定"
+          size="md"
+        >
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                自動出品設定
+              </label>
+              <select className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue">
+                <option value="manual">手動出品</option>
+                <option value="auto">自動出品</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                価格設定方法
+              </label>
+              <select className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue">
+                <option value="manual">手動設定</option>
+                <option value="auto">市場価格連動</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                利益率設定 (%)
+              </label>
+              <input
+                type="number"
+                min="0"
+                max="100"
+                defaultValue="20"
+                className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
+              />
+            </div>
+            
+            <div>
+              <label className="flex items-center">
+                <input type="checkbox" className="mr-2" defaultChecked />
+                <span className="text-sm text-nexus-text-primary">写真撮影完了後に自動出品</span>
+              </label>
+            </div>
+            
+            <div className="text-right mt-6 space-x-2">
+              <NexusButton onClick={() => setIsSettingsModalOpen(false)}>
+                キャンセル
+              </NexusButton>
+              <NexusButton onClick={handleSaveSettings} variant="primary">
+                保存
+              </NexusButton>
             </div>
           </div>
-        )}
+        </BaseModal>
+
+        {/* Promotion Creation Modal */}
+        <BaseModal
+          isOpen={isPromotionModalOpen}
+          onClose={() => setIsPromotionModalOpen(false)}
+          title="プロモーション作成"
+          size="lg"
+        >
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                プロモーション名
+              </label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
+                placeholder="例: 夏の大セール"
+              />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  割引率 (%)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
+                  placeholder="10"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  最低購入金額
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
+                  placeholder="10000"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  開始日
+                </label>
+                <input
+                  type="date"
+                  className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  終了日
+                </label>
+                <input
+                  type="date"
+                  className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                プロモーション詳細
+              </label>
+              <textarea
+                rows={3}
+                className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
+                placeholder="プロモーションの詳細説明を入力してください"
+              />
+            </div>
+            
+            <div className="text-right mt-6 space-x-2">
+              <NexusButton onClick={() => setIsPromotionModalOpen(false)}>
+                キャンセル
+              </NexusButton>
+              <NexusButton onClick={handleCreatePromotion} variant="primary">
+                プロモーション作成
+              </NexusButton>
+            </div>
+          </div>
+        </BaseModal>
 
         {/* Stats Overview - Intelligence Metrics Style */}
         <div className="intelligence-metrics">

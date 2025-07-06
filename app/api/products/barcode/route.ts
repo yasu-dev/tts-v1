@@ -189,13 +189,7 @@ const generateBarcodeHTML = (products: any[]) => {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await AuthService.requireAuth(request, ['staff', 'admin']);
-    if (!user) {
-      return NextResponse.json(
-        { error: '認証が必要です' },
-        { status: 401 }
-      );
-    }
+    const user = await AuthService.requireRole(request, ['staff', 'admin']);
 
     const body = await request.json();
     const { productIds } = body;
@@ -248,13 +242,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await AuthService.requireAuth(request, ['staff', 'admin']);
-    if (!user) {
-      return NextResponse.json(
-        { error: '認証が必要です' },
-        { status: 401 }
-      );
-    }
+    const user = await AuthService.requireRole(request, ['staff', 'admin']);
 
     const { searchParams } = new URL(request.url);
     const productId = searchParams.get('productId');

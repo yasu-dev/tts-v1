@@ -467,13 +467,15 @@ export default function UnifiedProductFlow({
                   {/* タスクリスト */}
                   <div className="space-y-2">
                     {step.tasks.slice(0, compact ? 2 : 3).map((task) => (
-                      <div
+                      <button
                         key={task.id}
-                        className="flex items-center justify-between text-xs group-hover:bg-white/50 p-2 rounded transition-colors"
+                        className="w-full flex items-center justify-between text-xs group-hover:bg-white/50 p-2 rounded transition-colors hover:bg-white/70 focus:outline-none focus:ring-1 focus:ring-blue-500"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleStepClick(step.id, task.id);
                         }}
+                        aria-label={`${task.name} - ${task.count}件の作業`}
+                        title={`${task.name}をクリックして詳細画面に移動`}
                       >
                         <div className="flex items-center gap-2">
                           <span className="text-gray-700 font-medium">{task.name}</span>
@@ -487,11 +489,17 @@ export default function UnifiedProductFlow({
                           <span 
                             className="px-2 py-1 rounded-full text-white font-bold text-[10px] min-w-[20px] text-center"
                             style={{ backgroundColor: step.color }}
+                            aria-label={`${task.count}件`}
                           >
                             {task.count}
                           </span>
                         )}
-                      </div>
+                        {showCounts && task.count === 0 && (
+                          <span className="text-gray-400 text-[10px]">
+                            完了
+                          </span>
+                        )}
+                      </button>
                     ))}
                   </div>
 

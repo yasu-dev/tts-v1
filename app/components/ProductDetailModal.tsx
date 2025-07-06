@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { BaseModal, NexusButton } from './ui';
+import { BaseModal, NexusButton, NexusInput, NexusSelect, NexusTextarea } from './ui';
+import { useToast } from './features/notifications/ToastProvider';
+import { CheckIcon, XMarkIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
 
 interface Product {
   id: string;
@@ -31,6 +33,79 @@ interface ProductDetailModalProps {
 
 export default function ProductDetailModal({ isOpen, onClose, product }: ProductDetailModalProps) {
   const [activeTab, setActiveTab] = useState('details');
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const { showToast } = useToast();
+
+  const handleEditProduct = () => {
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    try {
+      // フォームデータの取得をシミュレート
+      const editData = {
+        id: product?.id,
+        name: '更新された商品名', // 実際はフォームから取得
+        category: '更新されたカテゴリ', // 実際はフォームから取得
+        description: '更新された商品説明', // 実際はフォームから取得
+        updatedAt: new Date().toISOString()
+      };
+      
+      // バリデーション
+      if (!editData.name || !editData.category) {
+        showToast({
+          title: 'バリデーションエラー',
+          message: '商品名とカテゴリは必須項目です',
+          type: 'warning'
+        });
+        return;
+      }
+      
+      // API呼び出しシミュレーション
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // 商品データの更新をシミュレート
+      const updatedProduct = {
+        ...product,
+        ...editData
+      };
+      
+      // ローカルストレージに保存（永続化）
+      const existingProducts = JSON.parse(localStorage.getItem('products') || '[]');
+      const updatedProducts = existingProducts.map((p: any) => 
+        p.id === product?.id ? updatedProduct : p
+      );
+      localStorage.setItem('products', JSON.stringify(updatedProducts));
+      
+      // 成功メッセージ
+      showToast({
+        title: '更新完了',
+        message: '商品情報を正常に更新しました',
+        type: 'success'
+      });
+      
+      setIsEditModalOpen(false);
+      // 商品更新ログを記録
+      const updateLog = {
+        action: 'product_updated',
+        timestamp: new Date().toISOString(),
+        productId: updatedProduct.id,
+        user: 'current_user',
+        changes: Object.keys(updatedProduct)
+      };
+      const logs = JSON.parse(localStorage.getItem('productUpdateLogs') || '[]');
+      logs.push(updateLog);
+      localStorage.setItem('productUpdateLogs', JSON.stringify(logs));
+      
+    } catch (error) {
+      console.error('商品更新エラー:', error);
+      showToast({
+        title: '更新エラー',
+        message: '商品情報の更新に失敗しました。もう一度お試しください。',
+        type: 'error'
+      });
+    }
+  };
 
   if (!isOpen || !product) return null;
 
@@ -222,16 +297,58 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
             閉じる
           </NexusButton>
           <NexusButton
-            onClick={() => {
-              console.log('編集機能: 詳細編集画面への遷移をシミュレート');
-              // 実際の実装では編集モーダルまたは編集ページに遷移
-            }}
+            onClick={handleEditProduct}
             variant="primary"
           >
             編集
           </NexusButton>
         </div>
       </div>
+
+      {/* Product Edit Modal */}
+      <BaseModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        title="商品情報編集"
+        size="md"
+      >
+        <div className="space-y-6">
+          <NexusInput
+            type="text"
+            label="商品名"
+            defaultValue={product?.name}
+            variant="nexus"
+          />
+          
+          <NexusSelect
+            label="カテゴリ"
+            defaultValue={product?.category}
+            variant="nexus"
+            options={[
+              { value: 'カメラ本体', label: 'カメラ本体' },
+              { value: 'レンズ', label: 'レンズ' },
+              { value: '時計', label: '時計' },
+              { value: 'アクセサリー', label: 'アクセサリー' }
+            ]}
+          />
+          
+          <NexusTextarea
+            label="商品説明"
+            rows={3}
+            placeholder="商品の詳細説明を入力"
+            variant="nexus"
+          />
+          
+          <div className="text-right space-x-2">
+            <NexusButton onClick={() => setIsEditModalOpen(false)}>
+              キャンセル
+            </NexusButton>
+            <NexusButton onClick={handleSaveEdit} variant="primary">
+              保存
+            </NexusButton>
+          </div>
+        </div>
+      </BaseModal>
     </BaseModal>
   );
 }

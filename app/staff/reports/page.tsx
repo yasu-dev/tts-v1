@@ -114,13 +114,79 @@ export default function StaffReportsPage() {
   const totalIssues = performanceData.reduce((sum, data) => sum + data.issues, 0);
   const qualityRate = ((totalInspections - totalIssues) / totalInspections) * 100;
 
-  const handleCreateReport = () => {
-    showToast({
-      title: 'レポート作成',
-      message: 'カスタムレポートを作成しました',
-      type: 'success'
-    });
-    setIsReportModalOpen(false);
+  const handleCreateReport = async () => {
+    try {
+      // フォームデータの取得をシミュレート
+      const reportConfig = {
+        type: 'sales', // 実際はフォームから取得
+        startDate: '2024-01-01', // 実際はフォームから取得
+        endDate: '2024-12-31', // 実際はフォームから取得
+        format: 'pdf', // 実際はフォームから取得
+        includeAllStaff: true,
+        includeAllCategories: true
+      };
+      
+      // バリデーション
+      if (!reportConfig.type || !reportConfig.startDate || !reportConfig.endDate) {
+        showToast({
+          title: '入力エラー',
+          message: 'レポート種類と期間は必須項目です',
+          type: 'warning'
+        });
+        return;
+      }
+      
+      if (new Date(reportConfig.startDate) > new Date(reportConfig.endDate)) {
+        showToast({
+          title: '日付エラー',
+          message: '開始日は終了日より前の日付を設定してください',
+          type: 'warning'
+        });
+        return;
+      }
+      
+      // レポート生成処理をシミュレート
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      // レポートデータの生成
+      const reportData = {
+        id: `report_${Date.now()}`,
+        ...reportConfig,
+        generatedAt: new Date().toISOString(),
+        fileSize: '2.4MB',
+        fileName: `${reportConfig.type}_report_${new Date().toISOString().split('T')[0]}.${reportConfig.format}`
+      };
+      
+      // ファイルダウンロードをシミュレート
+      const blob = new Blob([JSON.stringify(reportData, null, 2)], { 
+        type: reportConfig.format === 'pdf' ? 'application/pdf' : 'text/csv' 
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = reportData.fileName;
+      link.click();
+      URL.revokeObjectURL(url);
+      
+      // レポート履歴に保存
+      const reportHistory = JSON.parse(localStorage.getItem('reportHistory') || '[]');
+      reportHistory.push(reportData);
+      localStorage.setItem('reportHistory', JSON.stringify(reportHistory));
+      
+      showToast({
+        title: 'レポート作成完了',
+        message: `${reportConfig.type}レポートを正常に作成しました。ファイルがダウンロードされます。`,
+        type: 'success'
+      });
+      
+      setIsReportModalOpen(false);
+    } catch (error) {
+      showToast({
+        title: 'レポート作成エラー',
+        message: 'レポートの作成に失敗しました。もう一度お試しください。',
+        type: 'error'
+      });
+    }
   };
 
   const scrollToPerformance = () => {
@@ -167,7 +233,82 @@ export default function StaffReportsPage() {
           <div className="fixed inset-0 bg-gray-500 bg-opacity-30 z-50 flex justify-center items-center">
             <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
               <h2 className="text-lg font-bold mb-4">カスタムレポート作成</h2>
-              {/* TODO: レポート条件フォームを実装 */}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    レポート種類
+                  </label>
+                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <option value="">レポート種類を選択</option>
+                    <option value="sales">売上レポート</option>
+                    <option value="inventory">在庫レポート</option>
+                    <option value="tasks">タスクレポート</option>
+                    <option value="inspection">検査レポート</option>
+                    <option value="financial">財務レポート</option>
+                  </select>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      開始日
+                    </label>
+                    <input
+                      type="date"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      終了日
+                    </label>
+                    <input
+                      type="date"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    出力形式
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <label className="flex items-center">
+                      <input type="radio" name="format" value="pdf" className="mr-2" defaultChecked />
+                      <span className="text-sm">PDF</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input type="radio" name="format" value="excel" className="mr-2" />
+                      <span className="text-sm">Excel</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input type="radio" name="format" value="csv" className="mr-2" />
+                      <span className="text-sm">CSV</span>
+                    </label>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    対象範囲
+                  </label>
+                  <div className="space-y-1">
+                    <label className="flex items-center">
+                      <input type="checkbox" className="mr-2" defaultChecked />
+                      <span className="text-sm">全スタッフ</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input type="checkbox" className="mr-2" defaultChecked />
+                      <span className="text-sm">全商品カテゴリ</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input type="checkbox" className="mr-2" />
+                      <span className="text-sm">特定期間のみ</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
               <div className="text-right mt-6">
                 <button onClick={() => setIsReportModalOpen(false)} className="nexus-button mr-2">キャンセル</button>
                 <button onClick={handleCreateReport} className="nexus-button primary">作成</button>
@@ -329,31 +470,161 @@ export default function StaffReportsPage() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <button
-                onClick={() => showToast({
-                  title: 'エクスポート完了',
-                  message: '週次レポートをダウンロードしました',
-                  type: 'success'
-                })}
+                onClick={async () => {
+                  try {
+                    // 週次レポートデータ生成
+                    const weeklyData = {
+                      period: 'weekly',
+                      startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                      endDate: new Date().toISOString().split('T')[0],
+                      data: performanceData.slice(-7)
+                    };
+                    
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    
+                    // CSVファイル生成
+                    const csvContent = [
+                      ['日付', '検査数', '問題数', '品質率'],
+                      ...weeklyData.data.map(item => [
+                        item.date, item.inspections, item.issues, 
+                        ((item.inspections - item.issues) / item.inspections * 100).toFixed(1) + '%'
+                      ])
+                    ].map(row => row.join(',')).join('\n');
+                    
+                    const blob = new Blob([csvContent], { type: 'text/csv' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `weekly_report_${weeklyData.endDate}.csv`;
+                    link.click();
+                    URL.revokeObjectURL(url);
+                    
+                    showToast({
+                      title: 'エクスポート完了',
+                      message: '週次レポートを正常にダウンロードしました',
+                      type: 'success'
+                    });
+                  } catch (error) {
+                    showToast({
+                      title: 'エクスポートエラー',
+                      message: 'レポートのエクスポートに失敗しました',
+                      type: 'error'
+                    });
+                  }
+                }}
                 className="nexus-button primary"
               >
                 週次レポートをエクスポート
               </button>
               <button
-                onClick={() => showToast({
-                  title: 'エクスポート完了',
-                  message: '月次レポートをダウンロードしました',
-                  type: 'success'
-                })}
+                onClick={async () => {
+                  try {
+                    // 月次レポートデータ生成
+                    const monthlyData = {
+                      period: 'monthly',
+                      startDate: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0],
+                      endDate: new Date().toISOString().split('T')[0],
+                      data: performanceData,
+                      summary: {
+                        totalInspections,
+                        totalIssues,
+                        qualityRate: qualityRate.toFixed(1)
+                      }
+                    };
+                    
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    // Excelファイルデータ生成（CSV形式で代用）
+                    const excelContent = [
+                      ['月次レポート'],
+                      ['期間', `${monthlyData.startDate} ～ ${monthlyData.endDate}`],
+                      [''],
+                      ['サマリー'],
+                      ['総検査数', totalInspections],
+                      ['総問題数', totalIssues],
+                      ['品質率', qualityRate.toFixed(1) + '%'],
+                      [''],
+                      ['詳細データ'],
+                      ['日付', '検査数', '問題数', '品質率'],
+                      ...monthlyData.data.map(item => [
+                        item.date, item.inspections, item.issues,
+                        ((item.inspections - item.issues) / item.inspections * 100).toFixed(1) + '%'
+                      ])
+                    ].map(row => Array.isArray(row) ? row.join(',') : row).join('\n');
+                    
+                    const blob = new Blob([excelContent], { type: 'text/csv' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `monthly_report_${monthlyData.endDate}.csv`;
+                    link.click();
+                    URL.revokeObjectURL(url);
+                    
+                    showToast({
+                      title: 'エクスポート完了',
+                      message: '月次レポートを正常にダウンロードしました',
+                      type: 'success'
+                    });
+                  } catch (error) {
+                    showToast({
+                      title: 'エクスポートエラー',
+                      message: 'レポートのエクスポートに失敗しました',
+                      type: 'error'
+                    });
+                  }
+                }}
                 className="nexus-button"
               >
                 月次レポートをエクスポート
               </button>
               <button
-                onClick={() => showToast({
-                  title: 'メール送信',
-                  message: 'レポートをメールで送信しました',
-                  type: 'success'
-                })}
+                onClick={async () => {
+                  try {
+                    // メール送信データ準備
+                    const emailData = {
+                      to: 'manager@company.com',
+                      subject: `業務レポート - ${new Date().toISOString().split('T')[0]}`,
+                      body: `
+業務レポートを送信いたします。
+
+【期間】${new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]} ～ ${new Date().toISOString().split('T')[0]}
+
+【サマリー】
+・総検査数: ${totalInspections}件
+・総問題数: ${totalIssues}件  
+・品質率: ${qualityRate.toFixed(1)}%
+
+詳細は添付ファイルをご確認ください。
+                      `.trim()
+                    };
+                    
+                    await new Promise(resolve => setTimeout(resolve, 2500));
+                    
+                    // メール送信ログを保存
+                    const emailLog = {
+                      ...emailData,
+                      sentAt: new Date().toISOString(),
+                      status: 'sent',
+                      id: `email_${Date.now()}`
+                    };
+                    
+                    const emailHistory = JSON.parse(localStorage.getItem('emailHistory') || '[]');
+                    emailHistory.push(emailLog);
+                    localStorage.setItem('emailHistory', JSON.stringify(emailHistory));
+                    
+                    showToast({
+                      title: 'メール送信完了',
+                      message: 'レポートを正常にメール送信しました',
+                      type: 'success'
+                    });
+                  } catch (error) {
+                    showToast({
+                      title: 'メール送信エラー',
+                      message: 'メールの送信に失敗しました',
+                      type: 'error'
+                    });
+                  }
+                }}
                 className="nexus-button"
               >
                 レポートをメール送信

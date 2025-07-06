@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
+import BaseModal from '@/app/components/ui/BaseModal';
+import NexusButton from '@/app/components/ui/NexusButton';
 
 interface Location {
   code: string;
@@ -45,6 +48,9 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
   const [viewMode, setViewMode] = useState<'grid' | 'list' | 'movement'>('grid');
   const [filteredLocations, setFilteredLocations] = useState<Location[]>([]);
   const [mounted, setMounted] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [locationToDelete, setLocationToDelete] = useState<string | null>(null);
+  const { showToast } = useToast();
 
   useEffect(() => {
     setMounted(true);
@@ -72,7 +78,23 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
 
   const fetchLocations = async () => {
     try {
-      // モックデータ（実際はAPIから取得）
+      const response = await fetch('/api/locations');
+      if (response.ok) {
+        const data = await response.json();
+        const fetchedLocations = data.map((location: any) => ({
+          code: location.code,
+          name: location.name,
+          type: mapLocationTypeFromApi(location.zone),
+          capacity: location.capacity || 50,
+          used: location._count?.products || 0,
+          products: location.products || []
+        }));
+        setLocations(fetchedLocations);
+        setFilteredLocations(fetchedLocations);
+        return;
+      }
+      
+      // フォールバック: モックデータ
       const mockLocations: Location[] = [
         {
           code: 'STD-A-01',
@@ -197,6 +219,110 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
     if (percentage >= 90) return 'critical';
     if (percentage >= 70) return 'monitoring';
     return 'optimal';
+  };
+
+  const mapLocationTypeFromApi = (zone: string) => {
+    switch (zone?.toLowerCase()) {
+      case 'h': return 'controlled'; // 防湿庫
+      case 'v': return 'secure'; // 金庫室
+      case 'p': return 'processing'; // 作業エリア
+      default: return 'standard'; // 標準棚
+    }
+  };
+
+  const handleCreateLocation = async (locationData: any) => {
+    try {
+      const response = await fetch('/api/locations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(locationData)
+      });
+      
+      if (response.ok) {
+        showToast({
+          type: 'success',
+          title: 'ロケーション作成完了',
+          message: `${locationData.name}を作成しました`,
+          duration: 3000
+        });
+        fetchLocations(); // データを再取得
+      } else {
+        throw new Error('ロケーション作成に失敗しました');
+      }
+    } catch (error) {
+      showToast({
+        type: 'error',
+        title: 'エラー',
+        message: 'ロケーション作成中にエラーが発生しました',
+        duration: 4000
+      });
+    }
+  };
+
+  const handleUpdateLocation = async (locationId: string, updateData: any) => {
+    try {
+      const response = await fetch('/api/locations', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: locationId, ...updateData })
+      });
+      
+      if (response.ok) {
+        showToast({
+          type: 'success',
+          title: 'ロケーション更新完了',
+          message: 'ロケーション情報を更新しました',
+          duration: 3000
+        });
+        fetchLocations(); // データを再取得
+      } else {
+        throw new Error('ロケーション更新に失敗しました');
+      }
+    } catch (error) {
+      showToast({
+        type: 'error',
+        title: 'エラー',
+        message: 'ロケーション更新中にエラーが発生しました',
+        duration: 4000
+      });
+    }
+  };
+
+  const handleDeleteLocation = async (locationCode: string) => {
+    setLocationToDelete(locationCode);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDeleteLocation = async () => {
+    if (!locationToDelete) return;
+
+    try {
+      const response = await fetch(`/api/locations?code=${locationToDelete}`, {
+        method: 'DELETE'
+      });
+      
+      if (response.ok) {
+        showToast({
+          type: 'success',
+          title: 'ロケーション削除完了',
+          message: 'ロケーションを削除しました',
+          duration: 3000
+        });
+        fetchLocations(); // データを再取得
+        setSelectedLocation(null); // 選択状態をクリア
+        setIsDeleteModalOpen(false);
+        setLocationToDelete(null);
+      } else {
+        throw new Error('ロケーション削除に失敗しました');
+      }
+    } catch (error) {
+      showToast({
+        type: 'error',
+        title: 'エラー',
+        message: 'ロケーション削除中にエラーが発生しました',
+        duration: 4000
+      });
+    }
   };
 
   if (!mounted || loading) {
@@ -559,6 +685,43 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <BaseModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setLocationToDelete(null);
+        }}
+        title="ロケーション削除の確認"
+        size="md"
+      >
+        <div>
+          <p className="text-nexus-text-primary mb-4">
+            このロケーションを削除しますか？
+          </p>
+          <p className="text-nexus-text-secondary text-sm mb-6">
+            この操作は元に戻せません。
+          </p>
+          <div className="flex justify-end gap-3">
+            <NexusButton
+              onClick={() => {
+                setIsDeleteModalOpen(false);
+                setLocationToDelete(null);
+              }}
+              variant="default"
+            >
+              キャンセル
+            </NexusButton>
+            <NexusButton
+              onClick={confirmDeleteLocation}
+              variant="danger"
+            >
+              削除する
+            </NexusButton>
+          </div>
+        </div>
+      </BaseModal>
     </div>
   );
 } 

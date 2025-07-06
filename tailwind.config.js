@@ -8,21 +8,23 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // THE WORLD DOOR Nexus Color System (完全なuiux指示.md準拠)
-        'primary-blue': '#0064D2',
-        'primary-blue-light': '#0078FF', 
-        'primary-blue-lighter': '#40C4FF',
-        'nexus-yellow': '#FFCE00',
-        'nexus-red': '#E53238',
-        'nexus-green': '#86B817',
-        'nexus-purple': '#7B1FA2',
-        'nexus-cyan': '#00BCD4',
-        'nexus-background': '#F8FAFE',
-        'nexus-surface': 'rgba(255, 255, 255, 0.97)',
-        'nexus-text-primary': '#1A1A1A',
-        'nexus-text-secondary': '#666666',
-        'nexus-text-muted': '#999999',
-        'nexus-border': 'rgba(0, 100, 210, 0.25)',
+        // CSS変数を参照（統一性を保つ）
+        'primary-blue': 'var(--primary-blue)',
+        'primary-blue-light': 'var(--primary-blue-light)', 
+        'primary-blue-lighter': 'var(--primary-blue-lighter)',
+        'nexus-yellow': 'var(--nexus-yellow)',
+        'nexus-red': 'var(--nexus-red)',
+        'nexus-green': 'var(--nexus-green)',
+        'nexus-purple': 'var(--nexus-purple)',
+        'nexus-cyan': 'var(--nexus-cyan)',
+        'nexus-background': 'var(--background)',
+        'nexus-surface': 'var(--surface)',
+        'nexus-bg-primary': 'var(--background)',
+        'nexus-bg-secondary': 'var(--surface)',
+        'nexus-text-primary': 'var(--text-primary)',
+        'nexus-text-secondary': 'var(--text-secondary)',
+        'nexus-text-muted': 'var(--text-muted)',
+        'nexus-border': 'var(--border)',
         
         // 地域別カラーリング (6地域システム)
         'region-americas': 'rgba(0, 100, 210, 0.35)',
@@ -93,10 +95,21 @@ module.exports = {
         '4xl': '1920px',
       },
       spacing: {
-        '18': '4.5rem', // ブランドロゴサイズ用
-        '21': '5.25rem', // 各種コンポーネント用
+        // 4px基準のスペーシングシステム
+        '1': '0.25rem',   // 4px
+        '2': '0.5rem',    // 8px  
+        '3': '0.75rem',   // 12px
+        '4': '1rem',      // 16px
+        '5': '1.25rem',   // 20px
+        '6': '1.5rem',    // 24px
+        '8': '2rem',      // 32px
+        '10': '2.5rem',   // 40px
+        '12': '3rem',     // 48px
+        // カスタムスペーシング
+        '18': '4.5rem',   // ブランドロゴサイズ用
+        '21': '5.25rem',  // 各種コンポーネント用
         '85': '21.25rem', // ヘッダー高さ (85px)
-        '340': '85rem', // サイドバー幅 (340px)
+        '340': '85rem',   // サイドバー幅 (340px)
       },
       borderRadius: {
         'nexus': '14px', // ボタン用

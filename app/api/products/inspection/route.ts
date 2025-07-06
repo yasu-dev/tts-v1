@@ -6,13 +6,7 @@ const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await AuthService.requireAuth(request, ['staff', 'admin']);
-    if (!user) {
-      return NextResponse.json(
-        { error: '認証が必要です' },
-        { status: 401 }
-      );
-    }
+    const user = await AuthService.requireRole(request, ['staff', 'admin']);
 
     const body = await request.json();
     const { productId, inspectionNotes, condition, status, locationId } = body;
@@ -76,10 +70,10 @@ export async function POST(request: NextRequest) {
         description: `商品 ${product.name} の検品が完了しました`,
         userId: user.id,
         productId,
-        metadata: {
+        metadata: JSON.stringify({
           condition,
           notes: inspectionNotes,
-        },
+        }),
       },
     });
 
@@ -99,13 +93,7 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const user = await AuthService.requireAuth(request, ['staff', 'admin']);
-    if (!user) {
-      return NextResponse.json(
-        { error: '認証が必要です' },
-        { status: 401 }
-      );
-    }
+    const user = await AuthService.requireRole(request, ['staff', 'admin']);
 
     const body = await request.json();
     const { productId, status } = body;
@@ -154,10 +142,10 @@ export async function PUT(request: NextRequest) {
         description: `商品 ${product.name} のステータスが ${status} に変更されました`,
         userId: user.id,
         productId,
-        metadata: {
+        metadata: JSON.stringify({
           fromStatus: product.status,
           toStatus: mappedStatus,
-        },
+        }),
       },
     });
 

@@ -1,6 +1,7 @@
 'use client';
 
 import DashboardLayout from '../components/layouts/DashboardLayout';
+import PageHeader from '../components/ui/PageHeader';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -8,9 +9,15 @@ import {
   TruckIcon, 
   CalendarIcon, 
   QrCodeIcon,
-  DocumentTextIcon 
+  DocumentTextIcon,
+  PlusIcon,
+  CheckIcon,
+  DocumentArrowDownIcon
 } from '@heroicons/react/24/outline';
 import HoloTable from '../components/ui/HoloTable';
+import NexusButton from '@/app/components/ui/NexusButton';
+import NexusInput from '@/app/components/ui/NexusInput';
+import BaseModal from '@/app/components/ui/BaseModal';
 
 export default function DeliveryPage() {
   const router = useRouter();
@@ -27,104 +34,93 @@ export default function DeliveryPage() {
     setIsBarcodeModalOpen(true);
   };
 
+  const headerActions = (
+    <>
+      <Link href="/delivery-plan">
+        <NexusButton 
+          variant="primary"
+          icon={<PlusIcon className="w-5 h-5" />}
+        >
+          新規納品プラン作成
+        </NexusButton>
+      </Link>
+      <NexusButton 
+        onClick={handleGenerateBarcode}
+        icon={<QrCodeIcon className="w-5 h-5" />}
+      >
+        バーコード発行
+      </NexusButton>
+    </>
+  );
+
   return (
     <DashboardLayout userType="seller">
       <div className="space-y-8">
-        {/* Page Header - Intelligence Card Style */}
-        <div className="intelligence-card americas">
-          <div className="p-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-display font-bold text-nexus-text-primary mb-2">納品管理</h1>
-                <h2 className="text-xl font-bold text-nexus-text-primary flex items-center gap-3">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                  </svg>
-                  納品管理
-                </h2>
-                <p className="text-nexus-text-secondary mt-1">
-                  商品の納品プランを作成・管理します
-                </p>
-              </div>
-              <div className="flex gap-4">
-                <Link href="/delivery-plan" className="nexus-button primary">
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                  新規納品プラン作成
-                </Link>
-                <button 
-                  onClick={handleGenerateBarcode}
-                  className="nexus-button"
-                >
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10m0-10h16M4 7h16M4 17h16m0-10L8 3M20 7L16 3"></path>
-                  </svg>
-                  バーコード発行
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* Page Header */}
+        <PageHeader
+          title="納品管理"
+          subtitle="商品の納品プランを作成・管理します"
+          actions={headerActions}
+        />
 
         {/* Barcode Generation Modal */}
-        {isBarcodeModalOpen && (
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-30 flex items-center justify-center z-50">
-            <div className="bg-nexus-bg-primary rounded-lg p-8 max-w-md w-full">
-              <h3 className="text-xl font-bold text-nexus-text-primary mb-4">バーコード生成</h3>
-              
-              <div className="space-y-4">
-                <div className="text-center p-8 border-2 border-dashed border-nexus-border rounded-lg">
-                  <QrCodeIcon className="w-16 h-16 mx-auto text-nexus-text-secondary mb-4" />
-                  <p className="text-nexus-text-secondary">
-                    選択した配送のバーコードを生成します
-                  </p>
-                </div>
+        <BaseModal
+          isOpen={isBarcodeModalOpen}
+          onClose={() => setIsBarcodeModalOpen(false)}
+          title="バーコード生成"
+          size="md"
+        >
+          <div className="space-y-4">
+            <div className="text-center p-8 border-2 border-dashed border-nexus-border rounded-lg">
+              <QrCodeIcon className="w-16 h-16 mx-auto text-nexus-text-secondary mb-4" />
+              <p className="text-nexus-text-secondary">
+                選択した配送のバーコードを生成します
+              </p>
+            </div>
 
-                <div className="bg-nexus-bg-secondary p-4 rounded-lg">
-                  <p className="text-sm text-nexus-text-secondary">
-                    生成されたバーコードは、配送ラベルに印刷して使用できます。
-                  </p>
-                </div>
+            <div className="bg-nexus-bg-secondary p-4 rounded-lg">
+              <p className="text-sm text-nexus-text-secondary">
+                生成されたバーコードは、配送ラベルに印刷して使用できます。
+              </p>
+            </div>
 
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => {
-                      // バーコード生成処理
-                      const barcodeData = {
-                        type: 'delivery',
-                        id: Date.now().toString(),
-                        timestamp: new Date().toISOString()
-                      };
-                      
-                      // ダウンロード処理
-                      const dataStr = JSON.stringify(barcodeData);
-                      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-                      
-                      const exportFileDefaultName = `barcode_${barcodeData.id}.json`;
-                      
-                      const linkElement = document.createElement('a');
-                      linkElement.setAttribute('href', dataUri);
-                      linkElement.setAttribute('download', exportFileDefaultName);
-                      linkElement.click();
-                      
-                      setIsBarcodeModalOpen(false);
-                    }}
-                    className="nexus-button primary flex-1"
-                  >
-                    バーコードを生成
-                  </button>
-                  <button
-                    onClick={() => setIsBarcodeModalOpen(false)}
-                    className="nexus-button flex-1"
-                  >
-                    キャンセル
-                  </button>
-                </div>
-              </div>
+            <div className="flex gap-4 mt-6">
+              <NexusButton
+                onClick={() => {
+                  // バーコード生成処理
+                  const barcodeData = {
+                    type: 'delivery',
+                    id: Date.now().toString(),
+                    timestamp: new Date().toISOString()
+                  };
+                  
+                  // ダウンロード処理
+                  const dataStr = JSON.stringify(barcodeData);
+                  const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                  
+                  const exportFileDefaultName = `barcode_${barcodeData.id}.json`;
+                  
+                  const linkElement = document.createElement('a');
+                  linkElement.setAttribute('href', dataUri);
+                  linkElement.setAttribute('download', exportFileDefaultName);
+                  linkElement.click();
+                  
+                  setIsBarcodeModalOpen(false);
+                }}
+                variant="primary"
+                className="flex-1"
+              >
+                バーコードを生成
+              </NexusButton>
+              <NexusButton
+                onClick={() => setIsBarcodeModalOpen(false)}
+                className="flex-1"
+              >
+                キャンセル
+              </NexusButton>
             </div>
           </div>
-        )}
+        </BaseModal>
 
         {/* New Delivery Plan Form - Intelligence Card Style */}
         <div className="intelligence-card americas">
@@ -133,45 +129,33 @@ export default function DeliveryPage() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                  SKU（自動採番/手動入力）
-                </label>
-                <input
+                <NexusInput
                   type="text"
-                  className="nexus-input w-full"
+                  label="SKU（自動採番/手動入力）"
                   placeholder="TWD-20240115-00001"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                  ブランド
-                </label>
-                <input
+                <NexusInput
                   type="text"
-                  className="nexus-input w-full"
+                  label="ブランド"
                   placeholder="Canon, Sony, Rolex..."
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                  モデル/型番
-                </label>
-                <input
+                <NexusInput
                   type="text"
-                  className="nexus-input w-full"
+                  label="モデル/型番"
                   placeholder="EOS R5, FE 24-70mm..."
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                  シリアル番号
-                </label>
-                <input
+                <NexusInput
                   type="text"
-                  className="nexus-input w-full"
+                  label="シリアル番号"
                   placeholder="シリアル番号を入力"
                 />
               </div>
@@ -197,12 +181,9 @@ export default function DeliveryPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                  保険申告価値
-                </label>
-                <input
+                <NexusInput
                   type="number"
-                  className="nexus-input w-full"
+                  label="保険申告価値"
                   placeholder="450000"
                 />
               </div>
@@ -223,18 +204,17 @@ export default function DeliveryPage() {
             </div>
 
             <div className="flex gap-4 mt-8">
-              <button className="nexus-button primary">
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                </svg>
+              <NexusButton 
+                variant="primary"
+                icon={<CheckIcon className="w-5 h-5" />}
+              >
                 納品プラン確定
-              </button>
-              <button className="nexus-button">
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V2"></path>
-                </svg>
+              </NexusButton>
+              <NexusButton 
+                icon={<DocumentArrowDownIcon className="w-5 h-5" />}
+              >
                 下書き保存
-              </button>
+              </NexusButton>
             </div>
           </div>
         </div>
