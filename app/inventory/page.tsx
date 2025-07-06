@@ -254,7 +254,7 @@ export default function InventoryPage() {
       <div className="space-y-8">
         {/* Page Header - Intelligence Card Style */}
         <div className="intelligence-card europe">
-          <div className="p-3 sm:p-4 md:p-6 lg:p-8">
+          <div className="p-8">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
               <div className="flex-1">
                 <h1 className="text-2xl sm:text-3xl font-display font-bold text-nexus-text-primary mb-2">在庫管理</h1>
@@ -434,7 +434,7 @@ export default function InventoryPage() {
 
         {/* Inventory Table - Holo Table Style */}
         <div className="intelligence-card europe">
-          <div className="p-3 sm:p-4 md:p-6 lg:p-8">
+          <div className="p-8">
             <div className="mb-3 sm:mb-6">
               <h3 className="text-lg sm:text-2xl font-display font-bold text-nexus-text-primary">在庫リスト</h3>
               <p className="text-nexus-text-secondary mt-1 text-xs sm:text-sm">現在の在庫状況</p>

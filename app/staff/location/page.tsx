@@ -122,7 +122,7 @@ export default function LocationPage() {
 
             {/* Quick Search Bar */}
             <div className="mt-6 pt-6 border-t border-nexus-border">
-              <div className="flex-1 max-w-md">
+              <div className="flex-1 max-w-[1600px]">
                 <div className="relative">
                   <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-nexus-text-secondary" />
                   <input
@@ -260,7 +260,7 @@ export default function LocationPage() {
           )}
 
           {activeTab === 'register' && (
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-[1600px] mx-auto">
               <LocationRegistration />
             </div>
           )}
@@ -326,7 +326,7 @@ export default function LocationPage() {
         {/* Scanner Modal */}
         {isScannerOpen && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="intelligence-card global max-w-md w-full">
+            <div className="intelligence-card global max-w-[1600px] w-full">
               <div className="p-6">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-bold text-nexus-text-primary">バーコードスキャン</h3>

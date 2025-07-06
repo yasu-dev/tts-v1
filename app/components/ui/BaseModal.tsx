@@ -5,6 +5,7 @@ interface BaseModalProps {
   isOpen: boolean;
   onClose: () => void;
   title?: string;
+  subtitle?: string;
   children: ReactNode;
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
   showCloseButton?: boolean;
@@ -24,6 +25,7 @@ export default function BaseModal({
   isOpen,
   onClose,
   title,
+  subtitle,
   children,
   size = 'md',
   showCloseButton = true,
@@ -84,19 +86,26 @@ export default function BaseModal({
       >
         {/* ヘッダー */}
         {(title || showCloseButton) && (
-          <div className="flex items-center justify-between p-6 border-b border-nexus-border">
-            {title && (
-              <h2 
-                id="modal-title" 
-                className="text-xl font-semibold text-nexus-text-primary font-display"
-              >
-                {title}
-              </h2>
-            )}
+          <div className="flex items-start justify-between p-6 border-b border-nexus-border">
+            <div className="flex-1">
+              {title && (
+                <h2 
+                  id="modal-title" 
+                  className="text-xl font-semibold text-nexus-text-primary font-display"
+                >
+                  {title}
+                </h2>
+              )}
+              {subtitle && (
+                <p className="text-sm text-nexus-text-secondary mt-1">
+                  {subtitle}
+                </p>
+              )}
+            </div>
             {showCloseButton && (
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-nexus-bg-secondary rounded-lg transition-colors"
+                className="p-2 hover:bg-nexus-bg-secondary rounded-lg transition-colors ml-4"
                 aria-label="モーダルを閉じる"
               >
                 <X size={20} className="text-nexus-text-secondary" />

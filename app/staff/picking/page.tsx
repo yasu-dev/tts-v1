@@ -307,7 +307,7 @@ export default function PickingPage() {
 
         {/* View Mode Tabs */}
         <div className="intelligence-card global">
-          <div className="p-4 sm:p-8">
+          <div className="p-8">
             <div className="flex space-x-1 bg-nexus-bg-secondary p-1 rounded-lg mb-4 sm:mb-6">
               {[
                 { 
@@ -389,7 +389,7 @@ export default function PickingPage() {
 
         {/* Picking Tasks List */}
         <div className="intelligence-card global">
-          <div className="p-3 sm:p-4 md:p-6 lg:p-8">
+          <div className="p-8">
             <div className="overflow-x-auto -mx-3 sm:-mx-4 md:-mx-6 lg:-mx-8">
               <div className="holo-table min-w-[800px] px-3 sm:px-4 md:px-6 lg:px-8">
                 <table className="w-full">
@@ -490,7 +490,7 @@ export default function PickingPage() {
         {/* Task Detail Modal */}
         {selectedTask && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="intelligence-card global max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div className="intelligence-card global max-w-[1600px] w-full max-h-[90vh] overflow-hidden">
               <div className="p-6 border-b border-nexus-border">
                 <div className="flex justify-between items-start">
                   <div>

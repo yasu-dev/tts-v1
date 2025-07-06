@@ -682,7 +682,7 @@ export default function InspectionPage() {
           title="商品検品"
           subtitle={selectedProduct ? `${selectedProduct.name} - ${selectedProduct.sku}` : ''}
           size="lg"
-          className="max-w-4xl"
+          className="max-w-[1600px]"
         >
           <div className="overflow-y-auto max-h-[calc(90vh-200px)]">
             {currentChecklist ? (

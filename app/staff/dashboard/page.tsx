@@ -664,7 +664,7 @@ export default function StaffDashboard() {
                                 {row.description}
                               </p>
                               {row.progress !== undefined && (
-                                <div className="mt-2 max-w-xs">
+                                <div className="mt-2 max-w-[1600px]">
                                   <div className="flex justify-between text-xs text-nexus-text-secondary mb-1">
                                     <span>進捗</span>
                                     <span>{row.progress}%</span>
