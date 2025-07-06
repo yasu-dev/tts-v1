@@ -132,18 +132,18 @@ export default function InspectionResult({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <p className="text-3xl font-bold text-gray-900">{summary.total}</p>
-            <p className="text-sm text-gray-600">検査項目数</p>
-          </div>
-          <div className="text-center p-4 bg-green-50 rounded-lg">
-            <p className="text-3xl font-bold text-green-600">{summary.passed}</p>
-            <p className="text-sm text-gray-600">合格項目</p>
-          </div>
-          <div className="text-center p-4 bg-red-50 rounded-lg">
-            <p className="text-3xl font-bold text-red-600">{summary.failed}</p>
-            <p className="text-sm text-gray-600">不合格項目</p>
-          </div>
+          <NexusCard className="p-4 text-center">
+            <p className="text-3xl font-display font-bold text-nexus-text-primary">{summary.total}</p>
+            <p className="text-sm text-nexus-text-secondary">検査項目数</p>
+          </NexusCard>
+          <NexusCard className="p-4 text-center border-green-200">
+            <p className="text-3xl font-display font-bold text-green-600">{summary.passed}</p>
+            <p className="text-sm text-nexus-text-secondary">合格項目</p>
+          </NexusCard>
+          <NexusCard className="p-4 text-center border-red-200">
+            <p className="text-3xl font-display font-bold text-red-600">{summary.failed}</p>
+            <p className="text-sm text-nexus-text-secondary">不合格項目</p>
+          </NexusCard>
         </div>
 
         <div className="mt-4">

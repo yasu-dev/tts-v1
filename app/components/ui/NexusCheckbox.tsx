@@ -9,6 +9,7 @@ interface NexusCheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputEle
   variant?: 'default' | 'nexus' | 'enterprise';
   size?: 'sm' | 'md' | 'lg';
   indeterminate?: boolean;
+  defaultChecked?: boolean;
 }
 
 const NexusCheckbox = forwardRef<HTMLInputElement, NexusCheckboxProps>(({
@@ -73,12 +74,11 @@ const NexusCheckbox = forwardRef<HTMLInputElement, NexusCheckboxProps>(({
   const labelClasses = `
     font-medium text-nexus-text-primary cursor-pointer select-none
     hover:text-nexus-text-primary transition-colors
-    font-primary
     ${labelSizeClasses[size]}
   `.replace(/\s+/g, ' ').trim();
 
   const descriptionClasses = `
-    text-xs text-nexus-text-secondary mt-1 font-primary
+    text-xs text-nexus-text-secondary mt-1
   `;
 
   React.useEffect(() => {
@@ -109,7 +109,7 @@ const NexusCheckbox = forwardRef<HTMLInputElement, NexusCheckboxProps>(({
 
   return (
     <div className="w-full">
-      <div className="flex items-start">
+      <div className="flex items-center">
         <input
           ref={ref}
           type="checkbox"

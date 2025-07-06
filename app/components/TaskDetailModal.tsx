@@ -13,6 +13,7 @@ interface Task {
   status: string;
   priority: string;
   description?: string;
+  notes?: string;
 }
 
 interface TaskDetailModalProps {
@@ -78,6 +79,17 @@ export default function TaskDetailModal({ isOpen, onClose, task, onEdit }: TaskD
                 詳細
               </label>
               <p className="text-gray-900">{task.description}</p>
+            </div>
+          )}
+          
+          {task.notes && (
+            <div>
+              <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
+                備考
+              </label>
+              <div className="p-3 bg-nexus-bg-secondary rounded-lg">
+                <p className="text-nexus-text-primary">{task.notes}</p>
+              </div>
             </div>
           )}
         </div>

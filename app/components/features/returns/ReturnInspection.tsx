@@ -72,130 +72,178 @@ export function ReturnInspection() {
 
   return (
     <div className="space-y-6">
-      <ContentCard>
-        <h2 className="text-2xl font-bold mb-6">返品検品</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <div>
-            <h3 className="font-semibold mb-2">商品情報</h3>
-            <p className="text-gray-600">商品名: {product.name}</p>
-            <p className="text-gray-600">SKU: {product.sku}</p>
-            <p className="text-gray-600">返品理由: {product.returnReason}</p>
-            <p className="text-gray-600">入庫時状態: {product.originalCondition}</p>
-          </div>
+      <div className="intelligence-card global">
+        <div className="p-8">
+          <h2 className="text-2xl font-display font-bold text-nexus-text-primary mb-6">返品検品</h2>
           
-          <div>
-            <h3 className="font-semibold mb-2">検品ステータス</h3>
-            <div className={`p-4 rounded-lg ${
-              overallStatus === 'pass' ? 'bg-green-100 text-green-800' :
-              overallStatus === 'fail' ? 'bg-red-100 text-red-800' :
-              'bg-gray-100 text-gray-800'
-            }`}>
-              {overallStatus === 'pass' ? '検品合格' :
-               overallStatus === 'fail' ? '検品不合格' :
-               '検品中'}
-            </div>
-          </div>
-        </div>
-
-        <div className="mb-8">
-          <h3 className="font-semibold mb-4">検品項目</h3>
-          <div className="space-y-3">
-            {inspectionItems.map(item => (
-              <div key={item.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <span className="font-medium">{item.name}</span>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleItemCheck(item.id, 'pass')}
-                    className={`p-2 rounded ${
-                      item.status === 'pass' ? 'bg-green-500 text-white' : 'bg-gray-300'
-                    }`}
-                  >
-                    <CheckCircle className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => handleItemCheck(item.id, 'warning')}
-                    className={`p-2 rounded ${
-                      item.status === 'warning' ? 'bg-yellow-500 text-white' : 'bg-gray-300'
-                    }`}
-                  >
-                    <AlertTriangle className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => handleItemCheck(item.id, 'fail')}
-                    className={`p-2 rounded ${
-                      item.status === 'fail' ? 'bg-red-500 text-white' : 'bg-gray-300'
-                    }`}
-                  >
-                    <XCircle className="w-5 h-5" />
-                  </button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="intelligence-card asia">
+              <div className="p-6">
+                <h3 className="font-semibold mb-4 text-nexus-text-primary">商品情報</h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-nexus-text-secondary">商品名:</span>
+                    <span className="text-nexus-text-primary font-medium">{product.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-nexus-text-secondary">SKU:</span>
+                    <span className="text-nexus-text-primary font-mono">{product.sku}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-nexus-text-secondary">返品理由:</span>
+                    <span className="text-nexus-text-primary">{product.returnReason}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-nexus-text-secondary">入庫時状態:</span>
+                    <span className="text-nexus-text-primary">{product.originalCondition}</span>
+                  </div>
                 </div>
               </div>
-            ))}
+            </div>
+            
+            <div className="intelligence-card europe">
+              <div className="p-6">
+                <h3 className="font-semibold mb-4 text-nexus-text-primary">検品ステータス</h3>
+                <div className={`p-4 rounded-lg ${
+                  overallStatus === 'pass' ? 'bg-green-50 border border-green-200' :
+                  overallStatus === 'fail' ? 'bg-red-50 border border-red-200' :
+                  'bg-nexus-bg-secondary border border-nexus-border'
+                }`}>
+                  <div className="flex items-center gap-2">
+                    <div className={`action-orb ${
+                      overallStatus === 'pass' ? 'green' :
+                      overallStatus === 'fail' ? 'red' :
+                      'blue'
+                    }`}>
+                      {overallStatus === 'pass' ? <CheckCircle className="w-4 h-4" /> :
+                       overallStatus === 'fail' ? <XCircle className="w-4 h-4" /> :
+                       <AlertTriangle className="w-4 h-4" />}
+                    </div>
+                    <span className={`font-semibold ${
+                      overallStatus === 'pass' ? 'text-green-600' :
+                      overallStatus === 'fail' ? 'text-red-600' :
+                      'text-nexus-text-primary'
+                    }`}>
+                      {overallStatus === 'pass' ? '検品合格' :
+                       overallStatus === 'fail' ? '検品不合格' :
+                       '検品中'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mb-8">
+            <h3 className="font-semibold mb-4 text-nexus-text-primary">検品項目</h3>
+            <div className="space-y-3">
+              {inspectionItems.map(item => (
+                <div key={item.id} className="intelligence-card americas">
+                  <div className="p-4">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-nexus-text-primary">{item.name}</span>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleItemCheck(item.id, 'pass')}
+                          className={`p-2 rounded-lg transition-colors ${
+                            item.status === 'pass' ? 'bg-green-500 text-white' : 'bg-nexus-bg-secondary text-nexus-text-secondary hover:bg-green-100'
+                          }`}
+                        >
+                          <CheckCircle className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => handleItemCheck(item.id, 'warning')}
+                          className={`p-2 rounded-lg transition-colors ${
+                            item.status === 'warning' ? 'bg-yellow-500 text-white' : 'bg-nexus-bg-secondary text-nexus-text-secondary hover:bg-yellow-100'
+                          }`}
+                        >
+                          <AlertTriangle className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => handleItemCheck(item.id, 'fail')}
+                          className={`p-2 rounded-lg transition-colors ${
+                            item.status === 'fail' ? 'bg-red-500 text-white' : 'bg-nexus-bg-secondary text-nexus-text-secondary hover:bg-red-100'
+                          }`}
+                        >
+                          <XCircle className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mb-8">
+            <h3 className="font-semibold mb-4 text-nexus-text-primary">写真撮影</h3>
+            <div className="intelligence-card oceania">
+              <div className="p-6">
+                <div className="grid grid-cols-3 gap-4">
+                  {photos.map((photo, index) => (
+                    <img
+                      key={index}
+                      src={photo}
+                      alt={`検品写真 ${index + 1}`}
+                      className="w-full h-32 object-cover rounded-lg border border-nexus-border"
+                    />
+                  ))}
+                  <label className="w-full h-32 bg-nexus-bg-secondary rounded-lg flex items-center justify-center cursor-pointer hover:bg-nexus-bg-tertiary transition-colors border border-nexus-border">
+                    <div className="text-center">
+                      <Camera className="w-6 h-6 text-nexus-text-secondary mx-auto mb-2" />
+                      <span className="text-sm text-nexus-text-secondary">写真を追加</span>
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handlePhotoUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-4">
+            <NexusButton
+              onClick={() => setIsCancelModalOpen(true)}
+              variant="default"
+            >
+              キャンセル
+            </NexusButton>
+            <NexusButton
+              onClick={() => {
+                if (overallStatus === 'pending') return;
+                
+                // 検品完了処理
+                const inspectionResult = {
+                  inspectionId: `INSPECT_${Date.now()}`,
+                  completedAt: new Date().toISOString(),
+                  status: overallStatus,
+                  inspector: 'current_user', // 実際は現在のユーザーID
+                  notes: '検品完了'
+                };
+                
+                // 検品結果をローカルストレージに保存
+                const existingResults = JSON.parse(localStorage.getItem('inspectionResults') || '[]');
+                existingResults.push(inspectionResult);
+                localStorage.setItem('inspectionResults', JSON.stringify(existingResults));
+                
+                alert('検品が完了しました。結果が保存されました。');
+                
+                // 実際の実装では親コンポーネントのコールバックを呼び出し
+                // onInspectionComplete(inspectionResult);
+              }}
+              variant="primary"
+              disabled={overallStatus === 'pending'}
+            >
+              検品完了
+            </NexusButton>
           </div>
         </div>
-
-        <div className="mb-8">
-          <h3 className="font-semibold mb-4">写真撮影</h3>
-          <div className="grid grid-cols-3 gap-4">
-            {photos.map((photo, index) => (
-              <img
-                key={index}
-                src={photo}
-                alt={`検品写真 ${index + 1}`}
-                className="w-full h-32 object-cover rounded-lg"
-              />
-            ))}
-            <label className="w-full h-32 bg-gray-100 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors">
-              <Camera className="w-8 h-8 text-gray-400" />
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handlePhotoUpload}
-                className="hidden"
-              />
-            </label>
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-4">
-          <button 
-            className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-            onClick={() => setIsCancelModalOpen(true)}
-          >
-            キャンセル
-          </button>
-          <button
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
-            disabled={overallStatus === 'pending'}
-            onClick={() => {
-              if (overallStatus === 'pending') return;
-              
-              // 検品完了処理
-              const inspectionResult = {
-                inspectionId: `INSPECT_${Date.now()}`,
-                completedAt: new Date().toISOString(),
-                status: overallStatus,
-                inspector: 'current_user', // 実際は現在のユーザーID
-                notes: '検品完了'
-              };
-              
-              // 検品結果をローカルストレージに保存
-              const existingResults = JSON.parse(localStorage.getItem('inspectionResults') || '[]');
-              existingResults.push(inspectionResult);
-              localStorage.setItem('inspectionResults', JSON.stringify(existingResults));
-              
-              alert('検品が完了しました。結果が保存されました。');
-              
-              // 実際の実装では親コンポーネントのコールバックを呼び出し
-              // onInspectionComplete(inspectionResult);
-            }}
-          >
-            検品完了
-          </button>
-        </div>
-      </ContentCard>
+      </div>
 
       {/* Cancel Confirmation Modal */}
       <BaseModal

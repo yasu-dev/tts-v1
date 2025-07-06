@@ -82,7 +82,7 @@ export default function InventorySummary() {
       case '入庫': return 'bg-blue-500';
       case '検品': return 'bg-yellow-500';
       case '保管': return 'bg-green-500';
-      case '出品': return 'bg-purple-500';
+      case '出品': return 'bg-nexus-blue';
       case '受注': return 'bg-orange-500';
       case '出荷': return 'bg-indigo-500';
       case '配送': return 'bg-cyan-500';

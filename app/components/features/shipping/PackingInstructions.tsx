@@ -262,20 +262,20 @@ export default function PackingInstructions({
 
         <div className="overflow-y-auto" style={{ maxHeight: 'calc(90vh - 200px)' }}>
           {/* 商品情報 */}
-          <div className="p-6 bg-gray-50 border-b">
+          <div className="p-6 bg-nexus-bg-secondary border-b border-nexus-border">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
-                <p className="text-sm text-gray-600">商品価値</p>
-                <p className="text-lg font-bold text-gray-900">¥{item.value.toLocaleString()}</p>
+                <p className="text-sm text-nexus-text-secondary">商品価値</p>
+                <p className="text-lg font-bold text-nexus-text-primary">¥{item.value.toLocaleString()}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">梱包レベル</p>
+                <p className="text-sm text-nexus-text-secondary">梱包レベル</p>
                 <p className="text-lg font-bold">
                   <span className={`
-                    ${packingLevel === 'premium' ? 'text-purple-600' :
+                    ${packingLevel === 'premium' ? 'text-nexus-purple' :
                       packingLevel === 'high' ? 'text-blue-600' :
                       packingLevel === 'standard' ? 'text-green-600' :
-                      'text-gray-600'}
+                      'text-nexus-text-secondary'}
                   `}>
                     {packingLevel === 'premium' ? 'プレミアム' :
                      packingLevel === 'high' ? '高級' :
@@ -284,11 +284,11 @@ export default function PackingInstructions({
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">カテゴリー</p>
-                <p className="text-lg font-bold text-gray-900">{item.category}</p>
+                <p className="text-sm text-nexus-text-secondary">カテゴリー</p>
+                <p className="text-lg font-bold text-nexus-text-primary">{item.category}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">特記事項</p>
+                <p className="text-sm text-nexus-text-secondary">特記事項</p>
                 <p className="text-lg font-bold text-red-600">
                   {item.fragile ? '取扱注意' : '-'}
                 </p>

@@ -69,7 +69,7 @@ export default function LoginPage() {
           {/* Logo and Title */}
           <div className="text-center">
             <h2 className="text-4xl font-black text-nexus-text-primary mb-2 font-display">THE WORLD DOOR</h2>
-            <p className="text-lg text-nexus-text-secondary font-primary">
+            <p className="text-lg text-nexus-text-secondary">
               フルフィルメントサービス
             </p>
           </div>
@@ -79,7 +79,7 @@ export default function LoginPage() {
             <div className="p-8">
               <form className="space-y-6" onSubmit={handleSubmit}>
                 {error && (
-                  <div className="bg-nexus-red/8 border-2 border-nexus-red/20 text-nexus-red p-4 rounded-lg text-sm font-medium flex items-center font-primary">
+                  <div className="bg-nexus-red/8 border-2 border-nexus-red/20 text-nexus-red p-4 rounded-lg text-sm font-medium flex items-center">
                     <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -172,7 +172,7 @@ export default function LoginPage() {
           type: 'info'
         });
                     }}
-                    className="text-sm font-medium text-primary-blue hover:text-primary-blue-light transition-colors inline-flex items-center gap-1 hover:underline font-primary"
+                    className="text-sm font-medium text-primary-blue hover:text-primary-blue-light transition-colors inline-flex items-center gap-1 hover:underline"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 11-4 0 2 2 0 014 0zm0 0v1a2 2 0 01-2 2H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -183,17 +183,17 @@ export default function LoginPage() {
               </form>
 
               {/* Demo Credentials */}
-              <div className="mt-8 p-4 bg-primary-blue/5 rounded-xl border-2 border-primary-blue/15">
-                <p className="text-xs text-nexus-text-secondary mb-3 font-bold flex items-center font-primary">
+              <div className="mt-8 p-4 bg-primary-blue/10 rounded-xl border-2 border-primary-blue/25">
+                <p className="text-sm text-primary-blue mb-3 font-bold flex items-center">
                   <svg className="w-4 h-4 mr-2 text-primary-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   テスト用ログイン情報
                 </p>
-                <div className="space-y-2 text-xs font-primary">
-                  <div className="flex items-center justify-between p-2 rounded-lg bg-white/50">
-                    <span className="text-nexus-text-secondary font-medium">セラー:</span>
-                    <button 
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/70 border border-primary-blue/20">
+                    <span className="text-primary-blue font-medium">セラー:</span>
+                    <NexusButton
                       type="button"
                       data-testid="seller-login"
                       onClick={(e) => {
@@ -206,14 +206,16 @@ export default function LoginPage() {
                           console.log('セラーログイン情報設定完了');
                         }, 100);
                       }}
-                      className="text-nexus-text-primary font-mono bg-white px-2 py-1 rounded border border-primary-blue/10 hover:bg-primary-blue/10 transition-colors cursor-pointer"
+                      variant="secondary"
+                      size="sm"
+                      className="font-mono text-xs text-primary-blue hover:text-primary-blue-light"
                     >
                       seller@example.com / password123
-                    </button>
+                    </NexusButton>
                   </div>
-                  <div className="flex items-center justify-between p-2 rounded-lg bg-white/50">
-                    <span className="text-nexus-text-secondary font-medium">スタッフ:</span>
-                    <button 
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/70 border border-primary-blue/20">
+                    <span className="text-primary-blue font-medium">スタッフ:</span>
+                    <NexusButton
                       type="button"
                       data-testid="staff-login"
                       onClick={(e) => {
@@ -226,10 +228,12 @@ export default function LoginPage() {
                           console.log('スタッフログイン情報設定完了');
                         }, 100);
                       }}
-                      className="text-nexus-text-primary font-mono bg-white px-2 py-1 rounded border border-nexus-yellow/15 hover:bg-nexus-yellow/10 transition-colors cursor-pointer"
+                      variant="secondary"
+                      size="sm"
+                      className="font-mono text-xs text-primary-blue hover:text-primary-blue-light"
                     >
                       staff@example.com / password123
-                    </button>
+                    </NexusButton>
                   </div>
                 </div>
               </div>
@@ -238,8 +242,8 @@ export default function LoginPage() {
 
           {/* Footer Info */}
           <div className="text-center text-xs text-nexus-text-muted mt-8">
-            <p className="font-primary">
-              © 2024 THE WORLD DOOR. All rights reserved.
+            <p className="">
+              © 2025 THE WORLD DOOR. All rights reserved.
             </p>
           </div>
         </div>

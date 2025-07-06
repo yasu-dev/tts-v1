@@ -105,8 +105,8 @@ export default function StatsGrid({ stats, columns = 4 }: StatsGridProps) {
         }
 
         .nexus-region-global {
-          border-color: rgba(123, 31, 162, 0.35);
-          background: linear-gradient(135deg, rgba(123, 31, 162, 0.05) 0%, rgba(255, 255, 255, 0.97) 100%);
+          border-color: rgba(0, 100, 210, 0.35);
+          background: linear-gradient(135deg, rgba(0, 100, 210, 0.05) 0%, rgba(255, 255, 255, 0.97) 100%);
         }
 
         .nexus-stat-header {

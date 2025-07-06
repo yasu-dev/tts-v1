@@ -9,7 +9,7 @@ import {
   ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline';
 import ProductRegistrationModal from '../components/modals/ProductRegistrationModal';
-import { ContentCard, NexusInput, NexusButton } from '@/app/components/ui';
+import { ContentCard, NexusInput, NexusButton, NexusLoadingSpinner } from '@/app/components/ui';
 import BaseModal from '../components/ui/BaseModal';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import { useRouter } from 'next/navigation';
@@ -242,7 +242,11 @@ export default function InventoryPage() {
   };
 
   if (loading) {
-    return <div>読み込み中...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <NexusLoadingSpinner size="lg" />
+      </div>
+    );
   }
 
   return (
@@ -264,7 +268,7 @@ export default function InventoryPage() {
                   商品在庫の状況を確認・管理できます
                 </p>
               </div>
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
+              <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                 <NexusButton 
                   onClick={() => setIsNewItemModalOpen(true)}
                   variant="primary"

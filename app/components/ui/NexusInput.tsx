@@ -9,6 +9,7 @@ interface NexusInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElemen
   size?: 'sm' | 'md' | 'lg';
   icon?: React.ReactNode;
   rightIcon?: React.ReactNode;
+  required?: boolean;
 }
 
 const NexusInput = forwardRef<HTMLInputElement, NexusInputProps>(({
@@ -18,6 +19,7 @@ const NexusInput = forwardRef<HTMLInputElement, NexusInputProps>(({
   size = 'md',
   icon,
   rightIcon,
+  required,
   className = '',
   disabled,
   ...props
@@ -31,24 +33,36 @@ const NexusInput = forwardRef<HTMLInputElement, NexusInputProps>(({
     disabled:opacity-50 disabled:cursor-not-allowed
   `;
 
-  const variantClasses = {
-    default: `
+  const getVariantClasses = (hasError: boolean) => ({
+    default: hasError ? `
+      border-red-300 bg-white text-gray-900
+      focus:ring-red-500 focus:border-red-500
+      placeholder-gray-500
+    ` : `
       border-gray-300 bg-white text-gray-900
       focus:ring-blue-500 focus:border-blue-500
       placeholder-gray-500
     `,
-    nexus: `
+    nexus: hasError ? `
+      bg-nexus-surface border-red-300 text-nexus-text-primary
+      focus:ring-red-500 focus:border-red-500
+      placeholder-nexus-text-secondary
+    ` : `
       bg-nexus-surface border-nexus-border text-nexus-text-primary
       focus:ring-primary-blue focus:border-primary-blue
-      placeholder-nexus-text-secondary font-primary
+      placeholder-nexus-text-secondary
     `,
-    enterprise: `
+    enterprise: hasError ? `
+      border-red-300 bg-white text-nexus-text-primary
+      focus:ring-red-500 focus:border-red-500
+      placeholder-nexus-text-muted
+    ` : `
       border-nexus-border bg-white text-nexus-text-primary
       focus:ring-primary-blue focus:border-transparent
-      placeholder-nexus-text-muted font-primary
+      placeholder-nexus-text-muted
       hover:border-primary-blue/30
     `
-  };
+  });
 
   const sizeClasses = {
     sm: 'px-2 py-1.5 text-sm',
@@ -62,6 +76,8 @@ const NexusInput = forwardRef<HTMLInputElement, NexusInputProps>(({
     lg: 'pl-12'
   };
 
+  const variantClasses = getVariantClasses(!!error);
+  
   const combinedClasses = `
     ${baseClasses}
     ${variantClasses[variant]}
@@ -76,6 +92,7 @@ const NexusInput = forwardRef<HTMLInputElement, NexusInputProps>(({
       {label && (
         <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
           {label}
+          {required && <span className="text-red-500 ml-1">*</span>}
         </label>
       )}
       <div className="relative">
@@ -90,6 +107,7 @@ const NexusInput = forwardRef<HTMLInputElement, NexusInputProps>(({
           ref={ref}
           className={combinedClasses}
           disabled={disabled}
+          required={required}
           {...props}
         />
         {rightIcon && (

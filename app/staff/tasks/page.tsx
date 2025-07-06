@@ -4,7 +4,7 @@ import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import TaskDetailModal from '../../components/TaskDetailModal';
 import EditModal from '../../components/EditModal';
 import TaskCreationModal from '../../components/modals/TaskCreationModal';
-import BaseModal from '@/app/components/ui/BaseModal';
+import { BaseModal, BusinessStatusIndicator, Pagination, NexusCheckbox, NexusLoadingSpinner } from '@/app/components/ui';
 import NexusInput from '@/app/components/ui/NexusInput';
 import NexusSelect from '@/app/components/ui/NexusSelect';
 import NexusTextarea from '@/app/components/ui/NexusTextarea';
@@ -51,6 +51,11 @@ export default function StaffTasksPage() {
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
+  
+  // ページネーション状態
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [paginatedTasks, setPaginatedTasks] = useState<Task[]>([]);
 
   // デモデータ
   useEffect(() => {
@@ -204,23 +209,25 @@ export default function StaffTasksPage() {
     });
   }, [tasks, filter, categoryFilter, assigneeFilter, priorityFilter, dueDateFilter, searchQuery]);
 
+  // ページネーション
+  useEffect(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    setPaginatedTasks(filteredTasks.slice(startIndex, endIndex));
+  }, [filteredTasks, currentPage, itemsPerPage]);
+
+  // フィルタ変更時はページを1に戻す
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter, categoryFilter, assigneeFilter, priorityFilter, dueDateFilter, searchQuery]);
+
   const priorityLabels: Record<string, string> = {
     high: '高',
     medium: '中',
     low: '低'
   };
 
-  const statusColors = {
-    pending: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
-    in_progress: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    completed: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-  };
 
-  const statusLabels = {
-    pending: '待機中',
-    in_progress: '作業中',
-    completed: '完了',
-  };
 
   const categoryIcons: Record<string, React.ReactNode> = {
     inspection: (
@@ -303,7 +310,8 @@ export default function StaffTasksPage() {
       dueDate: task.dueDate,
       status: task.status,
       priority: task.priority,
-      description: task.description
+      description: task.description,
+      notes: task.notes
     };
     setSelectedTask(taskForModal);
     setIsDetailModalOpen(true);
@@ -475,7 +483,11 @@ export default function StaffTasksPage() {
   };
 
   if (loading) {
-    return <div>読み込み中...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <NexusLoadingSpinner size="lg" />
+      </div>
+    );
   }
 
   return (
@@ -787,7 +799,7 @@ export default function StaffTasksPage() {
                   </tr>
                 </thead>
                 <tbody className="holo-body">
-                  {filteredTasks.map((task) => (
+                  {paginatedTasks.map((task) => (
                     <tr key={task.id} className="holo-row">
                       <td>
                         <div className="flex items-start space-x-3">
@@ -851,9 +863,7 @@ export default function StaffTasksPage() {
                           <span className="cert-nano cert-premium">
                             {priorityLabels[task.priority]}
                           </span>
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusColors[task.status]}`}>
-                            {statusLabels[task.status]}
-                          </span>
+                          <BusinessStatusIndicator status={task.status} size="sm" />
                         </div>
                       </td>
                       <td className="text-right">
@@ -909,6 +919,20 @@ export default function StaffTasksPage() {
                 <p className="mt-1 text-sm text-nexus-text-secondary">
                   条件に一致するタスクが見つかりません。
                 </p>
+              </div>
+            )}
+
+            {/* ページネーション */}
+            {filteredTasks.length > 0 && (
+              <div className="mt-6 pt-4 border-t border-nexus-border">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={Math.ceil(filteredTasks.length / itemsPerPage)}
+                  totalItems={filteredTasks.length}
+                  itemsPerPage={itemsPerPage}
+                  onPageChange={setCurrentPage}
+                  onItemsPerPageChange={setItemsPerPage}
+                />
               </div>
             )}
           </div>
@@ -1038,10 +1062,11 @@ export default function StaffTasksPage() {
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {['緊急', '重要', '簡単', '複雑', '要確認'].map(tag => (
-                      <label key={tag} className="flex items-center">
-                        <input type="checkbox" className="mr-1 rounded border-nexus-border focus:ring-primary-blue" />
-                        <span className="text-sm text-nexus-text-primary">{tag}</span>
-                      </label>
+                      <NexusCheckbox
+                        key={tag}
+                        label={tag}
+                        size="sm"
+                      />
                     ))}
                   </div>
                 </div>
@@ -1090,7 +1115,7 @@ export default function StaffTasksPage() {
               <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
                 選択されたタスク ({selectedTasks.length}件)
               </label>
-              <div className="max-h-32 overflow-y-auto border border-nexus-border rounded-lg p-3 bg-nexus-bg-secondary">
+              <div className="border border-nexus-border rounded-lg p-3 bg-nexus-bg-secondary">
                 {selectedTasks.length > 0 ? (
                   <div className="space-y-1">
                     {selectedTasks.map(taskId => {
@@ -1113,23 +1138,23 @@ export default function StaffTasksPage() {
               <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
                 担当者選択 (複数選択可)
               </label>
-              <div className="space-y-2 max-h-32 overflow-y-auto border border-nexus-border rounded-lg p-3">
-                <label className="flex items-center">
-                  <input type="checkbox" className="mr-2" />
-                  <span className="text-sm">田中太郎</span>
-                </label>
-                <label className="flex items-center">
-                  <input type="checkbox" className="mr-2" />
-                  <span className="text-sm">佐藤花子</span>
-                </label>
-                <label className="flex items-center">
-                  <input type="checkbox" className="mr-2" />
-                  <span className="text-sm">山田次郎</span>
-                </label>
-                <label className="flex items-center">
-                  <input type="checkbox" className="mr-2" />
-                  <span className="text-sm">鈴木美香</span>
-                </label>
+              <div className="space-y-2 border border-nexus-border rounded-lg p-3">
+                <NexusCheckbox
+                  label="田中太郎"
+                  size="sm"
+                />
+                <NexusCheckbox
+                  label="佐藤花子"
+                  size="sm"
+                />
+                <NexusCheckbox
+                  label="山田次郎"
+                  size="sm"
+                />
+                <NexusCheckbox
+                  label="鈴木美香"
+                  size="sm"
+                />
               </div>
             </div>
             
@@ -1318,56 +1343,7 @@ export default function StaffTasksPage() {
           </div>
         </div>
 
-        {/* スクロールテスト用の追加スペース */}
-        <div className="h-96 flex items-center justify-center border-2 border-dashed border-nexus-border rounded-lg mb-8">
-          <div className="text-center">
-            <p className="text-nexus-text-secondary mb-2">スクロールテスト用エリア</p>
-            <p className="text-sm text-nexus-text-secondary">
-              このエリアまでスクロールできれば修正成功です
-            </p>
-          </div>
-        </div>
 
-        {/* さらに追加のスペース */}
-        <div className="space-y-6">
-          {Array.from({ length: 10 }, (_, i) => (
-            <div key={i} className="intelligence-card global">
-              <div className="p-6">
-                <h4 className="font-medium text-nexus-text-primary mb-2">
-                  追加セクション {i + 1}
-                </h4>
-                <p className="text-sm text-nexus-text-secondary">
-                  スクロールテストのための追加コンテンツです。このセクションは十分な高さを確保するために追加されています。
-                  ページが画面の高さを超えることで、スクロールバーが正常に表示されることを確認できます。
-                </p>
-                <div className="mt-4 grid grid-cols-3 gap-4">
-                  <div className="bg-nexus-bg-secondary p-3 rounded">
-                    <div className="text-xs text-nexus-text-secondary">データ {i * 3 + 1}</div>
-                    <div className="text-lg font-medium text-nexus-text-primary">{Math.floor(Math.random() * 100)}</div>
-                  </div>
-                  <div className="bg-nexus-bg-secondary p-3 rounded">
-                    <div className="text-xs text-nexus-text-secondary">データ {i * 3 + 2}</div>
-                    <div className="text-lg font-medium text-nexus-text-primary">{Math.floor(Math.random() * 100)}</div>
-                  </div>
-                  <div className="bg-nexus-bg-secondary p-3 rounded">
-                    <div className="text-xs text-nexus-text-secondary">データ {i * 3 + 3}</div>
-                    <div className="text-lg font-medium text-nexus-text-primary">{Math.floor(Math.random() * 100)}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* 最終確認エリア */}
-        <div className="h-32 flex items-center justify-center bg-green-50 border-2 border-green-200 rounded-lg">
-          <div className="text-center">
-            <p className="text-green-700 font-medium">✅ スクロール修正完了</p>
-            <p className="text-sm text-green-600">
-              このエリアが見えていれば、スクロール機能が正常に動作しています
-            </p>
-          </div>
-        </div>
       </div>
     </DashboardLayout>
   );

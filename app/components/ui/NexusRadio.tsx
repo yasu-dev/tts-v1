@@ -71,12 +71,11 @@ const NexusRadio = forwardRef<HTMLInputElement, NexusRadioProps>(({
   const labelClasses = `
     font-medium text-nexus-text-primary cursor-pointer select-none
     hover:text-nexus-text-primary transition-colors
-    font-primary
     ${labelSizeClasses[size]}
   `.replace(/\s+/g, ' ').trim();
 
   const descriptionClasses = `
-    text-xs text-nexus-text-secondary mt-1 font-primary
+    text-xs text-nexus-text-secondary mt-1
   `;
 
   const radioId = props.id || `radio-${Math.random().toString(36).substr(2, 9)}`;

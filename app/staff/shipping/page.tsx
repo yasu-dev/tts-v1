@@ -16,6 +16,8 @@ import PackingMaterialsModal from '@/app/components/modals/PackingMaterialsModal
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import NexusSelect from '@/app/components/ui/NexusSelect';
 import NexusButton from '@/app/components/ui/NexusButton';
+import { NexusLoadingSpinner } from '@/app/components/ui';
+import { BusinessStatusIndicator } from '@/app/components/ui/StatusIndicator';
 
 interface ShippingItem {
   id: string;
@@ -131,20 +133,13 @@ export default function StaffShippingPage() {
     return statusMatch && priorityMatch;
   });
 
-  const statusColors = {
-    pending_inspection: 'bg-nexus-yellow bg-opacity-20 text-nexus-yellow',
-    inspected: 'bg-nexus-blue bg-opacity-20 text-nexus-blue',
-    packed: 'bg-nexus-purple bg-opacity-20 text-nexus-purple',
-    shipped: 'bg-nexus-blue bg-opacity-30 text-nexus-blue',
-    delivered: 'bg-nexus-green bg-opacity-20 text-nexus-green',
-  };
-
+  // ステータス表示は BusinessStatusIndicator で統一
   const statusLabels: Record<string, string> = {
-    'pending_pickup': 'ピックアップ待ち',
-    'picking': 'ピッキング中',
-    'packing': '梱包中',
-    'ready': '発送準備完了',
-    'shipped': '発送済み'
+    'pending_inspection': '検査待ち',
+    'inspected': '検査済み',
+    'packed': '梱包済み',
+    'shipped': '発送済み',
+    'delivered': '配送完了'
   };
 
   const priorityLabels: Record<string, string> = {
@@ -292,7 +287,11 @@ export default function StaffShippingPage() {
   };
 
   if (loading) {
-    return <div>読み込み中...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <NexusLoadingSpinner size="lg" />
+      </div>
+    );
   }
 
   return (
@@ -409,9 +408,9 @@ export default function StaffShippingPage() {
             <div className="intelligence-card europe">
               <div className="p-3 sm:p-4 md:p-6">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
-                  <div className="action-orb purple w-6 h-6 sm:w-8 sm:h-8">
+                  <div className="action-orb blue w-6 h-6 sm:w-8 sm:h-8">
                     <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                   </div>
                   <span className="status-badge success text-[10px] sm:text-xs">準備完了</span>
@@ -565,9 +564,7 @@ export default function StaffShippingPage() {
                           <span className="cert-nano cert-premium">
                             {priorityLabels[item.priority]}
                           </span>
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusColors[item.status]}`}>
-                            {statusLabels[item.status]}
-                          </span>
+                          <BusinessStatusIndicator status={item.status} />
                         </div>
                       </td>
                       <td className="p-4">
@@ -596,9 +593,7 @@ export default function StaffShippingPage() {
                                         size="sm"
                                         className="w-full text-left px-4 py-2 hover:bg-nexus-bg-secondary transition-colors duration-200"
                                       >
-                                        <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full mr-2 ${statusColors[status]}`}>
-                                          {statusLabels[status]}
-                                        </span>
+                                        <BusinessStatusIndicator status={status} />
                                       </NexusButton>
                                     ))}
                                   </div>

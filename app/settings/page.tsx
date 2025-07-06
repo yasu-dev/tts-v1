@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import PageHeader from '@/app/components/ui/PageHeader';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
-import { NexusSelect, NexusButton, NexusCard } from '@/app/components/ui';
+import { NexusSelect, NexusButton, NexusCard, NexusLoadingSpinner } from '@/app/components/ui';
 import ContentCard from '../components/ui/ContentCard';
 import BaseModal from '@/app/components/ui/BaseModal';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
@@ -228,7 +228,11 @@ export default function SettingsPage() {
   };
 
   if (!settings) {
-    return <div>読み込み中...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <NexusLoadingSpinner size="lg" />
+      </div>
+    );
   }
 
   return (
@@ -438,7 +442,7 @@ export default function SettingsPage() {
           <div className="space-y-6">
             <div className="flex items-center justify-center mb-4">
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-                <ExclamationTriangleIcon className="w-8 h-8 text-red-600" />
+                <ExclamationTriangleIcon className="w-6 h-6 text-red-600" />
               </div>
             </div>
             
@@ -482,7 +486,7 @@ export default function SettingsPage() {
           <div className="space-y-6">
             <div className="flex items-center justify-center mb-4">
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-                <ExclamationTriangleIcon className="w-8 h-8 text-red-600" />
+                <ExclamationTriangleIcon className="w-6 h-6 text-red-600" />
               </div>
             </div>
             
@@ -543,7 +547,7 @@ export default function SettingsPage() {
           <div className="space-y-6">
                          <div className="flex items-center justify-center mb-4">
                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                 <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                  </svg>
                </div>

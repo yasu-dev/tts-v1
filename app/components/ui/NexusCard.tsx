@@ -17,7 +17,7 @@ interface NexusCardProps {
 
 export default function NexusCard({
   children,
-  region = 'global',
+  region = 'americas',
   title,
   subtitle,
   onClick,
@@ -53,7 +53,7 @@ export default function NexusCard({
     asia: 'from-nexus-yellow via-yellow-400 to-yellow-300',
     africa: 'from-nexus-green via-green-500 to-green-400',
     oceania: 'from-nexus-cyan via-cyan-400 to-cyan-300',
-    global: 'from-nexus-purple via-purple-500 to-purple-400'
+    global: 'from-nexus-blue via-blue-500 to-blue-400'
   };
 
   const combinedClasses = `

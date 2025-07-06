@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import NexusButton from '@/app/components/ui/NexusButton';
+import NexusCard from '@/app/components/ui/NexusCard';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 interface ConfirmationStepProps {
@@ -69,48 +70,48 @@ export default function ConfirmationStep({
       </div>
 
       {/* 基本情報確認 */}
-      <div className="bg-gray-50 rounded-lg p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">基本情報</h3>
+      <NexusCard className="p-6">
+        <h3 className="text-lg font-medium text-nexus-text-primary mb-4">基本情報</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div>
-            <span className="font-medium text-gray-700">セラー名:</span>
-            <span className="ml-2 text-gray-900">{data.basicInfo?.sellerName || '未入力'}</span>
+            <span className="font-medium text-nexus-text-secondary">セラー名:</span>
+            <span className="ml-2 text-nexus-text-primary">{data.basicInfo?.sellerName || '未入力'}</span>
           </div>
           <div>
-            <span className="font-medium text-gray-700">連絡先メール:</span>
-            <span className="ml-2 text-gray-900">{data.basicInfo?.contactEmail || '未入力'}</span>
+            <span className="font-medium text-nexus-text-secondary">連絡先メール:</span>
+            <span className="ml-2 text-nexus-text-primary">{data.basicInfo?.contactEmail || '未入力'}</span>
           </div>
           <div className="md:col-span-2">
-            <span className="font-medium text-gray-700">納品先住所:</span>
-            <span className="ml-2 text-gray-900">{data.basicInfo?.deliveryAddress || '未入力'}</span>
+            <span className="font-medium text-nexus-text-secondary">納品先住所:</span>
+            <span className="ml-2 text-nexus-text-primary">{data.basicInfo?.deliveryAddress || '未入力'}</span>
           </div>
           <div>
-            <span className="font-medium text-gray-700">電話番号:</span>
-            <span className="ml-2 text-gray-900">{data.basicInfo?.phoneNumber || '未入力'}</span>
+            <span className="font-medium text-nexus-text-secondary">電話番号:</span>
+            <span className="ml-2 text-nexus-text-primary">{data.basicInfo?.phoneNumber || '未入力'}</span>
           </div>
           {data.basicInfo?.notes && (
             <div className="md:col-span-2">
-              <span className="font-medium text-gray-700">備考:</span>
-              <span className="ml-2 text-gray-900">{data.basicInfo.notes}</span>
+              <span className="font-medium text-nexus-text-secondary">備考:</span>
+              <span className="ml-2 text-nexus-text-primary">{data.basicInfo.notes}</span>
             </div>
           )}
         </div>
-      </div>
+      </NexusCard>
 
       {/* 商品一覧確認 */}
-      <div className="bg-gray-50 rounded-lg p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">登録商品一覧</h3>
+      <NexusCard className="p-6">
+        <h3 className="text-lg font-medium text-nexus-text-primary mb-4">登録商品一覧</h3>
         {data.products && data.products.length > 0 ? (
           <div className="space-y-4">
             {data.products.map((product: any, index: number) => (
-              <div key={index} className="bg-white rounded-lg p-4 shadow-sm">
+              <NexusCard key={index} className="p-4 border-l-4 border-nexus-blue">
                 <div className="flex justify-between items-start mb-2">
-                  <h4 className="font-medium text-gray-900">{product.name}</h4>
-                  <span className="text-lg font-bold text-blue-600">
+                  <h4 className="font-medium text-nexus-text-primary">{product.name}</h4>
+                  <span className="text-lg font-bold text-nexus-blue">
                     ¥{product.estimatedValue?.toLocaleString() || '0'}
                   </span>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm text-gray-600">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm text-nexus-text-secondary">
                   <div>
                     <span className="font-medium">ブランド:</span> {product.brand}
                   </div>
@@ -130,28 +131,28 @@ export default function ConfirmationStep({
                   )}
                 </div>
                 {product.description && (
-                  <div className="mt-2 text-sm text-gray-600">
+                  <div className="mt-2 text-sm text-nexus-text-secondary">
                     <span className="font-medium">説明:</span> {product.description}
                   </div>
                 )}
-              </div>
+              </NexusCard>
             ))}
-            <div className="bg-blue-50 rounded-lg p-4">
+            <NexusCard className="p-4 border-2 border-nexus-blue bg-nexus-bg-tertiary">
               <div className="flex justify-between items-center">
-                <span className="text-lg font-medium text-gray-900">合計予想価格:</span>
-                <span className="text-xl font-bold text-blue-600">
+                <span className="text-lg font-medium text-nexus-text-primary">合計予想価格:</span>
+                <span className="text-xl font-bold text-nexus-blue">
                   ¥{getTotalValue().toLocaleString()}
                 </span>
               </div>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-nexus-text-secondary mt-1">
                 登録商品数: {data.products.length}点
               </p>
-            </div>
+            </NexusCard>
           </div>
         ) : (
-          <p className="text-gray-500">商品が登録されていません</p>
+          <p className="text-nexus-text-secondary">商品が登録されていません</p>
         )}
-      </div>
+      </NexusCard>
 
       {/* オプション設定 */}
       <div className="bg-gray-50 rounded-lg p-6">

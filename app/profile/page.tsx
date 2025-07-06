@@ -17,6 +17,7 @@ import NexusInput from '@/app/components/ui/NexusInput';
 import NexusRadioGroup from '@/app/components/ui/NexusRadioGroup';
 import NexusCheckbox from '@/app/components/ui/NexusCheckbox';
 import BaseModal from '@/app/components/ui/BaseModal';
+import { NexusLoadingSpinner } from '@/app/components/ui';
 
 interface UserProfile {
   id: string;
@@ -307,7 +308,11 @@ export default function ProfilePage() {
   };
 
   if (!profile) {
-    return <div>読み込み中...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <NexusLoadingSpinner size="lg" />
+      </div>
+    );
   }
 
   return (
@@ -578,7 +583,7 @@ export default function ProfilePage() {
             <div className="text-center">
               <div className="mb-4">
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-                  <ShieldCheckIcon className="w-8 h-8 text-blue-600" />
+                  <ShieldCheckIcon className="w-6 h-6 text-blue-600" />
                 </div>
               </div>
               <h3 className="text-lg font-medium text-nexus-text-primary mb-2">

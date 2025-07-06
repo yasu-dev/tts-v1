@@ -52,8 +52,8 @@ export function ProductTimeline({ productId }: ProductTimelineProps) {
       description: 'eBayに出品しました',
       details: ['価格: ¥250,000', '出品者: 田中次郎'],
       icon: <Store className="w-4 h-4" />,
-      color: 'bg-green-100',
-      orbColor: 'green'
+      color: 'bg-nexus-blue/20',
+      orbColor: 'blue'
     },
     {
       id: '4',
@@ -63,8 +63,8 @@ export function ProductTimeline({ productId }: ProductTimelineProps) {
       description: '商品が売却されました',
       details: ['購入者: John Smith', '最終価格: ¥248,000'],
       icon: <DollarSign className="w-4 h-4" />,
-      color: 'bg-purple-100',
-      orbColor: 'purple'
+      color: 'bg-nexus-green/20',
+      orbColor: 'green'
     },
     {
       id: '5',
@@ -136,7 +136,7 @@ export function ProductTimeline({ productId }: ProductTimelineProps) {
         
         {/* タイムライン終端 */}
         <div className="relative flex items-center mt-3">
-          <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-full bg-nexus-bg-secondary flex items-center justify-center border border-nexus-border">
             <div className="w-2 h-2 rounded-full bg-gray-400"></div>
           </div>
           <span className="ml-4 text-xs text-nexus-text-secondary">履歴の終了</span>

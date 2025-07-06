@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { BaseModal, NexusButton } from './ui';
+import { BaseModal, NexusButton, NexusCard, BusinessStatusIndicator } from './ui';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import { 
   XMarkIcon, 
@@ -49,23 +49,7 @@ export default function ItemDetailModal({
 
   if (!isOpen || !item) return null;
 
-  const statusColors = {
-    'inbound': 'bg-blue-100 text-blue-800',
-    'inspection': 'bg-yellow-100 text-yellow-800',
-    'storage': 'bg-green-100 text-green-800',
-    'listing': 'bg-purple-100 text-purple-800',
-    'sold': 'bg-gray-100 text-gray-800',
-    'maintenance': 'bg-red-100 text-red-800'
-  };
 
-  const statusLabels = {
-    'inbound': '入庫中',
-    'inspection': '検品中',
-    'storage': '保管中',
-    'listing': '出品中',
-    'sold': '売却済み',
-    'maintenance': 'メンテナンス'
-  };
 
   const demoHistory = [
     { date: '2024-12-24 10:00', action: 'ステータス変更', details: '検品中 → 保管中', user: '田中太郎' },
@@ -80,7 +64,7 @@ export default function ItemDetailModal({
       商品名: ${item.name}
       SKU: ${item.sku}
       カテゴリ: ${item.category}
-      ステータス: ${statusLabels[item.status as keyof typeof statusLabels]}
+      ステータス: ${item.status}
       保管場所: ${item.location}
       価格: ¥${item.price.toLocaleString()}
       状態: ${item.condition}
@@ -159,7 +143,7 @@ export default function ItemDetailModal({
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
+        <div className="border-b border-nexus-border mb-6">
           <nav className="flex space-x-8">
             {[
               { id: 'details', label: '詳細情報' },
@@ -171,8 +155,8 @@ export default function ItemDetailModal({
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === tab.id
-                    ? 'border-purple-500 text-purple-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-nexus-blue text-nexus-blue'
+                    : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-nexus-border'
                 }`}
               >
                 {tab.label}
@@ -187,82 +171,83 @@ export default function ItemDetailModal({
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Basic Information */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                <h3 className="text-lg font-semibold text-nexus-text-primary">
                   基本情報
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
                       商品名
                     </label>
-                    <p className="text-gray-900 dark:text-white">{item.name}</p>
+                    <p className="text-nexus-text-primary">{item.name}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
                       SKU
                     </label>
-                    <p className="text-gray-900 dark:text-white">{item.sku}</p>
+                    <p className="text-nexus-text-primary">{item.sku}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
                       カテゴリ
                     </label>
-                    <p className="text-gray-900 dark:text-white">{item.category}</p>
+                    <p className="text-nexus-text-primary">{item.category}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
                       状態
                     </label>
-                    <p className="text-gray-900 dark:text-white">{item.condition}</p>
+                    <p className="text-nexus-text-primary">{item.condition}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
                       価格
                     </label>
-                    <p className="text-gray-900 dark:text-white">¥{item.price.toLocaleString()}</p>
+                    <p className="text-nexus-text-primary">¥{item.price.toLocaleString()}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
                       ステータス
                     </label>
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusColors[item.status as keyof typeof statusColors]}`}>
-                      {statusLabels[item.status as keyof typeof statusLabels]}
-                    </span>
+                    <BusinessStatusIndicator 
+                      status={item.status as any} 
+                      size="sm" 
+                    />
                   </div>
                 </div>
               </div>
 
               {/* Location and Assignment */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                <h3 className="text-lg font-semibold text-nexus-text-primary">
                   保管・担当情報
                 </h3>
                 <div className="grid grid-cols-1 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
                       保管場所
                     </label>
-                    <p className="text-gray-900 dark:text-white">{item.location}</p>
+                    <p className="text-nexus-text-primary">{item.location}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
                       担当者
                     </label>
-                    <p className="text-gray-900 dark:text-white">{item.assignedStaff || 'なし'}</p>
+                    <p className="text-nexus-text-primary">{item.assignedStaff || 'なし'}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
                       登録日
                     </label>
-                    <p className="text-gray-900 dark:text-white">
+                    <p className="text-nexus-text-primary">
                       {new Date(item.entryDate).toLocaleDateString('ja-JP')}
                     </p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
                       最終更新
                     </label>
-                    <p className="text-gray-900 dark:text-white">
+                    <p className="text-nexus-text-primary">
                       {new Date(item.lastModified).toLocaleDateString('ja-JP')}
                     </p>
                   </div>
@@ -273,44 +258,49 @@ export default function ItemDetailModal({
 
           {activeTab === 'history' && (
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h3 className="text-lg font-semibold text-nexus-text-primary">
                 操作履歴
               </h3>
-              <div className="space-y-3">
+              <div className="holo-table">
+                <table className="w-full">
+                  <thead className="holo-header">
+                    <tr>
+                      <th className="text-left py-3 px-4 text-sm font-medium">アクション</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium">詳細</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium">実行者</th>
+                      <th className="text-right py-3 px-4 text-sm font-medium">日時</th>
+                    </tr>
+                  </thead>
+                  <tbody className="holo-body">
                 {demoHistory.map((entry, index) => (
-                  <div key={index} className="flex items-start space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <div className="flex-shrink-0">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-gray-900 dark:text-white">
-                          {entry.action}
-                        </span>
-                        <span className="text-sm text-gray-500">
-                          {entry.date}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">
-                        {entry.details}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        実行者: {entry.user}
-                      </p>
-                    </div>
-                  </div>
+                      <tr key={index} className="holo-row">
+                        <td className="py-3 px-4">
+                          <span className="font-medium text-nexus-text-primary">{entry.action}</span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="text-nexus-text-secondary">{entry.details}</span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="text-nexus-text-secondary">{entry.user}</span>
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <span className="text-sm text-nexus-text-secondary">{entry.date}</span>
+                        </td>
+                      </tr>
                 ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}
 
           {activeTab === 'notes' && (
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h3 className="text-lg font-semibold text-nexus-text-primary">
                 備考・メモ
               </h3>
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                <p className="text-gray-900 dark:text-white">
+              <div className="bg-nexus-bg-secondary rounded-lg p-4">
+                <p className="text-nexus-text-secondary">
                   {item.notes || '備考はありません'}
                 </p>
               </div>

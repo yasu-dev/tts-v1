@@ -10,6 +10,7 @@ import {
 import NexusButton from '@/app/components/ui/NexusButton';
 import HoloTable from '@/app/components/ui/HoloTable';
 import BaseModal from '@/app/components/ui/BaseModal';
+import { BusinessStatusIndicator } from '@/app/components/ui';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 export default function BillingPage() {
@@ -358,7 +359,7 @@ export default function BillingPage() {
                 <tbody className="holo-body">
                   {transactions.map((transaction) => (
                     <tr key={transaction.id} className="holo-row">
-                      <td className="font-mono text-sm">{transaction.date}</td>
+                      <td className="text-sm text-nexus-text-primary">{transaction.date}</td>
                       <td>
                         <span className={`status-badge ${
                           transaction.type === '売上' ? 'success' :
@@ -373,20 +374,10 @@ export default function BillingPage() {
                         {transaction.amount > 0 ? '+' : ''}¥{Math.abs(transaction.amount).toLocaleString()}
                       </td>
                       <td className="text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <div className={`status-orb status-${
-                            transaction.status === '確定' ? 'optimal' :
-                            transaction.status === '完了' ? 'success' :
-                            'monitoring'
-                          }`} />
-                          <span className={`status-badge ${
-                            transaction.status === '確定' ? 'success' :
-                            transaction.status === '完了' ? 'info' :
-                            'warning'
-                          }`}>
-                            {transaction.status}
-                          </span>
-                        </div>
+                        <BusinessStatusIndicator 
+                          status={transaction.status === '確定' ? 'confirmed' : transaction.status === '完了' ? 'completed' : 'pending'} 
+                          size="sm" 
+                        />
                       </td>
                     </tr>
                   ))}

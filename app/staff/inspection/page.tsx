@@ -6,6 +6,7 @@ import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
 import StatusIndicator from '@/app/components/ui/StatusIndicator';
+import { NexusLoadingSpinner } from '@/app/components/ui';
 import {
   BookOpenIcon,
   CameraIcon,
@@ -149,7 +150,7 @@ export default function InspectionPage() {
   const priorityConfig = {
     high: { label: '高', color: 'bg-red-100 text-red-800' },
     normal: { label: '中', color: 'bg-yellow-100 text-yellow-800' },
-    low: { label: '低', color: 'bg-gray-100 text-gray-800' },
+    low: { label: '低', color: 'bg-nexus-bg-secondary text-nexus-text-secondary' },
   };
 
   const categoryLabels = {
@@ -282,12 +283,12 @@ export default function InspectionPage() {
                 検品管理
               </h1>
               <p className="mt-1 text-sm text-nexus-text-secondary">
-                データを読み込み中...
+                検品データの管理とチェックリスト
               </p>
             </div>
           </div>
-          <div className="flex items-center justify-center h-64">
-            <div className="text-lg text-nexus-text-secondary">データを読み込み中...</div>
+          <div className="flex items-center justify-center min-h-[400px]">
+            <NexusLoadingSpinner size="lg" />
           </div>
         </div>
       </DashboardLayout>
@@ -785,7 +786,7 @@ export default function InspectionPage() {
               </div>
             ) : (
               <div className="text-center py-8">
-                <p className="text-gray-500">チェックリストを読み込み中...</p>
+                <NexusLoadingSpinner size="md" />
               </div>
             )}
           </div>

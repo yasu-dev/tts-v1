@@ -61,7 +61,7 @@ export default function VideoRecordManager({
   const recordingTypes = {
     inspection: { 
       label: '検品', 
-      color: 'text-blue-600 bg-blue-50', 
+      color: 'text-nexus-purple bg-nexus-purple/20', 
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -70,7 +70,7 @@ export default function VideoRecordManager({
     },
     packing: { 
       label: '梱包', 
-      color: 'text-green-600 bg-green-50', 
+      color: 'text-nexus-purple bg-nexus-purple/20', 
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -79,7 +79,7 @@ export default function VideoRecordManager({
     },
     shipping: { 
       label: '出荷', 
-      color: 'text-purple-600 bg-purple-50', 
+      color: 'text-nexus-purple bg-nexus-purple/20', 
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
@@ -88,7 +88,7 @@ export default function VideoRecordManager({
     },
     other: { 
       label: 'その他', 
-      color: 'text-gray-600 bg-gray-50', 
+      color: 'text-nexus-purple bg-nexus-purple/20', 
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -145,7 +145,7 @@ export default function VideoRecordManager({
             className={`px-3 py-1 rounded-full text-sm transition ${
               selectedType === 'all' 
                 ? 'bg-primary-blue text-white' 
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                  : 'bg-nexus-bg-secondary text-nexus-text-secondary hover:bg-nexus-bg-tertiary'
             }`}
           >
             すべて
@@ -157,7 +157,7 @@ export default function VideoRecordManager({
               className={`px-3 py-1 rounded-full text-sm transition ${
                 selectedType === type 
                   ? 'bg-primary-blue text-white' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-nexus-bg-secondary text-nexus-text-secondary hover:bg-nexus-bg-tertiary'
               }`}
             >
               {config.icon} {config.label}
@@ -220,7 +220,7 @@ export default function VideoRecordManager({
                   
                   {/* 再生ボタン */}
                   <button
-                    className="p-2 rounded-full hover:bg-gray-100 transition"
+                    className="p-2 rounded-full hover:bg-nexus-bg-secondary transition"
                     onClick={(e) => {
                       e.stopPropagation();
                       openVideo(record.fileUrl);

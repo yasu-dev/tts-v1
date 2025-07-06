@@ -112,7 +112,7 @@ function SimpleChart({ data, labels, color }: SimpleChartProps) {
       {data.map((value, index) => (
         <div key={index} className="flex items-center space-x-3">
           <span className="text-xs text-gray-500 w-16 text-right">{labels[index]}</span>
-          <div className="flex-1 bg-gray-100 rounded-full h-2">
+                          <div className="flex-1 bg-nexus-bg-secondary rounded-full h-2">
             <div
               className="h-2 rounded-full transition-all duration-500"
               style={{

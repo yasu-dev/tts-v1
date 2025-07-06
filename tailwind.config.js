@@ -32,7 +32,7 @@ module.exports = {
         'region-asia': 'rgba(255, 206, 0, 0.35)',
         'region-africa': 'rgba(134, 184, 23, 0.35)',
         'region-oceania': 'rgba(0, 188, 212, 0.35)',
-        'region-global': 'rgba(123, 31, 162, 0.35)',
+        'region-global': 'rgba(0, 100, 210, 0.35)',
         
         // レガシー互換性
         primary: {

@@ -171,7 +171,7 @@ export default function InspectionChecklist({
       )}
 
       {/* 進捗表示 */}
-      <div className="bg-gray-100 rounded-lg p-3 sm:p-4">
+                      <div className="bg-nexus-bg-secondary rounded-lg p-3 sm:p-4 border border-nexus-border">
         <div className="flex justify-between items-center mb-2">
           <span className="text-sm font-medium text-gray-700">検品進捗</span>
           <span className="text-xs sm:text-sm text-gray-600">

@@ -12,12 +12,12 @@ export default function GlobalError({
   return (
     <html>
       <body>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-nexus-background flex items-center justify-center p-4">
           <div className="max-w-md w-full text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            <h1 className="text-2xl font-display font-bold text-nexus-text-primary mb-4">
               エラーが発生しました
             </h1>
-            <p className="text-gray-600 mb-6">
+            <p className="text-nexus-text-secondary mb-6">
               申し訳ございません。予期しないエラーが発生しました。
             </p>
             <NexusButton

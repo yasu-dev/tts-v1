@@ -11,6 +11,7 @@ import { useToast } from '@/app/components/features/notifications/ToastProvider'
 import HoloTable from '@/app/components/ui/HoloTable';
 import NexusButton from '@/app/components/ui/NexusButton';
 import BaseModal from '@/app/components/ui/BaseModal';
+import { NexusLoadingSpinner, NexusSelect, NexusInput, NexusCheckbox, NexusTextarea } from '@/app/components/ui';
 
 export default function SalesPage() {
   const { showToast } = useToast();
@@ -49,7 +50,11 @@ export default function SalesPage() {
   };
 
   if (loading) {
-    return <div>読み込み中...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <NexusLoadingSpinner size="lg" />
+      </div>
+    );
   }
 
   return (
@@ -94,45 +99,37 @@ export default function SalesPage() {
           size="md"
         >
           <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                自動出品設定
-              </label>
-              <select className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue">
-                <option value="manual">手動出品</option>
-                <option value="auto">自動出品</option>
-              </select>
-            </div>
+            <NexusSelect
+              label="自動出品設定"
+              defaultValue="manual"
+              options={[
+                { value: "manual", label: "手動出品" },
+                { value: "auto", label: "自動出品" }
+              ]}
+            />
             
-            <div>
-              <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                価格設定方法
-              </label>
-              <select className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue">
-                <option value="manual">手動設定</option>
-                <option value="auto">市場価格連動</option>
-              </select>
-            </div>
+            <NexusSelect
+              label="価格設定方法"
+              defaultValue="manual"
+              options={[
+                { value: "manual", label: "手動設定" },
+                { value: "auto", label: "市場価格連動" }
+              ]}
+            />
             
-            <div>
-              <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                利益率設定 (%)
-              </label>
-              <input
-                type="number"
-                min="0"
-                max="100"
-                defaultValue="20"
-                className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
-              />
-            </div>
+            <NexusInput
+              label="利益率設定 (%)"
+              type="number"
+              min="0"
+              max="100"
+              defaultValue="20"
+              required
+            />
             
-            <div>
-              <label className="flex items-center">
-                <input type="checkbox" className="mr-2" defaultChecked />
-                <span className="text-sm text-nexus-text-primary">写真撮影完了後に自動出品</span>
-              </label>
-            </div>
+            <NexusCheckbox
+              label="写真撮影完了後に自動出品"
+              defaultChecked
+            />
             
             <div className="text-right mt-6 space-x-2">
               <NexusButton onClick={() => setIsSettingsModalOpen(false)}>
@@ -153,74 +150,48 @@ export default function SalesPage() {
           size="lg"
         >
           <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                プロモーション名
-              </label>
-              <input
-                type="text"
-                className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
-                placeholder="例: 夏の大セール"
+            <NexusInput
+              label="プロモーション名"
+              type="text"
+              placeholder="例: 夏の大セール"
+              required
+            />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <NexusInput
+                label="割引率 (%)"
+                type="number"
+                min="0"
+                max="100"
+                placeholder="10"
+                required
+              />
+              <NexusInput
+                label="最低購入金額"
+                type="number"
+                min="0"
+                placeholder="10000"
               />
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                  割引率 (%)
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
-                  placeholder="10"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                  最低購入金額
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
-                  placeholder="10000"
-                />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                  開始日
-                </label>
-                <input
-                  type="date"
-                  className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                  終了日
-                </label>
-                <input
-                  type="date"
-                  className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                プロモーション詳細
-              </label>
-              <textarea
-                rows={3}
-                className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
-                placeholder="プロモーションの詳細説明を入力してください"
+              <NexusInput
+                label="開始日"
+                type="date"
+                required
+              />
+              <NexusInput
+                label="終了日"
+                type="date"
+                required
               />
             </div>
+            
+            <NexusTextarea
+              label="プロモーション詳細"
+              rows={3}
+              placeholder="プロモーションの詳細説明を入力してください"
+            />
             
             <div className="text-right mt-6 space-x-2">
               <NexusButton onClick={() => setIsPromotionModalOpen(false)}>

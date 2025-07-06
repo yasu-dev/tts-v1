@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { BaseModal, NexusButton, NexusInput, NexusSelect, NexusTextarea } from './ui';
+import { BaseModal, NexusButton, NexusInput, NexusSelect, NexusTextarea, NexusCard } from './ui';
 import { useToast } from './features/notifications/ToastProvider';
 import { CheckIcon, XMarkIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
 
@@ -149,13 +149,13 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
     >
       <div className="p-6">
         <div className="mb-4">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-nexus-text-secondary">
               SKU: {product.sku}
             </p>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-200 dark:border-gray-700 mb-6">
+        <div className="flex border-b border-nexus-border mb-6">
           {[
             { id: 'details', label: '詳細情報' },
             { id: 'specs', label: '仕様' },
@@ -166,8 +166,8 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
               onClick={() => setActiveTab(tab.id)}
               className={`px-6 py-4 text-sm font-medium transition-colors ${
                 activeTab === tab.id
-                  ? 'text-purple-600 border-b-2 border-purple-600'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'text-nexus-blue border-b-2 border-nexus-blue'
+                  : 'text-nexus-text-secondary hover:text-nexus-text-primary'
               }`}
             >
               {tab.label}
@@ -232,15 +232,15 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
               
               {/* Image placeholder */}
               <div className="mt-6">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                <label className="block text-sm font-medium text-nexus-text-primary mb-3">
                   商品画像
                 </label>
-                <div className="bg-gray-100 dark:bg-gray-700 rounded-lg h-64 flex items-center justify-center">
+                <div className="bg-nexus-bg-secondary rounded-lg h-64 flex items-center justify-center border border-nexus-border">
                   <div className="text-center">
-                    <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="mx-auto h-12 w-12 text-nexus-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <p className="mt-2 text-sm text-gray-500">画像データなし</p>
+                    <p className="mt-2 text-sm text-nexus-text-secondary">画像データなし</p>
                   </div>
                 </div>
               </div>
@@ -249,40 +249,68 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
 
           {activeTab === 'specs' && (
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              <h3 className="text-lg font-semibold text-nexus-text-primary mb-4">
                 商品仕様
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {Object.entries(demoSpecs).map(([key, value]) => (
-                  <div key={key} className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-600">
-                    <span className="font-medium text-gray-700 dark:text-gray-300">{key}</span>
-                    <span className="text-gray-900 dark:text-white">{value}</span>
-                  </div>
-                ))}
+              <div className="holo-table">
+                <table className="w-full">
+                  <thead className="holo-header">
+                    <tr>
+                      <th className="text-left py-3 px-4 text-sm font-medium">項目</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium">詳細</th>
+                    </tr>
+                  </thead>
+                  <tbody className="holo-body">
+                    {Object.entries(demoSpecs).map(([key, value]) => (
+                      <tr key={key} className="holo-row">
+                        <td className="py-3 px-4">
+                          <span className="font-medium text-nexus-text-secondary">{key}</span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="text-nexus-text-primary">{value}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}
 
           {activeTab === 'history' && (
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              <h3 className="text-lg font-semibold text-nexus-text-primary mb-4">
                 商品履歴
               </h3>
-              <div className="space-y-3">
-                {demoHistory.map((item, index) => (
-                  <div key={index} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-purple-600">{item.action}</span>
-                      <span className="text-sm text-gray-500">{item.date}</span>
-                    </div>
-                    <p className="text-sm text-gray-700 dark:text-gray-300 mb-1">
-                      担当: {item.user}
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {item.details}
-                    </p>
-                  </div>
-                ))}
+              <div className="holo-table">
+                <table className="w-full">
+                  <thead className="holo-header">
+                    <tr>
+                      <th className="text-left py-3 px-4 text-sm font-medium">アクション</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium">詳細</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium">担当者</th>
+                      <th className="text-right py-3 px-4 text-sm font-medium">日時</th>
+                    </tr>
+                  </thead>
+                  <tbody className="holo-body">
+                    {demoHistory.map((item, index) => (
+                      <tr key={index} className="holo-row">
+                        <td className="py-3 px-4">
+                          <span className="font-medium text-nexus-blue">{item.action}</span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="text-nexus-text-primary">{item.details}</span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="text-nexus-text-secondary">{item.user}</span>
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <span className="text-sm text-nexus-text-secondary">{item.date}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}

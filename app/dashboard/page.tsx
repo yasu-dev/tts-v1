@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import DashboardLayout from '../components/layouts/DashboardLayout';
 import PageHeader from '../components/ui/PageHeader';
-import { NexusButton, NexusCard } from '../components/ui';
+import { NexusButton, NexusCard, NexusLoadingSpinner } from '../components/ui';
 import BaseModal from '../components/ui/BaseModal';
 import InventorySummary from '../components/features/InventorySummary';
 import ProductDetailModal from '../components/ProductDetailModal';
@@ -176,7 +176,11 @@ export default function DashboardPage() {
   );
 
   if (loading) {
-    return <div>読み込み中...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <NexusLoadingSpinner size="lg" />
+      </div>
+    );
   }
 
   return (

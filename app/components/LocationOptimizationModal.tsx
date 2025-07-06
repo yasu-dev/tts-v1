@@ -83,9 +83,14 @@ export default function LocationOptimizationModal({ isOpen, onClose }: LocationO
     >
       <div className="max-h-[90vh] overflow-hidden">
         <div className="flex items-center p-6 border-b">
-          <SparklesIcon className="w-8 h-8 text-purple-600 mr-3" />
+          <SparklesIcon className="w-8 h-8 text-nexus-yellow mr-3" />
           <div>
-            <p className="text-sm text-gray-500">AI分析による最適な商品配置を提案</p>
+            <div className="text-xl font-bold text-nexus-text-primary">
+              AI位置最適化
+            </div>
+            <div className="text-nexus-text-secondary">
+              商品の保管位置を最適化し、ピッキング効率を向上させます
+            </div>
           </div>
         </div>
 
@@ -93,16 +98,15 @@ export default function LocationOptimizationModal({ isOpen, onClose }: LocationO
           {!optimizationResult ? (
             <div className="text-center py-12">
               {isOptimizing ? (
-                <div>
-                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mb-4"></div>
-                  <h3 className="text-lg font-semibold mb-2">最適化を実行中...</h3>
-                  <p className="text-gray-600">商品配置を分析しています。</p>
+                <div className="text-center py-8">
+                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-nexus-yellow mb-4"></div>
+                  <p className="text-nexus-text-secondary">最適化を実行中...</p>
                 </div>
               ) : (
                 <div>
-                  <SparklesIcon className="mx-auto h-16 w-16 text-purple-600 mb-4" />
+                  <SparklesIcon className="mx-auto h-16 w-16 text-nexus-yellow mb-4" />
                   <h3 className="text-lg font-semibold mb-2">ロケーション最適化を開始</h3>
-                  <p className="text-gray-600 mb-6">AI分析により、効率的な商品配置を提案します。</p>
+                  <p className="text-nexus-text-secondary mb-6">AI分析により、効率的な商品配置を提案します。</p>
                   <NexusButton
                     onClick={handleOptimize}
                     variant="primary"
@@ -116,20 +120,20 @@ export default function LocationOptimizationModal({ isOpen, onClose }: LocationO
             </div>
           ) : (
             <div className="space-y-6">
-              <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-green-900 mb-4">最適化結果</h3>
+              <div className="bg-nexus-bg-secondary border border-nexus-border rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-nexus-text-primary mb-4">最適化結果</h3>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-green-600">{optimizationResult.totalItems}</p>
-                    <p className="text-sm text-green-700">分析対象商品</p>
+                    <p className="text-2xl font-bold text-nexus-green">{optimizationResult.totalItems}</p>
+                    <p className="text-sm text-nexus-text-secondary">分析対象商品</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-green-600">{optimizationResult.optimizedItems}</p>
-                    <p className="text-sm text-green-700">最適化提案</p>
+                    <p className="text-2xl font-bold text-nexus-green">{optimizationResult.optimizedItems}</p>
+                    <p className="text-sm text-nexus-text-secondary">最適化提案</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-green-600">{optimizationResult.estimatedTimeSaving}</p>
-                    <p className="text-sm text-green-700">時間短縮</p>
+                    <p className="text-2xl font-bold text-nexus-green">{optimizationResult.estimatedTimeSaving}</p>
+                    <p className="text-sm text-nexus-text-secondary">時間短縮</p>
                   </div>
                 </div>
               </div>
@@ -141,7 +145,7 @@ export default function LocationOptimizationModal({ isOpen, onClose }: LocationO
                     <div
                       key={item.id}
                       className={`p-4 border rounded-lg cursor-pointer ${
-                        selectedItems.includes(item.id) ? 'border-purple-500 bg-purple-50' : 'border-gray-200'
+                        selectedItems.includes(item.id) ? 'border-nexus-yellow bg-nexus-bg-secondary' : 'border-gray-200'
                       }`}
                       onClick={() => setSelectedItems(prev => 
                         prev.includes(item.id) ? prev.filter(id => id !== item.id) : [...prev, item.id]
@@ -152,11 +156,11 @@ export default function LocationOptimizationModal({ isOpen, onClose }: LocationO
                           <input
                             type="checkbox"
                             checked={selectedItems.includes(item.id)}
-                            className="h-4 w-4 text-purple-600 rounded mr-3"
+                            className="h-4 w-4 text-nexus-yellow rounded mr-3"
                           />
                           <div>
                             <h4 className="font-medium">{item.name}</h4>
-                            <p className="text-sm text-gray-600">{item.currentLocation} → {item.suggestedLocation}</p>
+                            <p className="text-sm text-nexus-text-secondary">{item.currentLocation} → {item.suggestedLocation}</p>
                           </div>
                         </div>
                         <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">

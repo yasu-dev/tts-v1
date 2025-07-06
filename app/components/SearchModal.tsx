@@ -122,7 +122,7 @@ export default function SearchModal({ isOpen, onClose, query }: SearchModalProps
               </svg>
             </div>
           ) : results.length > 0 ? (
-            <div className="space-y-2 max-h-96 overflow-y-auto">
+            <div className="space-y-2">
               {results.map((result) => (
                 <a
                   key={result.id}

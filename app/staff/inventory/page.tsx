@@ -11,7 +11,7 @@ import {
   XMarkIcon,
   CheckIcon
 } from '@heroicons/react/24/outline';
-import { ContentCard } from '@/app/components/ui';
+import { ContentCard, BusinessStatusIndicator, Pagination, NexusLoadingSpinner } from '@/app/components/ui';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import NexusButton from '@/app/components/ui/NexusButton';
 import NexusSelect from '@/app/components/ui/NexusSelect';
@@ -57,6 +57,11 @@ export default function StaffInventoryPage() {
   const [loading, setLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
+  
+  // ページネーション状態
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [paginatedItems, setPaginatedItems] = useState<InventoryItem[]>([]);
 
   // デモデータ（スタッフ向けに詳細情報を追加）
   useEffect(() => {
@@ -194,25 +199,17 @@ export default function StaffInventoryPage() {
     }
 
     setFilteredItems(filtered);
+    setCurrentPage(1); // フィルタ変更時はページを1に戻す
   }, [items, selectedStatus, selectedCategory, selectedLocation, selectedStaff, searchQuery]);
 
-  const statusColors = {
-    inbound: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
-    inspection: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-    storage: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-    listing: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    sold: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
-    maintenance: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-  };
+  // ページネーション
+  useEffect(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    setPaginatedItems(filteredItems.slice(startIndex, endIndex));
+  }, [filteredItems, currentPage, itemsPerPage]);
 
-  const statusLabels = {
-    inbound: '入庫待ち',
-    inspection: '検品中',
-    storage: '保管中',
-    listing: '出品中',
-    sold: '売約済み',
-    maintenance: 'メンテナンス',
-  };
+
 
   const updateItemStatus = (itemId: string, newStatus: InventoryItem['status']) => {
     setItems(prev => prev.map(item => 
@@ -280,7 +277,7 @@ export default function StaffInventoryPage() {
     );
   };
 
-  const staffMembers = Array.from(new Set(items.map(item => item.assignedStaff).filter(Boolean)));
+  const staffMembers = Array.from(new Set(items.map(item => item.assignedStaff).filter((staff): staff is string => Boolean(staff))));
 
   const handleExportCsv = () => {
     const csvContent = [
@@ -348,7 +345,11 @@ export default function StaffInventoryPage() {
   };
 
   if (loading) {
-    return <div>読み込み中...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <NexusLoadingSpinner size="lg" />
+      </div>
+    );
   }
 
   return (
@@ -477,9 +478,10 @@ export default function StaffInventoryPage() {
         {/* Content */}
         {viewMode === 'card' ? (
           /* Card View */
-          <div className="intelligence-metrics">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredItems.map((item) => (
+          <div className="space-y-6">
+            <div className="intelligence-metrics">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {paginatedItems.map((item) => (
                 <div
                   key={item.id}
                   className="intelligence-card asia"
@@ -509,9 +511,7 @@ export default function StaffInventoryPage() {
                           )}
                         </div>
                         <div>
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusColors[item.status]}`}>
-                            {statusLabels[item.status]}
-                          </span>
+                          <BusinessStatusIndicator status={item.status} size="sm" />
                           {item.qrCode && (
                             <p className="text-xs text-nexus-text-secondary mt-1">
                               QR: {item.qrCode}
@@ -592,14 +592,29 @@ export default function StaffInventoryPage() {
                 </div>
               ))}
             </div>
+            
+            {/* ページネーション */}
+            {filteredItems.length > 0 && (
+              <div className="mt-6 pt-4 border-t border-nexus-border">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={Math.ceil(filteredItems.length / itemsPerPage)}
+                  totalItems={filteredItems.length}
+                  itemsPerPage={itemsPerPage}
+                  onPageChange={setCurrentPage}
+                  onItemsPerPageChange={setItemsPerPage}
+                />
+              </div>
+            )}
+          </div>
           </div>
         ) : (
           /* Table View */
           <div className="intelligence-card global">
             <div className="p-4">
-              <div className="holo-table max-h-96 overflow-y-auto">
+              <div className="holo-table">
                 <table className="w-full">
-                  <thead className="holo-header sticky top-0 bg-white z-10">
+                  <thead className="holo-header">
                     <tr>
                       <th className="text-left">商品</th>
                       <th className="text-left">ステータス</th>
@@ -610,7 +625,7 @@ export default function StaffInventoryPage() {
                     </tr>
                   </thead>
                   <tbody className="holo-body">
-                    {filteredItems.map((item) => (
+                    {paginatedItems.map((item) => (
                       <tr key={item.id} className="holo-row">
                         <td>
                           <div className="flex items-center">
@@ -646,9 +661,7 @@ export default function StaffInventoryPage() {
                           </div>
                         </td>
                         <td>
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusColors[item.status]}`}>
-                            {statusLabels[item.status]}
-                          </span>
+                          <BusinessStatusIndicator status={item.status} size="sm" />
                         </td>
                         <td>
                           <span className="text-sm text-nexus-text-primary">{item.location}</span>
@@ -702,6 +715,20 @@ export default function StaffInventoryPage() {
                   </tbody>
                 </table>
               </div>
+              
+              {/* ページネーション */}
+              {filteredItems.length > 0 && (
+                <div className="mt-6 pt-4 border-t border-nexus-border">
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={Math.ceil(filteredItems.length / itemsPerPage)}
+                    totalItems={filteredItems.length}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                  />
+                </div>
+              )}
             </div>
           </div>
         )}

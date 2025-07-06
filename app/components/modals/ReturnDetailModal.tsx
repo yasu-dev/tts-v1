@@ -133,7 +133,7 @@ export default function ReturnDetailModal({
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-nexus-border">
           <div className="flex-1">
-            <h2 className="text-2xl font-bold text-nexus-text-primary">
+            <h2 className="text-2xl font-display font-bold text-nexus-text-primary">
               {returnItem.productName}
             </h2>
             <div className="flex items-center space-x-4 mt-2">

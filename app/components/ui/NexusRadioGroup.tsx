@@ -23,6 +23,7 @@ interface NexusRadioGroupProps {
   direction?: 'vertical' | 'horizontal';
   className?: string;
   disabled?: boolean;
+  required?: boolean;
 }
 
 export default function NexusRadioGroup({
@@ -37,7 +38,8 @@ export default function NexusRadioGroup({
   size = 'md',
   direction = 'vertical',
   className = '',
-  disabled
+  disabled,
+  required
 }: NexusRadioGroupProps) {
   
   const handleChange = (optionValue: string) => {
@@ -58,11 +60,12 @@ export default function NexusRadioGroup({
     <div className={containerClasses}>
       {label && (
         <div className="mb-4">
-          <label className="block text-sm font-medium text-nexus-text-primary font-primary">
+          <label className="block text-sm font-medium text-nexus-text-primary">
             {label}
+            {required && <span className="text-red-500 ml-1">*</span>}
           </label>
           {description && (
-            <p className="mt-1 text-xs text-nexus-text-secondary font-primary">
+            <p className="mt-1 text-xs text-nexus-text-secondary">
               {description}
             </p>
           )}
@@ -87,7 +90,7 @@ export default function NexusRadioGroup({
       </div>
       
       {error && (
-        <p className="mt-2 text-sm text-red-600 font-primary">
+        <p className="mt-2 text-sm text-red-600">
           {error}
         </p>
       )}

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { CheckCircle, Camera, Package, DollarSign, Send, AlertCircle } from 'lucide-react'
-import { ContentCard } from '@/app/components/ui'
+import { ContentCard, NexusCard } from '@/app/components/ui'
 
 interface RelistingStep {
   id: string
@@ -82,27 +82,27 @@ export function ReturnRelistingFlow() {
         </div>
 
         {/* 商品情報 */}
-        <div className="bg-gray-50 p-4 rounded-lg mb-6">
-          <h3 className="font-semibold mb-2">商品情報</h3>
+        <NexusCard className="p-4 mb-6">
+          <h3 className="font-semibold mb-2 text-nexus-text-primary">商品情報</h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm text-gray-600">商品名</p>
-              <p className="font-medium">{product.name}</p>
+              <p className="text-sm text-nexus-text-secondary">商品名</p>
+              <p className="font-medium text-nexus-text-primary">{product.name}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">SKU</p>
-              <p className="font-medium">{product.sku}</p>
+              <p className="text-sm text-nexus-text-secondary">SKU</p>
+              <p className="font-medium text-nexus-text-primary">{product.sku}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">検品結果</p>
+              <p className="text-sm text-nexus-text-secondary">検品結果</p>
               <p className="font-medium text-green-600">合格</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">商品状態</p>
-              <p className="font-medium">{product.condition}</p>
+              <p className="text-sm text-nexus-text-secondary">商品状態</p>
+              <p className="font-medium text-nexus-text-primary">{product.condition}</p>
             </div>
           </div>
-        </div>
+        </NexusCard>
 
         {/* ステップ別コンテンツ */}
         <div className="mb-8">
@@ -136,7 +136,7 @@ export function ReturnRelistingFlow() {
                     className="w-full h-32 object-cover rounded-lg"
                   />
                 ))}
-                <label className="w-full h-32 bg-gray-100 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors">
+                <label className="w-full h-32 bg-nexus-bg-secondary rounded-lg flex items-center justify-center cursor-pointer hover:bg-nexus-bg-tertiary transition-colors border border-nexus-border">
                   <Camera className="w-8 h-8 text-gray-400" />
                   <input
                     type="file"

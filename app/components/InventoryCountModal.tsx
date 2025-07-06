@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { XMarkIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/outline';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
-import { BaseModal, NexusButton } from './ui';
+import { BaseModal, NexusButton, NexusRadioGroup, NexusCheckbox, NexusAlert } from './ui';
 
 interface InventoryCountModalProps {
   isOpen: boolean;
@@ -74,7 +74,7 @@ export default function InventoryCountModal({ isOpen, onClose }: InventoryCountM
     >
       <div className="p-6">
         <div className="flex items-center mb-4">
-          <ClipboardDocumentListIcon className="w-8 h-8 text-blue-600 mr-3" />
+          <ClipboardDocumentListIcon className="w-6 h-6 text-blue-600 mr-3" />
           <p className="text-sm text-gray-500">在庫数量の確認・更新を行います</p>
         </div>
         
@@ -83,30 +83,15 @@ export default function InventoryCountModal({ isOpen, onClose }: InventoryCountM
             <label className="block text-sm font-medium text-gray-700 mb-3">
               棚卸しモード
             </label>
-            <div className="space-y-2">
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="countMode"
-                  value="full"
-                  checked={countMode === 'full'}
-                  onChange={(e) => setCountMode(e.target.value as 'full' | 'partial')}
-                  className="h-4 w-4 text-blue-600"
-                />
-                <span className="ml-2">全棚卸し</span>
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="countMode"
-                  value="partial"
-                  checked={countMode === 'partial'}
-                  onChange={(e) => setCountMode(e.target.value as 'full' | 'partial')}
-                  className="h-4 w-4 text-blue-600"
-                />
-                <span className="ml-2">部分棚卸し</span>
-              </label>
-            </div>
+            <NexusRadioGroup
+              name="countMode"
+              value={countMode}
+              onChange={(value) => setCountMode(value as 'full' | 'partial')}
+              options={[
+                { value: 'full', label: '全棚卸し' },
+                { value: 'partial', label: '部分棚卸し' }
+              ]}
+            />
           </div>
 
           {countMode === 'partial' && (
@@ -114,49 +99,42 @@ export default function InventoryCountModal({ isOpen, onClose }: InventoryCountM
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 対象ロケーション
               </label>
-              <div className="space-y-2 max-h-48 overflow-y-auto">
+              <div className="space-y-2">
                 {locations.map((location) => (
-                  <label key={location.id} className="flex items-center p-2 hover:bg-gray-50 rounded">
-                    <input
-                      type="checkbox"
+                  <div key={location.id} className="flex items-center p-2 hover:bg-gray-50 rounded">
+                    <NexusCheckbox
                       checked={selectedLocations.includes(location.id)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
+                      onChange={(checked) => {
+                        if (checked) {
                           setSelectedLocations([...selectedLocations, location.id]);
                         } else {
                           setSelectedLocations(selectedLocations.filter(id => id !== location.id));
                         }
                       }}
-                      className="h-4 w-4 text-blue-600"
+                      label={`${location.name} (${location.items}件)`}
                     />
-                    <div className="ml-3 flex-1">
-                      <span className="font-medium">{location.name}</span>
-                      <span className="text-sm text-gray-500 ml-2">({location.items}件)</span>
-                    </div>
-                  </label>
+                  </div>
                 ))}
               </div>
             </div>
           )}
 
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <h4 className="font-medium text-yellow-800 mb-2">注意事項</h4>
-            <ul className="text-sm text-yellow-700 space-y-1">
+          <NexusAlert type="warning" title="注意事項">
+            <ul className="space-y-1">
               <li>• 棚卸し中は該当エリアの商品移動を制限します</li>
               <li>• 実際の在庫数量をシステムに正確に入力してください</li>
               <li>• 差異が発見された場合は理由を記録してください</li>
             </ul>
-          </div>
+          </NexusAlert>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h4 className="font-medium text-blue-800 mb-2">棚卸し対象</h4>
-            <p className="text-sm text-blue-700">
+          <NexusAlert type="info" title="棚卸し対象">
+            <p>
               {countMode === 'full' 
                 ? `全エリア (${locations.reduce((sum, loc) => sum + loc.items, 0)}件の商品)`
                 : `選択したエリア (${selectedLocations.length}エリア)`
               }
             </p>
-          </div>
+          </NexusAlert>
         </div>
 
         <div className="flex justify-between pt-6 border-t">

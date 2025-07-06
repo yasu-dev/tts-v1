@@ -15,6 +15,7 @@ import HoloTable from '@/app/components/ui/HoloTable';
 import NexusButton from '@/app/components/ui/NexusButton';
 import NexusSelect from '@/app/components/ui/NexusSelect';
 import NexusInput from '@/app/components/ui/NexusInput';
+import { BusinessStatusIndicator } from '@/app/components/ui/StatusIndicator';
 
 interface StaffTask {
   id: string;
@@ -134,17 +135,7 @@ export default function StaffDashboard() {
     low: '低'
   };
 
-  const statusColors = {
-    pending: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
-    in_progress: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    completed: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-  };
-
-  const statusLabels = {
-    pending: '待機中',
-    in_progress: '作業中',
-    completed: '完了',
-  };
+  // ステータス表示は BusinessStatusIndicator で統一
 
   const typeIcons = {
     inspection: (
@@ -710,9 +701,7 @@ export default function StaffDashboard() {
                             <span className="cert-nano cert-premium">
                               {(priorityLabels[row.priority as keyof typeof priorityLabels] as unknown) as string}
                             </span>
-                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusColors[row.status as keyof typeof statusColors]}`}>
-                              {(statusLabels[row.status as keyof typeof statusLabels] as unknown) as string}
-                            </span>
+                            <BusinessStatusIndicator status={row.status} />
                           </div>
                         </td>
                         <td className="p-4">

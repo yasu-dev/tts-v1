@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { BaseModal, NexusButton } from './ui';
+import { BaseModal, NexusButton, NexusRadioGroup } from './ui';
 import { useToast } from './features/notifications/ToastProvider';
+import { DocumentArrowDownIcon, PrinterIcon, ClipboardDocumentIcon } from '@heroicons/react/24/outline';
 
 interface QRCodeModalProps {
   isOpen: boolean;
@@ -32,6 +33,12 @@ export default function QRCodeModal({ isOpen, onClose, itemId, itemName, itemSku
     medium: { size: 256, label: '中 (256px)' },
     large: { size: 512, label: '大 (512px)' }
   };
+
+  const radioOptions = [
+    { value: 'small', label: '小 (128px)', description: '商品ラベル用' },
+    { value: 'medium', label: '中 (256px)', description: '標準サイズ' },
+    { value: 'large', label: '大 (512px)', description: '印刷・掲示用' }
+  ];
 
   const handlePrint = () => {
     const printContent = `
@@ -129,136 +136,116 @@ export default function QRCodeModal({ isOpen, onClose, itemId, itemName, itemSku
       isOpen={isOpen}
       onClose={onClose}
       title="QRコード生成"
-      size="md"
+      size="lg"
+      className="max-h-[90vh] overflow-hidden"
     >
       <div className="p-6">
-        <div className="mb-4">
-            <p className="text-sm text-nexus-text-secondary">
-              {itemName} ({itemSku})
-            </p>
+        {/* Header Info */}
+        <div className="mb-6">
+          <p className="text-sm text-nexus-text-secondary">
+            {itemName} ({itemSku})
+          </p>
         </div>
 
-        {/* Content */}
-        <div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* QR Code Display */}
-            <div className="text-center">
-              <div className="bg-nexus-bg-primary p-8 rounded-lg border-2 border-nexus-border inline-block mb-4">
-                {/* Placeholder for QR Code - Using pattern for demo */}
-                <div 
-                  className="bg-black relative"
-                  style={{
-                    width: qrSizes[qrSize].size,
-                    height: qrSizes[qrSize].size,
-                    backgroundImage: `
-                      repeating-linear-gradient(0deg, transparent, transparent 8px, black 8px, black 16px),
-                      repeating-linear-gradient(90deg, transparent, transparent 8px, black 8px, black 16px)
-                    `,
-                    backgroundSize: '16px 16px'
-                  }}
-                >
-                  {/* Corner markers */}
-                  <div className="absolute top-2 left-2 w-8 h-8 bg-white border-4 border-black"></div>
-                  <div className="absolute top-2 right-2 w-8 h-8 bg-white border-4 border-black"></div>
-                  <div className="absolute bottom-2 left-2 w-8 h-8 bg-white border-4 border-black"></div>
-                  
-                  {/* Center pattern */}
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white border-4 border-black">
-                    <div className="w-full h-full bg-black"></div>
-                  </div>
+        {/* Main Content */}
+        <div className="space-y-6">
+          {/* QR Code Display */}
+          <div className="flex justify-center">
+            <div className="bg-white p-4 rounded-lg border-2 border-nexus-border shadow-sm">
+              <div 
+                className="bg-black relative mx-auto"
+                style={{
+                  width: qrSizes[qrSize].size,
+                  height: qrSizes[qrSize].size,
+                  backgroundImage: `
+                    repeating-linear-gradient(0deg, transparent, transparent 8px, black 8px, black 16px),
+                    repeating-linear-gradient(90deg, transparent, transparent 8px, black 8px, black 16px)
+                  `,
+                  backgroundSize: '16px 16px'
+                }}
+              >
+                {/* Corner markers */}
+                <div className="absolute top-2 left-2 w-8 h-8 bg-white border-4 border-black"></div>
+                <div className="absolute top-2 right-2 w-8 h-8 bg-white border-4 border-black"></div>
+                <div className="absolute bottom-2 left-2 w-8 h-8 bg-white border-4 border-black"></div>
+                
+                {/* Center pattern */}
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white border-4 border-black">
+                  <div className="w-full h-full bg-black"></div>
                 </div>
-              </div>
-              
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-nexus-text-primary">
-                  サイズ: {qrSizes[qrSize].label}
-                </p>
-                <p className="text-xs text-nexus-text-secondary">
-                  商品ID: {itemId}
-                </p>
               </div>
             </div>
+          </div>
 
-            {/* Controls and Information */}
-            <div className="space-y-6">
-              {/* Size Selection */}
-              <div>
-                <label className="block text-sm font-medium text-nexus-text-primary mb-3">
-                  QRコードサイズ
-                </label>
-                <div className="space-y-2">
-                  {Object.entries(qrSizes).map(([key, config]) => (
-                    <label key={key} className="flex items-center">
-                      <input
-                        type="radio"
-                        name="qrSize"
-                        value={key}
-                        checked={qrSize === key}
-                        onChange={(e) => setQrSize(e.target.value as any)}
-                        className="h-4 w-4 text-purple-600 rounded"
-                      />
-                      <span className="ml-2 text-sm text-nexus-text-primary">
-                        {config.label}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </div>
+          {/* Size Selection */}
+          <div className="max-w-md mx-auto">
+            <NexusRadioGroup
+              name="qrSize"
+              value={qrSize}
+              onChange={(value) => setQrSize(value as 'small' | 'medium' | 'large')}
+              options={radioOptions}
+              label="QRコードサイズ"
+              variant="nexus"
+              size="md"
+            />
+          </div>
 
-              {/* QR Code Data */}
-              <div>
-                <label className="block text-sm font-medium text-nexus-text-primary mb-2">
-                  QRコードデータ
-                </label>
-                <div className="bg-nexus-bg-secondary rounded-lg p-3 text-xs font-mono text-nexus-text-primary max-h-32 overflow-y-auto">
-                  <pre>{JSON.stringify(qrData, null, 2)}</pre>
-                </div>
-                <button
-                  onClick={handleCopyData}
-                  className="mt-2 text-xs text-nexus-blue hover:text-nexus-blue-light transition-colors"
-                >
-                  データをコピー
-                </button>
-              </div>
-
-              {/* Usage Information */}
-              <div className="bg-nexus-blue/10 border border-nexus-blue/20 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-nexus-blue mb-2">
-                  使用方法
-                </h4>
-                <ul className="text-sm text-nexus-blue space-y-1">
-                  <li>• 商品ラベルに印刷して在庫管理に使用</li>
-                  <li>• スマートフォンでスキャンして詳細確認</li>
-                  <li>• 梱包時の商品確認に使用</li>
-                  <li>• 配送ラベルと一緒に印刷可能</li>
-                </ul>
-              </div>
+          {/* QR Code Data */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-medium text-nexus-text-primary">
+                QRコードデータ
+              </h4>
+              <NexusButton
+                onClick={handleCopyData}
+                variant="default"
+                size="sm"
+                icon={<ClipboardDocumentIcon className="w-4 h-4" />}
+              >
+                コピー
+              </NexusButton>
             </div>
+            <div className="bg-nexus-bg-secondary rounded-lg p-3 text-xs font-mono text-nexus-text-primary">
+              <pre>{JSON.stringify(qrData, null, 2)}</pre>
+            </div>
+          </div>
+
+          {/* Usage Information */}
+          <div className="bg-nexus-blue/10 border border-nexus-blue/20 rounded-lg p-4">
+            <h4 className="text-sm font-medium text-nexus-blue mb-2">
+              使用方法
+            </h4>
+            <ul className="text-sm text-nexus-blue space-y-1">
+              <li>• 商品ラベルに印刷して在庫管理に使用</li>
+              <li>• スマートフォンでスキャンして詳細確認</li>
+              <li>• 梱包時の商品確認に使用</li>
+              <li>• 配送ラベルと一緒に印刷可能</li>
+            </ul>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex justify-between mt-6 pt-6 border-t border-nexus-border">
+        <div className="flex justify-end space-x-3 mt-6 pt-6 border-t border-nexus-border">
           <NexusButton
             onClick={onClose}
             variant="default"
           >
             閉じる
           </NexusButton>
-          <div className="flex space-x-3">
-            <NexusButton
-              onClick={handleDownload}
-              variant="secondary"
-            >
-              ダウンロード
-            </NexusButton>
-            <NexusButton
-              onClick={handlePrint}
-              variant="primary"
-            >
-              印刷
-            </NexusButton>
-          </div>
+          <NexusButton
+            onClick={handleDownload}
+            variant="secondary"
+            icon={<DocumentArrowDownIcon className="w-4 h-4" />}
+          >
+            ダウンロード
+          </NexusButton>
+          <NexusButton
+            onClick={handlePrint}
+            variant="primary"
+            icon={<PrinterIcon className="w-4 h-4" />}
+          >
+            印刷
+          </NexusButton>
         </div>
       </div>
     </BaseModal>

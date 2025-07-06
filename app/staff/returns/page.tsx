@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
-import { ContentCard } from '@/app/components/ui';
+import { ContentCard, NexusLoadingSpinner } from '@/app/components/ui';
+import { BusinessStatusIndicator } from '@/app/components/ui/StatusIndicator';
 import { ReturnInspection } from '@/app/components/features/returns/ReturnInspection';
 import { ReturnRelistingFlow } from '@/app/components/features/returns/ReturnRelistingFlow';
 import { ReturnReasonAnalysis } from '@/app/components/features/returns/ReturnReasonAnalysis';
@@ -183,11 +184,9 @@ export default function ReturnsPage() {
               </p>
             </div>
           </div>
-          <ContentCard>
-            <div className="p-8 text-center">
-              <div className="text-lg text-gray-500">データを読み込み中...</div>
-            </div>
-          </ContentCard>
+          <div className="flex items-center justify-center min-h-[400px]">
+            <NexusLoadingSpinner size="lg" />
+          </div>
         </div>
       </DashboardLayout>
     );
@@ -271,14 +270,14 @@ export default function ReturnsPage() {
 
         {/* タブナビゲーション */}
         <ContentCard className="mb-6">
-          <div className="border-b border-gray-200">
+          <div className="border-b border-nexus-border">
             <nav className="-mb-px flex space-x-8 px-6">
               <button
                 onClick={() => setActiveTab('inspection')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                   activeTab === 'inspection'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-nexus-blue text-nexus-blue'
+                    : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-nexus-border'
                 }`}
               >
                 返品検品
@@ -287,8 +286,8 @@ export default function ReturnsPage() {
                 onClick={() => setActiveTab('relisting')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                   activeTab === 'relisting'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-nexus-blue text-nexus-blue'
+                    : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-nexus-border'
                 }`}
               >
                 再出品業務フロー
@@ -297,8 +296,8 @@ export default function ReturnsPage() {
                 onClick={() => setActiveTab('analysis')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                   activeTab === 'analysis'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-nexus-blue text-nexus-blue'
+                    : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-nexus-border'
                 }`}
               >
                 返品理由分析
@@ -400,7 +399,7 @@ export default function ReturnsPage() {
                         className={`px-4 py-2 rounded-lg transition-colors ${
                           filter === 'all' 
                             ? 'bg-nexus-primary text-white' 
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            : 'bg-nexus-bg-secondary text-nexus-text-secondary hover:bg-nexus-bg-tertiary'
                         }`}
                       >
                         すべて
@@ -410,7 +409,7 @@ export default function ReturnsPage() {
                         className={`px-4 py-2 rounded-lg transition-colors ${
                           filter === 'pending' 
                             ? 'bg-nexus-primary text-white' 
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            : 'bg-nexus-bg-secondary text-nexus-text-secondary hover:bg-nexus-bg-tertiary'
                         }`}
                       >
                         検品待ち
@@ -420,7 +419,7 @@ export default function ReturnsPage() {
                         className={`px-4 py-2 rounded-lg transition-colors ${
                           filter === 'inspecting' 
                             ? 'bg-nexus-primary text-white' 
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            : 'bg-nexus-bg-secondary text-nexus-text-secondary hover:bg-nexus-bg-tertiary'
                         }`}
                       >
                         検品中
@@ -430,7 +429,7 @@ export default function ReturnsPage() {
                         className={`px-4 py-2 rounded-lg transition-colors ${
                           filter === 'completed' 
                             ? 'bg-nexus-primary text-white' 
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            : 'bg-nexus-bg-secondary text-nexus-text-secondary hover:bg-nexus-bg-tertiary'
                         }`}
                       >
                         完了
@@ -459,15 +458,15 @@ export default function ReturnsPage() {
                               <td className="py-4 px-4">{item.returnReason}</td>
                               <td className="py-4 px-4">{item.customer}</td>
                               <td className="text-center py-4 px-4">
-                                <span className={`status-badge ${
-                                  item.status === 'pending' ? 'warning' :
-                                  item.status === 'inspecting' ? 'info' :
-                                  item.status === 'approved' ? 'success' :
-                                  item.status === 'rejected' ? 'danger' :
-                                  'default'
-                                }`}>
-                                  {getStatusLabel(item.status)}
-                                </span>
+                                <BusinessStatusIndicator 
+                                  status={
+                                    item.status === 'inspecting' ? 'inspection' :
+                                    item.status === 'approved' ? 'completed' :
+                                    item.status === 'rejected' ? 'cancelled' :
+                                    item.status === 'refunded' ? 'completed' :
+                                    item.status
+                                  } 
+                                />
                               </td>
                               <td className="text-center py-4 px-4">
                                 <div className="flex gap-2 justify-center">
@@ -554,7 +553,7 @@ export default function ReturnsPage() {
                     <td className="py-3 px-4 text-sm text-nexus-text-secondary">配送中破損・修理不能</td>
                     <td className="py-3 px-4 text-sm text-nexus-text-secondary">2024-06-25</td>
                     <td className="py-3 px-4 text-sm">
-                      <span className="status-badge danger">廃棄待ち</span>
+                      <BusinessStatusIndicator status="maintenance" />
                     </td>
                   </tr>
                   <tr className="border-b border-nexus-border">
@@ -562,7 +561,7 @@ export default function ReturnsPage() {
                     <td className="py-3 px-4 text-sm text-nexus-text-secondary">真贋鑑定で偽物判定</td>
                     <td className="py-3 px-4 text-sm text-nexus-text-secondary">2024-06-24</td>
                     <td className="py-3 px-4 text-sm">
-                      <span className="status-badge warning">調査中</span>
+                      <BusinessStatusIndicator status="inspection" />
                     </td>
                   </tr>
                   <tr className="border-b border-nexus-border">
@@ -570,7 +569,7 @@ export default function ReturnsPage() {
                     <td className="py-3 px-4 text-sm text-nexus-text-secondary">水没による基板損傷</td>
                     <td className="py-3 px-4 text-sm text-nexus-text-secondary">2024-06-23</td>
                     <td className="py-3 px-4 text-sm">
-                      <span className="status-badge info">部品取り</span>
+                      <BusinessStatusIndicator status="storage" />
                     </td>
                   </tr>
                 </tbody>

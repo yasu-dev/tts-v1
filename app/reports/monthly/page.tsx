@@ -313,7 +313,7 @@ export default function MonthlyReportsPage() {
             </div>
             
             <div className="text-center">
-              <div className="text-3xl font-bold text-purple-600">
+              <div className="text-3xl font-display font-bold text-nexus-text-primary">
                 {analyticsData.kpis.inventoryTurnover.current}
               </div>
               <div className="text-sm text-gray-600 mt-1">在庫回転率</div>
@@ -456,16 +456,18 @@ export default function MonthlyReportsPage() {
                 検品工程の人員増強により処理速度を向上
               </p>
             </div>
-            <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
-              <h4 className="font-medium text-purple-800 mb-2 flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                </svg>
-                売上拡大
-              </h4>
-              <p className="text-sm text-purple-700">
-                好調カテゴリーの仕入れ強化で収益最大化
-              </p>
+            <div className="intelligence-card oceania">
+              <div className="p-4">
+                <h4 className="font-medium text-nexus-text-primary mb-2 flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  </svg>
+                  売上拡大
+                </h4>
+                <p className="text-sm text-nexus-text-secondary">
+                  好調カテゴリーの仕入れ強化で収益最大化
+                </p>
+              </div>
             </div>
           </div>
         </div>

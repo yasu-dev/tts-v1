@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { QrCode, Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
+import { NexusCard } from '@/app/components/ui';
 
 interface BarcodeScannerProps {
   onScan: (barcode: string, productData?: any) => void;
@@ -242,14 +243,14 @@ export default function BarcodeScanner({
       )}
       
       {lastProductData && (
-        <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+        <NexusCard className="mt-3 p-3 border-green-200 bg-nexus-bg-tertiary">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="font-semibold text-green-800">{lastProductData.name}</h4>
-              <p className="text-sm text-green-600">
+              <h4 className="font-semibold text-green-600">{lastProductData.name}</h4>
+              <p className="text-sm text-nexus-text-secondary">
                 SKU: {lastProductData.sku} | 価格: ¥{lastProductData.price.toLocaleString()}
               </p>
-              <p className="text-sm text-green-600">
+              <p className="text-sm text-nexus-text-secondary">
                 在庫: {lastProductData.stock}個 | 保管場所: {lastProductData.location}
               </p>
             </div>
@@ -258,7 +259,7 @@ export default function BarcodeScanner({
                 lastProductData.status === 'ready_for_listing' ? 'bg-green-100 text-green-800' :
                 lastProductData.status === 'storage' ? 'bg-blue-100 text-blue-800' :
                 lastProductData.status === 'needs_review' ? 'bg-yellow-100 text-yellow-800' :
-                'bg-gray-100 text-gray-800'
+                'bg-nexus-bg-secondary text-nexus-text-secondary'
               }`}>
                 {lastProductData.status === 'ready_for_listing' ? '出品準備完了' :
                  lastProductData.status === 'storage' ? '保管中' :
@@ -267,7 +268,7 @@ export default function BarcodeScanner({
               </span>
             </div>
           </div>
-        </div>
+        </NexusCard>
       )}
       
       <div className="text-xs text-gray-500">

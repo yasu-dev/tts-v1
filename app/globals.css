@@ -1308,15 +1308,6 @@
   padding: 0.25rem;
 }
 
-/* Intelligence Card 内部のパディング最適化 */
-.intelligence-card > div:first-child {
-  padding: 1rem; /* デフォルトのパディング */
-}
-
-.intelligence-card.compact > div:first-child {
-  padding: 0.5rem; /* コンパクト版 */
-}
-
 .intelligence-card::before {
   content: '';
   position: absolute;

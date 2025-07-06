@@ -121,10 +121,10 @@ export default function ListingPage() {
   };
 
   const platformConfig = {
-    ebay: { name: 'eBay', color: 'bg-blue-500', badge: 'info' },
-    amazon: { name: 'Amazon', color: 'bg-orange-500', badge: 'warning' },
-    mercari: { name: 'メルカリ', color: 'bg-red-500', badge: 'danger' },
-    yahoo: { name: 'ヤフオク', color: 'bg-purple-500', badge: 'success' },
+    ebay: { name: 'eBay', color: 'bg-nexus-blue', badge: 'info' },
+    amazon: { name: 'Amazon', color: 'bg-nexus-yellow', badge: 'warning' },
+    mercari: { name: 'メルカリ', color: 'bg-nexus-red', badge: 'danger' },
+    yahoo: { name: 'ヤフオク', color: 'bg-nexus-green', badge: 'success' },
   };
 
   const getStatusConfig = (status: string) => {

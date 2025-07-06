@@ -62,7 +62,7 @@ export default function HoloTable({
                   px-8 py-6 
                   font-display font-black text-xs uppercase tracking-widest
                   text-primary-blue 
-                  border-b-[3px] border-nexus-border
+                  border-b-2 border-nexus-border
                   relative
                   transition-all duration-300
                   hover:text-nexus-yellow
@@ -114,15 +114,9 @@ export default function HoloTable({
                   relative
                   transition-all duration-300 ease-out
                   hover:bg-primary-blue/5
-                  hover:translate-x-2
-                  hover:shadow-[0_6px_25px_rgba(0,100,210,0.15)]
+                  hover:shadow-lg
                   ${onRowClick ? 'cursor-pointer' : ''}
                   group
-                  before:absolute before:top-0 before:left-0 before:w-0 before:h-full
-                  before:bg-gradient-to-r before:from-primary-blue/20 before:to-transparent
-                  before:transition-all before:duration-300 before:ease-out
-                  before:group-hover:w-full
-                  before:pointer-events-none
                 `}
                 onClick={() => onRowClick?.(row, rowIndex)}
               >

@@ -26,6 +26,7 @@ export default function DashboardLayout({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFlowCollapsed, setIsFlowCollapsed] = useState(false);
+  const [isInitialStabilizing, setIsInitialStabilizing] = useState(true);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const { showToast } = useToast();
@@ -66,6 +67,27 @@ export default function DashboardLayout({
     };
   }, [isMobileMenuOpen]);
 
+  // 画面遷移時のスクロール位置リセット
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (scrollContainer) {
+      // 画面遷移時にスクロール位置をリセット
+      scrollContainer.scrollTop = 0;
+      // フロー状態も初期化
+      setIsFlowCollapsed(false);
+      // 初期安定化状態を設定
+      setIsInitialStabilizing(true);
+      
+      // 2秒後に自動制御を有効化
+      const stabilizeTimer = setTimeout(() => {
+        setIsInitialStabilizing(false);
+        console.log('初期安定化完了: 自動フロー制御を有効化');
+      }, 2000);
+      
+      return () => clearTimeout(stabilizeTimer);
+    }
+  }, [pathname]);
+
   // 自動スクロール検知によるフロー開閉
   useEffect(() => {
     const scrollContainer = scrollContainerRef.current;
@@ -81,6 +103,13 @@ export default function DashboardLayout({
     
     const handleScroll = () => {
       console.log('🚀 handleScroll が呼ばれました - scrollTop:', scrollContainer.scrollTop);
+      
+      // 初期安定化中は自動制御を無効化
+      if (isInitialStabilizing) {
+        console.log('初期安定化中: 自動フロー制御をスキップ');
+        return;
+      }
+      
       if (!ticking) {
         requestAnimationFrame(() => {
           const currentScrollY = scrollContainer.scrollTop;
@@ -123,6 +152,11 @@ export default function DashboardLayout({
       // スクロール終了検知
       clearTimeout(scrollTimeout);
       scrollTimeout = setTimeout(() => {
+        // 初期安定化中は自動制御を無効化
+        if (isInitialStabilizing) {
+          return;
+        }
+        
         // スクロール停止時の最上部チェック
         if (scrollContainer.scrollTop < 15) {
           console.log('スクロール停止: 最上部でフロー展開');
@@ -156,19 +190,13 @@ export default function DashboardLayout({
       console.log('✅ スクロール可能');
     }
     
-    // 手動でスクロールイベントをテスト
-    const testScroll = () => {
-      console.log('🧪 手動スクロールテスト実行');
-      scrollContainer.scrollTop = 50;
-    };
-    setTimeout(testScroll, 1000);
     scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
       console.log('スクロールイベントリスナー削除');
       scrollContainer.removeEventListener('scroll', handleScroll);
       clearTimeout(scrollTimeout);
     };
-  }, []);
+  }, [isInitialStabilizing]);
 
   const handleSearchSubmit = (query: string) => {
     setSearchQuery(query);
@@ -357,7 +385,7 @@ export default function DashboardLayout({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-nexus-background via-gray-50 to-blue-50/20">
+    <div className="min-h-screen bg-gradient-to-br from-nexus-background via-gray-50 to-blue-50/20" data-testid="dashboard-layout">
       {/* モバイルサイドバーオーバーレイ */}
       {isMobileMenuOpen && (
         <div

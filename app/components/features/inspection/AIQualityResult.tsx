@@ -69,7 +69,7 @@ export default function AIQualityResult({
 
   const getGradeColor = (grade: string) => {
     switch (grade) {
-      case 'S': return 'text-purple-600 bg-purple-100'
+      case 'S': return 'text-nexus-purple bg-nexus-purple/20'
       case 'A': return 'text-blue-600 bg-blue-100'
       case 'B': return 'text-green-600 bg-green-100'
       case 'C': return 'text-yellow-600 bg-yellow-100'
@@ -169,7 +169,7 @@ export default function AIQualityResult({
                 className={`px-4 py-2 rounded-lg text-sm whitespace-nowrap transition-colors ${
                   selectedImage === index
                     ? 'bg-nexus-primary text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-nexus-bg-secondary text-nexus-text-secondary hover:bg-nexus-bg-tertiary'
                 }`}
               >
                 画像 {index + 1}

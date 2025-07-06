@@ -10,26 +10,28 @@ import {
 } from '@heroicons/react/24/outline';
 import NexusButton from '@/app/components/ui/NexusButton';
 import BaseModal from '@/app/components/ui/BaseModal';
+import { BusinessStatusIndicator } from '@/app/components/ui/StatusIndicator';
 
 // Mock products data
 const mockProducts = [
-  { id: 'PRD-001', name: 'Sony α7 IV ボディ', category: 'カメラ本体', status: 'listing', price: '¥320,000' },
-  { id: 'PRD-002', name: 'Sony FE 24-70mm F2.8 GM II', category: 'レンズ', status: 'sold', price: '¥280,000' },
-  { id: 'PRD-003', name: 'Rolex Submariner', category: '腕時計', status: 'listing', price: '¥1,200,000' },
-  { id: 'PRD-004', name: 'Canon EOS R5', category: 'カメラ本体', status: 'shipping', price: '¥450,000' },
-  { id: 'PRD-005', name: 'Leica Q3', category: 'カメラ本体', status: 'listing', price: '¥820,000' }
+  { id: 'PRD-001', name: 'Sony α7 IV ボディ', category: 'カメラ本体', status: 'listing' as const, price: '¥320,000' },
+  { id: 'PRD-002', name: 'Sony FE 24-70mm F2.8 GM II', category: 'レンズ', status: 'sold' as const, price: '¥280,000' },
+  { id: 'PRD-003', name: 'Rolex Submariner', category: '腕時計', status: 'listing' as const, price: '¥1,200,000' },
+  { id: 'PRD-004', name: 'Canon EOS R5', category: 'カメラ本体', status: 'shipped' as const, price: '¥450,000' },
+  { id: 'PRD-005', name: 'Leica Q3', category: 'カメラ本体', status: 'listing' as const, price: '¥820,000' }
 ];
-
-const statusColors = {
-  listing: { bg: 'bg-green-100', text: 'text-green-800', label: '出品中' },
-  sold: { bg: 'bg-purple-100', text: 'text-purple-800', label: '売却済' },
-  shipping: { bg: 'bg-blue-100', text: 'text-blue-800', label: '発送中' }
-};
 
 export default function TimelinePage() {
   const [selectedProduct, setSelectedProduct] = useState<string>(mockProducts[0].id);
   const selectedProductData = mockProducts.find(p => p.id === selectedProduct);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+
+  // Mock activities data
+  const activities = [
+    { timestamp: '2024-01-01 10:00', activity: '商品登録', details: '商品情報を登録', user: '田中太郎', status: 'pending' },
+    { timestamp: '2024-01-01 11:00', activity: '検品完了', details: '品質チェック完了', user: '鈴木花子', status: 'completed' },
+    { timestamp: '2024-01-01 12:00', activity: '出品開始', details: 'eBayに出品', user: '佐藤一郎', status: 'listing' }
+  ];
 
   const handleExportHistory = () => {
     // 履歴データをCSV形式に変換
@@ -198,7 +200,7 @@ export default function TimelinePage() {
             <div className="intelligence-card global">
               <div className="p-4">
                 <h2 className="text-sm font-semibold text-nexus-text-primary mb-3">商品を選択</h2>
-                <div className="space-y-2 max-h-96 overflow-y-auto">
+                <div className="space-y-2">
                   {mockProducts.map((product) => (
                     <button
                       key={product.id}
@@ -222,13 +224,7 @@ export default function TimelinePage() {
                             <span className="text-xs font-medium">{product.price}</span>
                           </div>
                         </div>
-                        <span className={`
-                          px-2 py-0.5 text-xs rounded-full
-                          ${statusColors[product.status as keyof typeof statusColors].bg}
-                          ${statusColors[product.status as keyof typeof statusColors].text}
-                        `}>
-                          {statusColors[product.status as keyof typeof statusColors].label}
-                        </span>
+                        <BusinessStatusIndicator status={product.status} />
                       </div>
                     </button>
                   ))}
@@ -243,7 +239,7 @@ export default function TimelinePage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-nexus-text-secondary">在庫日数</p>
-                      <p className="text-2xl font-bold text-nexus-text-primary">10日</p>
+                      <p className="text-2xl font-display font-bold text-nexus-text-primary">10日</p>
                     </div>
                     <div className="action-orb blue w-10 h-10">
                       <Calendar className="w-5 h-5" />
@@ -273,9 +269,9 @@ export default function TimelinePage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-nexus-text-secondary">イベント数</p>
-                      <p className="text-2xl font-bold text-nexus-text-primary">9件</p>
+                      <p className="text-2xl font-display font-bold text-nexus-text-primary">9件</p>
                     </div>
-                    <div className="action-orb purple w-10 h-10">
+                    <div className="action-orb blue w-10 h-10">
                       <Activity className="w-5 h-5" />
                     </div>
                   </div>
@@ -303,13 +299,9 @@ export default function TimelinePage() {
                     <p className="text-lg font-bold text-nexus-text-primary">
                       {selectedProductData?.price}
                     </p>
-                    <span className={`
-                      px-2 py-0.5 text-xs rounded-full
-                      ${statusColors[selectedProductData?.status as keyof typeof statusColors]?.bg}
-                      ${statusColors[selectedProductData?.status as keyof typeof statusColors]?.text}
-                    `}>
-                      {statusColors[selectedProductData?.status as keyof typeof statusColors]?.label}
-                    </span>
+                    {selectedProductData?.status && (
+                      <BusinessStatusIndicator status={selectedProductData.status} />
+                    )}
                   </div>
                 </div>
                 

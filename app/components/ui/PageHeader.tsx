@@ -34,7 +34,7 @@ export default function PageHeader({
   subtitle,
   icon,
   actions,
-  region = 'global',
+  region = 'americas',
   size = 'compact',
   gradient = true,
 }: PageHeaderProps) {

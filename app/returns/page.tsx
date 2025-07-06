@@ -15,6 +15,7 @@ import NexusButton from '@/app/components/ui/NexusButton';
 import NexusInput from '@/app/components/ui/NexusInput';
 import NexusTextarea from '@/app/components/ui/NexusTextarea';
 import BaseModal from '@/app/components/ui/BaseModal';
+import { NexusCard } from '@/app/components/ui';
 import ReturnDetailModal from '@/app/components/modals/ReturnDetailModal';
 
 export default function ReturnsPage() {
@@ -531,44 +532,84 @@ export default function ReturnsPage() {
             <h3 className="text-2xl font-display font-bold text-nexus-text-primary mb-8">返品業務フロー</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-              <div className="text-center">
-                <div className="w-20 h-20 bg-nexus-yellow/20 rounded-2xl flex items-center justify-center mx-auto mb-4 border-3 border-nexus-yellow/50">
-                  <svg className="w-10 h-10 text-nexus-yellow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
+              <div className="intelligence-card asia">
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="action-orb">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <span className="status-badge warning">申請</span>
+                  </div>
+                  <div className="metric-value font-display text-2xl font-bold text-nexus-text-primary">
+                    1
+                  </div>
+                  <div className="metric-label text-nexus-text-secondary font-medium mt-2">
+                    申請
+                  </div>
+                  <p className="text-sm text-nexus-text-secondary mt-2">返品リクエスト提出</p>
                 </div>
-                <h4 className="font-display font-bold text-nexus-text-primary mb-2">1. 申請</h4>
-                <p className="text-sm text-nexus-text-secondary">返品リクエスト提出</p>
               </div>
 
-              <div className="text-center">
-                <div className="w-20 h-20 bg-nexus-blue/20 rounded-2xl flex items-center justify-center mx-auto mb-4 border-3 border-nexus-blue/50">
-                  <svg className="w-10 h-10 text-nexus-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
-                  </svg>
+              <div className="intelligence-card americas">
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="action-orb blue">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
+                      </svg>
+                    </div>
+                    <span className="status-badge info">受領</span>
+                  </div>
+                  <div className="metric-value font-display text-2xl font-bold text-nexus-text-primary">
+                    2
+                  </div>
+                  <div className="metric-label text-nexus-text-secondary font-medium mt-2">
+                    受領
+                  </div>
+                  <p className="text-sm text-nexus-text-secondary mt-2">商品の受け取り確認</p>
                 </div>
-                <h4 className="font-display font-bold text-nexus-text-primary mb-2">2. 受領</h4>
-                <p className="text-sm text-nexus-text-secondary">商品の受け取り確認</p>
               </div>
 
-              <div className="text-center">
-                <div className="w-20 h-20 bg-nexus-purple/20 rounded-2xl flex items-center justify-center mx-auto mb-4 border-3 border-nexus-purple/50">
-                  <svg className="w-10 h-10 text-nexus-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
+              <div className="intelligence-card europe">
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="action-orb">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </div>
+                    <span className="status-badge">検品中</span>
+                  </div>
+                  <div className="metric-value font-display text-2xl font-bold text-nexus-text-primary">
+                    3
+                  </div>
+                  <div className="metric-label text-nexus-text-secondary font-medium mt-2">
+                    再検品
+                  </div>
+                  <p className="text-sm text-nexus-text-secondary mt-2">状態確認・評価</p>
                 </div>
-                <h4 className="font-display font-bold text-nexus-text-primary mb-2">3. 再検品</h4>
-                <p className="text-sm text-nexus-text-secondary">状態確認・評価</p>
               </div>
 
-              <div className="text-center">
-                <div className="w-20 h-20 bg-nexus-green/20 rounded-2xl flex items-center justify-center mx-auto mb-4 border-3 border-nexus-green/50">
-                  <svg className="w-10 h-10 text-nexus-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+              <div className="intelligence-card africa">
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="action-orb green">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <span className="status-badge success">完了</span>
+                  </div>
+                  <div className="metric-value font-display text-2xl font-bold text-nexus-text-primary">
+                    4
+                  </div>
+                  <div className="metric-label text-nexus-text-secondary font-medium mt-2">
+                    完了
+                  </div>
+                  <p className="text-sm text-nexus-text-secondary mt-2">返金・交換処理</p>
                 </div>
-                <h4 className="font-display font-bold text-nexus-text-primary mb-2">4. 完了</h4>
-                <p className="text-sm text-nexus-text-secondary">返金・交換処理</p>
               </div>
             </div>
           </div>

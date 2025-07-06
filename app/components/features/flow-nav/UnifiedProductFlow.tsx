@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { NexusLoadingSpinner } from '@/app/components/ui';
 
 interface FlowStep {
   id: string;
@@ -345,8 +346,8 @@ export default function UnifiedProductFlow({
     switch (priority) {
       case 'high': return 'bg-red-100 text-red-700';
       case 'medium': return 'bg-yellow-100 text-yellow-700';
-      case 'low': return 'bg-gray-100 text-gray-700';
-      default: return 'bg-gray-100 text-gray-700';
+              case 'low': return 'bg-nexus-bg-secondary text-nexus-text-secondary';
+        default: return 'bg-nexus-bg-secondary text-nexus-text-secondary';
     }
   };
 
@@ -355,7 +356,7 @@ export default function UnifiedProductFlow({
       <div className={`bg-white border-b border-gray-200 ${compact ? 'py-2' : 'py-4'}`}>
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center">
-            <div className="animate-pulse text-gray-400">フルフィルメント業務フロー読み込み中...</div>
+            <NexusLoadingSpinner size="md" />
           </div>
         </div>
       </div>

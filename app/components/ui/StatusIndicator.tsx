@@ -4,6 +4,13 @@ import React from 'react';
 
 type StatusType = 'optimal' | 'warning' | 'critical';
 
+// 業務ステータス用の型定義
+type BusinessStatusType = 
+  | 'inbound' | 'inspection' | 'storage' | 'listing' | 'sold' | 'maintenance'
+  | 'pending' | 'in_progress' | 'completed' | 'cancelled'
+  | 'pending_inspection' | 'inspected' | 'packed' | 'shipped' | 'delivered'
+  | 'approved' | 'rejected' | 'refunded';
+
 interface StatusIndicatorProps {
   status: StatusType;
   label: string;
@@ -11,6 +18,42 @@ interface StatusIndicatorProps {
   showLabel?: boolean;
   className?: string;
 }
+
+interface BusinessStatusIndicatorProps {
+  status: BusinessStatusType;
+  size?: 'sm' | 'md' | 'lg';
+  showLabel?: boolean;
+  className?: string;
+}
+
+// 業務ステータス設定
+const businessStatusConfig = {
+  // 在庫ステータス
+  inbound: { label: '入庫中', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
+  inspection: { label: '検品中', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' },
+  storage: { label: '保管中', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
+  listing: { label: '出品中', color: 'bg-nexus-blue/20 text-nexus-blue dark:bg-nexus-blue/30 dark:text-nexus-blue' },
+  sold: { label: '売却済み', color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200' },
+  maintenance: { label: 'メンテナンス', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' },
+  
+  // タスクステータス
+  pending: { label: '未開始', color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200' },
+  in_progress: { label: '進行中', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
+  completed: { label: '完了', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
+  cancelled: { label: 'キャンセル', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' },
+  
+  // 配送ステータス
+  pending_inspection: { label: '検品待ち', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' },
+  inspected: { label: '検品済み', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
+  packed: { label: '梱包済み', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
+  shipped: { label: '出荷済み', color: 'bg-nexus-blue/20 text-nexus-blue dark:bg-nexus-blue/30 dark:text-nexus-blue' },
+  delivered: { label: '配送完了', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
+  
+  // 返品ステータス
+  approved: { label: '承認済み', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
+  rejected: { label: '拒否', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' },
+  refunded: { label: '返金済み', color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200' },
+};
 
 export default function StatusIndicator({
   status,
@@ -100,7 +143,7 @@ export default function StatusIndicator({
       {/* ラベル */}
       {showLabel && (
         <span className={`
-          font-bold font-primary
+          font-bold
           ${sizing.text}
           ${config.textColor}
           tracking-wide
@@ -109,5 +152,39 @@ export default function StatusIndicator({
         </span>
       )}
     </div>
+  );
+}
+
+// 業務ステータス表示コンポーネント
+export function BusinessStatusIndicator({
+  status,
+  size = 'md',
+  showLabel = true,
+  className = ''
+}: BusinessStatusIndicatorProps) {
+  const config = businessStatusConfig[status];
+  
+  if (!config) {
+    console.warn(`Unknown business status: ${status}`);
+    return null;
+  }
+
+  const sizeConfig = {
+    sm: 'px-2 py-1 text-xs',
+    md: 'px-2 py-1 text-xs',
+    lg: 'px-3 py-1 text-sm'
+  };
+
+  return (
+    <span className={`
+      inline-flex items-center
+      ${sizeConfig[size]}
+      font-medium rounded-full
+      whitespace-nowrap
+      ${config.color}
+      ${className}
+    `}>
+      {showLabel ? config.label : ''}
+    </span>
   );
 }
