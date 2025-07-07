@@ -414,7 +414,7 @@ export default function StaffReportsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Daily Performance */}
           <div className="intelligence-card europe lg:col-span-2">
-            <div className="p-6">
+            <div className="p-8">
               <h2 className="text-lg font-semibold text-nexus-text-primary mb-6">
                 日別パフォーマンス
               </h2>
@@ -437,19 +437,19 @@ export default function StaffReportsPage() {
                     </div>
                     <div className="grid grid-cols-3 gap-3 text-sm">
                       <div className="intelligence-card asia text-center">
-                        <div className="p-6">
+                        <div className="p-8">
                           <p className="font-display text-nexus-blue font-bold">{day.inspections}</p>
                           <p className="text-xs text-nexus-text-secondary">検品</p>
                         </div>
                       </div>
                       <div className="intelligence-card africa text-center">
-                        <div className="p-6">
+                        <div className="p-8">
                           <p className="font-display text-nexus-green font-bold">{day.listings}</p>
                           <p className="text-xs text-nexus-text-secondary">出品</p>
                         </div>
                       </div>
                       <div className="intelligence-card oceania text-center">
-                        <div className="p-6">
+                        <div className="p-8">
                           <p className="font-display text-nexus-purple font-bold">{day.shipments}</p>
                           <p className="text-xs text-nexus-text-secondary">出荷</p>
                         </div>
@@ -464,7 +464,7 @@ export default function StaffReportsPage() {
 
         {/* Report Actions */}
         <div className="intelligence-card global" ref={performanceRef}>
-          <div className="p-6">
+          <div className="p-8">
             <h2 className="text-lg font-semibold text-nexus-text-primary mb-6">
               レポートアクション
             </h2>

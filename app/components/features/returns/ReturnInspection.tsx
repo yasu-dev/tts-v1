@@ -78,7 +78,7 @@ export function ReturnInspection() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div className="intelligence-card asia">
-              <div className="p-6">
+              <div className="p-8">
                 <h3 className="font-semibold mb-4 text-nexus-text-primary">商品情報</h3>
                 <div className="space-y-2">
                   <div className="flex justify-between">
@@ -102,7 +102,7 @@ export function ReturnInspection() {
             </div>
             
             <div className="intelligence-card europe">
-              <div className="p-6">
+              <div className="p-8">
                 <h3 className="font-semibold mb-4 text-nexus-text-primary">検品ステータス</h3>
                 <div className={`p-4 rounded-lg ${
                   overallStatus === 'pass' ? 'bg-green-50 border border-green-200' :
@@ -178,7 +178,7 @@ export function ReturnInspection() {
           <div className="mb-8">
             <h3 className="font-semibold mb-4 text-nexus-text-primary">写真撮影</h3>
             <div className="intelligence-card oceania">
-              <div className="p-6">
+              <div className="p-8">
                 <div className="grid grid-cols-3 gap-4">
                   {photos.map((photo, index) => (
                     <img

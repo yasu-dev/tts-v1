@@ -192,7 +192,22 @@ export default function LocationRegistration({ onRegisterComplete }: LocationReg
   return (
     <div className="space-y-6">
       <div className="intelligence-card europe">
-        <div className="p-6">
+        <div className="p-8">
+          <div className="flex justify-center items-center h-32">
+            <div className="animate-spin h-8 w-8 border-b-2 border-nexus-yellow rounded-full"></div>
+          </div>
+        </div>
+      </div>
+
+      <div className="intelligence-card asia">
+        <div className="p-4 sm:p-8 lg:p-8">
+          <h2 className="text-xl font-bold text-nexus-text-primary mb-4">QRコード</h2>
+          {/* ... */}
+        </div>
+      </div>
+
+      <div className="intelligence-card europe">
+        <div className="p-8">
           <div className="mb-6">
             <div className="flex items-center gap-3 mb-2">
               <div className="action-orb blue">
@@ -303,7 +318,7 @@ export default function LocationRegistration({ onRegisterComplete }: LocationReg
       {/* 選択した商品の詳細とロケーション割り当て */}
       {selectedProduct && (
         <div className="intelligence-card asia">
-          <div className="p-4 sm:p-6 lg:p-8">
+          <div className="p-4 sm:p-8 lg:p-8">
             <h3 className="text-lg font-display font-bold text-nexus-text-primary mb-4">
               ロケーション割り当て
             </h3>

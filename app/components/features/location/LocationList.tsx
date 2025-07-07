@@ -580,7 +580,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
       {selectedLocation && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="intelligence-card global max-w-4xl w-full max-h-[90vh] overflow-hidden">
-            <div className="p-6 border-b border-nexus-border">
+            <div className="p-8 border-b border-nexus-border">
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className="text-xl font-display font-bold text-nexus-text-primary">
@@ -599,7 +599,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
               </div>
             </div>
 
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+            <div className="p-8 overflow-y-auto max-h-[calc(90vh-120px)]">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                   <h4 className="font-semibold mb-3 text-nexus-text-primary">基本情報</h4>

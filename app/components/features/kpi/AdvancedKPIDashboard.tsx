@@ -273,7 +273,7 @@ export default function AdvancedKPIDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Revenue Growth */}
             <div className="intelligence-card americas">
-              <div className="p-6 text-center">
+              <div className="p-8 text-center">
                 <h4 className="font-medium text-nexus-text-primary mb-4">売上成長率</h4>
                 <canvas
                   ref={chartRefs.revenue}
@@ -294,7 +294,7 @@ export default function AdvancedKPIDashboard() {
 
             {/* Inventory Metrics */}
             <div className="intelligence-card europe">
-              <div className="p-6">
+              <div className="p-8">
                 <h4 className="font-medium text-nexus-text-primary mb-4">在庫効率指標</h4>
                 <div className="space-y-4">
                   <div>
@@ -332,7 +332,7 @@ export default function AdvancedKPIDashboard() {
 
             {/* Category Distribution */}
             <div className="intelligence-card asia">
-              <div className="p-6">
+              <div className="p-8">
                 <h4 className="font-medium text-nexus-text-primary mb-4 text-center">カテゴリー別売上</h4>
                 <canvas
                   ref={chartRefs.category}
@@ -379,7 +379,7 @@ export default function AdvancedKPIDashboard() {
 
       {/* Alert Section */}
       <div className="intelligence-card oceania">
-        <div className="p-6">
+        <div className="p-8">
           <div className="flex items-center gap-4">
             <div className="action-orb red">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
