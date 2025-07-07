@@ -321,7 +321,7 @@ export default function StaffReportsPage() {
         <div className="intelligence-metrics">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="intelligence-card americas">
-              <div className="p-6">
+              <div className="p-8">
                 <div className="flex items-center justify-between mb-4">
                   <div className="action-orb green">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -343,7 +343,7 @@ export default function StaffReportsPage() {
             </div>
 
             <div className="intelligence-card europe">
-              <div className="p-6">
+              <div className="p-8">
                 <div className="flex items-center justify-between mb-4">
                   <div className="action-orb blue">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -365,7 +365,7 @@ export default function StaffReportsPage() {
             </div>
 
             <div className="intelligence-card asia">
-              <div className="p-6">
+              <div className="p-8">
                 <div className="flex items-center justify-between mb-4">
                   <div className="action-orb blue">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -387,7 +387,7 @@ export default function StaffReportsPage() {
             </div>
 
             <div className="intelligence-card africa">
-              <div className="p-6">
+              <div className="p-8">
                 <div className="flex items-center justify-between mb-4">
                   <div className="action-orb orange">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -437,19 +437,19 @@ export default function StaffReportsPage() {
                     </div>
                     <div className="grid grid-cols-3 gap-3 text-sm">
                       <div className="intelligence-card asia text-center">
-                        <div className="p-2">
+                        <div className="p-6">
                           <p className="font-display text-nexus-blue font-bold">{day.inspections}</p>
                           <p className="text-xs text-nexus-text-secondary">検品</p>
                         </div>
                       </div>
                       <div className="intelligence-card africa text-center">
-                        <div className="p-2">
+                        <div className="p-6">
                           <p className="font-display text-nexus-green font-bold">{day.listings}</p>
                           <p className="text-xs text-nexus-text-secondary">出品</p>
                         </div>
                       </div>
                       <div className="intelligence-card oceania text-center">
-                        <div className="p-2">
+                        <div className="p-6">
                           <p className="font-display text-nexus-purple font-bold">{day.shipments}</p>
                           <p className="text-xs text-nexus-text-secondary">出荷</p>
                         </div>

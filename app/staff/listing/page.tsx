@@ -193,7 +193,7 @@ export default function ListingPage() {
 
         {/* View Mode Toggle */}
         <div className="intelligence-card europe">
-          <div className="p-6">
+          <div className="p-8">
             <div className="flex items-center justify-between">
               <div className="flex gap-1 bg-nexus-bg-secondary p-1 rounded-lg">
                 <button
@@ -331,7 +331,7 @@ export default function ListingPage() {
               const platform = platformConfig[template.platform];
               return (
                 <div key={template.id} className="intelligence-card americas">
-                  <div className="p-6">
+                  <div className="p-8">
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <h3 className="font-semibold text-lg text-nexus-text-primary">

@@ -350,7 +350,7 @@ export default function InventoryPage() {
         <div className="intelligence-metrics">
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
             <div className="intelligence-card europe">
-              <div className="p-3 sm:p-4 md:p-6">
+              <div className="p-8">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
                   <div className="action-orb blue w-6 h-6 sm:w-8 sm:h-8">
                     <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -370,7 +370,7 @@ export default function InventoryPage() {
             </div>
 
             <div className="intelligence-card europe">
-              <div className="p-3 sm:p-4 md:p-6">
+              <div className="p-8">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
                   <div className="action-orb green w-6 h-6 sm:w-8 sm:h-8">
                     <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -390,7 +390,7 @@ export default function InventoryPage() {
             </div>
 
             <div className="intelligence-card europe">
-              <div className="p-3 sm:p-4 md:p-6">
+              <div className="p-8">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
                   <div className="action-orb w-6 h-6 sm:w-8 sm:h-8">
                     <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -411,7 +411,7 @@ export default function InventoryPage() {
             </div>
 
             <div className="intelligence-card europe">
-              <div className="p-3 sm:p-4 md:p-6">
+              <div className="p-8">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
                   <div className="action-orb red w-6 h-6 sm:w-8 sm:h-8">
                     <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

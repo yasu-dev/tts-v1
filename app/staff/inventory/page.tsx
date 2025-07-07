@@ -401,7 +401,7 @@ export default function StaffInventoryPage() {
 
         {/* Filters */}
         <div className="intelligence-card global">
-          <div className="p-4">
+          <div className="p-8">
             <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
               <div>
                 <NexusSelect
@@ -486,7 +486,7 @@ export default function StaffInventoryPage() {
                   key={item.id}
                   className="intelligence-card asia"
                 >
-                  <div className="p-6">
+                  <div className="p-8">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center space-x-3">
                         <div className="action-orb">
@@ -551,7 +551,7 @@ export default function StaffInventoryPage() {
                     </div>
 
                     {item.notes && (
-                      <div className="bg-nexus-bg-secondary p-3 rounded-lg mb-4">
+                      <div className="bg-nexus-bg-secondary p-8 rounded-lg mb-4">
                         <p className="text-xs text-nexus-text-secondary">
                           備考: {item.notes}
                         </p>
@@ -611,7 +611,7 @@ export default function StaffInventoryPage() {
         ) : (
           /* Table View */
           <div className="intelligence-card global">
-            <div className="p-4">
+            <div className="p-8">
               <div className="holo-table">
                 <table className="w-full">
                   <thead className="holo-header">
@@ -735,7 +735,7 @@ export default function StaffInventoryPage() {
 
         {filteredItems.length === 0 && (
           <div className="intelligence-card global">
-            <div className="p-12 text-center">
+            <div className="p-8 text-center">
               <svg className="mx-auto h-12 w-12 text-nexus-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
               </svg>

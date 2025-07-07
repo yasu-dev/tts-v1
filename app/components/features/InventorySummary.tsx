@@ -40,7 +40,7 @@ export default function InventorySummary() {
   if (isLoading) {
     return (
       <div className="intelligence-card global">
-        <div className="p-4">
+        <div className="p-6">
           <div className="animate-pulse">
             <div className="h-4 bg-gray-200 rounded mb-3"></div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -57,7 +57,7 @@ export default function InventorySummary() {
   if (error) {
     return (
       <div className="intelligence-card global">
-        <div className="p-4">
+        <div className="p-6">
           <div className="text-red-500 text-center">
             <svg className="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -133,7 +133,7 @@ export default function InventorySummary() {
     <div className="space-y-4">
       {/* Overall Stats */}
       <div className="intelligence-card global">
-        <div className="p-4">
+        <div className="p-6">
           <div className="mb-3">
             <h3 className="text-lg font-display font-bold text-nexus-text-primary">在庫サマリー</h3>
             <p className="text-nexus-text-secondary mt-0.5 text-xs">リアルタイム在庫状況</p>
@@ -141,7 +141,7 @@ export default function InventorySummary() {
           
           <div className="grid grid-cols-2 gap-3">
             <div className="intelligence-card americas">
-              <div className="p-3">
+              <div className="p-6">
                 <div className="flex items-center justify-between mb-2">
                   <div className="action-orb blue w-8 h-8">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -160,7 +160,7 @@ export default function InventorySummary() {
             </div>
 
             <div className="intelligence-card europe">
-              <div className="p-3">
+              <div className="p-6">
                 <div className="flex items-center justify-between mb-2">
                   <div className="action-orb green w-8 h-8">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -183,7 +183,7 @@ export default function InventorySummary() {
 
       {/* Status Breakdown */}
       <div className="intelligence-card global">
-        <div className="p-4">
+        <div className="p-6">
           <div className="mb-3">
             <h3 className="text-base font-display font-bold text-nexus-text-primary">ステータス別在庫</h3>
           </div>
@@ -191,7 +191,7 @@ export default function InventorySummary() {
           <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
             {Object.entries(stats.statusStats).map(([status, count]) => (
               <div key={status} className="intelligence-card americas">
-                <div className="p-2.5">
+                <div className="p-6">
                   <div className="flex items-center justify-between mb-1">
                     <div className={`w-2 h-2 rounded-full ${getStatusColor(status)}`}></div>
                     <span className="text-base font-display font-bold text-nexus-text-primary">
@@ -210,7 +210,7 @@ export default function InventorySummary() {
 
       {/* Category Breakdown */}
       <div className="intelligence-card global">
-        <div className="p-4">
+        <div className="p-6">
           <div className="mb-3">
             <h3 className="text-base font-display font-bold text-nexus-text-primary">カテゴリー別在庫</h3>
           </div>
@@ -218,7 +218,7 @@ export default function InventorySummary() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {Object.entries(stats.categoryStats).map(([category, count]) => (
               <div key={category} className="intelligence-card asia">
-                <div className="p-3">
+                <div className="p-6">
                   <div className="flex items-center justify-between mb-2">
                     <div className="action-orb w-7 h-7">
                       {getCategoryIcon(category)}

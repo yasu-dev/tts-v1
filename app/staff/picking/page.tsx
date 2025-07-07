@@ -233,7 +233,7 @@ export default function PickingPage() {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="intelligence-card global">
-            <div className="p-6">
+            <div className="p-8">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-nexus-text-secondary">待機中</p>
@@ -251,7 +251,7 @@ export default function PickingPage() {
           </div>
 
           <div className="intelligence-card global">
-            <div className="p-6">
+            <div className="p-8">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-nexus-text-secondary">作業中</p>
@@ -269,7 +269,7 @@ export default function PickingPage() {
           </div>
 
           <div className="intelligence-card global">
-            <div className="p-6">
+            <div className="p-8">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-nexus-text-secondary">本日完了</p>
@@ -287,7 +287,7 @@ export default function PickingPage() {
           </div>
 
           <div className="intelligence-card global">
-            <div className="p-6">
+            <div className="p-8">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-nexus-text-secondary">平均作業時間</p>
@@ -363,7 +363,7 @@ export default function PickingPage() {
 
         {/* Filter Controls */}
         <div className="intelligence-card global">
-          <div className="p-4 sm:p-6">
+          <div className="p-8">
             <div className="flex gap-1 bg-nexus-bg-secondary p-1 rounded-lg">
               {[
                 { key: 'all', label: 'すべて' },
@@ -491,7 +491,7 @@ export default function PickingPage() {
         {selectedTask && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="intelligence-card global max-w-[1600px] w-full max-h-[90vh] overflow-hidden">
-              <div className="p-6 border-b border-nexus-border">
+              <div className="p-8 border-b border-nexus-border">
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="text-xl font-display font-bold text-nexus-text-primary">
@@ -510,7 +510,7 @@ export default function PickingPage() {
                 </div>
               </div>
 
-              <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <div className="p-8 overflow-y-auto max-h-[calc(90vh-120px)]">
                 <div className="mb-6">
                   <h4 className="font-semibold mb-4 text-nexus-text-primary">ピッキングアイテム</h4>
                   <div className="space-y-3">

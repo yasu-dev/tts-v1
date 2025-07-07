@@ -29,7 +29,7 @@ export default function NexusCard({
     intelligence-card
     bg-nexus-surface backdrop-blur-nexus backdrop-saturate-nexus
     border-[3px] rounded-nexus-xl
-    p-3 sm:p-4 md:p-6 lg:p-8 relative overflow-hidden
+    p-8 relative overflow-hidden
     transition-all duration-300 ease-out
     cursor-pointer
     shadow-nexus-card
