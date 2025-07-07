@@ -198,7 +198,7 @@ export default function TimelinePage() {
           <div className="space-y-4">
             {/* 商品選択 - リスト形式でコンパクトに */}
             <div className="intelligence-card global">
-              <div className="p-6">
+              <div className="p-8">
                 <h2 className="text-sm font-semibold text-nexus-text-primary mb-3">商品を選択</h2>
                 <div className="space-y-2">
                   {mockProducts.map((product) => (
@@ -235,7 +235,7 @@ export default function TimelinePage() {
             {/* 統計情報 - よりコンパクトに */}
             <div className="space-y-3">
               <div className="intelligence-card americas">
-                <div className="p-6">
+                <div className="p-8">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-nexus-text-secondary">在庫日数</p>
@@ -250,7 +250,7 @@ export default function TimelinePage() {
               </div>
               
               <div className="intelligence-card europe">
-                <div className="p-6">
+                <div className="p-8">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-nexus-text-secondary">ステータス</p>
@@ -265,7 +265,7 @@ export default function TimelinePage() {
               </div>
               
               <div className="intelligence-card asia">
-                <div className="p-6">
+                <div className="p-8">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-nexus-text-secondary">イベント数</p>
@@ -284,7 +284,7 @@ export default function TimelinePage() {
           {/* 右側：タイムライン表示 */}
           <div className="lg:col-span-2">
             <div className="intelligence-card global">
-              <div className="p-6">
+              <div className="p-8">
                 {/* 選択中の商品情報 */}
                 <div className="flex items-center justify-between mb-4 pb-4 border-b border-nexus-border">
                   <div>

@@ -237,7 +237,7 @@ export default function DashboardPage() {
         <div className="intelligence-metrics">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div className="intelligence-card americas">
-              <div className="p-6">
+              <div className="p-8">
                 <div className="flex items-center justify-between mb-1.5">
                   <div className="action-orb blue w-7 h-7">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -256,7 +256,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="intelligence-card europe">
-              <div className="p-6">
+              <div className="p-8">
                 <div className="flex items-center justify-between mb-1.5">
                   <div className="action-orb green w-7 h-7">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -275,7 +275,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="intelligence-card asia">
-              <div className="p-6">
+              <div className="p-8">
                 <div className="flex items-center justify-between mb-1.5">
                   <div className="action-orb w-7 h-7">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -294,7 +294,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="intelligence-card africa">
-              <div className="p-6">
+              <div className="p-8">
                 <div className="flex items-center justify-between mb-1.5">
                   <div className="action-orb red w-7 h-7">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
