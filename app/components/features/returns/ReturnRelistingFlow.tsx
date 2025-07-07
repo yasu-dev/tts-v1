@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { CheckCircle, Camera, Package, DollarSign, Send, AlertCircle } from 'lucide-react'
-import { ContentCard, NexusCard } from '@/app/components/ui'
+import { NexusCard, NexusButton, NexusInput, NexusTextarea, NexusSelect } from '@/app/components/ui'
 
 interface RelistingStep {
   id: string
@@ -43,6 +43,12 @@ export function ReturnRelistingFlow() {
       setCurrentStep(currentStep + 1)
     }
   }
+  
+  const handlePrevStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1)
+    }
+  }
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
@@ -53,36 +59,36 @@ export function ReturnRelistingFlow() {
   }
 
   return (
-    <div className="space-y-6">
-      <ContentCard>
-        <h2 className="text-2xl font-bold mb-6">返品商品再出品業務フロー</h2>
+    <div className="intelligence-card global">
+      <div className="p-8">
+        <h2 className="text-2xl font-bold font-display text-nexus-text-primary mb-6">返品商品再出品業務フロー</h2>
 
         {/* ステップインジケーター */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
             {steps.map((step, index) => (
-              <div key={step.id} className="flex-1">
-                <div className="flex items-center">
+              <React.Fragment key={step.id}>
+                <div className="flex flex-col items-center text-center">
                   <div className={`
                     w-12 h-12 rounded-full flex items-center justify-center
-                    ${index <= currentStep ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-400'}
+                    ${index <= currentStep ? 'bg-nexus-primary text-white' : 'bg-nexus-bg-secondary text-nexus-text-secondary'}
                   `}>
                     {step.icon}
                   </div>
-                  {index < steps.length - 1 && (
-                    <div className={`flex-1 h-1 mx-2 ${
-                      index < currentStep ? 'bg-blue-600' : 'bg-gray-200'
-                    }`} />
-                  )}
+                  <p className="text-sm mt-2 text-nexus-text-primary">{step.title}</p>
                 </div>
-                <p className="text-sm mt-2">{step.title}</p>
-              </div>
+                {index < steps.length - 1 && (
+                  <div className={`flex-1 h-1 mx-4 ${
+                    index < currentStep ? 'bg-nexus-primary' : 'bg-nexus-border'
+                  }`} />
+                )}
+              </React.Fragment>
             ))}
           </div>
         </div>
 
         {/* 商品情報 */}
-        <NexusCard className="p-4 mb-6">
+        <NexusCard region="global" className="mb-6">
           <h3 className="font-semibold mb-2 text-nexus-text-primary">商品情報</h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -105,20 +111,20 @@ export function ReturnRelistingFlow() {
         </NexusCard>
 
         {/* ステップ別コンテンツ */}
-        <div className="mb-8">
+        <div className="mb-8 p-6 bg-nexus-bg-secondary rounded-lg min-h-[300px]">
           {currentStep === 0 && (
             <div>
-              <h3 className="font-semibold mb-4">検品結果確認</h3>
-              <div className="bg-green-50 p-4 rounded-lg">
-                <div className="flex items-center gap-2 text-green-700">
+              <h3 className="font-semibold mb-4 text-nexus-text-primary">検品結果確認</h3>
+              <div className="bg-green-100 p-4 rounded-lg">
+                <div className="flex items-center gap-2 text-green-800">
                   <CheckCircle className="w-5 h-5" />
                   <span>検品合格 - 再出品可能</span>
                 </div>
-                <ul className="mt-4 space-y-2 text-sm">
-                  <li>✓ 外観確認: 良好</li>
-                  <li>✓ 動作確認: 正常</li>
-                  <li>✓ 付属品: 完備</li>
-                  <li>✓ 真贋確認: 本物</li>
+                <ul className="mt-4 space-y-2 text-sm text-green-700 list-disc list-inside">
+                  <li>外観確認: 良好</li>
+                  <li>動作確認: 正常</li>
+                  <li>付属品: 完備</li>
+                  <li>真贋確認: 本物</li>
                 </ul>
               </div>
             </div>
@@ -126,7 +132,7 @@ export function ReturnRelistingFlow() {
 
           {currentStep === 1 && (
             <div>
-              <h3 className="font-semibold mb-4">写真撮影</h3>
+              <h3 className="font-semibold mb-4 text-nexus-text-primary">写真撮影</h3>
               <div className="grid grid-cols-3 gap-4">
                 {relistingData.photos.map((photo, index) => (
                   <img
@@ -136,8 +142,8 @@ export function ReturnRelistingFlow() {
                     className="w-full h-32 object-cover rounded-lg"
                   />
                 ))}
-                <label className="w-full h-32 bg-nexus-bg-secondary rounded-lg flex items-center justify-center cursor-pointer hover:bg-nexus-bg-tertiary transition-colors border border-nexus-border">
-                  <Camera className="w-8 h-8 text-gray-400" />
+                <label className="w-full h-32 bg-nexus-bg-tertiary rounded-lg flex items-center justify-center cursor-pointer hover:bg-nexus-bg-secondary transition-colors border border-nexus-border">
+                  <Camera className="w-8 h-8 text-nexus-text-muted" />
                   <input
                     type="file"
                     accept="image/*"
@@ -147,7 +153,7 @@ export function ReturnRelistingFlow() {
                   />
                 </label>
               </div>
-              <p className="text-sm text-gray-600 mt-2">
+              <p className="text-sm text-nexus-text-secondary mt-2">
                 最低3枚以上の写真を撮影してください
               </p>
             </div>
@@ -155,19 +161,16 @@ export function ReturnRelistingFlow() {
 
           {currentStep === 2 && (
             <div>
-              <h3 className="font-semibold mb-4">商品情報更新</h3>
+              <h3 className="font-semibold mb-4 text-nexus-text-primary">商品情報更新</h3>
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">商品説明</label>
-                  <textarea
-                    value={relistingData.description}
-                    onChange={(e) => setRelistingData(prev => ({ ...prev, description: e.target.value }))}
-                    className="w-full p-3 border border-gray-300 rounded-lg"
-                    rows={4}
-                    placeholder="返品理由や現在の状態を踏まえた説明を入力"
-                  />
-                </div>
-                <div className="bg-yellow-50 p-3 rounded-lg">
+                <NexusTextarea
+                  label="商品説明"
+                  value={relistingData.description}
+                  onChange={(e) => setRelistingData(prev => ({ ...prev, description: e.target.value }))}
+                  rows={4}
+                  placeholder="返品理由や現在の状態を踏まえた説明を入力"
+                />
+                <div className="bg-yellow-100 p-3 rounded-lg">
                   <p className="text-sm text-yellow-800">
                     <AlertCircle className="w-4 h-4 inline mr-1" />
                     返品理由を考慮し、より詳細な商品説明を記載することを推奨します
@@ -179,23 +182,18 @@ export function ReturnRelistingFlow() {
 
           {currentStep === 3 && (
             <div>
-              <h3 className="font-semibold mb-4">価格設定</h3>
+              <h3 className="font-semibold mb-4 text-nexus-text-primary">価格設定</h3>
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">販売価格</label>
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">¥</span>
-                    <input
-                      type="number"
-                      value={relistingData.price}
-                      onChange={(e) => setRelistingData(prev => ({ ...prev, price: Number(e.target.value) }))}
-                      className="flex-1 p-3 border border-gray-300 rounded-lg text-xl"
-                    />
-                  </div>
-                </div>
-                <div className="bg-blue-50 p-4 rounded-lg">
+                <NexusInput
+                  type="number"
+                  label="販売価格"
+                  value={String(relistingData.price)}
+                  onChange={(e) => setRelistingData(prev => ({ ...prev, price: Number(e.target.value) }))}
+                  icon={<span>¥</span>}
+                />
+                <div className="bg-blue-100 p-4 rounded-lg">
                   <p className="text-sm text-blue-800 mb-2">価格設定の参考情報</p>
-                  <ul className="space-y-1 text-sm">
+                  <ul className="space-y-1 text-sm text-blue-700">
                     <li>元販売価格: ¥{product.originalPrice.toLocaleString()}</li>
                     <li>推奨価格: ¥{Math.floor(product.originalPrice * 0.9).toLocaleString()} (10%引き)</li>
                     <li>市場平均: ¥{Math.floor(product.originalPrice * 0.95).toLocaleString()}</li>
@@ -207,23 +205,21 @@ export function ReturnRelistingFlow() {
 
           {currentStep === 4 && (
             <div>
-              <h3 className="font-semibold mb-4">再出品確認</h3>
+              <h3 className="font-semibold mb-4 text-nexus-text-primary">再出品確認</h3>
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">出品先プラットフォーム</label>
-                  <select
-                    value={relistingData.platform}
-                    onChange={(e) => setRelistingData(prev => ({ ...prev, platform: e.target.value }))}
-                    className="w-full p-3 border border-gray-300 rounded-lg"
-                  >
-                    <option value="ebay">eBay</option>
-                    <option value="mercari">メルカリ</option>
-                    <option value="yahoo">ヤフオク</option>
-                  </select>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="font-medium mb-2">出品内容確認</h4>
-                  <ul className="space-y-1 text-sm">
+                <NexusSelect
+                  label="出品先プラットフォーム"
+                  value={relistingData.platform}
+                  onChange={(e) => setRelistingData(prev => ({ ...prev, platform: e.target.value }))}
+                  options={[
+                    { value: "ebay", label: "eBay" },
+                    { value: "mercari", label: "メルカリ" },
+                    { value: "yahoo", label: "ヤフオク" },
+                  ]}
+                />
+                <div className="bg-nexus-bg-tertiary p-4 rounded-lg">
+                  <h4 className="font-medium text-nexus-text-primary mb-2">出品内容確認</h4>
+                  <ul className="space-y-1 text-sm text-nexus-text-secondary">
                     <li>価格: ¥{relistingData.price.toLocaleString()}</li>
                     <li>写真: {relistingData.photos.length}枚</li>
                     <li>プラットフォーム: {relistingData.platform}</li>
@@ -236,21 +232,20 @@ export function ReturnRelistingFlow() {
 
         {/* アクションボタン */}
         <div className="flex justify-between">
-          <button
-            onClick={() => currentStep > 0 && setCurrentStep(currentStep - 1)}
-            className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+          <NexusButton
+            onClick={handlePrevStep}
             disabled={currentStep === 0}
           >
             戻る
-          </button>
-          <button
+          </NexusButton>
+          <NexusButton
             onClick={handleNextStep}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            variant="primary"
           >
             {currentStep === steps.length - 1 ? '再出品する' : '次へ'}
-          </button>
+          </NexusButton>
         </div>
-      </ContentCard>
+      </div>
     </div>
   )
 } 

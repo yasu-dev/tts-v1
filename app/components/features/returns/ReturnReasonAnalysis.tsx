@@ -3,7 +3,6 @@
 import React, { useState } from 'react'
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { TrendingUp, TrendingDown, Package, AlertCircle } from 'lucide-react'
-import { ContentCard } from '@/app/components/ui'
 
 const returnReasonData = [
   { reason: '商品説明と異なる', count: 45, percentage: 30 },
@@ -39,109 +38,129 @@ export function ReturnReasonAnalysis() {
 
   return (
     <div className="space-y-6">
-      <ContentCard>
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">返品理由分析</h2>
-          <div className="flex gap-4">
-            <select
-              value={selectedPeriod}
-              onChange={(e) => setSelectedPeriod(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg"
-            >
-              <option value="week">今週</option>
-              <option value="month">今月</option>
-              <option value="quarter">四半期</option>
-              <option value="year">年間</option>
-            </select>
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg"
-            >
-              <option value="all">全カテゴリー</option>
-              <option value="watch">時計</option>
-              <option value="bag">バッグ</option>
-              <option value="accessory">アクセサリー</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-blue-600 text-sm">総返品数</p>
-                <p className="text-2xl font-bold">150</p>
-              </div>
-              <Package className="w-8 h-8 text-blue-400" />
+      <div className="intelligence-card global">
+        <div className="p-8">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold font-display text-nexus-text-primary">返品理由分析</h2>
+            <div className="flex gap-4">
+              <select
+                value={selectedPeriod}
+                onChange={(e) => setSelectedPeriod(e.target.value)}
+                className="px-4 py-2 border border-nexus-border rounded-lg bg-nexus-bg-secondary text-nexus-text-secondary"
+              >
+                <option value="week">今週</option>
+                <option value="month">今月</option>
+                <option value="quarter">四半期</option>
+                <option value="year">年間</option>
+              </select>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="px-4 py-2 border border-nexus-border rounded-lg bg-nexus-bg-secondary text-nexus-text-secondary"
+              >
+                <option value="all">全カテゴリー</option>
+                <option value="watch">時計</option>
+                <option value="bag">バッグ</option>
+                <option value="accessory">アクセサリー</option>
+              </select>
             </div>
           </div>
-          <div className="bg-red-50 p-4 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-red-600 text-sm">返品率</p>
-                <p className="text-2xl font-bold">3.8%</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="intelligence-card americas">
+              <div className="p-8">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-nexus-text-secondary text-sm">総返品数</p>
+                    <p className="text-2xl font-bold font-display text-nexus-text-primary">150</p>
+                  </div>
+                  <div className="action-orb blue">
+                    <Package className="w-6 h-6" />
+                  </div>
+                </div>
               </div>
-              <TrendingUp className="w-8 h-8 text-red-400" />
+            </div>
+            <div className="intelligence-card europe">
+              <div className="p-8">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-nexus-text-secondary text-sm">返品率</p>
+                    <p className="text-2xl font-bold font-display text-nexus-text-primary">3.8%</p>
+                  </div>
+                  <div className="action-orb red">
+                    <TrendingUp className="w-6 h-6" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="intelligence-card asia">
+              <div className="p-8">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-nexus-text-secondary text-sm">改善必要項目</p>
+                    <p className="text-2xl font-bold font-display text-nexus-text-primary">3</p>
+                  </div>
+                  <div className="action-orb yellow">
+                    <AlertCircle className="w-6 h-6" />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="bg-yellow-50 p-4 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-yellow-600 text-sm">改善必要項目</p>
-                <p className="text-2xl font-bold">3</p>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="intelligence-card global">
+              <div className="p-8">
+                <h3 className="font-semibold mb-4 text-nexus-text-primary">返品理由内訳</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={returnReasonData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ reason, percentage }) => `${reason} ${percentage}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="count"
+                    >
+                      {returnReasonData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
-              <AlertCircle className="w-8 h-8 text-yellow-400" />
+            </div>
+
+            <div className="intelligence-card global">
+              <div className="p-8">
+                <h3 className="font-semibold mb-4 text-nexus-text-primary">月別返品推移</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={monthlyTrend}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="returns" fill="#3B82F6" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
         </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
-            <h3 className="font-semibold mb-4">返品理由内訳</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={returnReasonData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ reason, percentage }) => `${reason} ${percentage}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="count"
-                >
-                  {returnReasonData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div>
-            <h3 className="font-semibold mb-4">月別返品推移</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={monthlyTrend}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="returns" fill="#3B82F6" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        <div className="mt-8">
-          <h3 className="font-semibold mb-4">カテゴリー別返品率</h3>
+      </div>
+      
+      <div className="intelligence-card global mt-6">
+        <div className="p-8">
+          <h3 className="font-semibold mb-4 text-nexus-text-primary">カテゴリー別返品率</h3>
           <div className="space-y-3">
             {categoryReturnRate.map(item => (
-              <div key={item.category} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <span className="font-medium">{item.category}</span>
+              <div key={item.category} className="flex items-center justify-between p-4 bg-nexus-bg-tertiary rounded-lg">
+                <span className="font-medium text-nexus-text-primary">{item.category}</span>
                 <div className="flex items-center gap-4">
-                  <span className="text-lg font-semibold">{item.rate}%</span>
+                  <span className="text-lg font-semibold text-nexus-text-primary">{item.rate}%</span>
                   {item.trend === 'up' && <TrendingUp className="w-5 h-5 text-red-500" />}
                   {item.trend === 'down' && <TrendingDown className="w-5 h-5 text-green-500" />}
                   {item.trend === 'stable' && <div className="w-5 h-5 bg-gray-400 rounded-full" />}
@@ -150,16 +169,18 @@ export function ReturnReasonAnalysis() {
             ))}
           </div>
         </div>
+      </div>
 
-        <div className="mt-8 p-4 bg-yellow-50 rounded-lg">
-          <h4 className="font-semibold text-yellow-800 mb-2">改善提案</h4>
-          <ul className="space-y-2 text-yellow-700">
-            <li>• 「商品説明と異なる」が最多 - 商品説明の精度向上が必要</li>
-            <li>• アクセサリーカテゴリーの返品率が上昇傾向 - 品質チェックの強化を推奨</li>
-            <li>• 配送遅延による返品を削減するため、配送プロセスの見直しが必要</li>
+      <div className="intelligence-card europe mt-6">
+        <div className="p-8">
+          <h4 className="font-semibold text-nexus-text-primary mb-2">改善提案</h4>
+          <ul className="space-y-2 text-nexus-text-secondary list-disc list-inside">
+            <li>「商品説明と異なる」が最多 - 商品説明の精度向上が必要</li>
+            <li>アクセサリーカテゴリーの返品率が上昇傾向 - 品質チェックの強化を推奨</li>
+            <li>配送遅延による返品を削減するため、配送プロセスの見直しが必要</li>
           </ul>
         </div>
-      </ContentCard>
+      </div>
     </div>
   )
 } 
