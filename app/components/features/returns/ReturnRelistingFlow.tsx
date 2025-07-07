@@ -111,7 +111,7 @@ export function ReturnRelistingFlow() {
         </NexusCard>
 
         {/* ステップ別コンテンツ */}
-        <div className="mb-8 p-6 bg-nexus-bg-secondary rounded-lg min-h-[300px]">
+        <div className="mb-8 p-8 bg-nexus-bg-secondary rounded-lg min-h-[300px]">
           {currentStep === 0 && (
             <div>
               <h3 className="font-semibold mb-4 text-nexus-text-primary">検品結果確認</h3>
