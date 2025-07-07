@@ -139,7 +139,7 @@ export function ReturnInspection() {
             <div className="space-y-3">
               {inspectionItems.map(item => (
                 <div key={item.id} className="intelligence-card americas">
-                  <div className="p-4">
+                  <div className="p-8">
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-nexus-text-primary">{item.name}</span>
                       <div className="flex gap-2">

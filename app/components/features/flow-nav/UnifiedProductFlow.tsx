@@ -364,8 +364,8 @@ export default function UnifiedProductFlow({
   }
 
   return (
-    <div className={`bg-white border-b border-gray-200 shadow-sm ${compact ? 'py-3' : 'py-4'}`}>
-      <div className="px-4 sm:px-6 lg:px-8">
+    <div className="intelligence-card global">
+      <div className="p-8">
         <div className="flex flex-col gap-4">
           {/* ヘッダー統計と作業者ステータス */}
           <div className="flex items-center justify-between">

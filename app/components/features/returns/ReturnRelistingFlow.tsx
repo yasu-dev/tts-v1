@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { CheckCircle, Camera, Package, DollarSign, Send, AlertCircle } from 'lucide-react'
+import { Camera, Package, DollarSign, Send, AlertCircle } from 'lucide-react'
 import { NexusCard, NexusButton, NexusInput, NexusTextarea, NexusSelect } from '@/app/components/ui'
 
 interface RelistingStep {
@@ -31,7 +31,11 @@ export function ReturnRelistingFlow() {
   })
 
   const steps: RelistingStep[] = [
-    { id: '1', title: '検品結果確認', status: 'completed', icon: <CheckCircle className="w-6 h-6" /> },
+    { id: '1', title: '検品結果確認', status: 'completed', icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    )},
     { id: '2', title: '写真撮影', status: 'in-progress', icon: <Camera className="w-6 h-6" /> },
     { id: '3', title: '商品情報更新', status: 'pending', icon: <Package className="w-6 h-6" /> },
     { id: '4', title: '価格設定', status: 'pending', icon: <DollarSign className="w-6 h-6" /> },
@@ -117,7 +121,9 @@ export function ReturnRelistingFlow() {
               <h3 className="font-semibold mb-4 text-nexus-text-primary">検品結果確認</h3>
               <div className="bg-green-100 p-4 rounded-lg">
                 <div className="flex items-center gap-2 text-green-800">
-                  <CheckCircle className="w-5 h-5" />
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
                   <span>検品合格 - 再出品可能</span>
                 </div>
                 <ul className="mt-4 space-y-2 text-sm text-green-700 list-disc list-inside">
