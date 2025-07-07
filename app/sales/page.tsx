@@ -208,7 +208,7 @@ export default function SalesPage() {
         <div className="intelligence-metrics">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="intelligence-card asia">
-              <div className="p-6">
+              <div className="p-8">
                 <div className="flex items-center justify-between mb-4">
                   <div className="action-orb blue">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -227,7 +227,7 @@ export default function SalesPage() {
             </div>
 
             <div className="intelligence-card asia">
-              <div className="p-6">
+              <div className="p-8">
                 <div className="flex items-center justify-between mb-4">
                   <div className="action-orb green">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -247,7 +247,7 @@ export default function SalesPage() {
             </div>
 
             <div className="intelligence-card asia">
-              <div className="p-6">
+              <div className="p-8">
                 <div className="flex items-center justify-between mb-4">
                   <div className="action-orb">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -267,7 +267,7 @@ export default function SalesPage() {
             </div>
 
             <div className="intelligence-card asia">
-              <div className="p-6">
+              <div className="p-8">
                 <div className="flex items-center justify-between mb-4">
                   <div className="action-orb red">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

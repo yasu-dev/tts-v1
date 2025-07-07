@@ -365,7 +365,7 @@ export default function ProfilePage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Profile Image & Basic Info */}
           <div className="intelligence-card global">
-            <div className="p-6">
+            <div className="p-8">
               <div className="text-center">
                 <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center text-2xl font-bold text-blue-600 mx-auto mb-4">
                   {profile.name.charAt(0)}
@@ -381,7 +381,7 @@ export default function ProfilePage() {
 
           {/* Profile Details */}
           <div className="lg:col-span-2 intelligence-card global">
-            <div className="p-6">
+            <div className="p-8">
               <h3 className="text-lg font-bold text-nexus-text-primary mb-6">基本情報</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -477,7 +477,7 @@ export default function ProfilePage() {
 
         {/* Security Settings */}
         <div className="intelligence-card global">
-          <div className="p-6">
+          <div className="p-8">
             <h3 className="text-lg font-bold text-nexus-text-primary mb-6">セキュリティ設定</h3>
             
             <div className="space-y-4">
