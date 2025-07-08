@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react'
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-import { TrendingUp, TrendingDown, Package, AlertCircle } from 'lucide-react'
 
 const returnReasonData = [
   { reason: '商品説明と異なる', count: 45, percentage: 30 },
@@ -75,7 +74,9 @@ export function ReturnReasonAnalysis() {
                     <p className="text-2xl font-bold font-display text-nexus-text-primary">150</p>
                   </div>
                   <div className="action-orb blue">
-                    <Package className="w-6 h-6" />
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
                   </div>
                 </div>
               </div>
@@ -88,7 +89,9 @@ export function ReturnReasonAnalysis() {
                     <p className="text-2xl font-bold font-display text-nexus-text-primary">3.8%</p>
                   </div>
                   <div className="action-orb red">
-                    <TrendingUp className="w-6 h-6" />
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
                   </div>
                 </div>
               </div>
@@ -101,7 +104,9 @@ export function ReturnReasonAnalysis() {
                     <p className="text-2xl font-bold font-display text-nexus-text-primary">3</p>
                   </div>
                   <div className="action-orb yellow">
-                    <AlertCircle className="w-6 h-6" />
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
                   </div>
                 </div>
               </div>
@@ -157,12 +162,20 @@ export function ReturnReasonAnalysis() {
           <h3 className="font-semibold mb-4 text-nexus-text-primary">カテゴリー別返品率</h3>
           <div className="space-y-3">
             {categoryReturnRate.map(item => (
-              <div key={item.category} className="flex items-center justify-between p-4 bg-nexus-bg-tertiary rounded-lg">
+              <div key={item.category} className="flex items-center justify-between p-8 bg-nexus-bg-tertiary rounded-lg">
                 <span className="font-medium text-nexus-text-primary">{item.category}</span>
                 <div className="flex items-center gap-4">
                   <span className="text-lg font-semibold text-nexus-text-primary">{item.rate}%</span>
-                  {item.trend === 'up' && <TrendingUp className="w-5 h-5 text-red-500" />}
-                  {item.trend === 'down' && <TrendingDown className="w-5 h-5 text-green-500" />}
+                  {item.trend === 'up' && (
+                    <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                  )}
+                  {item.trend === 'down' && (
+                    <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+                    </svg>
+                  )}
                   {item.trend === 'stable' && <div className="w-5 h-5 bg-gray-400 rounded-full" />}
                 </div>
               </div>

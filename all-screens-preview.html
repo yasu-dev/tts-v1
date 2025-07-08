@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全画面・全スクリーンショット プレビュー</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; background-color: #2c3e50; color: white; }
+        h1 { text-align: center; color: #1abc9c; border-bottom: 2px solid #1abc9c; padding-bottom: 10px; }
+        .screen-section { margin-bottom: 40px; background-color: #34495e; padding: 20px; border-radius: 8px; }
+        .screen-title { font-size: 1.5em; color: #1abc9c; margin-bottom: 20px; }
+        .preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+        .preview-card { background-color: #2c3e50; border: 1px solid #1abc9c; border-radius: 8px; padding: 15px; }
+        .preview-card h3 { margin-top: 0; font-size: 1.2em; }
+        .preview-card img { max-width: 100%; height: auto; border-radius: 4px; }
+        @media (max-width: 800px) {
+            .preview-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <h1>全画面・全スクリーンショット プレビュー</h1>
+
+    <!-- セラー画面 -->
+    <div class="screen-section">
+        <h2 class="screen-title">📊 セラー画面</h2>
+        
+        <div class="preview-grid">
+            <div class="preview-card">
+                <h3>セラーダッシュボード (タイトル)</h3>
+                <img src="test-results/title-cards/セラーダッシュボード_title_only.png" alt="セラーダッシュボード タイトル">
+            </div>
+            <div class="preview-card">
+                <h3>セラーダッシュボード (フル)</h3>
+                <img src="test-results/title-cards/セラーダッシュボード.png" alt="セラーダッシュボード フル">
+            </div>
+        </div>
+
+        <div class="preview-grid">
+            <div class="preview-card">
+                <h3>納品管理 (タイトル)</h3>
+                <img src="test-results/title-cards/納品管理_title_only.png" alt="納品管理 タイトル">
+            </div>
+            <div class="preview-card">
+                <h3>納品管理 (フル)</h3>
+                <img src="test-results/title-cards/納品管理.png" alt="納品管理 フル">
+            </div>
+        </div>
+        
+        <div class="preview-grid">
+            <div class="preview-card">
+                <h3>在庫管理 (タイトル)</h3>
+                <img src="test-results/title-cards/在庫管理_title_only.png" alt="在庫管理 タイトル">
+            </div>
+            <div class="preview-card">
+                <h3>在庫管理 (フル)</h3>
+                <img src="test-results/title-cards/在庫管理.png" alt="在庫管理 フル">
+            </div>
+        </div>
+
+        <div class="preview-grid">
+            <div class="preview-card">
+                <h3>販売管理 (タイトル)</h3>
+                <img src="test-results/title-cards/販売管理_title_only.png" alt="販売管理 タイトル">
+            </div>
+            <div class="preview-card">
+                <h3>販売管理 (フル)</h3>
+                <img src="test-results/title-cards/販売管理.png" alt="販売管理 フル">
+            </div>
+        </div>
+
+        <div class="preview-grid">
+            <div class="preview-card">
+                <h3>返品管理 (タイトル)</h3>
+                <img src="test-results/title-cards/返品管理_title_only.png" alt="返品管理 タイトル">
+            </div>
+            <div class="preview-card">
+                <h3>返品管理 (フル)</h3>
+                <img src="test-results/title-cards/返品管理.png" alt="返品管理 フル">
+            </div>
+        </div>
+
+        <div class="preview-grid">
+            <div class="preview-card">
+                <h3>請求・精算 (タイトル)</h3>
+                <img src="test-results/title-cards/請求・精算_title_only.png" alt="請求・精算 タイトル">
+            </div>
+            <div class="preview-card">
+                <h3>請求・精算 (フル)</h3>
+                <img src="test-results/title-cards/請求・精算.png" alt="請求・精算 フル">
+            </div>
+        </div>
+
+        <div class="preview-grid">
+            <div class="preview-card">
+                <h3>商品履歴 (タイトル)</h3>
+                <img src="test-results/title-cards/商品履歴_title_only.png" alt="商品履歴 タイトル">
+            </div>
+            <div class="preview-card">
+                <h3>商品履歴 (フル)</h3>
+                <img src="test-results/title-cards/商品履歴.png" alt="商品履歴 フル">
+            </div>
+        </div>
+
+        <div class="preview-grid">
+            <div class="preview-card">
+                <h3>プロフィール (タイトル)</h3>
+                <img src="test-results/title-cards/プロフィール_title_only.png" alt="プロフィール タイトル">
+            </div>
+            <div class="preview-card">
+                <h3>プロフィール (フル)</h3>
+                <img src="test-results/title-cards/プロフィール.png" alt="プロフィール フル">
+            </div>
+        </div>
+
+        <div class="preview-grid">
+            <div class="preview-card">
+                <h3>設定 (タイトル)</h3>
+                <img src="test-results/title-cards/設定_title_only.png" alt="設定 タイトル">
+            </div>
+            <div class="preview-card">
+                <h3>設定 (フル)</h3>
+                <img src="test-results/title-cards/設定.png" alt="設定 フル">
+            </div>
+        </div>
+
+        <div class="preview-grid">
+            <div class="preview-card">
+                <h3>レポート (タイトル)</h3>
+                <img src="test-results/title-cards/レポート_title_only.png" alt="レポート タイトル">
+            </div>
+            <div class="preview-card">
+                <h3>レポート (フル)</h3>
+                <img src="test-results/title-cards/レポート.png" alt="レポート フル">
+            </div>
+        </div>
+
+        <div class="preview-grid">
+            <div class="preview-card">
+                <h3>月次レポート (フル)</h3>
+                <img src="test-results/title-cards/月次レポート.png" alt="月次レポート フル">
+            </div>
+        </div>
+
+        <div class="preview-grid">
+            <div class="preview-card">
+                <h3>納品計画 (タイトル)</h3>
+                <img src="test-results/title-cards/納品計画_title_only.png" alt="納品計画 タイトル">
+            </div>
+            <div class="preview-card">
+                <h3>納品計画 (フル)</h3>
+                <img src="test-results/title-cards/納品計画.png" alt="納品計画 フル">
+            </div>
+        </div>
+    </div>
+
+    <!-- スタッフ画面 -->
+    <div class="screen-section">
+        <h2 class="screen-title">👥 スタッフ画面</h2>
+
+        <div class="preview-grid">
+            <div class="preview-card">
+                <h3>スタッフダッシュボード (タイトル)</h3>
+                <img src="test-results/title-cards/staff_スタッフダッシュボード_title_only.png" alt="スタッフダッシュボード タイトル">
+            </div>
+            <div class="preview-card">
+                <h3>スタッフダッシュボード (フル)</h3>
+                <img src="test-results/title-cards/staff_スタッフダッシュボード.png" alt="スタッフダッシュボード フル">
+            </div>
+        </div>
+        
+        <div class="preview-grid">
+            <div class="preview-card">
+                <h3>タスク管理 (タイトル)</h3>
+                <img src="test-results/title-cards/staff_タスク管理_title_only.png" alt="タスク管理 タイトル">
+            </div>
+            <div class="preview-card">
+                <h3>タスク管理 (フル)</h3>
+                <img src="test-results/title-cards/staff_タスク管理.png" alt="タスク管理 フル">
+            </div>
+        </div>
+
+        <div class="preview-grid">
+            <div class="preview-card">
+                <h3>スタッフ在庫管理 (タイトル)</h3>
+                <img src="test-results/title-cards/staff_スタッフ在庫管理_title_only.png" alt="スタッフ在庫管理 タイトル">
+            </div>
+            <div class="preview-card">
+                <h3>スタッフ在庫管理 (フル)</h3>
+                <img src="test-results/title-cards/staff_スタッフ在庫管理.png" alt="スタッフ在庫管理 フル">
+            </div>
+        </div>
+
+        <div class="preview-grid">
+            <div class="preview-card">
+                <h3>検品・撮影 (タイトル)</h3>
+                <img src="test-results/title-cards/staff_検品・撮影_title_only.png" alt="検品・撮影 タイトル">
+            </div>
+            <div class="preview-card">
+                <h3>検品・撮影 (フル)</h3>
+                <img src="test-results/title-cards/staff_検品・撮影.png" alt="検品・撮影 フル">
+            </div>
+        </div>
+
+        <div class="preview-grid">
+            <div class="preview-card">
+                <h3>ロケーション管理 (タイトル)</h3>
+                <img src="test-results/title-cards/staff_ロケーション管理_title_only.png" alt="ロケーション管理 タイトル">
+            </div>
+            <div class="preview-card">
+                <h3>ロケーション管理 (フル)</h3>
+                <img src="test-results/title-cards/staff_ロケーション管理.png" alt="ロケーション管理 フル">
+            </div>
+        </div>
+    </div>
+
+</body>
+</html> 

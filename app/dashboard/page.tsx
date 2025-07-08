@@ -235,7 +235,7 @@ export default function DashboardPage() {
 
         {/* Stats Overview - Intelligence Metrics Style */}
         <div className="intelligence-metrics">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="unified-grid-4">
             <div className="intelligence-card americas">
               <div className="p-8">
                 <div className="flex items-center justify-between mb-1.5">

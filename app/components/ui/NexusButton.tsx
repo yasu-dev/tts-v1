@@ -8,7 +8,7 @@ interface NexusButtonProps {
   variant?: 'default' | 'primary' | 'secondary' | 'danger';
   size?: 'sm' | 'md' | 'lg';
   disabled?: boolean;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
   className?: string;
   icon?: ReactNode;
   type?: 'button' | 'submit' | 'reset';

@@ -1308,6 +1308,49 @@
   padding: 0.25rem;
 }
 
+/* 統一グリッドシステム - 全画面で同じカード幅を保証 */
+.unified-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+}
+
+.unified-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.unified-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.unified-grid-1 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+/* レスポンシブ対応 - 統一された幅を維持 */
+@media (max-width: 1024px) {
+  .unified-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .unified-grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .unified-grid-4,
+  .unified-grid-3,
+  .unified-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
 .intelligence-card::before {
   content: '';
   position: absolute;

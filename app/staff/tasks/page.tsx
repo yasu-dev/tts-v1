@@ -999,7 +999,6 @@ export default function StaffTasksPage() {
           type="task"
           title={selectedTask?.title || ''}
           data={selectedTask || {}}
-          onSave={handleUpdateTask}
         />
 
         {/* Filter Modal */}
@@ -1119,8 +1118,7 @@ export default function StaffTasksPage() {
                 {selectedTasks.length > 0 ? (
                   <div className="space-y-1">
                     {selectedTasks.map(taskId => {
-                      const task = staffData?.staffTasks.urgentTasks.find(t => t.id === taskId) ||
-                                   staffData?.staffTasks.normalTasks.find(t => t.id === taskId);
+                      const task = tasks.find(t => t.id === taskId);
                       return (
                         <div key={taskId} className="text-sm text-nexus-text-primary">
                           {task?.title || taskId}

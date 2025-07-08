@@ -61,6 +61,7 @@ export default function DeliveryPage() {
           title="納品管理"
           subtitle="商品の納品プランを作成・管理します"
           actions={headerActions}
+          size="large"
         />
 
         {/* Barcode Generation Modal */}

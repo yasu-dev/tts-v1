@@ -7,7 +7,7 @@ type StatusType = 'optimal' | 'warning' | 'critical';
 // 業務ステータス用の型定義
 type BusinessStatusType = 
   | 'inbound' | 'inspection' | 'storage' | 'listing' | 'sold' | 'maintenance'
-  | 'pending' | 'in_progress' | 'completed' | 'cancelled'
+  | 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'confirmed'
   | 'pending_inspection' | 'inspected' | 'packed' | 'shipped' | 'delivered'
   | 'approved' | 'rejected' | 'refunded';
 
@@ -41,6 +41,7 @@ const businessStatusConfig = {
   in_progress: { label: '進行中', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
   completed: { label: '完了', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
   cancelled: { label: 'キャンセル', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' },
+  confirmed: { label: '確定', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
   
   // 配送ステータス
   pending_inspection: { label: '検品待ち', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' },

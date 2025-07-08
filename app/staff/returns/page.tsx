@@ -324,7 +324,7 @@ export default function ReturnsPage() {
               <>
                 {/* サマリー統計 */}
                 <div className="intelligence-metrics">
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <div className="unified-grid-4">
                     <div className="intelligence-card americas">
                       <div className="p-8">
                         <div className="flex items-center justify-between">

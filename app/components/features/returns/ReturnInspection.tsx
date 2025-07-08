@@ -104,7 +104,7 @@ export function ReturnInspection() {
             <div className="intelligence-card europe">
               <div className="p-8">
                 <h3 className="font-semibold mb-4 text-nexus-text-primary">検品ステータス</h3>
-                <div className={`p-4 rounded-lg ${
+                <div className={`p-8 rounded-lg ${
                   overallStatus === 'pass' ? 'bg-green-50 border border-green-200' :
                   overallStatus === 'fail' ? 'bg-red-50 border border-red-200' :
                   'bg-nexus-bg-secondary border border-nexus-border'

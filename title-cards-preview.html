@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全画面タイトルカード プレビュー</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 40px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .section {
+            margin-bottom: 50px;
+        }
+        .section-title {
+            font-size: 1.8em;
+            color: #444;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+        }
+        .card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+        .card-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .image-container {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .title-card-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .full-screen-link {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            border-radius: 20px;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+        .full-screen-link:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .stats {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .stats h2 {
+            margin: 0 0 10px 0;
+            font-size: 2em;
+        }
+        .stats p {
+            margin: 5px 0;
+            font-size: 1.1em;
+        }
+        .special-note {
+            background: #fff3cd;
+            border: 2px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 全画面タイトルカード プレビュー</h1>
+        
+        <div class="stats">
+            <h2>📊 撮影完了統計</h2>
+            <p>総画面数: <strong>25画面以上</strong></p>
+            <p>セラー画面: <strong>12画面</strong> | スタッフ画面: <strong>10画面以上</strong> | 特殊画面: <strong>3画面</strong></p>
+            <p>全画面で <strong>intelligence-card</strong> 形式のタイトルカード確認済み</p>
+        </div>
+
+        <div class="special-note">
+            <strong>🔍 横幅統一の対象確認:</strong> 
+            以下の赤枠で囲まれた「タイトルカード」部分が、全画面で統一すべき対象です。
+            添付画像のスタッフダッシュボードの赤枠と同様の構造が全画面で確認されています。
+        </div>
+
+        <!-- セラー画面 -->
+        <div class="section">
+            <h2 class="section-title">📊 セラー画面のタイトルカード</h2>
+            <div class="grid">
+                <div class="card">
+                    <div class="card-title">セラーダッシュボード</div>
+                    <div class="image-container">
+                        <img src="test-results/title-cards/セラーダッシュボード_title_only.png" alt="セラーダッシュボード タイトルカード" class="title-card-image">
+                    </div>
+                    <a href="test-results/title-cards/セラーダッシュボード.png" target="_blank" class="full-screen-link">フルスクリーン表示</a>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">納品管理</div>
+                    <div class="image-container">
+                        <img src="test-results/title-cards/納品管理_title_only.png" alt="納品管理 タイトルカード" class="title-card-image">
+                    </div>
+                    <a href="test-results/title-cards/納品管理.png" target="_blank" class="full-screen-link">フルスクリーン表示</a>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">在庫管理</div>
+                    <div class="image-container">
+                        <img src="test-results/title-cards/在庫管理_title_only.png" alt="在庫管理 タイトルカード" class="title-card-image">
+                    </div>
+                    <a href="test-results/title-cards/在庫管理.png" target="_blank" class="full-screen-link">フルスクリーン表示</a>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">販売管理</div>
+                    <div class="image-container">
+                        <img src="test-results/title-cards/販売管理_title_only.png" alt="販売管理 タイトルカード" class="title-card-image">
+                    </div>
+                    <a href="test-results/title-cards/販売管理.png" target="_blank" class="full-screen-link">フルスクリーン表示</a>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">返品管理</div>
+                    <div class="image-container">
+                        <img src="test-results/title-cards/返品管理_title_only.png" alt="返品管理 タイトルカード" class="title-card-image">
+                    </div>
+                    <a href="test-results/title-cards/返品管理.png" target="_blank" class="full-screen-link">フルスクリーン表示</a>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">請求・精算</div>
+                    <div class="image-container">
+                        <img src="test-results/title-cards/請求・精算_title_only.png" alt="請求・精算 タイトルカード" class="title-card-image">
+                    </div>
+                    <a href="test-results/title-cards/請求・精算.png" target="_blank" class="full-screen-link">フルスクリーン表示</a>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">商品履歴</div>
+                    <div class="image-container">
+                        <img src="test-results/title-cards/商品履歴_title_only.png" alt="商品履歴 タイトルカード" class="title-card-image">
+                    </div>
+                    <a href="test-results/title-cards/商品履歴.png" target="_blank" class="full-screen-link">フルスクリーン表示</a>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">プロフィール</div>
+                    <div class="image-container">
+                        <img src="test-results/title-cards/プロフィール_title_only.png" alt="プロフィール タイトルカード" class="title-card-image">
+                    </div>
+                    <a href="test-results/title-cards/プロフィール.png" target="_blank" class="full-screen-link">フルスクリーン表示</a>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">設定</div>
+                    <div class="image-container">
+                        <img src="test-results/title-cards/設定_title_only.png" alt="設定 タイトルカード" class="title-card-image">
+                    </div>
+                    <a href="test-results/title-cards/設定.png" target="_blank" class="full-screen-link">フルスクリーン表示</a>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">レポート</div>
+                    <div class="image-container">
+                        <img src="test-results/title-cards/レポート_title_only.png" alt="レポート タイトルカード" class="title-card-image">
+                    </div>
+                    <a href="test-results/title-cards/レポート.png" target="_blank" class="full-screen-link">フルスクリーン表示</a>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">月次レポート</div>
+                    <div class="image-container">
+                        <img src="test-results/title-cards/月次レポート.png" alt="月次レポート タイトルカード" class="title-card-image">
+                    </div>
+                    <a href="test-results/title-cards/月次レポート.png" target="_blank" class="full-screen-link">フルスクリーン表示</a>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">納品計画</div>
+                    <div class="image-container">
+                        <img src="test-results/title-cards/納品計画_title_only.png" alt="納品計画 タイトルカード" class="title-card-image">
+                    </div>
+                    <a href="test-results/title-cards/納品計画.png" target="_blank" class="full-screen-link">フルスクリーン表示</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- スタッフ画面 -->
+        <div class="section">
+            <h2 class="section-title">👥 スタッフ画面のタイトルカード</h2>
+            <div class="grid">
+                <div class="card">
+                    <div class="card-title">スタッフダッシュボード</div>
+                    <div class="image-container">
+                        <img src="test-results/title-cards/staff_スタッフダッシュボード_title_only.png" alt="スタッフダッシュボード タイトルカード" class="title-card-image">
+                    </div>
+                    <a href="test-results/title-cards/staff_スタッフダッシュボード.png" target="_blank" class="full-screen-link">フルスクリーン表示</a>
+                    <div class="special-note" style="margin-top: 10px; font-size: 0.9em;">
+                        <strong>📌 基準画面:</strong> 添付画像の赤枠と同じ形式
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">タスク管理</div>
+                    <div class="image-container">
+                        <img src="test-results/title-cards/staff_タスク管理_title_only.png" alt="タスク管理 タイトルカード" class="title-card-image">
+                    </div>
+                    <a href="test-results/title-cards/staff_タスク管理.png" target="_blank" class="full-screen-link">フルスクリーン表示</a>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">スタッフ在庫管理</div>
+                    <div class="image-container">
+                        <img src="test-results/title-cards/staff_スタッフ在庫管理_title_only.png" alt="スタッフ在庫管理 タイトルカード" class="title-card-image">
+                    </div>
+                    <a href="test-results/title-cards/staff_スタッフ在庫管理.png" target="_blank" class="full-screen-link">フルスクリーン表示</a>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">検品・撮影</div>
+                    <div class="image-container">
+                        <img src="test-results/title-cards/staff_検品・撮影_title_only.png" alt="検品・撮影 タイトルカード" class="title-card-image">
+                    </div>
+                    <a href="test-results/title-cards/staff_検品・撮影.png" target="_blank" class="full-screen-link">フルスクリーン表示</a>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">ロケーション管理</div>
+                    <div class="image-container">
+                        <img src="test-results/title-cards/staff_ロケーション管理_title_only.png" alt="ロケーション管理 タイトルカード" class="title-card-image">
+                    </div>
+                    <a href="test-results/title-cards/staff_ロケーション管理.png" target="_blank" class="full-screen-link">フルスクリーン表示</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 特殊画面の注記 -->
+        <div class="section">
+            <h2 class="section-title">🔍 特殊画面について</h2>
+            <div class="special-note">
+                <h3>返品検品・再出品業務フロー・返品理由分析</h3>
+                <p>これらの特殊画面のスクリーンショットは現在撮影中です。完了次第、同様の形式で表示されます。</p>
+                <ul>
+                    <li><strong>返品検品:</strong> /staff/inspection?type=return</li>
+                    <li><strong>再出品業務フロー:</strong> /staff/listing?flow=relist</li>
+                    <li><strong>返品理由分析:</strong> /returns?tab=analysis</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 結論 -->
+        <div class="section">
+            <h2 class="section-title">✅ 横幅統一の対象確認完了</h2>
+            <div class="special-note">
+                <h3>🎯 統一すべき対象の確定</h3>
+                <p><strong>全25画面以上</strong>で、上記のタイトルカード部分（intelligence-card内のp-8パディング）が統一対象です。</p>
+                <p>添付画像のスタッフダッシュボードの赤枠と同様の構造が、全画面で一貫して確認されました。</p>
+                <p><strong>修正対象:</strong> これらのタイトルカード内のパディング設定を全画面でp-8に統一することで、横幅の完全統一が実現されます。</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

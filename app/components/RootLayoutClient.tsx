@@ -1,7 +1,5 @@
 'use client';
 
-import Sidebar from './Sidebar';
-
 interface RootLayoutClientProps {
   children: React.ReactNode;
 }
@@ -42,9 +40,6 @@ export default function RootLayoutClient({ children }: RootLayoutClientProps) {
           </button>
         </div>
       </header>
-      
-      {/* Sidebar */}
-      <Sidebar />
       
       {/* Main Content with proper scroll container */}
       <main id="main-content" className="nexus-display" role="main">

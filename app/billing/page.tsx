@@ -396,28 +396,28 @@ export default function BillingPage() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-nexus-bg-secondary rounded-lg p-6 border border-nexus-border">
+              <div className="bg-nexus-bg-secondary rounded-lg p-8 border border-nexus-border">
                 <div className="text-sm text-nexus-text-secondary mb-2">総売上</div>
                 <div className="text-2xl font-display font-bold text-nexus-text-primary">
                   ¥{monthlyReport.totalSales.toLocaleString()}
                 </div>
               </div>
               
-              <div className="bg-nexus-bg-secondary rounded-lg p-6 border border-nexus-border">
+              <div className="bg-nexus-bg-secondary rounded-lg p-8 border border-nexus-border">
                 <div className="text-sm text-nexus-text-secondary mb-2">手数料</div>
                 <div className="text-2xl font-display font-bold text-nexus-red">
                   -¥{monthlyReport.totalFees.toLocaleString()}
                 </div>
               </div>
               
-              <div className="bg-nexus-bg-secondary rounded-lg p-6 border border-nexus-border">
+              <div className="bg-nexus-bg-secondary rounded-lg p-8 border border-nexus-border">
                 <div className="text-sm text-nexus-text-secondary mb-2">純利益</div>
                 <div className="text-2xl font-display font-bold text-nexus-green">
                   ¥{monthlyReport.netIncome.toLocaleString()}
                 </div>
               </div>
               
-              <div className="bg-nexus-bg-secondary rounded-lg p-6 border border-nexus-border">
+              <div className="bg-nexus-bg-secondary rounded-lg p-8 border border-nexus-border">
                 <div className="text-sm text-nexus-text-secondary mb-2">予想税額</div>
                 <div className="text-2xl font-display font-bold text-nexus-text-primary">
                   ¥{monthlyReport.taxAmount.toLocaleString()}
