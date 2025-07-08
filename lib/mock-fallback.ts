@@ -8,10 +8,20 @@ export class MockFallback {
   private static dataCache = new Map<string, any>();
 
   /**
+   * キャッシュをクリアする（開発環境用）
+   */
+  static clearCache(): void {
+    this.dataCache.clear();
+  }
+
+  /**
    * モックデータファイルを読み込む
    */
   private static async loadMockData(filename: string): Promise<any> {
-    if (this.dataCache.has(filename)) {
+    // 開発環境ではキャッシュを使用しない
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    
+    if (!isDevelopment && this.dataCache.has(filename)) {
       return this.dataCache.get(filename);
     }
 
@@ -19,7 +29,11 @@ export class MockFallback {
       const filePath = path.join(process.cwd(), 'data', filename);
       const fileContents = await fs.readFile(filePath, 'utf8');
       const data = JSON.parse(fileContents);
-      this.dataCache.set(filename, data);
+      
+      if (!isDevelopment) {
+        this.dataCache.set(filename, data);
+      }
+      
       return data;
     } catch (error) {
       console.error(`Mock data file ${filename} not found, using default data`);

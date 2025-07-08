@@ -1,42 +1,42 @@
 {
   "kpis": {
     "inventoryTurnover": {
-      "current": 4.2,
+      "current": 3.2,
       "previous": 3.8,
-      "change": 10.5,
-      "trend": "up",
+      "change": -15.8,
+      "trend": "down",
       "label": "在庫回転率"
     },
     "averageStorageDays": {
-      "current": 18.5,
+      "current": 14.5,
       "previous": 22.1,
-      "change": -16.3,
+      "change": -34.4,
       "trend": "down",
       "label": "平均保管日数"
     },
     "returnRate": {
-      "current": 2.1,
+      "current": 0.0,
       "previous": 2.8,
-      "change": -25.0,
+      "change": -100.0,
       "trend": "down",
       "label": "返品率（%）"
     },
     "salePrice": {
-      "current": 385000,
+      "current": 284000,
       "previous": 368000,
-      "change": 4.6,
-      "trend": "up",
+      "change": -22.8,
+      "trend": "down",
       "label": "平均販売価格"
     }
   },
   "categoryPerformance": [
     {
       "category": "カメラ本体",
-      "sales": 8420000,
-      "count": 23,
-      "avgPrice": 366087,
-      "turnover": 4.8,
-      "storageDays": 16.2
+      "sales": 1003000,
+      "count": 2,
+      "avgPrice": 501500,
+      "turnover": 3.2,
+      "storageDays": 14.5
     },
     {
       "category": "レンズ",
@@ -64,76 +64,70 @@
     }
   ],
   "monthlyTrends": [
-    { "month": "2024-01", "sales": 15200000, "count": 89, "returns": 3 },
-    { "month": "2024-02", "sales": 18450000, "count": 102, "returns": 2 },
-    { "month": "2024-03", "sales": 22100000, "count": 125, "returns": 4 },
-    { "month": "2024-04", "sales": 19800000, "count": 118, "returns": 3 },
-    { "month": "2024-05", "sales": 26300000, "count": 142, "returns": 5 },
-    { "month": "2024-06", "sales": 31200000, "count": 165, "returns": 3 }
+    { "month": "2024-01", "sales": 0, "count": 0, "returns": 0 },
+    { "month": "2024-02", "sales": 0, "count": 0, "returns": 0 },
+    { "month": "2024-03", "sales": 0, "count": 0, "returns": 0 },
+    { "month": "2024-04", "sales": 0, "count": 0, "returns": 0 },
+    { "month": "2024-05", "sales": 658000, "count": 1, "returns": 0 },
+    { "month": "2024-06", "sales": 345000, "count": 1, "returns": 0 }
   ],
   "stagingAnalysis": {
     "averageDays": {
-      "inbound": 1.2,
-      "inspection": 2.8,
-      "storage": 15.6,
-      "listing": 18.2,
-      "shipping": 1.1,
-      "delivery": 2.4
+      "inbound": 0.5,
+      "inspection": 1.0,
+      "storage": 14.5,
+      "listing": 12.8,
+      "shipping": 0.0,
+      "delivery": 0.0
     },
     "bottlenecks": [
       {
         "stage": "inspection",
-        "count": 15,
-        "avgDelay": 3.2,
-        "reason": "専門検品員不足"
-      },
-      {
-        "stage": "listing",
-        "count": 8,
-        "avgDelay": 5.1,
-        "reason": "写真撮影待ち"
+        "count": 4,
+        "avgDelay": 1.0,
+        "reason": "新商品検品中"
       }
     ]
   },
   "slowMovingInventory": [
     {
-      "id": "TWD-20240315-00012",
-      "name": "Leica M10-P ボディ",
+      "id": "CAM-FUJIFILM-GFX100S-012",
+      "name": "FUJIFILM GFX100S ボディ",
       "category": "カメラ本体",
-      "storageDays": 85,
-      "price": 680000,
-      "views": 245,
-      "watchers": 12,
-      "reason": "価格競争力不足"
+      "storageDays": 25,
+      "price": 748000,
+      "views": 45,
+      "watchers": 3,
+      "reason": "高額商品"
     },
     {
-      "id": "TWD-20240401-00008",
-      "name": "Omega Speedmaster Professional",
-      "category": "腕時計",
-      "storageDays": 72,
-      "price": 450000,
-      "views": 189,
+      "id": "CAM-OLYMPUS-EM1X-014",
+      "name": "OLYMPUS OM-D E-M1X ボディ",
+      "category": "カメラ本体",
+      "storageDays": 22,
+      "price": 128000,
+      "views": 28,
+      "watchers": 2,
+      "reason": "ニッチ商品"
+    },
+    {
+      "id": "CAM-FUJIFILM-X100V-018",
+      "name": "FUJIFILM X100V シルバー",
+      "category": "カメラ本体",
+      "storageDays": 21,
+      "price": 158000,
+      "views": 67,
       "watchers": 8,
-      "reason": "需要期待値低下"
-    },
-    {
-      "id": "TWD-20240418-00025",
-      "name": "Canon EF 85mm f/1.2L",
-      "category": "レンズ",
-      "storageDays": 61,
-      "price": 180000,
-      "views": 156,
-      "watchers": 15,
-      "reason": "競合商品多数"
+      "reason": "在庫過多"
     }
   ],
   "notifications": [
     {
       "id": "notif-001",
       "type": "warning",
-      "title": "長期在庫アラート",
-      "message": "3件の商品が60日を超えて在庫中です",
-      "timestamp": "2024-06-22T10:00:00Z",
+      "title": "検品待ち商品",
+      "message": "4件の商品が検品待ちです",
+      "timestamp": "2024-06-29T08:00:00Z",
       "read": false,
       "action": "inventory"
     },
@@ -141,26 +135,26 @@
       "id": "notif-002",
       "type": "success",
       "title": "高額商品成約",
-      "message": "Rolex GMT Master II が成約しました（¥850,000）",
-      "timestamp": "2024-06-22T09:30:00Z",
+      "message": "Leica Q2 が成約しました（¥658,000）",
+      "timestamp": "2024-06-28T16:00:00Z",
       "read": false,
       "action": "timeline"
     },
     {
       "id": "notif-003",
       "type": "info",
-      "title": "月次レポート準備完了",
-      "message": "5月の月次レポートが生成されました",
-      "timestamp": "2024-06-22T08:00:00Z",
+      "title": "新商品入庫",
+      "message": "3件の新商品が入庫待ちです",
+      "timestamp": "2024-06-29T07:00:00Z",
       "read": true,
       "action": "reports"
     },
     {
       "id": "notif-004",
-      "type": "error",
-      "title": "システムエラー",
-      "message": "eBay API接続に問題が発生しています",
-      "timestamp": "2024-06-22T07:45:00Z",
+      "type": "info",
+      "title": "在庫データ更新",
+      "message": "カメラ20件の在庫データが更新されました",
+      "timestamp": "2024-06-29T08:00:00Z",
       "read": false,
       "action": "system"
     }
@@ -171,64 +165,64 @@
       "name": "入庫",
       "icon": "inventory",
       "color": "#3B82F6",
-      "count": 12,
-      "avgDays": 1.2
+      "count": 3,
+      "avgDays": 0.5
     },
     {
       "id": "inspection",
       "name": "検品",
       "icon": "🔍",
       "color": "#8B5CF6",
-      "count": 8,
-      "avgDays": 2.8
+      "count": 4,
+      "avgDays": 1.0
     },
     {
       "id": "storage",
       "name": "保管",
       "icon": "📚",
       "color": "#10B981",
-      "count": 145,
-      "avgDays": 15.6
+      "count": 9,
+      "avgDays": 14.5
     },
     {
       "id": "listing",
       "name": "出品",
       "icon": "🏪",
       "color": "#F59E0B",
-      "count": 58,
-      "avgDays": 18.2
+      "count": 4,
+      "avgDays": 12.8
     },
     {
       "id": "order",
       "name": "受注",
       "icon": "📋",
       "color": "#EF4444",
-      "count": 6,
-      "avgDays": 0.5
+      "count": 0,
+      "avgDays": 0.0
     },
     {
       "id": "shipping",
       "name": "出荷",
       "icon": "shipping",
       "color": "#06B6D4",
-      "count": 4,
-      "avgDays": 1.1
+      "count": 0,
+      "avgDays": 0.0
     },
     {
       "id": "delivery",
       "name": "配送",
       "icon": "📮",
       "color": "#84CC16",
-      "count": 2,
-      "avgDays": 2.4
+      "count": 0,
+      "avgDays": 0.0
     },
     {
       "id": "returned",
       "name": "返品",
       "icon": "return",
       "color": "#6B7280",
-      "count": 5,
-      "avgDays": 3.2
+      "count": 0,
+      "avgDays": 0.0
     }
   ]
 }

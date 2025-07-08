@@ -2,85 +2,54 @@
   "staffTasks": {
     "urgentTasks": [
       {
-        "id": "staff-urgent-001",
-        "title": "Canon EOS R5 緊急検品",
-        "description": "顧客クレーム対応 | 要即時対応",
+        "id": "staff-urgent-1001",
+        "title": "Sony α7 IV 緊急検品",
+        "description": "初期不良疑い | 速やかに確認",
         "priority": "high",
         "type": "inspection",
-        "productId": "TWD-CAM-015",
-        "location": "検品室B",
-        "assignee": "田中次郎",
-        "dueDate": "2024-06-28",
-        "estimatedDuration": "2時間",
+        "productId": "CAM-SONY-A7IV-001",
+        "location": "検品室A",
+        "assignee": "山本 達也",
+        "dueDate": "2024-07-01",
+        "estimatedDuration": "1時間",
         "status": "pending",
         "category": "緊急検品",
-        "value": "¥450,000",
-        "customerTicket": "CS-2024-0628-001"
-      },
-      {
-        "id": "staff-urgent-002",
-        "title": "Rolex GMT Master 検品完了",
-        "description": "高額商品24時間経過 | 金庫室保管",
-        "priority": "high",
-        "type": "inspection",
-        "productId": "TWD-WAT-007",
-        "location": "金庫室V-03",
-        "assignee": "田中次郎",
-        "dueDate": "2024-06-28",
-        "estimatedDuration": "3時間",
-        "status": "pending",
-        "category": "高額商品",
-        "value": "¥2,100,000",
-        "alertMessage": "24時間経過"
+        "value": "¥320,000",
+        "customerTicket": "CS-2024-0701-001"
       }
     ],
     "normalTasks": [
       {
-        "id": "staff-normal-001",
-        "title": "Sony α7R V バッチ検品",
-        "description": "入庫商品 8件 | バッチ処理",
+        "id": "staff-normal-1001",
+        "title": "カメラアクセサリー検品バッチ",
+        "description": "バッテリーグリップ含む 5件",
         "priority": "medium",
         "type": "inspection",
-        "batchId": "BATCH-INS-001",
-        "location": "検品室A",
-        "assignee": "佐藤花子",
-        "dueDate": "2024-06-29",
-        "estimatedDuration": "4時間",
+        "batchId": "BATCH-INS-1001",
+        "location": "検品室B",
+        "assignee": "山本 達也",
+        "dueDate": "2024-07-02",
+        "estimatedDuration": "2時間",
         "status": "in_progress",
-        "category": "入庫検品",
-        "itemCount": 8,
-        "progress": 37
+        "category": "定期検品",
+        "itemCount": 5,
+        "progress": 40
       },
       {
-        "id": "staff-normal-002",
-        "title": "商品撮影バッチ",
-        "description": "Nikon Z9, Canon 24-70mm 他2件",
-        "priority": "medium",
-        "type": "photography",
-        "batchId": "BATCH-PHO-001",
-        "location": "撮影室",
-        "assignee": "鈴木太郎",
-        "dueDate": "2024-06-29",
-        "estimatedDuration": "3時間",
-        "status": "pending",
-        "category": "商品撮影",
-        "itemCount": 4
-      },
-      {
-        "id": "staff-normal-003",
-        "title": "出荷準備作業",
-        "description": "本日出荷予定 3件",
+        "id": "staff-normal-1002",
+        "title": "出荷準備 (eBay #404123456789)",
+        "description": "Sony α7 II 本体",
         "priority": "low",
         "type": "shipping",
-        "batchId": "BATCH-SHP-001",
+        "batchId": "BATCH-SHP-1001",
         "location": "梱包室",
-        "assignee": "山田太郎",
-        "dueDate": "2024-06-28",
-        "estimatedDuration": "2時間",
+        "assignee": "山本 達也",
+        "dueDate": "2024-07-01",
+        "estimatedDuration": "30分",
         "status": "pending",
         "category": "出荷作業",
-        "itemCount": 3,
-        "deadline": "16:00"
+        "itemCount": 1,
+        "deadline": "15:00"
       }
     ]
   },
@@ -119,45 +88,9 @@
             ]
           }
         ]
-      },
-      "watch": {
-        "id": "watch-checklist",
-        "name": "腕時計検品",
-        "categories": [
-          {
-            "name": "外観チェック",
-            "items": [
-              { "id": "case-condition", "label": "ケース状態", "type": "rating", "required": true },
-              { "id": "bracelet-condition", "label": "ブレスレット状態", "type": "rating", "required": true },
-              { "id": "crystal-condition", "label": "風防状態", "type": "rating", "required": true },
-              { "id": "dial-condition", "label": "文字盤状態", "type": "rating", "required": true }
-            ]
-          },
-          {
-            "name": "機能確認",
-            "items": [
-              { "id": "time-accuracy", "label": "時刻精度", "type": "measurement", "required": true },
-              { "id": "crown-operation", "label": "リューズ操作", "type": "boolean", "required": true },
-              { "id": "date-function", "label": "日付機能", "type": "boolean", "required": false },
-              { "id": "chronograph", "label": "クロノグラフ", "type": "boolean", "required": false }
-            ]
-          }
-        ]
       }
     },
-    "inspectionHistory": [
-      {
-        "id": "inspection-001",
-        "productId": "TWD-CAM-012",
-        "productName": "Canon EOS R6 Mark II",
-        "inspector": "田中次郎",
-        "dateCompleted": "2024-06-27T14:30:00Z",
-        "result": "合格",
-        "grade": "A",
-        "notes": "良好な状態。軽微な使用感のみ",
-        "photos": ["photo1.jpg", "photo2.jpg"]
-      }
-    ]
+    "inspectionHistory": []
   },
   "locationData": {
     "storageAreas": [
@@ -165,76 +98,17 @@
         "id": "standard-shelf",
         "name": "標準棚",
         "type": "standard",
-        "sections": ["A", "B", "C", "D"],
-        "capacity": 200,
-        "currentCount": 156,
+        "sections": ["A", "B"],
+        "capacity": 100,
+        "currentCount": 45,
         "temperature": "20°C",
         "humidity": "45%"
-      },
-      {
-        "id": "humidity-controlled",
-        "name": "防湿庫",
-        "type": "humidity_controlled",
-        "sections": ["H1", "H2", "H3"],
-        "capacity": 50,
-        "currentCount": 38,
-        "temperature": "18°C",
-        "humidity": "30%"
-      },
-      {
-        "id": "vault",
-        "name": "金庫室",
-        "type": "vault",
-        "sections": ["V-01", "V-02", "V-03", "V-04"],
-        "capacity": 20,
-        "currentCount": 15,
-        "temperature": "22°C",
-        "humidity": "40%"
       }
     ],
-    "locationHistory": [
-      {
-        "id": "loc-001",
-        "productId": "TWD-WAT-007",
-        "fromLocation": "検品室B",
-        "toLocation": "金庫室V-03",
-        "movedBy": "田中次郎",
-        "timestamp": "2024-06-27T16:45:00Z",
-        "reason": "高額商品保管"
-      }
-    ]
+    "locationHistory": []
   },
   "shippingData": {
-    "todayShipments": [
-      {
-        "id": "ship-001",
-        "orderId": "ORD-2024-0628-001",
-        "productId": "TWD-CAM-011",
-        "productName": "Nikon Z8",
-        "customer": "山田太郎",
-        "address": "東京都渋谷区...",
-        "shippingMethod": "ヤマト宅急便",
-        "priority": "高",
-        "deadline": "16:00",
-        "status": "梱包待ち",
-        "trackingNumber": "",
-        "value": "¥398,000"
-      },
-      {
-        "id": "ship-002",
-        "orderId": "ORD-2024-0628-002",
-        "productId": "TWD-LEN-005",
-        "productName": "Canon RF 24-70mm F2.8",
-        "customer": "佐藤花子",
-        "address": "大阪府大阪市...",
-        "shippingMethod": "佐川急便",
-        "priority": "中",
-        "deadline": "18:00",
-        "status": "準備完了",
-        "trackingNumber": "1234-5678-9012",
-        "value": "¥198,000"
-      }
-    ],
+    "todayShipments": [],
     "packingInstructions": {
       "camera": {
         "materials": ["プチプチ", "緩衝材", "防湿袋"],
@@ -245,36 +119,11 @@
           "商品を中央に配置",
           "上部に緩衝材を追加"
         ]
-      },
-      "watch": {
-        "materials": ["時計用クッション", "プチプチ", "硬質ケース"],
-        "steps": [
-          "時計用クッションに固定",
-          "硬質ケースに収納",
-          "プチプチで包装",
-          "専用箱に梱包"
-        ]
       }
     }
   },
   "returnsData": {
-    "pendingReturns": [
-      {
-        "id": "return-001",
-        "orderId": "ORD-2024-0625-001",
-        "productId": "TWD-CAM-015",
-        "productName": "Canon EOS R5",
-        "customer": "田中一郎",
-        "returnReason": "動作不良",
-        "returnDate": "2024-06-27",
-        "originalCondition": "A",
-        "returnedCondition": "要確認",
-        "status": "検品待ち",
-        "inspector": "",
-        "customerNote": "シャッターが時々動作しない",
-        "refundAmount": "¥450,000"
-      }
-    ],
+    "pendingReturns": [],
     "returnCategories": [
       { "id": "defect", "label": "動作不良", "action": "詳細検品" },
       { "id": "damage", "label": "配送時破損", "action": "保険申請" },
@@ -284,16 +133,16 @@
   },
   "staffStats": {
     "daily": {
-      "tasksCompleted": 12,
-      "inspectionsCompleted": 8,
-      "shipmentsProcessed": 5,
-      "returnsProcessed": 2,
-      "totalRevenue": "¥2,150,000"
+      "tasksCompleted": 3,
+      "inspectionsCompleted": 1,
+      "shipmentsProcessed": 0,
+      "returnsProcessed": 0,
+      "totalRevenue": "¥0"
     },
     "weekly": {
-      "efficiency": 89,
-      "qualityScore": 96,
-      "customerSatisfaction": 4.8
+      "efficiency": 90,
+      "qualityScore": 97,
+      "customerSatisfaction": 4.9
     }
   }
 }

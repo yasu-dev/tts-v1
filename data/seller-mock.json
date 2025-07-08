@@ -322,5 +322,97 @@
         "outcome": "全額返金"
       }
     ]
-  }
+  },
+  "sellers": [
+    {
+      "id": "seller-001",
+      "storeName": "WorldDoorShop01",
+      "ebayId": "worlddoor_seller01",
+      "contactEmail": "seller01@worlddoor.co.jp",
+      "rating": 4.9,
+      "joinedDate": "2023-01-15",
+      "status": "active"
+    },
+    {
+      "id": "seller-002",
+      "storeName": "WorldDoorShop02",
+      "ebayId": "worlddoor_seller02",
+      "contactEmail": "seller02@worlddoor.co.jp",
+      "rating": 4.8,
+      "joinedDate": "2023-02-10",
+      "status": "active"
+    },
+    {
+      "id": "seller-003",
+      "storeName": "WorldDoorShop03",
+      "ebayId": "worlddoor_seller03",
+      "contactEmail": "seller03@worlddoor.co.jp",
+      "rating": 4.7,
+      "joinedDate": "2023-03-05",
+      "status": "active"
+    },
+    {
+      "id": "seller-004",
+      "storeName": "WorldDoorShop04",
+      "ebayId": "worlddoor_seller04",
+      "contactEmail": "seller04@worlddoor.co.jp",
+      "rating": 4.85,
+      "joinedDate": "2023-04-22",
+      "status": "active"
+    },
+    {
+      "id": "seller-005",
+      "storeName": "WorldDoorShop05",
+      "ebayId": "worlddoor_seller05",
+      "contactEmail": "seller05@worlddoor.co.jp",
+      "rating": 4.95,
+      "joinedDate": "2023-05-18",
+      "status": "active"
+    },
+    {
+      "id": "seller-006",
+      "storeName": "WorldDoorShop06",
+      "ebayId": "worlddoor_seller06",
+      "contactEmail": "seller06@worlddoor.co.jp",
+      "rating": 4.6,
+      "joinedDate": "2023-06-12",
+      "status": "active"
+    },
+    {
+      "id": "seller-007",
+      "storeName": "WorldDoorShop07",
+      "ebayId": "worlddoor_seller07",
+      "contactEmail": "seller07@worlddoor.co.jp",
+      "rating": 4.75,
+      "joinedDate": "2023-07-08",
+      "status": "active"
+    },
+    {
+      "id": "seller-008",
+      "storeName": "WorldDoorShop08",
+      "ebayId": "worlddoor_seller08",
+      "contactEmail": "seller08@worlddoor.co.jp",
+      "rating": 4.8,
+      "joinedDate": "2023-08-19",
+      "status": "active"
+    },
+    {
+      "id": "seller-009",
+      "storeName": "WorldDoorShop09",
+      "ebayId": "worlddoor_seller09",
+      "contactEmail": "seller09@worlddoor.co.jp",
+      "rating": 4.65,
+      "joinedDate": "2023-09-30",
+      "status": "active"
+    },
+    {
+      "id": "seller-010",
+      "storeName": "WorldDoorShop10",
+      "ebayId": "worlddoor_seller10",
+      "contactEmail": "seller10@worlddoor.co.jp",
+      "rating": 4.9,
+      "joinedDate": "2023-11-11",
+      "status": "active"
+    }
+  ]
 }

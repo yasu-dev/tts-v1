@@ -17,20 +17,15 @@ import { useRouter } from 'next/navigation';
 export default function InventoryPage() {
   const router = useRouter();
   const { showToast } = useToast();
-  const [inventoryStats] = useState({
-    totalItems: 156,
-    listed: 89,
-    inspection: 45,
-    storage: 22,
-    totalValue: 45600000,
+  const [inventoryStats, setInventoryStats] = useState({
+    totalItems: 0,
+    listed: 0,
+    inspection: 0,
+    storage: 0,
+    totalValue: 0,
   });
 
-  const [inventory] = useState([
-    { id: 1, name: 'Canon EOS R5', sku: 'TWD-20240115-001', category: 'カメラ本体', status: '出品中', location: 'A-01-03', value: 450000, certifications: ['MINT', 'AUTHENTIC'] },
-    { id: 2, name: 'Sony FE 24-70mm f/2.8 GM', sku: 'TWD-20240115-002', category: 'レンズ', status: '検品中', location: 'B-02-05', value: 280000, certifications: ['PREMIUM'] },
-    { id: 3, name: 'Rolex Submariner', sku: 'TWD-20240115-003', category: '時計', status: '保管中', location: 'C-01-01', value: 1200000, certifications: ['CERTIFIED', 'LUXURY', 'RARE'] },
-  ]);
-
+  const [inventory, setInventory] = useState<any[]>([]);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isNewItemModalOpen, setIsNewItemModalOpen] = useState(false);
@@ -41,13 +36,56 @@ export default function InventoryPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<any>(null);
 
+  // APIから実際のデータを取得
   useEffect(() => {
-    fetch('/api/inventory')
-      .then((res) => res.json())
-      .then((data) => {
-        setItems(data.items);
+    const fetchInventoryData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/inventory');
+        if (!response.ok) {
+          throw new Error('Failed to fetch inventory data');
+        }
+        const data = await response.json();
+        
+        // APIレスポンスの形式に合わせてデータを変換
+        const inventoryItems = data.data.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          sku: item.sku,
+          category: item.category,
+          status: item.status,
+          location: item.location || '未設定',
+          value: item.price || 0,
+          certifications: ['AUTHENTIC'], // デフォルト認証
+        }));
+        
+        setInventory(inventoryItems);
+        setItems(data.data);
+        
+        // 統計データを計算
+        const stats = {
+          totalItems: inventoryItems.length,
+          listed: inventoryItems.filter((item: any) => item.status === '出品中').length,
+          inspection: inventoryItems.filter((item: any) => item.status === '検品中').length,
+          storage: inventoryItems.filter((item: any) => item.status === '保管中').length,
+          totalValue: inventoryItems.reduce((sum: number, item: any) => sum + (item.value || 0), 0),
+        };
+        setInventoryStats(stats);
+        
+        console.log(`✅ セラー在庫データ取得完了: ${inventoryItems.length}件`);
+      } catch (error) {
+        console.error('在庫データ取得エラー:', error);
+        showToast({
+          title: 'データ取得エラー',
+          message: '在庫データの取得に失敗しました',
+          type: 'error'
+        });
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchInventoryData();
   }, []);
 
   const handleExportCsv = () => {

@@ -63,115 +63,57 @@ export default function StaffInventoryPage() {
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [paginatedItems, setPaginatedItems] = useState<InventoryItem[]>([]);
 
-  // デモデータ（スタッフ向けに詳細情報を追加）
+  // APIから実際のデータを取得
   useEffect(() => {
-    const demoData: InventoryItem[] = [
-      {
-        id: '1',
-        name: 'Canon EOS R5',
-        sku: 'CAM-001',
-        category: 'カメラ本体',
-        status: 'inspection',
-        location: 'A区画-01',
-        price: 450000,
-        condition: '極美品',
-        entryDate: '2024-06-20',
-        assignedStaff: '田中',
-        lastModified: '2024-06-28T10:30:00Z',
-        qrCode: 'QR-CAM-001',
-        notes: '付属品完備、シャッター回数要確認',
-        quantity: 1,
-        lastChecked: '2024-06-28T10:30:00Z',
-      },
-      {
-        id: '2',
-        name: 'Sony FE 24-70mm f/2.8',
-        sku: 'LEN-002',
-        category: 'レンズ',
-        status: 'storage',
-        location: 'A区画-05',
-        price: 280000,
-        condition: '美品',
-        entryDate: '2024-06-22',
-        assignedStaff: '佐藤',
-        lastModified: '2024-06-27T15:20:00Z',
-        qrCode: 'QR-LEN-002',
-        notes: 'レンズ内クリア、外観良好',
-        quantity: 1,
-        lastChecked: '2024-06-27T15:20:00Z',
-      },
-      {
-        id: '3',
-        name: 'Rolex Submariner',
-        sku: 'WAT-001',
-        category: '腕時計',
-        status: 'sold',
-        location: 'V区画-12',
-        price: 1200000,
-        condition: '中古美品',
-        entryDate: '2024-06-15',
-        assignedStaff: '鈴木',
-        lastModified: '2024-06-26T16:45:00Z',
-        qrCode: 'QR-WAT-001',
-        notes: '真贋確認済み、オーバーホール済み',
-        quantity: 1,
-        lastChecked: '2024-06-26T16:45:00Z',
-      },
-      {
-        id: '4',
-        name: 'Hermès Birkin 30',
-        sku: 'ACC-003',
-        category: 'アクセサリ',
-        status: 'listing',
-        location: 'H区画-08',
-        price: 2500000,
-        condition: '新品同様',
-        entryDate: '2024-06-28',
-        assignedStaff: '山田',
-        lastModified: '2024-06-28T14:15:00Z',
-        qrCode: 'QR-ACC-003',
-        notes: 'プレミアム商品、特別管理',
-        quantity: 1,
-        lastChecked: '2024-06-28T14:15:00Z',
-      },
-      {
-        id: '5',
-        name: 'Leica M11',
-        sku: 'CAM-005',
-        category: 'カメラ本体',
-        status: 'inbound',
-        location: '入庫待ち',
-        price: 980000,
-        condition: '美品',
-        entryDate: '2024-06-28',
-        assignedStaff: '田中',
-        lastModified: '2024-06-28T11:00:00Z',
-        qrCode: 'QR-CAM-005',
-        notes: '入庫予定：明日午前',
-        quantity: 1,
-        lastChecked: '2024-06-28T11:00:00Z',
-      },
-      {
-        id: '6',
-        name: 'Nikon Z9',
-        sku: 'CAM-006',
-        category: 'カメラ本体',
-        status: 'maintenance',
-        location: 'メンテナンス室',
-        price: 520000,
-        condition: '要調整',
-        entryDate: '2024-06-25',
-        assignedStaff: '佐藤',
-        lastModified: '2024-06-28T09:30:00Z',
-        qrCode: 'QR-CAM-006',
-        notes: 'ファインダー調整中',
-        quantity: 1,
-        lastChecked: '2024-06-28T09:30:00Z',
-      },
-    ];
-    setItems(demoData);
-    setFilteredItems(demoData);
-    setLoading(false);
+    const fetchInventoryData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/inventory');
+        if (!response.ok) {
+          throw new Error('Failed to fetch inventory data');
+        }
+        const data = await response.json();
+        
+        // APIレスポンスの形式に合わせてデータを変換
+        const inventoryItems: InventoryItem[] = data.data.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          sku: item.sku,
+          category: item.category,
+          status: item.status.replace('入庫', 'inbound')
+                             .replace('検品', 'inspection')
+                             .replace('保管', 'storage')
+                             .replace('出品', 'listing')
+                             .replace('売約済み', 'sold')
+                             .replace('返品', 'returned'),
+          location: item.location || '未設定',
+          price: item.price || 0,
+          condition: item.condition || '良品',
+          entryDate: item.createdAt ? new Date(item.createdAt).toISOString().split('T')[0] : '2024-01-01',
+          assignedStaff: '山本 達也', // 統一されたスタッフ名
+          lastModified: item.updatedAt || new Date().toISOString(),
+          qrCode: `QR-${item.sku}`,
+          notes: item.description || '',
+          quantity: 1,
+          lastChecked: item.updatedAt || new Date().toISOString(),
+        }));
+        
+        setItems(inventoryItems);
+        setFilteredItems(inventoryItems);
+        console.log(`✅ 在庫データ取得完了: ${inventoryItems.length}件`);
+      } catch (error) {
+        console.error('在庫データ取得エラー:', error);
+        showToast({
+          title: 'データ取得エラー',
+          message: '在庫データの取得に失敗しました',
+          type: 'error'
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInventoryData();
   }, []);
 
   // フィルタリング
@@ -208,8 +150,6 @@ export default function StaffInventoryPage() {
     const endIndex = startIndex + itemsPerPage;
     setPaginatedItems(filteredItems.slice(startIndex, endIndex));
   }, [filteredItems, currentPage, itemsPerPage]);
-
-
 
   const updateItemStatus = (itemId: string, newStatus: InventoryItem['status']) => {
     setItems(prev => prev.map(item => 
