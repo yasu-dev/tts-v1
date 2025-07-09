@@ -57,15 +57,61 @@ export default function ReturnsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState<'inspection' | 'relisting' | 'analysis'>('inspection');
   const [isUnsellableModalOpen, setIsUnsellableModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  // マウント状態の管理
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
-    fetch('/api/staff/dashboard')
-      .then(res => res.json())
-      .then(data => {
+    if (!mounted) return;
+
+    const fetchReturnsData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const response = await fetch('/api/staff/dashboard');
+        
+        if (!response.ok) {
+          throw new Error(`API Error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
         setReturnsData(data.returnsData);
-      })
-      .catch(console.error);
-  }, []);
+      } catch (err) {
+        console.error('Returns data fetch error:', err);
+        setError(err instanceof Error ? err.message : 'データの取得に失敗しました');
+        
+        // フォールバック用のモックデータ
+        const mockReturnsData = {
+          pendingReturns: [
+            {
+              id: 'return-001',
+              orderId: 'ORD-2024-0627-001',
+              productId: 'TWD-CAM-001',
+              productName: 'Canon EOS R5 ボディ',
+              customer: '田中太郎',
+              returnReason: '商品不良',
+              returnDate: '2024-06-27',
+              originalCondition: 'A',
+              returnedCondition: 'B',
+              customerNote: 'ファインダーに汚れがあります',
+              refundAmount: '¥2,800,000'
+            }
+          ]
+        };
+        setReturnsData(mockReturnsData);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchReturnsData();
+  }, [mounted]);
 
   const handleStartInspection = (returnItem: ReturnItem) => {
     setSelectedReturn(returnItem);
@@ -170,7 +216,7 @@ export default function ReturnsPage() {
     });
   };
 
-  if (!returnsData) {
+  if (!mounted) {
     return (
       <DashboardLayout userType="staff">
         <div className="space-y-6">
@@ -186,6 +232,62 @@ export default function ReturnsPage() {
           </div>
           <div className="flex items-center justify-center min-h-[400px]">
             <NexusLoadingSpinner size="lg" />
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <DashboardLayout userType="staff">
+        <div className="space-y-6">
+          <div className="intelligence-card global">
+            <div className="p-8">
+              <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
+                返品処理
+              </h1>
+              <p className="mt-1 text-sm text-nexus-text-secondary">
+                返品商品の検品と再出品を管理します
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center justify-center min-h-[400px]">
+            <NexusLoadingSpinner size="lg" />
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout userType="staff">
+        <div className="space-y-6">
+          <div className="intelligence-card global">
+            <div className="p-8">
+              <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
+                返品処理
+              </h1>
+              <p className="mt-1 text-sm text-nexus-text-secondary">
+                返品商品の検品と再出品を管理します
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <AlertCircle className="w-16 h-16 text-nexus-red mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-nexus-text-primary mb-2">
+                データの取得に失敗しました
+              </h3>
+              <p className="text-nexus-text-secondary mb-4">{error}</p>
+              <NexusButton
+                onClick={() => window.location.reload()}
+                variant="primary"
+              >
+                再試行
+              </NexusButton>
+            </div>
           </div>
         </div>
       </DashboardLayout>

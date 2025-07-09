@@ -11,7 +11,8 @@ import {
   BookOpenIcon,
   CameraIcon,
   XMarkIcon,
-  CheckIcon
+  CheckIcon,
+  AlertCircle
 } from '@heroicons/react/24/outline';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import BaseModal from '@/app/components/ui/BaseModal';
@@ -139,6 +140,77 @@ export default function InspectionPage() {
   const [isCameraModalOpen, setIsCameraModalOpen] = useState(false);
   const [isInspectionModalOpen, setIsInspectionModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  // マウント状態の管理
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    const fetchInspectionData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const response = await fetch('/api/staff/dashboard');
+        
+        if (!response.ok) {
+          throw new Error(`API Error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        setInspectionData(data.inspectionData);
+      } catch (err) {
+        console.error('Inspection data fetch error:', err);
+        setError(err instanceof Error ? err.message : 'データの取得に失敗しました');
+        
+        // フォールバック用のモックデータ
+        const mockInspectionData = {
+          pendingTasks: [
+            {
+              id: 'task-001',
+              title: 'Canon EOS R5 検品',
+              productId: 'TWD-CAM-001',
+              productName: 'Canon EOS R5 ボディ',
+              type: 'camera',
+              priority: 'high',
+              assignee: 'スタッフ',
+              status: 'pending',
+              dueDate: '2024-06-27',
+              location: 'A-01',
+              value: '¥2,800,000',
+              category: 'camera_body'
+            }
+          ],
+          checklistTemplates: {
+            camera: {
+              id: 'camera_checklist',
+              name: 'カメラ検品チェックリスト',
+              categories: [
+                {
+                  name: '外観チェック',
+                  items: [
+                    { id: 'exterior_1', label: '本体に傷や汚れがないか', type: 'boolean', required: true },
+                    { id: 'exterior_2', label: 'レンズマウントの状態', type: 'boolean', required: true }
+                  ]
+                }
+              ]
+            }
+          }
+        };
+        setInspectionData(mockInspectionData);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchInspectionData();
+  }, [mounted]);
 
   const statusConfig = {
     pending_inspection: { label: '検品待ち', status: 'warning' as const, color: 'bg-yellow-100 text-yellow-800' },
@@ -168,15 +240,6 @@ export default function InspectionPage() {
     acc[product.status].push(product);
     return acc;
   }, {} as Record<string, Product[]>);
-
-  useEffect(() => {
-    fetch('/api/staff/dashboard')
-      .then(res => res.json())
-      .then(data => {
-        setInspectionData(data.inspectionData);
-      })
-      .catch(console.error);
-  }, []);
 
   const handleStartInspection = (product: Product) => {
     setSelectedProduct(product);
@@ -273,7 +336,7 @@ export default function InspectionPage() {
     setIsCameraModalOpen(false);
   };
 
-  if (!inspectionData) {
+  if (!mounted) {
     return (
       <DashboardLayout userType="staff">
         <div className="space-y-6">
@@ -289,6 +352,62 @@ export default function InspectionPage() {
           </div>
           <div className="flex items-center justify-center min-h-[400px]">
             <NexusLoadingSpinner size="lg" />
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <DashboardLayout userType="staff">
+        <div className="space-y-6">
+          <div className="intelligence-card global">
+            <div className="p-8">
+              <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
+                検品・撮影
+              </h1>
+              <p className="mt-1 text-sm text-nexus-text-secondary">
+                商品の検品と撮影作業を実施
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center justify-center min-h-[400px]">
+            <NexusLoadingSpinner size="lg" />
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout userType="staff">
+        <div className="space-y-6">
+          <div className="intelligence-card global">
+            <div className="p-8">
+              <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
+                検品・撮影
+              </h1>
+              <p className="mt-1 text-sm text-nexus-text-secondary">
+                商品の検品と撮影作業を実施
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <AlertCircle className="w-16 h-16 text-nexus-red mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-nexus-text-primary mb-2">
+                データの取得に失敗しました
+              </h3>
+              <p className="text-nexus-text-secondary mb-4">{error}</p>
+              <NexusButton
+                onClick={() => window.location.reload()}
+                variant="primary"
+              >
+                再試行
+              </NexusButton>
+            </div>
           </div>
         </div>
       </DashboardLayout>

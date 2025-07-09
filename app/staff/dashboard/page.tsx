@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import {
   DocumentTextIcon,
   PlusIcon,
+  AlertCircle,
 } from '@heroicons/react/24/outline';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import HoloTable from '@/app/components/ui/HoloTable';
@@ -16,6 +17,7 @@ import NexusButton from '@/app/components/ui/NexusButton';
 import NexusSelect from '@/app/components/ui/NexusSelect';
 import NexusInput from '@/app/components/ui/NexusInput';
 import { BusinessStatusIndicator } from '@/app/components/ui/StatusIndicator';
+import { NexusLoadingSpinner } from '@/app/components/ui';
 
 interface StaffTask {
   id: string;
@@ -69,30 +71,87 @@ interface StaffData {
   };
 }
 
-export default function StaffDashboard() {
-  const { showToast } = useToast();
-  const [staffData, setStaffData] = useState<StaffData | null>(null);
-  const [filter, setFilter] = useState<'all' | 'urgent' | 'normal' | 'high' | 'medium' | 'low'>('all');
-  const [typeFilter, setTypeFilter] = useState<'all' | 'inspection' | 'photography' | 'shipping' | 'returns'>('all');
-  const timelineRef = useRef<HTMLDivElement>(null);
-  const [loading, setLoading] = useState(true);
-  const [isNewTaskModalOpen, setIsNewTaskModalOpen] = useState(false);
-  const [isTaskDetailModalOpen, setIsTaskDetailModalOpen] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [isTaskEditModalOpen, setIsTaskEditModalOpen] = useState(false);
+export default function StaffDashboardPage() {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState('');
+  const { showToast } = useToast();
+  const [staffData, setStaffData] = useState<any>(null);
+  const [tasks, setTasks] = useState<StaffTask[]>([]);
+  const [selectedTask, setSelectedTask] = useState<StaffTask | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterPriority, setFilterPriority] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  // マウント状態の管理
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
-    // Load staff data from API
-    fetch('/api/staff/dashboard')
-      .then(res => res.json())
-      .then((data: StaffData) => {
+    if (!mounted) return;
+
+    const fetchStaffData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const response = await fetch('/api/staff/dashboard');
+        
+        if (!response.ok) {
+          throw new Error(`API Error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
         setStaffData(data);
-        setLoading(false);
-      })
-      .catch(console.error);
-  }, []);
+        setTasks(data.staffTasks?.urgentTasks || []);
+      } catch (err) {
+        console.error('Staff dashboard data fetch error:', err);
+        setError(err instanceof Error ? err.message : 'データの取得に失敗しました');
+        
+        // フォールバック用のモックデータ
+        const mockStaffData = {
+          staffTasks: {
+            urgentTasks: [
+              {
+                id: 'task-001',
+                title: 'Canon EOS R5 検品',
+                description: '高優先度の検品タスク',
+                priority: 'high',
+                status: 'pending',
+                assignee: 'スタッフ',
+                dueDate: '2024-06-27',
+                type: 'inspection',
+                location: 'A-01',
+                estimatedDuration: '2時間',
+                category: 'カメラ',
+                value: '¥2,800,000'
+              }
+            ]
+          },
+          staffStats: {
+            daily: {
+              tasksCompleted: 5,
+              inspectionsCompleted: 3,
+              shipmentsProcessed: 8,
+              returnsProcessed: 2,
+              totalRevenue: '¥3,200,000'
+            }
+          }
+        };
+        setStaffData(mockStaffData);
+        setTasks(mockStaffData.staffTasks.urgentTasks);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStaffData();
+  }, [mounted]);
 
   const getAllTasks = (): StaffTask[] => {
     if (!staffData) return [];
@@ -104,25 +163,25 @@ export default function StaffDashboard() {
     let filtered = allTasks;
 
     // Apply priority/urgency filter
-    if (filter === 'urgent') {
+    if (filterPriority === 'urgent') {
       filtered = staffData?.staffTasks.urgentTasks || [];
-    } else if (filter === 'normal') {
+    } else if (filterPriority === 'normal') {
       filtered = staffData?.staffTasks.normalTasks || [];
-    } else if (filter !== 'all') {
-      filtered = allTasks.filter(task => task.priority === filter);
+    } else if (filterPriority !== 'all') {
+      filtered = allTasks.filter(task => task.priority === filterPriority);
     }
 
     // Apply type filter
-    if (typeFilter !== 'all') {
-      filtered = filtered.filter(task => task.type === typeFilter);
+    if (filterStatus !== 'all') {
+      filtered = filtered.filter(task => task.type === filterStatus);
     }
 
     // Apply search filter
-    if (searchQuery) {
+    if (searchTerm) {
       filtered = filtered.filter(task => 
-        task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        task.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        task.assignee.toLowerCase().includes(searchQuery.toLowerCase())
+        task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        task.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        task.assignee.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -218,7 +277,7 @@ export default function StaffDashboard() {
   ];
 
   const handleCreateTask = () => {
-    setIsNewTaskModalOpen(true);
+    setShowCreateModal(true);
   };
 
   const handleEditTask = (task: StaffTask) => {
@@ -234,8 +293,8 @@ export default function StaffDashboard() {
       description: task.description
     };
     setSelectedTask(taskData);
-    setIsTaskEditModalOpen(true);
-    setIsTaskDetailModalOpen(false);
+    setIsEditModalOpen(true);
+    setIsDetailModalOpen(false);
   };
 
   const handleSaveTaskEdit = (updatedTask: any) => {
@@ -255,7 +314,7 @@ export default function StaffDashboard() {
     }
     
     setStaffData(newStaffData);
-    setIsTaskEditModalOpen(false);
+    setIsEditModalOpen(false);
     setSelectedTask(null);
     
     showToast({
@@ -294,7 +353,7 @@ export default function StaffDashboard() {
         };
 
         setStaffData(updatedStaffData);
-        setIsNewTaskModalOpen(false);
+        setShowCreateModal(false);
       }
     } catch (error) {
       console.error('タスク作成エラー:', error);
@@ -321,14 +380,82 @@ export default function StaffDashboard() {
       comments: []
     };
     setSelectedTask(taskDetailData);
-    setIsTaskDetailModalOpen(true);
+    setIsDetailModalOpen(true);
   };
 
-  if (loading || !staffData) {
+  if (!mounted) {
     return (
       <DashboardLayout userType="staff">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin h-12 w-12 border-b-4 border-nexus-yellow rounded-full"></div>
+        <div className="space-y-6">
+          <div className="intelligence-card global">
+            <div className="p-8">
+              <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
+                スタッフダッシュボード
+              </h1>
+              <p className="mt-1 text-sm text-nexus-text-secondary">
+                本日のタスクと業務状況を確認
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center justify-center min-h-[400px]">
+            <NexusLoadingSpinner size="lg" />
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <DashboardLayout userType="staff">
+        <div className="space-y-6">
+          <div className="intelligence-card global">
+            <div className="p-8">
+              <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
+                スタッフダッシュボード
+              </h1>
+              <p className="mt-1 text-sm text-nexus-text-secondary">
+                本日のタスクと業務状況を確認
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center justify-center min-h-[400px]">
+            <NexusLoadingSpinner size="lg" />
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout userType="staff">
+        <div className="space-y-6">
+          <div className="intelligence-card global">
+            <div className="p-8">
+              <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
+                スタッフダッシュボード
+              </h1>
+              <p className="mt-1 text-sm text-nexus-text-secondary">
+                本日のタスクと業務状況を確認
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <AlertCircle className="w-16 h-16 text-nexus-red mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-nexus-text-primary mb-2">
+                データの取得に失敗しました
+              </h3>
+              <p className="text-nexus-text-secondary mb-4">{error}</p>
+              <NexusButton
+                onClick={() => window.location.reload()}
+                variant="primary"
+              >
+                再試行
+              </NexusButton>
+            </div>
+          </div>
         </div>
       </DashboardLayout>
     );
@@ -362,8 +489,8 @@ export default function StaffDashboard() {
 
         {/* Task Creation Modal */}
         <TaskCreationModal
-          isOpen={isNewTaskModalOpen}
-          onClose={() => setIsNewTaskModalOpen(false)}
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
           onSubmit={handleTaskCreation}
         />
 
@@ -575,8 +702,8 @@ export default function StaffDashboard() {
               <div>
                 <NexusSelect
                   label="優先度フィルター"
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value as any)}
+                  value={filterPriority}
+                  onChange={(e) => setFilterPriority(e.target.value as any)}
                   options={[
                     { value: 'all', label: 'すべて' },
                     { value: 'urgent', label: '緊急タスク' },
@@ -592,8 +719,8 @@ export default function StaffDashboard() {
               <div>
                 <NexusSelect
                   label="作業種別フィルター"
-                  value={typeFilter}
-                  onChange={(e) => setTypeFilter(e.target.value as any)}
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value as any)}
                   options={[
                     { value: 'all', label: 'すべて' },
                     { value: 'inspection', label: '検品' },
@@ -610,8 +737,8 @@ export default function StaffDashboard() {
                   type="text"
                   label="検索"
                   placeholder="タスク名・担当者で検索"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
             </div>
@@ -744,9 +871,9 @@ export default function StaffDashboard() {
 
       {/* TaskDetailModal */}
       <TaskDetailModal
-        isOpen={isTaskDetailModalOpen}
+        isOpen={isDetailModalOpen}
         onClose={() => {
-          setIsTaskDetailModalOpen(false);
+          setIsDetailModalOpen(false);
           setSelectedTask(null);
         }}
         task={selectedTask}
@@ -754,16 +881,16 @@ export default function StaffDashboard() {
           // Task型からStaffTask型への変換が必要な場合のハンドラー
           // 現在はTask型のみを扱うため、直接処理
           setSelectedTask(task);
-          setIsTaskEditModalOpen(true);
-          setIsTaskDetailModalOpen(false);
+          setIsEditModalOpen(true);
+          setIsDetailModalOpen(false);
         }}
       />
 
       {/* Task Edit Modal */}
       <TaskCreationModal
-        isOpen={isTaskEditModalOpen}
+        isOpen={isEditModalOpen}
         onClose={() => {
-          setIsTaskEditModalOpen(false);
+          setIsEditModalOpen(false);
           setSelectedTask(null);
         }}
         onSubmit={handleSaveTaskEdit}

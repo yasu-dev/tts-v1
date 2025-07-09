@@ -1,7 +1,7 @@
 // API エンドポイント設定
 export const API_CONFIG = {
-  // ベースURL（環境変数から取得、または相対パス）
-  baseURL: process.env.NEXT_PUBLIC_API_URL || '',
+  // ベースURL（Netlify本番環境では相対パスを使用）
+  baseURL: process.env.NODE_ENV === 'production' ? '' : '',
   
   // エンドポイント定義
   endpoints: {
@@ -63,6 +63,15 @@ export const API_CONFIG = {
   defaultHeaders: {
     'Content-Type': 'application/json',
   },
+  
+  // タイムアウト設定（ミリ秒）
+  timeout: 30000,
+  
+  // リトライ設定
+  retry: {
+    attempts: 3,
+    delay: 1000,
+  },
 };
 
 // APIクライアントヘルパー
@@ -75,9 +84,46 @@ export class ApiClient {
         ...API_CONFIG.defaultHeaders,
         ...(options?.headers || {}),
       },
+      // タイムアウト設定
+      signal: AbortSignal.timeout(API_CONFIG.timeout),
     };
     
-    return fetch(url, { ...defaultOptions, ...options });
+    // リトライ機能付きのフェッチ
+    let lastError: Error | null = null;
+    
+    for (let attempt = 1; attempt <= API_CONFIG.retry.attempts; attempt++) {
+      try {
+        const response = await fetch(url, { ...defaultOptions, ...options });
+        
+        // レスポンスが成功した場合はそのまま返す
+        if (response.ok) {
+          return response;
+        }
+        
+        // 4xx エラーの場合はリトライしない
+        if (response.status >= 400 && response.status < 500) {
+          return response;
+        }
+        
+        // 5xx エラーの場合はリトライする
+        lastError = new Error(`API Error: ${response.status} ${response.statusText}`);
+        
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error('Network error');
+        
+        // AbortError（タイムアウト）の場合はリトライしない
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw error;
+        }
+      }
+      
+      // 最後の試行でない場合は待機してからリトライ
+      if (attempt < API_CONFIG.retry.attempts) {
+        await new Promise(resolve => setTimeout(resolve, API_CONFIG.retry.delay * attempt));
+      }
+    }
+    
+    throw lastError || new Error('Request failed after retries');
   }
   
   static async get<T>(endpoint: string): Promise<T> {
