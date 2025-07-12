@@ -1,0 +1,88 @@
+<mxfile host="65bd71144e">
+    <diagram name="FBT-V1 正確なシステム構成図" id="system-architecture">
+        <mxGraphModel dx="1651" dy="1191" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="frontend" value="フロントエンド&#10;Next.js Client&#10;(React Components)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="150" width="200" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="api-layer" value="API Layer&#10;Next.js API Routes&#10;(/app/api/*)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="350" y="150" width="200" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="prisma-apis" value="Prisma使用API&#10;• /api/inventory&#10;• /api/locations&#10;• /api/orders&#10;• /api/products/*" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;" vertex="1" parent="1">
+                    <mxGeometry x="650" y="80" width="180" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="env-apis" value="環境依存API&#10;• /api/inventory/stats&#10;• /api/staff/dashboard&#10;• /api/reports/analytics" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=left;" vertex="1" parent="1">
+                    <mxGeometry x="650" y="200" width="180" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="mock-apis" value="完全モックAPI&#10;• /api/dashboard&#10;• /api/listing&#10;• /api/shipping&#10;• /api/tasks" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;" vertex="1" parent="1">
+                    <mxGeometry x="650" y="320" width="180" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="prisma" value="Prisma ORM&#10;@prisma/client&#10;(SQL Query Builder)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="900" y="80" width="200" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="database" value="SQLite Database&#10;prisma/dev.db&#10;(266KB, 実在)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="1150" y="80" width="200" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="env-check" value="NODE_ENV Check&#10;development?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="900" y="200" width="120" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="json-dev" value="JSON Files (開発)&#10;data/*.json&#10;• dashboard.json&#10;• staff-mock.json&#10;• analytics-mock.json" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=left;" vertex="1" parent="1">
+                    <mxGeometry x="1150" y="200" width="200" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="empty-data" value="空データ (本番)&#10;• totalRevenue: 0&#10;• totalOrders: 0&#10;• データなし状態" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=11;align=left;" vertex="1" parent="1">
+                    <mxGeometry x="1150" y="320" width="200" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="mock-fallback" value="MockFallback&#10;lib/mock-fallback.ts&#10;(Prismaエラー時)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e6f3ff;strokeColor=#0066cc;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="900" y="450" width="200" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="json-fallback" value="JSON Files (エラー時)&#10;data/*.json&#10;フォールバック用" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e6f3ff;strokeColor=#0066cc;fontSize=11;" vertex="1" parent="1">
+                    <mxGeometry x="1150" y="450" width="200" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow1" value="HTTPリクエスト&#10;fetch('/api/*')" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" source="frontend" target="api-layer" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow2" value="分岐" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" source="api-layer" target="prisma-apis" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow3" value="分岐" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" source="api-layer" target="env-apis" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow4" value="分岐" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" source="api-layer" target="mock-apis" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow5" value="await prisma.*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" source="prisma-apis" target="prisma" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow6" value="SQL Query" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" source="prisma" target="database" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow7" value="NODE_ENV?" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" source="env-apis" target="env-check" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow8" value="development" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;fillColor=#d5e8d4;strokeColor=#82b366;" edge="1" parent="1" source="env-check" target="json-dev">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow9" value="production" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;fillColor=#f5f5f5;strokeColor=#666666;" edge="1" parent="1" source="env-check" target="empty-data">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow10" value="Prismaエラー時" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=2;fillColor=#e6f3ff;strokeColor=#0066cc;dashed=1;" edge="1" parent="1" source="prisma-apis" target="mock-fallback">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow11" value="フォールバック" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;fillColor=#e6f3ff;strokeColor=#0066cc;" edge="1" parent="1" source="mock-fallback" target="json-fallback">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="title" value="FBT-V1 正確なシステム構成図 (実装ベース)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="400" y="30" width="400" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="explanation" value="実際のデータフロー:&#10;【パターン1】Prisma使用API: フロントエンド → API → Prisma → SQLite (実際のDB操作)&#10;【パターン2】環境依存API: フロントエンド → API → NODE_ENV判定 → 開発時JSON/本番時空データ&#10;【パターン3】完全モックAPI: フロントエンド → API → ハードコードされたモックデータ&#10;【エラー時】Prismaエラー発生時のみ → MockFallback → JSONファイル" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=11;align=left;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="600" width="1300" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="evidence" value="実装証拠:&#10;• SQLite実在: prisma/dev.db (266KB)&#10;• Prisma使用: await prisma.product.findMany() など多数&#10;• 環境分岐: process.env.NODE_ENV === 'development'&#10;• MockFallback: MockFallback.isPrismaError(error)&#10;• 現在環境: NODE_ENV未設定 (デフォルト開発環境)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e6f3ff;strokeColor=#0066cc;fontSize=11;align=left;verticalAlign=top;" vertex="1" parent="1">
+                    <mxGeometry x="50" y="720" width="1300" height="100" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
