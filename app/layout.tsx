@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ToastProvider } from '@/app/components/features/notifications/ToastProvider';
+import { ModalProvider } from '@/app/components/ui/ModalContext';
 
 // データベース初期化は無効化（テスト用）
 // if (typeof window === 'undefined' && process.env.SKIP_DB !== '1') {
@@ -54,9 +55,11 @@ export default function RootLayout({
         />
       </head>
       <body suppressHydrationWarning>
-        <ToastProvider>
-          {children}
-        </ToastProvider>
+        <ModalProvider>
+          <ToastProvider>
+            {children}
+          </ToastProvider>
+        </ModalProvider>
       </body>
     </html>
   );

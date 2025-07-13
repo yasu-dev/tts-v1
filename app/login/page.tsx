@@ -22,16 +22,30 @@ export default function LoginPage() {
     setError('');
     
     try {
-      // 簡易認証（テスト用）
-      if (email === 'seller@example.com' && password === 'password123') {
-        router.push('/dashboard');
-      } else if (email === 'staff@example.com' && password === 'password123') {
-        router.push('/staff/dashboard');
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          showToast({ type: 'success', title: 'ログイン成功', message: 'ダッシュボードへようこそ！' });
+          if (data.user.role === 'staff') {
+            router.push('/staff/dashboard');
+          } else {
+            router.push('/dashboard');
+          }
+        } else {
+          throw new Error(data.error || 'ログインに失敗しました。');
+        }
       } else {
-        setError('ログインに失敗しました。メールアドレスとパスワードを確認してください。');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'サーバーエラーが発生しました。');
       }
-    } catch (error) {
-      setError('ログインに失敗しました。');
+    } catch (error: any) {
+      setError(error.message || 'ログインに失敗しました。');
     } finally {
       setIsLoading(false);
     }

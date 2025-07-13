@@ -125,7 +125,8 @@ export default function ProfileMenu({ userType, isOpen, onClose, anchorRef }: Pr
     <>
       <div
         ref={menuRef}
-        className="fixed z-50 w-72 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden"
+        data-testid="profile-menu"
+        className="fixed z-[10000] w-72 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden"
         style={{ top: `${menuPosition.top}px`, right: `${menuPosition.right}px` }}
       >
         {/* ヘッダー */}

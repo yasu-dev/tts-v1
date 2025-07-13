@@ -325,7 +325,7 @@ export default function LocationPage() {
 
         {/* Scanner Modal */}
         {isScannerOpen && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9000] p-4">
             <div className="intelligence-card global max-w-[1600px] w-full">
               <div className="p-8">
                 <div className="flex justify-between items-center mb-4">

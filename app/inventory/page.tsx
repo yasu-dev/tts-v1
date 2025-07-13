@@ -386,7 +386,7 @@ export default function InventoryPage() {
 
         {/* Stats Overview - Intelligence Metrics Style */}
         <div className="intelligence-metrics">
-          <div className="unified-grid-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="intelligence-card europe">
               <div className="p-8">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">

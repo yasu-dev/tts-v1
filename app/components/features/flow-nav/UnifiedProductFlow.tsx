@@ -28,14 +28,19 @@ interface UnifiedProductFlowProps {
   userType: 'seller' | 'staff';
   compact?: boolean;
   showCounts?: boolean;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 export default function UnifiedProductFlow({ 
   currentStage, 
   userType,
   compact = false, 
-  showCounts = true 
+  showCounts = true,
+  isCollapsed = false,
+  onToggleCollapse
 }: UnifiedProductFlowProps) {
+  console.log('UnifiedProductFlow render:', { isCollapsed, compact });
   const router = useRouter();
   const [flowData, setFlowData] = useState<FlowStep[]>([]);
   const [loading, setLoading] = useState(true);
@@ -364,46 +369,50 @@ export default function UnifiedProductFlow({
   }
 
   return (
-    <div className="intelligence-card global">
-      <div className="p-8">
+    <div className={isCollapsed ? "bg-white border-b border-gray-200" : "intelligence-card global"}>
+      <div className={isCollapsed ? "p-4" : "p-8"}>
         <div className="flex flex-col gap-4">
           {/* ヘッダー統計と作業者ステータス */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <h3 className={`font-bold text-gray-900 ${compact ? 'text-sm' : 'text-lg'}`}>
-                フルフィルメント業務フロー
-              </h3>
-              {/* 作業者の現在の作業状況 */}
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1">
-                  {getRoleIcon(userType === 'seller' ? 'seller' : 'staff')}
-                  <span className="text-sm font-medium text-gray-700">
-                    {userType === 'seller' ? 'セラー' : 'スタッフ'}
-                  </span>
-                </div>
-                <div className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
-                  担当作業: {totalStats.userActiveTasks}件
-                </div>
-              </div>
+              {!isCollapsed && (
+                <>
+                  {/* 作業者の現在の作業状況 */}
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                      {getRoleIcon(userType === 'seller' ? 'seller' : 'staff')}
+                      <span className="text-sm font-medium text-gray-700">
+                        {userType === 'seller' ? 'セラー' : 'スタッフ'}
+                      </span>
+                    </div>
+                    <div className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                      担当作業: {totalStats.userActiveTasks}件
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
-            <div className="flex items-center gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                <span className="text-gray-600">進行中: {totalStats.inProgress}</span>
+            {!isCollapsed && (
+              <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                  <span className="text-gray-600">進行中: {totalStats.inProgress}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className="text-gray-600">完了: {totalStats.completed}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                  <span className="text-gray-600">総計: {totalStats.total}</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-gray-600">完了: {totalStats.completed}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                <span className="text-gray-600">総計: {totalStats.total}</span>
-              </div>
-            </div>
+            )}
           </div>
 
           {/* フローステップ */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+          {!isCollapsed && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             {flowData.map((step, index) => {
               const isCurrentStep = getCurrentStep() === step.id;
               const isUserRelevant = (userType === 'seller' && step.role === 'seller') || 
@@ -468,12 +477,21 @@ export default function UnifiedProductFlow({
                   {/* タスクリスト */}
                   <div className="space-y-2">
                     {step.tasks.slice(0, compact ? 2 : 3).map((task) => (
-                      <button
+                      <div
                         key={task.id}
-                        className="w-full flex items-center justify-between text-xs group-hover:bg-white/50 p-2 rounded transition-colors hover:bg-white/70 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-full flex items-center justify-between text-xs group-hover:bg-white/50 p-2 rounded transition-colors hover:bg-white/70 cursor-pointer"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleStepClick(step.id, task.id);
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleStepClick(step.id, task.id);
+                          }
                         }}
                         aria-label={`${task.name} - ${task.count}件の作業`}
                         title={`${task.name}をクリックして詳細画面に移動`}
@@ -500,7 +518,7 @@ export default function UnifiedProductFlow({
                             完了
                           </span>
                         )}
-                      </button>
+                      </div>
                     ))}
                   </div>
 
@@ -539,6 +557,7 @@ export default function UnifiedProductFlow({
               );
             })}
           </div>
+          )}
 
           {/* クイックアクションヒント */}
           {!compact && (

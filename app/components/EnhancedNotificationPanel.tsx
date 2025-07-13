@@ -215,7 +215,8 @@ export default function EnhancedNotificationPanel({
   return (
     <div
       ref={panelRef}
-      className="fixed z-50 w-80 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden"
+      data-testid="notification-panel"
+      className="fixed z-[10000] w-80 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden"
       style={{ top: `${panelPosition.top}px`, right: `${panelPosition.right}px` }}
     >
       <div className="p-3 border-b border-gray-200">

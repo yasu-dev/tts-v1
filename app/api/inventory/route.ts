@@ -109,14 +109,7 @@ export async function GET(request: NextRequest) {
     if (MockFallback.isPrismaError(error)) {
       console.log('Using fallback data for inventory due to Prisma error');
       try {
-        const { searchParams } = new URL(request.url);
-        const fallbackData = await MockFallback.getInventoryFallback({
-          page: parseInt(searchParams.get('page') || '1'),
-          limit: parseInt(searchParams.get('limit') || '20'),
-          status: searchParams.get('status') || undefined,
-          category: searchParams.get('category') || undefined,
-          search: searchParams.get('search') || undefined
-        });
+        const fallbackData = MockFallback.getInventoryMockData();
         return NextResponse.json(fallbackData);
       } catch (fallbackError) {
         console.error('Fallback data error:', fallbackError);

@@ -571,7 +571,7 @@ export default function InspectionPage() {
 
         {/* Stats Cards */}
         <div className="intelligence-metrics">
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="intelligence-card americas">
               <div className="p-8">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">

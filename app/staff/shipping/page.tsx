@@ -3,16 +3,16 @@
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import BarcodeScanner from '@/app/components/features/BarcodeScanner';
 import PackingInstructions from '@/app/components/features/shipping/PackingInstructions';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   TruckIcon,
   ArchiveBoxIcon,
   InformationCircleIcon,
-  ChevronDownIcon,
 } from '@heroicons/react/24/outline';
 import CarrierSettingsModal from '@/app/components/modals/CarrierSettingsModal';
 import PackingMaterialsModal from '@/app/components/modals/PackingMaterialsModal';
+import ShippingDetailModal from '@/app/components/modals/ShippingDetailModal';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import NexusSelect from '@/app/components/ui/NexusSelect';
 import NexusButton from '@/app/components/ui/NexusButton';
@@ -49,8 +49,9 @@ export default function StaffShippingPage() {
   const [loading, setLoading] = useState(true);
   const [isMaterialsModalOpen, setIsMaterialsModalOpen] = useState(false);
   const [isCarrierModalOpen, setIsCarrierModalOpen] = useState(false);
-  const [openStatusDropdown, setOpenStatusDropdown] = useState<string | null>(null);
   const [deadlineFilter, setDeadlineFilter] = useState<string>('all');
+
+  const [selectedDetailItem, setSelectedDetailItem] = useState<ShippingItem | null>(null);
   const router = useRouter();
   const { showToast } = useToast();
 
@@ -149,21 +150,17 @@ export default function StaffShippingPage() {
   };
 
   const updateItemStatus = (itemId: string, newStatus: ShippingItem['status']) => {
+    // ステータス更新を実行
     setItems(prev => prev.map(item => 
       item.id === itemId ? { ...item, status: newStatus } : item
     ));
+    
+    // トーストメッセージを表示
     showToast({
       title: 'ステータス更新',
       message: `ステータスを${statusLabels[newStatus]}に更新しました`,
       type: 'success'
     });
-    setOpenStatusDropdown(null);
-  };
-
-  const getAvailableStatuses = (currentStatus: ShippingItem['status']): ShippingItem['status'][] => {
-    const allStatuses: ShippingItem['status'][] = ['pending_inspection', 'inspected', 'packed', 'shipped', 'delivered'];
-    const currentIndex = allStatuses.indexOf(currentStatus);
-    return allStatuses.filter((_, index) => index > currentIndex);
   };
 
   const handleBarcodeScanned = (barcode: string) => {
@@ -366,7 +363,7 @@ export default function StaffShippingPage() {
 
         {/* Stats Cards */}
         <div className="intelligence-metrics">
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="intelligence-card global">
               <div className="p-8">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
@@ -568,71 +565,14 @@ export default function StaffShippingPage() {
                         </div>
                       </td>
                       <td className="p-4">
-                        <div className="flex flex-col space-y-2">
-                          {/* ステータス変更ドロップダウン */}
-                          {item.status !== 'delivered' && (
-                            <div className="relative">
-                              <NexusButton
-                                onClick={() => setOpenStatusDropdown(openStatusDropdown === item.id ? null : item.id)}
-                                variant="primary"
-                                size="sm"
-                                className="flex items-center gap-2 w-full"
-                              >
-                                ステータス変更
-                                <ChevronDownIcon className={`w-4 h-4 transition-transform ${openStatusDropdown === item.id ? 'rotate-180' : ''}`} />
-                              </NexusButton>
-                              
-                              {openStatusDropdown === item.id && (
-                                <div className="absolute right-0 mt-2 w-48 bg-nexus-bg-primary border border-nexus-border rounded-lg shadow-lg z-10">
-                                  <div className="py-1">
-                                    {getAvailableStatuses(item.status).map((status) => (
-                                      <NexusButton
-                                        key={status}
-                                        onClick={() => updateItemStatus(item.id, status)}
-                                        variant="default"
-                                        size="sm"
-                                        className="w-full text-left px-4 py-2 hover:bg-nexus-bg-secondary transition-colors duration-200"
-                                      >
-                                        <BusinessStatusIndicator status={status} />
-                                      </NexusButton>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                          
-                          <div className="flex space-x-2">
-                            <NexusButton
-                              onClick={() => showToast({
-                                title: '詳細情報',
-                                message: `商品: ${item.productName}, 注文: ${item.orderNumber}, 顧客: ${item.customer}`,
-                                type: 'info'
-                              })}
-                              variant="default"
-                              size="sm"
-                            >
-                              詳細
-                            </NexusButton>
-                            {item.status === 'inspected' && (
-                              <NexusButton
-                                onClick={() => handlePackingInstruction(item)}
-                                variant="default"
-                                size="sm"
-                              >
-                                梱包指示
-                              </NexusButton>
-                            )}
-                            {item.status === 'packed' && (
-                              <NexusButton
-                                onClick={() => handlePrintLabel(item)}
-                                variant="default"
-                                size="sm"
-                              >
-                                配送ラベル
-                              </NexusButton>
-                            )}
-                          </div>
+                        <div className="flex justify-center">
+                          <NexusButton
+                            onClick={() => setSelectedDetailItem(item)}
+                            variant="default"
+                            size="sm"
+                          >
+                            詳細
+                          </NexusButton>
                         </div>
                       </td>
                     </tr>
@@ -676,6 +616,16 @@ export default function StaffShippingPage() {
             </div>
           </div>
         )}
+
+        {/* Shipping Detail Modal */}
+        <ShippingDetailModal
+          isOpen={selectedDetailItem !== null}
+          onClose={() => setSelectedDetailItem(null)}
+          item={selectedDetailItem}
+          onStatusUpdate={updateItemStatus}
+          onPrintLabel={handlePrintLabel}
+          onPackingInstruction={handlePackingInstruction}
+        />
 
         {/* Packing Instructions Modal */}
         {selectedPackingItem && (

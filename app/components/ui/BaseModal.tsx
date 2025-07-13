@@ -1,5 +1,6 @@
 import React, { ReactNode, useEffect } from 'react';
 import { X } from 'lucide-react';
+import { useModal } from './ModalContext';
 
 interface BaseModalProps {
   isOpen: boolean;
@@ -32,6 +33,8 @@ export default function BaseModal({
   closeOnOverlayClick = true,
   className = ''
 }: BaseModalProps) {
+  const { setIsAnyModalOpen } = useModal();
+
   // ESCキーでモーダルを閉じる
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -44,13 +47,20 @@ export default function BaseModal({
       document.addEventListener('keydown', handleEscape);
       // モーダル表示時にbodyのスクロールを防ぐ
       document.body.style.overflow = 'hidden';
+      // グローバル状態を更新（業務フローの状態は変更しない）
+      setIsAnyModalOpen(true);
+    } else {
+      // グローバル状態をリセット（業務フローの状態は変更しない）
+      setIsAnyModalOpen(false);
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = 'unset';
+      // クリーンアップ時もグローバル状態をリセット（業務フローの状態は変更しない）
+      setIsAnyModalOpen(false);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, setIsAnyModalOpen]);
 
   if (!isOpen) return null;
 
@@ -62,7 +72,7 @@ export default function BaseModal({
 
   return (
     <div 
-      className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-[9999] p-4"
       onClick={handleOverlayClick}
       role="dialog"
       aria-modal="true"

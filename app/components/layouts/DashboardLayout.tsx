@@ -7,6 +7,7 @@ import UnifiedProductFlow from '../features/flow-nav/UnifiedProductFlow';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
+import { useModal } from '../ui/ModalContext';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -129,6 +130,7 @@ export default function DashboardLayout({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const { showToast } = useToast();
+  const { isBusinessFlowCollapsed, setIsBusinessFlowCollapsed } = useModal();
 
   const getCurrentTime = () => {
     const now = new Date();
@@ -261,7 +263,7 @@ export default function DashboardLayout({
           console.log('スクロール停止: 最上部でフロー展開');
           setIsFlowCollapsed(false);
         }
-      }, 200);
+      }, 150);
     };
 
     console.log('スクロールイベントリスナー追加');
@@ -437,7 +439,7 @@ export default function DashboardLayout({
         {/* 改善されたサイドバー */}
         <aside className={`
           ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} 
-          lg:translate-x-0 fixed lg:relative z-50 lg:z-0 
+          lg:translate-x-0 fixed lg:relative z-40 lg:z-0 
           ${isSidebarCollapsed ? 'w-16' : 'w-64'} 
           h-full bg-white shadow-xl transition-all duration-300 ease-in-out flex flex-col
         `}>
@@ -569,7 +571,9 @@ export default function DashboardLayout({
               <UnifiedProductFlow 
                 currentStage={getCurrentStage()} 
                 userType={userType}
-                compact={true} 
+                compact={true}
+                isCollapsed={isBusinessFlowCollapsed}
+                onToggleCollapse={() => setIsBusinessFlowCollapsed(!isBusinessFlowCollapsed)}
               />
             )}
           </div>
@@ -577,12 +581,12 @@ export default function DashboardLayout({
           {/* ページコンテンツ - レスポンシブ対応 */}
           <main className="flex-1 bg-gray-50 main-content" role="main" id="main-content">
             <div ref={scrollContainerRef} className="h-full overflow-y-auto page-scroll-container">
-              <div className="p-2 sm:p-3 md:p-4 lg:p-6 xl:p-8 max-w-[1600px] mx-auto">
-                <div className="space-y-3 sm:space-y-4 md:space-y-6">
+              <div className="p-6 max-w-[1600px] mx-auto">
+                <div className="space-y-6">
                   {children}
                 </div>
                 {/* Bottom padding for scrollability - 確実にスクロール可能にする */}
-                <div className="h-[200vh] flex-shrink-0" aria-hidden="true"></div>
+                <div className="h-[50vh] flex-shrink-0" aria-hidden="true"></div>
               </div>
             </div>
           </main>

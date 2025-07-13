@@ -306,7 +306,7 @@ export default function SalesPage() {
               ]}
               data={(salesData?.recentOrders || []).map((order: any) => ({
                 ...order,
-                orderId: `ORD-${String(order.id).padStart(6, '0')}`
+                orderId: order.orderId || order.orderNumber || `ORD-${String(order.id).padStart(6, '0')}`
               }))}
               renderCell={(value, column, row) => {
                 if (column.key === 'orderId') {

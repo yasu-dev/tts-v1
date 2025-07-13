@@ -6,6 +6,7 @@ import PageHeader from '../components/ui/PageHeader';
 import { NexusButton, NexusCard, NexusLoadingSpinner } from '../components/ui';
 import BaseModal from '../components/ui/BaseModal';
 import InventorySummary from '../components/features/InventorySummary';
+import SellerAnalyticsDashboard from '../components/features/analytics/SellerAnalyticsDashboard';
 import ProductDetailModal from '../components/ProductDetailModal';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import { AreaChart, Card, Title } from '@tremor/react';
@@ -28,6 +29,7 @@ export default function DashboardPage() {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [isProductDetailOpen, setIsProductDetailOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<'overview' | 'analytics'>('overview');
   const [dateRange, setDateRange] = useState([
     {
       startDate: new Date(),
@@ -202,6 +204,42 @@ export default function DashboardPage() {
                 {headerActions}
               </div>
             </div>
+
+            {/* タブナビゲーション */}
+            <div className="mt-8 border-b border-nexus-border">
+              <nav className="-mb-px flex space-x-8">
+                <button
+                  onClick={() => setActiveTab('overview')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === 'overview'
+                      ? 'border-primary-blue text-primary-blue'
+                      : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    基本ダッシュボード
+                  </div>
+                </button>
+                <button
+                  onClick={() => setActiveTab('analytics')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === 'analytics'
+                      ? 'border-primary-blue text-primary-blue'
+                      : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    詳細分析
+                  </div>
+                </button>
+              </nav>
+            </div>
           </div>
         </div>
 
@@ -230,224 +268,234 @@ export default function DashboardPage() {
           </div>
         </BaseModal>
 
-        {/* Real-time Inventory Summary */}
-        <InventorySummary />
+        {/* タブコンテンツ */}
+        {activeTab === 'overview' && (
+          <div className="space-y-6">
+            {/* Real-time Inventory Summary */}
+            <InventorySummary />
 
-        {/* Stats Overview - Intelligence Metrics Style */}
-        <div className="intelligence-metrics">
-          <div className="unified-grid-4">
-            <div className="intelligence-card americas">
-              <div className="p-8">
-                <div className="flex items-center justify-between mb-1.5">
-                  <div className="action-orb blue w-7 h-7">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+            {/* Stats Overview - Intelligence Metrics Style */}
+            <div className="intelligence-metrics">
+              <div className="unified-grid-4">
+                <div className="intelligence-card americas">
+                  <div className="p-8">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="action-orb blue w-7 h-7">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <span className="status-badge success text-[10px] px-1.5 py-0.5">+12.5%</span>
+                    </div>
+                    <div className="metric-value font-display text-xl font-bold text-nexus-text-primary">
+                      ¥{dashboardData?.globalRevenue?.toLocaleString() || '0'}
+                    </div>
+                    <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
+                      グローバル収益
+                    </div>
                   </div>
-                  <span className="status-badge success text-[10px] px-1.5 py-0.5">+12.5%</span>
                 </div>
-                <div className="metric-value font-display text-xl font-bold text-nexus-text-primary">
-                  ¥{dashboardData?.globalRevenue?.toLocaleString() || '0'}
+
+                <div className="intelligence-card europe">
+                  <div className="p-8">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="action-orb green w-7 h-7">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                        </svg>
+                      </div>
+                      <span className="status-badge info text-[10px] px-1.5 py-0.5">アクティブ</span>
+                    </div>
+                    <div className="metric-value font-display text-xl font-bold text-nexus-text-primary">
+                      {dashboardData?.activeExports?.toLocaleString() || '0'}
+                    </div>
+                    <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
+                      アクティブ輸出
+                    </div>
+                  </div>
                 </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
-                  グローバル収益
+
+                <div className="intelligence-card asia">
+                  <div className="p-8">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="action-orb w-7 h-7">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                        </svg>
+                      </div>
+                      <span className="status-badge success text-[10px] px-1.5 py-0.5">最適</span>
+                    </div>
+                    <div className="metric-value font-display text-xl font-bold text-nexus-text-primary">
+                      {dashboardData?.inventoryEfficiency || '0'}%
+                    </div>
+                    <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
+                      在庫効率
+                    </div>
+                  </div>
+                </div>
+
+                <div className="intelligence-card africa">
+                  <div className="p-8">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="action-orb red w-7 h-7">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                      </div>
+                      <span className="status-badge warning text-[10px] px-1.5 py-0.5">急成長</span>
+                    </div>
+                    <div className="metric-value font-display text-xl font-bold text-nexus-text-primary">
+                      {dashboardData?.marketExpansionRate || '0'}%
+                    </div>
+                    <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
+                      市場拡大率
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="intelligence-card europe">
+            {/* Global Trade Monitor */}
+            <div className="intelligence-card global">
               <div className="p-8">
-                <div className="flex items-center justify-between mb-1.5">
-                  <div className="action-orb green w-7 h-7">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
-                    </svg>
-                  </div>
-                  <span className="status-badge info text-[10px] px-1.5 py-0.5">アクティブ</span>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-display font-bold text-nexus-text-primary">
+                    グローバル取引モニター
+                  </h2>
+                  <span className="status-badge success">
+                    リアルタイム
+                  </span>
                 </div>
-                <div className="metric-value font-display text-xl font-bold text-nexus-text-primary">
-                  {dashboardData?.activeExports?.toLocaleString() || '0'}
-                </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
-                  アクティブ輸出
+                
+                <div className="holo-table">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-nexus-border">
+                        <th className="text-left p-4 font-medium text-nexus-text-secondary">地域</th>
+                        <th className="text-left p-4 font-medium text-nexus-text-secondary">取引数</th>
+                        <th className="text-left p-4 font-medium text-nexus-text-secondary">売上</th>
+                        <th className="text-left p-4 font-medium text-nexus-text-secondary">成長率</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b border-nexus-border hover:bg-nexus-bg-tertiary">
+                        <td className="p-4 text-nexus-text-primary">北米</td>
+                        <td className="p-4 text-nexus-text-primary">1,247</td>
+                        <td className="p-4 text-nexus-text-primary">¥8,934,000</td>
+                        <td className="p-4">
+                          <span className="status-badge success">+12.5%</span>
+                        </td>
+                      </tr>
+                      <tr className="border-b border-nexus-border hover:bg-nexus-bg-tertiary">
+                        <td className="p-4 text-nexus-text-primary">ヨーロッパ</td>
+                        <td className="p-4 text-nexus-text-primary">892</td>
+                        <td className="p-4 text-nexus-text-primary">¥6,123,000</td>
+                        <td className="p-4">
+                          <span className="status-badge success">+8.3%</span>
+                        </td>
+                      </tr>
+                      <tr className="border-b border-nexus-border hover:bg-nexus-bg-tertiary">
+                        <td className="p-4 text-nexus-text-primary">アジア</td>
+                        <td className="p-4 text-nexus-text-primary">2,156</td>
+                        <td className="p-4 text-nexus-text-primary">¥15,678,000</td>
+                        <td className="p-4">
+                          <span className="status-badge success">+18.7%</span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
 
-            <div className="intelligence-card asia">
+            {/* Orders Table */}
+            <div className="intelligence-card global">
               <div className="p-8">
-                <div className="flex items-center justify-between mb-1.5">
-                  <div className="action-orb w-7 h-7">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
-                    </svg>
-                  </div>
-                  <span className="status-badge success text-[10px] px-1.5 py-0.5">最適</span>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-display font-bold text-nexus-text-primary">
+                    注文管理
+                  </h2>
+                  <span className="status-badge info">
+                    リアルタイム
+                  </span>
                 </div>
-                <div className="metric-value font-display text-xl font-bold text-nexus-text-primary">
-                  {dashboardData?.inventoryEfficiency || '0'}%
-                </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
-                  在庫効率
-                </div>
-              </div>
-            </div>
-
-            <div className="intelligence-card africa">
-              <div className="p-8">
-                <div className="flex items-center justify-between mb-1.5">
-                  <div className="action-orb red w-7 h-7">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-                    </svg>
-                  </div>
-                  <span className="status-badge warning text-[10px] px-1.5 py-0.5">急成長</span>
-                </div>
-                <div className="metric-value font-display text-xl font-bold text-nexus-text-primary">
-                  {dashboardData?.marketExpansionRate || '0'}%
-                </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
-                  市場拡大率
+                
+                <div className="holo-table">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-nexus-border">
+                        <th className="text-left p-4 font-medium text-nexus-text-secondary">注文ID</th>
+                        <th className="text-left p-4 font-medium text-nexus-text-secondary">顧客</th>
+                        <th className="text-left p-4 font-medium text-nexus-text-secondary">販売者</th>
+                        <th className="text-center p-4 font-medium text-nexus-text-secondary">認証</th>
+                        <th className="text-right p-4 font-medium text-nexus-text-secondary">商品数</th>
+                        <th className="text-right p-4 font-medium text-nexus-text-secondary">金額</th>
+                        <th className="text-center p-4 font-medium text-nexus-text-secondary">ステータス</th>
+                        <th className="text-left p-4 font-medium text-nexus-text-secondary">地域</th>
+                        <th className="text-center p-4 font-medium text-nexus-text-secondary">操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {dashboardData?.orders?.map((order: any) => (
+                        <tr key={order.id} className="border-b border-nexus-border hover:bg-nexus-bg-tertiary">
+                          <td className="p-4">
+                            <span className="font-mono text-nexus-text-primary text-xs">{order.id}</span>
+                          </td>
+                          <td className="p-4">
+                            <span className="font-medium text-xs">{order.customer}</span>
+                          </td>
+                          <td className="p-4 text-xs">{order.seller}</td>
+                          <td className="p-4 text-center">
+                            <span className={`cert-nano cert-${order.certification.toLowerCase()} text-[10px] px-1.5 py-0.5`}>
+                              {order.certification}
+                            </span>
+                          </td>
+                          <td className="p-4 text-right">
+                            <span className="font-display text-xs">{order.items}</span>
+                          </td>
+                          <td className="p-4 text-right">
+                            <span className="font-display font-bold text-xs">{order.value}</span>
+                          </td>
+                          <td className="p-4">
+                            <div className="flex items-center justify-center gap-1">
+                              <div className={`status-orb status-${order.status} w-2 h-2`} />
+                              <span className={`status-badge ${order.status} text-[10px] px-1.5 py-0.5`}>
+                                {order.status === 'optimal' ? '最適' : order.status === 'monitoring' ? '監視中' : order.status}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="p-4 text-xs">{order.region}</td>
+                          <td className="p-4 text-center">
+                            <NexusButton
+                              onClick={() => handleOrderDetail(order)}
+                              variant="default"
+                              size="sm"
+                              data-testid="order-detail-button"
+                            >
+                              詳細
+                            </NexusButton>
+                          </td>
+                        </tr>
+                      ))}
+                      {(!dashboardData?.orders || dashboardData.orders.length === 0) && (
+                        <tr>
+                          <td colSpan={9} className="p-8 text-center text-nexus-text-secondary">
+                            取引データがありません
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Global Trade Monitor */}
-        <div className="intelligence-card global">
-          <div className="p-8">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-display font-bold text-nexus-text-primary">
-                グローバル取引モニター
-              </h2>
-              <span className="status-badge success">
-                リアルタイム
-              </span>
-            </div>
-            
-            <div className="holo-table">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-nexus-border">
-                    <th className="text-left p-4 font-medium text-nexus-text-secondary">地域</th>
-                    <th className="text-left p-4 font-medium text-nexus-text-secondary">取引数</th>
-                    <th className="text-left p-4 font-medium text-nexus-text-secondary">売上</th>
-                    <th className="text-left p-4 font-medium text-nexus-text-secondary">成長率</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-b border-nexus-border hover:bg-nexus-bg-tertiary">
-                    <td className="p-4 text-nexus-text-primary">北米</td>
-                    <td className="p-4 text-nexus-text-primary">1,247</td>
-                    <td className="p-4 text-nexus-text-primary">¥8,934,000</td>
-                    <td className="p-4">
-                      <span className="status-badge success">+12.5%</span>
-                    </td>
-                  </tr>
-                  <tr className="border-b border-nexus-border hover:bg-nexus-bg-tertiary">
-                    <td className="p-4 text-nexus-text-primary">ヨーロッパ</td>
-                    <td className="p-4 text-nexus-text-primary">892</td>
-                    <td className="p-4 text-nexus-text-primary">¥6,123,000</td>
-                    <td className="p-4">
-                      <span className="status-badge success">+8.3%</span>
-                    </td>
-                  </tr>
-                  <tr className="border-b border-nexus-border hover:bg-nexus-bg-tertiary">
-                    <td className="p-4 text-nexus-text-primary">アジア</td>
-                    <td className="p-4 text-nexus-text-primary">2,156</td>
-                    <td className="p-4 text-nexus-text-primary">¥15,678,000</td>
-                    <td className="p-4">
-                      <span className="status-badge success">+18.7%</span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        {/* Orders Table - 統一されたintelligence-card形式 */}
-        <div className="intelligence-card global">
-          <div className="p-8">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-display font-bold text-nexus-text-primary">
-                注文管理
-              </h2>
-              <span className="status-badge info">
-                リアルタイム
-              </span>
-            </div>
-            
-            <div className="holo-table">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-nexus-border">
-                    <th className="text-left p-4 font-medium text-nexus-text-secondary">注文ID</th>
-                    <th className="text-left p-4 font-medium text-nexus-text-secondary">顧客</th>
-                    <th className="text-left p-4 font-medium text-nexus-text-secondary">販売者</th>
-                    <th className="text-center p-4 font-medium text-nexus-text-secondary">認証</th>
-                    <th className="text-right p-4 font-medium text-nexus-text-secondary">商品数</th>
-                    <th className="text-right p-4 font-medium text-nexus-text-secondary">金額</th>
-                    <th className="text-center p-4 font-medium text-nexus-text-secondary">ステータス</th>
-                    <th className="text-left p-4 font-medium text-nexus-text-secondary">地域</th>
-                    <th className="text-center p-4 font-medium text-nexus-text-secondary">操作</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {dashboardData?.orders?.map((order: any) => (
-                    <tr key={order.id} className="border-b border-nexus-border hover:bg-nexus-bg-tertiary">
-                      <td className="p-4">
-                        <span className="font-mono text-nexus-text-primary text-xs">{order.id}</span>
-                      </td>
-                      <td className="p-4">
-                        <span className="font-medium text-xs">{order.customer}</span>
-                      </td>
-                      <td className="p-4 text-xs">{order.seller}</td>
-                      <td className="p-4 text-center">
-                        <span className={`cert-nano cert-${order.certification.toLowerCase()} text-[10px] px-1.5 py-0.5`}>
-                          {order.certification}
-                        </span>
-                      </td>
-                      <td className="p-4 text-right">
-                        <span className="font-display text-xs">{order.items}</span>
-                      </td>
-                      <td className="p-4 text-right">
-                        <span className="font-display font-bold text-xs">{order.value}</span>
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center justify-center gap-1">
-                          <div className={`status-orb status-${order.status} w-2 h-2`} />
-                          <span className={`status-badge ${order.status} text-[10px] px-1.5 py-0.5`}>
-                            {order.status === 'optimal' ? '最適' : order.status === 'monitoring' ? '監視中' : order.status}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="p-4 text-xs">{order.region}</td>
-                      <td className="p-4 text-center">
-                        <NexusButton
-                          onClick={() => handleOrderDetail(order)}
-                          variant="default"
-                          size="sm"
-                          data-testid="order-detail-button"
-                        >
-                          詳細
-                        </NexusButton>
-                      </td>
-                    </tr>
-                  ))}
-                  {(!dashboardData?.orders || dashboardData.orders.length === 0) && (
-                    <tr>
-                      <td colSpan={9} className="p-8 text-center text-nexus-text-secondary">
-                        取引データがありません
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+        {/* 詳細分析タブ */}
+        {activeTab === 'analytics' && (
+          <SellerAnalyticsDashboard />
+        )}
 
         {/* Product Detail Modal */}
         <ProductDetailModal

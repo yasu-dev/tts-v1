@@ -48,12 +48,10 @@ export default function PageHeader({
     oceania: 'oceania',
   } as const;
 
-  const padding = size === 'large' ? 'p-8' : 'p-4';
-
   return (
     <div className={`intelligence-card ${regionClasses[region]}`}>
-      {/* 可変パディング */}
-      <div className={`${padding}`}>
+      {/* 統一パディング */}
+      <div className="p-8">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           {/* Title セクション */}
           <div className="flex items-start gap-3 flex-1 min-w-0">

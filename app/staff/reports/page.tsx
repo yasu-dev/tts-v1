@@ -24,10 +24,30 @@ interface PerformanceData {
   issues: number;
 }
 
-export default function StaffReportsPage() {
+interface BusinessFlowData {
+  stage: string;
+  pending: number;
+  inProgress: number;
+  completed: number;
+  averageTime: number; // 時間
+  efficiency: number; // パーセント
+  bottleneck: boolean;
+}
+
+interface TrendData {
+  date: string;
+  throughput: number;
+  quality: number;
+  velocity: number;
+  issues: number;
+}
+
+export default function BusinessReportsPage() {
   const { showToast } = useToast();
   const [workloadData, setWorkloadData] = useState<WorkloadData[]>([]);
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([]);
+  const [businessFlowData, setBusinessFlowData] = useState<BusinessFlowData[]>([]);
+  const [trendData, setTrendData] = useState<TrendData[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'quarter'>('week');
   const [selectedMetric, setSelectedMetric] = useState<'productivity' | 'quality' | 'efficiency'>('productivity');
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
@@ -63,6 +83,92 @@ export default function StaffReportsPage() {
         tasksInProgress: 1,
         avgCompletionTime: 2.3,
         efficiency: 94,
+      },
+    ];
+
+    const demoBusinessFlowData: BusinessFlowData[] = [
+      {
+        stage: '入荷検査',
+        pending: 8,
+        inProgress: 12,
+        completed: 45,
+        averageTime: 1.2,
+        efficiency: 94,
+        bottleneck: false,
+      },
+      {
+        stage: '品質判定',
+        pending: 15,
+        inProgress: 8,
+        completed: 38,
+        averageTime: 2.8,
+        efficiency: 76,
+        bottleneck: true,
+      },
+      {
+        stage: '在庫登録',
+        pending: 6,
+        inProgress: 5,
+        completed: 42,
+        averageTime: 0.8,
+        efficiency: 98,
+        bottleneck: false,
+      },
+      {
+        stage: '出品準備',
+        pending: 12,
+        inProgress: 9,
+        completed: 35,
+        averageTime: 1.5,
+        efficiency: 89,
+        bottleneck: false,
+      },
+      {
+        stage: '発送処理',
+        pending: 3,
+        inProgress: 7,
+        completed: 48,
+        averageTime: 0.9,
+        efficiency: 96,
+        bottleneck: false,
+      },
+    ];
+
+    const demoTrendData: TrendData[] = [
+      {
+        date: '2024-06-24',
+        throughput: 42,
+        quality: 96.2,
+        velocity: 1.8,
+        issues: 2,
+      },
+      {
+        date: '2024-06-25',
+        throughput: 48,
+        quality: 97.1,
+        velocity: 2.1,
+        issues: 1,
+      },
+      {
+        date: '2024-06-26',
+        throughput: 38,
+        quality: 94.8,
+        velocity: 1.6,
+        issues: 4,
+      },
+      {
+        date: '2024-06-27',
+        throughput: 45,
+        quality: 98.3,
+        velocity: 2.0,
+        issues: 1,
+      },
+      {
+        date: '2024-06-28',
+        throughput: 52,
+        quality: 97.8,
+        velocity: 2.3,
+        issues: 2,
       },
     ];
 
@@ -105,6 +211,8 @@ export default function StaffReportsPage() {
     ];
 
     setWorkloadData(demoWorkloadData);
+    setBusinessFlowData(demoBusinessFlowData);
+    setTrendData(demoTrendData);
     setPerformanceData(demoPerformanceData);
   }, []);
 
@@ -113,6 +221,12 @@ export default function StaffReportsPage() {
   const totalInspections = performanceData.reduce((sum, data) => sum + data.inspections, 0);
   const totalIssues = performanceData.reduce((sum, data) => sum + data.issues, 0);
   const qualityRate = ((totalInspections - totalIssues) / totalInspections) * 100;
+  
+  // 業務フロー統合指標
+  const totalFlowThroughput = trendData.reduce((sum, data) => sum + data.throughput, 0);
+  const avgVelocity = trendData.reduce((sum, data) => sum + data.velocity, 0) / trendData.length;
+  const bottleneckStages = businessFlowData.filter(stage => stage.bottleneck).length;
+  const flowEfficiency = businessFlowData.reduce((sum, stage) => sum + stage.efficiency, 0) / businessFlowData.length;
 
   const handleCreateReport = async () => {
     try {
@@ -202,10 +316,10 @@ export default function StaffReportsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
-                  スタッフレポート
+                  業務レポート
                 </h1>
                 <p className="mt-1 text-sm text-nexus-text-secondary">
-                  業務効率と品質管理の分析レポート
+                  業務フロー全体の可視化と効率性分析
                 </p>
               </div>
               <div className="flex space-x-3">
@@ -214,7 +328,7 @@ export default function StaffReportsPage() {
                   className="nexus-button"
                 >
                   <ArrowDownTrayIcon className="w-5 h-5 mr-2" />
-                  カスタムレポート作成
+                  カスタム業務レポート作成
                 </button>
                 <button
                   onClick={scrollToPerformance}
@@ -228,11 +342,11 @@ export default function StaffReportsPage() {
           </div>
         </div>
 
-        {/* Report Modal */}
+        {/* Business Report Modal */}
         {isReportModalOpen && (
           <div className="fixed inset-0 bg-gray-500 bg-opacity-30 z-50 flex justify-center items-center">
             <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-[1600px]">
-              <h2 className="text-lg font-bold mb-4">カスタムレポート作成</h2>
+              <h2 className="text-lg font-bold mb-4">カスタム業務レポート作成</h2>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -317,7 +431,7 @@ export default function StaffReportsPage() {
           </div>
         )}
 
-        {/* Summary Cards */}
+        {/* Business Flow Metrics */}
         <div className="intelligence-metrics">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="intelligence-card americas">
@@ -325,19 +439,19 @@ export default function StaffReportsPage() {
                 <div className="flex items-center justify-between mb-4">
                   <div className="action-orb green">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                     </svg>
                   </div>
-                  <span className="status-badge success">タスク</span>
+                  <span className="status-badge success">スループット</span>
                 </div>
                 <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
-                  {totalTasks}
+                  {totalFlowThroughput}
                 </div>
                 <div className="metric-label text-nexus-text-secondary font-medium mt-2 mb-2">
-                  総完了タスク
+                  総処理件数/週
                 </div>
                 <p className="text-xs text-nexus-green">
-                  +12% 前週比
+                  日平均 {(totalFlowThroughput / 5).toFixed(1)}件
                 </p>
               </div>
             </div>
@@ -347,19 +461,19 @@ export default function StaffReportsPage() {
                 <div className="flex items-center justify-between mb-4">
                   <div className="action-orb blue">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <span className="status-badge info">効率</span>
+                  <span className="status-badge info">ベロシティ</span>
                 </div>
                 <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
-                  {avgEfficiency.toFixed(1)}%
+                  {avgVelocity.toFixed(1)}
                 </div>
                 <div className="metric-label text-nexus-text-secondary font-medium mt-2 mb-2">
-                  平均効率性
+                  処理速度 件/時
                 </div>
                 <p className="text-xs text-nexus-blue">
-                  目標 90%達成
+                  {avgVelocity >= 2.0 ? '目標達成' : '改善余地あり'}
                 </p>
               </div>
             </div>
@@ -367,21 +481,21 @@ export default function StaffReportsPage() {
             <div className="intelligence-card asia">
               <div className="p-8">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="action-orb blue">
+                  <div className="action-orb purple">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                   </div>
-                  <span className="status-badge">品質</span>
+                  <span className="status-badge">フロー効率</span>
                 </div>
                 <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
-                  {qualityRate.toFixed(1)}%
+                  {flowEfficiency.toFixed(1)}%
                 </div>
                 <div className="metric-label text-nexus-text-secondary font-medium mt-2 mb-2">
-                  品質スコア
+                  全工程平均効率
                 </div>
                 <p className="text-xs text-nexus-purple">
-                  問題発生率 {((totalIssues / totalInspections) * 100).toFixed(1)}%
+                  ボトルネック {bottleneckStages}工程
                 </p>
               </div>
             </div>
@@ -389,70 +503,157 @@ export default function StaffReportsPage() {
             <div className="intelligence-card africa">
               <div className="p-8">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="action-orb orange">
+                  <div className="action-orb yellow">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <span className="status-badge warning">検品</span>
+                  <span className="status-badge warning">品質率</span>
                 </div>
                 <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
-                  {totalInspections}
+                  {qualityRate.toFixed(1)}%
                 </div>
                 <div className="metric-label text-nexus-text-secondary font-medium mt-2 mb-2">
-                  総検品数
+                  平均品質スコア
                 </div>
                 <p className="text-xs text-nexus-yellow">
-                  日平均 {(totalInspections / 5).toFixed(1)}件
+                  問題率 {((totalIssues / totalInspections) * 100).toFixed(1)}%
                 </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Charts and Analysis */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Daily Performance */}
+        {/* Business Flow Overview */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Business Flow Pipeline */}
           <div className="intelligence-card europe lg:col-span-2">
             <div className="p-8">
               <h2 className="text-lg font-semibold text-nexus-text-primary mb-6">
-                日別パフォーマンス
+                業務フロー全体俯瞰
+              </h2>
+              <div className="space-y-6">
+                {businessFlowData.map((stage, index) => (
+                  <div key={stage.stage} className="relative">
+                    {/* Flow Connector */}
+                    {index < businessFlowData.length - 1 && (
+                      <div className="absolute left-8 top-16 w-px h-8 bg-gradient-to-b from-nexus-blue to-nexus-purple opacity-30"></div>
+                    )}
+                    
+                    <div className={`border-l-4 pl-6 ${stage.bottleneck ? 'border-red-500 bg-red-50' : 'border-nexus-blue'}`}>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <div className={`action-orb ${stage.bottleneck ? 'red' : 'blue'}`}>
+                            <div className="w-3 h-3 rounded-full bg-current"></div>
+                          </div>
+                          <h3 className="font-semibold text-nexus-text-primary">{stage.stage}</h3>
+                          {stage.bottleneck && (
+                            <span className="status-badge danger">ボトルネック</span>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-medium text-nexus-text-primary">効率: {stage.efficiency}%</div>
+                          <div className="text-xs text-nexus-text-secondary">平均 {stage.averageTime}h</div>
+                        </div>
+                      </div>
+                      
+                      {/* Progress Flow */}
+                      <div className="grid grid-cols-3 gap-3 mb-3">
+                        <div className="intelligence-card asia text-center">
+                          <div className="p-4">
+                            <div className="font-display text-lg text-nexus-yellow font-bold">{stage.pending}</div>
+                            <div className="text-xs text-nexus-text-secondary">待機中</div>
+                          </div>
+                        </div>
+                        <div className="intelligence-card oceania text-center">
+                          <div className="p-4">
+                            <div className="font-display text-lg text-nexus-blue font-bold">{stage.inProgress}</div>
+                            <div className="text-xs text-nexus-text-secondary">進行中</div>
+                          </div>
+                        </div>
+                        <div className="intelligence-card americas text-center">
+                          <div className="p-4">
+                            <div className="font-display text-lg text-nexus-green font-bold">{stage.completed}</div>
+                            <div className="text-xs text-nexus-text-secondary">完了</div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Progress Bar */}
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full ${stage.bottleneck ? 'bg-red-500' : 'bg-nexus-blue'}`}
+                          style={{ 
+                            width: `${(stage.completed / (stage.pending + stage.inProgress + stage.completed)) * 100}%` 
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          {/* Performance Trends */}
+          <div className="intelligence-card asia">
+            <div className="p-8">
+              <h2 className="text-lg font-semibold text-nexus-text-primary mb-6">
+                パフォーマンス推移
               </h2>
               <div className="space-y-4">
-                {performanceData.map((day) => (
-                  <div key={day.date} className="border-l-4 border-nexus-purple pl-4">
+                {trendData.map((trend) => (
+                  <div key={trend.date} className="border-b border-gray-100 pb-4 last:border-b-0">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-medium text-nexus-text-primary">
-                        {new Date(day.date).toLocaleDateString('ja-JP', { 
+                      <h4 className="text-sm font-medium text-nexus-text-primary">
+                        {new Date(trend.date).toLocaleDateString('ja-JP', { 
                           month: 'short', 
                           day: 'numeric',
                           weekday: 'short'
                         })}
-                      </h3>
-                      {day.issues > 0 && (
-                        <span className="status-badge danger">
-                          問題 {day.issues}件
+                      </h4>
+                      {trend.issues > 2 && (
+                        <span className="status-badge danger text-xs">
+                          要注意
                         </span>
                       )}
                     </div>
-                    <div className="grid grid-cols-3 gap-3 text-sm">
-                      <div className="intelligence-card asia text-center">
-                        <div className="p-8">
-                          <p className="font-display text-nexus-blue font-bold">{day.inspections}</p>
-                          <p className="text-xs text-nexus-text-secondary">検品</p>
-                        </div>
+                    
+                    <div className="space-y-2">
+                      {/* Throughput */}
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-nexus-text-secondary">スループット</span>
+                        <span className="font-medium text-nexus-blue">{trend.throughput}件</span>
                       </div>
-                      <div className="intelligence-card africa text-center">
-                        <div className="p-8">
-                          <p className="font-display text-nexus-green font-bold">{day.listings}</p>
-                          <p className="text-xs text-nexus-text-secondary">出品</p>
-                        </div>
+                      <div className="w-full bg-gray-200 rounded-full h-1">
+                        <div 
+                          className="h-1 rounded-full bg-nexus-blue"
+                          style={{ width: `${(trend.throughput / 60) * 100}%` }}
+                        ></div>
                       </div>
-                      <div className="intelligence-card oceania text-center">
-                        <div className="p-8">
-                          <p className="font-display text-nexus-purple font-bold">{day.shipments}</p>
-                          <p className="text-xs text-nexus-text-secondary">出荷</p>
-                        </div>
+                      
+                      {/* Quality */}
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-nexus-text-secondary">品質</span>
+                        <span className="font-medium text-nexus-green">{trend.quality}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-1">
+                        <div 
+                          className="h-1 rounded-full bg-nexus-green"
+                          style={{ width: `${trend.quality}%` }}
+                        ></div>
+                      </div>
+                      
+                      {/* Velocity */}
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-nexus-text-secondary">速度</span>
+                        <span className="font-medium text-nexus-purple">{trend.velocity} 件/h</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-1">
+                        <div 
+                          className="h-1 rounded-full bg-nexus-purple"
+                          style={{ width: `${(trend.velocity / 3) * 100}%` }}
+                        ></div>
                       </div>
                     </div>
                   </div>
@@ -462,11 +663,11 @@ export default function StaffReportsPage() {
           </div>
         </div>
 
-        {/* Report Actions */}
+        {/* Business Report Actions */}
         <div className="intelligence-card global" ref={performanceRef}>
           <div className="p-8">
             <h2 className="text-lg font-semibold text-nexus-text-primary mb-6">
-              レポートアクション
+              業務レポートアクション
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <button

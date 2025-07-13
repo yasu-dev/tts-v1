@@ -19,6 +19,8 @@ export { default as PageHeader } from './PageHeader';
 export { default as PageWrapper } from './PageWrapper';
 export { default as StatsGrid } from './StatsGrid';
 export { default as StatusIndicator, BusinessStatusIndicator } from './StatusIndicator';
+export { default as UnifiedStatusDropdown } from './UnifiedStatusDropdown';
+export { ModalProvider, useModal } from './ModalContext';
 export { default as Pagination } from './Pagination';
 
 // Type exports
