@@ -349,10 +349,10 @@ export default function UnifiedProductFlow({
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'bg-red-100 text-red-700';
-      case 'medium': return 'bg-yellow-100 text-yellow-700';
-              case 'low': return 'bg-nexus-bg-secondary text-nexus-text-secondary';
-        default: return 'bg-nexus-bg-secondary text-nexus-text-secondary';
+      case 'high': return 'bg-red-600 text-white';
+      case 'medium': return 'bg-yellow-500 text-white';
+      case 'low': return 'bg-gray-400 text-white';
+      default: return 'bg-gray-400 text-white';
     }
   };
 
@@ -395,7 +395,7 @@ export default function UnifiedProductFlow({
             {!isCollapsed && (
               <div className="flex items-center gap-4 text-sm">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                  <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
                   <span className="text-gray-600">進行中: {totalStats.inProgress}</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -506,8 +506,15 @@ export default function UnifiedProductFlow({
                         </div>
                         {showCounts && task.count > 0 && (
                           <span 
-                            className="px-2 py-1 rounded-full text-white font-bold text-[10px] min-w-[20px] text-center"
-                            style={{ backgroundColor: step.color }}
+                            className="px-2 py-1 rounded-full font-bold text-[10px] min-w-[20px] text-center text-white shadow-sm"
+                            style={{ 
+                              backgroundColor: step.color === '#FFCE00' ? '#F59E0B' : 
+                                               step.color === '#86B817' ? '#65A30D' : 
+                                               step.color === '#00BCD4' ? '#0891B2' : 
+                                               step.color === '#7B1FA2' ? '#7C2D92' : 
+                                               step.color === '#FF6F00' ? '#EA580C' : 
+                                               step.color === '#0064D2' ? '#2563EB' : step.color
+                            }}
                             aria-label={`${task.count}件`}
                           >
                             {task.count}

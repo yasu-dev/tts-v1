@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
@@ -70,7 +70,7 @@ export default function LocationPage() {
       <div className="space-y-6">
         {/* Enhanced Header with Quick Stats */}
         <div className="intelligence-card global">
-          <div className="p-8">
+          <div className="p-5">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
               {/* Title and Description */}
               <div className="flex-1">
@@ -142,7 +142,7 @@ export default function LocationPage() {
         <div className="intelligence-metrics">
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
             <div className="intelligence-card global">
-              <div className="p-8">
+              <div className="p-5">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
                   <div className="action-orb w-6 h-6 sm:w-8 sm:h-8">
                     <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -161,7 +161,7 @@ export default function LocationPage() {
             </div>
 
             <div className="intelligence-card americas">
-              <div className="p-8">
+              <div className="p-5">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
                   <div className="action-orb green w-6 h-6 sm:w-8 sm:h-8">
                     <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -180,7 +180,7 @@ export default function LocationPage() {
             </div>
 
             <div className="intelligence-card europe">
-              <div className="p-8">
+              <div className="p-5">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
                   <div className="action-orb blue w-6 h-6 sm:w-8 sm:h-8">
                     <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -199,7 +199,7 @@ export default function LocationPage() {
             </div>
 
             <div className="intelligence-card asia">
-              <div className="p-8">
+              <div className="p-5">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
                   <div className="action-orb red w-6 h-6 sm:w-8 sm:h-8">
                     <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -267,7 +267,7 @@ export default function LocationPage() {
 
           {activeTab === 'analytics' && (
             <div className="intelligence-card asia">
-              <div className="p-8 text-center">
+              <div className="p-5 text-center">
                 <ChartBarIcon className="w-16 h-16 text-nexus-text-secondary mx-auto mb-4" />
                 <h3 className="text-xl font-bold text-nexus-text-primary mb-2">
                   分析・レポート機能
@@ -327,7 +327,7 @@ export default function LocationPage() {
         {isScannerOpen && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9000] p-4">
             <div className="intelligence-card global max-w-[1600px] w-full">
-              <div className="p-8">
+              <div className="p-5">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-bold text-nexus-text-primary">バーコードスキャン</h3>
                   <button

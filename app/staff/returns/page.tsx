@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -220,7 +220,7 @@ export default function ReturnsPage() {
       <DashboardLayout userType="staff">
         <div className="space-y-6">
           <div className="intelligence-card global">
-            <div className="p-8">
+            <div className="p-5">
               <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
                 返品処理
               </h1>
@@ -242,7 +242,7 @@ export default function ReturnsPage() {
       <DashboardLayout userType="staff">
         <div className="space-y-6">
           <div className="intelligence-card global">
-            <div className="p-8">
+            <div className="p-5">
               <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
                 返品処理
               </h1>
@@ -264,7 +264,7 @@ export default function ReturnsPage() {
       <DashboardLayout userType="staff">
         <div className="space-y-6">
           <div className="intelligence-card global">
-            <div className="p-8">
+            <div className="p-5">
               <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
                 返品処理
               </h1>
@@ -346,7 +346,7 @@ export default function ReturnsPage() {
       <div className="space-y-6">
         {/* Header */}
         <div className="intelligence-card global">
-          <div className="p-8">
+          <div className="p-5">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
@@ -427,7 +427,7 @@ export default function ReturnsPage() {
                 <div className="intelligence-metrics">
                   <div className="unified-grid-4">
                     <div className="intelligence-card americas">
-                      <div className="p-8">
+                      <div className="p-5">
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-sm font-medium text-nexus-text-secondary">本日の返品</p>
@@ -442,7 +442,7 @@ export default function ReturnsPage() {
                     </div>
                     
                     <div className="intelligence-card europe">
-                      <div className="p-8">
+                      <div className="p-5">
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-sm font-medium text-nexus-text-secondary">検品待ち</p>
@@ -457,7 +457,7 @@ export default function ReturnsPage() {
                     </div>
                     
                     <div className="intelligence-card asia">
-                      <div className="p-8">
+                      <div className="p-5">
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-sm font-medium text-nexus-text-secondary">返品率</p>
@@ -472,7 +472,7 @@ export default function ReturnsPage() {
                     </div>
                     
                     <div className="intelligence-card africa">
-                      <div className="p-8">
+                      <div className="p-5">
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-sm font-medium text-nexus-text-secondary">平均処理時間</p>
@@ -490,7 +490,7 @@ export default function ReturnsPage() {
 
                 {/* 返品リスト */}
                 <div className="intelligence-card global">
-                  <div className="p-8">
+                  <div className="p-5">
                     <h2 className="text-xl font-display font-bold text-nexus-text-primary mb-6">返品商品リスト</h2>
                     
                     {/* フィルター */}
