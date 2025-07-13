@@ -533,7 +533,7 @@ export default function StaffTasksPage() {
         <div className="intelligence-metrics">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
             <div className="intelligence-card global">
-              <div className="p-8">
+              <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="action-orb">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -552,7 +552,7 @@ export default function StaffTasksPage() {
             </div>
 
             <div className="intelligence-card europe">
-              <div className="p-8">
+              <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="action-orb">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -571,7 +571,7 @@ export default function StaffTasksPage() {
             </div>
 
             <div className="intelligence-card asia">
-              <div className="p-8">
+              <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="action-orb blue">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -590,7 +590,7 @@ export default function StaffTasksPage() {
             </div>
 
             <div className="intelligence-card africa">
-              <div className="p-8">
+              <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="action-orb green">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -609,7 +609,7 @@ export default function StaffTasksPage() {
             </div>
 
             <div className="intelligence-card americas">
-              <div className="p-8">
+              <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="action-orb red">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -631,7 +631,7 @@ export default function StaffTasksPage() {
 
         {/* Filters and Task List */}
         <div className="intelligence-card global">
-          <div className="p-8">
+          <div className="p-6">
             {/* Search Bar */}
             <div className="mb-6">
               <div className="relative">
@@ -1195,7 +1195,7 @@ export default function StaffTasksPage() {
 
         {/* 追加コンテンツ - スクロールテスト用 */}
         <div className="intelligence-card global">
-          <div className="p-8">
+          <div className="p-6">
             <h3 className="text-lg font-display font-medium text-nexus-text-primary mb-4">
               タスク統計・分析
             </h3>
@@ -1244,7 +1244,7 @@ export default function StaffTasksPage() {
 
         {/* さらに追加コンテンツ */}
         <div className="intelligence-card europe">
-          <div className="p-8">
+          <div className="p-6">
             <h3 className="text-lg font-display font-medium text-nexus-text-primary mb-4">
               チーム別パフォーマンス
             </h3>
@@ -1272,7 +1272,7 @@ export default function StaffTasksPage() {
 
         {/* 最後のコンテンツ */}
         <div className="intelligence-card asia">
-          <div className="p-8">
+          <div className="p-6">
             <h3 className="text-lg font-display font-medium text-nexus-text-primary mb-4">
               今週の予定
             </h3>

@@ -441,7 +441,7 @@ export default function InspectionPage() {
 
   return (
     <DashboardLayout userType="staff">
-      <div className="min-h-screen bg-nexus-bg">
+      <div className="space-y-6">
         {/* Page Header */}
         <div className="intelligence-card global">
           <div className="p-8">

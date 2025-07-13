@@ -581,7 +581,7 @@ export default function DashboardLayout({
           {/* ページコンテンツ - レスポンシブ対応 */}
           <main className="flex-1 bg-gray-50 main-content" role="main" id="main-content">
             <div ref={scrollContainerRef} className="h-full overflow-y-auto page-scroll-container">
-              <div className="p-6 max-w-[1600px] mx-auto">
+              <div className="p-8 max-w-[1600px] min-w-[928px] mx-auto">
                 <div className="space-y-6">
                   {children}
                 </div>

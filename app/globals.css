@@ -490,7 +490,7 @@
     
     /* コンテンツ密度の最適化 */
     .page-container {
-      padding: 1rem;
+      padding: 2rem;
     }
     
     .space-y-6 > * + * {
@@ -505,7 +505,7 @@
   /* デスクトップ最適化 (1440px+) */
   @media (min-width: 1441px) {
     .page-container {
-      padding: 1.5rem;
+      padding: 2rem;
     }
   }
 
@@ -877,7 +877,7 @@
 
   /* Page Container - スクロール対応 */
   .page-container {
-    padding: 0;
+    padding: 2rem;
     max-width: 1400px;
     margin: 0 auto;
     flex: 1;
@@ -893,7 +893,7 @@
     flex-direction: column;
     gap: 1.5rem;
     min-height: 0;
-    padding: 1.5rem;
+    padding: 2rem;
   }
 
   /* Ensure minimum content height for scrollability */

@@ -162,7 +162,7 @@ export function ReturnReasonAnalysis() {
           <h3 className="font-semibold mb-4 text-nexus-text-primary">カテゴリー別返品率</h3>
           <div className="space-y-3">
             {categoryReturnRate.map(item => (
-              <div key={item.category} className="flex items-center justify-between p-8 bg-nexus-bg-tertiary rounded-lg">
+              <div key={item.category} className="flex items-center justify-between p-6 bg-nexus-bg-tertiary rounded-lg">
                 <span className="font-medium text-nexus-text-primary">{item.category}</span>
                 <div className="flex items-center gap-4">
                   <span className="text-lg font-semibold text-nexus-text-primary">{item.rate}%</span>

@@ -1,14 +1,13 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Camera, Package, DollarSign, Send, AlertCircle } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
 import { NexusCard, NexusButton, NexusInput, NexusTextarea, NexusSelect } from '@/app/components/ui'
 
 interface RelistingStep {
   id: string
   title: string
   status: 'pending' | 'in-progress' | 'completed'
-  icon: React.ReactNode
 }
 
 export function ReturnRelistingFlow() {
@@ -30,27 +29,44 @@ export function ReturnRelistingFlow() {
     photos: [] as string[]
   })
 
-  const steps: RelistingStep[] = [
-    { id: '1', title: '検品結果確認', status: 'completed', icon: (
-      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    )},
-    { id: '2', title: '写真撮影', status: 'in-progress', icon: <Camera className="w-6 h-6" /> },
-    { id: '3', title: '商品情報更新', status: 'pending', icon: <Package className="w-6 h-6" /> },
-    { id: '4', title: '価格設定', status: 'pending', icon: <DollarSign className="w-6 h-6" /> },
-    { id: '5', title: '再出品', status: 'pending', icon: <Send className="w-6 h-6" /> }
-  ]
+  // ステップをstateとして管理し、動的にステータスを更新
+  const [steps, setSteps] = useState<RelistingStep[]>([
+    { id: '1', title: '検品結果確認', status: 'completed' },
+    { id: '2', title: '写真撮影', status: 'in-progress' },
+    { id: '3', title: '商品情報更新', status: 'pending' },
+    { id: '4', title: '価格設定', status: 'pending' },
+    { id: '5', title: '再出品', status: 'pending' }
+  ])
 
   const handleNextStep = () => {
     if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1)
+      const nextStep = currentStep + 1
+      setCurrentStep(nextStep)
+      
+      // ステップステータスを動的に更新
+      setSteps(prevSteps => 
+        prevSteps.map((step, index) => ({
+          ...step,
+          status: index < nextStep ? 'completed' : 
+                  index === nextStep ? 'in-progress' : 'pending'
+        }))
+      )
     }
   }
   
   const handlePrevStep = () => {
     if (currentStep > 0) {
-      setCurrentStep(currentStep - 1)
+      const prevStep = currentStep - 1
+      setCurrentStep(prevStep)
+      
+      // ステップステータスを動的に更新
+      setSteps(prevSteps => 
+        prevSteps.map((step, index) => ({
+          ...step,
+          status: index < prevStep ? 'completed' : 
+                  index === prevStep ? 'in-progress' : 'pending'
+        }))
+      )
     }
   }
 
@@ -62,7 +78,29 @@ export function ReturnRelistingFlow() {
     }
   }
 
+  // 簡潔なアイコンレンダリング
+  const renderStepIcon = (step: RelistingStep, index: number) => {
+    if (step.status === 'completed') {
+      return (
+        <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      )
+    } else if (step.status === 'in-progress') {
+      // ステップ番号を表示
+      return (
+        <span className="text-white font-semibold">{index + 1}</span>
+      )
+    } else {
+      // 待機状態のステップ番号
+      return (
+        <span className="text-nexus-text-secondary font-semibold">{index + 1}</span>
+      )
+    }
+  }
+
   return (
+    <div className="space-y-6">
     <div className="intelligence-card global">
       <div className="p-8">
         <h2 className="text-2xl font-bold font-display text-nexus-text-primary mb-6">返品商品再出品業務フロー</h2>
@@ -74,16 +112,24 @@ export function ReturnRelistingFlow() {
               <React.Fragment key={step.id}>
                 <div className="flex flex-col items-center text-center">
                   <div className={`
-                    w-12 h-12 rounded-full flex items-center justify-center
-                    ${index <= currentStep ? 'bg-nexus-primary text-white' : 'bg-nexus-bg-secondary text-nexus-text-secondary'}
+                    w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300
+                    ${step.status === 'completed' ? 'bg-nexus-primary text-white' : 
+                      step.status === 'in-progress' ? 'bg-nexus-primary text-white animate-pulse' : 
+                      'bg-nexus-bg-secondary text-nexus-text-secondary'}
                   `}>
-                    {step.icon}
+                    {renderStepIcon(step, index)}
                   </div>
-                  <p className="text-sm mt-2 text-nexus-text-primary">{step.title}</p>
+                  <p className={`text-sm mt-2 transition-colors duration-300 ${
+                    step.status === 'completed' || step.status === 'in-progress' 
+                      ? 'text-nexus-text-primary font-medium' 
+                      : 'text-nexus-text-secondary'
+                  }`}>
+                    {step.title}
+                  </p>
                 </div>
                 {index < steps.length - 1 && (
-                  <div className={`flex-1 h-1 mx-4 ${
-                    index < currentStep ? 'bg-nexus-primary' : 'bg-nexus-border'
+                  <div className={`flex-1 h-1 mx-4 transition-colors duration-300 ${
+                    step.status === 'completed' ? 'bg-nexus-primary' : 'bg-nexus-border'
                   }`} />
                 )}
               </React.Fragment>
@@ -92,30 +138,33 @@ export function ReturnRelistingFlow() {
         </div>
 
         {/* 商品情報 */}
-        <NexusCard region="global" className="mb-6">
-          <h3 className="font-semibold mb-2 text-nexus-text-primary">商品情報</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-nexus-text-secondary">商品名</p>
-              <p className="font-medium text-nexus-text-primary">{product.name}</p>
-            </div>
-            <div>
-              <p className="text-sm text-nexus-text-secondary">SKU</p>
-              <p className="font-medium text-nexus-text-primary">{product.sku}</p>
-            </div>
-            <div>
-              <p className="text-sm text-nexus-text-secondary">検品結果</p>
-              <p className="font-medium text-green-600">合格</p>
-            </div>
-            <div>
-              <p className="text-sm text-nexus-text-secondary">商品状態</p>
-              <p className="font-medium text-nexus-text-primary">{product.condition}</p>
+        <div className="intelligence-card global mb-6">
+          <div className="p-8">
+            <h3 className="font-semibold mb-2 text-nexus-text-primary">商品情報</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-nexus-text-secondary">商品名</p>
+                <p className="font-medium text-nexus-text-primary">{product.name}</p>
+              </div>
+              <div>
+                <p className="text-sm text-nexus-text-secondary">SKU</p>
+                <p className="font-medium text-nexus-text-primary">{product.sku}</p>
+              </div>
+              <div>
+                <p className="text-sm text-nexus-text-secondary">検品結果</p>
+                <p className="font-medium text-green-600">合格</p>
+              </div>
+              <div>
+                <p className="text-sm text-nexus-text-secondary">商品状態</p>
+                <p className="font-medium text-nexus-text-primary">{product.condition}</p>
+              </div>
             </div>
           </div>
-        </NexusCard>
+        </div>
 
         {/* ステップ別コンテンツ */}
-        <div className="mb-8 p-8 bg-nexus-bg-secondary rounded-lg min-h-[300px]">
+        <div className="intelligence-card global mb-8">
+          <div className="p-8 min-h-[300px]">
           {currentStep === 0 && (
             <div>
               <h3 className="font-semibold mb-4 text-nexus-text-primary">検品結果確認</h3>
@@ -149,7 +198,12 @@ export function ReturnRelistingFlow() {
                   />
                 ))}
                 <label className="w-full h-32 bg-nexus-bg-tertiary rounded-lg flex items-center justify-center cursor-pointer hover:bg-nexus-bg-secondary transition-colors border border-nexus-border">
-                  <Camera className="w-8 h-8 text-nexus-text-muted" />
+                  <div className="text-nexus-text-muted">
+                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
                   <input
                     type="file"
                     accept="image/*"
@@ -234,6 +288,7 @@ export function ReturnRelistingFlow() {
               </div>
             </div>
           )}
+          </div>
         </div>
 
         {/* アクションボタン */}
@@ -247,9 +302,11 @@ export function ReturnRelistingFlow() {
           <NexusButton
             onClick={handleNextStep}
             variant="primary"
+            disabled={currentStep === steps.length - 1}
           >
             {currentStep === steps.length - 1 ? '再出品する' : '次へ'}
           </NexusButton>
+        </div>
         </div>
       </div>
     </div>

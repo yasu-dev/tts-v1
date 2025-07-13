@@ -380,7 +380,7 @@ export default function InventoryPage() {
         <div className="intelligence-metrics">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="intelligence-card europe">
-              <div className="p-8">
+              <div className="p-6">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
                   <div className="action-orb blue w-6 h-6 sm:w-8 sm:h-8">
                     <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -400,7 +400,7 @@ export default function InventoryPage() {
             </div>
 
             <div className="intelligence-card europe">
-              <div className="p-8">
+              <div className="p-6">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
                   <div className="action-orb green w-6 h-6 sm:w-8 sm:h-8">
                     <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -420,7 +420,7 @@ export default function InventoryPage() {
             </div>
 
             <div className="intelligence-card europe">
-              <div className="p-8">
+              <div className="p-6">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
                   <div className="action-orb w-6 h-6 sm:w-8 sm:h-8">
                     <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -441,7 +441,7 @@ export default function InventoryPage() {
             </div>
 
             <div className="intelligence-card europe">
-              <div className="p-8">
+              <div className="p-6">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
                   <div className="action-orb red w-6 h-6 sm:w-8 sm:h-8">
                     <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -464,7 +464,7 @@ export default function InventoryPage() {
 
         {/* Inventory Table - Holo Table Style */}
         <div className="intelligence-card europe">
-          <div className="p-8">
+          <div className="p-6">
             <div className="mb-3 sm:mb-6">
               <h3 className="text-lg sm:text-2xl font-display font-bold text-nexus-text-primary">在庫リスト</h3>
               <p className="text-nexus-text-secondary mt-1 text-xs sm:text-sm">現在の在庫状況</p>
