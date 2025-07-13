@@ -1,0 +1,205 @@
+<mxfile host="65bd71144e">
+    <diagram name="デモ環境構成図" id="demo-architecture">
+        <mxGraphModel dx="1532" dy="1012" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="frontend" value="フロントエンド&#10;Next.js Client&#10;React Components&#10;(/app/components/*)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="150" width="200" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="api-layer" value="API Layer&#10;Next.js API Routes&#10;(/app/api/*)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="300" y="150" width="200" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="prisma-apis" value="&lt;br&gt;Prisma使用API ✅&lt;br&gt;(本番移行準備完了)&lt;br&gt;&lt;br&gt;• /api/inventory&lt;br&gt;• /api/locations&lt;br&gt;• /api/orders&lt;br&gt;• /api/products/*&lt;br&gt;• /api/inventory/movement&lt;br&gt;• /api/videos&lt;br&gt;&lt;br&gt;【本番移行時】&lt;br&gt;→ 修正不要&lt;br&gt;→ DATABASE_URL変更のみ&lt;br&gt;→ SQLite → PostgreSQL自動対応" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;align=left;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="550" y="50" width="280" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="env-apis" value="&lt;br&gt;環境依存API ✅&lt;br&gt;(本番移行準備完了)&lt;br&gt;&lt;br&gt;• /api/inventory/stats&lt;br&gt;• /api/staff/dashboard&lt;br&gt;• /api/reports/analytics&lt;br&gt;&lt;br&gt;【本番移行時】&lt;br&gt;→ 修正不要&lt;br&gt;→ NODE_ENV=production設定のみ&lt;br&gt;→ 自動的に本番データソース使用" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;align=left;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="550" y="270" width="280" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="auth-apis" value="&lt;br&gt;認証・画像・通知API ✅&lt;br&gt;(本番移行準備完了)&lt;br&gt;&lt;br&gt;• /api/auth/* (認証)&lt;br&gt;• /api/images/* (画像)&lt;br&gt;• /api/notifications/* (通知)&lt;br&gt;• /api/init-db (DB初期化)&lt;br&gt;• /api/location/optimize (AI最適化)&lt;br&gt;• /api/barcode/settings (設定)&lt;br&gt;&lt;br&gt;【本番移行時】&lt;br&gt;→ セキュリティ強化のみ&lt;br&gt;→ S3連携追加のみ&lt;br&gt;→ Redis Pub/Sub追加のみ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;align=left;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="550" y="450" width="280" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="json-apis" value="&lt;br&gt;JSON読込API 🔧&lt;br&gt;(本番移行時修正必要)&lt;br&gt;&lt;br&gt;• /api/dashboard&lt;br&gt;• /api/listing&lt;br&gt;• /api/sales&lt;br&gt;• /api/tasks&lt;br&gt;• /api/delivery-plan&lt;br&gt;• /api/picking&lt;br&gt;• /api/shipping&lt;br&gt;&lt;br&gt;【本番移行時修正内容】&lt;br&gt;→ fs.readFileSync(data/*.json) 削除&lt;br&gt;→ await prisma.* に変更&lt;br&gt;→ Prisma Repository化&lt;br&gt;→ PostgreSQL対応" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffebee;strokeColor=#d32f2f;fontSize=10;align=left;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="550" y="670" width="280" height="220" as="geometry"/>
+                </mxCell>
+                <mxCell id="mock-apis" value="&lt;br&gt;完全モックAPI 🔧&lt;br&gt;(本番移行時修正必要)&lt;br&gt;&lt;br&gt;• /api/ai/quality-inspection&lt;br&gt;• /api/pdf/generate&lt;br&gt;• /api/streaming/server&lt;br&gt;• /api/mock/ebay/listing&lt;br&gt;&lt;br&gt;【本番移行時修正内容】&lt;br&gt;→ ハードコードレスポンス削除&lt;br&gt;→ 実サービス統合&lt;br&gt;  • OpenAI Vision API&lt;br&gt;  • Puppeteer/jsPDF&lt;br&gt;  • WebRTC Server&lt;br&gt;  • eBay API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffebee;strokeColor=#d32f2f;fontSize=10;align=left;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="550" y="910" width="280" height="210" as="geometry"/>
+                </mxCell>
+                <mxCell id="prisma" value="&lt;br&gt;Prisma ORM ✅&lt;br&gt;@prisma/client 5.7.0&lt;br&gt;SQL Query Builder&lt;br&gt;&lt;br&gt;【本番移行時】&lt;br&gt;→ 修正不要&lt;br&gt;→ provider変更のみ&lt;br&gt;  sqlite → postgresql" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1;align=left;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="880" y="50" width="220" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="database" value="&lt;br&gt;SQLite Database&lt;br&gt;prisma/dev.db&lt;br&gt;(266KB, 実在確認済み)&lt;br&gt;&lt;br&gt;【本番移行時変更】&lt;br&gt;→ PostgreSQL Database&lt;br&gt;→ AWS RDS&lt;br&gt;→ 高可用性構成&lt;br&gt;→ 自動バックアップ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffebee;strokeColor=#d32f2f;fontSize=11;fontStyle=1;align=left;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="1150" y="50" width="280" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="env-check" value="&lt;br&gt;NODE_ENV Check&lt;br&gt;development?&lt;br&gt;(現在: 未設定)&lt;br&gt;&lt;br&gt;【本番移行時変更】&lt;br&gt;→ NODE_ENV=production" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;fontStyle=1;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="880" y="270" width="160" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="json-files" value="&lt;br&gt;JSON Files (開発環境)&lt;br&gt;data/*.json&lt;br&gt;• dashboard.json (1.9KB)&lt;br&gt;• staff-mock.json (20KB)&lt;br&gt;• analytics-mock.json (5.3KB)&lt;br&gt;• tasks.json (3.1KB)&lt;br&gt;• seller-mock.json (24KB)&lt;br&gt;• inventory.json (19KB)&lt;br&gt;&lt;br&gt;【本番移行時削除】&lt;br&gt;→ PostgreSQLに移行" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffebee;strokeColor=#d32f2f;fontSize=10;align=left;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="1150" y="270" width="280" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="empty-data" value="&lt;br&gt;空データ (本番環境)&lt;br&gt;• totalRevenue: 0&lt;br&gt;• totalOrders: 0&lt;br&gt;• 基本的な空構造のみ&lt;br&gt;&lt;br&gt;【本番移行時変更】&lt;br&gt;→ PostgreSQL実データ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;align=left;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="1150" y="470" width="280" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="mock-fallback" value="&lt;br&gt;MockFallback ✅&lt;br&gt;lib/mock-fallback.ts&lt;br&gt;(394行, Prismaエラー検出)&lt;br&gt;&lt;br&gt;【本番移行時】&lt;br&gt;→ 修正不要&lt;br&gt;→ 本番環境でも継続使用&lt;br&gt;→ フォールバック機能維持" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;fontStyle=1;align=left;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="880" y="630" width="220" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="json-fallback" value="&lt;br&gt;JSON Files (エラー時)&lt;br&gt;data/*.json&lt;br&gt;フォールバック用&lt;br&gt;&lt;br&gt;【本番移行時変更】&lt;br&gt;→ 基本データセット&lt;br&gt;→ 最小限のフォールバック" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;align=left;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="1150" y="630" width="280" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow1" value="HTTP Request&#10;fetch('/api/*')" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#6c8ebf;" parent="1" source="frontend" target="api-layer" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow2" value="分岐" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.15;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#82b366;" parent="1" source="api-layer" target="prisma-apis" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow3" value="分岐" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.35;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#82b366;" parent="1" source="api-layer" target="env-apis" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow3b" value="分岐" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.55;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#82b366;" parent="1" source="api-layer" target="auth-apis" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow4" value="分岐" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#d32f2f;" parent="1" source="api-layer" target="json-apis" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow5" value="分岐" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.95;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#d32f2f;" parent="1" source="api-layer" target="mock-apis" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow6" value="await prisma.*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#82b366;" parent="1" source="prisma-apis" target="prisma" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow7" value="SQL Query" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#82b366;" parent="1" edge="1">
+                    <mxGeometry x="-0.2" y="-7" relative="1" as="geometry">
+                        <mxPoint x="1100" y="131" as="sourcePoint"/>
+                        <mxPoint x="1150" y="131" as="targetPoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="arrow8" value="NODE_ENV?" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#d79b00;" parent="1" source="env-apis" target="env-check" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow9" value="development&#10;(現在)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#d32f2f;" parent="1" source="env-check" target="json-files" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow10" value="production&#10;(本番)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.7;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#82b366;" parent="1" source="env-check" target="empty-data" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow11" value="直接読込" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.7;exitDx=0;exitDy=0;strokeWidth=2;strokeColor=#d32f2f;" parent="1" source="json-apis" target="json-files" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1010" y="824"/>
+                            <mxPoint x="1010" y="250"/>
+                            <mxPoint x="1270" y="250"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="arrow12" value="Prismaエラー時" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#82b366;dashed=1;" parent="1" source="prisma-apis" target="mock-fallback" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow13" value="フォールバック" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#d79b00;" parent="1" source="mock-fallback" target="json-fallback" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow14" value="モックデータ" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.8;exitDx=0;exitDy=0;entryX=0;entryY=0.8;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#d32f2f;" parent="1" source="mock-apis" target="mock-fallback" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="title" value="FBT-V1 デモ環境構成図 (現在の実装)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#d32f2f;" parent="1" vertex="1">
+                    <mxGeometry x="400" y="20" width="600" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend-ready" value="✅ 本番移行準備完了" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="50" width="150" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend-modify" value="🔧 本番移行時修正必要" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffebee;strokeColor=#d32f2f;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="100" width="150" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="migration-summary" value="&lt;br&gt;【デモ環境 → 本番環境 移行修正サマリー】&lt;br&gt;&lt;br&gt;🔧 必須修正項目 (11エンドポイント):&lt;br&gt;• JSON読込API (7個): /api/dashboard, /api/listing, /api/sales, /api/tasks, /api/delivery-plan, /api/picking, /api/shipping&lt;br&gt;  修正内容: fs.readFileSync(data/*.json) → await prisma.* (Prisma Repository化)&lt;br&gt;• 完全モックAPI (4個): /api/ai/quality-inspection, /api/pdf/generate, /api/streaming/server, /api/mock/ebay/listing&lt;br&gt;  修正内容: ハードコードレスポンス → 実サービス統合 (OpenAI, Puppeteer, WebRTC, eBay)&lt;br&gt;&lt;br&gt;✅ 修正不要項目 (16エンドポイント):&lt;br&gt;• Prisma使用API (6個): DATABASE_URL変更のみでPostgreSQL自動対応&lt;br&gt;• 環境依存API (3個): NODE_ENV=production設定のみで自動切替&lt;br&gt;• 認証API (3個): 既にPrisma使用、セキュリティ強化のみ&lt;br&gt;• ファイル・画像API (2個): 既に認証必須、S3連携追加のみ&lt;br&gt;• 通知・リアルタイムAPI (2個): 既にSSE実装、Redis Pub/Sub追加のみ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#f57c00;fontSize=10;align=left;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="1140" width="1380" height="200" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram name="本番環境構成図" id="production-architecture">
+        <mxGraphModel dx="1532" dy="1012" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="cdn" value="CDN / Load Balancer&#10;Cloudflare / AWS CloudFront&#10;• SSL/TLS終端&#10;• 静的ファイル配信&#10;• DDoS保護" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="80" width="220" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="nextjs-prod" value="Next.js Application&#10;Vercel / AWS ECS&#10;• SSR/SSG最適化&#10;• 自動スケーリング" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="220" width="220" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="api-gateway" value="API Gateway&#10;AWS API Gateway&#10;• レート制限&#10;• 認証・認可&#10;• ログ・監視" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="220" width="220" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="unified-prisma" value="&lt;br&gt;&lt;br&gt;統合Prisma API ✅&lt;br&gt;(全機能Prisma化完了)&lt;br&gt;&lt;br&gt;• /api/inventory (CRUD)&lt;br&gt;• /api/dashboard (集計) 🔧→✅&lt;br&gt;• /api/analytics (分析) 🔧→✅&lt;br&gt;• /api/tasks (管理) 🔧→✅&lt;br&gt;• /api/sales (売上) 🔧→✅&lt;br&gt;• /api/shipping (出荷) 🔧→✅&lt;br&gt;• /api/picking (ピッキング) 🔧→✅&lt;br&gt;• /api/listing (出品) 🔧→✅&lt;br&gt;• /api/auth/* (認証) ✅&lt;br&gt;• /api/images/* (画像) ✅&lt;br&gt;&lt;br&gt;【デモ環境からの変更】&lt;br&gt;→ JSON読込API → Prisma化&lt;br&gt;→ 完全モックAPI → 実サービス統合" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;align=left;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="590" y="80" width="320" height="250" as="geometry"/>
+                </mxCell>
+                <mxCell id="external-apis" value="&lt;br&gt;&lt;br&gt;外部サービス統合API ✅&lt;br&gt;(実サービス統合完了)&lt;br&gt;&lt;br&gt;• AI品質判定 (OpenAI Vision) 🔧→✅&lt;br&gt;• PDF生成 (Puppeteer/jsPDF) 🔧→✅&lt;br&gt;• eBay API統合 🔧→✅&lt;br&gt;• 動画ストリーミング (WebRTC) 🔧→✅&lt;br&gt;• 通知サービス (SendGrid) ✅&lt;br&gt;• 決済処理 (Stripe)&lt;br&gt;&lt;br&gt;【デモ環境からの変更】&lt;br&gt;→ /api/ai/quality-inspection → OpenAI統合&lt;br&gt;→ /api/pdf/generate → Puppeteer統合&lt;br&gt;→ /api/mock/ebay/listing → eBay API統合&lt;br&gt;→ /api/streaming/server → WebRTC統合" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;align=left;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="590" y="450" width="320" height="230" as="geometry"/>
+                </mxCell>
+                <mxCell id="prisma-pool" value="Prisma Client&#10;Connection Pool&#10;• 接続プール管理&#10;• クエリ最適化" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="960" y="80" width="200" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="postgresql" value="&lt;br&gt;&lt;br&gt;PostgreSQL Database ✅&lt;br&gt;AWS RDS&lt;br&gt;&lt;br&gt;• 高可用性構成&lt;br&gt;• 自動バックアップ&lt;br&gt;• 読み取りレプリカ&lt;br&gt;&lt;br&gt;【デモ環境からの変更】&lt;br&gt;→ SQLite → PostgreSQL&lt;br&gt;→ 単一DB → 冗長構成&lt;br&gt;→ 266KB → スケーラブル" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;fontStyle=1;align=left;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="1210" y="80" width="280" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="redis" value="&lt;br&gt;Redis Cache ✅&lt;br&gt;AWS ElastiCache&lt;br&gt;&lt;br&gt;• セッション管理&lt;br&gt;• クエリキャッシュ&lt;br&gt;• リアルタイム通知&lt;br&gt;• レート制限&lt;br&gt;&lt;br&gt;【デモ環境からの変更】&lt;br&gt;→ メモリ内キャッシュ → Redis&lt;br&gt;→ 単一プロセス → 分散キャッシュ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;fontStyle=1;align=left;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="1210" y="280" width="280" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="storage" value="&lt;br&gt;Object Storage ✅&lt;br&gt;AWS S3&lt;br&gt;&lt;br&gt;• 商品画像&lt;br&gt;• 動画ファイル&lt;br&gt;• PDF文書&lt;br&gt;• CDN統合&lt;br&gt;&lt;br&gt;【デモ環境からの変更】&lt;br&gt;→ ローカルファイル → S3&lt;br&gt;→ 10MB制限 → 無制限&lt;br&gt;→ 単一サーバー → CDN配信" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;fontStyle=1;align=left;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="1210" y="460" width="280" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="openai" value="OpenAI Vision API ✅&#10;AI品質判定サービス&#10;&#10;【デモ環境からの変更】&#10;→ ハードコードレスポンス&#10;→ 実際のAI判定" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="960" y="460" width="200" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="ebay-api" value="eBay API ✅&#10;出品・在庫管理&#10;&#10;【デモ環境からの変更】&#10;→ モックレスポンス&#10;→ 実際のeBay連携" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="960" y="580" width="200" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="webrtc" value="WebRTC Server ✅&#10;動画ストリーミング&#10;&#10;【デモ環境からの変更】&#10;→ ダミーストリーム&#10;→ 実際の動画配信" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="960" y="700" width="200" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="monitoring" value="監視・ログシステム ✅&#10;&#10;• Datadog / New Relic&#10;• Sentry (エラー追跡)&#10;• CloudWatch Logs&#10;• Prometheus + Grafana&#10;&#10;【デモ環境からの変更】&#10;→ console.log → 構造化ログ&#10;→ ローカルデバッグ → 本格監視" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e6f3ff;strokeColor=#0066cc;fontSize=10;fontStyle=1;align=left;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="360" width="220" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="prod-arrow1" value="HTTPS" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#82b366;" parent="1" source="cdn" target="nextjs-prod" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="prod-arrow2" value="API Request" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#9673a6;" parent="1" source="nextjs-prod" target="api-gateway" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="prod-arrow3" value="Authenticated" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#d6b656;" parent="1" source="api-gateway" target="unified-prisma" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="prod-arrow4" value="External Calls" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.7;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#b85450;" parent="1" source="api-gateway" target="external-apis" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="prod-arrow5" value="Connection Pool" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.2;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#d6b656;" parent="1" source="unified-prisma" target="prisma-pool" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="prod-arrow6" value="SQL Queries" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#82b366;" parent="1" source="prisma-pool" target="postgresql" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="prod-arrow7" value="Cache" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.7;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#d79b00;" parent="1" source="prisma-pool" target="redis" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="prod-arrow8" value="File Storage" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.8;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#9673a6;" parent="1" source="external-apis" target="storage" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="prod-arrow9" value="AI API" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.2;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#b85450;" parent="1" source="external-apis" target="openai" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="prod-arrow10" value="Listing API" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.4;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#b85450;" parent="1" source="external-apis" target="ebay-api" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="prod-arrow11" value="Streaming" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.6;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#b85450;" parent="1" source="external-apis" target="webrtc" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="prod-title" value="FBT-V1 本番環境構成図 (デモ環境からの移行修正完了後)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#d32f2f;" parent="1" vertex="1">
+                    <mxGeometry x="400" y="30" width="700" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="migration-summary" value="&lt;br&gt;&lt;br&gt;【デモ環境 → 本番環境 移行修正サマリー】&lt;br&gt;&lt;br&gt;🔧 必須修正項目 (11エンドポイント):&lt;br&gt;• JSON読込API (7個): /api/dashboard, /api/listing, /api/sales, /api/tasks, /api/delivery-plan, /api/picking, /api/shipping&lt;br&gt;  → JSONファイル読込 → Prisma Repository化 → PostgreSQL対応&lt;br&gt;• 完全モックAPI (4個): /api/ai/quality-inspection, /api/pdf/generate, /api/streaming/server, /api/mock/ebay/listing&lt;br&gt;  → ハードコードレスポンス → 実サービス統合 (OpenAI, Puppeteer, WebRTC, eBay)&lt;br&gt;&lt;br&gt;✅ 修正不要項目 (16エンドポイント):&lt;br&gt;• Prisma使用API (6個): 環境変数でPostgreSQL自動切替&lt;br&gt;• 環境依存API (3個): NODE_ENV=production で自動切替&lt;br&gt;• 認証API (3個): セキュリティ強化のみ&lt;br&gt;• ファイル・画像API (2個): S3連携追加のみ&lt;br&gt;• 通知・リアルタイムAPI (2個): Redis Pub/Sub追加のみ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#f57c00;fontSize=10;align=left;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="830" width="1440" height="220" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

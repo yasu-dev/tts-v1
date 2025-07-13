@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
+import { MockFallback } from '@/lib/mock-fallback';
+
+const prisma = new PrismaClient();
 
 // 出品管理API
 export async function GET(request: NextRequest) {
   try {
-    // モックデータ
+    // Prismaを使用して出品データを取得
+    // TODO: 実際のPrismaクエリを実装する際は、以下のような構造になる
+    // const templates = await prisma.listingTemplate.findMany(...);
+    // const products = await prisma.product.findMany({ where: { status: 'ready' } });
+    
+    // 現在はモックデータを返す（Prismaスキーマが整備されるまで）
     const listings = {
       templates: [
         {
@@ -63,6 +72,33 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(listings);
   } catch (error) {
     console.error('[ERROR] GET /api/listing:', error);
+    
+    // Prismaエラーの場合はフォールバックデータを使用
+    if (MockFallback.isPrismaError(error)) {
+      console.log('Using fallback data for listing due to Prisma error');
+      try {
+        const fallbackData = {
+          templates: [],
+          products: [],
+          stats: {
+            totalActive: 0,
+            pendingListing: 0,
+            soldThisMonth: 0,
+            averagePrice: 0,
+            platforms: {
+              ebay: 0,
+              amazon: 0,
+              mercari: 0,
+              yahoo: 0,
+            },
+          },
+        };
+        return NextResponse.json(fallbackData);
+      } catch (fallbackError) {
+        console.error('Fallback data error:', fallbackError);
+      }
+    }
+    
     return NextResponse.json(
       { error: 'Failed to fetch listing data' },
       { status: 500 }

@@ -8,8 +8,7 @@ import { BusinessStatusIndicator } from '@/app/components/ui/StatusIndicator';
 import { ReturnInspection } from '@/app/components/features/returns/ReturnInspection';
 import { ReturnRelistingFlow } from '@/app/components/features/returns/ReturnRelistingFlow';
 import { ReturnReasonAnalysis } from '@/app/components/features/returns/ReturnReasonAnalysis';
-import { Package, Clock, TrendingUp, AlertCircle, ChevronLeft } from 'lucide-react';
-import { ExclamationCircleIcon } from '@heroicons/react/24/outline';
+import { ArchiveBoxIcon, ClockIcon, ArrowTrendingUpIcon, ExclamationCircleIcon, ChevronLeftIcon } from '@heroicons/react/24/outline';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import BaseModal from '@/app/components/ui/BaseModal';
 import NexusButton from '@/app/components/ui/NexusButton';
@@ -276,7 +275,7 @@ export default function ReturnsPage() {
           </div>
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
-              <AlertCircle className="w-16 h-16 text-nexus-red mx-auto mb-4" />
+              <ExclamationCircleIcon className="w-16 h-16 text-nexus-red mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-nexus-text-primary mb-2">
                 データの取得に失敗しました
               </h3>
@@ -417,7 +416,7 @@ export default function ReturnsPage() {
                   onClick={() => setSelectedReturn(null)}
                   className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
                 >
-                  <ChevronLeft className="w-5 h-5" />
+                  <ChevronLeftIcon className="w-5 h-5" />
                   返品リストに戻る
                 </button>
                 <ReturnInspection />
@@ -436,7 +435,7 @@ export default function ReturnsPage() {
                             <p className="text-sm text-nexus-text-secondary mt-1">前日比 +{filteredReturns.length - returnsData.pendingReturns.length}件</p>
                           </div>
                           <div className="action-orb blue">
-                            <Package className="w-6 h-6" />
+                            <ArchiveBoxIcon className="w-6 h-6" />
                           </div>
                         </div>
                       </div>
@@ -451,7 +450,7 @@ export default function ReturnsPage() {
                             <p className="text-sm text-yellow-600 mt-1">要対応</p>
                           </div>
                           <div className="action-orb yellow">
-                            <Clock className="w-6 h-6" />
+                            <ClockIcon className="w-6 h-6" />
                           </div>
                         </div>
                       </div>
@@ -466,7 +465,7 @@ export default function ReturnsPage() {
                             <p className="text-sm text-green-600 mt-1">業界平均以下</p>
                           </div>
                           <div className="action-orb green">
-                            <TrendingUp className="w-6 h-6" />
+                            <ArrowTrendingUpIcon className="w-6 h-6" />
                           </div>
                         </div>
                       </div>
@@ -481,7 +480,7 @@ export default function ReturnsPage() {
                             <p className="text-sm text-nexus-text-secondary mt-1">目標: 2日以内</p>
                           </div>
                           <div className="action-orb orange">
-                            <AlertCircle className="w-6 h-6" />
+                            <ExclamationCircleIcon className="w-6 h-6" />
                           </div>
                         </div>
                       </div>

@@ -1,8 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
+import { MockFallback } from '@/lib/mock-fallback';
+
+const prisma = new PrismaClient();
 
 export async function GET(request: NextRequest) {
   try {
-    // モック出荷データ
+    // Prismaを使用して出荷データを取得
+    // TODO: 実際のPrismaクエリを実装する際は、以下のような構造になる
+    // const shipments = await prisma.shipment.findMany({ where: { status: 'pending' } });
+    // const carriers = await prisma.carrier.findMany({ where: { active: true } });
+    
+    // 現在はモックデータを返す（Prismaスキーマが整備されるまで）
     const shippingData = {
       todayShipments: [
         {
@@ -72,6 +81,28 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(shippingData);
   } catch (error) {
     console.error('Shipping API error:', error);
+    
+    // Prismaエラーの場合はフォールバックデータを使用
+    if (MockFallback.isPrismaError(error)) {
+      console.log('Using fallback data for shipping due to Prisma error');
+      try {
+        const fallbackData = {
+          todayShipments: [],
+          carriers: [],
+          packingMaterials: [],
+          stats: {
+            todayShipped: 0,
+            pendingShipments: 0,
+            avgProcessingTime: "0分",
+            onTimeDeliveryRate: "0%"
+          }
+        };
+        return NextResponse.json(fallbackData);
+      } catch (fallbackError) {
+        console.error('Fallback data error:', fallbackError);
+      }
+    }
+    
     return NextResponse.json(
       { error: '出荷データの取得に失敗しました' },
       { status: 500 }

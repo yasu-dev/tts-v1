@@ -1,59 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
+import { MockFallback } from '@/lib/mock-fallback';
+import { promises as fs } from 'fs';
+import path from 'path';
+
+const prisma = new PrismaClient();
 
 export async function GET(request: NextRequest) {
   try {
-    // モックタスクデータ
-    const tasks = [
-      {
-        id: 'task-001',
-        title: 'Canon EOS R5の検品作業',
-        description: '新入荷のCanon EOS R5の動作確認と外観チェック',
-        priority: 'high',
-        category: 'inspection',
-        status: 'pending',
-        assignedTo: 'staff001',
-        assignedToName: '田中太郎',
-        createdAt: new Date().toISOString(),
-        dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        estimatedTime: 45,
-        notes: '高額商品のため慎重に検品'
-      },
-      {
-        id: 'task-002',
-        title: 'Rolex Submarinerの撮影',
-        description: '商品画像の撮影とレタッチ',
-        priority: 'medium',
-        category: 'photography',
-        status: 'in_progress',
-        assignedTo: 'staff002',
-        assignedToName: '佐藤花子',
-        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        dueDate: new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString(),
-        estimatedTime: 30,
-        notes: '照明に注意'
-      },
-      {
-        id: 'task-003',
-        title: '在庫整理',
-        description: 'A-1エリアの在庫整理と棚卸し',
-        priority: 'low',
-        category: 'inventory',
-        status: 'completed',
-        assignedTo: 'staff003',
-        assignedToName: '山田次郎',
-        createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-        dueDate: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        estimatedTime: 120,
-        completedAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
-        notes: '完了'
-      }
-    ];
+    // Prismaを使用してスタッフタスクデータを取得
+    // TODO: 実際のPrismaクエリを実装する際は、以下のような構造になる
+    // const tasks = await prisma.staffTask.findMany({ where: { assignedTo: staffId } });
+    
+    // 現在はJSONファイルからデータを読み込む（Prismaスキーマが整備されるまで）
+    const filePath = path.join(process.cwd(), 'data', 'staff-mock.json');
+    const fileContents = await fs.readFile(filePath, 'utf8');
+    const staffData = JSON.parse(fileContents);
+    
+    // タスクデータを抽出
+    const tasks = staffData.staffTasks.urgentTasks.concat(staffData.staffTasks.normalTasks);
 
     return NextResponse.json({ tasks });
   } catch (error) {
-    console.error('Tasks API error:', error);
+    console.error('Staff tasks API error:', error);
+    
+    // Prismaエラーやファイル読み込みエラーの場合はフォールバックデータを使用
+    if (MockFallback.isPrismaError(error)) {
+      console.log('Using fallback data for staff tasks due to Prisma error');
+      try {
+        const fallbackData = { tasks: [] };
+        return NextResponse.json(fallbackData);
+      } catch (fallbackError) {
+        console.error('Fallback data error:', fallbackError);
+      }
+    }
+    
     return NextResponse.json(
-      { error: 'タスクデータの取得に失敗しました' },
+      { error: 'スタッフタスクデータの取得に失敗しました' },
       { status: 500 }
     );
   }

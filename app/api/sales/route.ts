@@ -1,43 +1,54 @@
 import { NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
+import { MockFallback } from '@/lib/mock-fallback';
+import { promises as fs } from 'fs';
+import path from 'path';
+
+const prisma = new PrismaClient();
 
 export async function GET() {
-  // モックデータ
-  const salesData = {
-    totalSales: 15678900,
-    totalOrders: 234,
-    averageOrderValue: 67000,
-    conversionRate: 12.5,
-    topProducts: [
-      { id: 1, name: 'Canon EOS R5', sales: 4500000, orders: 15, category: 'カメラ本体' },
-      { id: 2, name: 'Sony FE 24-70mm', sales: 2800000, orders: 20, category: 'レンズ' },
-      { id: 3, name: 'Nikon D850', sales: 2100000, orders: 12, category: 'カメラ本体' },
-      { id: 4, name: 'Canon RF 85mm', sales: 1800000, orders: 18, category: 'レンズ' },
-      { id: 5, name: 'Sony A7R V', sales: 1600000, orders: 8, category: 'カメラ本体' },
-    ],
-    recentOrders: [
-      { id: 'ORD-2024-001', customer: '田中太郎', product: 'Canon EOS R5', amount: 450000, status: '配送中', date: '2024-01-15' },
-      { id: 'ORD-2024-002', customer: '佐藤花子', product: 'Sony FE 24-70mm', amount: 280000, status: '配送完了', date: '2024-01-14' },
-      { id: 'ORD-2024-003', customer: '鈴木一郎', product: 'Nikon D850', amount: 320000, status: '準備中', date: '2024-01-13' },
-      { id: 'ORD-2024-004', customer: '山田美咲', product: 'Canon RF 85mm', amount: 180000, status: '配送完了', date: '2024-01-12' },
-      { id: 'ORD-2024-005', customer: '高橋健太', product: 'Sony A7R V', amount: 520000, status: '配送中', date: '2024-01-11' },
-    ],
-    salesTrend: [
-      { month: '2023-08', sales: 12000000 },
-      { month: '2023-09', sales: 13500000 },
-      { month: '2023-10', sales: 11800000 },
-      { month: '2023-11', sales: 14200000 },
-      { month: '2023-12', sales: 16800000 },
-      { month: '2024-01', sales: 15678900 },
-    ],
-    categoryBreakdown: [
-      { category: 'カメラ本体', sales: 8900000, percentage: 56.8 },
-      { category: 'レンズ', sales: 4800000, percentage: 30.6 },
-      { category: 'アクセサリー', sales: 1200000, percentage: 7.6 },
-      { category: 'その他', sales: 778900, percentage: 5.0 },
-    ]
-  };
+  try {
+    // Prismaを使用して売上データを取得
+    // TODO: 実際のPrismaクエリを実装する際は、以下のような構造になる
+    // const orders = await prisma.order.findMany({ where: { status: 'completed' } });
+    // const salesStats = await prisma.order.aggregate(...);
+    
+    // 現在はJSONファイルからデータを読み込む（Prismaスキーマが整備されるまで）
+    const filePath = path.join(process.cwd(), 'data', 'seller-mock.json');
+    const fileContents = await fs.readFile(filePath, 'utf8');
+    const sellerData = JSON.parse(fileContents);
+    
+    // 売上データを抽出
+    const salesData = sellerData.sales;
 
-  return NextResponse.json(salesData);
+    return NextResponse.json(salesData);
+  } catch (error) {
+    console.error('Sales API error:', error);
+    
+    // Prismaエラーやファイル読み込みエラーの場合はフォールバックデータを使用
+    if (MockFallback.isPrismaError(error)) {
+      console.log('Using fallback data for sales due to Prisma error');
+      try {
+        const fallbackData = {
+          totalSales: 0,
+          totalOrders: 0,
+          averageOrderValue: 0,
+          conversionRate: 0,
+          topProducts: [],
+          recentOrders: [],
+          salesTrend: []
+        };
+        return NextResponse.json(fallbackData);
+      } catch (fallbackError) {
+        console.error('Fallback data error:', fallbackError);
+      }
+    }
+    
+    return NextResponse.json(
+      { error: '売上データの取得に失敗しました' },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(request: Request) {

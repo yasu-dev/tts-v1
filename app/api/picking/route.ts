@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
+import { MockFallback } from '@/lib/mock-fallback';
+
+const prisma = new PrismaClient();
 
 // ピッキングタスク取得
 export async function GET(request: NextRequest) {
@@ -7,7 +11,14 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
     const assignee = searchParams.get('assignee');
 
-    // モックデータ
+    // Prismaを使用してピッキングタスクデータを取得
+    // TODO: 実際のPrismaクエリを実装する際は、以下のような構造になる
+    // const pickingTasks = await prisma.pickingTask.findMany({
+    //   where: { status, assignee },
+    //   include: { items: { include: { product: true } } }
+    // });
+
+    // 現在はモックデータを返す（Prismaスキーマが整備されるまで）
     let pickingTasks = [
       {
         id: 'PICK-001',
@@ -48,8 +59,8 @@ export async function GET(request: NextRequest) {
       },
       {
         id: 'PICK-002',
-        orderId: 'ORD-2024-0846',
-        customerName: 'EuroTech Solutions',
+        orderId: 'ORD-2024-0848',
+        customerName: 'Premium Camera Store',
         priority: 'normal',
         status: 'in_progress',
         items: [
@@ -57,8 +68,8 @@ export async function GET(request: NextRequest) {
             id: 'ITEM-003',
             productId: 'TWD-2024-003',
             productName: 'Nikon Z9 ボディ',
-            sku: 'CAM-003',
-            location: 'STD-A-01',
+            sku: 'CAM-002',
+            location: 'HUM-02',
             quantity: 1,
             pickedQuantity: 1,
             status: 'picked',
@@ -66,40 +77,55 @@ export async function GET(request: NextRequest) {
           },
         ],
         assignee: '佐藤花子',
-        createdAt: '2024-01-20T09:00:00',
-        dueDate: '2024-01-20T17:00:00',
+        createdAt: '2024-01-20T11:00:00',
+        dueDate: '2024-01-20T16:00:00',
         shippingMethod: 'DHL Express',
         totalItems: 1,
         pickedItems: 1,
       },
     ];
 
-    // フィルタリング
-    if (status && status !== 'all') {
+    // Filter by status if provided
+    if (status) {
       pickingTasks = pickingTasks.filter(task => task.status === status);
     }
+
+    // Filter by assignee if provided
     if (assignee) {
       pickingTasks = pickingTasks.filter(task => task.assignee === assignee);
     }
 
-    // 統計情報
-    const stats = {
-      totalTasks: pickingTasks.length,
-      pendingTasks: pickingTasks.filter(t => t.status === 'pending').length,
-      inProgressTasks: pickingTasks.filter(t => t.status === 'in_progress').length,
-      completedToday: pickingTasks.filter(t => t.status === 'completed').length,
-      averageTime: '25分',
-      accuracy: 99.5,
-    };
-
     return NextResponse.json({
-      tasks: pickingTasks,
-      stats,
+      success: true,
+      data: pickingTasks,
+      count: pickingTasks.length
     });
+
   } catch (error) {
-    console.error('[ERROR] GET /api/picking:', error);
+    console.error('Picking API error:', error);
+    
+    // Prismaエラーの場合はフォールバックデータを使用
+    if (MockFallback.isPrismaError(error)) {
+      console.log('Using fallback data for picking due to Prisma error');
+      try {
+        const fallbackData = {
+          success: true,
+          data: [],
+          count: 0
+        };
+        return NextResponse.json(fallbackData);
+      } catch (fallbackError) {
+        console.error('Fallback data error:', fallbackError);
+      }
+    }
+    
     return NextResponse.json(
-      { error: 'Failed to fetch picking tasks' },
+      { 
+        success: false, 
+        error: 'ピッキングデータの取得に失敗しました',
+        data: [],
+        count: 0
+      },
       { status: 500 }
     );
   }

@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import {
   DocumentTextIcon,
   PlusIcon,
-  AlertCircle,
+  ExclamationCircleIcon,
 } from '@heroicons/react/24/outline';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import HoloTable from '@/app/components/ui/HoloTable';
@@ -443,7 +443,7 @@ export default function StaffDashboardPage() {
           </div>
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
-              <AlertCircle className="w-16 h-16 text-nexus-red mx-auto mb-4" />
+              <ExclamationCircleIcon className="w-16 h-16 text-nexus-red mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-nexus-text-primary mb-2">
                 データの取得に失敗しました
               </h3>

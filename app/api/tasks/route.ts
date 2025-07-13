@@ -1,77 +1,54 @@
 import { NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
+import { MockFallback } from '@/lib/mock-fallback';
+import { promises as fs } from 'fs';
+import path from 'path';
+
+const prisma = new PrismaClient();
 
 export async function GET() {
-  const tasksData = [
-    {
-      id: '1',
-      title: 'Canon EOS R5 検品作業',
-      description: 'カメラ本体の動作確認、外観チェック、付属品確認',
-      priority: 'high',
-      status: 'pending',
-      assignedTo: '田中',
-      dueDate: '2024-06-29',
-      category: 'inspection',
-      createdAt: '2024-06-28T08:00:00Z',
-    },
-    {
-      id: '2',
-      title: 'Hermès Birkin 出品作業',
-      description: '商品写真撮影、商品説明文作成、価格設定',
-      priority: 'high',
-      status: 'in_progress',
-      assignedTo: '佐藤',
-      dueDate: '2024-06-28',
-      category: 'listing',
-      createdAt: '2024-06-27T14:00:00Z',
-    },
-    {
-      id: '3',
-      title: 'Rolex Submariner 出荷準備',
-      description: '梱包作業、配送手配、追跡番号発行',
-      priority: 'medium',
-      status: 'pending',
-      assignedTo: '鈴木',
-      dueDate: '2024-06-30',
-      category: 'shipping',
-      createdAt: '2024-06-26T10:00:00Z',
-    },
-    {
-      id: '4',
-      title: 'Sony FE 24-70mm 返品処理',
-      description: '返品商品の状態確認、再出品可否判定',
-      priority: 'medium',
-      status: 'completed',
-      assignedTo: '山田',
-      dueDate: '2024-06-27',
-      category: 'returns',
-      createdAt: '2024-06-25T16:00:00Z',
-      completedAt: '2024-06-27T11:30:00Z',
-    },
-    {
-      id: '5',
-      title: 'Leica M11 検品作業',
-      description: 'カメラ本体の動作確認、シャッター回数チェック',
-      priority: 'low',
-      status: 'pending',
-      assignedTo: '田中',
-      dueDate: '2024-07-01',
-      category: 'inspection',
-      createdAt: '2024-06-28T09:00:00Z',
-    },
-    {
-      id: '6',
-      title: 'Nikon Z9 出品準備',
-      description: '商品写真撮影、商品説明文作成',
-      priority: 'medium',
-      status: 'pending',
-      assignedTo: '佐藤',
-      dueDate: '2024-07-02',
-      category: 'listing',
-      createdAt: '2024-06-28T11:00:00Z',
-    },
-  ];
+  try {
+    // Prismaを使用してタスクデータを取得
+    // TODO: 実際のPrismaクエリを実装する際は、以下のような構造になる
+    // const tasks = await prisma.task.findMany({ orderBy: { priority: 'desc' } });
+    
+    // 現在はJSONファイルからデータを読み込む（Prismaスキーマが整備されるまで）
+    const filePath = path.join(process.cwd(), 'data', 'tasks.json');
+    const fileContents = await fs.readFile(filePath, 'utf8');
+    const tasksData = JSON.parse(fileContents);
 
-  return NextResponse.json(tasksData);
+    return NextResponse.json(tasksData);
+  } catch (error) {
+    console.error('Tasks API error:', error);
+    
+    // Prismaエラーやファイル読み込みエラーの場合はフォールバックデータを使用
+    if (MockFallback.isPrismaError(error)) {
+      console.log('Using fallback data for tasks due to Prisma error');
+      try {
+        const fallbackData = {
+          urgentTasks: [],
+          normalTasks: [],
+          progress: {
+            completed: 0,
+            inProgress: 0,
+            pending: 0,
+            total: 0,
+            percentage: 0
+          },
+          quickActions: [],
+          recentActivity: []
+        };
+        return NextResponse.json(fallbackData);
+      } catch (fallbackError) {
+        console.error('Fallback data error:', fallbackError);
+      }
+    }
+    
+    return NextResponse.json(
+      { error: 'タスクデータの取得に失敗しました' },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(request: Request) {

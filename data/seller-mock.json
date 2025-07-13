@@ -1,109 +1,329 @@
 {
   "dashboard": {
     "kpi": {
-      "totalAssetValue": 12456789,
-      "inventoryCount": 234,
-      "todaySales": 456789,
-      "orderCount": 12,
-      "monthlyGrowth": 12.5,
-      "dailyGrowth": 24.3
+      "totalAssetValue": 18756789,
+      "inventoryCount": 312,
+      "todaySales": 1256789,
+      "orderCount": 18,
+      "monthlyGrowth": 18.7,
+      "dailyGrowth": 31.2
     },
     "statusSummary": {
-      "inbound": 12,
-      "inspection": 8,
-      "storage": 145,
-      "listing": 58,
-      "shipping": 6,
-      "returned": 5
+      "inbound": 18,
+      "inspection": 12,
+      "storage": 198,
+      "listing": 72,
+      "shipping": 9,
+      "returned": 3
     },
     "recentActivities": [
       {
         "id": 1,
-        "time": "10分前",
-        "action": "カメラ本体 Canon EOS R5 が入庫されました",
-        "type": "inbound"
+        "time": "5分前",
+        "action": "Canon EOS R6 Mark II が検品完了しました",
+        "type": "inspection",
+        "businessFlowPhase": "2-inspection",
+        "performer": "田中 宏明"
       },
       {
         "id": 2,
-        "time": "25分前",
-        "action": "レンズ Sony FE 24-70mm が出品されました",
-        "type": "listing"
+        "time": "18分前",
+        "action": "Nikon Z9 がeBayに自動出品されました",
+        "type": "listing",
+        "businessFlowPhase": "3-listing",
+        "performer": "システム自動"
       },
       {
         "id": 3,
-        "time": "1時間前",
-        "action": "Rolex Submariner が売約済みになりました",
-        "type": "sold"
+        "time": "45分前",
+        "action": "Sony α7R V が$3,200で売約済みになりました",
+        "type": "sold",
+        "businessFlowPhase": "3-listing",
+        "performer": "eBay購入者"
       },
       {
         "id": 4,
+        "time": "1時間前",
+        "action": "FUJIFILM X-T5 の商品撮影が完了しました",
+        "type": "photography",
+        "businessFlowPhase": "2-inspection",
+        "performer": "山田 智子"
+      },
+      {
+        "id": 5,
         "time": "2時間前",
-        "action": "Hermès バッグの検品が完了しました",
-        "type": "inspection"
+        "action": "Leica Q2 Monochrom が入庫されました",
+        "type": "inbound",
+        "businessFlowPhase": "1-preparation",
+        "performer": "配送業者"
       }
     ],
     "chartData": {
       "sales": [
-        { "month": "1月", "sales": 4500000, "orders": 45 },
-        { "month": "2月", "sales": 5200000, "orders": 52 },
-        { "month": "3月", "sales": 4800000, "orders": 48 },
-        { "month": "4月", "sales": 6100000, "orders": 61 },
-        { "month": "5月", "sales": 7300000, "orders": 73 },
-        { "month": "6月", "sales": 8500000, "orders": 85 }
+        { "month": "1月", "sales": 6800000, "orders": 68, "avgPrice": 100000 },
+        { "month": "2月", "sales": 7950000, "orders": 79, "avgPrice": 100633 },
+        { "month": "3月", "sales": 8200000, "orders": 82, "avgPrice": 100000 },
+        { "month": "4月", "sales": 9850000, "orders": 98, "avgPrice": 100510 },
+        { "month": "5月", "sales": 11200000, "orders": 112, "avgPrice": 100000 },
+        { "month": "6月", "sales": 13500000, "orders": 135, "avgPrice": 100000 }
       ],
       "categoryBreakdown": [
-        { "category": "カメラ本体", "value": 35, "count": 82 },
-        { "category": "レンズ", "value": 28, "count": 65 },
-        { "category": "腕時計", "value": 25, "count": 58 },
-        { "category": "アクセサリ", "value": 12, "count": 29 }
+        { "category": "カメラ本体", "value": 42, "count": 131, "avgPrice": 358000 },
+        { "category": "レンズ", "value": 31, "count": 97, "avgPrice": 185000 },
+        { "category": "アクセサリー", "value": 15, "count": 47, "avgPrice": 85000 },
+        { "category": "ヴィンテージ", "value": 12, "count": 37, "avgPrice": 480000 }
       ]
     }
   },
+  "sellers": [
+    {
+      "id": "seller-001",
+      "name": "山田 健一",
+      "storeName": "CameraWorld_Yamada",
+      "ebayId": "cameraworld_yamada_jp",
+      "contactEmail": "k.yamada@twd-student.com",
+      "phone": "090-1111-2222",
+      "rating": 4.95,
+      "feedbackCount": 2847,
+      "joinedDate": "2023-02-15",
+      "status": "active",
+      "tier": "プラチナ",
+      "profile": {
+        "background": "ザ・ワールドドア社塾生（3期生）。元カメラ販売店勤務。カメラの専門知識を活かしたeBay販売を実践。",
+        "specialty": "一眼レフカメラ、ミラーレスカメラ",
+        "experience": "2年",
+        "certifications": ["ザ・ワールドドア社認定セラー", "カメラ販売士"],
+        "monthlyTarget": 2000000,
+        "achievementRate": 112
+      },
+      "performance": {
+        "totalSales": 28500000,
+        "monthlyAverage": 2375000,
+        "bestMonth": 3200000,
+        "returnRate": 1.2,
+        "defectRate": 0.3,
+        "onTimeShipping": 99.1
+      },
+      "businessFlow": {
+        "preferredSources": ["カメラ量販店", "個人売買", "オークション"],
+        "averageInspectionTime": "45分",
+        "listingStrategy": "プレミアム価格設定",
+        "shippingPreference": "FedEx International Priority"
+      }
+    },
+    {
+      "id": "seller-002",
+      "name": "佐藤 美咲",
+      "storeName": "LensExpert_Sato",
+      "ebayId": "lensexpert_sato_jp",
+      "contactEmail": "m.sato@twd-student.com",
+      "phone": "090-2222-3333",
+      "rating": 4.92,
+      "feedbackCount": 1956,
+      "joinedDate": "2023-04-22",
+      "status": "active",
+      "tier": "ゴールド",
+      "profile": {
+        "background": "ザ・ワールドドア社塾生（4期生）。元写真館勤務。レンズの光学性能評価に精通。",
+        "specialty": "カメラレンズ、光学機器",
+        "experience": "1.5年",
+        "certifications": ["ザ・ワールドドア社認定セラー", "光学機器技能士"],
+        "monthlyTarget": 1500000,
+        "achievementRate": 108
+      },
+      "performance": {
+        "totalSales": 18750000,
+        "monthlyAverage": 1562500,
+        "bestMonth": 2100000,
+        "returnRate": 0.8,
+        "defectRate": 0.2,
+        "onTimeShipping": 99.5
+      },
+      "businessFlow": {
+        "preferredSources": ["プロカメラマン", "撮影スタジオ", "中古カメラ店"],
+        "averageInspectionTime": "38分",
+        "listingStrategy": "技術仕様重視",
+        "shippingPreference": "DHL Express"
+      }
+    },
+    {
+      "id": "seller-003",
+      "name": "田中 裕介",
+      "storeName": "VintageCamera_Tanaka",
+      "ebayId": "vintagecamera_tanaka_jp",
+      "contactEmail": "y.tanaka@twd-student.com",
+      "phone": "090-3333-4444",
+      "rating": 4.89,
+      "feedbackCount": 1432,
+      "joinedDate": "2023-06-10",
+      "status": "active",
+      "tier": "ゴールド",
+      "profile": {
+        "background": "ザ・ワールドドア社塾生（5期生）。カメラコレクター歴20年。ヴィンテージカメラの真贋判定が得意。",
+        "specialty": "ヴィンテージカメラ、フィルムカメラ",
+        "experience": "1年",
+        "certifications": ["ザ・ワールドドア社認定セラー", "古物商許可証"],
+        "monthlyTarget": 1200000,
+        "achievementRate": 118
+      },
+      "performance": {
+        "totalSales": 14200000,
+        "monthlyAverage": 1183333,
+        "bestMonth": 1850000,
+        "returnRate": 1.5,
+        "defectRate": 0.4,
+        "onTimeShipping": 98.8
+      },
+      "businessFlow": {
+        "preferredSources": ["古物市場", "個人コレクター", "海外オークション"],
+        "averageInspectionTime": "65分",
+        "listingStrategy": "希少価値訴求",
+        "shippingPreference": "EMS"
+      }
+    },
+    {
+      "id": "seller-004",
+      "name": "鈴木 雅子",
+      "storeName": "AccessoryPro_Suzuki",
+      "ebayId": "accessorypro_suzuki_jp",
+      "contactEmail": "m.suzuki@twd-student.com",
+      "phone": "090-4444-5555",
+      "rating": 4.94,
+      "feedbackCount": 2156,
+      "joinedDate": "2023-08-18",
+      "status": "active",
+      "tier": "プラチナ",
+      "profile": {
+        "background": "ザ・ワールドドア社塾生（6期生）。元アクセサリーショップ経営。撮影機材の目利きに長ける。",
+        "specialty": "カメラアクセサリー、撮影機材",
+        "experience": "10ヶ月",
+        "certifications": ["ザ・ワールドドア社認定セラー", "商品企画士"],
+        "monthlyTarget": 800000,
+        "achievementRate": 125
+      },
+      "performance": {
+        "totalSales": 10000000,
+        "monthlyAverage": 1000000,
+        "bestMonth": 1400000,
+        "returnRate": 0.6,
+        "defectRate": 0.1,
+        "onTimeShipping": 99.7
+      },
+      "businessFlow": {
+        "preferredSources": ["メーカー直販", "撮影機材店", "プロ機材レンタル"],
+        "averageInspectionTime": "25分",
+        "listingStrategy": "バンドル販売",
+        "shippingPreference": "FedEx Economy"
+      }
+    },
+    {
+      "id": "seller-005",
+      "name": "高橋 智也",
+      "storeName": "TechCamera_Takahashi",
+      "ebayId": "techcamera_takahashi_jp",
+      "contactEmail": "t.takahashi@twd-student.com",
+      "phone": "090-5555-6666",
+      "rating": 4.91,
+      "feedbackCount": 1687,
+      "joinedDate": "2023-10-05",
+      "status": "active",
+      "tier": "ゴールド",
+      "profile": {
+        "background": "ザ・ワールドドア社塾生（7期生）。元IT系エンジニア。最新技術のカメラに詳しい。",
+        "specialty": "最新ミラーレス、動画機材",
+        "experience": "8ヶ月",
+        "certifications": ["ザ・ワールドドア社認定セラー", "映像技術者"],
+        "monthlyTarget": 1800000,
+        "achievementRate": 102
+      },
+      "performance": {
+        "totalSales": 14400000,
+        "monthlyAverage": 1800000,
+        "bestMonth": 2300000,
+        "returnRate": 1.1,
+        "defectRate": 0.2,
+        "onTimeShipping": 99.2
+      },
+      "businessFlow": {
+        "preferredSources": ["家電量販店", "メーカー認定店", "個人ユーザー"],
+        "averageInspectionTime": "42分",
+        "listingStrategy": "技術仕様詳細記載",
+        "shippingPreference": "UPS Worldwide Express"
+      }
+    }
+  ],
   "delivery": {
     "plans": [
       {
         "id": "DEL-001",
-        "planName": "6月定期納品",
-        "scheduledDate": "2024-06-30",
+        "sellerId": "seller-001",
+        "sellerName": "山田 健一",
+        "planName": "7月第1回納品_カメラ本体",
+        "scheduledDate": "2024-07-05",
         "status": "準備中",
-        "itemCount": 15,
-        "totalValue": 3500000,
-        "createdAt": "2024-06-20",
-        "deliveryMethod": "宅配便",
-        "trackingNumber": null
+        "itemCount": 8,
+        "totalValue": 2850000,
+        "createdAt": "2024-06-28",
+        "deliveryMethod": "ヤマト運輸",
+        "trackingNumber": null,
+        "businessFlowPhase": "1-preparation",
+        "items": [
+          {
+            "productName": "Canon EOS R8",
+            "condition": "美品",
+            "purchasePrice": 285000,
+            "estimatedSalePrice": 320000
+          },
+          {
+            "productName": "Sony α7 IV",
+            "condition": "極美品", 
+            "purchasePrice": 358000,
+            "estimatedSalePrice": 395000
+          }
+        ]
       },
       {
         "id": "DEL-002",
-        "planName": "緊急納品_カメラ",
-        "scheduledDate": "2024-06-25",
+        "sellerId": "seller-002",
+        "sellerName": "佐藤 美咲",
+        "planName": "緊急納品_プレミアムレンズ",
+        "scheduledDate": "2024-07-02",
         "status": "配送中",
-        "itemCount": 3,
-        "totalValue": 1200000,
-        "createdAt": "2024-06-22",
-        "deliveryMethod": "直接持込",
-        "trackingNumber": "TRK-1234567890"
+        "itemCount": 5,
+        "totalValue": 1850000,
+        "createdAt": "2024-06-30",
+        "deliveryMethod": "佐川急便",
+        "trackingNumber": "TRK-2024070200123",
+        "businessFlowPhase": "1-preparation",
+        "items": [
+          {
+            "productName": "Sony FE 70-200mm f/2.8 GM OSS II",
+            "condition": "新品同様",
+            "purchasePrice": 385000,
+            "estimatedSalePrice": 425000
+          }
+        ]
       }
     ],
     "deliveryHistory": [
       {
         "id": "DEL-H-001",
-        "planName": "5月定期納品",
-        "deliveredDate": "2024-05-28",
+        "sellerId": "seller-001",
+        "sellerName": "山田 健一",
+        "planName": "6月第3回納品",
+        "deliveredDate": "2024-06-25",
         "status": "完了",
-        "itemCount": 22,
-        "totalValue": 4200000,
-        "receivedBy": "田中スタッフ",
-        "notes": "全商品検品完了。品質良好。"
-      },
-      {
-        "id": "DEL-H-002",
-        "planName": "特別納品_時計",
-        "deliveredDate": "2024-05-15",
-        "status": "完了",
-        "itemCount": 8,
-        "totalValue": 2800000,
-        "receivedBy": "佐藤スタッフ",
-        "notes": "高級時計8点。全て新品同様。"
+        "itemCount": 12,
+        "totalValue": 3200000,
+        "receivedBy": "田中 宏明",
+        "notes": "全商品検品完了。品質良好。Canon製品中心の構成。",
+        "businessFlowPhase": "2-inspection",
+        "inspectionResults": {
+          "passed": 12,
+          "failed": 0,
+          "averageCondition": "A",
+          "totalInspectionTime": "9時間"
+        }
       }
     ]
   },
@@ -112,80 +332,179 @@
       {
         "id": "INV-001",
         "name": "Canon EOS R5",
-        "sku": "CAM-001",
+        "sku": "CAM-CANON-R5-008",
         "category": "カメラ本体",
         "status": "storage",
-        "location": "A区画-01",
-        "price": 450000,
-        "estimatedValue": 480000,
+        "location": "A-08",
+        "sellerId": "seller-001",
+        "sellerName": "山田 健一",
+        "purchasePrice": 385000,
+        "estimatedValue": 425000,
+        "listingPrice": 419000,
         "condition": "極美品",
         "entryDate": "2024-06-20",
-        "images": [
-          "/images/camera-1-1.jpg",
-          "/images/camera-1-2.jpg",
-          "/images/camera-1-3.jpg",
-          "/images/camera-1-4.jpg",
-          "/images/camera-1-5.jpg",
-          "/images/camera-1-6.jpg"
+        "inspectionDate": "2024-06-21",
+        "inspectedBy": "田中 宏明",
+        "businessFlowPhase": "2-inspection",
+        "flowHistory": [
+          {
+            "phase": "1-preparation",
+            "timestamp": "2024-06-18T10:00:00Z",
+            "action": "セラーが商品購入"
+          },
+          {
+            "phase": "1-preparation", 
+            "timestamp": "2024-06-20T14:30:00Z",
+            "action": "倉庫に入庫"
+          },
+          {
+            "phase": "2-inspection",
+            "timestamp": "2024-06-21T09:15:00Z",
+            "action": "検品完了"
+          }
         ],
-        "description": "Canon EOS R5 ボディ、付属品完備。使用感少なく、動作良好。",
+        "images": [
+          "/images/canon-r5-001-front.jpg",
+          "/images/canon-r5-001-back.jpg",
+          "/images/canon-r5-001-top.jpg",
+          "/images/canon-r5-001-bottom.jpg",
+          "/images/canon-r5-001-lcd.jpg",
+          "/images/canon-r5-001-accessories.jpg"
+        ],
+        "description": "Canon EOS R5 ボディ。シャッター回数8,500回。付属品完備。軽微な使用感あり。動作良好。",
         "specifications": {
           "resolution": "45MP",
           "iso": "100-51200",
           "videoRecording": "8K RAW 30p",
-          "weight": "650g"
+          "weight": "650g",
+          "shutterCount": 8500,
+          "mountType": "RF mount"
+        },
+        "inspectionResults": {
+          "overallScore": 4.3,
+          "condition": "A:美品",
+          "ebayCondition": "Excellent",
+          "notes": "シャッター回数8,500回。動作良好。軽微な使用感あり。"
         }
       },
       {
         "id": "INV-002",
-        "name": "Sony FE 24-70mm f/2.8",
-        "sku": "LEN-002",
+        "name": "Sony FE 24-70mm f/2.8 GM",
+        "sku": "LEN-SONY-2470GM-012",
         "category": "レンズ",
         "status": "listing",
-        "location": "A区画-05",
-        "price": 280000,
-        "estimatedValue": 295000,
+        "location": "A-12",
+        "sellerId": "seller-002",
+        "sellerName": "佐藤 美咲",
+        "purchasePrice": 195000,
+        "estimatedValue": 225000,
+        "listingPrice": 219000,
         "condition": "美品",
         "entryDate": "2024-06-22",
-        "images": [
-          "/images/lens-1-1.jpg",
-          "/images/lens-1-2.jpg",
-          "/images/lens-1-3.jpg",
-          "/images/lens-1-4.jpg"
+        "inspectionDate": "2024-06-23",
+        "inspectedBy": "佐藤 恵美",
+        "photographedBy": "山田 智子",
+        "businessFlowPhase": "3-listing",
+        "flowHistory": [
+          {
+            "phase": "1-preparation",
+            "timestamp": "2024-06-20T15:00:00Z",
+            "action": "セラーが商品購入"
+          },
+          {
+            "phase": "2-inspection",
+            "timestamp": "2024-06-23T11:30:00Z",
+            "action": "検品・撮影完了"
+          },
+          {
+            "phase": "3-listing",
+            "timestamp": "2024-06-24T09:00:00Z",
+            "action": "eBay出品済み"
+          }
         ],
-        "description": "Sony FE 24-70mm f/2.8 GM レンズ。わずかな使用感あり。",
+        "images": [
+          "/images/sony-2470gm-012-front.jpg",
+          "/images/sony-2470gm-012-side.jpg",
+          "/images/sony-2470gm-012-rear.jpg",
+          "/images/sony-2470gm-012-zoom.jpg"
+        ],
+        "description": "Sony FE 24-70mm f/2.8 GM レンズ。わずかな使用感あり。光学系クリア。",
         "specifications": {
           "focalLength": "24-70mm",
           "aperture": "f/2.8",
           "mount": "Sony E-mount",
-          "weight": "886g"
+          "weight": "886g",
+          "filterSize": "82mm"
+        },
+        "inspectionResults": {
+          "overallScore": 4.1,
+          "condition": "B+:良品上",
+          "ebayCondition": "Very Good",
+          "notes": "光学系良好。外観に軽微な使用感。"
+        },
+        "ebayListing": {
+          "listingId": "eBay-275123456789",
+          "title": "Sony FE 24-70mm f/2.8 GM Lens - Excellent Condition from Japan",
+          "startingPrice": 219000,
+          "currentPrice": 219000,
+          "watchers": 23,
+          "views": 156
         }
       },
       {
         "id": "INV-003",
-        "name": "Rolex Submariner Date",
-        "sku": "WAT-001",
-        "category": "腕時計",
+        "name": "Leica Q2",
+        "sku": "CAM-LEICA-Q2-005",
+        "category": "カメラ本体",
         "status": "sold",
-        "location": "V区画-12",
-        "price": 1200000,
-        "estimatedValue": 1250000,
-        "condition": "中古美品",
+        "location": "出荷準備エリア",
+        "sellerId": "seller-003",
+        "sellerName": "田中 裕介",
+        "purchasePrice": 485000,
+        "soldPrice": 548000,
+        "condition": "極美品",
         "entryDate": "2024-06-15",
-        "images": [
-          "/images/watch-1-1.jpg",
-          "/images/watch-1-2.jpg",
-          "/images/watch-1-3.jpg",
-          "/images/watch-1-4.jpg",
-          "/images/watch-1-5.jpg",
-          "/images/watch-1-6.jpg"
+        "soldDate": "2024-06-28",
+        "businessFlowPhase": "4-shipping",
+        "flowHistory": [
+          {
+            "phase": "1-preparation",
+            "timestamp": "2024-06-13T14:00:00Z",
+            "action": "セラーが商品購入"
+          },
+          {
+            "phase": "2-inspection",
+            "timestamp": "2024-06-16T10:45:00Z",
+            "action": "検品・撮影完了"
+          },
+          {
+            "phase": "3-listing",
+            "timestamp": "2024-06-17T08:30:00Z",
+            "action": "eBay出品"
+          },
+          {
+            "phase": "3-listing",
+            "timestamp": "2024-06-28T16:22:00Z",
+            "action": "売約成立"
+          },
+          {
+            "phase": "4-shipping",
+            "timestamp": "2024-06-29T09:00:00Z",
+            "action": "出荷準備開始"
+          }
         ],
-        "description": "ロレックス サブマリーナー デイト 41mm。2022年購入品。",
+        "orderDetails": {
+          "buyerName": "Michael Johnson",
+          "buyerLocation": "California, USA",
+          "shippingMethod": "FedEx International Priority",
+          "trackingNumber": "1234567890123456",
+          "insuranceValue": 600000
+        },
         "specifications": {
-          "movement": "Cal. 3235",
-          "case": "41mm オイスタースチール",
-          "waterResistance": "300m",
-          "bracelet": "オイスターブレスレット"
+          "resolution": "47.3MP",
+          "lens": "28mm f/1.7 ASPH",
+          "iso": "50-50000",
+          "weight": "718g"
         }
       }
     ]
@@ -194,43 +513,73 @@
     "orders": [
       {
         "id": "ORD-001",
-        "orderNumber": "WD-2024-001",
-        "customerName": "山田太郎",
-        "productName": "Canon EOS R5",
-        "salePrice": 445000,
-        "commission": 66750,
-        "netAmount": 378250,
-        "orderDate": "2024-06-23",
+        "orderNumber": "eBay-404123456789",
+        "sellerId": "seller-001",
+        "sellerName": "山田 健一",
+        "customerName": "Robert Smith",
+        "customerLocation": "New York, USA",
+        "productName": "Canon EOS R6 Mark II",
+        "productSku": "CAM-CANON-R6M2-003",
+        "purchasePrice": 285000,
+        "salePrice": 325000,
+        "commission": 48750,
+        "netAmount": 276250,
+        "orderDate": "2024-06-28",
         "status": "配送中",
-        "shippingMethod": "ヤマト運輸",
-        "trackingNumber": "1234-5678-9012",
-        "estimatedDelivery": "2024-06-25"
+        "shippingMethod": "FedEx International Priority",
+        "trackingNumber": "1234-5678-9012-3456",
+        "estimatedDelivery": "2024-07-03",
+        "businessFlowPhase": "4-shipping",
+        "flowProgress": {
+          "ordered": "2024-06-28T14:30:00Z",
+          "picked": "2024-06-29T09:15:00Z",
+          "packed": "2024-06-29T10:45:00Z",
+          "shipped": "2024-06-29T14:00:00Z"
+        }
       },
       {
         "id": "ORD-002",
-        "orderNumber": "WD-2024-002",
-        "customerName": "鈴木花子",
-        "productName": "Hermès Kelly",
-        "salePrice": 2800000,
-        "commission": 420000,
-        "netAmount": 2380000,
-        "orderDate": "2024-06-22",
+        "orderNumber": "eBay-404123456790",
+        "sellerId": "seller-002",
+        "sellerName": "佐藤 美咲",
+        "customerName": "Jennifer Wilson",
+        "customerLocation": "London, UK",
+        "productName": "Sony FE 70-200mm f/2.8 GM OSS",
+        "productSku": "LEN-SONY-70200GM-007",
+        "purchasePrice": 195000,
+        "salePrice": 235000,
+        "commission": 35250,
+        "netAmount": 199750,
+        "orderDate": "2024-06-29",
         "status": "出荷準備中",
-        "shippingMethod": "佐川急便",
+        "shippingMethod": "DHL Express",
         "trackingNumber": null,
-        "estimatedDelivery": "2024-06-26"
+        "estimatedDelivery": "2024-07-04",
+        "businessFlowPhase": "4-shipping",
+        "flowProgress": {
+          "ordered": "2024-06-29T18:45:00Z",
+          "picked": "2024-06-30T08:30:00Z"
+        }
       }
     ],
     "salesReport": {
-      "totalSales": 8950000,
-      "totalCommission": 1342500,
-      "netEarnings": 7607500,
-      "averagePrice": 447500,
+      "totalSales": 13750000,
+      "totalCommission": 2062500,
+      "netEarnings": 11687500,
+      "averagePrice": 458333,
+      "totalOrders": 30,
       "topCategories": [
-        { "category": "腕時計", "sales": 3200000, "count": 8 },
-        { "category": "カメラ本体", "sales": 2800000, "count": 12 },
-        { "category": "アクセサリ", "sales": 1950000, "count": 3 },
-        { "category": "レンズ", "sales": 1000000, "count": 7 }
+        { "category": "カメラ本体", "sales": 6200000, "count": 15, "avgPrice": 413333 },
+        { "category": "レンズ", "sales": 4800000, "count": 12, "avgPrice": 400000 },
+        { "category": "アクセサリー", "sales": 1750000, "count": 2, "avgPrice": 875000 },
+        { "category": "ヴィンテージ", "sales": 1000000, "count": 1, "avgPrice": 1000000 }
+      ],
+      "topSellers": [
+        { "sellerId": "seller-001", "name": "山田 健一", "sales": 4200000, "orders": 12 },
+        { "sellerId": "seller-002", "name": "佐藤 美咲", "sales": 3800000, "orders": 10 },
+        { "sellerId": "seller-003", "name": "田中 裕介", "sales": 2950000, "orders": 5 },
+        { "sellerId": "seller-004", "name": "鈴木 雅子", "sales": 1900000, "orders": 2 },
+        { "sellerId": "seller-005", "name": "高橋 智也", "sales": 900000, "orders": 1 }
       ]
     },
     "priceSettings": [
@@ -239,28 +588,36 @@
         "commissionRate": 15,
         "minPrice": 100000,
         "maxPrice": 1000000,
-        "priceStrategy": "市場価格連動"
+        "priceStrategy": "市場価格連動",
+        "autoRepricing": true,
+        "competitorMonitoring": true
       },
       {
         "category": "レンズ",
-        "commissionRate": 12,
+        "commissionRate": 15,
         "minPrice": 50000,
         "maxPrice": 500000,
-        "priceStrategy": "固定マージン"
+        "priceStrategy": "固定マージン",
+        "autoRepricing": true,
+        "competitorMonitoring": true
       },
       {
-        "category": "腕時計",
+        "category": "アクセサリー",
+        "commissionRate": 12,
+        "minPrice": 10000,
+        "maxPrice": 200000,
+        "priceStrategy": "バンドル推奨",
+        "autoRepricing": false,
+        "competitorMonitoring": false
+      },
+      {
+        "category": "ヴィンテージ",
         "commissionRate": 18,
         "minPrice": 200000,
-        "maxPrice": 5000000,
-        "priceStrategy": "オークション"
-      },
-      {
-        "category": "アクセサリ",
-        "commissionRate": 20,
-        "minPrice": 300000,
-        "maxPrice": 10000000,
-        "priceStrategy": "専門査定"
+        "maxPrice": 2000000,
+        "priceStrategy": "希少価値訴求",
+        "autoRepricing": false,
+        "competitorMonitoring": true
       }
     ]
   },
@@ -268,151 +625,121 @@
     "requests": [
       {
         "id": "RET-001",
-        "requestNumber": "RT-2024-001",
-        "orderNumber": "WD-2024-001",
+        "requestNumber": "RT-2024-0628-001",
+        "orderId": "ORD-H-045",
+        "sellerId": "seller-001",
+        "sellerName": "山田 健一",
         "productName": "Canon EOS R6",
+        "productSku": "CAM-CANON-R6-015",
         "reason": "商品説明と相違",
-        "description": "レンズマウント部分に記載のない傷があります",
-        "requestDate": "2024-06-20",
+        "description": "シャッター回数が説明（15,000回）より多い（22,000回）",
+        "requestDate": "2024-06-28T10:00:00Z",
         "status": "審査中",
-        "customerName": "田中一郎",
+        "customerName": "David Chen",
+        "customerLocation": "Toronto, Canada",
+        "originalSalePrice": 285000,
         "images": [
-          "/images/return-1-1.jpg",
-          "/images/return-1-2.jpg"
+          "/images/return-canon-r6-shutter-count.jpg",
+          "/images/return-canon-r6-screen.jpg"
         ],
-        "refundAmount": 320000,
-        "processingNotes": null
-      },
-      {
-        "id": "RET-002",
-        "requestNumber": "RT-2024-002",
-        "orderNumber": "WD-2024-002",
-        "productName": "Omega Speedmaster",
-        "reason": "初期不良",
-        "description": "ゼンマイの巻き上げが固く、正常に動作しません",
-        "requestDate": "2024-06-18",
-        "status": "承認済み",
-        "customerName": "佐々木美咲",
-        "images": [
-          "/images/return-2-1.jpg"
-        ],
-        "refundAmount": 580000,
-        "processingNotes": "メーカー修理後、再出品予定"
+        "refundAmount": 285000,
+        "processingNotes": "シャッター回数確認中。佐藤検品員が再検査予定。",
+        "assignedTo": "佐藤 恵美",
+        "businessFlowPhase": "5-completion"
       }
     ],
     "returnHistory": [
       {
         "id": "RET-H-001",
-        "requestNumber": "RT-2024-003",
-        "productName": "Leica M10",
+        "requestNumber": "RT-2024-0615-003",
+        "sellerId": "seller-003",
+        "sellerName": "田中 裕介",
+        "productName": "Leica M6",
         "reason": "イメージ違い",
-        "processedDate": "2024-05-30",
+        "processedDate": "2024-06-20",
         "status": "完了",
-        "refundAmount": 750000,
-        "outcome": "全額返金"
-      },
-      {
-        "id": "RET-H-002",
-        "requestNumber": "RT-2024-004",
-        "productName": "Cartier Tank",
-        "reason": "サイズ不適合",
-        "processedDate": "2024-05-25",
-        "status": "完了",
-        "refundAmount": 450000,
-        "outcome": "全額返金"
+        "refundAmount": 485000,
+        "outcome": "全額返金",
+        "businessFlowPhase": "5-completion",
+        "resolutionNotes": "顧客の期待と商品状態に相違なし。通常の返品として処理。"
       }
     ]
   },
-  "sellers": [
-    {
-      "id": "seller-001",
-      "storeName": "WorldDoorShop01",
-      "ebayId": "worlddoor_seller01",
-      "contactEmail": "seller01@worlddoor.co.jp",
-      "rating": 4.9,
-      "joinedDate": "2023-01-15",
-      "status": "active"
+  "businessFlowTracking": {
+    "activeFlows": [
+      {
+        "flowId": "FLOW-001",
+        "sellerId": "seller-001",
+        "productSku": "CAM-CANON-R5-008",
+        "currentPhase": "2-inspection",
+        "currentStage": "storage",
+        "startDate": "2024-06-18T10:00:00Z",
+        "estimatedCompletion": "2024-07-15T00:00:00Z",
+        "phaseHistory": [
+          {
+            "phase": "1-preparation",
+            "startTime": "2024-06-18T10:00:00Z",
+            "endTime": "2024-06-20T14:30:00Z",
+            "duration": "2日4時間30分",
+            "performer": "山田 健一"
+          },
+          {
+            "phase": "2-inspection", 
+            "startTime": "2024-06-20T14:30:00Z",
+            "endTime": null,
+            "duration": "進行中",
+            "performer": "田中 宏明"
+          }
+        ]
+      }
+    ],
+    "completedFlows": [
+      {
+        "flowId": "FLOW-002",
+        "sellerId": "seller-003",
+        "productSku": "CAM-LEICA-Q2-005",
+        "totalDuration": "15日",
+        "profit": 63000,
+        "phaseBreakdown": {
+          "preparation": "2日",
+          "inspection": "1日",
+          "listing": "11日",
+          "shipping": "1日",
+          "completion": "進行中"
+        }
+      }
+    ]
+  },
+  "studentProgram": {
+    "courseInfo": {
+      "programName": "ザ・ワールドドア社 eBayマスタープログラム",
+      "currentTerm": "2024年度第2期",
+      "totalStudents": 45,
+      "activeStudents": 38,
+      "graduatedStudents": 127
     },
-    {
-      "id": "seller-002",
-      "storeName": "WorldDoorShop02",
-      "ebayId": "worlddoor_seller02",
-      "contactEmail": "seller02@worlddoor.co.jp",
-      "rating": 4.8,
-      "joinedDate": "2023-02-10",
-      "status": "active"
-    },
-    {
-      "id": "seller-003",
-      "storeName": "WorldDoorShop03",
-      "ebayId": "worlddoor_seller03",
-      "contactEmail": "seller03@worlddoor.co.jp",
-      "rating": 4.7,
-      "joinedDate": "2023-03-05",
-      "status": "active"
-    },
-    {
-      "id": "seller-004",
-      "storeName": "WorldDoorShop04",
-      "ebayId": "worlddoor_seller04",
-      "contactEmail": "seller04@worlddoor.co.jp",
-      "rating": 4.85,
-      "joinedDate": "2023-04-22",
-      "status": "active"
-    },
-    {
-      "id": "seller-005",
-      "storeName": "WorldDoorShop05",
-      "ebayId": "worlddoor_seller05",
-      "contactEmail": "seller05@worlddoor.co.jp",
-      "rating": 4.95,
-      "joinedDate": "2023-05-18",
-      "status": "active"
-    },
-    {
-      "id": "seller-006",
-      "storeName": "WorldDoorShop06",
-      "ebayId": "worlddoor_seller06",
-      "contactEmail": "seller06@worlddoor.co.jp",
-      "rating": 4.6,
-      "joinedDate": "2023-06-12",
-      "status": "active"
-    },
-    {
-      "id": "seller-007",
-      "storeName": "WorldDoorShop07",
-      "ebayId": "worlddoor_seller07",
-      "contactEmail": "seller07@worlddoor.co.jp",
-      "rating": 4.75,
-      "joinedDate": "2023-07-08",
-      "status": "active"
-    },
-    {
-      "id": "seller-008",
-      "storeName": "WorldDoorShop08",
-      "ebayId": "worlddoor_seller08",
-      "contactEmail": "seller08@worlddoor.co.jp",
-      "rating": 4.8,
-      "joinedDate": "2023-08-19",
-      "status": "active"
-    },
-    {
-      "id": "seller-009",
-      "storeName": "WorldDoorShop09",
-      "ebayId": "worlddoor_seller09",
-      "contactEmail": "seller09@worlddoor.co.jp",
-      "rating": 4.65,
-      "joinedDate": "2023-09-30",
-      "status": "active"
-    },
-    {
-      "id": "seller-010",
-      "storeName": "WorldDoorShop10",
-      "ebayId": "worlddoor_seller10",
-      "contactEmail": "seller10@worlddoor.co.jp",
-      "rating": 4.9,
-      "joinedDate": "2023-11-11",
-      "status": "active"
+    "curriculum": [
+      {
+        "module": "基礎編",
+        "topics": ["eBay基本操作", "商品撮影技術", "価格設定理論"],
+        "duration": "4週間"
+      },
+      {
+        "module": "実践編",
+        "topics": ["商品仕入れ戦略", "検品技術", "顧客対応"],
+        "duration": "8週間"
+      },
+      {
+        "module": "上級編",
+        "topics": ["市場分析", "リスク管理", "スケーリング戦略"],
+        "duration": "6週間"
+      }
+    ],
+    "mentorSupport": {
+      "weeklyMeetings": true,
+      "1on1Sessions": "月2回",
+      "groupWorkshops": "月4回",
+      "emergencySupport": "24時間以内対応"
     }
-  ]
+  }
 }

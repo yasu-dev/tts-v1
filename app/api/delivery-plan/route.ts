@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
 import { AuthService } from '@/lib/auth';
+import { MockFallback } from '@/lib/mock-fallback';
+import { promises as fs } from 'fs';
+import path from 'path';
+
+const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
   try {
@@ -76,27 +82,20 @@ export async function GET(request: NextRequest) {
     // 認証チェック
     const user = await AuthService.requireRole(request, ['seller', 'staff']);
 
-    // デモ用の納品プラン一覧
-    const deliveryPlans = [
-      {
-        id: 'DP-1234567890-abc123',
-        sellerId: user.id,
-        sellerName: 'サンプルセラー',
-        status: 'pending',
-        productCount: 3,
-        totalValue: 450000,
-        createdAt: '2024-01-15T10:30:00Z'
-      },
-      {
-        id: 'DP-1234567891-def456',
-        sellerId: user.id,
-        sellerName: 'サンプルセラー',
-        status: 'processing',
-        productCount: 1,
-        totalValue: 120000,
-        createdAt: '2024-01-14T14:20:00Z'
-      }
-    ];
+    // Prismaを使用して納品プランデータを取得
+    // TODO: 実際のPrismaクエリを実装する際は、以下のような構造になる
+    // const deliveryPlans = await prisma.deliveryPlan.findMany({
+    //   where: { sellerId: user.id },
+    //   include: { products: true }
+    // });
+
+    // 現在はJSONファイルからデータを読み込む（Prismaスキーマが整備されるまで）
+    const filePath = path.join(process.cwd(), 'data', 'seller-mock.json');
+    const fileContents = await fs.readFile(filePath, 'utf8');
+    const sellerData = JSON.parse(fileContents);
+    
+    // 納品プランデータを抽出
+    const deliveryPlans = sellerData.delivery.plans;
 
     return NextResponse.json({
       success: true,
@@ -105,6 +104,21 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('[ERROR] 納品プラン取得エラー:', error);
+    
+    // Prismaエラーやファイル読み込みエラーの場合はフォールバックデータを使用
+    if (MockFallback.isPrismaError(error)) {
+      console.log('Using fallback data for delivery plans due to Prisma error');
+      try {
+        const fallbackData = {
+          success: true,
+          deliveryPlans: []
+        };
+        return NextResponse.json(fallbackData);
+      } catch (fallbackError) {
+        console.error('Fallback data error:', fallbackError);
+      }
+    }
+    
     return NextResponse.json(
       { error: '納品プランの取得に失敗しました' },
       { status: 500 }

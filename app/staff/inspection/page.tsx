@@ -12,8 +12,8 @@ import {
   CameraIcon,
   XMarkIcon,
   CheckIcon,
-  AlertCircle
 } from '@heroicons/react/24/outline';
+import { AlertCircle } from 'lucide-react';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import BaseModal from '@/app/components/ui/BaseModal';
 import NexusTextarea from '@/app/components/ui/NexusTextarea';

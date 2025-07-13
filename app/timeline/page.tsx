@@ -3,10 +3,12 @@
 import DashboardLayout from '../components/layouts/DashboardLayout';
 import { ProductTimeline } from '../components/ProductTimeline';
 import { useState } from 'react';
-import { Package, Calendar, Activity, Filter, Download } from 'lucide-react';
 import {
   FunnelIcon,
   ArrowDownTrayIcon,
+  CalendarIcon,
+  ArchiveBoxIcon,
+  ChartBarIcon,
 } from '@heroicons/react/24/outline';
 import NexusButton from '@/app/components/ui/NexusButton';
 import BaseModal from '@/app/components/ui/BaseModal';
@@ -242,7 +244,7 @@ export default function TimelinePage() {
                       <p className="text-2xl font-display font-bold text-nexus-text-primary">10日</p>
                     </div>
                     <div className="action-orb blue w-10 h-10">
-                      <Calendar className="w-5 h-5" />
+                      <CalendarIcon className="w-5 h-5" />
                     </div>
                   </div>
                   <p className="text-xs text-nexus-text-secondary mt-1">平均: 15日</p>
@@ -257,7 +259,7 @@ export default function TimelinePage() {
                       <p className="text-lg font-medium text-green-600">出品中</p>
                     </div>
                     <div className="action-orb green w-10 h-10">
-                      <Package className="w-5 h-5" />
+                      <ArchiveBoxIcon className="w-5 h-5" />
                     </div>
                   </div>
                   <p className="text-xs text-nexus-text-secondary mt-1">更新: 1日前</p>
@@ -272,7 +274,7 @@ export default function TimelinePage() {
                       <p className="text-2xl font-display font-bold text-nexus-text-primary">9件</p>
                     </div>
                     <div className="action-orb blue w-10 h-10">
-                      <Activity className="w-5 h-5" />
+                      <ChartBarIcon className="w-5 h-5" />
                     </div>
                   </div>
                   <p className="text-xs text-nexus-text-secondary mt-1">過去30日</p>
