@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
+import UnifiedPageHeader from '@/app/components/ui/UnifiedPageHeader';
 import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
 import StatusIndicator from '@/app/components/ui/StatusIndicator';
@@ -12,6 +13,7 @@ import {
   CameraIcon,
   XMarkIcon,
   CheckIcon,
+  ClipboardDocumentListIcon,
 } from '@heroicons/react/24/outline';
 import { AlertCircle } from 'lucide-react';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
@@ -203,7 +205,10 @@ export default function InspectionPage() {
             }
           }
         };
-        setInspectionData(mockInspectionData);
+        setInspectionData({
+          ...mockInspectionData,
+          inspectionHistory: []
+        });
       } finally {
         setIsLoading(false);
       }
@@ -414,45 +419,42 @@ export default function InspectionPage() {
     );
   }
 
+  const headerActions = (
+    <>
+      <NexusButton
+        onClick={() => setIsStandardsModalOpen(true)}
+        icon={<BookOpenIcon className="w-5 h-5" />}
+      >
+        <span className="hidden sm:inline">検品基準を確認</span>
+        <span className="sm:hidden">検品基準</span>
+      </NexusButton>
+      <NexusButton
+        onClick={() => setIsCameraModalOpen(true)}
+        variant="primary"
+        icon={<CameraIcon className="w-5 h-5" />}
+      >
+        <span className="hidden sm:inline">カメラ設定</span>
+        <span className="sm:hidden">カメラ</span>
+      </NexusButton>
+    </>
+  );
+
   return (
     <DashboardLayout userType="staff">
-      <div className="space-y-6">
-        {/* Header */}
+      <div className="min-h-screen bg-nexus-bg">
+        {/* Page Header */}
         <div className="intelligence-card global">
           <div className="p-8">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-              {/* Title Section */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-3 mb-2">
-                  <svg className="w-8 h-8 text-nexus-yellow flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                  <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
-                    検品・撮影
-                  </h1>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <ClipboardDocumentListIcon className="w-8 h-8 text-nexus-yellow" />
+                <div>
+                  <h1 className="text-3xl font-display font-bold text-nexus-text-primary">検品管理</h1>
+                  <p className="text-nexus-text-secondary">商品の品質確認と検品作業を管理</p>
                 </div>
-                <p className="text-nexus-text-secondary">
-                  商品の検品と撮影作業を実施
-                </p>
               </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
-                <NexusButton
-                  onClick={() => setIsStandardsModalOpen(true)}
-                  icon={<BookOpenIcon className="w-5 h-5" />}
-                >
-                  <span className="hidden sm:inline">検品基準を確認</span>
-                  <span className="sm:hidden">検品基準</span>
-                </NexusButton>
-                <NexusButton
-                  onClick={() => setIsCameraModalOpen(true)}
-                  variant="primary"
-                  icon={<CameraIcon className="w-5 h-5" />}
-                >
-                  <span className="hidden sm:inline">カメラ設定</span>
-                  <span className="sm:hidden">カメラ</span>
-                </NexusButton>
+              <div className="flex gap-3">
+                {headerActions}
               </div>
             </div>
           </div>

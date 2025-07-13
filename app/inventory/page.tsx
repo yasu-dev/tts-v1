@@ -1,6 +1,7 @@
 'use client';
 
 import DashboardLayout from '../components/layouts/DashboardLayout';
+import UnifiedPageHeader from '../components/ui/UnifiedPageHeader';
 import { useState, useEffect } from 'react';
 import {
   ArchiveBoxIcon,
@@ -279,6 +280,33 @@ export default function InventoryPage() {
     }
   };
 
+  const headerActions = (
+    <>
+      <NexusButton 
+        onClick={() => setIsNewItemModalOpen(true)}
+        variant="primary"
+        size="sm"
+        icon={<PlusIcon className="w-4 h-4 sm:w-5 sm:h-5" />}
+      >
+        <span className="hidden sm:inline">新規商品登録</span>
+      </NexusButton>
+      <NexusButton
+        onClick={() => setIsCsvImportModalOpen(true)}
+        size="sm"
+        icon={<ArrowUpTrayIcon className="w-4 h-4 sm:w-5 sm:h-5" />}
+      >
+        <span className="hidden sm:inline">CSVインポート</span>
+      </NexusButton>
+      <NexusButton
+        onClick={handleExportCsv}
+        size="sm"
+        icon={<ArrowDownTrayIcon className="w-4 h-4 sm:w-5 sm:h-5" />}
+      >
+        <span className="hidden sm:inline">CSVエクスポート</span>
+      </NexusButton>
+    </>
+  );
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -290,49 +318,13 @@ export default function InventoryPage() {
   return (
     <DashboardLayout userType="seller">
       <div className="space-y-8">
-        {/* Page Header - Intelligence Card Style */}
-        <div className="intelligence-card europe">
-          <div className="p-8">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
-              <div className="flex-1">
-                <h1 className="text-2xl sm:text-3xl font-display font-bold text-nexus-text-primary mb-2">在庫管理</h1>
-                <h2 className="text-base sm:text-xl font-bold text-nexus-text-primary flex items-center gap-2 sm:gap-3">
-                  <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
-                  </svg>
-                  商品在庫ビュー
-                </h2>
-                <p className="text-nexus-text-secondary">
-                  商品在庫の状況を確認・管理できます
-                </p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-                <NexusButton 
-                  onClick={() => setIsNewItemModalOpen(true)}
-                  variant="primary"
-                  size="sm"
-                  icon={<PlusIcon className="w-4 h-4 sm:w-5 sm:h-5" />}
-                >
-                  <span className="hidden sm:inline">新規商品登録</span>
-                </NexusButton>
-                <NexusButton
-                  onClick={() => setIsCsvImportModalOpen(true)}
-                  size="sm"
-                  icon={<ArrowUpTrayIcon className="w-4 h-4 sm:w-5 sm:h-5" />}
-                >
-                  <span className="hidden sm:inline">CSVインポート</span>
-                </NexusButton>
-                <NexusButton
-                  onClick={handleExportCsv}
-                  size="sm"
-                  icon={<ArrowDownTrayIcon className="w-4 h-4 sm:w-5 sm:h-5" />}
-                >
-                  <span className="hidden sm:inline">CSVエクスポート</span>
-                </NexusButton>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* 統一ヘッダー */}
+        <UnifiedPageHeader
+          title="在庫管理"
+          subtitle="商品在庫の状況を確認・管理できます"
+          userType="seller"
+          actions={headerActions}
+        />
 
         {/* Product Registration Modal */}
         <ProductRegistrationModal

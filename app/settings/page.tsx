@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
-import PageHeader from '@/app/components/ui/PageHeader';
+import UnifiedPageHeader from '@/app/components/ui/UnifiedPageHeader';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import { NexusSelect, NexusButton, NexusCard, NexusLoadingSpinner } from '@/app/components/ui';
 import ContentCard from '../components/ui/ContentCard';
@@ -238,17 +238,12 @@ export default function SettingsPage() {
   return (
     <DashboardLayout userType={userType}>
       <div className="space-y-6">
-        {/* ヘッダー */}
-        <div className="intelligence-card global">
-          <div className="p-8">
-            <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
-              設定
-            </h1>
-            <p className="mt-2 text-nexus-text-secondary">
-              システム設定とアカウント管理
-            </p>
-          </div>
-        </div>
+        {/* 統一ヘッダー */}
+        <UnifiedPageHeader
+          title="設定"
+          subtitle="システム設定とアカウント管理"
+          userType={userType}
+        />
 
         {/* Delivery & Shipping Settings */}
         <div className="intelligence-card global">

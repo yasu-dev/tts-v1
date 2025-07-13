@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
+import UnifiedPageHeader from '@/app/components/ui/UnifiedPageHeader';
 import {
   Cog6ToothIcon,
   TicketIcon,
@@ -49,6 +50,24 @@ export default function SalesPage() {
     setIsPromotionModalOpen(false);
   };
 
+  const headerActions = (
+    <>
+      <NexusButton
+        onClick={() => setIsSettingsModalOpen(true)}
+        icon={<Cog6ToothIcon className="w-5 h-5" />}
+      >
+        出品設定
+      </NexusButton>
+      <NexusButton
+        onClick={() => setIsPromotionModalOpen(true)}
+        variant="primary"
+        icon={<TicketIcon className="w-5 h-5" />}
+      >
+        プロモーション作成
+      </NexusButton>
+    </>
+  );
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -60,36 +79,13 @@ export default function SalesPage() {
   return (
     <DashboardLayout userType="seller">
       <div className="space-y-6">
-        {/* Header */}
-        <div className="intelligence-card global">
-          <div className="p-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
-                  販売管理
-                </h1>
-                <p className="text-nexus-text-secondary">
-                  出品状況と販売パフォーマンスを管理
-                </p>
-              </div>
-              <div className="flex space-x-3">
-                <NexusButton
-                  onClick={() => setIsSettingsModalOpen(true)}
-                  icon={<Cog6ToothIcon className="w-5 h-5" />}
-                >
-                  出品設定
-                </NexusButton>
-                <NexusButton
-                  onClick={() => setIsPromotionModalOpen(true)}
-                  variant="primary"
-                  icon={<TicketIcon className="w-5 h-5" />}
-                >
-                  プロモーション作成
-                </NexusButton>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* 統一ヘッダー */}
+        <UnifiedPageHeader
+          title="販売管理"
+          subtitle="出品状況と販売パフォーマンスを管理"
+          userType="seller"
+          actions={headerActions}
+        />
 
         {/* Settings Modal */}
         <BaseModal

@@ -1,6 +1,7 @@
 'use client';
 
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
+import UnifiedPageHeader from '@/app/components/ui/UnifiedPageHeader';
 import QRCodeModal from '../../components/QRCodeModal';
 import ItemDetailModal from '../../components/ItemDetailModal';
 import { useState, useEffect } from 'react';
@@ -284,6 +285,37 @@ export default function StaffInventoryPage() {
     }
   };
 
+  const headerActions = (
+    <>
+      <NexusButton
+        onClick={() => setIsEditModalOpen(true)}
+        disabled={selectedItems.length === 0}
+        icon={<PencilIcon className="w-5 h-5" />}
+      >
+        商品詳細を編集
+      </NexusButton>
+      <NexusButton
+        onClick={() => setIsMoveModalOpen(true)}
+        disabled={selectedItems.length === 0}
+        icon={<ArrowsRightLeftIcon className="w-5 h-5" />}
+      >
+        ロケーション移動
+      </NexusButton>
+      <BarcodePrintButton
+        productIds={selectedItems}
+        variant="secondary"
+        size="md"
+      />
+      <NexusButton
+        onClick={handleExportCsv}
+        variant="primary"
+        icon={<ArrowDownTrayIcon className="w-5 h-5" />}
+      >
+        CSVエクスポート
+      </NexusButton>
+    </>
+  );
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -295,49 +327,13 @@ export default function StaffInventoryPage() {
   return (
     <DashboardLayout userType="staff">
       <div className="space-y-6">
-        {/* Header */}
-        <div className="intelligence-card global">
-          <div className="p-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
-                  スタッフ在庫管理
-                </h1>
-                <p className="mt-1 text-sm text-nexus-text-secondary">
-                  倉庫内の全在庫を管理・操作
-                </p>
-              </div>
-              <div className="flex space-x-3">
-                <NexusButton
-                  onClick={() => setIsEditModalOpen(true)}
-                  disabled={selectedItems.length === 0}
-                  icon={<PencilIcon className="w-5 h-5" />}
-                >
-                  商品詳細を編集
-                </NexusButton>
-                <NexusButton
-                  onClick={() => setIsMoveModalOpen(true)}
-                  disabled={selectedItems.length === 0}
-                  icon={<ArrowsRightLeftIcon className="w-5 h-5" />}
-                >
-                  ロケーション移動
-                </NexusButton>
-                <BarcodePrintButton
-                  productIds={selectedItems}
-                  variant="secondary"
-                  size="md"
-                />
-                <NexusButton
-                  onClick={handleExportCsv}
-                  variant="primary"
-                  icon={<ArrowDownTrayIcon className="w-5 h-5" />}
-                >
-                  CSVエクスポート
-                </NexusButton>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* 統一ヘッダー */}
+        <UnifiedPageHeader
+          title="スタッフ在庫管理"
+          subtitle="倉庫内の全在庫を管理・操作"
+          userType="staff"
+          actions={headerActions}
+        />
 
         {/* Filters */}
         <div className="intelligence-card global">

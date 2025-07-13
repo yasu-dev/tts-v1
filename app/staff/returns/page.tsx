@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
+import UnifiedPageHeader from '@/app/components/ui/UnifiedPageHeader';
 import { ContentCard, NexusLoadingSpinner } from '@/app/components/ui';
 import { BusinessStatusIndicator } from '@/app/components/ui/StatusIndicator';
 import { ReturnInspection } from '@/app/components/features/returns/ReturnInspection';
@@ -215,20 +216,25 @@ export default function ReturnsPage() {
     });
   };
 
+  const headerActions = (
+    <NexusButton
+      onClick={() => setIsUnsellableModalOpen(true)}
+      variant="primary"
+      icon={<ExclamationCircleIcon className="w-5 h-5" />}
+    >
+      再販不可リスト
+    </NexusButton>
+  );
+
   if (!mounted) {
     return (
       <DashboardLayout userType="staff">
         <div className="space-y-6">
-          <div className="intelligence-card global">
-            <div className="p-5">
-              <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
-                返品処理
-              </h1>
-              <p className="mt-1 text-sm text-nexus-text-secondary">
-                返品商品の検品と再出品を管理します
-              </p>
-            </div>
-          </div>
+          <UnifiedPageHeader
+            title="返品処理"
+            subtitle="返品商品の検品と再出品を管理します"
+            userType="staff"
+          />
           <div className="flex items-center justify-center min-h-[400px]">
             <NexusLoadingSpinner size="lg" />
           </div>
@@ -241,16 +247,11 @@ export default function ReturnsPage() {
     return (
       <DashboardLayout userType="staff">
         <div className="space-y-6">
-          <div className="intelligence-card global">
-            <div className="p-5">
-              <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
-                返品処理
-              </h1>
-              <p className="mt-1 text-sm text-nexus-text-secondary">
-                返品商品の検品と再出品を管理します
-              </p>
-            </div>
-          </div>
+          <UnifiedPageHeader
+            title="返品処理"
+            subtitle="返品商品の検品と再出品を管理します"
+            userType="staff"
+          />
           <div className="flex items-center justify-center min-h-[400px]">
             <NexusLoadingSpinner size="lg" />
           </div>
@@ -263,16 +264,11 @@ export default function ReturnsPage() {
     return (
       <DashboardLayout userType="staff">
         <div className="space-y-6">
-          <div className="intelligence-card global">
-            <div className="p-5">
-              <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
-                返品処理
-              </h1>
-              <p className="mt-1 text-sm text-nexus-text-secondary">
-                返品商品の検品と再出品を管理します
-              </p>
-            </div>
-          </div>
+          <UnifiedPageHeader
+            title="返品処理"
+            subtitle="返品商品の検品と再出品を管理します"
+            userType="staff"
+          />
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
               <ExclamationCircleIcon className="w-16 h-16 text-nexus-red mx-auto mb-4" />
@@ -344,30 +340,13 @@ export default function ReturnsPage() {
   return (
     <DashboardLayout userType="staff">
       <div className="space-y-6">
-        {/* Header */}
-        <div className="intelligence-card global">
-          <div className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
-                  返品処理
-                </h1>
-                <p className="mt-1 text-sm text-nexus-text-secondary">
-                  顧客からの返品リクエストを処理
-                </p>
-              </div>
-              <div className="flex">
-                <NexusButton
-                  onClick={() => setIsUnsellableModalOpen(true)}
-                  variant="primary"
-                  icon={<ExclamationCircleIcon className="w-5 h-5" />}
-                >
-                  再販不可リスト
-                </NexusButton>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* 統一ヘッダー */}
+        <UnifiedPageHeader
+          title="返品処理"
+          subtitle="顧客からの返品リクエストを処理"
+          userType="staff"
+          actions={headerActions}
+        />
 
         {/* タブナビゲーション */}
         <ContentCard className="mb-6">

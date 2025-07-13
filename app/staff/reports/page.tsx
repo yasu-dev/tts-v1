@@ -1,6 +1,7 @@
 'use client';
 
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
+import UnifiedPageHeader from '@/app/components/ui/UnifiedPageHeader';
 import { useState, useEffect, useRef } from 'react';
 import {
   ArrowDownTrayIcon,
@@ -307,40 +308,35 @@ export default function BusinessReportsPage() {
     performanceRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const headerActions = (
+    <>
+      <button
+        onClick={() => setIsReportModalOpen(true)}
+        className="nexus-button"
+      >
+        <ArrowDownTrayIcon className="w-5 h-5 mr-2" />
+        カスタム業務レポート作成
+      </button>
+      <button
+        onClick={scrollToPerformance}
+        className="nexus-button primary"
+      >
+        <ChartBarIcon className="w-5 h-5 mr-2" />
+        パフォーマンス分析
+      </button>
+    </>
+  );
+
   return (
     <DashboardLayout userType="staff">
       <div className="space-y-6">
-        {/* Header */}
-        <div className="intelligence-card global">
-          <div className="p-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
-                  業務レポート
-                </h1>
-                <p className="mt-1 text-sm text-nexus-text-secondary">
-                  業務フロー全体の可視化と効率性分析
-                </p>
-              </div>
-              <div className="flex space-x-3">
-                <button
-                  onClick={() => setIsReportModalOpen(true)}
-                  className="nexus-button"
-                >
-                  <ArrowDownTrayIcon className="w-5 h-5 mr-2" />
-                  カスタム業務レポート作成
-                </button>
-                <button
-                  onClick={scrollToPerformance}
-                  className="nexus-button primary"
-                >
-                  <ChartBarIcon className="w-5 h-5 mr-2" />
-                  パフォーマンス分析
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* 統一ヘッダー */}
+        <UnifiedPageHeader
+          title="業務レポート"
+          subtitle="業務フロー全体の可視化と効率性分析"
+          userType="staff"
+          actions={headerActions}
+        />
 
         {/* Business Report Modal */}
         {isReportModalOpen && (

@@ -1,6 +1,7 @@
 'use client';
 
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
+import UnifiedPageHeader from '@/app/components/ui/UnifiedPageHeader';
 import BarcodeScanner from '@/app/components/features/BarcodeScanner';
 import PackingInstructions from '@/app/components/features/shipping/PackingInstructions';
 import { useState, useEffect, useRef } from 'react';
@@ -291,61 +292,50 @@ export default function StaffShippingPage() {
     );
   }
 
+  const headerActions = (
+    <>
+      <NexusButton
+        onClick={() => setIsBarcodeScannerOpen(true)}
+        variant="default"
+        className="flex items-center justify-center gap-2"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V6a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1zm12 0h2a1 1 0 001-1V6a1 1 0 00-1-1h-2a1 1 0 00-1 1v1a1 1 0 001 1zM5 20h2a1 1 0 001-1v-1a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1z" />
+        </svg>
+        <span className="hidden sm:inline">バーコードスキャン</span>
+        <span className="sm:hidden">スキャン</span>
+      </NexusButton>
+      <NexusButton
+        onClick={handleCarrierSettings}
+        variant="default"
+        className="flex items-center justify-center gap-2"
+      >
+        <TruckIcon className="w-5 h-5" />
+        <span className="hidden sm:inline">配送業者設定</span>
+        <span className="sm:hidden">配送設定</span>
+      </NexusButton>
+      <NexusButton
+        onClick={handleMaterialsCheck}
+        variant="primary"
+        className="flex items-center justify-center gap-2"
+      >
+        <ArchiveBoxIcon className="w-5 h-5" />
+        <span className="hidden sm:inline">梱包資材確認</span>
+        <span className="sm:hidden">資材確認</span>
+      </NexusButton>
+    </>
+  );
+
   return (
     <DashboardLayout userType="staff">
       <div className="space-y-6">
-        {/* Header */}
-        <div className="intelligence-card global">
-          <div className="p-8">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-              {/* Title Section */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-3 mb-2">
-                  <TruckIcon className="w-8 h-8 text-nexus-yellow flex-shrink-0" />
-                  <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
-                    出荷管理
-                  </h1>
-                </div>
-                <p className="text-nexus-text-secondary">
-                  出荷待ち商品のピッキング・梱包・配送管理
-                </p>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
-                <NexusButton
-                  onClick={() => setIsBarcodeScannerOpen(true)}
-                  variant="default"
-                  className="flex items-center justify-center gap-2"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V6a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1zm12 0h2a1 1 0 001-1V6a1 1 0 00-1-1h-2a1 1 0 00-1 1v1a1 1 0 001 1zM5 20h2a1 1 0 001-1v-1a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1z" />
-                  </svg>
-                  <span className="hidden sm:inline">バーコードスキャン</span>
-                  <span className="sm:hidden">スキャン</span>
-                </NexusButton>
-                <NexusButton
-                  onClick={handleCarrierSettings}
-                  variant="default"
-                  className="flex items-center justify-center gap-2"
-                >
-                  <TruckIcon className="w-5 h-5" />
-                  <span className="hidden sm:inline">配送業者設定</span>
-                  <span className="sm:hidden">配送設定</span>
-                </NexusButton>
-                <NexusButton
-                  onClick={handleMaterialsCheck}
-                  variant="primary"
-                  className="flex items-center justify-center gap-2"
-                >
-                  <ArchiveBoxIcon className="w-5 h-5" />
-                  <span className="hidden sm:inline">梱包資材確認</span>
-                  <span className="sm:hidden">資材確認</span>
-                </NexusButton>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* 統一ヘッダー */}
+        <UnifiedPageHeader
+          title="出荷管理"
+          subtitle="出荷待ち商品のピッキング・梱包・配送管理"
+          userType="staff"
+          actions={headerActions}
+        />
 
         {/* Carrier Settings Modal */}
         <CarrierSettingsModal

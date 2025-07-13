@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import DashboardLayout from '../components/layouts/DashboardLayout';
 import PageHeader from '../components/ui/PageHeader';
+import UnifiedPageHeader from '../components/ui/UnifiedPageHeader';
 import { NexusButton, NexusCard, NexusLoadingSpinner } from '../components/ui';
 import BaseModal from '../components/ui/BaseModal';
 import InventorySummary from '../components/features/InventorySummary';
@@ -188,59 +189,48 @@ export default function DashboardPage() {
   return (
     <DashboardLayout userType="seller">
       <div className="space-y-6">
-        {/* ヘッダー */}
-        <div className="intelligence-card global">
-          <div className="p-8">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-              <div className="flex-1 min-w-0">
-                <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
-                  セラーダッシュボード
-                </h1>
-                <p className="mt-2 text-nexus-text-secondary">
-                  売上管理と在庫状況の統合画面
-                </p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
-                {headerActions}
-              </div>
-            </div>
+        {/* 統一ヘッダー */}
+        <UnifiedPageHeader
+          title="セラーダッシュボード"
+          subtitle="売上管理と在庫状況の統合画面"
+          userType="seller"
+          actions={headerActions}
+        />
 
-            {/* タブナビゲーション */}
-            <div className="mt-8 border-b border-nexus-border">
-              <nav className="-mb-px flex space-x-8">
-                <button
-                  onClick={() => setActiveTab('overview')}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === 'overview'
-                      ? 'border-primary-blue text-primary-blue'
-                      : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-gray-300'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                    基本ダッシュボード
-                  </div>
-                </button>
-                <button
-                  onClick={() => setActiveTab('analytics')}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === 'analytics'
-                      ? 'border-primary-blue text-primary-blue'
-                      : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-gray-300'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                    詳細分析
-                  </div>
-                </button>
-              </nav>
-            </div>
-          </div>
+        {/* タブナビゲーション */}
+        <div className="mt-8 border-b border-nexus-border">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'overview'
+                  ? 'border-primary-blue text-primary-blue'
+                  : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                基本ダッシュボード
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('analytics')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'analytics'
+                  ? 'border-primary-blue text-primary-blue'
+                  : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM15 17a2 2 0 11-4 0 2 2 0 014 0zM21 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                詳細分析
+              </div>
+            </button>
+          </nav>
         </div>
 
         {/* Date Picker Modal */}

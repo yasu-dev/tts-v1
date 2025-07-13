@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import DashboardLayout from '../components/layouts/DashboardLayout';
-import PageHeader from '../components/ui/PageHeader';
+import UnifiedPageHeader from '../components/ui/UnifiedPageHeader';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '../components/features/notifications/ToastProvider';
@@ -220,37 +220,33 @@ export default function ReturnsPage() {
     setReturnForm(prev => ({ ...prev, photos: [...prev.photos, ...files] }));
   };
 
+  const headerActions = (
+    <>
+      <NexusButton 
+        onClick={handleReturnRequest}
+        variant="primary"
+        icon={<PlusIcon className="w-5 h-5" />}
+      >
+        返品申請
+      </NexusButton>
+      <NexusButton 
+        onClick={handleExportReport}
+        icon={<DocumentChartBarIcon className="w-5 h-5" />}
+      >
+        レポート出力
+      </NexusButton>
+    </>
+  );
+
   return (
     <DashboardLayout userType="seller">
       <div className="space-y-8">
-        {/* PageHeaderコンポーネントを使用してUI統一 */}
-        <PageHeader
+        {/* 統一ヘッダー */}
+        <UnifiedPageHeader
           title="返品管理"
           subtitle="返品リクエストの処理と履歴を管理します"
-          icon={
-            <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
-            </svg>
-          }
-          actions={
-            <div className="flex gap-4">
-              <NexusButton 
-                onClick={handleReturnRequest}
-                variant="primary"
-                icon={<PlusIcon className="w-5 h-5" />}
-              >
-                返品申請
-              </NexusButton>
-              <NexusButton 
-                onClick={handleExportReport}
-                icon={<DocumentChartBarIcon className="w-5 h-5" />}
-              >
-                レポート出力
-              </NexusButton>
-            </div>
-          }
-          region="africa"
-          size="large"
+          userType="seller"
+          actions={headerActions}
         />
 
         {/* 返品申請モーダル */}

@@ -1,7 +1,7 @@
 'use client';
 
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
-import PageHeader from '@/app/components/ui/PageHeader';
+import UnifiedPageHeader from '@/app/components/ui/UnifiedPageHeader';
 import TaskCreationModal from '@/app/components/modals/TaskCreationModal';
 import TaskDetailModal from '@/app/components/TaskDetailModal';
 import { useState, useEffect, useRef } from 'react';
@@ -387,16 +387,11 @@ export default function StaffDashboardPage() {
     return (
       <DashboardLayout userType="staff">
         <div className="space-y-6">
-          <div className="intelligence-card global">
-            <div className="p-8">
-              <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
-                業務レポート
-              </h1>
-              <p className="mt-1 text-sm text-nexus-text-secondary">
-                業務遂行状況の統合管理
-              </p>
-            </div>
-          </div>
+          <UnifiedPageHeader
+            title="業務レポート"
+            subtitle="業務遂行状況の統合管理"
+            userType="staff"
+          />
           <div className="flex items-center justify-center min-h-[400px]">
             <NexusLoadingSpinner size="lg" />
           </div>
@@ -409,16 +404,11 @@ export default function StaffDashboardPage() {
     return (
       <DashboardLayout userType="staff">
         <div className="space-y-6">
-          <div className="intelligence-card global">
-            <div className="p-8">
-              <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
-                業務レポート
-              </h1>
-              <p className="mt-1 text-sm text-nexus-text-secondary">
-                業務遂行状況の統合管理
-              </p>
-            </div>
-          </div>
+          <UnifiedPageHeader
+            title="業務レポート"
+            subtitle="業務遂行状況の統合管理"
+            userType="staff"
+          />
           <div className="flex items-center justify-center min-h-[400px]">
             <NexusLoadingSpinner size="lg" />
           </div>
@@ -431,16 +421,11 @@ export default function StaffDashboardPage() {
     return (
       <DashboardLayout userType="staff">
         <div className="space-y-6">
-          <div className="intelligence-card global">
-            <div className="p-8">
-              <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
-                業務レポート
-              </h1>
-              <p className="mt-1 text-sm text-nexus-text-secondary">
-                業務遂行状況の統合管理
-              </p>
-            </div>
-          </div>
+          <UnifiedPageHeader
+            title="業務レポート"
+            subtitle="業務遂行状況の統合管理"
+            userType="staff"
+          />
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
               <ExclamationCircleIcon className="w-16 h-16 text-nexus-red mx-auto mb-4" />
@@ -475,17 +460,13 @@ export default function StaffDashboardPage() {
   return (
     <DashboardLayout userType="staff">
       <div className="space-y-6">
-        {/* ヘッダー */}
-        <div className="intelligence-card global">
-          <div className="p-8">
-            <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
-              業務レポート
-            </h1>
-            <p className="mt-2 text-nexus-text-secondary">
-              業務遂行状況の統合管理
-            </p>
-          </div>
-        </div>
+        {/* 統一ヘッダー */}
+        <UnifiedPageHeader
+          title="業務レポート"
+          subtitle="業務遂行状況の統合管理"
+          userType="staff"
+          actions={headerActions}
+        />
 
         {/* Task Creation Modal */}
         <TaskCreationModal

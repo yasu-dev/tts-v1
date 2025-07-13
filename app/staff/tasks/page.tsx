@@ -1,6 +1,7 @@
 'use client';
 
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
+import UnifiedPageHeader from '@/app/components/ui/UnifiedPageHeader';
 import TaskDetailModal from '../../components/TaskDetailModal';
 import EditModal from '../../components/EditModal';
 import TaskCreationModal from '../../components/modals/TaskCreationModal';
@@ -14,6 +15,7 @@ import {
   FunnelIcon,
   UsersIcon,
   PlusIcon,
+  UserGroupIcon,
 } from '@heroicons/react/24/outline';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
@@ -482,6 +484,10 @@ export default function StaffTasksPage() {
     }
   };
 
+  const handleCreateTask = () => {
+    setShowCreateModal(true);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -490,85 +496,38 @@ export default function StaffTasksPage() {
     );
   }
 
+  const headerActions = (
+    <>
+      <NexusButton
+        onClick={handleCreateTask}
+        variant="primary"
+        icon={<PlusIcon className="w-5 h-5" />}
+      >
+        <span className="hidden sm:inline">新規タスク作成</span>
+        <span className="sm:hidden">新規作成</span>
+      </NexusButton>
+      <NexusButton
+        onClick={handleBulkAssign}
+        variant="secondary"
+        icon={<UserGroupIcon className="w-5 h-5" />}
+        disabled={selectedTasks.length === 0}
+      >
+        <span className="hidden sm:inline">一括割り当て</span>
+        <span className="sm:hidden">一括</span>
+      </NexusButton>
+    </>
+  );
+
   return (
     <DashboardLayout userType="staff">
       <div className="space-y-6">
-        {/* Header */}
-        <div className="intelligence-card global">
-          <div className="p-8">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-              {/* Title Section */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-3 mb-2">
-                  <svg className="w-8 h-8 text-nexus-yellow flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
-                  <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
-                    タスク管理
-                  </h1>
-                </div>
-                <p className="text-nexus-text-secondary">
-                  作業タスクの詳細管理と進捗追跡
-                </p>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
-                <NexusButton
-                  onClick={() => {
-                    showToast({
-                      type: 'info',
-                      title: '一括操作',
-                      message: '一括操作メニューを開きます',
-                      duration: 3000
-                    });
-                  }}
-                  variant="default"
-                  size="md"
-                  data-testid="bulk-operations-button"
-                  icon={
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                    </svg>
-                  }
-                >
-                  <span className="hidden sm:inline">一括操作</span>
-                  <span className="sm:hidden">一括</span>
-                </NexusButton>
-                <NexusButton
-                  onClick={() => setIsFilterModalOpen(true)}
-                  variant="default"
-                  size="md"
-                  data-testid="filter-settings-button"
-                  icon={<FunnelIcon className="w-5 h-5" />}
-                >
-                  <span className="hidden sm:inline">フィルター設定</span>
-                  <span className="sm:hidden">フィルター</span>
-                </NexusButton>
-                <NexusButton
-                  onClick={() => setIsBulkAssignModalOpen(true)}
-                  variant="default"
-                  size="md"
-                  data-testid="bulk-assign-button"
-                  icon={<UsersIcon className="w-5 h-5" />}
-                >
-                  <span className="hidden sm:inline">タスク一括割当</span>
-                  <span className="sm:hidden">一括割当</span>
-                </NexusButton>
-                <NexusButton
-                  onClick={() => setShowCreateModal(true)}
-                  variant="primary"
-                  size="md"
-                  data-testid="create-task-button"
-                  icon={<PlusIcon className="w-5 h-5" />}
-                >
-                  <span className="hidden sm:inline">新規タスク作成</span>
-                  <span className="sm:hidden">新規作成</span>
-                </NexusButton>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* 統一ヘッダー */}
+        <UnifiedPageHeader
+          title="タスク管理"
+          subtitle="作業タスクの詳細管理と進捗追跡"
+          userType="staff"
+          actions={headerActions}
+        />
 
         {/* Stats Cards */}
         <div className="intelligence-metrics">

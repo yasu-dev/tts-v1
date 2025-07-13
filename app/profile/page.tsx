@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
+import UnifiedPageHeader from '@/app/components/ui/UnifiedPageHeader';
 import {
   KeyIcon,
   ShieldCheckIcon,
@@ -307,6 +308,32 @@ export default function ProfilePage() {
     setNotificationSettings(prev => ({ ...prev, [key]: value }));
   };
 
+  const headerActions = !isEditing ? (
+    <NexusButton
+      onClick={handleEdit}
+      variant="primary"
+      icon={<PencilIcon className="w-5 h-5" />}
+    >
+      編集
+    </NexusButton>
+  ) : (
+    <>
+      <NexusButton
+        onClick={handleCancel}
+        icon={<XMarkIcon className="w-5 h-5" />}
+      >
+        キャンセル
+      </NexusButton>
+      <NexusButton
+        onClick={handleSave}
+        variant="primary"
+        icon={<CheckIcon className="w-5 h-5" />}
+      >
+        保存
+      </NexusButton>
+    </>
+  );
+
   if (!profile) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -318,48 +345,13 @@ export default function ProfilePage() {
   return (
     <DashboardLayout userType={userType}>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="intelligence-card global">
-          <div className="p-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
-                  プロフィール設定
-                </h1>
-                <p className="text-nexus-text-secondary">
-                  個人情報とアカウント設定を管理
-                </p>
-              </div>
-              <div className="flex space-x-3">
-                {!isEditing ? (
-                  <NexusButton
-                    onClick={handleEdit}
-                    variant="primary"
-                    icon={<PencilIcon className="w-5 h-5" />}
-                  >
-                    編集
-                  </NexusButton>
-                ) : (
-                  <>
-                    <NexusButton
-                      onClick={handleCancel}
-                      icon={<XMarkIcon className="w-5 h-5" />}
-                    >
-                      キャンセル
-                    </NexusButton>
-                    <NexusButton
-                      onClick={handleSave}
-                      variant="primary"
-                      icon={<CheckIcon className="w-5 h-5" />}
-                    >
-                      保存
-                    </NexusButton>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* 統一ヘッダー */}
+        <UnifiedPageHeader
+          title="プロフィール設定"
+          subtitle="個人情報とアカウント設定を管理"
+          userType={userType}
+          actions={headerActions}
+        />
 
         {/* Profile Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

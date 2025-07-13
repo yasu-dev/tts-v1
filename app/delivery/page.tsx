@@ -1,7 +1,7 @@
 'use client';
 
 import DashboardLayout from '../components/layouts/DashboardLayout';
-import PageHeader from '../components/ui/PageHeader';
+import UnifiedPageHeader from '../components/ui/UnifiedPageHeader';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -56,12 +56,12 @@ export default function DeliveryPage() {
   return (
     <DashboardLayout userType="seller">
       <div className="space-y-8">
-        {/* Page Header */}
-        <PageHeader
+        {/* 統一ヘッダー */}
+        <UnifiedPageHeader
           title="納品管理"
           subtitle="商品の納品プランを作成・管理します"
+          userType="seller"
           actions={headerActions}
-          size="large"
         />
 
         {/* Barcode Generation Modal */}

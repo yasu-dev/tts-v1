@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
+import UnifiedPageHeader from '@/app/components/ui/UnifiedPageHeader';
 import LocationList from '@/app/components/features/location/LocationList';
 import LocationRegistration from '@/app/components/features/location/LocationRegistration';
 import LocationScanner from '@/app/components/features/LocationScanner';
@@ -62,77 +63,68 @@ export default function LocationPage() {
     return null;
   }
 
+  const headerActions = (
+    <>
+      <NexusButton
+        onClick={handleQuickScan}
+        variant="default"
+        size="md"
+        data-testid="location-scan-button"
+        icon={<QrCodeIcon className="w-5 h-5" />}
+      >
+        <span className="hidden sm:inline">スキャン</span>
+        <span className="sm:hidden">スキャン</span>
+      </NexusButton>
+      <NexusButton
+        onClick={handleOptimizeLocations}
+        variant="default"
+        size="md"
+        data-testid="location-optimize-button"
+        icon={<SparklesIcon className="w-5 h-5" />}
+      >
+        <span className="hidden sm:inline">最適化</span>
+        <span className="sm:hidden">最適化</span>
+      </NexusButton>
+      <NexusButton
+        onClick={handleStartInventoryCount}
+        variant="primary"
+        size="md"
+        data-testid="inventory-count-button"
+        icon={<ClipboardDocumentListIcon className="w-5 h-5" />}
+      >
+        <span className="hidden sm:inline">棚卸し</span>
+        <span className="sm:hidden">棚卸し</span>
+      </NexusButton>
+    </>
+  );
+
   const occupancyRate = Math.round((stats.usedCapacity / stats.totalCapacity) * 100);
   const utilizationRate = Math.round((stats.occupiedLocations / stats.totalLocations) * 100);
 
   return (
     <DashboardLayout userType="staff">
       <div className="space-y-6">
-        {/* Enhanced Header with Quick Stats */}
+        {/* 統一ヘッダー */}
+        <UnifiedPageHeader
+          title="ロケーション管理"
+          subtitle="倉庫内の商品配置を効率的に管理・最適化"
+          userType="staff"
+          actions={headerActions}
+        />
+
+        {/* Quick Search Bar */}
         <div className="intelligence-card global">
           <div className="p-5">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-              {/* Title and Description */}
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <CubeIcon className="w-8 h-8 text-nexus-yellow" />
-                  <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
-                    ロケーション管理
-                  </h1>
-                </div>
-                <p className="text-nexus-text-secondary">
-                  倉庫内の商品配置を効率的に管理・最適化
-                </p>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
-                <NexusButton
-                  onClick={handleQuickScan}
-                  variant="default"
-                  size="md"
-                  data-testid="location-scan-button"
-                  icon={<QrCodeIcon className="w-5 h-5" />}
-                >
-                  <span className="hidden sm:inline">スキャン</span>
-                  <span className="sm:hidden">スキャン</span>
-                </NexusButton>
-                <NexusButton
-                  onClick={handleOptimizeLocations}
-                  variant="default"
-                  size="md"
-                  data-testid="location-optimize-button"
-                  icon={<SparklesIcon className="w-5 h-5" />}
-                >
-                  <span className="hidden sm:inline">最適化</span>
-                  <span className="sm:hidden">最適化</span>
-                </NexusButton>
-                <NexusButton
-                  onClick={handleStartInventoryCount}
-                  variant="primary"
-                  size="md"
-                  data-testid="inventory-count-button"
-                  icon={<ClipboardDocumentListIcon className="w-5 h-5" />}
-                >
-                  <span className="hidden sm:inline">棚卸し</span>
-                  <span className="sm:hidden">棚卸し</span>
-                </NexusButton>
-              </div>
-            </div>
-
-            {/* Quick Search Bar */}
-            <div className="mt-6 pt-6 border-t border-nexus-border">
-              <div className="flex-1 max-w-[1600px]">
-                <div className="relative">
-                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-nexus-text-secondary" />
-                  <input
-                    type="text"
-                    value={quickSearch}
-                    onChange={(e) => setQuickSearch(e.target.value)}
-                    placeholder="ロケーション、商品、SKUで検索..."
-                    className="w-full pl-10 pr-4 py-2.5 bg-nexus-bg-secondary border border-nexus-border rounded-lg focus:outline-none focus:border-nexus-yellow focus:ring-2 focus:ring-nexus-yellow/20 text-nexus-text-primary transition-all duration-200"
-                  />
-                </div>
+            <div className="flex-1 max-w-[1600px]">
+              <div className="relative">
+                <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-nexus-text-secondary" />
+                <input
+                  type="text"
+                  value={quickSearch}
+                  onChange={(e) => setQuickSearch(e.target.value)}
+                  placeholder="ロケーション、商品、SKUで検索..."
+                  className="w-full pl-10 pr-4 py-2.5 bg-nexus-bg-secondary border border-nexus-border rounded-lg focus:outline-none focus:border-nexus-yellow focus:ring-2 focus:ring-nexus-yellow/20 text-nexus-text-primary transition-all duration-200"
+                />
               </div>
             </div>
           </div>
