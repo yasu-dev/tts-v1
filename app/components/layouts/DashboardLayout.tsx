@@ -130,7 +130,7 @@ export default function DashboardLayout({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const { showToast } = useToast();
-  const { isBusinessFlowCollapsed, setIsBusinessFlowCollapsed } = useModal();
+  const { isBusinessFlowCollapsed, setIsBusinessFlowCollapsed, isAnyModalOpen } = useModal();
 
   const getCurrentTime = () => {
     const now = new Date();
@@ -155,6 +155,17 @@ export default function DashboardLayout({
     
     return () => clearInterval(interval);
   }, []);
+
+  // モーダル表示時の業務フロー制御
+  useEffect(() => {
+    if (isAnyModalOpen) {
+      console.log('🔴 モーダル開: 業務フローを閉じます');
+      setIsFlowCollapsed(true);
+    } else {
+      console.log('🟢 モーダル閉: 業務フローの自動制御を復活します');
+      // モーダル閉時は元の状態に戻さない（スクロール制御に任せる）
+    }
+  }, [isAnyModalOpen]);
 
   // モバイルメニューが開いているときスクロールを無効化
   useEffect(() => {
@@ -211,6 +222,12 @@ export default function DashboardLayout({
         return;
       }
       
+      // モーダル表示中は自動制御を無効化
+      if (isAnyModalOpen) {
+        console.log('🔴 モーダル表示中: スクロール連動制御をスキップ');
+        return;
+      }
+      
       if (!ticking) {
         requestAnimationFrame(() => {
           const currentScrollY = scrollContainer.scrollTop;
@@ -258,6 +275,12 @@ export default function DashboardLayout({
           return;
         }
         
+        // モーダル表示中は自動制御を無効化
+        if (isAnyModalOpen) {
+          console.log('🔴 モーダル表示中: スクロール停止時制御をスキップ');
+          return;
+        }
+        
         // スクロール停止時の最上部チェック
         if (scrollContainer.scrollTop < 15) {
           console.log('スクロール停止: 最上部でフロー展開');
@@ -297,7 +320,7 @@ export default function DashboardLayout({
       scrollContainer.removeEventListener('scroll', handleScroll);
       clearTimeout(scrollTimeout);
     };
-  }, [isInitialStabilizing]);
+  }, [isInitialStabilizing, isAnyModalOpen]);
 
   const handleSearchSubmit = (query: string) => {
     setSearchQuery(query);
