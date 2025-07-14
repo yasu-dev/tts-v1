@@ -371,8 +371,8 @@ export default function UnifiedProductFlow({
   }
 
   return (
-    <div className={isCollapsed ? "bg-white border-b border-gray-200" : "intelligence-card global"} data-testid="unified-product-flow">
-      <div className={isCollapsed ? "p-4" : "p-8"}>
+    <div className={isCollapsed ? "bg-white border-b border-gray-200" : "bg-white rounded-xl border border-nexus-border"} data-testid="unified-product-flow">
+      <div className={isCollapsed ? "p-4" : "p-6"}>
         <div className="flex flex-col gap-4">
           {/* ヘッダー統計と作業者ステータス */}
           <div className="flex items-center justify-between">

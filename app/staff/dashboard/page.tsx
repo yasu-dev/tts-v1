@@ -388,7 +388,7 @@ export default function StaffDashboardPage() {
       <DashboardLayout userType="staff">
         <div className="space-y-6">
           <UnifiedPageHeader
-            title="業務レポート"
+            title="ダッシュボード"
             subtitle="業務遂行状況の統合管理"
             userType="staff"
           />
@@ -405,7 +405,7 @@ export default function StaffDashboardPage() {
       <DashboardLayout userType="staff">
         <div className="space-y-6">
           <UnifiedPageHeader
-            title="業務レポート"
+            title="ダッシュボード"
             subtitle="業務遂行状況の統合管理"
             userType="staff"
           />
@@ -422,7 +422,7 @@ export default function StaffDashboardPage() {
       <DashboardLayout userType="staff">
         <div className="space-y-6">
           <UnifiedPageHeader
-            title="業務レポート"
+            title="ダッシュボード"
             subtitle="業務遂行状況の統合管理"
             userType="staff"
           />
@@ -462,7 +462,7 @@ export default function StaffDashboardPage() {
       <div className="space-y-6">
         {/* 統一ヘッダー */}
         <UnifiedPageHeader
-          title="業務レポート"
+          title="ダッシュボード"
           subtitle="業務遂行状況の統合管理"
           userType="staff"
           actions={headerActions}

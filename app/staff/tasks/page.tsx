@@ -529,109 +529,84 @@ export default function StaffTasksPage() {
           actions={headerActions}
         />
 
-        {/* Stats Cards */}
-        <div className="intelligence-metrics">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-            <div className="intelligence-card global">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="action-orb">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                  </div>
-                  <span className="status-badge info">総計</span>
-                </div>
-                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
-                  {stats.total}
-                </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
-                  総タスク数
-                </div>
+        {/* タスク管理統計 - 他の画面と統一されたスタイル */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white rounded-xl border border-nexus-border p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
               </div>
+              <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">待機</span>
             </div>
+            <div className="text-3xl font-bold text-nexus-text-primary mb-2">
+              {stats.pending}件
+            </div>
+            <div className="text-nexus-text-secondary font-medium">
+              待機中タスク
+            </div>
+            <div className="text-xs text-nexus-text-secondary mt-1">今日開始予定</div>
+          </div>
 
-            <div className="intelligence-card europe">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="action-orb">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <span className="status-badge">待機</span>
-                </div>
-                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
-                  {stats.pending}
-                </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
-                  待機中
-                </div>
+          <div className="bg-white rounded-xl border border-nexus-border p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
               </div>
+              <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">進行中</span>
             </div>
+            <div className="text-3xl font-bold text-nexus-text-primary mb-2">
+              {stats.inProgress}件
+            </div>
+            <div className="text-nexus-text-secondary font-medium">
+              作業中タスク
+            </div>
+            <div className="text-xs text-nexus-text-secondary mt-1">進行中の作業</div>
+          </div>
 
-            <div className="intelligence-card asia">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="action-orb blue">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                  </div>
-                  <span className="status-badge info">実行中</span>
-                </div>
-                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
-                  {stats.inProgress}
-                </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
-                  作業中
-                </div>
+          <div className="bg-white rounded-xl border border-nexus-border p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
               </div>
+              <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">急ぎ</span>
             </div>
+            <div className="text-3xl font-bold text-red-600 mb-2">
+              {stats.highPriority}件
+            </div>
+            <div className="text-nexus-text-secondary font-medium">
+              緊急タスク
+            </div>
+            <div className="text-xs text-nexus-text-secondary mt-1">優先対応必要</div>
+          </div>
 
-            <div className="intelligence-card africa">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="action-orb green">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <span className="status-badge success">完了</span>
-                </div>
-                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
-                  {stats.completed}
-                </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
-                  完了済み
-                </div>
+          <div className="bg-white rounded-xl border border-nexus-border p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
               </div>
+              <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">今日</span>
             </div>
-
-            <div className="intelligence-card americas">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="action-orb red">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <span className="status-badge danger">緊急</span>
-                </div>
-                <div className="metric-value font-display text-3xl font-bold text-nexus-text-primary">
-                  {stats.highPriority}
-                </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-2">
-                  緊急タスク
-                </div>
-              </div>
+            <div className="text-3xl font-bold text-green-600 mb-2">
+              {stats.completed}件
             </div>
+            <div className="text-nexus-text-secondary font-medium">
+              本日完了
+            </div>
+            <div className="text-xs text-nexus-text-secondary mt-1">今日の実績</div>
           </div>
         </div>
 
-        {/* Filters and Task List */}
-        <div className="intelligence-card global">
-          <div className="p-6">
+        {/* メインコンテンツ - 他の画面と統一されたレイアウト */}
+        <div className="space-y-6">
+          <div className="bg-white rounded-xl border border-nexus-border p-6">
             {/* Search Bar */}
             <div className="mb-6">
               <div className="relative">
@@ -745,122 +720,69 @@ export default function StaffTasksPage() {
               </div>
             </div>
 
-            {/* Task List */}
-            <div className="holo-table">
+            {/* タスクテーブル */}
+            <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="holo-header">
-                  <tr>
-                    <th className="text-left">タスク情報</th>
-                    <th className="text-left">担当者</th>
-                    <th className="text-left">期限・時間</th>
-                    <th className="text-left">ステータス</th>
-                    <th className="text-right">アクション</th>
+                <thead>
+                  <tr className="border-b border-nexus-border">
+                    <th className="text-left p-4 font-medium text-nexus-text-secondary">タスク情報</th>
+                    <th className="text-center p-4 font-medium text-nexus-text-secondary">担当者</th>
+                    <th className="text-center p-4 font-medium text-nexus-text-secondary">期限・時間</th>
+                    <th className="text-center p-4 font-medium text-nexus-text-secondary">ステータス</th>
+                    <th className="text-center p-4 font-medium text-nexus-text-secondary">操作</th>
                   </tr>
                 </thead>
-                <tbody className="holo-body">
+                <tbody>
                   {paginatedTasks.map((task) => (
-                    <tr key={task.id} className="holo-row">
-                      <td>
-                        <div className="flex items-start space-x-3">
-                          <span className="action-orb">{categoryIcons[task.category]}</span>
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2 mb-1">
-                              <h3 className="font-semibold text-nexus-text-primary">
-                                {task.title}
-                              </h3>
-                              {task.productSku && (
-                                <span className="cert-nano cert-premium">
-                                  {task.productSku}
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-sm text-nexus-text-secondary mb-2">
-                              {task.description}
-                            </p>
-                            {task.productName && (
-                              <div className="flex items-center gap-1 text-sm font-medium text-nexus-yellow">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                                </svg>
-                                {task.productName}
-                              </div>
-                            )}
-                            {task.notes && (
-                              <div className="mt-2 p-2 bg-nexus-bg-secondary rounded text-xs text-nexus-text-secondary">
-                                <span className="font-medium">備考:</span> {task.notes}
-                              </div>
-                            )}
-                          </div>
+                    <tr key={task.id} className="border-b border-nexus-border hover:bg-nexus-bg-tertiary transition-colors">
+                      <td className="p-4">
+                        <div className="font-medium text-nexus-text-primary mb-1">
+                          {task.title}
                         </div>
+                        <div className="text-sm text-nexus-text-secondary mb-2">
+                          {task.description}
+                        </div>
+                        {task.productName && (
+                          <div className="text-xs text-nexus-text-secondary">
+                            商品: {task.productName}
+                          </div>
+                        )}
+                        {task.productSku && (
+                          <div className="text-xs text-nexus-text-secondary">
+                            SKU: {task.productSku}
+                          </div>
+                        )}
                       </td>
-                      <td>
-                        <div className="flex items-center gap-1 text-sm font-medium text-nexus-text-primary">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                          </svg>
+                      <td className="p-4 text-center">
+                        <span className="text-sm text-nexus-text-primary">
                           {task.assignedTo}
+                        </span>
+                      </td>
+                      <td className="p-4 text-center">
+                        <div className="text-sm text-nexus-text-primary">
+                          {task.dueDate}
+                        </div>
+                        <div className="text-xs text-nexus-text-secondary">
+                          {task.estimatedTime}分
                         </div>
                       </td>
-                      <td>
-                        <div className="text-sm">
-                          <div className="flex items-center gap-1 text-nexus-text-primary">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            {task.dueDate}
-                          </div>
-                          <div className="flex items-center gap-1 text-nexus-text-secondary">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            {task.estimatedTime}分
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="flex flex-col space-y-2">
-                          <span className="cert-nano cert-premium">
+                      <td className="p-4">
+                        <div className="flex flex-col items-center space-y-1">
+                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                             {priorityLabels[task.priority]}
                           </span>
                           <BusinessStatusIndicator status={task.status} size="sm" />
                         </div>
                       </td>
-                      <td className="text-right">
-                        <div className="flex justify-end space-x-2">
-                          {task.status === 'pending' && (
-                            <button
-                              onClick={() => updateTaskStatus(task.id, 'in_progress')}
-                              className="nexus-button primary text-xs"
-                            >
-                              開始
-                            </button>
-                          )}
-                          {task.status === 'in_progress' && (
-                            <button
-                              onClick={() => updateTaskStatus(task.id, 'completed')}
-                              className="nexus-button primary text-xs"
-                            >
-                              完了
-                            </button>
-                          )}
-                          <button 
+                      <td className="p-4">
+                        <div className="flex justify-center">
+                          <NexusButton
                             onClick={() => handleTaskDetail(task)}
-                            className="nexus-button text-xs"
+                            size="sm"
+                            variant="primary"
                           >
                             詳細
-                          </button>
-                          <button 
-                            onClick={() => handleTaskEdit(task)}
-                            className="nexus-button text-xs"
-                          >
-                            編集
-                          </button>
-                          <button 
-                            onClick={() => handleDeleteTask(task.id)}
-                            className="nexus-button text-xs text-red-600 hover:text-red-700"
-                          >
-                            削除
-                          </button>
+                          </NexusButton>
                         </div>
                       </td>
                     </tr>
@@ -945,6 +867,12 @@ export default function StaffTasksPage() {
             setIsDetailModalOpen(false);
             setSelectedTask(task);
             setIsEditModalOpen(true);
+          }}
+          onStatusChange={updateTaskStatus}
+          onDelete={async (taskId) => {
+            setTasks(prev => prev.filter(t => t.id !== taskId));
+            setIsDetailModalOpen(false);
+            setSelectedTask(null);
           }}
         />
 
@@ -1193,112 +1121,9 @@ export default function StaffTasksPage() {
           </div>
         </BaseModal>
 
-        {/* 追加コンテンツ - スクロールテスト用 */}
-        <div className="intelligence-card global">
-          <div className="p-6">
-            <h3 className="text-lg font-display font-medium text-nexus-text-primary mb-4">
-              タスク統計・分析
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <h4 className="font-medium text-nexus-text-primary">作業効率分析</h4>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-nexus-text-secondary">平均完了時間</span>
-                    <span className="text-sm font-medium text-nexus-text-primary">82分</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-nexus-text-secondary">今日の完了率</span>
-                    <span className="text-sm font-medium text-nexus-text-primary">75%</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-nexus-text-secondary">期限内完了率</span>
-                    <span className="text-sm font-medium text-nexus-text-primary">92%</span>
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-4">
-                <h4 className="font-medium text-nexus-text-primary">カテゴリ別分析</h4>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-nexus-text-secondary">検品作業</span>
-                    <span className="text-sm font-medium text-nexus-text-primary">45%</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-nexus-text-secondary">撮影作業</span>
-                    <span className="text-sm font-medium text-nexus-text-primary">25%</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-nexus-text-secondary">出荷作業</span>
-                    <span className="text-sm font-medium text-nexus-text-primary">20%</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-nexus-text-secondary">その他</span>
-                    <span className="text-sm font-medium text-nexus-text-primary">10%</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {/* さらに追加コンテンツ */}
-        <div className="intelligence-card europe">
-          <div className="p-6">
-            <h3 className="text-lg font-display font-medium text-nexus-text-primary mb-4">
-              チーム別パフォーマンス
-            </h3>
-            <div className="space-y-4">
-              {['田中', '佐藤', '鈴木', '山田'].map((member, index) => (
-                <div key={member} className="flex items-center justify-between p-4 bg-nexus-bg-secondary rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
-                      {member.charAt(0)}
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-nexus-text-primary">{member}</h4>
-                      <p className="text-sm text-nexus-text-secondary">完了タスク: {5 + index * 2}件</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-medium text-nexus-text-primary">{95 - index * 3}%</div>
-                    <div className="text-xs text-nexus-text-secondary">効率スコア</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
 
-        {/* 最後のコンテンツ */}
-        <div className="intelligence-card asia">
-          <div className="p-6">
-            <h3 className="text-lg font-display font-medium text-nexus-text-primary mb-4">
-              今週の予定
-            </h3>
-            <div className="space-y-3">
-              {Array.from({ length: 7 }, (_, i) => (
-                <div key={i} className="flex items-center justify-between p-3 border border-nexus-border rounded-lg">
-                  <div>
-                    <h4 className="font-medium text-nexus-text-primary">
-                      {new Date(Date.now() + i * 24 * 60 * 60 * 1000).toLocaleDateString('ja-JP', { 
-                        month: 'short', 
-                        day: 'numeric', 
-                        weekday: 'short' 
-                      })}
-                    </h4>
-                    <p className="text-sm text-nexus-text-secondary">
-                      予定タスク: {Math.floor(Math.random() * 5) + 2}件
-                    </p>
-                  </div>
-                  <div className="text-sm text-nexus-text-secondary">
-                    {Math.floor(Math.random() * 200) + 100}分
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+
 
 
       </div>

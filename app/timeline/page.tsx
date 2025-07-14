@@ -1,6 +1,7 @@
 'use client';
 
 import DashboardLayout from '../components/layouts/DashboardLayout';
+import UnifiedPageHeader from '../components/ui/UnifiedPageHeader';
 import { ProductTimeline } from '../components/ProductTimeline';
 import { useState } from 'react';
 import {
@@ -9,8 +10,9 @@ import {
   CalendarIcon,
   ArchiveBoxIcon,
   ChartBarIcon,
+  EyeIcon,
 } from '@heroicons/react/24/outline';
-import NexusButton from '@/app/components/ui/NexusButton';
+import { NexusButton } from '@/app/components/ui';
 import BaseModal from '@/app/components/ui/BaseModal';
 import { BusinessStatusIndicator } from '@/app/components/ui/StatusIndicator';
 
@@ -27,6 +29,7 @@ export default function TimelinePage() {
   const [selectedProduct, setSelectedProduct] = useState<string>(mockProducts[0].id);
   const selectedProductData = mockProducts.find(p => p.id === selectedProduct);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [isTimelineModalOpen, setIsTimelineModalOpen] = useState(false);
 
   // Mock activities data
   const activities = [
@@ -66,49 +69,38 @@ export default function TimelinePage() {
     // 実際の実装では、フィルター条件に基づいてactivitiesを更新
   };
 
+  const headerActions = (
+    <>
+      <NexusButton
+        onClick={() => setIsFilterModalOpen(true)}
+        icon={<FunnelIcon className="w-5 h-5" />}
+        size="sm"
+      >
+        <span className="hidden sm:inline">期間でフィルター</span>
+        <span className="sm:hidden">フィルター</span>
+      </NexusButton>
+      <NexusButton
+        onClick={handleExportHistory}
+        variant="primary"
+        icon={<ArrowDownTrayIcon className="w-5 h-5" />}
+        size="sm"
+      >
+        <span className="hidden sm:inline">履歴をエクスポート</span>
+        <span className="sm:hidden">エクスポート</span>
+      </NexusButton>
+    </>
+  );
+
   return (
     <DashboardLayout userType="seller">
       <div className="space-y-6">
-        {/* Header */}
-        <div className="intelligence-card global">
-          <div className="p-6">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-              {/* Title Section */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-3 mb-2">
-                  <svg className="w-8 h-8 text-nexus-yellow flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <h1 className="text-3xl font-display font-bold text-nexus-text-primary">
-                    商品履歴
-                  </h1>
-                </div>
-                <p className="text-nexus-text-secondary">
-                  商品のステータス変更履歴を追跡
-                </p>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
-                <NexusButton
-                  onClick={() => setIsFilterModalOpen(true)}
-                  icon={<FunnelIcon className="w-5 h-5" />}
-                >
-                  <span className="hidden sm:inline">期間でフィルター</span>
-                  <span className="sm:hidden">フィルター</span>
-                </NexusButton>
-                <NexusButton
-                  onClick={handleExportHistory}
-                  variant="primary"
-                  icon={<ArrowDownTrayIcon className="w-5 h-5" />}
-                >
-                  <span className="hidden sm:inline">履歴をエクスポート</span>
-                  <span className="sm:hidden">エクスポート</span>
-                </NexusButton>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* 統一ヘッダー */}
+        <UnifiedPageHeader
+          title="商品履歴"
+          subtitle="商品のステータス変更履歴を追跡"
+          userType="seller"
+          actions={headerActions}
+        />
 
         {/* Filter Modal */}
         <BaseModal
@@ -194,125 +186,193 @@ export default function TimelinePage() {
           </div>
         </BaseModal>
 
-        {/* メインコンテンツをグリッドレイアウトに */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* 左側：商品リストと統計 */}
-          <div className="space-y-4">
-            {/* 商品選択 - リスト形式でコンパクトに */}
-            <div className="intelligence-card global">
-              <div className="p-6">
-                <h2 className="text-sm font-semibold text-nexus-text-primary mb-3">商品を選択</h2>
-                <div className="space-y-2">
-                  {mockProducts.map((product) => (
-                    <button
-                      key={product.id}
-                      onClick={() => setSelectedProduct(product.id)}
-                      className={`
-                        w-full p-3 rounded-lg border transition-all text-left
-                        ${selectedProduct === product.id 
-                          ? 'border-nexus-primary bg-nexus-primary/10' 
-                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                        }
-                      `}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm text-nexus-text-primary truncate">
-                            {product.name}
-                          </div>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-xs text-nexus-text-secondary">{product.category}</span>
-                            <span className="text-xs text-nexus-text-secondary">•</span>
-                            <span className="text-xs font-medium">{product.price}</span>
-                          </div>
-                        </div>
-                        <BusinessStatusIndicator status={product.status} />
-                      </div>
-                    </button>
-                  ))}
-                </div>
+        {/* 統計指標 - ダッシュボードと統一 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="bg-white rounded-xl border border-nexus-border p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                <CalendarIcon className="w-6 h-6 text-blue-600" />
               </div>
+              <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                在庫
+              </span>
             </div>
-
-            {/* 統計情報 - よりコンパクトに */}
-            <div className="space-y-3">
-              <div className="intelligence-card americas">
-                <div className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-nexus-text-secondary">在庫日数</p>
-                      <p className="text-2xl font-display font-bold text-nexus-text-primary">10日</p>
-                    </div>
-                    <div className="action-orb blue w-10 h-10">
-                      <CalendarIcon className="w-5 h-5" />
-                    </div>
-                  </div>
-                  <p className="text-xs text-nexus-text-secondary mt-1">平均: 15日</p>
-                </div>
-              </div>
-              
-              <div className="intelligence-card europe">
-                <div className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-nexus-text-secondary">ステータス</p>
-                      <p className="text-lg font-medium text-green-600">出品中</p>
-                    </div>
-                    <div className="action-orb green w-10 h-10">
-                      <ArchiveBoxIcon className="w-5 h-5" />
-                    </div>
-                  </div>
-                  <p className="text-xs text-nexus-text-secondary mt-1">更新: 1日前</p>
-                </div>
-              </div>
-              
-              <div className="intelligence-card asia">
-                <div className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-nexus-text-secondary">イベント数</p>
-                      <p className="text-2xl font-display font-bold text-nexus-text-primary">9件</p>
-                    </div>
-                    <div className="action-orb blue w-10 h-10">
-                      <ChartBarIcon className="w-5 h-5" />
-                    </div>
-                  </div>
-                  <p className="text-xs text-nexus-text-secondary mt-1">過去30日</p>
-                </div>
-              </div>
+            <div className="text-3xl font-bold text-nexus-text-primary mb-2">
+              10日
             </div>
+            <div className="text-nexus-text-secondary font-medium">
+              在庫日数
+            </div>
+            <div className="text-xs text-nexus-text-secondary mt-1">平均: 15日</div>
           </div>
 
-          {/* 右側：タイムライン表示 */}
-          <div className="lg:col-span-2">
-            <div className="intelligence-card global">
-              <div className="p-6">
-                {/* 選択中の商品情報 */}
-                <div className="flex items-center justify-between mb-4 pb-4 border-b border-nexus-border">
-                  <div>
-                    <h3 className="font-semibold text-nexus-text-primary">
-                      {selectedProductData?.name}
-                    </h3>
-                    <p className="text-sm text-nexus-text-secondary mt-1">
-                      ID: {selectedProduct} • {selectedProductData?.category}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-nexus-text-primary">
-                      {selectedProductData?.price}
-                    </p>
-                    {selectedProductData?.status && (
-                      <BusinessStatusIndicator status={selectedProductData.status} />
-                    )}
-                  </div>
-                </div>
-                
-                {/* タイムライン */}
-                <ProductTimeline productId={selectedProduct} />
+          <div className="bg-white rounded-xl border border-nexus-border p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                <ArchiveBoxIcon className="w-6 h-6 text-green-600" />
               </div>
+              <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                現在
+              </span>
             </div>
+            <div className="text-3xl font-bold text-green-600 mb-2">
+              出品中
+            </div>
+            <div className="text-nexus-text-secondary font-medium">
+              ステータス
+            </div>
+            <div className="text-xs text-nexus-text-secondary mt-1">更新: 1日前</div>
+          </div>
+
+          <div className="bg-white rounded-xl border border-nexus-border p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                <ChartBarIcon className="w-6 h-6 text-purple-600" />
+              </div>
+              <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                履歴
+              </span>
+            </div>
+            <div className="text-3xl font-bold text-nexus-text-primary mb-2">
+              9件
+            </div>
+            <div className="text-nexus-text-secondary font-medium">
+              イベント数
+            </div>
+            <div className="text-xs text-nexus-text-secondary mt-1">過去30日</div>
           </div>
         </div>
+
+        {/* メインコンテンツ - 他の画面と統一されたレイアウト */}
+        <div className="space-y-6">
+          {/* 商品リスト - テーブル形式で統一 */}
+          <div className="bg-white rounded-xl border border-nexus-border p-6">
+            <div className="mb-6">
+              <h3 className="text-lg font-bold text-nexus-text-primary">商品一覧</h3>
+              <p className="text-nexus-text-secondary mt-1 text-sm">商品を選択して履歴を表示</p>
+            </div>
+            
+            {/* テーブル */}
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-nexus-border">
+                    <th className="text-left p-4 font-medium text-nexus-text-secondary">商品名</th>
+                    <th className="text-center p-4 font-medium text-nexus-text-secondary">カテゴリ</th>
+                    <th className="text-center p-4 font-medium text-nexus-text-secondary">ステータス</th>
+                    <th className="text-right p-4 font-medium text-nexus-text-secondary">価格</th>
+                    <th className="text-center p-4 font-medium text-nexus-text-secondary">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {mockProducts.map((product) => (
+                    <tr 
+                      key={product.id} 
+                      className={`border-b border-nexus-border hover:bg-nexus-bg-tertiary transition-colors ${
+                        selectedProduct === product.id ? 'bg-nexus-primary/5' : ''
+                      }`}
+                    >
+                      <td className="p-4">
+                        <div className="font-medium text-nexus-text-primary">
+                          {product.name}
+                        </div>
+                        <div className="text-xs text-nexus-text-secondary mt-1">
+                          ID: {product.id}
+                        </div>
+                      </td>
+                      <td className="p-4 text-center">
+                        <span className="text-sm text-nexus-text-secondary">
+                          {product.category}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex justify-center">
+                          <BusinessStatusIndicator status={product.status} size="sm" />
+                        </div>
+                      </td>
+                      <td className="p-4 text-right">
+                        <span className="font-bold text-nexus-text-primary">
+                          {product.price}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex justify-center gap-2">
+                          <NexusButton
+                            onClick={() => {
+                              setSelectedProduct(product.id);
+                              setIsTimelineModalOpen(true);
+                            }}
+                            size="sm"
+                            variant="primary"
+                            icon={<EyeIcon className="w-4 h-4" />}
+                          >
+                            詳細
+                          </NexusButton>
+                          <NexusButton
+                            onClick={() => setSelectedProduct(product.id)}
+                            size="sm"
+                            variant={selectedProduct === product.id ? "primary" : "secondary"}
+                          >
+                            {selectedProduct === product.id ? "選択中" : "選択"}
+                          </NexusButton>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+
+        </div>
+
+        {/* 詳細タイムラインモーダル */}
+        <BaseModal
+          isOpen={isTimelineModalOpen}
+          onClose={() => setIsTimelineModalOpen(false)}
+          title={`${selectedProductData?.name} - 詳細フロー`}
+          subtitle="商品の入庫から発送までの完全な履歴"
+          size="lg"
+        >
+          <div className="space-y-6">
+            {/* 詳細フロー表示 */}
+            <div>
+              <ProductTimeline productId={selectedProduct} />
+            </div>
+
+            {/* フロー段階の説明 */}
+            <div className="bg-blue-50 rounded-lg p-4">
+              <h6 className="font-medium text-blue-900 mb-2">フロー段階の説明</h6>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="font-medium text-blue-800">入庫:</span>
+                  <span className="text-blue-700 ml-2">商品の受領・登録</span>
+                </div>
+                <div>
+                  <span className="font-medium text-blue-800">検品:</span>
+                  <span className="text-blue-700 ml-2">品質確認・撮影</span>
+                </div>
+                <div>
+                  <span className="font-medium text-blue-800">出品:</span>
+                  <span className="text-blue-700 ml-2">プラットフォーム出品</span>
+                </div>
+                <div>
+                  <span className="font-medium text-blue-800">売却:</span>
+                  <span className="text-blue-700 ml-2">購入者決定</span>
+                </div>
+                <div>
+                  <span className="font-medium text-blue-800">発送:</span>
+                  <span className="text-blue-700 ml-2">梱包・配送</span>
+                </div>
+                <div>
+                  <span className="font-medium text-blue-800">完了:</span>
+                  <span className="text-blue-700 ml-2">取引終了</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </BaseModal>
       </div>
     </DashboardLayout>
   );

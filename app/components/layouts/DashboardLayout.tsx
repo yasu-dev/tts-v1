@@ -388,7 +388,7 @@ export default function DashboardLayout({
 
   const staffMenuItems = [
     { 
-      label: 'スタッフダッシュボード', 
+      label: 'ダッシュボード', 
       href: '/staff/dashboard',
       icon: icons.dashboard
     },

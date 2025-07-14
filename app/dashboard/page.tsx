@@ -446,7 +446,7 @@ export default function DashboardPage() {
       <div className="space-y-6">
         {/* 統一ヘッダー */}
         <UnifiedPageHeader
-          title="カメラ・時計専門ダッシュボード"
+          title="ダッシュボード"
           subtitle="緊急タスク・収益・運営効率・返品分析の統合管理"
           userType="seller"
           actions={headerActions}
@@ -591,42 +591,140 @@ export default function DashboardPage() {
         {/* 収益管理タブ */}
         {activeTab === 'revenue' && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <NexusCard className="p-6">
-                <h3 className="text-lg font-bold text-nexus-text-primary mb-4">今日の売上</h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span>実績</span>
-                    <span className="font-bold text-green-600">¥{dashboardData?.revenueMetrics?.todayRevenue?.toLocaleString()}</span>
+            {/* メイン指標グリッド */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* 今日の売上達成度 */}
+              <div className="bg-white rounded-xl border border-nexus-border p-6 hover:shadow-lg transition-shadow">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
                   </div>
-                  <div className="flex justify-between">
-                    <span>目標</span>
-                    <span>¥{dashboardData?.revenueMetrics?.todayTarget?.toLocaleString()}</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-green-500 h-2 rounded-full" 
-                      style={{ width: `${(dashboardData?.revenueMetrics?.todayRevenue / dashboardData?.revenueMetrics?.todayTarget) * 100}%` }}
-                    ></div>
-                  </div>
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    実績
+                  </span>
                 </div>
-              </NexusCard>
+                <div className="text-3xl font-bold text-nexus-text-primary mb-2">
+                  ¥{dashboardData?.revenueMetrics?.todayRevenue?.toLocaleString()}
+                </div>
+                <div className="text-nexus-text-secondary font-medium mb-3">
+                  今日の売上実績
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                  <div 
+                    className="bg-green-500 h-2 rounded-full" 
+                    style={{ width: `${Math.min((dashboardData?.revenueMetrics?.todayRevenue / dashboardData?.revenueMetrics?.todayTarget) * 100, 100)}%` }}
+                  ></div>
+                </div>
+                <div className="text-xs text-nexus-text-secondary">
+                  目標: ¥{dashboardData?.revenueMetrics?.todayTarget?.toLocaleString()}
+                </div>
+              </div>
 
-              <NexusCard className="p-6">
-                <h3 className="text-lg font-bold text-nexus-text-primary mb-4">カメラ関連売上</h3>
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-blue-600">¥{dashboardData?.revenueMetrics?.cameraRevenue?.toLocaleString()}</p>
-                  <p className="text-sm text-nexus-text-secondary">月間実績</p>
+              {/* 月間成長率 */}
+              <div className="bg-white rounded-xl border border-nexus-border p-6 hover:shadow-lg transition-shadow">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    成長率
+                  </span>
                 </div>
-              </NexusCard>
+                <div className="text-3xl font-bold text-nexus-text-primary mb-2">
+                  +{dashboardData?.revenueMetrics?.growthRate}%
+                </div>
+                <div className="text-nexus-text-secondary font-medium">
+                  前月比成長率
+                </div>
+              </div>
 
-              <NexusCard className="p-6">
-                <h3 className="text-lg font-bold text-nexus-text-primary mb-4">時計関連売上</h3>
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-purple-600">¥{dashboardData?.revenueMetrics?.watchRevenue?.toLocaleString()}</p>
-                  <p className="text-sm text-nexus-text-secondary">月間実績</p>
+              {/* カメラ関連売上 */}
+              <div className="bg-white rounded-xl border border-nexus-border p-6 hover:shadow-lg transition-shadow">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                    カメラ
+                  </span>
                 </div>
-              </NexusCard>
+                <div className="text-3xl font-bold text-nexus-text-primary mb-2">
+                  ¥{dashboardData?.revenueMetrics?.cameraRevenue?.toLocaleString()}
+                </div>
+                <div className="text-nexus-text-secondary font-medium">
+                  月間カメラ売上
+                </div>
+              </div>
+
+              {/* 時計関連売上 */}
+              <div className="bg-white rounded-xl border border-nexus-border p-6 hover:shadow-lg transition-shadow">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                    時計
+                  </span>
+                </div>
+                <div className="text-3xl font-bold text-nexus-text-primary mb-2">
+                  ¥{dashboardData?.revenueMetrics?.watchRevenue?.toLocaleString()}
+                </div>
+                <div className="text-nexus-text-secondary font-medium">
+                  月間時計売上
+                </div>
+              </div>
+            </div>
+
+            {/* 追加メトリクス */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* 週間・月間売上 */}
+              <div className="bg-white rounded-xl border border-nexus-border p-6">
+                <h3 className="text-lg font-bold text-nexus-text-primary mb-6 flex items-center">
+                  <svg className="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  期間別売上実績
+                </h3>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span className="font-medium text-nexus-text-secondary">週間売上</span>
+                    <span className="font-bold text-green-600 text-lg">¥{dashboardData?.revenueMetrics?.weeklyRevenue?.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span className="font-medium text-nexus-text-secondary">月間売上</span>
+                    <span className="font-bold text-blue-600 text-lg">¥{dashboardData?.revenueMetrics?.monthlyRevenue?.toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 成果指標 */}
+              <div className="bg-white rounded-xl border border-nexus-border p-6">
+                <h3 className="text-lg font-bold text-nexus-text-primary mb-6 flex items-center">
+                  <svg className="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  成果指標
+                </h3>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span className="font-medium text-nexus-text-secondary">コンバージョン率</span>
+                    <span className="font-bold text-green-600 text-lg">{dashboardData?.revenueMetrics?.conversionRate}%</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span className="font-medium text-nexus-text-secondary">成長率</span>
+                    <span className="font-bold text-blue-600 text-lg">+{dashboardData?.revenueMetrics?.growthRate}%</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -634,42 +732,138 @@ export default function DashboardPage() {
         {/* 運営効率タブ */}
         {activeTab === 'operations' && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <NexusCard className="p-6">
-                <h3 className="text-lg font-bold text-nexus-text-primary mb-4">在庫・物流効率</h3>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-nexus-text-secondary">返品率</span>
-                    <span className="font-bold text-green-600">{dashboardData?.operationalMetrics?.returnRate}%</span>
+            {/* メイン効率指標グリッド */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* 処理時間効率 */}
+              <div className="bg-white rounded-xl border border-nexus-border p-6 hover:shadow-lg transition-shadow">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-nexus-text-secondary">倉庫利用率</span>
-                    <span className="font-bold text-blue-600">{dashboardData?.operationalMetrics?.warehouseUtilization}%</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-nexus-text-secondary">出荷精度</span>
-                    <span className="font-bold text-purple-600">{dashboardData?.operationalMetrics?.shippingAccuracy}%</span>
-                  </div>
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    時間
+                  </span>
                 </div>
-              </NexusCard>
+                <div className="text-3xl font-bold text-nexus-text-primary mb-2">
+                  1.8日
+                </div>
+                <div className="text-nexus-text-secondary font-medium">
+                  平均処理時間
+                </div>
+              </div>
 
-              <NexusCard className="p-6">
-                <h3 className="text-lg font-bold text-nexus-text-primary mb-4">品質指標</h3>
+              {/* 品質スコア */}
+              <div className="bg-white rounded-xl border border-nexus-border p-6 hover:shadow-lg transition-shadow">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    品質
+                  </span>
+                </div>
+                <div className="text-3xl font-bold text-nexus-text-primary mb-2">
+                  98.2%
+                </div>
+                <div className="text-nexus-text-secondary font-medium">
+                  品質達成率
+                </div>
+              </div>
+
+              {/* 在庫効率 */}
+              <div className="bg-white rounded-xl border border-nexus-border p-6 hover:shadow-lg transition-shadow">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                    在庫
+                  </span>
+                </div>
+                <div className="text-3xl font-bold text-nexus-text-primary mb-2">
+                  4.2回
+                </div>
+                <div className="text-nexus-text-secondary font-medium">
+                  在庫回転率（月）
+                </div>
+              </div>
+
+              {/* スタッフ生産性 */}
+              <div className="bg-white rounded-xl border border-nexus-border p-6 hover:shadow-lg transition-shadow">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                    生産性
+                  </span>
+                </div>
+                <div className="text-3xl font-bold text-nexus-text-primary mb-2">
+                  142%
+                </div>
+                <div className="text-nexus-text-secondary font-medium">
+                  目標達成率
+                </div>
+              </div>
+            </div>
+
+            {/* 詳細指標セクション - 他のタブと統一したパディング構造 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* 業務効率指標 */}
+              <div className="bg-white rounded-xl border border-nexus-border p-6">
+                <h3 className="text-lg font-bold text-nexus-text-primary mb-6 flex items-center">
+                  <svg className="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  業務効率指標
+                </h3>
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-nexus-text-secondary">品質スコア</span>
-                    <span className="font-bold text-green-600">{dashboardData?.operationalMetrics?.qualityScore}</span>
+                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span className="font-medium text-nexus-text-secondary">検品完了率</span>
+                    <span className="font-bold text-green-600 text-lg">94.5%</span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-nexus-text-secondary">顧客満足度</span>
-                    <span className="font-bold text-blue-600">{dashboardData?.operationalMetrics?.customerSatisfaction}</span>
+                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span className="font-medium text-nexus-text-secondary">出荷処理率</span>
+                    <span className="font-bold text-blue-600 text-lg">97.8%</span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-nexus-text-secondary">在庫回転率</span>
-                    <span className="font-bold text-purple-600">{dashboardData?.operationalMetrics?.inventoryTurnover}</span>
+                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span className="font-medium text-nexus-text-secondary">返品処理率</span>
+                    <span className="font-bold text-orange-600 text-lg">99.1%</span>
                   </div>
                 </div>
-              </NexusCard>
+              </div>
+
+              {/* 品質・顧客満足度 */}
+              <div className="bg-white rounded-xl border border-nexus-border p-6">
+                <h3 className="text-lg font-bold text-nexus-text-primary mb-6 flex items-center">
+                  <svg className="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                  </svg>
+                  品質・満足度
+                </h3>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span className="font-medium text-nexus-text-secondary">顧客満足度</span>
+                    <span className="font-bold text-green-600 text-lg">4.7/5.0</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span className="font-medium text-nexus-text-secondary">品質不具合率</span>
+                    <span className="font-bold text-red-600 text-lg">1.8%</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span className="font-medium text-nexus-text-secondary">再作業率</span>
+                    <span className="font-bold text-orange-600 text-lg">2.3%</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -678,92 +872,84 @@ export default function DashboardPage() {
         {activeTab === 'returns' && (
           <div className="space-y-6">
             {/* 返品サマリー */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="intelligence-card americas">
-                <div className="p-8">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="action-orb red w-8 h-8">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3" />
-                      </svg>
-                    </div>
-                    <span className="status-badge warning text-[10px] px-1.5 py-0.5">総計</span>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3" />
+                    </svg>
                   </div>
-                  <div className="metric-value font-display text-xl font-bold text-nexus-text-primary">
-                    {dashboardData?.returnAnalysis?.totalReturns || '0'}
-                  </div>
-                  <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
-                    総返品数
-                  </div>
+                  <span className="px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800">総計</span>
+                </div>
+                <div className="text-2xl font-bold text-nexus-text-primary">
+                  {dashboardData?.returnAnalysis?.totalReturns || '0'}
+                </div>
+                <div className="text-nexus-text-secondary font-medium mt-1 text-sm">
+                  総返品数
                 </div>
               </div>
 
-              <div className="intelligence-card europe">
-                <div className="p-8">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="action-orb orange w-8 h-8">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <span className="status-badge error text-[10px] px-1.5 py-0.5">損失</span>
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
                   </div>
-                  <div className="metric-value font-display text-xl font-bold text-nexus-text-primary">
-                    ¥{dashboardData?.returnAnalysis?.totalReturnValue?.toLocaleString() || '0'}
-                  </div>
-                  <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
-                    返品総額
-                  </div>
+                  <span className="px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800">損失</span>
+                </div>
+                <div className="text-2xl font-bold text-nexus-text-primary">
+                  ¥{dashboardData?.returnAnalysis?.totalReturnValue?.toLocaleString() || '0'}
+                </div>
+                <div className="text-nexus-text-secondary font-medium mt-1 text-sm">
+                  返品総額
                 </div>
               </div>
 
-              <div className="intelligence-card asia">
-                <div className="p-8">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="action-orb blue w-8 h-8">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                      </svg>
-                    </div>
-                    <span className="status-badge info text-[10px] px-1.5 py-0.5">カメラ</span>
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    </svg>
                   </div>
-                  <div className="metric-value font-display text-xl font-bold text-nexus-text-primary">
-                    {dashboardData?.returnAnalysis?.categories?.camera?.returns || '0'}
-                  </div>
-                  <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
-                    カメラ返品数
-                  </div>
+                  <span className="px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">カメラ</span>
+                </div>
+                <div className="text-2xl font-bold text-nexus-text-primary">
+                  {dashboardData?.returnAnalysis?.categories?.camera?.returns || '0'}
+                </div>
+                <div className="text-nexus-text-secondary font-medium mt-1 text-sm">
+                  カメラ返品数
                 </div>
               </div>
 
-              <div className="intelligence-card africa">
-                <div className="p-8">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="action-orb green w-8 h-8">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <span className="status-badge success text-[10px] px-1.5 py-0.5">時計</span>
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
                   </div>
-                  <div className="metric-value font-display text-xl font-bold text-nexus-text-primary">
-                    {dashboardData?.returnAnalysis?.categories?.watch?.returns || '0'}
-                  </div>
-                  <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
-                    時計返品数
-                  </div>
+                  <span className="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">時計</span>
+                </div>
+                <div className="text-2xl font-bold text-nexus-text-primary">
+                  {dashboardData?.returnAnalysis?.categories?.watch?.returns || '0'}
+                </div>
+                <div className="text-nexus-text-secondary font-medium mt-1 text-sm">
+                  時計返品数
                 </div>
               </div>
             </div>
 
             {/* 返品理由別分析 */}
-            <div className="intelligence-card global">
-              <div className="p-8">
+            <div className="max-w-3xl mx-auto">
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-display font-bold text-nexus-text-primary">
                     返品理由別分析
                   </h2>
-                  <span className="status-badge warning">
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                     要改善
                   </span>
                 </div>
@@ -825,13 +1011,13 @@ export default function DashboardPage() {
             </div>
 
             {/* 改善アクションプラン */}
-            <div className="intelligence-card global">
-              <div className="p-8">
+            <div className="max-w-3xl mx-auto">
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-2xl font-display font-bold text-nexus-text-primary">
                     改善アクションプラン
                   </h3>
-                  <span className="status-badge success">
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                     実行中
                   </span>
                 </div>

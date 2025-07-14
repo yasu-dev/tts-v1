@@ -448,43 +448,43 @@ export default function ReturnsPage() {
                     <h2 className="text-xl font-display font-bold text-nexus-text-primary mb-6">返品商品リスト</h2>
                     
                     {/* フィルター */}
-                    <div className="flex gap-2 mb-6">
+                    <div className="flex gap-1 bg-nexus-bg-secondary p-1 rounded-lg mb-6">
                       <button
                         onClick={() => setFilter('all')}
-                        className={`px-4 py-2 rounded-lg transition-colors ${
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
                           filter === 'all' 
-                            ? 'bg-nexus-primary text-white' 
-                            : 'bg-nexus-bg-secondary text-nexus-text-secondary hover:bg-nexus-bg-tertiary'
+                            ? 'bg-nexus-bg-primary text-nexus-yellow shadow-sm' 
+                            : 'text-nexus-text-secondary hover:text-nexus-text-primary'
                         }`}
                       >
                         すべて
                       </button>
                       <button
                         onClick={() => setFilter('pending')}
-                        className={`px-4 py-2 rounded-lg transition-colors ${
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
                           filter === 'pending' 
-                            ? 'bg-nexus-primary text-white' 
-                            : 'bg-nexus-bg-secondary text-nexus-text-secondary hover:bg-nexus-bg-tertiary'
+                            ? 'bg-nexus-bg-primary text-nexus-yellow shadow-sm' 
+                            : 'text-nexus-text-secondary hover:text-nexus-text-primary'
                         }`}
                       >
                         検品待ち
                       </button>
                       <button
                         onClick={() => setFilter('inspecting')}
-                        className={`px-4 py-2 rounded-lg transition-colors ${
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
                           filter === 'inspecting' 
-                            ? 'bg-nexus-primary text-white' 
-                            : 'bg-nexus-bg-secondary text-nexus-text-secondary hover:bg-nexus-bg-tertiary'
+                            ? 'bg-nexus-bg-primary text-nexus-yellow shadow-sm' 
+                            : 'text-nexus-text-secondary hover:text-nexus-text-primary'
                         }`}
                       >
                         検品中
                       </button>
                       <button
                         onClick={() => setFilter('completed')}
-                        className={`px-4 py-2 rounded-lg transition-colors ${
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
                           filter === 'completed' 
-                            ? 'bg-nexus-primary text-white' 
-                            : 'bg-nexus-bg-secondary text-nexus-text-secondary hover:bg-nexus-bg-tertiary'
+                            ? 'bg-nexus-bg-primary text-nexus-yellow shadow-sm' 
+                            : 'text-nexus-text-secondary hover:text-nexus-text-primary'
                         }`}
                       >
                         完了

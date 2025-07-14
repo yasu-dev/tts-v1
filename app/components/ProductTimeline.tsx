@@ -137,7 +137,7 @@ export function ProductTimeline({ productId }: ProductTimelineProps) {
               
               {/* コンテンツ - コンパクトに */}
               <div className="ml-4 flex-1" style={{ zIndex: 5, position: 'relative' }}>
-                <div className="holo-card p-3 hover:shadow-md transition-shadow bg-white">
+                <div className="bg-white rounded-lg border border-nexus-border p-3 hover:shadow-md transition-shadow">
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">

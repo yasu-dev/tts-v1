@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('カメラ・時計専門ダッシュボード - 返品理由分析機能検証', () => {
+test.describe('ダッシュボード - 返品理由分析機能検証', () => {
   
   test.beforeEach(async ({ page }) => {
     // ログインページに移動
@@ -20,9 +20,9 @@ test.describe('カメラ・時計専門ダッシュボード - 返品理由分�
   });
 
   // 基本機能確認テスト
-  test('カメラ・時計専門ダッシュボード基本機能確認', async ({ page }) => {
-    // 1. ページタイトルがカメラ・時計専門に変更されていることを確認
-    await expect(page.locator('h1')).toContainText('カメラ・時計専門ダッシュボード');
+  test('ダッシュボード基本機能確認', async ({ page }) => {
+    // 1. ページタイトルがダッシュボードであることを確認
+    await expect(page.locator('h1')).toContainText('ダッシュボード');
     console.log('✅ ページタイトル確認完了');
 
     // 2. サブタイトル確認
@@ -70,7 +70,7 @@ test.describe('カメラ・時計専門ダッシュボード - 返品理由分�
     await expect(page.locator('h3:has-text("改善アクションプラン")')).toBeVisible();
     console.log('✅ 改善アクションプラン確認完了');
 
-    console.log('🎯 カメラ・時計専門ダッシュボードの基本機能が正常に動作しています！');
+    console.log('🎯 ダッシュボードの基本機能が正常に動作しています！');
   });
 
   // 詳細データ確認テスト
@@ -103,9 +103,9 @@ test.describe('カメラ・時計専門ダッシュボード - 返品理由分�
   });
 
   // 最終統合確認テスト
-  test('最終確認: カメラ・時計専門ダッシュボードの完全性検証', async ({ page }) => {
+  test('最終確認: ダッシュボードの完全性検証', async ({ page }) => {
     // ページタイトル確認
-    await expect(page.locator('h1')).toContainText('カメラ・時計専門ダッシュボード');
+    await expect(page.locator('h1')).toContainText('ダッシュボード');
     
     // 4つのタブ存在確認
     const tabs = ['緊急タスク', '収益管理', '運営効率', '返品理由分析'];
@@ -123,7 +123,7 @@ test.describe('カメラ・時計専門ダッシュボード - 返品理由分�
     await expect(page.locator('text=28').first()).toBeVisible(); // カメラ28件
     await expect(page.locator('text=19').first()).toBeVisible(); // 時計19件
     
-    console.log('🎯 最終確認完了: カメラ・時計専門ダッシュボードが完全に実装されています');
+    console.log('🎯 最終確認完了: ダッシュボードが完全に実装されています');
     console.log('✅ 返品理由分析機能が正常に動作しています');
     console.log('✅ カメラ・時計特化データが正確に表示されています');
     console.log('✅ 改善アクションプランが実装されています');

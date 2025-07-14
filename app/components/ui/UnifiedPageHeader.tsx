@@ -37,9 +37,9 @@ export default function UnifiedPageHeader({
   );
 
   return (
-    <div className="intelligence-card global" data-testid="unified-page-header">
+    <div className="bg-white rounded-xl border border-nexus-border" data-testid="unified-page-header">
       {/* 統一されたパディング */}
-      <div className="p-8">
+      <div className="p-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           {/* タイトルセクション - 統一レイアウト */}
           <div className="flex items-start gap-3 flex-1 min-w-0">
