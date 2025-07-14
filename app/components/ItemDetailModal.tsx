@@ -11,6 +11,7 @@ import {
   PrinterIcon,
   DocumentDuplicateIcon
 } from '@heroicons/react/24/outline';
+import BarcodePrintButton from '@/app/components/features/BarcodePrintButton';
 
 interface ItemDetailModalProps {
   isOpen: boolean;
@@ -333,6 +334,11 @@ export default function ItemDetailModal({
             >
               閉じる
             </NexusButton>
+            <BarcodePrintButton
+              productIds={[item.id]}
+              variant="secondary"
+              size="md"
+            />
             {onGenerateQR && (
               <NexusButton
                 onClick={() => onGenerateQR(item)}
