@@ -380,7 +380,7 @@ export default function ReturnsPage() {
                     : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-nexus-border'
                 }`}
               >
-                返品理由分析
+                返品処理管理
               </button>
             </nav>
           </div>
