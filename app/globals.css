@@ -84,13 +84,16 @@
     --icon-lg: 2rem;    /* 32px */
     --icon-xl: 2.5rem;  /* 40px */
 
-    /* Nexus Design System Classes */
-    --nexus-bg: linear-gradient(135deg, #0F1014 0%, #1A1A2E 50%, #0F1014 100%);
-    --nexus-card-bg: rgba(255, 255, 255, 0.05);
-    --nexus-text-primary: #FFFFFF;
-    --nexus-text-secondary: #B8BFC6;
-    --nexus-text-muted: #6B7280;
-    --nexus-border: rgba(255, 255, 255, 0.15);
+    /* Nexus Design System Classes - Light Theme */
+    --nexus-bg: linear-gradient(135deg, #F8FAFE 0%, #FFFFFF 50%, #F8FAFE 100%);
+    --nexus-card-bg: rgba(255, 255, 255, 0.97);
+    --nexus-surface: rgba(255, 255, 255, 0.97);
+    --nexus-bg-secondary: rgba(248, 250, 254, 0.97);
+    --nexus-bg-tertiary: rgba(240, 245, 252, 0.97);
+    --nexus-text-primary: #1A1A1A;
+    --nexus-text-secondary: #666666;
+    --nexus-text-muted: #999999;
+    --nexus-border: rgba(0, 100, 210, 0.25);
   }
 
   /* Reset & Base Styles */

@@ -2,6 +2,9 @@
 
 import { useState } from 'react';
 import NexusButton from '@/app/components/ui/NexusButton';
+import NexusInput from '@/app/components/ui/NexusInput';
+import NexusSelect from '@/app/components/ui/NexusSelect';
+import NexusTextarea from '@/app/components/ui/NexusTextarea';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 interface ProductRegistrationStepProps {
@@ -12,6 +15,13 @@ interface ProductRegistrationStepProps {
   isFirstStep: boolean;
   isLastStep: boolean;
 }
+
+const categoryOptions = [
+  { value: 'camera_body', label: 'カメラボディ' },
+  { value: 'lens', label: 'レンズ' },
+  { value: 'watch', label: '腕時計' },
+  { value: 'accessory', label: 'アクセサリー' }
+];
 
 export default function ProductRegistrationStep({ 
   data, 
@@ -82,13 +92,13 @@ export default function ProductRegistrationStep({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-gray-900 mb-4">商品登録</h2>
-        <p className="text-gray-600 mb-6">納品する商品の詳細情報を入力してください</p>
+        <h2 className="text-xl font-bold text-nexus-text-primary mb-4">商品登録</h2>
+        <p className="text-nexus-text-secondary mb-6">納品する商品の詳細情報を入力してください</p>
       </div>
 
       {products.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-500 mb-4">登録された商品がありません</p>
+          <p className="text-nexus-text-secondary mb-4">登録された商品がありません</p>
           <NexusButton variant="primary" onClick={addProduct}>
             最初の商品を追加
           </NexusButton>
@@ -96,9 +106,9 @@ export default function ProductRegistrationStep({
       ) : (
         <div className="space-y-6">
           {products.map((product: any, index: number) => (
-            <div key={index} className="border border-gray-200 rounded-lg p-6">
+            <div key={index} className="border border-nexus-border rounded-lg p-6 bg-nexus-bg-secondary">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium text-gray-900">商品 {index + 1}</h3>
+                <h3 className="text-lg font-medium text-nexus-text-primary">商品 {index + 1}</h3>
                 <NexusButton 
                   variant="danger" 
                   size="sm" 
@@ -109,98 +119,69 @@ export default function ProductRegistrationStep({
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    商品名 <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={product.name}
-                    onChange={(e) => updateProduct(index, 'name', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="商品名を入力"
-                  />
-                </div>
+                <NexusInput
+                  label="商品名"
+                  value={product.name}
+                  onChange={(e) => updateProduct(index, 'name', e.target.value)}
+                  placeholder="商品名を入力"
+                  required
+                  variant="nexus"
+                />
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    カテゴリ <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={product.category}
-                    onChange={(e) => updateProduct(index, 'category', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="camera_body">カメラボディ</option>
-                    <option value="lens">レンズ</option>
-                    <option value="watch">腕時計</option>
-                    <option value="accessory">アクセサリー</option>
-                  </select>
-                </div>
+                <NexusSelect
+                  label="カテゴリ"
+                  value={product.category}
+                  onChange={(e) => updateProduct(index, 'category', e.target.value)}
+                  options={categoryOptions}
+                  required
+                  variant="nexus"
+                />
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    ブランド <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={product.brand}
-                    onChange={(e) => updateProduct(index, 'brand', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="ブランド名を入力"
-                  />
-                </div>
+                <NexusInput
+                  label="ブランド"
+                  value={product.brand}
+                  onChange={(e) => updateProduct(index, 'brand', e.target.value)}
+                  placeholder="ブランド名を入力"
+                  required
+                  variant="nexus"
+                />
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    モデル <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={product.model}
-                    onChange={(e) => updateProduct(index, 'model', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="モデル名を入力"
-                  />
-                </div>
+                <NexusInput
+                  label="モデル"
+                  value={product.model}
+                  onChange={(e) => updateProduct(index, 'model', e.target.value)}
+                  placeholder="モデル名を入力"
+                  required
+                  variant="nexus"
+                />
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    シリアル番号
-                  </label>
-                  <input
-                    type="text"
-                    value={product.serialNumber}
-                    onChange={(e) => updateProduct(index, 'serialNumber', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="シリアル番号を入力"
-                  />
-                </div>
+                <NexusInput
+                  label="シリアル番号"
+                  value={product.serialNumber}
+                  onChange={(e) => updateProduct(index, 'serialNumber', e.target.value)}
+                  placeholder="シリアル番号を入力"
+                  variant="nexus"
+                />
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    予想価格 <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    value={product.estimatedValue}
-                    onChange={(e) => updateProduct(index, 'estimatedValue', parseInt(e.target.value) || 0)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="予想価格を入力"
-                    min="0"
-                  />
-                </div>
+                <NexusInput
+                  label="予想価格"
+                  type="number"
+                  value={product.estimatedValue}
+                  onChange={(e) => updateProduct(index, 'estimatedValue', parseInt(e.target.value) || 0)}
+                  placeholder="予想価格を入力"
+                  min="0"
+                  required
+                  variant="nexus"
+                />
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    商品説明
-                  </label>
-                  <textarea
+                  <NexusTextarea
+                    label="商品説明"
                     value={product.description}
                     onChange={(e) => updateProduct(index, 'description', e.target.value)}
                     rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="商品の状態や特記事項があれば入力"
+                    variant="nexus"
                   />
                 </div>
               </div>

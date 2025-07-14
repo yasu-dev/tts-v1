@@ -28,6 +28,7 @@ export default function DeliveryPage() {
   ]);
 
   const [isBarcodeModalOpen, setIsBarcodeModalOpen] = useState(false);
+  const [isDraftModalOpen, setIsDraftModalOpen] = useState(false);
   const [selectedShipment, setSelectedShipment] = useState<any>(null);
 
   const handleGenerateBarcode = () => {
@@ -124,8 +125,45 @@ export default function DeliveryPage() {
           </div>
         </BaseModal>
 
-        {/* New Delivery Plan Form - Intelligence Card Style */}
-        <div className="intelligence-card americas">
+        {/* Draft Save Notification Modal */}
+        <BaseModal
+          isOpen={isDraftModalOpen}
+          onClose={() => setIsDraftModalOpen(false)}
+          title="下書き保存機能について"
+          size="md"
+        >
+          <div className="space-y-4">
+            <div className="text-center p-6">
+              <DocumentArrowDownIcon className="w-16 h-16 mx-auto text-nexus-text-secondary mb-4" />
+              <h3 className="text-lg font-bold text-nexus-text-primary mb-3">
+                下書き保存機能は開発中です
+              </h3>
+              <p className="text-nexus-text-secondary leading-relaxed">
+                完全な納品プラン作成は<br />
+                「納品プラン確定」ボタンをクリックしてください。
+              </p>
+            </div>
+
+            <div className="bg-nexus-bg-secondary p-4 rounded-lg">
+              <p className="text-sm text-nexus-text-secondary">
+                💡 現在利用可能な機能：納品プラン作成、バーコード生成、履歴確認
+              </p>
+            </div>
+
+            <div className="flex justify-center mt-6">
+              <NexusButton
+                onClick={() => setIsDraftModalOpen(false)}
+                variant="primary"
+                className="min-w-[120px]"
+              >
+                理解しました
+              </NexusButton>
+            </div>
+          </div>
+        </BaseModal>
+
+        {/* New Delivery Plan Form - Unified Card Style */}
+        <div className="bg-white rounded-xl border border-nexus-border shadow-sm">
           <div className="p-8">
             <h3 className="text-2xl font-display font-bold text-nexus-text-primary mb-6">新規納品プラン</h3>
             
@@ -209,11 +247,13 @@ export default function DeliveryPage() {
               <NexusButton 
                 variant="primary"
                 icon={<CheckIcon className="w-5 h-5" />}
+                onClick={() => router.push('/delivery-plan')}
               >
                 納品プラン確定
               </NexusButton>
               <NexusButton 
                 icon={<DocumentArrowDownIcon className="w-5 h-5" />}
+                onClick={() => setIsDraftModalOpen(true)}
               >
                 下書き保存
               </NexusButton>
@@ -221,8 +261,8 @@ export default function DeliveryPage() {
           </div>
         </div>
 
-        {/* Delivery History - Holo Table Style */}
-        <div className="intelligence-card americas">
+        {/* Delivery History - Unified Table Style */}
+        <div className="bg-white rounded-xl border border-nexus-border shadow-sm">
           <div className="p-8">
             <h3 className="text-2xl font-display font-bold text-nexus-text-primary mb-6">納品履歴</h3>
             

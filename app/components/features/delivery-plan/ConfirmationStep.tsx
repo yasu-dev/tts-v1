@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import NexusButton from '@/app/components/ui/NexusButton';
 import NexusCard from '@/app/components/ui/NexusCard';
+import NexusCheckbox from '@/app/components/ui/NexusCheckbox';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 interface ConfirmationStepProps {
@@ -65,8 +66,8 @@ export default function ConfirmationStep({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-gray-900 mb-4">確認・出力</h2>
-        <p className="text-gray-600 mb-6">入力内容を確認して、納品プランを作成してください</p>
+        <h2 className="text-xl font-bold text-nexus-text-primary mb-4">確認・出力</h2>
+        <p className="text-nexus-text-secondary mb-6">入力内容を確認して、納品プランを作成してください</p>
       </div>
 
       {/* 基本情報確認 */}
@@ -104,10 +105,10 @@ export default function ConfirmationStep({
         {data.products && data.products.length > 0 ? (
           <div className="space-y-4">
             {data.products.map((product: any, index: number) => (
-              <NexusCard key={index} className="p-4 border-l-4 border-nexus-blue">
+              <NexusCard key={index} className="p-4 border-l-4 border-primary-blue bg-nexus-bg-tertiary">
                 <div className="flex justify-between items-start mb-2">
                   <h4 className="font-medium text-nexus-text-primary">{product.name}</h4>
-                  <span className="text-lg font-bold text-nexus-blue">
+                  <span className="text-lg font-bold text-primary-blue">
                     ¥{product.estimatedValue?.toLocaleString() || '0'}
                   </span>
                 </div>
@@ -137,10 +138,10 @@ export default function ConfirmationStep({
                 )}
               </NexusCard>
             ))}
-            <NexusCard className="p-4 border-2 border-nexus-blue bg-nexus-bg-tertiary">
+            <NexusCard className="p-4 border-2 border-primary-blue bg-nexus-bg-tertiary">
               <div className="flex justify-between items-center">
                 <span className="text-lg font-medium text-nexus-text-primary">合計予想価格:</span>
-                <span className="text-xl font-bold text-nexus-blue">
+                <span className="text-xl font-bold text-primary-blue">
                   ¥{getTotalValue().toLocaleString()}
                 </span>
               </div>
@@ -155,49 +156,42 @@ export default function ConfirmationStep({
       </NexusCard>
 
       {/* オプション設定 */}
-      <div className="bg-gray-50 rounded-lg p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">出力オプション</h3>
+      <NexusCard className="p-6 bg-nexus-bg-tertiary">
+        <h3 className="text-lg font-medium text-nexus-text-primary mb-4">出力オプション</h3>
         <div className="space-y-4">
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={generateBarcodes}
-              onChange={(e) => handleBarcodesChange(e.target.checked)}
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-            />
-            <span className="ml-2 text-sm text-gray-700">
-              バーコードラベルを生成する（推奨）
-            </span>
-          </label>
-          <p className="text-xs text-gray-500 ml-6">
-            商品管理用のバーコードラベルPDFを自動生成します
-          </p>
+          <NexusCheckbox
+            checked={generateBarcodes}
+            onChange={(e) => handleBarcodesChange(e.target.checked)}
+            label="バーコードラベルを生成する（推奨）"
+            description="商品管理用のバーコードラベルPDFを自動生成します"
+            variant="nexus"
+          />
         </div>
-      </div>
+      </NexusCard>
 
       {/* 利用規約同意 */}
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">利用規約</h3>
+      <NexusCard className="p-6 bg-yellow-50 border-yellow-200">
+        <h3 className="text-lg font-medium text-nexus-text-primary mb-4">利用規約</h3>
         <div className="space-y-4">
-          <label className="flex items-start">
+          <div className="flex items-start">
             <input
               type="checkbox"
               checked={agreedToTerms}
               onChange={(e) => handleTermsChange(e.target.checked)}
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1"
+              className="w-4 h-4 text-primary-blue border-nexus-border rounded focus:ring-primary-blue mt-1"
             />
-            <span className="ml-2 text-sm text-gray-700">
+            <label className="ml-2 text-sm text-nexus-text-primary cursor-pointer">
               <span className="text-red-500">*</span> 
               THE WORLD DOORの利用規約およびプライバシーポリシーに同意します
-            </span>
-          </label>
-          <div className="text-xs text-gray-500 ml-6 space-y-1">
+            </label>
+          </div>
+          <div className="text-xs text-nexus-text-secondary space-y-1 ml-7">
             <p>• 商品の査定価格は市場状況により変動する場合があります</p>
             <p>• 商品の状態により査定額が変更される場合があります</p>
             <p>• 納品後のキャンセルはお受けできません</p>
           </div>
         </div>
-      </div>
+      </NexusCard>
 
       <div className="flex justify-between pt-6">
         <NexusButton variant="default" onClick={onPrev} disabled={loading}>

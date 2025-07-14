@@ -7,9 +7,7 @@ import { NexusButton, NexusCard, NexusLoadingSpinner } from '../components/ui';
 import BaseModal from '../components/ui/BaseModal';
 import ProductDetailModal from '../components/ProductDetailModal';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
-import { DateRangePicker } from 'react-date-range';
-import 'react-date-range/dist/styles.css';
-import 'react-date-range/dist/theme/default.css';
+import AnalyticsPeriodModal from '../components/modals/AnalyticsPeriodModal';
 
 export default function DashboardPage() {
   const { showToast } = useToast();
@@ -19,16 +17,24 @@ export default function DashboardPage() {
   const [isProductDetailOpen, setIsProductDetailOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'urgent' | 'revenue' | 'operations' | 'returns'>('urgent');
-  const [dateRange, setDateRange] = useState([
-    {
-      startDate: new Date(),
-      endDate: new Date(),
-      key: 'selection'
-    }
-  ]);
+  const [selectedPeriod, setSelectedPeriod] = useState<{
+    startDate: Date;
+    endDate: Date;
+    label: string;
+  }>({
+    startDate: new Date(),
+    endDate: new Date(),
+    label: '今日'
+  });
 
   useEffect(() => {
-    fetch('/api/dashboard')
+    // 期間パラメータをAPIリクエストに含める
+    const params = new URLSearchParams({
+      startDate: selectedPeriod.startDate.toISOString(),
+      endDate: selectedPeriod.endDate.toISOString()
+    });
+    
+    fetch(`/api/dashboard?${params}`)
       .then((res) => {
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
@@ -336,14 +342,24 @@ export default function DashboardPage() {
           ]
         };
 
-        setDashboardData(practicalData);
+        // 期間情報をデータに追加
+        const dataWithPeriod = {
+          ...practicalData,
+          periodInfo: {
+            startDate: selectedPeriod.startDate.toLocaleDateString('ja-JP'),
+            endDate: selectedPeriod.endDate.toLocaleDateString('ja-JP'),
+            label: selectedPeriod.label
+          }
+        };
+        
+        setDashboardData(dataWithPeriod);
         setLoading(false);
       })
       .catch((error) => {
         console.error('Dashboard data fetch error:', error);
         setLoading(false);
       });
-  }, []);
+  }, [selectedPeriod]); // 選択期間が変更されたときに再読み込み
 
   const handleUrgentTaskAction = (task: any) => {
     showToast({
@@ -408,6 +424,10 @@ export default function DashboardPage() {
 
   const headerActions = (
     <>
+      <div className="text-right mr-4">
+        <div className="text-sm text-nexus-text-secondary">分析期間</div>
+        <div className="font-medium text-nexus-text-primary">{selectedPeriod.label}</div>
+      </div>
       <NexusButton
         onClick={() => window.location.reload()}
         variant="default"
@@ -428,7 +448,7 @@ export default function DashboardPage() {
           </svg>
         }
       >
-        詳細分析
+        期間変更
       </NexusButton>
     </>
   );
@@ -452,6 +472,28 @@ export default function DashboardPage() {
           iconType="dashboard"
           actions={headerActions}
         />
+
+        {/* 期間情報表示 */}
+        {dashboardData?.periodInfo && (
+          <div className="mt-6 bg-nexus-bg-secondary rounded-lg border border-nexus-border p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5 text-nexus-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <div>
+                  <div className="text-sm text-nexus-text-secondary">分析対象期間</div>
+                  <div className="font-semibold text-nexus-text-primary">
+                    {dashboardData.periodInfo.label} ({dashboardData.periodInfo.startDate} ～ {dashboardData.periodInfo.endDate})
+                  </div>
+                </div>
+              </div>
+              <div className="text-sm text-nexus-text-secondary">
+                最終更新: {new Date().toLocaleString('ja-JP')}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* タブナビゲーション */}
         <div className="mt-8 border-b border-nexus-border">
@@ -1053,30 +1095,20 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Date Picker Modal */}
-        <BaseModal
+        {/* Analytics Period Modal */}
+        <AnalyticsPeriodModal
           isOpen={isDatePickerOpen}
           onClose={() => setIsDatePickerOpen(false)}
-          title="期間選択"
-          size="lg"
-        >
-          <div>
-            <DateRangePicker
-              onChange={(item: any) => setDateRange([item.selection])}
-              ranges={dateRange}
-              months={2}
-              direction="horizontal"
-            />
-            <div className="text-right mt-4">
-              <NexusButton
-                onClick={() => setIsDatePickerOpen(false)}
-                variant="primary"
-              >
-                適用
-              </NexusButton>
-            </div>
-          </div>
-        </BaseModal>
+          onApply={(startDate, endDate, label) => {
+            setSelectedPeriod({ startDate, endDate, label });
+            showToast({
+              type: 'success',
+              title: '期間設定完了',
+              message: `分析期間を「${label}」に設定しました`
+            });
+          }}
+          title="詳細分析期間選択"
+        />
 
         {/* Product Detail Modal */}
         <ProductDetailModal

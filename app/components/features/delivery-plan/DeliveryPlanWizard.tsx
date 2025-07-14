@@ -127,8 +127,8 @@ export default function DeliveryPlanWizard() {
                 className={`
                   w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium
                   ${currentStep >= index + 1
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-600'
+                    ? 'bg-primary-blue text-white'
+                    : 'bg-nexus-bg-tertiary text-nexus-text-secondary border border-nexus-border'
                   }
                 `}
               >
@@ -142,7 +142,7 @@ export default function DeliveryPlanWizard() {
               </div>
               <span 
                 className={`ml-2 font-medium hidden sm:inline ${
-                  currentStep >= index + 1 ? 'text-blue-600' : 'text-gray-500'
+                  currentStep >= index + 1 ? 'text-primary-blue' : 'text-nexus-text-secondary'
                 }`}
                 data-testid={`step-${step.id}-label`}
               >
@@ -153,7 +153,7 @@ export default function DeliveryPlanWizard() {
               <div className="flex-1 mx-4">
                 <div
                   className={`h-1 rounded-full ${
-                    currentStep > index + 1 ? 'bg-blue-600' : 'bg-gray-200'
+                    currentStep > index + 1 ? 'bg-primary-blue' : 'bg-nexus-border'
                   }`}
                 />
               </div>

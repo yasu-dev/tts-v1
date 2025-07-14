@@ -131,8 +131,8 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
   ];
 
   const demoSpecs = {
-    'ブランド': product.name.split(' ')[0] || 'Unknown',
-    'モデル': product.name,
+    'ブランド': (product.name || '').split(' ')[0] || 'Unknown',
+    'モデル': product.name || '不明',
     '重量': '1.2kg',
     'サイズ': '150 x 100 x 80mm',
     '製造年': '2023',
@@ -143,14 +143,14 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title={product.name}
+              title={product.name || '商品詳細'}
       size="xl"
       className="max-h-[90vh] overflow-hidden"
     >
       <div className="p-6">
         <div className="mb-4">
             <p className="text-sm text-nexus-text-secondary">
-              SKU: {product.sku}
+              SKU: {product.sku || '不明'}
             </p>
         </div>
 
@@ -185,20 +185,20 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       商品名
                     </label>
-                    <p className="text-lg text-gray-900 dark:text-white">{product.name}</p>
+                    <p className="text-lg text-gray-900 dark:text-white">{product.name || '商品名不明'}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       カテゴリー
                     </label>
-                    <p className="text-gray-900 dark:text-white">{product.category}</p>
+                    <p className="text-gray-900 dark:text-white">{product.category || 'カテゴリ不明'}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       価格
                     </label>
                     <p className="text-2xl font-bold text-green-600">
-                      ¥{product.price.toLocaleString()}
+                      ¥{(product.price || 0).toLocaleString()}
                     </p>
                   </div>
                 </div>
@@ -207,24 +207,24 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       在庫数
                     </label>
-                    <p className="text-lg text-gray-900 dark:text-white">{product.stock}点</p>
+                    <p className="text-lg text-gray-900 dark:text-white">{(product.stock || 0)}点</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       保管場所
                     </label>
-                    <p className="text-gray-900 dark:text-white">{product.location}</p>
+                    <p className="text-gray-900 dark:text-white">{product.location || 'ロケーション不明'}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       ステータス
                     </label>
                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      product.status === '在庫あり' 
+                      (product.status || '在庫なし') === '在庫あり' 
                         ? 'bg-green-100 text-green-800' 
                         : 'bg-red-100 text-red-800'
                     }`}>
-                      {product.status}
+                      {product.status || '在庫なし'}
                     </span>
                   </div>
                 </div>
