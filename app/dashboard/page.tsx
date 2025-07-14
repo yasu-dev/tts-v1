@@ -449,6 +449,7 @@ export default function DashboardPage() {
           title="ダッシュボード"
           subtitle="緊急タスク・収益・運営効率・返品分析の統合管理"
           userType="seller"
+          iconType="dashboard"
           actions={headerActions}
         />
 

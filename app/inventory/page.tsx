@@ -343,6 +343,7 @@ export default function InventoryPage() {
           title="在庫管理"
           subtitle="商品在庫の状況を確認・管理できます"
           userType="seller"
+          iconType="inventory"
           actions={headerActions}
         />
 

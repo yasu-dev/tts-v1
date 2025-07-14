@@ -350,6 +350,7 @@ export default function ProfilePage() {
           title="プロフィール設定"
           subtitle="個人情報とアカウント設定を管理"
           userType={userType}
+          iconType="profile"
           actions={headerActions}
         />
 

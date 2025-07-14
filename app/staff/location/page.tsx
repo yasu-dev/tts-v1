@@ -109,6 +109,7 @@ export default function LocationPage() {
           title="ロケーション管理"
           subtitle="倉庫内の商品配置を効率的に管理・最適化"
           userType="staff"
+          iconType="location"
           actions={headerActions}
         />
 

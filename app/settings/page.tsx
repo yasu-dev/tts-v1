@@ -243,6 +243,7 @@ export default function SettingsPage() {
           title="設定"
           subtitle="システム設定とアカウント管理"
           userType={userType}
+          iconType="settings"
         />
 
         {/* Delivery & Shipping Settings */}

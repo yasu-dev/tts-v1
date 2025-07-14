@@ -1,28 +1,34 @@
 'use client';
 
 import React from 'react';
+import { getUnifiedIcon, IconType } from './icons';
 
 interface UnifiedPageHeaderProps {
   title: string;
   subtitle?: string;
   userType: 'seller' | 'staff';
   actions?: React.ReactNode;
+  iconType?: IconType; // 新しく追加: 各ページに対応するアイコンタイプ
 }
 
 /**
  * 統一されたページヘッダーコンポーネント
- * 全画面で同じスタイル、レイアウト、アイコンを使用
+ * 全画面で同じスタイル、レイアウトを使用し、各ページに対応するアイコンを表示
  */
 export default function UnifiedPageHeader({
   title,
   subtitle,
   userType,
-  actions
+  actions,
+  iconType
 }: UnifiedPageHeaderProps) {
-  // 統一されたアイコン（userTypeに関係なく同じ）
-  const headerIcon = (
+  // アイコンが指定されていない場合のフォールバック（既存の動作を維持）
+  const headerIcon = iconType ? (
+    getUnifiedIcon(iconType, "w-8 h-8 text-nexus-text-primary flex-shrink-0")
+  ) : (
+    // フォールバック用のデフォルトアイコン（従来の黄色アイコンから変更）
     <svg 
-      className="w-8 h-8 text-nexus-yellow flex-shrink-0" 
+      className="w-8 h-8 text-nexus-text-primary flex-shrink-0" 
       fill="none" 
       stroke="currentColor" 
       viewBox="0 0 24 24"
@@ -43,7 +49,7 @@ export default function UnifiedPageHeader({
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           {/* タイトルセクション - 統一レイアウト */}
           <div className="flex items-start gap-3 flex-1 min-w-0">
-            {/* 統一されたアイコン */}
+            {/* 統一されたアイコン（各ページごとに異なる） */}
             {headerIcon}
             <div className="min-w-0">
               {/* 統一されたタイトルスタイル */}

@@ -526,6 +526,7 @@ export default function StaffTasksPage() {
           title="タスク管理"
           subtitle="作業タスクの詳細管理と進捗追跡"
           userType="staff"
+          iconType="tasks"
           actions={headerActions}
         />
 

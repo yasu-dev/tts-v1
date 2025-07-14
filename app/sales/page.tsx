@@ -84,6 +84,7 @@ export default function SalesPage() {
           title="販売管理"
           subtitle="出品状況と販売パフォーマンスを管理"
           userType="seller"
+          iconType="sales"
           actions={headerActions}
         />
 

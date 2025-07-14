@@ -221,6 +221,7 @@ export default function PickingPage() {
           title="ピッキングリスト"
           subtitle="出荷準備の効率的な商品ピッキング管理"
           userType="staff"
+          iconType="picking"
           actions={headerActions}
         />
 

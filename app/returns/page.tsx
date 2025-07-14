@@ -246,6 +246,7 @@ export default function ReturnsPage() {
           title="返品管理"
           subtitle="返品リクエストの処理と履歴を管理します"
           userType="seller"
+          iconType="returns"
           actions={headerActions}
         />
 

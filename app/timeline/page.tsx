@@ -99,6 +99,7 @@ export default function TimelinePage() {
           title="商品履歴"
           subtitle="商品のステータス変更履歴を追跡"
           userType="seller"
+          iconType="timeline"
           actions={headerActions}
         />
 

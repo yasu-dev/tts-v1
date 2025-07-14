@@ -254,6 +254,7 @@ export default function StaffInventoryPage() {
           title="スタッフ在庫管理"
           subtitle="倉庫内の全在庫を管理・操作"
           userType="staff"
+          iconType="inventory"
           actions={headerActions}
         />
 

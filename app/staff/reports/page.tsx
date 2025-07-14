@@ -335,6 +335,7 @@ export default function BusinessReportsPage() {
           title="業務レポート"
           subtitle="業務フロー全体の可視化と効率性分析"
           userType="staff"
+          iconType="reports"
           actions={headerActions}
         />
 

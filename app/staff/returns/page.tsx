@@ -246,6 +246,7 @@ export default function ReturnsPage() {
             title="返品処理"
             subtitle="返品商品の検品と再出品を管理します"
             userType="staff"
+            iconType="returns"
           />
           <div className="flex items-center justify-center min-h-[400px]">
             <NexusLoadingSpinner size="lg" />
@@ -357,6 +358,7 @@ export default function ReturnsPage() {
           title="返品処理"
           subtitle="顧客からの返品リクエストを処理"
           userType="staff"
+          iconType="returns"
           actions={headerActions}
         />
 

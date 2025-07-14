@@ -337,6 +337,7 @@ export default function StaffShippingPage() {
           title="出荷管理"
           subtitle="出荷待ち商品のピッキング・梱包・配送管理"
           userType="staff"
+          iconType="shipping"
           actions={headerActions}
         />
 

@@ -156,6 +156,7 @@ export default function BillingPage() {
           title="請求管理"
           subtitle="売上金の請求と精算状況を管理します"
           userType="seller"
+          iconType="billing"
           actions={headerActions}
         />
 

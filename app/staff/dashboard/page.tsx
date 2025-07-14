@@ -391,6 +391,7 @@ export default function StaffDashboardPage() {
             title="ダッシュボード"
             subtitle="業務遂行状況の統合管理"
             userType="staff"
+            iconType="dashboard"
           />
           <div className="flex items-center justify-center min-h-[400px]">
             <NexusLoadingSpinner size="lg" />
@@ -425,6 +426,7 @@ export default function StaffDashboardPage() {
             title="ダッシュボード"
             subtitle="業務遂行状況の統合管理"
             userType="staff"
+            iconType="dashboard"
           />
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
@@ -465,6 +467,7 @@ export default function StaffDashboardPage() {
           title="ダッシュボード"
           subtitle="業務遂行状況の統合管理"
           userType="staff"
+          iconType="dashboard"
           actions={headerActions}
         />
 
