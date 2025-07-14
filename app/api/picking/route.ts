@@ -11,15 +11,113 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
     const assignee = searchParams.get('assignee');
 
-    // Prismaを使用してピッキングタスクデータを取得
-    // TODO: 実際のPrismaクエリを実装する際は、以下のような構造になる
-    // const pickingTasks = await prisma.pickingTask.findMany({
-    //   where: { status, assignee },
-    //   include: { items: { include: { product: true } } }
-    // });
+    // 大量のモックデータを生成
+    const customers = [
+      'NEXUS Global Trading', 'EuroTech Solutions', 'Asia Pacific Electronics',
+      '株式会社東京カメラ', 'ヨーロッパ写真機材', 'アメリカンフォト', 
+      'カメラワールド', '映像機器商事', 'プロフォト株式会社', 'デジタルイメージング',
+      'フォトスタジオ エリート', 'カメラ専門店 レンズマスター', 'ビデオ機材センター',
+      '撮影機材レンタル', 'プロカメラマン協会', 'フィルムアート', 'スタジオライト',
+      'レンズテクノロジー', 'イメージングソリューション', 'カメラメンテナンス'
+    ];
 
-    // 現在はモックデータを返す（Prismaスキーマが整備されるまで）
-    let pickingTasks = [
+    const products = [
+      { name: 'Canon EOS R5 ボディ', sku: 'CAM-001', location: 'STD-A-01' },
+      { name: 'Sony α7R V ボディ', sku: 'CAM-002', location: 'STD-A-02' },
+      { name: 'Nikon Z9 ボディ', sku: 'CAM-003', location: 'STD-A-03' },
+      { name: 'Canon EOS R6 Mark II', sku: 'CAM-004', location: 'STD-A-04' },
+      { name: 'Sony FE 24-70mm F2.8 GM', sku: 'LENS-001', location: 'HUM-01' },
+      { name: 'Canon RF 24-70mm F2.8L', sku: 'LENS-002', location: 'HUM-02' },
+      { name: 'Nikon Z 24-70mm f/2.8 S', sku: 'LENS-003', location: 'HUM-03' },
+      { name: 'Sony FE 70-200mm F2.8 GM', sku: 'LENS-004', location: 'HUM-04' },
+      { name: 'Canon RF 85mm F1.2L', sku: 'LENS-005', location: 'HUM-05' },
+      { name: 'Sony FE 85mm F1.4 GM', sku: 'LENS-006', location: 'HUM-06' },
+      { name: 'Manfrotto 三脚 MT055', sku: 'ACC-001', location: 'DRY-01' },
+      { name: 'Godox ストロボ AD600', sku: 'ACC-002', location: 'DRY-02' },
+      { name: 'SanDisk CFexpress 128GB', sku: 'ACC-003', location: 'TEMP-01' },
+      { name: 'Lowepro カメラバッグ', sku: 'ACC-004', location: 'TEMP-02' },
+      { name: 'Peak Design ストラップ', sku: 'ACC-005', location: 'TEMP-03' }
+    ];
+
+    const staff = ['田中太郎', '佐藤花子', '鈴木一郎', '高橋美咲', '山田健太', '中村由香'];
+    const shippingMethods = ['ヤマト運輸', '佐川急便', '日本郵便', 'FedEx', 'DHL Express', 'UPS'];
+    const priorities = ['urgent', 'high', 'normal', 'low'];
+    const statuses = ['pending', 'in_progress', 'completed', 'on_hold'];
+
+    // 50件のピッキングタスクを動的生成
+    let pickingTasks = [];
+    
+    for (let i = 1; i <= 50; i++) {
+      const orderNumber = `ORD-2024-${String(i + 1000).padStart(4, '0')}`;
+      const taskId = `PICK-${String(i).padStart(3, '0')}`;
+      const customer = customers[Math.floor(Math.random() * customers.length)];
+      const priority = priorities[Math.floor(Math.random() * priorities.length)];
+      const taskStatus = statuses[Math.floor(Math.random() * statuses.length)];
+      const assignee = taskStatus !== 'pending' ? staff[Math.floor(Math.random() * staff.length)] : null;
+      const shippingMethod = shippingMethods[Math.floor(Math.random() * shippingMethods.length)];
+      
+      // アイテム数を1-5個でランダム生成
+      const itemCount = Math.floor(Math.random() * 5) + 1;
+      const selectedProducts = [];
+      for (let j = 0; j < itemCount; j++) {
+        selectedProducts.push(products[Math.floor(Math.random() * products.length)]);
+      }
+
+      // 進捗に応じてピッキング済み数を設定
+      let pickedItems = 0;
+      if (taskStatus === 'completed') {
+        pickedItems = itemCount;
+      } else if (taskStatus === 'in_progress') {
+        pickedItems = Math.floor(Math.random() * itemCount);
+      }
+
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + Math.floor(Math.random() * 7));
+
+      const task = {
+        id: taskId,
+        orderId: orderNumber,
+        customerName: customer,
+        priority: priority,
+        status: taskStatus,
+        assignee: assignee,
+        shippingMethod: shippingMethod,
+        totalItems: itemCount,
+        pickedItems: pickedItems,
+        createdAt: new Date(Date.now() - Math.floor(Math.random() * 7 * 24 * 60 * 60 * 1000)).toISOString(),
+        dueDate: dueDate.toISOString(),
+        items: selectedProducts.map((product, index) => {
+          const quantity = Math.floor(Math.random() * 3) + 1;
+          let pickedQuantity = 0;
+          let itemStatus = 'pending';
+          
+          if (taskStatus === 'completed') {
+            pickedQuantity = quantity;
+            itemStatus = 'verified';
+          } else if (taskStatus === 'in_progress' && index < pickedItems) {
+            pickedQuantity = quantity;
+            itemStatus = 'picked';
+          }
+
+          return {
+            id: `ITEM-${taskId}-${index + 1}`,
+            productId: `PROD-${product.sku}`,
+            productName: product.name,
+            sku: product.sku,
+            location: product.location,
+            quantity: quantity,
+            pickedQuantity: pickedQuantity,
+            status: itemStatus,
+            imageUrl: '/api/placeholder/60/60'
+          };
+        })
+      };
+
+      pickingTasks.push(task);
+    }
+
+    // 元の少ないモックデータ（互換性のため保持）
+    const originalTasks = [
       {
         id: 'PICK-001',
         orderId: 'ORD-2024-0847',
@@ -85,20 +183,24 @@ export async function GET(request: NextRequest) {
       },
     ];
 
+    // 新しい大量データと既存データを組み合わせ
+    const allTasks = [...pickingTasks, ...originalTasks];
+
     // Filter by status if provided
-    if (status) {
-      pickingTasks = pickingTasks.filter(task => task.status === status);
+    let filteredTasks = allTasks;
+    if (status && status !== 'all') {
+      filteredTasks = filteredTasks.filter(task => task.status === status);
     }
 
     // Filter by assignee if provided
     if (assignee) {
-      pickingTasks = pickingTasks.filter(task => task.assignee === assignee);
+      filteredTasks = filteredTasks.filter(task => task.assignee === assignee);
     }
 
     return NextResponse.json({
       success: true,
-      data: pickingTasks,
-      count: pickingTasks.length
+      data: filteredTasks,
+      count: filteredTasks.length
     });
 
   } catch (error) {

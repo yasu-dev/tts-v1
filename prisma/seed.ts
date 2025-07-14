@@ -597,10 +597,119 @@ async function main() {
   console.log('スタッフ: staff@example.com / password123');
   console.log('管理者: admin@example.com / password123');
   console.log('');
+  // ピッキングタスクのシードデータを作成
+  const pickingCustomers = [
+    'NEXUS Global Trading', 'EuroTech Solutions', 'Asia Pacific Electronics',
+    '株式会社東京カメラ', 'ヨーロッパ写真機材', 'アメリカンフォト', 
+    'カメラワールド', '映像機器商事', 'プロフォト株式会社', 'デジタルイメージング',
+    'フォトスタジオ エリート', 'カメラ専門店 レンズマスター', 'ビデオ機材センター',
+    '撮影機材レンタル', 'プロカメラマン協会', 'フィルムアート', 'スタジオライト',
+    'レンズテクノロジー', 'イメージングソリューション', 'カメラメンテナンス'
+  ];
+
+  const pickingProducts = [
+    { name: 'Canon EOS R5 ボディ', sku: 'CAM-001', location: 'STD-A-01' },
+    { name: 'Sony α7R V ボディ', sku: 'CAM-002', location: 'STD-A-02' },
+    { name: 'Nikon Z9 ボディ', sku: 'CAM-003', location: 'STD-A-03' },
+    { name: 'Canon EOS R6 Mark II', sku: 'CAM-004', location: 'STD-A-04' },
+    { name: 'Sony FE 24-70mm F2.8 GM', sku: 'LENS-001', location: 'HUM-01' },
+    { name: 'Canon RF 24-70mm F2.8L', sku: 'LENS-002', location: 'HUM-02' },
+    { name: 'Nikon Z 24-70mm f/2.8 S', sku: 'LENS-003', location: 'HUM-03' },
+    { name: 'Sony FE 70-200mm F2.8 GM', sku: 'LENS-004', location: 'HUM-04' },
+    { name: 'Canon RF 85mm F1.2L', sku: 'LENS-005', location: 'HUM-05' },
+    { name: 'Sony FE 85mm F1.4 GM', sku: 'LENS-006', location: 'HUM-06' },
+    { name: 'Manfrotto 三脚 MT055', sku: 'ACC-001', location: 'DRY-01' },
+    { name: 'Godox ストロボ AD600', sku: 'ACC-002', location: 'DRY-02' },
+    { name: 'SanDisk CFexpress 128GB', sku: 'ACC-003', location: 'TEMP-01' },
+    { name: 'Lowepro カメラバッグ', sku: 'ACC-004', location: 'TEMP-02' },
+    { name: 'Peak Design ストラップ', sku: 'ACC-005', location: 'TEMP-03' }
+  ];
+
+  const pickingStaff = ['田中太郎', '佐藤花子', '鈴木一郎', '高橋美咲', '山田健太', '中村由香'];
+  const shippingMethods = ['ヤマト運輸', '佐川急便', '日本郵便', 'FedEx', 'DHL Express', 'UPS'];
+  const priorities = ['urgent', 'high', 'normal', 'low'];
+  const statuses = ['pending', 'in_progress', 'completed', 'on_hold'];
+
+  console.log('🎯 ピッキングタスクのシードデータを作成中...');
+
+  // 50件のピッキングタスクを生成
+  for (let i = 1; i <= 50; i++) {
+    const orderNumber = `ORD-2024-${String(i + 1000).padStart(4, '0')}`;
+    const customer = pickingCustomers[Math.floor(Math.random() * pickingCustomers.length)];
+    const priority = priorities[Math.floor(Math.random() * priorities.length)];
+    const status = statuses[Math.floor(Math.random() * statuses.length)];
+    const assignee = status !== 'pending' ? pickingStaff[Math.floor(Math.random() * pickingStaff.length)] : null;
+    const shippingMethod = shippingMethods[Math.floor(Math.random() * shippingMethods.length)];
+    
+    // アイテム数を1-5個でランダム生成
+    const itemCount = Math.floor(Math.random() * 5) + 1;
+    const selectedProducts = [];
+    for (let j = 0; j < itemCount; j++) {
+      selectedProducts.push(pickingProducts[Math.floor(Math.random() * pickingProducts.length)]);
+    }
+
+    // 進捗に応じてピッキング済み数を設定
+    let pickedItems = 0;
+    if (status === 'completed') {
+      pickedItems = itemCount;
+    } else if (status === 'in_progress') {
+      pickedItems = Math.floor(Math.random() * itemCount);
+    }
+
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + Math.floor(Math.random() * 7)); // 今日から7日以内
+
+    // ピッキングタスクの作成は現在APIで動的生成されているためコメントアウト
+    // try {
+    //   const task = await prisma.pickingTask.create({
+    //     data: {
+    //       orderId: orderNumber,
+    //       customerName: customer,
+    //       priority: priority,
+    //       status: status,
+    //       assignee: assignee,
+    //       shippingMethod: shippingMethod,
+    //       totalItems: itemCount,
+    //       pickedItems: pickedItems,
+    //       dueDate: dueDate,
+    //       items: {
+    //         create: selectedProducts.map((product, index) => {
+    //           const quantity = Math.floor(Math.random() * 3) + 1;
+    //           let pickedQuantity = 0;
+    //           let itemStatus = 'pending';
+    //           
+    //           if (status === 'completed') {
+    //             pickedQuantity = quantity;
+    //             itemStatus = 'verified';
+    //           } else if (status === 'in_progress' && index < pickedItems) {
+    //             pickedQuantity = quantity;
+    //             itemStatus = 'picked';
+    //           }
+    //
+    //           return {
+    //             productId: `PROD-${product.sku}`,
+    //             productName: product.name,
+    //             sku: product.sku,
+    //             location: product.location,
+    //             quantity: quantity,
+    //             pickedQuantity: pickedQuantity,
+    //             status: itemStatus,
+    //             imageUrl: '/api/placeholder/60/60'
+    //           };
+    //         })
+    //       }
+    //     }
+    //   });
+    // } catch (error) {
+    //   console.log(`⚠️ ピッキングタスク ${i} の作成をスキップしました（マイグレーションが必要）`);
+    // }
+  }
+
   console.log('📦 商品データ: 20件のカメラを作成しました');
   console.log('📍 ロケーションデータ: 7件のロケーションを作成しました');
   console.log('🛒 注文データ: 8件の注文を作成しました（様々なステータス）');
   console.log('📋 アクティビティデータ: 10件のアクティビティを作成しました');
+  console.log('🎯 ピッキングタスクデータ: APIで動的生成されます（50件以上）');
 }
 
 main()

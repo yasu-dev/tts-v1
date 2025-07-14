@@ -243,3 +243,43 @@ model BarcodeScanner {
 
   @@map("barcode_scanners")
 }
+
+model PickingTask {
+  id            String           @id @default(cuid())
+  orderId       String           @unique
+  customerName  String
+  priority      String           // 'urgent', 'high', 'normal', 'low'
+  status        String           // 'pending', 'in_progress', 'completed', 'on_hold'
+  assignee      String?
+  shippingMethod String
+  totalItems    Int
+  pickedItems   Int              @default(0)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  dueDate       DateTime
+  
+  // Relations
+  items         PickingItem[]
+
+  @@map("picking_tasks")
+}
+
+model PickingItem {
+  id             String      @id @default(cuid())
+  pickingTaskId  String
+  productId      String
+  productName    String
+  sku            String
+  location       String
+  quantity       Int
+  pickedQuantity Int         @default(0)
+  status         String      // 'pending', 'picked', 'verified'
+  imageUrl       String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  // Relations
+  pickingTask    PickingTask @relation(fields: [pickingTaskId], references: [id], onDelete: Cascade)
+
+  @@map("picking_items")
+}

@@ -64,85 +64,37 @@ export default function PickingPage() {
 
   const fetchPickingData = async () => {
     try {
-      // モックデータ
-      const mockTasks: PickingTask[] = [
-        {
-          id: 'PICK-001',
-          orderId: 'ORD-2024-0847',
-          customerName: 'NEXUS Global Trading',
-          priority: 'urgent',
-          status: 'pending',
-          items: [
-            {
-              id: 'ITEM-001',
-              productId: 'TWD-2024-001',
-              productName: 'Canon EOS R5 ボディ',
-              sku: 'CAM-001',
-              location: 'STD-A-01',
-              quantity: 1,
-              pickedQuantity: 0,
-              status: 'pending',
-              imageUrl: '/api/placeholder/60/60',
-            },
-            {
-              id: 'ITEM-002',
-              productId: 'TWD-2024-002',
-              productName: 'Sony FE 24-70mm F2.8 GM',
-              sku: 'LENS-001',
-              location: 'HUM-01',
-              quantity: 2,
-              pickedQuantity: 0,
-              status: 'pending',
-              imageUrl: '/api/placeholder/60/60',
-            },
-          ],
-          assignee: '田中太郎',
-          createdAt: '2024-01-20T10:00:00',
-          dueDate: '2024-01-20T15:00:00',
-          shippingMethod: 'FedEx Priority',
-          totalItems: 3,
-          pickedItems: 0,
-        },
-        {
-          id: 'PICK-002',
-          orderId: 'ORD-2024-0846',
-          customerName: 'EuroTech Solutions',
-          priority: 'normal',
-          status: 'in_progress',
-          items: [
-            {
-              id: 'ITEM-003',
-              productId: 'TWD-2024-003',
-              productName: 'Nikon Z9 ボディ',
-              sku: 'CAM-003',
-              location: 'STD-A-01',
-              quantity: 1,
-              pickedQuantity: 1,
-              status: 'picked',
-              imageUrl: '/api/placeholder/60/60',
-            },
-          ],
-          assignee: '佐藤花子',
-          createdAt: '2024-01-20T09:00:00',
-          dueDate: '2024-01-20T17:00:00',
-          shippingMethod: 'DHL Express',
-          totalItems: 1,
-          pickedItems: 1,
-        },
-      ];
-
-      setPickingTasks(mockTasks);
+      // APIからデータを取得
+      const response = await fetch('/api/picking');
+      const result = await response.json();
       
-      // 統計情報を計算
-      const stats: PickingStats = {
-        totalTasks: mockTasks.length,
-        pendingTasks: mockTasks.filter(t => t.status === 'pending').length,
-        inProgressTasks: mockTasks.filter(t => t.status === 'in_progress').length,
-        completedToday: mockTasks.filter(t => t.status === 'completed').length,
-        averageTime: '25分',
-        accuracy: 99.5,
-      };
-      setStats(stats);
+      if (result.success) {
+        const tasks = result.data || [];
+        setPickingTasks(tasks);
+        
+        // 統計情報を計算
+        const stats: PickingStats = {
+          totalTasks: tasks.length,
+          pendingTasks: tasks.filter((t: PickingTask) => t.status === 'pending').length,
+          inProgressTasks: tasks.filter((t: PickingTask) => t.status === 'in_progress').length,
+          completedToday: tasks.filter((t: PickingTask) => t.status === 'completed').length,
+          averageTime: '25分',
+          accuracy: 99.5,
+        };
+        setStats(stats);
+      } else {
+        console.error('Failed to fetch picking data:', result);
+        // フォールバック用のデータ
+        setPickingTasks([]);
+        setStats({
+          totalTasks: 0,
+          pendingTasks: 0,
+          inProgressTasks: 0,
+          completedToday: 0,
+          averageTime: '0分',
+          accuracy: 0,
+        });
+      }
     } catch (error) {
       console.error('Error fetching picking data:', error);
     } finally {
