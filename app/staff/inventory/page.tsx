@@ -173,53 +173,6 @@ export default function StaffInventoryPage() {
     setIsQRModalOpen(true);
   };
 
-  const handleBulkMove = () => {
-    if (selectedItems.length > 0) {
-              // 移動先入力モーダルを開く（統一されたUIコンポーネントを使用）
-        const newLocation = '新しいロケーション'; // TODO: BaseModalで実装
-      if (newLocation) {
-        selectedItems.forEach(itemId => {
-          updateItemLocation(itemId, newLocation);
-        });
-        setSelectedItems([]);
-        showToast({
-          title: '移動完了',
-          message: `${selectedItems.length}件の商品を${newLocation}に移動しました`,
-          type: 'success'
-        });
-      }
-    } else {
-      showToast({
-        title: '選択エラー',
-        message: '移動する商品を選択してください',
-        type: 'warning'
-      });
-    }
-  };
-
-  const handleItemMove = (item: InventoryItem) => {
-            // 移動先入力モーダルを開く（統一されたUIコンポーネントを使用）
-        const newLocation = item.location; // TODO: BaseModalで実装
-    if (newLocation && newLocation !== item.location) {
-      updateItemLocation(item.id, newLocation);
-      showToast({
-        title: '移動完了',
-        message: `${item.name}を${newLocation}に移動しました`,
-        type: 'success'
-      });
-    }
-  };
-
-  const toggleItemSelection = (itemId: string) => {
-    setSelectedItems(prev => 
-      prev.includes(itemId) 
-        ? prev.filter(id => id !== itemId)
-        : [...prev, itemId]
-    );
-  };
-
-  const staffMembers = Array.from(new Set(items.map(item => item.assignedStaff).filter((staff): staff is string => Boolean(staff))));
-
   const handleExportCsv = () => {
     const csvContent = [
       ['ID', '商品名', 'SKU', 'ロケーション', '数量', 'ステータス', '担当者'],
@@ -250,47 +203,14 @@ export default function StaffInventoryPage() {
       type: 'success'
     });
   };
-  
-  const handleEditItem = () => {
-    showToast({
-      title: '保存完了',
-      message: '商品詳細を保存しました',
-      type: 'success'
-    });
-    setIsEditModalOpen(false);
-  };
-  
-  const handleMoveItem = () => {
-    showToast({
-      title: '移動完了',
-      message: 'ロケーションを移動しました',
-      type: 'success'
-    });
-    setIsMoveModalOpen(false);
-  };
-
-  const handlePrintQRCode = () => {
-    if (selectedItems.length > 0) {
-      showToast({
-        title: '印刷開始',
-        message: `${selectedItems.length}件の商品のQRコード印刷を開始します`,
-        type: 'info'
-      });
-    } else {
-      showToast({
-        title: '印刷開始',
-        message: '全商品のQRコード印刷を開始します',
-        type: 'info'
-      });
-    }
-  };
 
   const headerActions = (
-    <>
+    <div className="grid grid-cols-2 gap-3 w-full max-w-md">
       <NexusButton
         onClick={() => setIsEditModalOpen(true)}
         disabled={selectedItems.length === 0}
         icon={<PencilIcon className="w-5 h-5" />}
+        size="sm"
       >
         商品詳細を編集
       </NexusButton>
@@ -298,22 +218,24 @@ export default function StaffInventoryPage() {
         onClick={() => setIsMoveModalOpen(true)}
         disabled={selectedItems.length === 0}
         icon={<ArrowsRightLeftIcon className="w-5 h-5" />}
+        size="sm"
       >
         ロケーション移動
       </NexusButton>
       <BarcodePrintButton
         productIds={selectedItems}
         variant="secondary"
-        size="md"
+        size="sm"
       />
       <NexusButton
         onClick={handleExportCsv}
         variant="primary"
         icon={<ArrowDownTrayIcon className="w-5 h-5" />}
+        size="sm"
       >
         CSVエクスポート
       </NexusButton>
-    </>
+    </div>
   );
 
   if (loading) {
@@ -326,7 +248,7 @@ export default function StaffInventoryPage() {
 
   return (
     <DashboardLayout userType="staff">
-      <div className="space-y-6">
+      <div className="space-y-6 max-w-4xl mx-auto">
         {/* 統一ヘッダー */}
         <UnifiedPageHeader
           title="スタッフ在庫管理"
@@ -338,7 +260,7 @@ export default function StaffInventoryPage() {
         {/* Filters */}
         <div className="intelligence-card global">
           <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               <div>
                 <NexusSelect
                   label="ステータス"
@@ -393,7 +315,7 @@ export default function StaffInventoryPage() {
                   onChange={(e) => setSelectedStaff(e.target.value)}
                   options={[
                     { value: 'all', label: 'すべて' },
-                    ...staffMembers.map(staff => ({ value: staff, label: staff }))
+                    { value: '山本 達也', label: '山本 達也' }
                   ]}
                 />
               </div>
@@ -411,21 +333,27 @@ export default function StaffInventoryPage() {
           </div>
         </div>
 
-        {/* Content */}
-        {viewMode === 'card' ? (
-          /* Card View */
-          <div className="space-y-6">
-            <div className="intelligence-metrics">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {paginatedItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="intelligence-card asia"
-                >
-                  <div className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="action-orb">
+        {/* Content - Table View */}
+        <div className="intelligence-card global">
+          <div className="p-8">
+            <div className="holo-table">
+              <table className="w-full">
+                              <thead className="holo-header">
+                  <tr>
+                    <th className="text-left p-4 font-medium text-nexus-text-secondary">商品</th>
+                    <th className="text-left p-4 font-medium text-nexus-text-secondary">ステータス</th>
+                    <th className="text-left p-4 font-medium text-nexus-text-secondary">保管場所</th>
+                    <th className="text-left p-4 font-medium text-nexus-text-secondary">担当者</th>
+                    <th className="text-left p-4 font-medium text-nexus-text-secondary">最終更新</th>
+                    <th className="text-center p-4 font-medium text-nexus-text-secondary">操作</th>
+                  </tr>
+                </thead>
+                              <tbody className="holo-body">
+                  {paginatedItems.map((item) => (
+                    <tr key={item.id}>
+                      <td className="p-4">
+                      <div className="flex items-center">
+                        <div className="w-8 h-8 rounded-lg bg-nexus-bg-secondary flex items-center justify-center mr-3">
                           {item.category === 'カメラ本体' ? (
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -447,87 +375,45 @@ export default function StaffInventoryPage() {
                           )}
                         </div>
                         <div>
-                          <BusinessStatusIndicator status={item.status} size="sm" />
-                          {item.qrCode && (
-                            <p className="text-xs text-nexus-text-secondary mt-1">
-                              QR: {item.qrCode}
-                            </p>
-                          )}
+                          <div className="text-sm font-medium text-nexus-text-primary">
+                            {item.name}
+                          </div>
+                          <div className="text-sm text-nexus-text-secondary">
+                            {item.sku} | {item.qrCode}
+                          </div>
                         </div>
                       </div>
-                    </div>
-
-                    <h3 className="text-lg font-semibold text-nexus-text-primary mb-2">
-                      {item.name}
-                    </h3>
-                    
-                    <div className="space-y-2 text-sm text-nexus-text-secondary mb-4">
-                      <div className="flex justify-between">
-                        <span>SKU:</span>
-                        <span className="cert-nano cert-premium">{item.sku}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>価格:</span>
-                        <span className="font-display font-medium text-nexus-text-primary">¥{item.price.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>保管場所:</span>
-                        <span className="font-medium text-nexus-text-primary">{item.location}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>担当者:</span>
-                        <span className="font-medium text-nexus-text-primary">{item.assignedStaff}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>最終更新:</span>
-                        <span className="font-medium text-nexus-text-primary">
+                                          </td>
+                      <td className="p-4">
+                        <BusinessStatusIndicator status={item.status} size="sm" />
+                      </td>
+                      <td className="p-4">
+                        <span className="text-sm text-nexus-text-primary">{item.location}</span>
+                      </td>
+                      <td className="p-4">
+                        <span className="text-sm text-nexus-text-primary">{item.assignedStaff}</span>
+                      </td>
+                      <td className="p-4">
+                        <span className="text-sm text-nexus-text-secondary">
                           {new Date(item.lastModified).toLocaleDateString('ja-JP')}
                         </span>
-                      </div>
-                    </div>
-
-                    {item.notes && (
-                      <div className="bg-nexus-bg-secondary p-3 rounded-lg mb-4">
-                        <p className="text-xs text-nexus-text-secondary">
-                          備考: {item.notes}
-                        </p>
-                      </div>
-                    )}
-
-                    <div className="flex space-x-2">
+                      </td>
+                      <td className="text-center p-4">
                       <NexusButton 
                         onClick={() => {
                           setSelectedItem(item);
                           setIsDetailModalOpen(true);
                         }}
-                        variant="primary"
                         size="sm"
-                        className="flex-1"
+                        variant="primary"
                       >
                         詳細
                       </NexusButton>
-                      <NexusButton 
-                        onClick={() => handleItemMove(item)}
-                        size="sm"
-                      >
-                        移動
-                      </NexusButton>
-                      <BarcodePrintButton
-                        productIds={[item.id]}
-                        variant="secondary"
-                        size="sm"
-                      />
-                      <NexusButton 
-                        onClick={() => handleQRCode(item)}
-                        size="sm"
-                      >
-                        QR
-                      </NexusButton>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
             
             {/* ページネーション */}
             {filteredItems.length > 0 && (
@@ -542,132 +428,9 @@ export default function StaffInventoryPage() {
                 />
               </div>
             )}
-          </div>
-          </div>
-        ) : (
-          /* Table View */
-          <div className="intelligence-card global">
-            <div className="p-6">
-              <div className="holo-table">
-                <table className="w-full">
-                  <thead className="holo-header">
-                    <tr>
-                      <th className="text-left">商品</th>
-                      <th className="text-left">ステータス</th>
-                      <th className="text-left">保管場所</th>
-                      <th className="text-left">担当者</th>
-                      <th className="text-left">最終更新</th>
-                      <th className="text-right">操作</th>
-                    </tr>
-                  </thead>
-                  <tbody className="holo-body">
-                    {paginatedItems.map((item) => (
-                      <tr key={item.id} className="holo-row">
-                        <td>
-                          <div className="flex items-center">
-                            <div className="action-orb mr-3">
-                              {item.category === 'カメラ本体' ? (
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                              ) : item.category === 'レンズ' ? (
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12a3 3 0 106 0 3 3 0 00-6 0z" />
-                                </svg>
-                              ) : item.category === '腕時計' ? (
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                              ) : (
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                                </svg>
-                              )}
-                            </div>
-                            <div>
-                              <div className="text-sm font-medium text-nexus-text-primary">
-                                {item.name}
-                              </div>
-                              <div className="text-sm text-nexus-text-secondary">
-                                {item.sku} | {item.qrCode}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td>
-                          <BusinessStatusIndicator status={item.status} size="sm" />
-                        </td>
-                        <td>
-                          <span className="text-sm text-nexus-text-primary">{item.location}</span>
-                        </td>
-                        <td>
-                          <span className="text-sm text-nexus-text-primary">{item.assignedStaff}</span>
-                        </td>
-                        <td>
-                          <span className="text-sm text-nexus-text-secondary">
-                            {new Date(item.lastModified).toLocaleDateString('ja-JP')}
-                          </span>
-                        </td>
-                        <td className="text-right">
-                          <div className="flex justify-end space-x-2">
-                            <NexusButton 
-                              onClick={() => {
-                                setSelectedItem(item);
-                                setIsDetailModalOpen(true);
-                              }}
-                              size="sm"
-                            >
-                              詳細
-                            </NexusButton>
-                            <NexusButton 
-                              onClick={() => {
-                                setSelectedItem(item);
-                                setIsMoveModalOpen(true);
-                              }}
-                              size="sm"
-                            >
-                              移動
-                            </NexusButton>
-                            <BarcodePrintButton
-                              productIds={[item.id]}
-                              variant="secondary"
-                              size="sm"
-                            />
-                            <NexusButton 
-                              onClick={() => {
-                                setSelectedItem(item);
-                                setIsQRModalOpen(true);
-                              }}
-                              size="sm"
-                            >
-                              QR
-                            </NexusButton>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              
-              {/* ページネーション */}
-              {filteredItems.length > 0 && (
-                <div className="mt-6 pt-4 border-t border-nexus-border">
-                  <Pagination
-                    currentPage={currentPage}
-                    totalPages={Math.ceil(filteredItems.length / itemsPerPage)}
-                    totalItems={filteredItems.length}
-                    itemsPerPage={itemsPerPage}
-                    onPageChange={setCurrentPage}
-                    onItemsPerPageChange={setItemsPerPage}
-                  />
-                </div>
-              )}
             </div>
           </div>
-        )}
+        </div>
 
         {filteredItems.length === 0 && (
           <div className="intelligence-card global">
@@ -710,207 +473,6 @@ export default function StaffInventoryPage() {
             setIsQRModalOpen(true);
           }}
         />
-
-        {/* Edit Modal */}
-        <BaseModal
-          isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
-          title="商品詳細を編集"
-          size="lg"
-        >
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                  商品名
-                </label>
-                <input
-                  type="text"
-                  className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
-                  placeholder="商品名を入力"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                  商品コード
-                </label>
-                <input
-                  type="text"
-                  className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
-                  placeholder="商品コードを入力"
-                />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                  カテゴリ
-                </label>
-                <select className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue">
-                  <option value="">カテゴリを選択</option>
-                  <option value="camera">カメラ本体</option>
-                  <option value="lens">レンズ</option>
-                  <option value="watch">時計</option>
-                  <option value="accessory">アクセサリー</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                  在庫数量
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
-                  placeholder="数量を入力"
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                商品説明
-              </label>
-              <textarea
-                rows={3}
-                className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
-                placeholder="商品の詳細説明を入力"
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                  購入価格
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
-                  placeholder="購入価格を入力"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                  販売価格
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
-                  placeholder="販売価格を入力"
-                />
-              </div>
-            </div>
-            
-            <div className="flex gap-4 justify-end mt-6">
-              <NexusButton 
-                onClick={() => setIsEditModalOpen(false)}
-                icon={<XMarkIcon className="w-5 h-5" />}
-              >
-                キャンセル
-              </NexusButton>
-              <NexusButton 
-                onClick={handleEditItem} 
-                variant="primary"
-                icon={<CheckIcon className="w-5 h-5" />}
-              >
-                保存
-              </NexusButton>
-            </div>
-          </div>
-        </BaseModal>
-
-        {/* Move Modal */}
-        <BaseModal
-          isOpen={isMoveModalOpen}
-          onClose={() => setIsMoveModalOpen(false)}
-          title="ロケーション移動"
-          size="md"
-        >
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                移動先ロケーション
-              </label>
-              <select className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue">
-                <option value="">ロケーションを選択</option>
-                <option value="A-01-01">A-01-01 (1階 Aエリア)</option>
-                <option value="A-01-02">A-01-02 (1階 Aエリア)</option>
-                <option value="B-02-01">B-02-01 (2階 Bエリア)</option>
-                <option value="B-02-02">B-02-02 (2階 Bエリア)</option>
-                <option value="C-01-01">C-01-01 (1階 Cエリア)</option>
-                <option value="TEMP-01">TEMP-01 (一時保管)</option>
-              </select>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                  移動数量
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  defaultValue="1"
-                  className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                  移動予定日時
-                </label>
-                <input
-                  type="datetime-local"
-                  className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                移動理由
-              </label>
-              <select className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue">
-                <option value="">理由を選択</option>
-                <option value="inspection">検品のため</option>
-                <option value="photography">撮影のため</option>
-                <option value="shipping">出荷準備のため</option>
-                <option value="storage">保管場所変更</option>
-                <option value="maintenance">メンテナンス</option>
-                <option value="other">その他</option>
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                備考
-              </label>
-              <textarea
-                rows={2}
-                className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
-                placeholder="移動に関する特記事項があれば入力"
-              />
-            </div>
-            
-            <div className="flex gap-4 justify-end mt-6">
-              <NexusButton 
-                onClick={() => setIsMoveModalOpen(false)}
-                icon={<XMarkIcon className="w-5 h-5" />}
-              >
-                キャンセル
-              </NexusButton>
-              <NexusButton 
-                onClick={handleMoveItem} 
-                variant="primary"
-                icon={<ArrowsRightLeftIcon className="w-5 h-5" />}
-              >
-                移動
-              </NexusButton>
-            </div>
-          </div>
-        </BaseModal>
       </div>
     </DashboardLayout>
   );

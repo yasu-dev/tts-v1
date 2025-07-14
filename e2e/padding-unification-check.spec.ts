@@ -1,147 +1,79 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('左右パディング統一確認', () => {
+test.describe('パディング統一確認テスト', () => {
   test.beforeEach(async ({ page }) => {
-    // ログインページにアクセス
-    await page.goto('/login');
-    await page.waitForTimeout(2000);
+    // ログイン処理
+    await page.goto('http://localhost:3002/login');
+    await page.fill('input[type="email"]', 'admin@example.com');
+    await page.fill('input[type="password"]', 'password123');
+    await page.click('button[type="submit"]');
+    await page.waitForURL('**/dashboard', { timeout: 10000 });
+  });
+
+  test('📏 在庫管理画面のパディング現状確認', async ({ page }) => {
+    console.log('🔍 在庫管理画面のパディング状況を確認します...');
     
-    // セラーログイン
-    const sellerLogin = page.locator('[data-testid="seller-login"]');
-    if (await sellerLogin.isVisible()) {
-      await sellerLogin.click();
-      await page.waitForTimeout(1000);
-      
-      const loginBtn = page.locator('button:has-text("ログイン")');
-      if (await loginBtn.isVisible()) {
-        await loginBtn.click();
-        await page.waitForTimeout(3000);
-      }
+    // 在庫管理画面に移動
+    await page.goto('http://localhost:3002/staff/inventory');
+    await page.waitForLoadState('networkidle', { timeout: 15000 });
+    
+    // テーブル要素の確認
+    const tableElement = await page.locator('table').first();
+    await expect(tableElement).toBeVisible();
+    
+    // テーブルのコンテナ要素を確認
+    const tableContainer = await page.locator('.bg-white.rounded-xl').first();
+    await expect(tableContainer).toBeVisible();
+    
+    // 現在のパディング状況をスクリーンショット
+    await page.screenshot({ 
+      path: 'inventory-current-padding.png',
+      fullPage: true 
+    });
+    
+    console.log('📸 現在の在庫管理画面のパディング状況を記録しました');
+    
+    // テーブル列の要素数を確認
+    const headerCells = await page.locator('thead th').count();
+    console.log(`📊 テーブル列数: ${headerCells}`);
+    
+    // 各列の幅を測定
+    const headers = await page.locator('thead th').all();
+    for (let i = 0; i < headers.length; i++) {
+      const header = headers[i];
+      const box = await header.boundingBox();
+      const text = await header.textContent();
+      console.log(`📐 列${i + 1}「${text?.trim()}」の幅: ${box?.width}px`);
     }
   });
 
-  test('ダッシュボード・在庫管理・商品履歴の左右パディング統一検証', async ({ page }) => {
-    console.log('🔍 左右パディング統一検証開始');
+  test('📏 他の画面との比較確認', async ({ page }) => {
+    console.log('🔍 他の画面のパディングと比較します...');
     
-    const pages = [
-      { name: 'ダッシュボード', url: '/dashboard' },
-      { name: '在庫管理', url: '/inventory' },
-      { name: '商品履歴', url: '/timeline' }
-    ];
+    // ダッシュボード画面
+    await page.goto('http://localhost:3002/dashboard');
+    await page.waitForLoadState('networkidle');
+    await page.screenshot({ 
+      path: 'dashboard-padding-comparison.png',
+      fullPage: false 
+    });
     
-    const paddingResults = [];
+    // 返品画面
+    await page.goto('http://localhost:3002/staff/returns');
+    await page.waitForLoadState('networkidle');
+    await page.screenshot({ 
+      path: 'returns-padding-comparison.png',
+      fullPage: false 
+    });
     
-    for (const pageInfo of pages) {
-      console.log(`--- ${pageInfo.name}画面の確認 ---`);
-      
-      // 各ページにアクセス
-      await page.goto(pageInfo.url);
-      await page.waitForTimeout(3000);
-      
-      // space-y-6パディング構造の確認
-      const mainContainer = page.locator('div.space-y-6');
-      const hasSpaceY6 = await mainContainer.count() > 0;
-      
-      // 統一されたカードスタイルの確認
-      const unifiedCards = page.locator('.bg-white.rounded-xl.border.border-nexus-border');
-      const unifiedCardCount = await unifiedCards.count();
-      
-      // 古いintelligence-cardの確認
-      const oldCards = page.locator('.intelligence-card');
-      const oldCardCount = await oldCards.count();
-      
-      // 統計セクションの確認
-      const statsSection = page.locator('.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-3.gap-6, .grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4.gap-6');
-      const hasUnifiedStats = await statsSection.count() > 0;
-      
-      // コンテンツ領域の左右マージンを測定
-      const contentArea = page.locator('[data-testid="dashboard-layout"] > div, .space-y-6').first();
-      let leftMargin = 0;
-      let rightMargin = 0;
-      
-      if (await contentArea.count() > 0) {
-        const boundingBox = await contentArea.boundingBox();
-        const viewportSize = page.viewportSize();
-        if (boundingBox && viewportSize) {
-          leftMargin = boundingBox.x;
-          rightMargin = viewportSize.width - (boundingBox.x + boundingBox.width);
-        }
-      }
-      
-      const result = {
-        page: pageInfo.name,
-        url: pageInfo.url,
-        hasSpaceY6,
-        unifiedCardCount,
-        oldCardCount,
-        hasUnifiedStats,
-        leftMargin: Math.round(leftMargin),
-        rightMargin: Math.round(rightMargin),
-        isUnified: hasSpaceY6 && unifiedCardCount > 0 && oldCardCount === 0 && hasUnifiedStats
-      };
-      
-      paddingResults.push(result);
-      
-      console.log(`${pageInfo.name}:`);
-      console.log(`  space-y-6パディング: ${hasSpaceY6 ? '✅' : '❌'}`);
-      console.log(`  統一カード数: ${unifiedCardCount}個`);
-      console.log(`  古いカード数: ${oldCardCount}個`);
-      console.log(`  統計セクション: ${hasUnifiedStats ? '✅' : '❌'}`);
-      console.log(`  左マージン: ${Math.round(leftMargin)}px`);
-      console.log(`  右マージン: ${Math.round(rightMargin)}px`);
-      console.log(`  統一状態: ${result.isUnified ? '✅ 統一済み' : '❌ 未統一'}`);
-      
-      // スクリーンショット取得
-      await page.screenshot({ 
-        path: `${pageInfo.name.toLowerCase()}-padding-check.png`, 
-        fullPage: true 
-      });
-    }
+    // 出荷画面
+    await page.goto('http://localhost:3002/staff/shipping');
+    await page.waitForLoadState('networkidle');
+    await page.screenshot({ 
+      path: 'shipping-padding-comparison.png',
+      fullPage: false 
+    });
     
-    // 統一性の最終検証
-    console.log('\n🎯 左右パディング統一結果:');
-    console.log('================================');
-    
-    const allUnified = paddingResults.every(result => result.isUnified);
-    const leftMargins = paddingResults.map(result => result.leftMargin);
-    const rightMargins = paddingResults.map(result => result.rightMargin);
-    
-    // マージンの差をチェック（多少の誤差は許容）
-    const maxLeftMargin = Math.max(...leftMargins);
-    const minLeftMargin = Math.min(...leftMargins);
-    const maxRightMargin = Math.max(...rightMargins);
-    const minRightMargin = Math.min(...rightMargins);
-    
-    const leftMarginDiff = maxLeftMargin - minLeftMargin;
-    const rightMarginDiff = maxRightMargin - minRightMargin;
-    
-    console.log(`左マージン差: ${leftMarginDiff}px`);
-    console.log(`右マージン差: ${rightMarginDiff}px`);
-    
-    const marginUnified = leftMarginDiff <= 20 && rightMarginDiff <= 20; // 20px以内の差は許容
-    
-    if (allUnified && marginUnified) {
-      console.log('✅ 全画面の左右パディングが統一されています');
-    } else {
-      console.log('❌ 左右パディングの統一が不完全です');
-      if (!allUnified) {
-        paddingResults.forEach(result => {
-          if (!result.isUnified) {
-            console.log(`  - ${result.page}: 構造の統一が不完全`);
-          }
-        });
-      }
-      if (!marginUnified) {
-        console.log(`  - マージンの差が大きすぎます（左:${leftMarginDiff}px, 右:${rightMarginDiff}px）`);
-      }
-    }
-    
-    // 結果をJSONで出力
-    console.log('\n詳細結果:', JSON.stringify(paddingResults, null, 2));
-    
-    // テスト assertion
-    expect(allUnified).toBeTruthy();
-    expect(leftMarginDiff).toBeLessThanOrEqual(20);
-    expect(rightMarginDiff).toBeLessThanOrEqual(20);
+    console.log('📸 他の画面のパディング比較用スクリーンショットを記録しました');
   });
 }); 

@@ -100,39 +100,39 @@ export default function TaskDetailModal({ isOpen, onClose, task, onEdit, onStatu
 
   return (
     <>
-      <BaseModal
-        isOpen={isOpen}
-        onClose={onClose}
-        title={task.title}
-        size="lg"
-      >
-        <div className="p-6">
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                担当者
-              </label>
-              <p className="text-lg text-gray-900">{task.assignee}</p>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                カテゴリー
-              </label>
-              <p className="text-gray-900">{task.category}</p>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                期限
-              </label>
-              <p className="text-lg text-gray-900">{task.dueDate}</p>
-            </div>
-            
-            <div>
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={task.title}
+      size="lg"
+    >
+      <div className="p-6">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              担当者
+            </label>
+            <p className="text-lg text-gray-900">{task.assignee}</p>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              カテゴリー
+            </label>
+            <p className="text-gray-900">{task.category}</p>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              期限
+            </label>
+            <p className="text-lg text-gray-900">{task.dueDate}</p>
+          </div>
+          
+          <div>
               <label className="block text-sm font-medium text-nexus-text-secondary mb-3">
-                ステータス
-              </label>
+              ステータス
+            </label>
               {/* ステータス進行バー */}
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-2">
@@ -172,36 +172,36 @@ export default function TaskDetailModal({ isOpen, onClose, task, onEdit, onStatu
                  currentStatus === 'in_progress' ? '🔄 作業中' :
                  currentStatus === 'completed' ? '✅ 完了' : currentStatus}
               </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                優先度
-              </label>
-              <p className="text-gray-900">{task.priority}</p>
-            </div>
-            
-            {task.description && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  詳細
-                </label>
-                <p className="text-gray-900">{task.description}</p>
-              </div>
-            )}
-            
-            {task.notes && (
-              <div>
-                <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
-                  備考
-                </label>
-                <div className="p-3 bg-nexus-bg-secondary rounded-lg">
-                  <p className="text-nexus-text-primary">{task.notes}</p>
-                </div>
-              </div>
-            )}
           </div>
           
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              優先度
+            </label>
+            <p className="text-gray-900">{task.priority}</p>
+          </div>
+          
+          {task.description && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                詳細
+              </label>
+              <p className="text-gray-900">{task.description}</p>
+            </div>
+          )}
+          
+          {task.notes && (
+            <div>
+              <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
+                備考
+              </label>
+              <div className="p-3 bg-nexus-bg-secondary rounded-lg">
+                <p className="text-nexus-text-primary">{task.notes}</p>
+              </div>
+            </div>
+          )}
+        </div>
+        
           {/* ステータス変更アクション */}
           <div className="mt-6 p-4 bg-nexus-bg-secondary rounded-lg">
             <h4 className="text-sm font-medium text-nexus-text-secondary mb-3">アクション</h4>
@@ -277,19 +277,19 @@ export default function TaskDetailModal({ isOpen, onClose, task, onEdit, onStatu
                 onClick={onClose}
                 className="hover:bg-gray-100 transition-colors duration-200"
               >
-                閉じる
-              </NexusButton>
+            閉じる
+          </NexusButton>
               {onEdit && (
-                <NexusButton
-                  onClick={() => {
-                    onEdit(task);
-                    showToast({
-                      title: 'タスク編集',
-                      message: 'タスク編集機能を開きます',
-                      type: 'info'
-                    });
-                  }}
-                  variant="primary"
+          <NexusButton
+            onClick={() => {
+                onEdit(task);
+              showToast({
+                title: 'タスク編集',
+                message: 'タスク編集機能を開きます',
+                type: 'info'
+              });
+            }}
+            variant="primary"
                   className="hover:bg-blue-700 transition-colors duration-200"
                 >
                   <div className="flex items-center space-x-2">
@@ -329,10 +329,10 @@ export default function TaskDetailModal({ isOpen, onClose, task, onEdit, onStatu
               variant="danger"
             >
               削除する
-            </NexusButton>
-          </div>
+          </NexusButton>
         </div>
-      </BaseModal>
+      </div>
+    </BaseModal>
     </>
   );
 } 

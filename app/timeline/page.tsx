@@ -71,23 +71,23 @@ export default function TimelinePage() {
 
   const headerActions = (
     <>
-      <NexusButton
-        onClick={() => setIsFilterModalOpen(true)}
-        icon={<FunnelIcon className="w-5 h-5" />}
+                <NexusButton
+                  onClick={() => setIsFilterModalOpen(true)}
+                  icon={<FunnelIcon className="w-5 h-5" />}
         size="sm"
-      >
-        <span className="hidden sm:inline">期間でフィルター</span>
-        <span className="sm:hidden">フィルター</span>
-      </NexusButton>
-      <NexusButton
-        onClick={handleExportHistory}
-        variant="primary"
-        icon={<ArrowDownTrayIcon className="w-5 h-5" />}
+                >
+                  <span className="hidden sm:inline">期間でフィルター</span>
+                  <span className="sm:hidden">フィルター</span>
+                </NexusButton>
+                <NexusButton
+                  onClick={handleExportHistory}
+                  variant="primary"
+                  icon={<ArrowDownTrayIcon className="w-5 h-5" />}
         size="sm"
-      >
-        <span className="hidden sm:inline">履歴をエクスポート</span>
-        <span className="sm:hidden">エクスポート</span>
-      </NexusButton>
+                >
+                  <span className="hidden sm:inline">履歴をエクスポート</span>
+                  <span className="sm:hidden">エクスポート</span>
+                </NexusButton>
     </>
   );
 
@@ -267,18 +267,18 @@ export default function TimelinePage() {
                 <tbody>
                   {mockProducts.map((product) => (
                     <tr 
-                      key={product.id} 
+                      key={product.id}
                       className={`border-b border-nexus-border hover:bg-nexus-bg-tertiary transition-colors ${
                         selectedProduct === product.id ? 'bg-nexus-primary/5' : ''
                       }`}
                     >
                       <td className="p-4">
                         <div className="font-medium text-nexus-text-primary">
-                          {product.name}
-                        </div>
+                            {product.name}
+                          </div>
                         <div className="text-xs text-nexus-text-secondary mt-1">
                           ID: {product.id}
-                        </div>
+                          </div>
                       </td>
                       <td className="p-4 text-center">
                         <span className="text-sm text-nexus-text-secondary">
@@ -315,14 +315,14 @@ export default function TimelinePage() {
                           >
                             {selectedProduct === product.id ? "選択中" : "選択"}
                           </NexusButton>
-                        </div>
+                      </div>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            </div>
-          </div>
+                </div>
+              </div>
 
 
         </div>
@@ -345,27 +345,27 @@ export default function TimelinePage() {
             <div className="bg-blue-50 rounded-lg p-4">
               <h6 className="font-medium text-blue-900 mb-2">フロー段階の説明</h6>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                <div>
+                    <div>
                   <span className="font-medium text-blue-800">入庫:</span>
                   <span className="text-blue-700 ml-2">商品の受領・登録</span>
                 </div>
-                <div>
+                    <div>
                   <span className="font-medium text-blue-800">検品:</span>
                   <span className="text-blue-700 ml-2">品質確認・撮影</span>
                 </div>
                 <div>
                   <span className="font-medium text-blue-800">出品:</span>
                   <span className="text-blue-700 ml-2">プラットフォーム出品</span>
-                </div>
-                <div>
+              </div>
+                    <div>
                   <span className="font-medium text-blue-800">売却:</span>
                   <span className="text-blue-700 ml-2">購入者決定</span>
                 </div>
                 <div>
                   <span className="font-medium text-blue-800">発送:</span>
                   <span className="text-blue-700 ml-2">梱包・配送</span>
-                </div>
-                <div>
+          </div>
+                  <div>
                   <span className="font-medium text-blue-800">完了:</span>
                   <span className="text-blue-700 ml-2">取引終了</span>
                 </div>

@@ -532,74 +532,74 @@ export default function StaffTasksPage() {
         {/* タスク管理統計 - 他の画面と統一されたスタイル */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white rounded-xl border border-nexus-border p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
                 <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
               <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">待機</span>
-            </div>
+                </div>
             <div className="text-3xl font-bold text-nexus-text-primary mb-2">
               {stats.pending}件
-            </div>
+                </div>
             <div className="text-nexus-text-secondary font-medium">
               待機中タスク
-            </div>
+                </div>
             <div className="text-xs text-nexus-text-secondary mt-1">今日開始予定</div>
-          </div>
+            </div>
 
           <div className="bg-white rounded-xl border border-nexus-border p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                 <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
               <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">進行中</span>
-            </div>
+                </div>
             <div className="text-3xl font-bold text-nexus-text-primary mb-2">
               {stats.inProgress}件
-            </div>
+                </div>
             <div className="text-nexus-text-secondary font-medium">
               作業中タスク
-            </div>
+                </div>
             <div className="text-xs text-nexus-text-secondary mt-1">進行中の作業</div>
-          </div>
+            </div>
 
           <div className="bg-white rounded-xl border border-nexus-border p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
                 <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
+                    </svg>
+                  </div>
               <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">急ぎ</span>
-            </div>
+                </div>
             <div className="text-3xl font-bold text-red-600 mb-2">
               {stats.highPriority}件
-            </div>
+                </div>
             <div className="text-nexus-text-secondary font-medium">
               緊急タスク
-            </div>
+                </div>
             <div className="text-xs text-nexus-text-secondary mt-1">優先対応必要</div>
-          </div>
+            </div>
 
           <div className="bg-white rounded-xl border border-nexus-border p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                 <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
+                    </svg>
+                  </div>
               <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">今日</span>
-            </div>
+                </div>
             <div className="text-3xl font-bold text-green-600 mb-2">
               {stats.completed}件
-            </div>
+                </div>
             <div className="text-nexus-text-secondary font-medium">
               本日完了
-            </div>
+                </div>
             <div className="text-xs text-nexus-text-secondary mt-1">今日の実績</div>
           </div>
         </div>
@@ -737,21 +737,21 @@ export default function StaffTasksPage() {
                     <tr key={task.id} className="border-b border-nexus-border hover:bg-nexus-bg-tertiary transition-colors">
                       <td className="p-4">
                         <div className="font-medium text-nexus-text-primary mb-1">
-                          {task.title}
-                        </div>
+                                {task.title}
+                            </div>
                         <div className="text-sm text-nexus-text-secondary mb-2">
-                          {task.description}
+                              {task.description}
                         </div>
-                        {task.productName && (
+                            {task.productName && (
                           <div className="text-xs text-nexus-text-secondary">
                             商品: {task.productName}
-                          </div>
-                        )}
+                              </div>
+                            )}
                         {task.productSku && (
                           <div className="text-xs text-nexus-text-secondary">
                             SKU: {task.productSku}
-                          </div>
-                        )}
+                              </div>
+                            )}
                       </td>
                       <td className="p-4 text-center">
                         <span className="text-sm text-nexus-text-primary">
@@ -760,10 +760,10 @@ export default function StaffTasksPage() {
                       </td>
                       <td className="p-4 text-center">
                         <div className="text-sm text-nexus-text-primary">
-                          {task.dueDate}
-                        </div>
+                            {task.dueDate}
+                          </div>
                         <div className="text-xs text-nexus-text-secondary">
-                          {task.estimatedTime}分
+                            {task.estimatedTime}分
                         </div>
                       </td>
                       <td className="p-4">

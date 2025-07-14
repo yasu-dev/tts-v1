@@ -293,42 +293,45 @@ export default function StaffShippingPage() {
   }
 
   const headerActions = (
-    <>
+    <div className="grid grid-cols-2 gap-3 w-full max-w-md">
       <NexusButton
         onClick={() => setIsBarcodeScannerOpen(true)}
         variant="default"
+        size="sm"
         className="flex items-center justify-center gap-2"
       >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V6a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1zm12 0h2a1 1 0 001-1V6a1 1 0 00-1-1h-2a1 1 0 00-1 1v1a1 1 0 001 1zM5 20h2a1 1 0 001-1v-1a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1z" />
         </svg>
-        <span className="hidden sm:inline">バーコードスキャン</span>
+        <span className="hidden sm:inline">バーコード</span>
         <span className="sm:hidden">スキャン</span>
       </NexusButton>
       <NexusButton
         onClick={handleCarrierSettings}
         variant="default"
+        size="sm"
         className="flex items-center justify-center gap-2"
       >
-        <TruckIcon className="w-5 h-5" />
-        <span className="hidden sm:inline">配送業者設定</span>
-        <span className="sm:hidden">配送設定</span>
+        <TruckIcon className="w-4 h-4" />
+        <span className="hidden sm:inline">配送設定</span>
+        <span className="sm:hidden">配送</span>
       </NexusButton>
       <NexusButton
         onClick={handleMaterialsCheck}
         variant="primary"
-        className="flex items-center justify-center gap-2"
+        size="sm"
+        className="flex items-center justify-center gap-2 col-span-2"
       >
-        <ArchiveBoxIcon className="w-5 h-5" />
+        <ArchiveBoxIcon className="w-4 h-4" />
         <span className="hidden sm:inline">梱包資材確認</span>
         <span className="sm:hidden">資材確認</span>
       </NexusButton>
-    </>
+    </div>
   );
 
   return (
     <DashboardLayout userType="staff">
-      <div className="space-y-6">
+      <div className="space-y-6 max-w-4xl mx-auto">
         {/* 統一ヘッダー */}
         <UnifiedPageHeader
           title="出荷管理"
@@ -435,7 +438,7 @@ export default function StaffShippingPage() {
         {/* Filters and Shipping Items */}
         <div className="intelligence-card global">
           <div className="p-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
               <NexusSelect
                 label="ステータス"
                 value={selectedStatus}

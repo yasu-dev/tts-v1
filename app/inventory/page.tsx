@@ -467,19 +467,19 @@ export default function InventoryPage() {
               <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                 <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2-2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                </svg>
-              </div>
+                    </svg>
+                  </div>
               <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                 総計
               </span>
             </div>
             <div className="text-3xl font-bold text-nexus-text-primary mb-2">
               {inventoryStats.totalItems}
-            </div>
+                </div>
             <div className="text-nexus-text-secondary font-medium">
               総在庫数
-            </div>
-          </div>
+                </div>
+                </div>
 
           <div className="bg-white rounded-xl border border-nexus-border p-6 hover:shadow-lg transition-shadow">
             <div className="flex items-center justify-between mb-4">
@@ -497,8 +497,8 @@ export default function InventoryPage() {
             </div>
             <div className="text-nexus-text-secondary font-medium">
               出品中
+              </div>
             </div>
-          </div>
 
           <div className="bg-white rounded-xl border border-nexus-border p-6 hover:shadow-lg transition-shadow">
             <div className="flex items-center justify-between mb-4">
@@ -506,18 +506,18 @@ export default function InventoryPage() {
                 <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
-              </div>
+                    </svg>
+                  </div>
               <span className="px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
                 処理中
               </span>
-            </div>
+                </div>
             <div className="text-3xl font-bold text-nexus-text-primary mb-2">
-              {inventoryStats.inspection}
-            </div>
+                  {inventoryStats.inspection}
+                </div>
             <div className="text-nexus-text-secondary font-medium">
-              検品中
-            </div>
+                  検品中
+                </div>
           </div>
 
           <div className="bg-white rounded-xl border border-nexus-border p-6 hover:shadow-lg transition-shadow">
@@ -533,9 +533,9 @@ export default function InventoryPage() {
             </div>
             <div className="text-3xl font-bold text-nexus-text-primary mb-2">
               ¥{(inventoryStats.totalValue / 10000).toLocaleString()}万
-            </div>
+                  </div>
             <div className="text-nexus-text-secondary font-medium">
-              総評価額
+                  総評価額
             </div>
           </div>
         </div>
@@ -545,35 +545,35 @@ export default function InventoryPage() {
           <div className="mb-6">
             <h3 className="text-lg font-bold text-nexus-text-primary">在庫リスト</h3>
             <p className="text-nexus-text-secondary mt-1 text-sm">現在の在庫状況</p>
-          </div>
-          
+            </div>
+            
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-nexus-border">
-                  <th className="text-left p-4 font-medium text-nexus-text-secondary">商品名</th>
-                  <th className="text-center p-4 font-medium text-nexus-text-secondary">ステータス</th>
-                  <th className="text-right p-4 font-medium text-nexus-text-secondary">評価額</th>
-                  <th className="text-center p-4 font-medium text-nexus-text-secondary">操作</th>
-                </tr>
-              </thead>
-              <tbody>
-                {inventory.map((item: any) => (
-                  <tr key={item.id} className="border-b border-nexus-border hover:bg-nexus-bg-tertiary">
-                    <td className="p-4">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-nexus-border">
+                    <th className="text-left p-4 font-medium text-nexus-text-secondary">商品名</th>
+                    <th className="text-center p-4 font-medium text-nexus-text-secondary">ステータス</th>
+                    <th className="text-right p-4 font-medium text-nexus-text-secondary">評価額</th>
+                    <th className="text-center p-4 font-medium text-nexus-text-secondary">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {inventory.map((item: any) => (
+                    <tr key={item.id} className="border-b border-nexus-border hover:bg-nexus-bg-tertiary">
+                      <td className="p-4">
                       <span className="font-medium text-nexus-text-primary">{item.name}</span>
-                    </td>
-                    <td className="p-4">
+                      </td>
+                      <td className="p-4">
                       <div className="flex justify-center">
                         <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
-                          {item.status}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="p-4 text-right">
+                            {item.status}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="p-4 text-right">
                       <span className="font-bold text-nexus-text-primary">¥{item.value.toLocaleString()}</span>
-                    </td>
-                    <td className="p-4">
+                      </td>
+                      <td className="p-4">
                       <div className="flex justify-center gap-2">
                         <NexusButton
                           onClick={() => handleViewProduct(item.id)}
@@ -583,34 +583,34 @@ export default function InventoryPage() {
                         >
                           詳細
                         </NexusButton>
-                        <NexusButton
-                          onClick={() => handleEditProduct(item.id)}
-                          size="sm"
-                          variant="secondary"
-                        >
-                          編集
-                        </NexusButton>
-                        <NexusButton
-                          onClick={() => handleDeleteProduct(item.id)}
-                          size="sm"
-                          variant="secondary"
+                          <NexusButton
+                            onClick={() => handleEditProduct(item.id)}
+                            size="sm"
+                            variant="secondary"
+                          >
+                            編集
+                          </NexusButton>
+                          <NexusButton
+                            onClick={() => handleDeleteProduct(item.id)}
+                            size="sm"
+                            variant="secondary"
                           className="text-red-600 hover:text-red-700"
-                        >
-                          削除
-                        </NexusButton>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {inventory.length === 0 && (
-                  <tr>
+                          >
+                            削除
+                          </NexusButton>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {inventory.length === 0 && (
+                    <tr>
                     <td colSpan={4} className="p-8 text-center text-nexus-text-secondary">
-                      在庫データがありません
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                        在庫データがありません
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
           </div>
         </div>
 
