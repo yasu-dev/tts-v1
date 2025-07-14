@@ -9,6 +9,7 @@ import LocationScanner from '@/app/components/features/LocationScanner';
 import LocationOptimizationModal from '@/app/components/LocationOptimizationModal';
 import InventoryCountModal from '@/app/components/InventoryCountModal';
 import NexusButton from '@/app/components/ui/NexusButton';
+import { useModal } from '@/app/components/ui/ModalContext';
 import {
   SparklesIcon,
   ClipboardDocumentListIcon,
@@ -34,6 +35,7 @@ export default function LocationPage() {
   const [isCountModalOpen, setIsCountModalOpen] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [quickSearch, setQuickSearch] = useState('');
+  const { setIsAnyModalOpen } = useModal();
   const [stats, setStats] = useState<LocationStats>({
     totalLocations: 24,
     occupiedLocations: 18,
@@ -41,6 +43,15 @@ export default function LocationPage() {
     usedCapacity: 342,
     criticalLocations: 3
   });
+
+  // 独自実装モーダルの業務フロー制御
+  useEffect(() => {
+    if (isScannerOpen) {
+      setIsAnyModalOpen(true);
+    } else {
+      setIsAnyModalOpen(false);
+    }
+  }, [isScannerOpen, setIsAnyModalOpen]);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
