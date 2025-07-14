@@ -576,9 +576,17 @@ export default function DashboardLayout({
             <div className="flex items-center justify-between px-4 py-2">
               <h3 className="text-sm font-medium text-gray-700">業務フロー</h3>
               <button
-                onClick={() => setIsFlowCollapsed(!isFlowCollapsed)}
-                className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
-                title={isFlowCollapsed ? 'フローを展開' : 'フローを折りたたむ'}
+                onClick={() => {
+                  // モーダル表示中は手動トグル無効化
+                  if (isAnyModalOpen) {
+                    console.log('🔴 モーダル表示中: 手動トグル無効化');
+                    return;
+                  }
+                  setIsFlowCollapsed(!isFlowCollapsed);
+                }}
+                className={`p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors ${isAnyModalOpen ? 'opacity-50 cursor-not-allowed' : ''}`}
+                title={isAnyModalOpen ? 'モーダル表示中は操作できません' : (isFlowCollapsed ? 'フローを展開' : 'フローを折りたたむ')}
+                disabled={isAnyModalOpen}
               >
                 <svg 
                   className={`w-4 h-4 transition-transform ${isFlowCollapsed ? 'rotate-180' : ''}`} 
