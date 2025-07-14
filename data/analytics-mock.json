@@ -1,228 +1,110 @@
 {
+  "metadata": {
+    "version": "2.0",
+    "lastUpdated": "2024-12-19T12:00:00Z",
+    "source": "analytics-mock-data",
+    "dataIntegrity": "verified"
+  },
   "kpis": {
-    "inventoryTurnover": {
-      "current": 3.2,
-      "previous": 3.8,
-      "change": -15.8,
-      "trend": "down",
-      "label": "在庫回転率"
-    },
-    "averageStorageDays": {
-      "current": 14.5,
-      "previous": 22.1,
-      "change": -34.4,
-      "trend": "down",
-      "label": "平均保管日数"
-    },
-    "returnRate": {
-      "current": 0.0,
-      "previous": 2.8,
-      "change": -100.0,
-      "trend": "down",
-      "label": "返品率（%）"
-    },
-    "salePrice": {
-      "current": 284000,
-      "previous": 368000,
-      "change": -22.8,
-      "trend": "down",
-      "label": "平均販売価格"
-    }
+    "totalRevenue": 15750000,
+    "totalOrders": 87,
+    "averageOrderValue": 181034,
+    "returnRate": 2.3,
+    "conversionRate": 4.7,
+    "customerSatisfaction": 94.2
   },
   "categoryPerformance": [
     {
-      "category": "カメラ本体",
-      "sales": 1003000,
-      "count": 2,
-      "avgPrice": 501500,
-      "turnover": 3.2,
-      "storageDays": 14.5
+      "category": "camera_body",
+      "revenue": 8900000,
+      "units": 22,
+      "margin": 28.5,
+      "trend": "up"
     },
     {
-      "category": "レンズ",
-      "sales": 3850000,
-      "count": 35,
-      "avgPrice": 110000,
-      "turnover": 5.2,
-      "storageDays": 12.8
+      "category": "lens",
+      "revenue": 4200000,
+      "units": 35,
+      "margin": 32.1,
+      "trend": "stable"
     },
     {
-      "category": "腕時計",
-      "sales": 12650000,
-      "count": 18,
-      "avgPrice": 702778,
-      "turnover": 3.1,
-      "storageDays": 28.5
-    },
-    {
-      "category": "アクセサリ",
-      "sales": 1260000,
-      "count": 42,
-      "avgPrice": 30000,
-      "turnover": 6.8,
-      "storageDays": 8.2
+      "category": "watch",
+      "revenue": 2650000,
+      "units": 7,
+      "margin": 45.2,
+      "trend": "up"
     }
   ],
   "monthlyTrends": [
-    { "month": "2024-01", "sales": 0, "count": 0, "returns": 0 },
-    { "month": "2024-02", "sales": 0, "count": 0, "returns": 0 },
-    { "month": "2024-03", "sales": 0, "count": 0, "returns": 0 },
-    { "month": "2024-04", "sales": 0, "count": 0, "returns": 0 },
-    { "month": "2024-05", "sales": 658000, "count": 1, "returns": 0 },
-    { "month": "2024-06", "sales": 345000, "count": 1, "returns": 0 }
-  ],
-  "stagingAnalysis": {
-    "averageDays": {
-      "inbound": 0.5,
-      "inspection": 1.0,
-      "storage": 14.5,
-      "listing": 12.8,
-      "shipping": 0.0,
-      "delivery": 0.0
-    },
-    "bottlenecks": [
-      {
-        "stage": "inspection",
-        "count": 4,
-        "avgDelay": 1.0,
-        "reason": "新商品検品中"
-      }
-    ]
-  },
-  "slowMovingInventory": [
     {
-      "id": "CAM-FUJIFILM-GFX100S-012",
-      "name": "FUJIFILM GFX100S ボディ",
-      "category": "カメラ本体",
-      "storageDays": 25,
-      "price": 748000,
-      "views": 45,
-      "watchers": 3,
-      "reason": "高額商品"
+      "month": "2024-09",
+      "revenue": 12500000,
+      "orders": 68,
+      "returns": 4
     },
     {
-      "id": "CAM-OLYMPUS-EM1X-014",
-      "name": "OLYMPUS OM-D E-M1X ボディ",
-      "category": "カメラ本体",
-      "storageDays": 22,
-      "price": 128000,
-      "views": 28,
-      "watchers": 2,
-      "reason": "ニッチ商品"
+      "month": "2024-10",
+      "revenue": 13800000,
+      "orders": 74,
+      "returns": 3
     },
     {
-      "id": "CAM-FUJIFILM-X100V-018",
-      "name": "FUJIFILM X100V シルバー",
-      "category": "カメラ本体",
-      "storageDays": 21,
-      "price": 158000,
-      "views": 67,
-      "watchers": 8,
-      "reason": "在庫過多"
+      "month": "2024-11",
+      "revenue": 14200000,
+      "orders": 79,
+      "returns": 5
+    },
+    {
+      "month": "2024-12",
+      "revenue": 15750000,
+      "orders": 87,
+      "returns": 3
     }
   ],
+  "returnsAnalysis": {
+    "totalReturns": 15,
+    "returnReasons": [
+      {
+        "reason": "商品説明と異なる",
+        "count": 6,
+        "percentage": 40.0
+      },
+      {
+        "reason": "初期不良",
+        "count": 4,
+        "percentage": 26.7
+      },
+      {
+        "reason": "顧客都合",
+        "count": 3,
+        "percentage": 20.0
+      },
+      {
+        "reason": "配送時破損",
+        "count": 2,
+        "percentage": 13.3
+      }
+    ],
+    "resolutionStats": {
+      "refunded": 8,
+      "exchanged": 4,
+      "repaired": 2,
+      "disposed": 1
+    }
+  },
   "notifications": [
     {
       "id": "notif-001",
       "type": "warning",
-      "title": "検品待ち商品",
-      "message": "4件の商品が検品待ちです",
-      "timestamp": "2024-06-29T08:00:00Z",
-      "read": false,
-      "action": "inventory"
+      "message": "返品率が先月比で40%減少しました",
+      "timestamp": "2024-12-19T10:00:00Z"
     },
     {
       "id": "notif-002",
-      "type": "success",
-      "title": "高額商品成約",
-      "message": "Leica Q2 が成約しました（¥658,000）",
-      "timestamp": "2024-06-28T16:00:00Z",
-      "read": false,
-      "action": "timeline"
-    },
-    {
-      "id": "notif-003",
       "type": "info",
-      "title": "新商品入庫",
-      "message": "3件の新商品が入庫待ちです",
-      "timestamp": "2024-06-29T07:00:00Z",
-      "read": true,
-      "action": "reports"
-    },
-    {
-      "id": "notif-004",
-      "type": "info",
-      "title": "在庫データ更新",
-      "message": "カメラ20件の在庫データが更新されました",
-      "timestamp": "2024-06-29T08:00:00Z",
-      "read": false,
-      "action": "system"
-    }
-  ],
-  "flowStages": [
-    {
-      "id": "inbound",
-      "name": "入庫",
-      "icon": "inventory",
-      "color": "#3B82F6",
-      "count": 3,
-      "avgDays": 0.5
-    },
-    {
-      "id": "inspection",
-      "name": "検品",
-      "icon": "🔍",
-      "color": "#8B5CF6",
-      "count": 4,
-      "avgDays": 1.0
-    },
-    {
-      "id": "storage",
-      "name": "保管",
-      "icon": "📚",
-      "color": "#10B981",
-      "count": 9,
-      "avgDays": 14.5
-    },
-    {
-      "id": "listing",
-      "name": "出品",
-      "icon": "🏪",
-      "color": "#F59E0B",
-      "count": 4,
-      "avgDays": 12.8
-    },
-    {
-      "id": "order",
-      "name": "受注",
-      "icon": "📋",
-      "color": "#EF4444",
-      "count": 0,
-      "avgDays": 0.0
-    },
-    {
-      "id": "shipping",
-      "name": "出荷",
-      "icon": "shipping",
-      "color": "#06B6D4",
-      "count": 0,
-      "avgDays": 0.0
-    },
-    {
-      "id": "delivery",
-      "name": "配送",
-      "icon": "📮",
-      "color": "#84CC16",
-      "count": 0,
-      "avgDays": 0.0
-    },
-    {
-      "id": "returned",
-      "name": "返品",
-      "icon": "return",
-      "color": "#6B7280",
-      "count": 0,
-      "avgDays": 0.0
+      "message": "カメラ本体の売上が好調です",
+      "timestamp": "2024-12-19T09:30:00Z"
     }
   ]
-}
+} 

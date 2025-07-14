@@ -1,81 +1,82 @@
 {
-  "summary": {
-    "totalAssetValue": 5680000,
-    "inventoryCount": 20,
-    "todaySales": 0,
-    "orderCount": 2,
-    "changeFromLastMonth": 12.5,
-    "changeFromYesterday": 0
+  "metadata": {
+    "version": "2.0",
+    "lastUpdated": "2024-12-19T12:00:00Z",
+    "source": "dashboard-mock-data",
+    "dataIntegrity": "verified"
   },
-  "statusSummary": {
-    "inbound": 3,
-    "inspection": 4,
-    "storage": 9,
-    "listing": 4,
-    "shipping": 0,
-    "returned": 0
+  "kpis": {
+    "totalRevenue": 15750000,
+    "totalOrders": 87,
+    "processingOrders": 12,
+    "inventoryValue": 3228000,
+    "returnRate": 2.3,
+    "avgOrderValue": 181034
   },
-  "alerts": [
+  "monthlyStats": {
+    "currentMonth": {
+      "revenue": 15750000,
+      "orders": 87,
+      "returns": 3,
+      "newProducts": 24
+    },
+    "previousMonth": {
+      "revenue": 14200000,
+      "orders": 79,
+      "returns": 5,
+      "newProducts": 18
+    },
+    "growth": {
+      "revenue": 10.9,
+      "orders": 10.1,
+      "returns": -40.0,
+      "newProducts": 33.3
+    }
+  },
+  "categoryPerformance": [
     {
-      "id": "alert-001",
-      "type": "urgent",
-      "icon": "🔴",
-      "title": "高額商品の検品待ち",
-      "description": "Sony α7R V（2時間経過）",
-      "priority": "high",
-      "createdAt": "2024-06-29T06:00:00Z"
+      "category": "camera_body",
+      "sales": 8900000,
+      "count": 22,
+      "percentage": 56.5
     },
     {
-      "id": "alert-002",
-      "type": "warning",
-      "icon": "🟡",
-      "title": "検品中商品",
-      "description": "4件の商品が検品中です",
-      "priority": "medium",
-      "createdAt": "2024-06-29T08:00:00Z"
+      "category": "lens", 
+      "sales": 4200000,
+      "count": 35,
+      "percentage": 26.7
     },
     {
-      "id": "alert-003",
-      "type": "info",
-      "icon": "🔵",
-      "title": "入庫待ち商品",
-      "description": "3件の商品が入庫待ちです",
-      "priority": "low",
-      "createdAt": "2024-06-29T07:00:00Z"
+      "category": "watch",
+      "sales": 2650000,
+      "count": 7,
+      "percentage": 16.8
     }
   ],
-  "recentActivities": [
+  "recentActivity": [
     {
-      "id": "activity-001",
-      "type": "completed",
-      "title": "検品完了",
-      "description": "Canon EOS R5 (CAM-CANON-R5-006)",
-      "timestamp": "2024-06-29T07:30:00Z",
-      "color": "#4CAF50"
+      "id": "act-001",
+      "type": "return_processed",
+      "description": "返品検品完了 - Rolex GMT Master II",
+      "timestamp": "2024-12-19T11:30:00Z",
+      "user": "田中次郎",
+      "severity": "info"
     },
     {
-      "id": "activity-002",
-      "type": "sold",
-      "title": "売約済み",
-      "description": "Leica Q2 (CAM-LEICA-Q2-013)",
-      "timestamp": "2024-06-28T16:00:00Z",
-      "color": "#2196F3"
+      "id": "act-002", 
+      "type": "high_value_sale",
+      "description": "高額商品販売 - Canon EOS R5",
+      "timestamp": "2024-12-19T10:15:00Z",
+      "user": "システム",
+      "severity": "success"
     },
     {
-      "id": "activity-003",
-      "type": "listing",
-      "title": "出品開始",
-      "description": "Sony α7 II (CAM-SONY-A7II-002)",
-      "timestamp": "2024-06-29T06:00:00Z",
-      "color": "#FF9800"
-    },
-    {
-      "id": "activity-004",
-      "type": "inspection",
-      "title": "検品開始",
-      "description": "Sony α7 IV (CAM-SONY-A7IV-001)",
-      "timestamp": "2024-06-29T08:00:00Z",
-      "color": "#9C27B0"
+      "id": "act-003",
+      "type": "return_initiated",
+      "description": "新規返品受付 - Canon EOS R5",
+      "timestamp": "2024-12-19T09:45:00Z",
+      "user": "佐藤花子",
+      "severity": "warning"
     }
   ]
-}
+} 

@@ -78,62 +78,94 @@ export function ReturnRelistingFlow() {
     }
   }
 
-  // 簡潔なアイコンレンダリング
+  // シンプルなアイコンレンダリング - 常に番号表示、色のみ変更
   const renderStepIcon = (step: RelistingStep, index: number) => {
-    if (step.status === 'completed') {
-      return (
-        <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    // 他画面と統一したビジュアルアイコン - 意味のある絵アイコン
+    const iconMap = {
+      0: ( // 検品結果確認
+        <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+      1: ( // 写真撮影
+        <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      ),
+      2: ( // 商品情報更新
+        <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 8l2 2 4-4" />
+        </svg>
+      ),
+      3: ( // 価格設定
+        <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+        </svg>
+      ),
+      4: ( // 再出品
+        <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
         </svg>
       )
-    } else if (step.status === 'in-progress') {
-      // ステップ番号を表示
-      return (
-        <span className="text-white font-semibold">{index + 1}</span>
-      )
-    } else {
-      // 待機状態のステップ番号
-      return (
-        <span className="text-nexus-text-secondary font-semibold">{index + 1}</span>
-      )
-    }
+    };
+    
+    return iconMap[index as keyof typeof iconMap] || iconMap[0];
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
     <div className="intelligence-card global">
-      <div className="p-8">
-        <h2 className="text-2xl font-bold font-display text-nexus-text-primary mb-6">返品商品再出品業務フロー</h2>
+      <div className="p-4">
+        <h2 className="text-lg font-bold font-display text-nexus-text-primary mb-4">返品商品再出品業務フロー</h2>
 
-        {/* ステップインジケーター */}
-        <div className="mb-8">
+        {/* ステップインジケーター - 標準色使い */}
+        <div className="mb-6">
           <div className="flex items-center justify-between">
-            {steps.map((step, index) => (
-              <React.Fragment key={step.id}>
-                <div className="flex flex-col items-center text-center">
-                  <div className={`
-                    w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300
-                    ${step.status === 'completed' ? 'bg-nexus-primary text-white' : 
-                      step.status === 'in-progress' ? 'bg-nexus-primary text-white animate-pulse' : 
-                      'bg-nexus-bg-secondary text-nexus-text-secondary'}
-                  `}>
-                    {renderStepIcon(step, index)}
+            {steps.map((step, index) => {
+              // 標準的なビジネス色
+              const stepColors = [
+                '#0064D2', // ブルー
+                '#7B1FA2', // パープル
+                '#86B817', // グリーン
+                '#FFCE00', // ゴールド
+                '#FF6F00'  // オレンジ
+              ];
+              const stepColor = stepColors[index] || stepColors[0];
+              
+              // 現在のステップかどうかを判定（他画面UI統一）
+              const isCurrentStep = currentStep === index;
+              
+              return (
+                <React.Fragment key={step.id}>
+                  <div className="flex flex-col items-center text-center">
+                    <div 
+                      className={`
+                        relative w-8 h-8 rounded-full flex items-center justify-center text-white transition-all duration-300
+                        ${isCurrentStep ? 'ring-2 ring-blue-400 shadow-lg scale-105' : ''}
+                      `}
+                      style={{
+                        backgroundColor: stepColor
+                      }}
+                    >
+                      <div className="w-4 h-4">
+                        {renderStepIcon(step, index)}
+                      </div>
+                      {/* 現在のステップにパルス効果追加（他画面統一） */}
+                      {isCurrentStep && (
+                        <div className="absolute w-2 h-2 bg-blue-500 rounded-full animate-pulse -top-1 -right-1"></div>
+                      )}
+                    </div>
+                    <p className={`text-sm mt-2 font-medium ${isCurrentStep ? 'text-blue-600 font-bold' : 'text-nexus-text-primary'}`}>
+                      {step.title}
+                    </p>
                   </div>
-                  <p className={`text-sm mt-2 transition-colors duration-300 ${
-                    step.status === 'completed' || step.status === 'in-progress' 
-                      ? 'text-nexus-text-primary font-medium' 
-                      : 'text-nexus-text-secondary'
-                  }`}>
-                    {step.title}
-                  </p>
-                </div>
-                {index < steps.length - 1 && (
-                  <div className={`flex-1 h-1 mx-4 transition-colors duration-300 ${
-                    step.status === 'completed' ? 'bg-nexus-primary' : 'bg-nexus-border'
-                  }`} />
-                )}
-              </React.Fragment>
-            ))}
+                  {index < steps.length - 1 && (
+                    <div className="flex-1 h-1 mx-4 rounded-full bg-gray-300" />
+                  )}
+                </React.Fragment>
+              );
+            })}
           </div>
         </div>
 

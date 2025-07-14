@@ -1,108 +1,87 @@
 {
+  "metadata": {
+    "version": "2.0",
+    "lastUpdated": "2024-12-19T12:00:00Z",
+    "source": "tasks-mock-data",
+    "dataIntegrity": "verified"
+  },
   "urgentTasks": [
     {
-      "id": "task-urgent-001",
-      "name": "高額商品検品（Sony α7R V）",
-      "description": "CAM-SONY-A7R5-008 | 検品中 | 要即時対応",
-      "priority": "high",
-      "type": "inspection",
-      "productId": "CAM-SONY-A7R5-008",
-      "location": "検品室A",
-      "duration": "2h経過",
-      "value": "¥438,000",
-      "assignee": "山本 達也",
-      "status": "pending"
+      "id": "urgent-001",
+      "title": "返品検品緊急対応",
+      "description": "Canon EOS R5の返品検品を本日中に完了",
+      "priority": "urgent",
+      "assignee": "佐藤花子",
+      "dueDate": "2024-12-19T17:00:00Z",
+      "status": "in_progress",
+      "category": "returns",
+      "estimatedTime": "45分",
+      "progress": 60
     },
     {
-      "id": "task-urgent-002",
-      "name": "緊急検品（Sony α7 IV）",
-      "description": "CAM-SONY-A7IV-001 | 初期不良疑い | 緊急",
-      "priority": "high",
-      "type": "inspection",
-      "productId": "CAM-SONY-A7IV-001",
-      "location": "検品室B",
-      "duration": "1h経過",
-      "value": "¥328,000",
-      "assignee": "山本 達也",
-      "status": "pending"
+      "id": "urgent-002",
+      "title": "高額返金処理",
+      "description": "Rolex GMT Master IIの返金手続き",
+      "priority": "urgent", 
+      "assignee": "田中次郎",
+      "dueDate": "2024-12-19T15:00:00Z",
+      "status": "pending",
+      "category": "finance",
+      "estimatedTime": "30分",
+      "progress": 0
     }
   ],
   "normalTasks": [
     {
-      "id": "task-normal-001",
-      "name": "入庫検品バッチ",
-      "description": "SIGMA fp, Sony ZV-1 他3件 | バッチ処理",
-      "priority": "medium",
-      "type": "inspection",
-      "itemCount": 5,
-      "location": "検品室A",
-      "deadline": "今日",
-      "batchId": "inspection-batch-001",
-      "status": "in_progress"
+      "id": "normal-001",
+      "title": "在庫整理",
+      "description": "標準棚A区画の在庫整理",
+      "priority": "normal",
+      "assignee": "山田太郎",
+      "dueDate": "2024-12-20T18:00:00Z",
+      "status": "pending",
+      "category": "inventory",
+      "estimatedTime": "90分",
+      "progress": 0
     },
     {
-      "id": "task-normal-002",
-      "name": "商品撮影",
-      "description": "Canon EOS R3, Nikon Z8 他2件",
-      "priority": "medium",
-      "type": "photography",
-      "itemCount": 4,
-      "location": "撮影室",
-      "deadline": "明日",
-      "batchId": "photo-batch-001",
-      "status": "pending"
-    },
-    {
-      "id": "task-normal-003",
-      "name": "出荷準備",
-      "description": "Sony α7 II 本日出荷予定",
-      "priority": "low",
-      "type": "shipping",
-      "itemCount": 1,
-      "location": "梱包室",
-      "deadline": "15:00まで",
-      "batchId": "shipping-batch-001",
-      "status": "pending"
+      "id": "normal-002",
+      "title": "月次レポート作成",
+      "description": "返品分析レポートの作成",
+      "priority": "normal",
+      "assignee": "鈴木一郎",
+      "dueDate": "2024-12-21T12:00:00Z",
+      "status": "pending",
+      "category": "analysis",
+      "estimatedTime": "120分",
+      "progress": 0
     }
   ],
   "progress": {
-    "completed": 3,
-    "inProgress": 1,
-    "pending": 6,
-    "total": 10,
-    "percentage": 40
+    "completed": 15,
+    "inProgress": 2,
+    "pending": 8,
+    "total": 25,
+    "percentage": 68
   },
   "quickActions": [
-    { "id": "barcode-scan", "label": "バーコードスキャン", "action": "openModal" },
-    { "id": "location-register", "label": "ロケーション登録", "action": "openModal" },
-    { "id": "photo-upload", "label": "写真アップロード", "action": "openModal" },
-    { "id": "issue-report", "label": "問題報告", "action": "openModal" },
-    { "id": "inventory-check", "label": "在庫確認", "action": "navigate", "url": "/inventory" }
-  ],
-  "recentActivity": [
     {
-      "id": "activity-001",
-      "type": "completed",
-      "icon": "✓",
-      "text": "CAM-CANON-R5-006 検品完了",
-      "timestamp": "30分前",
-      "color": "activity-completed"
+      "id": "qa-001",
+      "title": "新規返品登録",
+      "icon": "return",
+      "url": "/staff/returns"
     },
     {
-      "id": "activity-002",
-      "type": "started",
-      "icon": "▶",
-      "text": "検品バッチ開始",
-      "timestamp": "1時間前",
-      "color": "activity-started"
+      "id": "qa-002",
+      "title": "在庫確認",
+      "icon": "inventory",
+      "url": "/staff/inventory"
     },
     {
-      "id": "activity-003",
-      "type": "updated",
-      "icon": "📝",
-      "text": "ロケーション更新",
-      "timestamp": "2時間前",
-      "color": "activity-updated"
+      "id": "qa-003",
+      "title": "検品開始",
+      "icon": "inspection", 
+      "url": "/staff/inspection"
     }
   ]
-}
+} 

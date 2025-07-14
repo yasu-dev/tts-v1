@@ -52,6 +52,8 @@ export default function UnifiedProductFlow({
     userActiveTasks: 0
   });
 
+
+
   // 洗練されたSVGアイコンセット
   const stepIcons = {
     preparation: (
@@ -369,7 +371,7 @@ export default function UnifiedProductFlow({
   }
 
   return (
-    <div className={isCollapsed ? "bg-white border-b border-gray-200" : "intelligence-card global"}>
+    <div className={isCollapsed ? "bg-white border-b border-gray-200" : "intelligence-card global"} data-testid="unified-product-flow">
       <div className={isCollapsed ? "p-4" : "p-8"}>
         <div className="flex flex-col gap-4">
           {/* ヘッダー統計と作業者ステータス */}
@@ -442,13 +444,10 @@ export default function UnifiedProductFlow({
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <div 
-                        className="p-2 rounded-lg"
-                        style={{ 
-                          backgroundColor: `${step.color}20`,
-                          color: step.color 
-                        }}
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-white"
+                        style={{ backgroundColor: step.color }}
                       >
-                        <div className="w-5 h-5">
+                        <div className="w-4 h-4">
                           {step.icon}
                         </div>
                       </div>
@@ -508,12 +507,7 @@ export default function UnifiedProductFlow({
                           <span 
                             className="px-2 py-1 rounded-full font-bold text-[10px] min-w-[20px] text-center text-white shadow-sm"
                             style={{ 
-                              backgroundColor: step.color === '#FFCE00' ? '#F59E0B' : 
-                                               step.color === '#86B817' ? '#65A30D' : 
-                                               step.color === '#00BCD4' ? '#0891B2' : 
-                                               step.color === '#7B1FA2' ? '#7C2D92' : 
-                                               step.color === '#FF6F00' ? '#EA580C' : 
-                                               step.color === '#0064D2' ? '#2563EB' : step.color
+                              backgroundColor: step.color
                             }}
                             aria-label={`${task.count}件`}
                           >
@@ -536,7 +530,7 @@ export default function UnifiedProductFlow({
                         <span>平均処理時間</span>
                         <span>{Math.max(...step.tasks.map(t => t.avgDays))}日</span>
                       </div>
-                      {totalStepTasks > 0 && (
+                                              {totalStepTasks > 0 && (
                         <div className="mt-1">
                           <div className="w-full bg-gray-200 rounded-full h-1">
                             <div 
@@ -555,8 +549,12 @@ export default function UnifiedProductFlow({
                   {/* 接続線（デスクトップのみ） */}
                   {index < flowData.length - 1 && (
                     <div className="hidden lg:block absolute -right-4 top-1/2 transform -translate-y-1/2 z-10">
-                      <div className="w-8 h-0.5 bg-gray-300 relative">
-                        <div className="absolute -right-1 -top-1 w-2 h-2 bg-gray-300 rotate-45 transform origin-center"></div>
+                      <div 
+                        className="w-8 h-1 rounded-full relative bg-gray-300"
+                      >
+                        <div 
+                          className="absolute -right-1 -top-1 w-2 h-2 rotate-45 transform origin-center rounded-sm bg-gray-300"
+                        ></div>
                       </div>
                     </div>
                   )}
