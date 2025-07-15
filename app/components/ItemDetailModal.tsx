@@ -9,7 +9,8 @@ import {
   ArrowPathIcon,
   QrCodeIcon,
   PrinterIcon,
-  DocumentDuplicateIcon
+  DocumentDuplicateIcon,
+  CheckIcon
 } from '@heroicons/react/24/outline';
 import BarcodePrintButton from '@/app/components/features/BarcodePrintButton';
 
@@ -35,6 +36,7 @@ interface ItemDetailModalProps {
   onEdit?: (item: any) => void;
   onMove?: (item: any) => void;
   onGenerateQR?: (item: any) => void;
+  onStartInspection?: (item: any) => void;
 }
 
 export default function ItemDetailModal({ 
@@ -43,7 +45,8 @@ export default function ItemDetailModal({
   item, 
   onEdit, 
   onMove, 
-  onGenerateQR 
+  onGenerateQR,
+  onStartInspection 
 }: ItemDetailModalProps) {
   const [activeTab, setActiveTab] = useState<'details' | 'history' | 'notes'>('details');
   const { showToast } = useToast();
@@ -254,6 +257,20 @@ export default function ItemDetailModal({
                   </div>
                 </div>
               </div>
+
+              {/* 次のステップ案内 */}
+              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h4 className="font-medium text-blue-900 mb-2">次のステップ</h4>
+                <p className="text-sm text-blue-800">
+                  {item.status === 'inbound' ? '商品が入庫されました。検品を開始してください。' :
+                   item.status === 'inspection' ? '検品作業中です。品質確認後、保管へ移行します。' :
+                   item.status === 'storage' ? '保管中です。必要に応じて検品や移動を行えます。' :
+                   item.status === 'listing' ? '出品中です。販売が完了するまで待機してください。' :
+                   item.status === 'sold' ? '売約済みです。出荷準備を行ってください。' :
+                   item.status === 'maintenance' ? 'メンテナンス中です。作業完了後、保管へ戻します。' :
+                   '現在のステータスに応じた作業を実行してください。'}
+                </p>
+              </div>
             </div>
           )}
 
@@ -357,10 +374,19 @@ export default function ItemDetailModal({
                 移動
               </NexusButton>
             )}
+            {onStartInspection && (item.status === 'inbound' || item.status === 'storage') && (
+              <NexusButton
+                onClick={() => onStartInspection(item)}
+                variant="primary"
+                icon={<CheckIcon className="w-4 h-4" />}
+              >
+                検品開始
+              </NexusButton>
+            )}
             {onEdit && (
               <NexusButton
                 onClick={() => onEdit(item)}
-                variant="primary"
+                variant="secondary"
                 icon={<PencilIcon className="w-4 h-4" />}
               >
                 編集

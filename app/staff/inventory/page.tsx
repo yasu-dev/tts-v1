@@ -4,13 +4,17 @@ import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import UnifiedPageHeader from '@/app/components/ui/UnifiedPageHeader';
 import QRCodeModal from '../../components/QRCodeModal';
 import ItemDetailModal from '../../components/ItemDetailModal';
+import ProductEditModal from '../../components/ProductEditModal';
+import ProductMoveModal from '../../components/ProductMoveModal';
+import BarcodeScanner from '../../components/features/BarcodeScanner';
 import { useState, useEffect } from 'react';
 import {
   PencilIcon,
   ArrowsRightLeftIcon,
   ArrowDownTrayIcon,
   XMarkIcon,
-  CheckIcon
+  CheckIcon,
+  QrCodeIcon
 } from '@heroicons/react/24/outline';
 import { ContentCard, BusinessStatusIndicator, Pagination, NexusLoadingSpinner } from '@/app/components/ui';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
@@ -58,6 +62,7 @@ export default function StaffInventoryPage() {
   const [loading, setLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
+  const [isBarcodeScannerOpen, setIsBarcodeScannerOpen] = useState(false);
   
   // ページネーション状態
   const [currentPage, setCurrentPage] = useState(1);
@@ -168,6 +173,96 @@ export default function StaffInventoryPage() {
     ));
   };
 
+  const handleEditSave = (updatedItem: InventoryItem) => {
+    setItems(prev => prev.map(item => 
+      item.id === updatedItem.id ? updatedItem : item
+    ));
+    showToast({
+      title: '商品更新完了',
+      message: `${updatedItem.name} の情報を更新しました`,
+      type: 'success'
+    });
+  };
+
+  const handleMove = (itemId: string, newLocation: string, reason: string) => {
+    setItems(prev => prev.map(item => 
+      item.id === itemId 
+        ? { ...item, location: newLocation, lastModified: new Date().toISOString() }
+        : item
+    ));
+    showToast({
+      title: '商品移動完了',
+      message: `商品を${newLocation}に移動しました`,
+      type: 'success'
+    });
+  };
+
+  const handleBarcodeScanned = (barcode: string, productData?: any) => {
+    if (productData) {
+      // APIから商品データが取得できた場合
+      const foundItem = items.find(item => item.sku === productData.sku);
+      if (foundItem) {
+        setSelectedItem(foundItem);
+        setIsDetailModalOpen(true);
+        setIsBarcodeScannerOpen(false);
+        showToast({
+          title: '商品発見',
+          message: `${foundItem.name} の詳細を表示しています`,
+          type: 'success'
+        });
+      } else {
+        // APIから取得した商品データをInventoryItem形式に変換
+        const convertedItem: InventoryItem = {
+          id: productData.id,
+          name: productData.name,
+          sku: productData.sku,
+          category: productData.category,
+          status: productData.status as any,
+          location: productData.location,
+          price: productData.price,
+          condition: productData.condition,
+          entryDate: productData.createdAt,
+          lastModified: productData.updatedAt,
+          qrCode: productData.qrCode,
+          notes: productData.description,
+          quantity: 1,
+          lastChecked: productData.updatedAt,
+          imageUrl: productData.imageUrl,
+          assignedStaff: '山本 達也'
+        };
+        setSelectedItem(convertedItem);
+        setIsDetailModalOpen(true);
+        setIsBarcodeScannerOpen(false);
+        showToast({
+          title: '商品発見',
+          message: `${convertedItem.name} の詳細を表示しています`,
+          type: 'success'
+        });
+      }
+    } else {
+      // APIから商品データが取得できない場合、手動検索
+      const foundItem = items.find(item => 
+        item.sku === barcode || item.qrCode === barcode
+      );
+      if (foundItem) {
+        setSelectedItem(foundItem);
+        setIsDetailModalOpen(true);
+        setIsBarcodeScannerOpen(false);
+        showToast({
+          title: '商品発見',
+          message: `${foundItem.name} の詳細を表示しています`,
+          type: 'success'
+        });
+      } else {
+        showToast({
+          title: '商品が見つかりません',
+          message: `バーコード: ${barcode} に対応する商品が見つかりません`,
+          type: 'warning'
+        });
+      }
+    }
+  };
+
   const handleQRCode = (item: InventoryItem) => {
     setSelectedItem(item);
     setIsQRModalOpen(true);
@@ -205,7 +300,15 @@ export default function StaffInventoryPage() {
   };
 
   const headerActions = (
-    <div className="grid grid-cols-2 gap-3 w-full max-w-md">
+    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 w-full max-w-lg">
+      <NexusButton
+        onClick={() => setIsBarcodeScannerOpen(true)}
+        variant="primary"
+        icon={<QrCodeIcon className="w-5 h-5" />}
+        size="sm"
+      >
+        バーコードスキャン
+      </NexusButton>
       <NexusButton
         onClick={() => setIsEditModalOpen(true)}
         disabled={selectedItems.length === 0}
@@ -232,6 +335,7 @@ export default function StaffInventoryPage() {
         variant="primary"
         icon={<ArrowDownTrayIcon className="w-5 h-5" />}
         size="sm"
+        className="col-span-2 lg:col-span-1"
       >
         CSVエクスポート
       </NexusButton>
@@ -473,7 +577,60 @@ export default function StaffInventoryPage() {
             setIsDetailModalOpen(false);
             setIsQRModalOpen(true);
           }}
+          onStartInspection={(item) => {
+            setIsDetailModalOpen(false);
+            // 検品画面に遷移
+            window.location.href = `/staff/inspection/${item.id}`;
+          }}
         />
+
+        {/* Product Edit Modal */}
+        <ProductEditModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          item={selectedItem}
+          onSave={handleEditSave}
+        />
+
+        {/* Product Move Modal */}
+        <ProductMoveModal
+          isOpen={isMoveModalOpen}
+          onClose={() => setIsMoveModalOpen(false)}
+          item={selectedItem}
+          onMove={handleMove}
+        />
+
+        {/* Barcode Scanner Modal */}
+        {isBarcodeScannerOpen && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start justify-center z-[9000] p-4 pt-8">
+            <div className="intelligence-card global max-w-2xl w-full">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-semibold text-nexus-text-primary">バーコードスキャン</h3>
+                  <NexusButton
+                    onClick={() => setIsBarcodeScannerOpen(false)}
+                    variant="default"
+                    size="sm"
+                    icon={<XMarkIcon className="w-4 h-4" />}
+                  >
+                    閉じる
+                  </NexusButton>
+                </div>
+                <div className="mb-4">
+                  <p className="text-sm text-nexus-text-secondary">
+                    商品のバーコードをスキャンすると、自動的に商品詳細が表示されます。
+                  </p>
+                </div>
+                <BarcodeScanner
+                  onScan={handleBarcodeScanned}
+                  placeholder="商品バーコードをスキャンしてください"
+                  scanType="product"
+                  enableDatabaseLookup={true}
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );
