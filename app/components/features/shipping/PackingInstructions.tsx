@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
-import WebRTCVideoRecorder from '@/app/components/features/video/WebRTCVideoRecorder';
+import TimestampVideoRecorder from '@/app/components/features/video/TimestampVideoRecorder';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 interface PackingInstructionsProps {
@@ -390,12 +390,12 @@ export default function PackingInstructions({
                     </button>
                   </div>
                   
-                  <WebRTCVideoRecorder
+                  <TimestampVideoRecorder
                     productId={item.id}
                     phase="phase4"
                     type="packing"
-                    onRecordingComplete={(id) => {
-                      setVideoId(id);
+                    onRecordingComplete={(timestamps) => {
+                      setVideoId(timestamps.length > 0 ? timestamps[0].id : '');
                       setShowVideoRecorder(false);
                       showToast({
                         title: '動画記録が完了しました',

@@ -6,7 +6,7 @@ import NexusButton from '@/app/components/ui/NexusButton';
 import InspectionChecklist from './InspectionChecklist';
 import PhotoUploader from './PhotoUploader';
 import InspectionResult from './InspectionResult';
-import WebRTCVideoRecorder from '@/app/components/features/video/WebRTCVideoRecorder';
+import TimestampVideoRecorder from '@/app/components/features/video/TimestampVideoRecorder';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 export interface InspectionFormProps {
@@ -418,12 +418,12 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
               </div>
             </NexusCard>
             
-            <WebRTCVideoRecorder
+            <TimestampVideoRecorder
               productId={productId}
               phase="phase2"
               type="inspection"
-              onRecordingComplete={(id) => {
-                setVideoId(id);
+              onRecordingComplete={(timestamps) => {
+                setVideoId(timestamps.length > 0 ? timestamps[0].id : '');
                 showToast({
                   title: '動画記録が完了しました',
                   type: 'success'

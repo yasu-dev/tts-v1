@@ -195,10 +195,9 @@ model VideoRecord {
   productId   String?
   orderId     String?
   type        String   // inspection, packing, shipping, etc.
-  fileName    String
-  fileUrl     String   // S3 URL or local path
-  fileSize    Int?
-  duration    Int?     // seconds
+  sessionId   String?  // 記録セッションID
+  timestamps  String?  // タイムスタンプのJSON配列
+  s3VideoPath String?  // S3での動画パス
   staffId     String
   notes       String?
   createdAt   DateTime @default(now())

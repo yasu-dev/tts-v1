@@ -403,7 +403,7 @@ export default function DashboardLayout({
       icon: icons.inventory
     },
     { 
-      label: '検品・撮影', 
+      label: '検品管理', 
       href: '/staff/inspection',
       icon: icons.inspection
     },
