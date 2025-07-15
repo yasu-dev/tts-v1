@@ -315,7 +315,6 @@ export default function ProductRegistrationModal({ isOpen, onClose, onSubmit, in
               type="button"
               onClick={onClose}
               variant="secondary"
-              className="flex-1"
             >
               キャンセル
             </NexusButton>

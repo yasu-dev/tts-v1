@@ -208,7 +208,6 @@ export default function PackingMaterialsModal({ isOpen, onClose, onOrder }: Pack
           <NexusButton
             onClick={onClose}
             variant="secondary"
-            className="flex-1"
           >
             閉じる
           </NexusButton>

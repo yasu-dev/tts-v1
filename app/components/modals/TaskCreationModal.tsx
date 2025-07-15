@@ -263,7 +263,6 @@ export default function TaskCreationModal({ isOpen, onClose, onSubmit }: TaskCre
               size="lg"
               onClick={onClose}
               disabled={isSubmitting}
-              className="flex-1"
             >
               キャンセル
             </NexusButton>

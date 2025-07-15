@@ -59,7 +59,6 @@ export default function ReportPeriodModal({ isOpen, onClose, onApply }: ReportPe
         <NexusButton
           onClick={onClose}
           variant="secondary"
-          className="flex-1"
         >
           キャンセル
         </NexusButton>

@@ -12,46 +12,173 @@ import {
   DocumentTextIcon,
   PlusIcon,
   CheckIcon,
-  DocumentArrowDownIcon
+  DocumentArrowDownIcon,
+  EyeIcon,
+  ClockIcon,
+  CheckCircleIcon,
+  XCircleIcon
 } from '@heroicons/react/24/outline';
-import HoloTable from '../components/ui/HoloTable';
 import NexusButton from '@/app/components/ui/NexusButton';
-import NexusInput from '@/app/components/ui/NexusInput';
 import BaseModal from '@/app/components/ui/BaseModal';
+import DeliveryPlanDetailModal from '@/app/components/modals/DeliveryPlanDetailModal';
 
 export default function DeliveryPage() {
   const router = useRouter();
-  const [deliveryPlans] = useState([
-    { id: 1, date: '2024-01-15', status: '準備中', items: 5, value: 450000 },
-    { id: 2, date: '2024-01-12', status: '発送済', items: 3, value: 280000 },
-    { id: 3, date: '2024-01-10', status: '到着済', items: 8, value: 620000 },
+  const [deliveryPlans, setDeliveryPlans] = useState([
+    { 
+      id: 1, 
+      date: '2024-01-15', 
+      status: '作成完了', 
+      items: 5, 
+      value: 450000,
+      sellerName: '田中太郎',
+      deliveryAddress: '東京都渋谷区神宮前1-1-1',
+      contactEmail: 'tanaka@example.com',
+      phoneNumber: '03-1234-5678',
+      notes: 'カメラ機材の納品です。取り扱いにご注意ください。',
+      products: [
+        {
+          name: 'Canon EOS R5',
+          category: 'カメラ本体',
+          brand: 'Canon',
+          model: 'EOS R5',
+          serialNumber: 'CR5001234567',
+          estimatedValue: 350000,
+          description: '新品同様、フルサイズミラーレス一眼カメラ'
+        },
+        {
+          name: 'RF 24-70mm F2.8L IS USM',
+          category: 'レンズ',
+          brand: 'Canon',
+          model: 'RF 24-70mm F2.8L IS USM',
+          serialNumber: 'RF24701234567',
+          estimatedValue: 100000,
+          description: '標準ズームレンズ、美品'
+        }
+      ]
+    },
+    { 
+      id: 2, 
+      date: '2024-01-12', 
+      status: '発送済', 
+      items: 3, 
+      value: 280000,
+      sellerName: '佐藤花子',
+      deliveryAddress: '大阪府大阪市北区梅田2-2-2',
+      contactEmail: 'sato@example.com',
+      phoneNumber: '06-5678-9012',
+      products: [
+        {
+          name: 'Sony α7R V',
+          category: 'カメラ本体',
+          brand: 'Sony',
+          model: 'α7R V',
+          serialNumber: 'SA7R5987654321',
+          estimatedValue: 200000,
+          description: '高解像度ミラーレス一眼カメラ'
+        }
+      ]
+    },
+    { 
+      id: 3, 
+      date: '2024-01-10', 
+      status: '到着済', 
+      items: 8, 
+      value: 620000,
+      sellerName: '鈴木一郎',
+      deliveryAddress: '愛知県名古屋市中区栄3-3-3',
+      contactEmail: 'suzuki@example.com',
+      phoneNumber: '052-9876-5432',
+      notes: '時計コレクションの一部です。',
+      products: [
+        {
+          name: 'Rolex Submariner',
+          category: '時計',
+          brand: 'Rolex',
+          model: 'Submariner Date',
+          serialNumber: 'R126610LN2023',
+          estimatedValue: 620000,
+          description: 'ステンレススチール、セラミックベゼル'
+        }
+      ]
+    },
+    { 
+      id: 4, 
+      date: '2024-01-08', 
+      status: '作成中', 
+      items: 2, 
+      value: 180000,
+      sellerName: '高橋次郎',
+      deliveryAddress: '神奈川県横浜市西区みなとみらい4-4-4',
+      contactEmail: 'takahashi@example.com',
+      phoneNumber: '045-1111-2222',
+      products: []
+    },
+    { 
+      id: 5, 
+      date: '2024-01-05', 
+      status: '下書き', 
+      items: 1, 
+      value: 50000,
+      sellerName: '山田三郎',
+      deliveryAddress: '福岡県福岡市博多区博多駅前5-5-5',
+      contactEmail: 'yamada@example.com',
+      phoneNumber: '092-3333-4444',
+      products: []
+    }
   ]);
 
-  const [isBarcodeModalOpen, setIsBarcodeModalOpen] = useState(false);
-  const [isDraftModalOpen, setIsDraftModalOpen] = useState(false);
-  const [selectedShipment, setSelectedShipment] = useState<any>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<any>(null);
 
-  const handleGenerateBarcode = () => {
-    setIsBarcodeModalOpen(true);
+  const handlePlanDetail = (plan: any) => {
+    setSelectedPlan(plan);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleStatusChange = (planId: number, newStatus: string) => {
+    setDeliveryPlans(prev => 
+      prev.map(plan => 
+        plan.id === planId ? { ...plan, status: newStatus } : plan
+      )
+    );
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case '下書き': return 'bg-gray-100 text-gray-800';
+      case '作成中': return 'bg-yellow-100 text-yellow-800';
+      case '作成完了': return 'bg-blue-100 text-blue-800';
+      case '準備中': return 'bg-orange-100 text-orange-800';
+      case '発送済': return 'bg-green-100 text-green-800';
+      case '到着済': return 'bg-emerald-100 text-emerald-800';
+      case 'キャンセル': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case '下書き': return DocumentTextIcon;
+      case '作成中': return ClockIcon;
+      case '作成完了': return CheckCircleIcon;
+      case '準備中': return ClockIcon;
+      case '発送済': return TruckIcon;
+      case '到着済': return CheckCircleIcon;
+      case 'キャンセル': return XCircleIcon;
+      default: return DocumentTextIcon;
+    }
   };
 
   const headerActions = (
-    <>
-      <Link href="/delivery-plan">
-        <NexusButton 
-          variant="primary"
-          icon={<PlusIcon className="w-5 h-5" />}
-        >
-          新規納品プラン作成
-        </NexusButton>
-      </Link>
+    <Link href="/delivery-plan">
       <NexusButton 
-        onClick={handleGenerateBarcode}
-        icon={<QrCodeIcon className="w-5 h-5" />}
+        variant="primary"
+        icon={<PlusIcon className="w-5 h-5" />}
       >
-        バーコード発行
+        新規納品プラン作成
       </NexusButton>
-    </>
+    </Link>
   );
 
   return (
@@ -59,274 +186,179 @@ export default function DeliveryPage() {
       <div className="space-y-8">
         {/* 統一ヘッダー */}
         <UnifiedPageHeader
-          title="納品管理"
-          subtitle="商品の納品プランを作成・管理します"
+          title="納品プラン管理"
+          subtitle="納品プランの作成・管理を行います"
           userType="seller"
           iconType="delivery"
           actions={headerActions}
         />
 
-        {/* Barcode Generation Modal */}
-        <BaseModal
-          isOpen={isBarcodeModalOpen}
-          onClose={() => setIsBarcodeModalOpen(false)}
-          title="バーコード生成"
-          size="md"
-        >
-          <div className="space-y-4">
-            <div className="text-center p-8 border-2 border-dashed border-nexus-border rounded-lg">
-              <QrCodeIcon className="w-16 h-16 mx-auto text-nexus-text-secondary mb-4" />
-              <p className="text-nexus-text-secondary">
-                選択した配送のバーコードを生成します
-              </p>
-            </div>
+        {/* Delivery Plan Detail Modal */}
+        {selectedPlan && (
+          <DeliveryPlanDetailModal
+            isOpen={isDetailModalOpen}
+            onClose={() => setIsDetailModalOpen(false)}
+            plan={{
+              ...selectedPlan,
+              deliveryId: `TWD-${selectedPlan.date.replace(/-/g, '')}-${String(selectedPlan.id).padStart(3, '0')}`
+            }}
+            onStatusChange={handleStatusChange}
+          />
+        )}
 
-            <div className="bg-nexus-bg-secondary p-4 rounded-lg">
-              <p className="text-sm text-nexus-text-secondary">
-                生成されたバーコードは、配送ラベルに印刷して使用できます。
-              </p>
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white rounded-xl border border-nexus-border p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                <DocumentTextIcon className="w-6 h-6 text-blue-600" />
+              </div>
+              <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                総計
+              </span>
             </div>
-
-            <div className="flex gap-4 mt-6">
-              <NexusButton
-                onClick={() => {
-                  // バーコード生成処理
-                  const barcodeData = {
-                    type: 'delivery',
-                    id: Date.now().toString(),
-                    timestamp: new Date().toISOString()
-                  };
-                  
-                  // ダウンロード処理
-                  const dataStr = JSON.stringify(barcodeData);
-                  const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-                  
-                  const exportFileDefaultName = `barcode_${barcodeData.id}.json`;
-                  
-                  const linkElement = document.createElement('a');
-                  linkElement.setAttribute('href', dataUri);
-                  linkElement.setAttribute('download', exportFileDefaultName);
-                  linkElement.click();
-                  
-                  setIsBarcodeModalOpen(false);
-                }}
-                variant="primary"
-                className="flex-1"
-              >
-                バーコードを生成
-              </NexusButton>
-              <NexusButton
-                onClick={() => setIsBarcodeModalOpen(false)}
-                className="flex-1"
-              >
-                キャンセル
-              </NexusButton>
+            <div className="text-3xl font-bold text-nexus-text-primary mb-2">
+              {deliveryPlans.length}
+            </div>
+            <div className="text-nexus-text-secondary font-medium">
+              総プラン数
             </div>
           </div>
-        </BaseModal>
 
-        {/* Draft Save Notification Modal */}
-        <BaseModal
-          isOpen={isDraftModalOpen}
-          onClose={() => setIsDraftModalOpen(false)}
-          title="下書き保存機能について"
-          size="md"
-        >
-          <div className="space-y-4">
-            <div className="text-center p-6">
-              <DocumentArrowDownIcon className="w-16 h-16 mx-auto text-nexus-text-secondary mb-4" />
-              <h3 className="text-lg font-bold text-nexus-text-primary mb-3">
-                下書き保存機能は開発中です
-              </h3>
-              <p className="text-nexus-text-secondary leading-relaxed">
-                完全な納品プラン作成は<br />
-                「納品プラン確定」ボタンをクリックしてください。
-              </p>
+          <div className="bg-white rounded-xl border border-nexus-border p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                <ClockIcon className="w-6 h-6 text-yellow-600" />
+              </div>
+              <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                進行中
+              </span>
             </div>
-
-            <div className="bg-nexus-bg-secondary p-4 rounded-lg">
-              <p className="text-sm text-nexus-text-secondary">
-                💡 現在利用可能な機能：納品プラン作成、バーコード生成、履歴確認
-              </p>
+            <div className="text-3xl font-bold text-nexus-text-primary mb-2">
+              {deliveryPlans.filter(p => p.status === '作成中').length}
             </div>
-
-            <div className="flex justify-center mt-6">
-              <NexusButton
-                onClick={() => setIsDraftModalOpen(false)}
-                variant="primary"
-                className="min-w-[120px]"
-              >
-                理解しました
-              </NexusButton>
+            <div className="text-nexus-text-secondary font-medium">
+              作成中
             </div>
           </div>
-        </BaseModal>
 
-        {/* New Delivery Plan Form - Unified Card Style */}
-        <div className="bg-white rounded-xl border border-nexus-border shadow-sm">
-          <div className="p-8">
-            <h3 className="text-2xl font-display font-bold text-nexus-text-primary mb-6">新規納品プラン</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <NexusInput
-                  type="text"
-                  label="SKU（自動採番/手動入力）"
-                  placeholder="TWD-20240115-00001"
-                />
+          <div className="bg-white rounded-xl border border-nexus-border p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                <CheckCircleIcon className="w-6 h-6 text-green-600" />
               </div>
-              
-              <div>
-                <NexusInput
-                  type="text"
-                  label="ブランド"
-                  placeholder="Canon, Sony, Rolex..."
-                />
-              </div>
-
-              <div>
-                <NexusInput
-                  type="text"
-                  label="モデル/型番"
-                  placeholder="EOS R5, FE 24-70mm..."
-                />
-              </div>
-
-              <div>
-                <NexusInput
-                  type="text"
-                  label="シリアル番号"
-                  placeholder="シリアル番号を入力"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-nexus-text-secondary mb-3">
-                  カテゴリー
-                </label>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="radio" name="category" value="camera" className="w-4 h-4 text-primary-blue" />
-                    <span className="text-nexus-text-primary">カメラ本体</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="radio" name="category" value="lens" className="w-4 h-4 text-primary-blue" />
-                    <span className="text-nexus-text-primary">レンズ</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="radio" name="category" value="watch" className="w-4 h-4 text-primary-blue" />
-                    <span className="text-nexus-text-primary">時計</span>
-                  </label>
-                </div>
-              </div>
-
-              <div>
-                <NexusInput
-                  type="number"
-                  label="保険申告価値"
-                  placeholder="450000"
-                />
-              </div>
+              <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                完了
+              </span>
             </div>
-
-            <div className="mt-6">
-              <label className="block text-sm font-medium text-nexus-text-secondary mb-3">
-                付属品
-              </label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {['元箱', '保証書', '説明書', '充電器', 'レンズキャップ', 'ストラップ'].map((item) => (
-                  <label key={item} className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" className="w-4 h-4 text-primary-blue rounded border-nexus-border" />
-                    <span className="text-nexus-text-primary">{item}</span>
-                  </label>
-                ))}
-              </div>
+            <div className="text-3xl font-bold text-nexus-text-primary mb-2">
+              {deliveryPlans.filter(p => p.status === '作成完了').length}
             </div>
+            <div className="text-nexus-text-secondary font-medium">
+              作成完了
+            </div>
+          </div>
 
-            <div className="flex gap-4 mt-8">
-              <NexusButton 
-                variant="primary"
-                icon={<CheckIcon className="w-5 h-5" />}
-                onClick={() => router.push('/delivery-plan')}
-              >
-                納品プラン確定
-              </NexusButton>
-              <NexusButton 
-                icon={<DocumentArrowDownIcon className="w-5 h-5" />}
-                onClick={() => setIsDraftModalOpen(true)}
-              >
-                下書き保存
-              </NexusButton>
+          <div className="bg-white rounded-xl border border-nexus-border p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                総価値
+              </span>
+            </div>
+            <div className="text-3xl font-bold text-nexus-text-primary mb-2">
+              ¥{(deliveryPlans.reduce((sum, p) => sum + p.value, 0) / 10000).toLocaleString()}万
+            </div>
+            <div className="text-nexus-text-secondary font-medium">
+              総評価額
             </div>
           </div>
         </div>
 
-        {/* Delivery History - Unified Table Style */}
-        <div className="bg-white rounded-xl border border-nexus-border shadow-sm">
-          <div className="p-8">
-            <h3 className="text-2xl font-display font-bold text-nexus-text-primary mb-6">納品履歴</h3>
-            
-            <HoloTable
-              columns={[
-                { key: 'deliveryId', label: '納品ID', width: '20%' },
-                { key: 'date', label: '作成日', width: '15%' },
-                { key: 'status', label: 'ステータス', width: '15%', align: 'center' },
-                { key: 'items', label: '商品数', width: '12%', align: 'right' },
-                { key: 'value', label: '総価値', width: '18%', align: 'right' },
-                { key: 'actions', label: 'アクション', width: '20%', align: 'center' }
-              ]}
-              data={deliveryPlans.map((plan) => ({
-                ...plan,
-                deliveryId: `TWD-${plan.date.replace(/-/g, '')}-${String(plan.id).padStart(3, '0')}`
-              }))}
-              renderCell={(value, column, row) => {
-                if (column.key === 'deliveryId') {
-                  return <span className="font-mono text-nexus-text-primary">{value}</span>;
-                }
-                if (column.key === 'status') {
+        {/* Delivery Plans Management */}
+        <div className="bg-white rounded-xl border border-nexus-border p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-lg font-bold text-nexus-text-primary">納品プラン一覧</h3>
+              <p className="text-nexus-text-secondary mt-1 text-sm">
+                全{deliveryPlans.length}件 • 作成中: {deliveryPlans.filter(p => p.status === '作成中').length}件 • 完了: {deliveryPlans.filter(p => p.status === '作成完了').length}件
+              </p>
+            </div>
+          </div>
+          
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-nexus-border">
+                  <th className="text-left p-4 font-medium text-nexus-text-secondary">納品プランID</th>
+                  <th className="text-left p-4 font-medium text-nexus-text-secondary">セラー名</th>
+                  <th className="text-left p-4 font-medium text-nexus-text-secondary">作成日</th>
+                  <th className="text-center p-4 font-medium text-nexus-text-secondary">ステータス</th>
+                  <th className="text-right p-4 font-medium text-nexus-text-secondary">商品数</th>
+                  <th className="text-right p-4 font-medium text-nexus-text-secondary">総価値</th>
+                  <th className="text-center p-4 font-medium text-nexus-text-secondary">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                {deliveryPlans.map((plan) => {
+                  const StatusIcon = getStatusIcon(plan.status);
                   return (
-                    <div className="flex items-center justify-center gap-2">
-                      <div className={`status-orb status-${
-                        value === '準備中' ? 'monitoring' :
-                        value === '発送済' ? 'optimal' :
-                        'optimal'
-                      }`} />
-                      <span className={`status-badge ${
-                        value === '準備中' ? 'warning' :
-                        value === '発送済' ? 'info' :
-                        'success'
-                      }`}>
-                        {value}
-                      </span>
-                    </div>
+                    <tr key={plan.id} className="border-b border-nexus-border hover:bg-nexus-bg-tertiary">
+                      <td className="p-4">
+                        <span className="font-mono text-nexus-text-primary">
+                          TWD-{plan.date.replace(/-/g, '')}-{String(plan.id).padStart(3, '0')}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <span className="font-medium text-nexus-text-primary">{plan.sellerName}</span>
+                      </td>
+                      <td className="p-4">
+                        <span className="font-mono text-sm">{plan.date}</span>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex justify-center">
+                          <div className="flex items-center gap-2">
+                            <StatusIcon className="w-4 h-4" />
+                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(plan.status)}`}>
+                              {plan.status}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-4 text-right">
+                        <span className="font-display">{plan.items}点</span>
+                      </td>
+                      <td className="p-4 text-right">
+                        <span className="font-bold text-nexus-text-primary">¥{plan.value.toLocaleString()}</span>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex justify-center">
+                          <NexusButton
+                            onClick={() => handlePlanDetail(plan)}
+                            size="sm"
+                            variant="default"
+                            icon={<EyeIcon className="w-4 h-4" />}
+                          >
+                            詳細
+                          </NexusButton>
+                        </div>
+                      </td>
+                    </tr>
                   );
-                }
-                if (column.key === 'items') {
-                  return <span className="font-display">{value}点</span>;
-                }
-                if (column.key === 'value') {
-                  return <span className="font-display font-bold">¥{value.toLocaleString()}</span>;
-                }
-                if (column.key === 'actions') {
-                  return (
-                    <div className="flex gap-3 justify-center">
-                      <button className="action-orb blue">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                      </button>
-                      <button className="action-orb green">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-2 0h-2v4m0-11v3m0 0h-2m2 0h2m-8 3H3M8 8H3m4-3h2M3 4h2m0 2H3"></path>
-                        </svg>
-                      </button>
-                    </div>
-                  );
-                }
-                return value;
-              }}
-              emptyMessage="納品履歴がありません"
-            />
+                })}
+                {deliveryPlans.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="p-8 text-center text-nexus-text-secondary">
+                      納品プランがありません
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>

@@ -17,8 +17,8 @@ interface Notification {
 interface EnhancedNotificationPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  userType: 'seller' | 'staff';
-  anchorRef?: React.RefObject<HTMLElement>;
+  userType: 'staff' | 'seller';
+  anchorRef?: React.RefObject<HTMLButtonElement>;
 }
 
 export default function EnhancedNotificationPanel({ 
@@ -54,12 +54,17 @@ export default function EnhancedNotificationPanel({
     }
   }, [isOpen, userType]);
 
-  // パネルの位置を計算
+  // パネルの位置を計算 - ヘッダーの高さを考慮
   useEffect(() => {
     if (isOpen && anchorRef?.current) {
       const rect = anchorRef.current.getBoundingClientRect();
+      
+      // ヘッダー高さを考慮して適切な位置に配置
+      const headerHeight = 56; // デスクトップのヘッダー高さ
+      const topPosition = Math.max(headerHeight + 8, rect.bottom + 8);
+      
       setPanelPosition({
-        top: rect.bottom + 8,
+        top: topPosition,
         right: window.innerWidth - rect.right
       });
     }
@@ -118,11 +123,15 @@ export default function EnhancedNotificationPanel({
   };
 
   const getTypeColor = (type: string) => {
-    // 全て統一されたグレー系の色に変更
     switch (type) {
-      case 'error':
+      case 'success':
+        return 'text-green-600';
       case 'warning':
-        return 'text-gray-600';
+        return 'text-yellow-600';
+      case 'error':
+        return 'text-red-600';
+      case 'info':
+        return 'text-blue-600';
       default:
         return 'text-gray-500';
     }
@@ -204,6 +213,12 @@ export default function EnhancedNotificationPanel({
     }
   };
 
+  // メッセージを簡潔にする関数
+  const truncateMessage = (message: string, maxLength: number = 50) => {
+    if (message.length <= maxLength) return message;
+    return message.substring(0, maxLength) + '...';
+  };
+
   const filteredNotifications = showUnreadOnly 
     ? notifications.filter(n => !n.read)
     : notifications;
@@ -217,7 +232,12 @@ export default function EnhancedNotificationPanel({
       ref={panelRef}
       data-testid="notification-panel"
       className="fixed z-[10000] w-80 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden"
-      style={{ top: `${panelPosition.top}px`, right: `${panelPosition.right}px` }}
+      style={{ 
+        top: `${panelPosition.top}px`, 
+        right: `${panelPosition.right}px`,
+        writingMode: 'horizontal-tb', // 横書きを明示的に指定
+        direction: 'ltr' // 左から右へのテキスト方向を指定
+      }}
     >
       <div className="p-3 border-b border-gray-200">
         <div className="flex items-center justify-between">
@@ -226,7 +246,7 @@ export default function EnhancedNotificationPanel({
               通知
             </h3>
             {unreadCount > 0 && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
                 {unreadCount}件
               </span>
             )}
@@ -237,7 +257,7 @@ export default function EnhancedNotificationPanel({
               onClick={() => setShowUnreadOnly(!showUnreadOnly)}
               className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
                 showUnreadOnly 
-                  ? 'bg-gray-200 text-gray-700' 
+                  ? 'bg-blue-100 text-blue-700' 
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
@@ -291,8 +311,12 @@ export default function EnhancedNotificationPanel({
                 onClick={() => handleNotificationClick(notification)}
                 className={`
                   p-3 cursor-pointer transition-colors hover:bg-gray-50
-                  ${!notification.read ? 'bg-gray-50' : ''}
+                  ${!notification.read ? 'bg-blue-50' : ''}
                 `}
+                style={{
+                  writingMode: 'horizontal-tb', // 各アイテムも横書きを明示的に指定
+                  direction: 'ltr'
+                }}
               >
                 <div className="flex items-start gap-3">
                   <div className={`flex-shrink-0 ${getTypeColor(notification.type)}`}>
@@ -309,13 +333,13 @@ export default function EnhancedNotificationPanel({
                       </span>
                     </div>
                     
-                    <p className={`mt-0.5 text-xs line-clamp-2 ${!notification.read ? 'text-gray-700' : 'text-gray-500'}`}>
-                      {notification.message}
+                    <p className={`mt-0.5 text-xs ${!notification.read ? 'text-gray-700' : 'text-gray-500'}`}>
+                      {truncateMessage(notification.message)}
                     </p>
                     
                     {notification.priority === 'high' && (
                       <div className="mt-1">
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-700">
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">
                           重要
                         </span>
                       </div>
@@ -323,7 +347,7 @@ export default function EnhancedNotificationPanel({
                   </div>
                   
                   {!notification.read && (
-                    <div className="flex-shrink-0 w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
+                    <div className="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full"></div>
                   )}
                 </div>
               </div>

@@ -152,7 +152,6 @@ export default function CarrierSettingsModal({ isOpen, onClose, onSave }: Carrie
           <NexusButton
             onClick={onClose}
             variant="secondary"
-            className="flex-1"
           >
             キャンセル
           </NexusButton>
