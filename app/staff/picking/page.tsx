@@ -436,7 +436,7 @@ export default function PickingPage() {
 
         {/* Task Detail Modal */}
         {selectedTask && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9000] p-4">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start justify-center z-[9000] p-4 pt-8">
             <div className="intelligence-card global max-w-[1600px] w-full max-h-[90vh] overflow-hidden">
               <div className="p-8 border-b border-nexus-border">
                 <div className="flex justify-between items-start">

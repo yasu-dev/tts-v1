@@ -238,13 +238,20 @@ export default function TaskCreationModal({ isOpen, onClose, onSubmit }: TaskCre
             />
           </div>
           
-          <div className="flex gap-2 pt-4">
+          <div className="flex justify-end gap-2 pt-4">
+            <NexusButton
+              variant="default"
+              size="lg"
+              onClick={onClose}
+              disabled={isSubmitting}
+            >
+              キャンセル
+            </NexusButton>
             <NexusButton
               variant="primary"
               size="lg"
               type="submit"
               disabled={isSubmitting}
-              className="flex-1"
             >
               {isSubmitting ? (
                 <>
@@ -257,14 +264,6 @@ export default function TaskCreationModal({ isOpen, onClose, onSubmit }: TaskCre
               ) : (
                 '作成'
               )}
-            </NexusButton>
-            <NexusButton
-              variant="default"
-              size="lg"
-              onClick={onClose}
-              disabled={isSubmitting}
-            >
-              キャンセル
             </NexusButton>
           </div>
         </form>

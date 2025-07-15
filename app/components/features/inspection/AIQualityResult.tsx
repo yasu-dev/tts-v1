@@ -232,12 +232,11 @@ export default function AIQualityResult({
           </div>
         )}
 
-        <div className="flex gap-3">
+        <div className="flex justify-end gap-3">
           {result.recommendation.action === 'approve' && (
             <NexusButton
               onClick={onAccept}
               variant="primary"
-              className="flex-1"
             >
               AI判定を承認
             </NexusButton>
@@ -247,7 +246,6 @@ export default function AIQualityResult({
             <NexusButton
               onClick={onReject}
               variant="danger"
-              className="flex-1"
             >
               品質基準不適合
             </NexusButton>
@@ -256,7 +254,6 @@ export default function AIQualityResult({
           <NexusButton
             onClick={onRequestManualReview}
             variant="secondary"
-            className="flex-1"
           >
             手動で再確認
           </NexusButton>

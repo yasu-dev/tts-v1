@@ -141,19 +141,18 @@ export default function CarrierSettingsModal({ isOpen, onClose, onSave }: Carrie
           ))}
         </div>
         
-        <div className="flex gap-2 pt-6">
-          <NexusButton
-            onClick={handleSave}
-            variant="primary"
-            className="flex-1"
-          >
-            保存
-          </NexusButton>
+        <div className="flex justify-end gap-2 pt-6">
           <NexusButton
             onClick={onClose}
             variant="secondary"
           >
             キャンセル
+          </NexusButton>
+          <NexusButton
+            onClick={handleSave}
+            variant="primary"
+          >
+            保存
           </NexusButton>
         </div>
       </div>

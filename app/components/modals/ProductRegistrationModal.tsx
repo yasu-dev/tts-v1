@@ -292,12 +292,18 @@ export default function ProductRegistrationModal({ isOpen, onClose, onSubmit, in
             />
           </div>
           
-          <div className="flex gap-2 pt-4">
+          <div className="flex justify-end gap-2 pt-4">
+            <NexusButton
+              type="button"
+              onClick={onClose}
+              variant="secondary"
+            >
+              キャンセル
+            </NexusButton>
             <NexusButton
               type="submit"
               disabled={isLoading}
               variant="primary"
-              className="flex-1"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center">
@@ -310,13 +316,6 @@ export default function ProductRegistrationModal({ isOpen, onClose, onSubmit, in
               ) : (
                 initialData ? '更新' : '登録'
               )}
-            </NexusButton>
-            <NexusButton
-              type="button"
-              onClick={onClose}
-              variant="secondary"
-            >
-              キャンセル
             </NexusButton>
           </div>
         </form>

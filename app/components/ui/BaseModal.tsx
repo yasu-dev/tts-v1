@@ -73,7 +73,7 @@ export default function BaseModal({
 
   return (
     <div 
-      className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-[9999] p-2"
+      className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-start justify-center z-[9999] p-2 pt-8"
       onClick={handleOverlayClick}
       role="dialog"
       aria-modal="true"
@@ -86,7 +86,7 @@ export default function BaseModal({
           shadow-2xl 
           w-full 
           ${sizeClasses[size]} 
-          max-h-[88vh] 
+          max-h-[90vh] 
           overflow-hidden 
           flex 
           flex-col
