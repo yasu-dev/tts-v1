@@ -14,7 +14,7 @@ import {
   ChevronDownIcon,
 } from '@heroicons/react/24/outline';
 import ProductRegistrationModal from '../components/modals/ProductRegistrationModal';
-import { ContentCard, NexusInput, NexusButton, NexusLoadingSpinner, NexusSelect } from '@/app/components/ui';
+import { ContentCard, NexusInput, NexusButton, NexusLoadingSpinner, NexusSelect, BusinessStatusIndicator } from '@/app/components/ui';
 import Pagination from '@/app/components/ui/Pagination';
 import BaseModal from '../components/ui/BaseModal';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
@@ -414,6 +414,16 @@ export default function InventoryPage() {
     }
   };
 
+  // 日本語ステータスを英語キーに変換（統一性のため）
+  const convertStatusToKey = (status: string) => {
+    switch (status) {
+      case '出品中': return 'listing';
+      case '検品中': return 'inspection';
+      case '保管中': return 'storage';
+      default: return 'storage';
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case '出品中': return 'text-green-600 bg-green-100';
@@ -592,9 +602,10 @@ export default function InventoryPage() {
                   <div className="space-y-3">
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                       <span className="font-medium text-nexus-text-secondary">ステータス</span>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(selectedProduct.status)}`}>
-                        {selectedProduct.status}
-                      </span>
+                                      <BusinessStatusIndicator 
+                  status={convertStatusToKey(selectedProduct.status) as any} 
+                  size="sm" 
+                />
                     </div>
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                       <span className="font-medium text-nexus-text-secondary">保管場所</span>
@@ -769,9 +780,10 @@ export default function InventoryPage() {
                       </td>
                       <td className="p-4">
                       <div className="flex justify-center">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
-                            {item.status}
-                          </span>
+                        <BusinessStatusIndicator 
+                          status={convertStatusToKey(item.status) as any} 
+                          size="sm" 
+                        />
                         </div>
                       </td>
                       <td className="p-4 text-right">

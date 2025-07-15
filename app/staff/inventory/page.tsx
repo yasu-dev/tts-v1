@@ -268,7 +268,7 @@ export default function StaffInventoryPage() {
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
                   options={[
-                    { value: 'all', label: 'すべてのセラー' },
+                    { value: 'all', label: 'すべてのステータス' },
                     { value: 'inbound', label: '入庫待ち' },
                     { value: 'inspection', label: '検品中' },
                     { value: 'storage', label: '保管中' },
