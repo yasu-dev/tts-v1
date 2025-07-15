@@ -456,8 +456,8 @@ export default function UnifiedProductFlow({
                           {step.shortName}
                         </div>
                         <div className="text-xs text-gray-500">
-                          {step.role === 'seller' ? 'セラー作業' : 
-                           step.role === 'staff' ? 'スタッフ作業' : 
+                          {step.role === 'seller' ? 'あなたの作業' : 
+                           step.role === 'staff' ? '倉庫作業' : 
                            step.role === 'system' ? '自動処理' : '顧客対応'}
                         </div>
                       </div>

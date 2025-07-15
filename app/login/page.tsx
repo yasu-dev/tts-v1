@@ -38,14 +38,14 @@ export default function LoginPage() {
             router.push('/dashboard');
           }
         } else {
-          throw new Error(data.error || 'ログインに失敗しました。');
+          throw new Error(data.error || 'ログインに失敗しました');
         }
       } else {
         const errorData = await response.json();
         throw new Error(errorData.error || 'サーバーエラーが発生しました。');
       }
     } catch (error: any) {
-      setError(error.message || 'ログインに失敗しました。');
+      setError(error.message || 'ログインに失敗しました');
     } finally {
       setIsLoading(false);
     }

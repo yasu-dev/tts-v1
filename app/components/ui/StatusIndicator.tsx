@@ -29,11 +29,11 @@ interface BusinessStatusIndicatorProps {
 // 業務ステータス設定
 const businessStatusConfig = {
   // 在庫ステータス
-  inbound: { label: '入庫中', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
-  inspection: { label: '検品中', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' },
+  inbound: { label: '受取済み', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
+  inspection: { label: '検品作業中', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' },
   storage: { label: '保管中', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
   listing: { label: '出品中', color: 'bg-nexus-blue/20 text-nexus-blue dark:bg-nexus-blue/30 dark:text-nexus-blue' },
-  sold: { label: '売却済み', color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200' },
+  sold: { label: '取引完了', color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200' },
   maintenance: { label: 'メンテナンス', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' },
   
   // タスクステータス
@@ -48,7 +48,7 @@ const businessStatusConfig = {
   inspected: { label: '検品済み', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
   packed: { label: '梱包済み', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
   shipped: { label: '出荷済み', color: 'bg-nexus-blue/20 text-nexus-blue dark:bg-nexus-blue/30 dark:text-nexus-blue' },
-  delivered: { label: '配送完了', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
+  delivered: { label: '倉庫到着', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
   
   // 返品ステータス
   approved: { label: '承認済み', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },

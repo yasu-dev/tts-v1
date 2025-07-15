@@ -37,7 +37,7 @@ const sellerNotifications: Notification[] = [
     id: '3',
     type: 'info',
     title: '検品完了',
-    message: 'Rolex Submariner Dateの検品が完了しました',
+    message: 'Rolex Submariner Dateの検品が完了しました（倉庫保管中）',
     timestamp: '2025-01-26T08:45:00Z',
     read: true,
     action: 'inventory'

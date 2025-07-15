@@ -325,7 +325,7 @@ export default function InspectionPage() {
     
     showToast({
       title: '検品完了',
-      message: '検品が完了しました！',
+      message: '検品が完了しました！(倉庫保管中)',
       type: 'success'
     });
     setActiveTask(null);

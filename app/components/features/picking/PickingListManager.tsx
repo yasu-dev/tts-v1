@@ -425,7 +425,7 @@ export default function PickingListManager() {
     showToast({
       type: 'success',
       title: 'ピッキング完了',
-      message: `注文 ${listToComplete.orderId} のピッキングが完了しました`,
+      message: `注文 ${listToComplete.orderId} のピッキングが完了しました (倉庫保管中)`,
       duration: 3000
     });
     

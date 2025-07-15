@@ -470,7 +470,7 @@ export function ReturnReasonAnalysis() {
               value={sellerFilter}
               onChange={(e) => setSellerFilter(e.target.value)}
               options={[
-                { value: 'all', label: 'すべて' },
+                { value: 'all', label: 'すべてのセラー' },
                 ...sellerPerformanceData.map(seller => ({
                   value: seller.sellerId,
                   label: seller.sellerName

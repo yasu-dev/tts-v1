@@ -252,7 +252,7 @@ export default function StaffInventoryPage() {
         {/* 統一ヘッダー */}
         <UnifiedPageHeader
           title="スタッフ在庫管理"
-          subtitle="倉庫内の全在庫を管理・操作"
+          subtitle="全セラーの商品を管理・操作"
           userType="staff"
           iconType="inventory"
           actions={headerActions}
@@ -268,7 +268,7 @@ export default function StaffInventoryPage() {
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
                   options={[
-                    { value: 'all', label: 'すべて' },
+                    { value: 'all', label: 'すべてのセラー' },
                     { value: 'inbound', label: '入庫待ち' },
                     { value: 'inspection', label: '検品中' },
                     { value: 'storage', label: '保管中' },

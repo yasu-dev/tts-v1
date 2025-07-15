@@ -244,7 +244,7 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
         message: `検品結果を保存しました。商品ステータスが「${
           result === 'passed' ? '出品準備完了' : 
           result === 'conditional' ? '要確認' : '不合格'
-        }」に更新されました。`,
+        }」に更新されました。(倉庫保管中)`,
         duration: 4000
       });
       

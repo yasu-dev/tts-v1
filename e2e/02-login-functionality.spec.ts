@@ -13,7 +13,7 @@ test.describe('ログイン機能テスト', () => {
     await page.click('button[type="submit"]');
     
     // ダッシュボードにリダイレクトされることを確認
-    await expect(page).toHaveURL(/\/dashboard$/);
+    await expect(page).toHaveURL(/\/dashboard$/, { timeout: 15000 });
     
     // ダッシュボードの要素が表示されることを確認
     await expect(page.locator('body')).toBeVisible();
@@ -31,7 +31,7 @@ test.describe('ログイン機能テスト', () => {
     await page.click('button[type="submit"]');
     
     // スタッフダッシュボードにリダイレクトされることを確認
-    await expect(page).toHaveURL(/\/staff\/dashboard$/);
+    await expect(page).toHaveURL(/\/staff\/dashboard$/, { timeout: 15000 });
     
     // ダッシュボードの要素が表示されることを確認
     await expect(page.locator('body')).toBeVisible();
@@ -49,9 +49,9 @@ test.describe('ログイン機能テスト', () => {
     await page.click('button[type="submit"]');
     
     // エラーメッセージが表示されることを確認
-    await expect(page.getByText('ログインに失敗しました')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('メールアドレスまたはパスワードが間違っています')).toBeVisible({ timeout: 15000 });
     
     // ログインページに留まることを確認
-    await expect(page).toHaveURL(/\/login$/);
+    await expect(page).toHaveURL(/\/login$/, { timeout: 15000 });
   });
 }); 

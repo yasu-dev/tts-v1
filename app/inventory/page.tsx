@@ -464,7 +464,7 @@ export default function InventoryPage() {
         {/* 統一ヘッダー */}
         <UnifiedPageHeader
           title="在庫管理"
-          subtitle="商品在庫の状況を確認・管理できます"
+          subtitle="あなたの商品の状況を確認できます"
           userType="seller"
           iconType="inventory"
           actions={headerActions}

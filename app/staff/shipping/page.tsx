@@ -384,7 +384,7 @@ export default function StaffShippingPage() {
       ));
       showToast({
         title: '梱包完了',
-        message: `${selectedPackingItem.productName}の梱包が完了しました`,
+        message: `${selectedPackingItem.productName}の梱包が完了しました (倉庫保管中)`,
         type: 'success'
       });
       setSelectedPackingItem(null);

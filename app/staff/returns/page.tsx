@@ -151,7 +151,7 @@ export default function ReturnsPage() {
     
     showToast({
       title: '検品完了',
-      message: `${selectedReturn.productName}の返品検品が完了しました (判定: ${getDecisionLabel(finalDecision)})`,
+      message: `${selectedReturn.productName}の返品検品が完了しました (判定: ${getDecisionLabel(finalDecision)}) (倉庫保管中)`,
       type: 'success'
     });
     
