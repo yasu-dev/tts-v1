@@ -10,21 +10,44 @@ const prisma = new PrismaClient();
 export async function POST(request: NextRequest) {
   try {
     // 認証チェック（セラーのみ）
-    const user = await AuthService.requireRole(request, ['seller']);
+    let user;
+    try {
+      user = await AuthService.requireRole(request, ['seller']);
+    } catch (authError) {
+      console.error('[ERROR] 認証エラー:', authError);
+      return NextResponse.json(
+        { error: 'ログインが必要です。再度ログインしてください。' },
+        { status: 401 }
+      );
+    }
 
     const planData = await request.json();
 
-    // 基本的なバリデーション
-    if (!planData.basicInfo?.sellerName || !planData.basicInfo?.deliveryAddress) {
+    // 基本的なバリデーション（デモ環境対応）
+    console.log('[DEBUG] 受信データ:', JSON.stringify(planData, null, 2));
+    
+    if (!planData.basicInfo?.warehouseId || !planData.basicInfo?.deliveryAddress) {
       return NextResponse.json(
-        { error: '必須項目が不足しています' },
+        { error: '配送先倉庫と納品先住所は必須です。倉庫を選択してください。' },
         { status: 400 }
       );
     }
 
     if (!planData.products || planData.products.length === 0) {
       return NextResponse.json(
-        { error: '商品が登録されていません' },
+        { error: '商品が登録されていません。商品登録ステップで商品を追加してください。' },
+        { status: 400 }
+      );
+    }
+
+    // 商品データのバリデーション（デモ環境対応）
+    const validProducts = planData.products.filter((product: any) => 
+      product && typeof product === 'object' && product.name
+    );
+    
+    if (validProducts.length === 0) {
+      return NextResponse.json(
+        { error: '有効な商品データがありません。商品登録ステップで商品名を入力してください。' },
         { status: 400 }
       );
     }
@@ -55,7 +78,7 @@ export async function POST(request: NextRequest) {
 
     console.log('[INFO] 納品プラン作成成功:', {
       planId,
-      sellerName: planData.basicInfo.sellerName,
+      warehouseName: planData.basicInfo.warehouseName,
       productCount: planData.products.length,
       totalValue: deliveryPlan.totalValue
     });
@@ -79,39 +102,122 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    // 認証チェック
-    const user = await AuthService.requireRole(request, ['seller', 'staff']);
+    // 認証チェック（セラーのみ）
+    let user;
+    try {
+      user = await AuthService.requireRole(request, ['seller', 'staff']);
+    } catch (authError) {
+      console.error('[ERROR] 認証エラー:', authError);
+      return NextResponse.json(
+        { error: 'ログインが必要です。再度ログインしてください。' },
+        { status: 401 }
+      );
+    }
+
+    // URLパラメータを解析
+    const url = new URL(request.url);
+    const limit = parseInt(url.searchParams.get('limit') || '20');
+    const offset = parseInt(url.searchParams.get('offset') || '0');
+    const status = url.searchParams.get('status');
+    const search = url.searchParams.get('search');
 
     // Prismaを使用して納品プランデータを取得
-    // TODO: 実際のPrismaクエリを実装する際は、以下のような構造になる
-    // const deliveryPlans = await prisma.deliveryPlan.findMany({
-    //   where: { sellerId: user.id },
-    //   include: { products: true }
-    // });
-
-    // 現在はJSONファイルからデータを読み込む（Prismaスキーマが整備されるまで）
-    const filePath = path.join(process.cwd(), 'data', 'seller-mock.json');
-    const fileContents = await fs.readFile(filePath, 'utf8');
-    const sellerData = JSON.parse(fileContents);
+    const where: any = {};
     
-    // 納品プランデータを抽出
-    const deliveryPlans = sellerData.delivery.plans;
+    // スタッフの場合は全データ、セラーの場合は自分のデータのみ
+    if (user.role === 'seller') {
+      where.sellerId = user.id;
+    }
+
+    // ステータスフィルター
+    if (status) {
+      where.status = status;
+    }
+
+    // 検索フィルター（SQLiteでは contains の代わりに contains を使用）
+    if (search) {
+      where.OR = [
+        { planNumber: { contains: search, mode: 'insensitive' } },
+        { sellerName: { contains: search, mode: 'insensitive' } },
+        { deliveryAddress: { contains: search, mode: 'insensitive' } },
+        { contactEmail: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+
+    const [deliveryPlans, totalCount] = await Promise.all([
+      prisma.deliveryPlan.findMany({
+        where,
+        include: {
+          products: true,
+          seller: {
+            select: {
+              id: true,
+              username: true,
+              email: true
+            }
+          }
+        },
+        orderBy: {
+          createdAt: 'desc'
+        },
+        skip: offset,
+        take: limit
+      }),
+      prisma.deliveryPlan.count({ where })
+    ]);
+
+    // フロントエンドで期待される形式に変換
+    const formattedPlans = deliveryPlans.map(plan => ({
+      id: plan.id,
+      deliveryId: plan.planNumber,
+      date: plan.createdAt.toISOString().split('T')[0],
+      status: plan.status,
+      items: plan.totalItems,
+      value: plan.totalValue,
+      sellerName: plan.sellerName,
+      sellerId: plan.sellerId,
+      deliveryAddress: plan.deliveryAddress,
+      contactEmail: plan.contactEmail,
+      phoneNumber: plan.phoneNumber,
+      notes: plan.notes,
+      products: plan.products.map(product => ({
+        name: product.name,
+        category: product.category,
+        brand: product.brand,
+        model: product.model,
+        serialNumber: product.serialNumber,
+        estimatedValue: product.estimatedValue,
+        description: product.description
+      }))
+    }));
 
     return NextResponse.json({
       success: true,
-      deliveryPlans
+      deliveryPlans: formattedPlans,
+      pagination: {
+        total: totalCount,
+        limit,
+        offset,
+        hasMore: offset + limit < totalCount
+      }
     });
 
   } catch (error) {
     console.error('[ERROR] 納品プラン取得エラー:', error);
     
-    // Prismaエラーやファイル読み込みエラーの場合はフォールバックデータを使用
+    // Prismaエラーの場合はフォールバックデータを使用
     if (MockFallback.isPrismaError(error)) {
       console.log('Using fallback data for delivery plans due to Prisma error');
       try {
         const fallbackData = {
           success: true,
-          deliveryPlans: []
+          deliveryPlans: [],
+          pagination: {
+            total: 0,
+            limit: 20,
+            offset: 0,
+            hasMore: false
+          }
         };
         return NextResponse.json(fallbackData);
       } catch (fallbackError) {

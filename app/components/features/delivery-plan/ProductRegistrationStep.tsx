@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import NexusButton from '@/app/components/ui/NexusButton';
 import NexusInput from '@/app/components/ui/NexusInput';
 import NexusSelect from '@/app/components/ui/NexusSelect';
@@ -32,7 +32,27 @@ export default function ProductRegistrationStep({
   isLastStep
 }: ProductRegistrationStepProps) {
   const { showToast } = useToast();
-  const [products, setProducts] = useState(data.products || []);
+  const defaultProducts = [
+    // デモ用のデフォルト商品データ
+    {
+      name: 'Canon EOS R5',
+      category: 'camera_body',
+      brand: 'Canon',
+      model: 'EOS R5',
+      serialNumber: 'DEMO123456',
+      estimatedValue: 380000,
+      description: 'デモ用カメラボディ'
+    }
+  ];
+
+  const [products, setProducts] = useState(data.products || defaultProducts);
+
+  // 初期化時に商品データを親コンポーネントに送信
+  useEffect(() => {
+    if (!data.products || data.products.length === 0) {
+      onUpdate({ products: defaultProducts });
+    }
+  }, []);
 
   const addProduct = () => {
     const newProduct = {

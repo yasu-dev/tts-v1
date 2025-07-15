@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import NexusButton from '@/app/components/ui/NexusButton';
 import NexusCard from '@/app/components/ui/NexusCard';
 import NexusCheckbox from '@/app/components/ui/NexusCheckbox';
@@ -24,8 +24,27 @@ export default function ConfirmationStep({
   loading
 }: ConfirmationStepProps) {
   const { showToast } = useToast();
+  const [user, setUser] = useState<any>(null);
   const [agreedToTerms, setAgreedToTerms] = useState(data.confirmation?.agreedToTerms || false);
   const [generateBarcodes, setGenerateBarcodes] = useState(data.confirmation?.generateBarcodes ?? true);
+
+  // ログイン中のユーザー情報を取得
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const response = await fetch('/api/auth/session');
+        const result = await response.json();
+        
+        if (result.success && result.user) {
+          setUser(result.user);
+        }
+      } catch (error) {
+        console.error('ユーザー情報の取得に失敗しました:', error);
+      }
+    };
+
+    fetchUserInfo();
+  }, []);
 
   const handleTermsChange = (checked: boolean) => {
     setAgreedToTerms(checked);
@@ -76,20 +95,26 @@ export default function ConfirmationStep({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div>
             <span className="font-medium text-nexus-text-secondary">セラー名:</span>
-            <span className="ml-2 text-nexus-text-primary">{data.basicInfo?.sellerName || '未入力'}</span>
+            <span className="ml-2 text-nexus-text-primary">{user?.fullName || user?.username || '未取得'}</span>
           </div>
           <div>
             <span className="font-medium text-nexus-text-secondary">連絡先メール:</span>
-            <span className="ml-2 text-nexus-text-primary">{data.basicInfo?.contactEmail || '未入力'}</span>
+            <span className="ml-2 text-nexus-text-primary">{user?.email || '未取得'}</span>
+          </div>
+          <div className="md:col-span-2">
+            <span className="font-medium text-nexus-text-secondary">配送先倉庫:</span>
+            <span className="ml-2 text-nexus-text-primary">{data.basicInfo?.warehouseName || '未選択'}</span>
           </div>
           <div className="md:col-span-2">
             <span className="font-medium text-nexus-text-secondary">納品先住所:</span>
             <span className="ml-2 text-nexus-text-primary">{data.basicInfo?.deliveryAddress || '未入力'}</span>
           </div>
-          <div>
-            <span className="font-medium text-nexus-text-secondary">電話番号:</span>
-            <span className="ml-2 text-nexus-text-primary">{data.basicInfo?.phoneNumber || '未入力'}</span>
-          </div>
+          {user?.phoneNumber && (
+            <div>
+              <span className="font-medium text-nexus-text-secondary">電話番号:</span>
+              <span className="ml-2 text-nexus-text-primary">{user.phoneNumber}</span>
+            </div>
+          )}
           {data.basicInfo?.notes && (
             <div className="md:col-span-2">
               <span className="font-medium text-nexus-text-secondary">備考:</span>

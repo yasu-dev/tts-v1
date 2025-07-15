@@ -6,6 +6,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email, password } = body;
 
+    console.log('Login attempt:', { email, password: '***' });
+
     if (!email || !password) {
       return NextResponse.json(
         { error: 'メールアドレスとパスワードは必須です' },
@@ -14,6 +16,8 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await AuthService.login(email, password);
+
+    console.log('Login result:', result ? 'SUCCESS' : 'FAILED');
 
     if (!result) {
       return NextResponse.json(

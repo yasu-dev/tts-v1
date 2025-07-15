@@ -25,6 +25,9 @@ export interface SessionUser {
   email: string;
   username: string;
   role: string;
+  fullName?: string;
+  phoneNumber?: string;
+  address?: string;
 }
 
 export interface JWTPayload {
@@ -55,16 +58,24 @@ export class AuthService {
 
   static async login(email: string, password: string): Promise<{ user: SessionUser; token: string } | null> {
     try {
+      console.log('AuthService.login called with:', { email, password: '***' });
+      
       const user = await prisma.user.findUnique({
         where: { email },
       });
 
+      console.log('User found:', user ? 'YES' : 'NO');
+
       if (!user || !user.password) {
+        console.log('User not found or no password');
         return null;
       }
 
       const isValid = await this.verifyPassword(password, user.password);
+      console.log('Password valid:', isValid);
+      
       if (!isValid) {
+        console.log('Password verification failed');
         return null;
       }
 
@@ -96,6 +107,9 @@ export class AuthService {
         email: user.email,
         username: user.username,
         role: user.role,
+        fullName: user.fullName || undefined,
+        phoneNumber: user.phoneNumber || undefined,
+        address: user.address || undefined,
       };
 
       return { user: sessionUser, token };
@@ -138,6 +152,9 @@ export class AuthService {
         email: session.user.email,
         username: session.user.username,
         role: session.user.role,
+        fullName: session.user.fullName || undefined,
+        phoneNumber: session.user.phoneNumber || undefined,
+        address: session.user.address || undefined,
       };
     } catch (error) {
       return null;

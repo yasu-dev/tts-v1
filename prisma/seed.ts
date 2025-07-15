@@ -705,10 +705,116 @@ async function main() {
     // }
   }
 
+  // 納品プランデータを作成
+  console.log('📝 納品プランデータを作成中...');
+  
+  const deliveryStatuses = ['下書き', '作成中', '作成完了', '準備中', '発送済', '到着済', 'キャンセル'];
+  const categories = ['カメラ本体', 'レンズ', '腕時計', 'アクセサリー'];
+  const brands = ['Canon', 'Sony', 'Nikon', 'FUJIFILM', 'Panasonic', 'Olympus', 'Rolex', 'Omega', 'Casio'];
+  const sellerNames = ['田中太郎', '佐藤花子', '鈴木一郎', '高橋美子', '渡辺健太', '山田恵子', '中村雄一', '小林優子'];
+  const deliveryAddresses = [
+    '東京都渋谷区神宮前1-1-1',
+    '大阪府大阪市北区梅田2-2-2',
+    '愛知県名古屋市中村区名駅3-3-3',
+    '福岡県福岡市博多区博多駅前4-4-4',
+    '北海道札幌市中央区大通西5-5-5',
+    '宮城県仙台市青葉区中央6-6-6',
+    '広島県広島市中区基町7-7-7',
+    '神奈川県横浜市西区みなとみらい8-8-8'
+  ];
+
+  for (let i = 0; i < 25; i++) {
+    const statusIndex = i % deliveryStatuses.length;
+    const sellerIndex = i % sellerNames.length;
+    const addressIndex = i % deliveryAddresses.length;
+    
+    const planNumber = `DP-${Date.now()}-${(i + 1).toString().padStart(3, '0')}`;
+    const status = deliveryStatuses[statusIndex];
+    const sellerName = sellerNames[sellerIndex];
+    const deliveryAddress = deliveryAddresses[addressIndex];
+    
+    // 商品数をランダムに設定（1〜8件）
+    const productCount = Math.floor(Math.random() * 8) + 1;
+    let totalValue = 0;
+    
+    const deliveryPlan = await prisma.deliveryPlan.create({
+      data: {
+        planNumber,
+        sellerId: seller.id,
+        sellerName,
+        status,
+        deliveryAddress,
+        contactEmail: `${sellerName.toLowerCase()}@example.com`,
+        phoneNumber: `0${Math.floor(Math.random() * 9) + 1}0-${Math.floor(Math.random() * 9000) + 1000}-${Math.floor(Math.random() * 9000) + 1000}`,
+        notes: status === 'キャンセル' ? 'セラーからのキャンセル要求により中止' : 
+               status === '発送済' ? '追跡番号: JP12345678901234567' :
+               status === '到着済' ? '正常に到着確認済み' : '通常納品',
+        totalItems: productCount,
+        totalValue: 0, // 後で更新
+        createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000) // 過去30日以内のランダム日付
+      }
+    });
+
+    // 商品データを作成
+    for (let j = 0; j < productCount; j++) {
+      const category = categories[Math.floor(Math.random() * categories.length)];
+      const brand = brands[Math.floor(Math.random() * brands.length)];
+      const estimatedValue = Math.floor(Math.random() * 500000) + 50000; // 50,000〜550,000円
+      
+      let productName, model, serialNumber;
+      
+      if (category === 'カメラ本体') {
+        const models = ['α7R V', 'EOS R5', 'Z9', 'X-T5', 'S5 II', 'OM-D E-M1X'];
+        model = models[Math.floor(Math.random() * models.length)];
+        productName = `${brand} ${model}`;
+        serialNumber = `${brand.toUpperCase()}${model.replace(/[^A-Z0-9]/g, '')}${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
+      } else if (category === 'レンズ') {
+        const lensTypes = ['24-70mm F2.8', '70-200mm F4', '85mm F1.4', '35mm F1.8', '50mm F1.2'];
+        model = lensTypes[Math.floor(Math.random() * lensTypes.length)];
+        productName = `${brand} ${model}`;
+        serialNumber = `${brand.toUpperCase()}L${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
+      } else if (category === '腕時計') {
+        const watchModels = ['Submariner', 'Daytona', 'Speedmaster', 'Seamaster', 'G-SHOCK'];
+        model = watchModels[Math.floor(Math.random() * watchModels.length)];
+        productName = `${brand} ${model}`;
+        serialNumber = `${brand.toUpperCase()}W${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
+      } else {
+        const accessories = ['ストラップ', 'フィルター', 'バッテリー', 'ケース', 'アダプター'];
+        model = accessories[Math.floor(Math.random() * accessories.length)];
+        productName = `${brand} ${model}`;
+        serialNumber = `${brand.toUpperCase()}A${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
+      }
+
+      await prisma.deliveryPlanProduct.create({
+        data: {
+          deliveryPlanId: deliveryPlan.id,
+          name: productName,
+          category,
+          brand,
+          model,
+          serialNumber,
+          estimatedValue,
+          description: `${category}の${brand}製品。推定価格: ¥${estimatedValue.toLocaleString()}`
+        }
+      });
+
+      totalValue += estimatedValue;
+    }
+
+    // 合計金額を更新
+    await prisma.deliveryPlan.update({
+      where: { id: deliveryPlan.id },
+      data: { totalValue }
+    });
+
+    console.log(`✅ 納品プラン ${i + 1} を作成しました: ${planNumber} (${status}, ${productCount}件, ¥${totalValue.toLocaleString()})`);
+  }
+
   console.log('📦 商品データ: 20件のカメラを作成しました');
   console.log('📍 ロケーションデータ: 7件のロケーションを作成しました');
   console.log('🛒 注文データ: 8件の注文を作成しました（様々なステータス）');
   console.log('📋 アクティビティデータ: 10件のアクティビティを作成しました');
+  console.log('📝 納品プランデータ: 25件の納品プランを作成しました（全ステータス含む）');
   console.log('🎯 ピッキングタスクデータ: APIで動的生成されます（50件以上）');
 }
 

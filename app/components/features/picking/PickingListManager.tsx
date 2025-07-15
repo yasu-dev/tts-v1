@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
+import Pagination from '@/app/components/ui/Pagination';
 import BaseModal from '@/app/components/ui/BaseModal';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
@@ -40,6 +41,11 @@ export default function PickingListManager() {
   const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false);
   const [listToStart, setListToStart] = useState<PickingList | null>(null);
   const [listToComplete, setListToComplete] = useState<PickingList | null>(null);
+
+  // ページング状態
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -49,7 +55,7 @@ export default function PickingListManager() {
   const fetchPickingLists = async () => {
     setLoading(true);
     try {
-      // モックデータ
+      // モックデータを拡張
       const mockLists: PickingList[] = [
         {
           id: '1',
@@ -133,6 +139,188 @@ export default function PickingListManager() {
             },
           ],
         },
+        {
+          id: '4',
+          orderId: 'ORD-2024-004',
+          customerName: '高橋美咲',
+          shippingMethod: 'ヤマト運輸',
+          priority: 'high',
+          status: 'pending',
+          items: [
+            {
+              id: '4-1',
+              productId: 'TWD-LEN-008',
+              productName: 'Nikon NIKKOR Z 50mm f/1.2',
+              sku: 'TWD-LEN-008',
+              location: 'A-22',
+              quantity: 1,
+              pickedQuantity: 0,
+              status: 'pending',
+            },
+          ],
+        },
+        {
+          id: '5',
+          orderId: 'ORD-2024-005',
+          customerName: '山田一郎',
+          shippingMethod: '佐川急便',
+          priority: 'normal',
+          status: 'in_progress',
+          assignedTo: 'スタッフB',
+          startedAt: '2024-06-28T15:30:00',
+          items: [
+            {
+              id: '5-1',
+              productId: 'TWD-WAT-015',
+              productName: 'Omega Speedmaster',
+              sku: 'TWD-WAT-015',
+              location: 'V-07',
+              quantity: 1,
+              pickedQuantity: 0,
+              status: 'pending',
+            },
+          ],
+        },
+        {
+          id: '6',
+          orderId: 'ORD-2024-006',
+          customerName: '伊藤健太',
+          shippingMethod: '日本郵便',
+          priority: 'urgent',
+          status: 'pending',
+          items: [
+            {
+              id: '6-1',
+              productId: 'TWD-CAM-018',
+              productName: 'Fujifilm X-T5',
+              sku: 'TWD-CAM-018',
+              location: 'H2-12',
+              quantity: 1,
+              pickedQuantity: 0,
+              status: 'pending',
+            },
+          ],
+        },
+        {
+          id: '7',
+          orderId: 'ORD-2024-007',
+          customerName: '渡辺真理',
+          shippingMethod: 'ヤマト運輸',
+          priority: 'normal',
+          status: 'pending',
+          items: [
+            {
+              id: '7-1',
+              productId: 'TWD-LEN-021',
+              productName: 'Sony FE 85mm f/1.4 GM',
+              sku: 'TWD-LEN-021',
+              location: 'A-35',
+              quantity: 1,
+              pickedQuantity: 0,
+              status: 'pending',
+            },
+          ],
+        },
+        {
+          id: '8',
+          orderId: 'ORD-2024-008',
+          customerName: '中村由美',
+          shippingMethod: '佐川急便',
+          priority: 'high',
+          status: 'pending',
+          items: [
+            {
+              id: '8-1',
+              productId: 'TWD-WAT-025',
+              productName: 'Seiko Prospex',
+              sku: 'TWD-WAT-025',
+              location: 'V-12',
+              quantity: 1,
+              pickedQuantity: 0,
+              status: 'pending',
+            },
+          ],
+        },
+        {
+          id: '9',
+          orderId: 'ORD-2024-009',
+          customerName: '小林正人',
+          shippingMethod: '日本郵便',
+          priority: 'normal',
+          status: 'pending',
+          items: [
+            {
+              id: '9-1',
+              productId: 'TWD-CAM-030',
+              productName: 'Leica Q2',
+              sku: 'TWD-CAM-030',
+              location: 'H2-18',
+              quantity: 1,
+              pickedQuantity: 0,
+              status: 'pending',
+            },
+          ],
+        },
+        {
+          id: '10',
+          orderId: 'ORD-2024-010',
+          customerName: '松本彩香',
+          shippingMethod: 'ヤマト運輸',
+          priority: 'urgent',
+          status: 'pending',
+          items: [
+            {
+              id: '10-1',
+              productId: 'TWD-LEN-033',
+              productName: 'Canon EF 70-200mm f/2.8L',
+              sku: 'TWD-LEN-033',
+              location: 'A-45',
+              quantity: 1,
+              pickedQuantity: 0,
+              status: 'pending',
+            },
+          ],
+        },
+        {
+          id: '11',
+          orderId: 'ORD-2024-011',
+          customerName: '岡田雄介',
+          shippingMethod: '佐川急便',
+          priority: 'high',
+          status: 'pending',
+          items: [
+            {
+              id: '11-1',
+              productId: 'TWD-WAT-038',
+              productName: 'Casio G-Shock',
+              sku: 'TWD-WAT-038',
+              location: 'V-20',
+              quantity: 1,
+              pickedQuantity: 0,
+              status: 'pending',
+            },
+          ],
+        },
+        {
+          id: '12',
+          orderId: 'ORD-2024-012',
+          customerName: '森田千佳',
+          shippingMethod: '日本郵便',
+          priority: 'normal',
+          status: 'pending',
+          items: [
+            {
+              id: '12-1',
+              productId: 'TWD-CAM-042',
+              productName: 'Panasonic GH6',
+              sku: 'TWD-CAM-042',
+              location: 'H2-25',
+              quantity: 1,
+              pickedQuantity: 0,
+              status: 'pending',
+            },
+          ],
+        },
       ];
       setPickingLists(mockLists);
     } catch (error) {
@@ -141,6 +329,29 @@ export default function PickingListManager() {
       setLoading(false);
     }
   };
+
+  // フィルタリング
+  const filteredLists = useMemo(() => {
+    return pickingLists.filter(list => {
+      const matchesPriority = filterPriority === 'all' || list.priority === filterPriority;
+      const matchesSearch = 
+        list.orderId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        list.customerName.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesPriority && matchesSearch && list.status !== 'completed';
+    });
+  }, [pickingLists, filterPriority, searchQuery]);
+
+  // ページネーション
+  const paginatedLists = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredLists.slice(startIndex, endIndex);
+  }, [filteredLists, currentPage, itemsPerPage]);
+
+  // フィルター変更時はページを1に戻す
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterPriority, searchQuery]);
 
   const handleStartPicking = (list: PickingList) => {
     setListToStart(list);
@@ -248,14 +459,6 @@ export default function PickingListManager() {
     }
   };
 
-  const filteredLists = pickingLists.filter(list => {
-    const matchesPriority = filterPriority === 'all' || list.priority === filterPriority;
-    const matchesSearch = 
-      list.orderId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      list.customerName.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesPriority && matchesSearch && list.status !== 'completed';
-  });
-
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -291,8 +494,14 @@ export default function PickingListManager() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* List Cards */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-nexus-text-primary">ピッキングリスト</h3>
-          {filteredLists.map((list) => (
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-nexus-text-primary">ピッキングリスト</h3>
+            <p className="text-sm text-nexus-text-secondary">
+              {filteredLists.length}件中 {Math.min(itemsPerPage, filteredLists.length - (currentPage - 1) * itemsPerPage)}件を表示
+            </p>
+          </div>
+          
+          {paginatedLists.map((list) => (
             <div
               key={list.id}
               className={`p-4 cursor-pointer transition-all border-2 rounded-lg bg-nexus-surface ${
@@ -343,6 +552,31 @@ export default function PickingListManager() {
               </div>
             </div>
           ))}
+          
+          {paginatedLists.length === 0 && (
+            <div className="text-center py-12 text-nexus-text-secondary">
+              {filteredLists.length === 0 ? 
+                (searchQuery || filterPriority !== 'all'
+                  ? '検索条件に一致するピッキングリストがありません' 
+                  : 'ピッキングリストがありません'
+                ) : '表示するデータがありません'
+              }
+            </div>
+          )}
+
+          {/* ページネーション */}
+          {filteredLists.length > 0 && (
+            <div className="mt-6 pt-4 border-t border-nexus-border">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={Math.ceil(filteredLists.length / itemsPerPage)}
+                totalItems={filteredLists.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+                onItemsPerPageChange={setItemsPerPage}
+              />
+            </div>
+          )}
         </div>
 
         {/* Selected List Detail */}

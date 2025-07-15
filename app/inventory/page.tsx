@@ -2,19 +2,26 @@
 
 import DashboardLayout from '../components/layouts/DashboardLayout';
 import UnifiedPageHeader from '../components/ui/UnifiedPageHeader';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   ArchiveBoxIcon,
   PlusIcon,
   ArrowUpTrayIcon,
   ArrowDownTrayIcon,
   EyeIcon,
+  FunnelIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
 } from '@heroicons/react/24/outline';
 import ProductRegistrationModal from '../components/modals/ProductRegistrationModal';
-import { ContentCard, NexusInput, NexusButton, NexusLoadingSpinner } from '@/app/components/ui';
+import { ContentCard, NexusInput, NexusButton, NexusLoadingSpinner, NexusSelect } from '@/app/components/ui';
+import Pagination from '@/app/components/ui/Pagination';
 import BaseModal from '../components/ui/BaseModal';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import { useRouter } from 'next/navigation';
+
+type SortField = 'name' | 'status' | 'value' | 'sku';
+type SortDirection = 'asc' | 'desc';
 
 export default function InventoryPage() {
   const router = useRouter();
@@ -39,6 +46,15 @@ export default function InventoryPage() {
   const [productToDelete, setProductToDelete] = useState<any>(null);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  // フィルター・ソート・ページング状態
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortField, setSortField] = useState<SortField>('name');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   // APIから実際のデータを取得
   useEffect(() => {
@@ -92,11 +108,118 @@ export default function InventoryPage() {
     fetchInventoryData();
   }, []);
 
+  // フィルタリング
+  const filteredInventory = useMemo(() => {
+    let filtered = inventory;
+
+    // ステータスフィルター
+    if (selectedStatus !== 'all') {
+      filtered = filtered.filter(item => item.status === selectedStatus);
+    }
+
+    // カテゴリーフィルター
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(item => item.category === selectedCategory);
+    }
+
+    // 検索フィルター
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(item => 
+        item.name.toLowerCase().includes(query) ||
+        item.sku.toLowerCase().includes(query) ||
+        item.category.toLowerCase().includes(query)
+      );
+    }
+
+    return filtered;
+  }, [inventory, selectedStatus, selectedCategory, searchQuery]);
+
+  // ソート
+  const sortedInventory = useMemo(() => {
+    const sorted = [...filteredInventory].sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+
+      switch (sortField) {
+        case 'name':
+          aValue = a.name;
+          bValue = b.name;
+          break;
+        case 'sku':
+          aValue = a.sku;
+          bValue = b.sku;
+          break;
+        case 'status':
+          aValue = a.status;
+          bValue = b.status;
+          break;
+        case 'value':
+          aValue = a.value;
+          bValue = b.value;
+          break;
+        default:
+          aValue = a.name;
+          bValue = b.name;
+      }
+
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return sorted;
+  }, [filteredInventory, sortField, sortDirection]);
+
+  // ページネーション
+  const paginatedInventory = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return sortedInventory.slice(startIndex, endIndex);
+  }, [sortedInventory, currentPage, itemsPerPage]);
+
+  // フィルター変更時はページを1に戻す
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedStatus, selectedCategory, searchQuery]);
+
+  // カテゴリー一覧を取得
+  const categoryOptions = useMemo(() => {
+    const categories = Array.from(new Set(inventory.map(item => item.category)));
+    return [
+      { value: 'all', label: 'すべてのカテゴリー' },
+      ...categories.map(category => ({ value: category, label: category }))
+    ];
+  }, [inventory]);
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const getSortIcon = (field: SortField) => {
+    if (sortField !== field) return null;
+    return sortDirection === 'asc' ? (
+      <ChevronUpIcon className="w-4 h-4" />
+    ) : (
+      <ChevronDownIcon className="w-4 h-4" />
+    );
+  };
+
   const handleExportCsv = () => {
     // 在庫データをCSV形式で生成
     const csvData = [
       ['商品名', 'SKU', 'カテゴリ', 'ステータス', '保管場所', '価値', '認証'],
-      ...inventory.map(item => [
+      ...filteredInventory.map(item => [
         item.name,
         item.sku,
         item.category,
@@ -347,6 +470,43 @@ export default function InventoryPage() {
           actions={headerActions}
         />
 
+        {/* フィルター */}
+        <div className="bg-white rounded-xl border border-nexus-border p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <FunnelIcon className="w-5 h-5 text-nexus-text-secondary" />
+            <h3 className="text-lg font-medium text-nexus-text-primary">フィルター・検索</h3>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <NexusSelect
+              label="ステータス"
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              options={[
+                { value: 'all', label: 'すべてのステータス' },
+                { value: '出品中', label: '出品中' },
+                { value: '検品中', label: '検品中' },
+                { value: '保管中', label: '保管中' }
+              ]}
+            />
+
+            <NexusSelect
+              label="カテゴリー"
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              options={categoryOptions}
+            />
+
+            <NexusInput
+              type="text"
+              label="検索"
+              placeholder="商品名・SKU・カテゴリーで検索"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
+
         {/* Product Registration Modal */}
         <ProductRegistrationModal
           isOpen={isNewItemModalOpen}
@@ -475,10 +635,10 @@ export default function InventoryPage() {
               </span>
             </div>
             <div className="text-3xl font-bold text-nexus-text-primary mb-2">
-              {inventoryStats.totalItems}
+              {filteredInventory.length}
                 </div>
             <div className="text-nexus-text-secondary font-medium">
-              総在庫数
+              {filteredInventory.length === inventory.length ? '総在庫数' : `絞り込み結果 (全${inventory.length}件)`}
                 </div>
                 </div>
 
@@ -494,7 +654,7 @@ export default function InventoryPage() {
               </span>
             </div>
             <div className="text-3xl font-bold text-nexus-text-primary mb-2">
-              {inventoryStats.listed}
+              {filteredInventory.filter(item => item.status === '出品中').length}
             </div>
             <div className="text-nexus-text-secondary font-medium">
               出品中
@@ -514,7 +674,7 @@ export default function InventoryPage() {
               </span>
                 </div>
             <div className="text-3xl font-bold text-nexus-text-primary mb-2">
-                  {inventoryStats.inspection}
+                  {filteredInventory.filter(item => item.status === '検品中').length}
                 </div>
             <div className="text-nexus-text-secondary font-medium">
                   検品中
@@ -533,7 +693,7 @@ export default function InventoryPage() {
               </span>
             </div>
             <div className="text-3xl font-bold text-nexus-text-primary mb-2">
-              ¥{(inventoryStats.totalValue / 10000).toLocaleString()}万
+              ¥{(filteredInventory.reduce((sum, item) => sum + item.value, 0) / 10000).toLocaleString()}万
                   </div>
             <div className="text-nexus-text-secondary font-medium">
                   総評価額
@@ -543,26 +703,69 @@ export default function InventoryPage() {
 
         {/* Inventory Table - シンプル化 */}
         <div className="bg-white rounded-xl border border-nexus-border p-6">
-          <div className="mb-6">
-            <h3 className="text-lg font-bold text-nexus-text-primary">在庫リスト</h3>
-            <p className="text-nexus-text-secondary mt-1 text-sm">現在の在庫状況</p>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-lg font-bold text-nexus-text-primary">在庫リスト</h3>
+              <p className="text-nexus-text-secondary mt-1 text-sm">
+                {filteredInventory.length}件中 {Math.min(itemsPerPage, filteredInventory.length - (currentPage - 1) * itemsPerPage)}件を表示
+              </p>
             </div>
+          </div>
             
           <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-nexus-border">
-                    <th className="text-left p-4 font-medium text-nexus-text-secondary">商品名</th>
-                    <th className="text-center p-4 font-medium text-nexus-text-secondary">ステータス</th>
-                    <th className="text-right p-4 font-medium text-nexus-text-secondary">評価額</th>
+                    <th 
+                      className="text-left p-4 font-medium text-nexus-text-secondary cursor-pointer hover:bg-nexus-bg-tertiary"
+                      onClick={() => handleSort('name')}
+                    >
+                      <div className="flex items-center gap-1">
+                        商品名
+                        {getSortIcon('name')}
+                      </div>
+                    </th>
+                    <th 
+                      className="text-left p-4 font-medium text-nexus-text-secondary cursor-pointer hover:bg-nexus-bg-tertiary"
+                      onClick={() => handleSort('sku')}
+                    >
+                      <div className="flex items-center gap-1">
+                        SKU
+                        {getSortIcon('sku')}
+                      </div>
+                    </th>
+                    <th 
+                      className="text-center p-4 font-medium text-nexus-text-secondary cursor-pointer hover:bg-nexus-bg-tertiary"
+                      onClick={() => handleSort('status')}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        ステータス
+                        {getSortIcon('status')}
+                      </div>
+                    </th>
+                    <th 
+                      className="text-right p-4 font-medium text-nexus-text-secondary cursor-pointer hover:bg-nexus-bg-tertiary"
+                      onClick={() => handleSort('value')}
+                    >
+                      <div className="flex items-center justify-end gap-1">
+                        評価額
+                        {getSortIcon('value')}
+                      </div>
+                    </th>
                     <th className="text-center p-4 font-medium text-nexus-text-secondary">操作</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {inventory.map((item: any) => (
+                  {paginatedInventory.map((item: any) => (
                     <tr key={item.id} className="border-b border-nexus-border hover:bg-nexus-bg-tertiary">
                       <td className="p-4">
-                      <span className="font-medium text-nexus-text-primary">{item.name}</span>
+                        <div>
+                          <span className="font-medium text-nexus-text-primary">{item.name}</span>
+                          <p className="text-sm text-nexus-text-secondary">{item.category}</p>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <span className="font-mono text-sm text-nexus-text-primary">{item.sku}</span>
                       </td>
                       <td className="p-4">
                       <div className="flex justify-center">
@@ -603,16 +806,35 @@ export default function InventoryPage() {
                       </td>
                     </tr>
                   ))}
-                  {inventory.length === 0 && (
+                  {paginatedInventory.length === 0 && (
                     <tr>
-                    <td colSpan={4} className="p-8 text-center text-nexus-text-secondary">
-                        在庫データがありません
+                    <td colSpan={5} className="p-8 text-center text-nexus-text-secondary">
+                        {filteredInventory.length === 0 ? 
+                          (searchQuery || selectedStatus !== 'all' || selectedCategory !== 'all'
+                            ? '検索条件に一致する在庫がありません' 
+                            : '在庫データがありません'
+                          ) : '表示するデータがありません'
+                        }
                       </td>
                     </tr>
                   )}
                 </tbody>
               </table>
           </div>
+
+          {/* ページネーション */}
+          {filteredInventory.length > 0 && (
+            <div className="mt-6 pt-4 border-t border-nexus-border">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={Math.ceil(filteredInventory.length / itemsPerPage)}
+                totalItems={filteredInventory.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+                onItemsPerPageChange={setItemsPerPage}
+              />
+            </div>
+          )}
         </div>
 
         {/* Delete Confirmation Modal */}

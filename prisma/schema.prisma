@@ -17,6 +17,12 @@ model User {
   username    String   @unique
   password    String
   role        String   @default("seller") // seller, staff, admin
+  
+  // Profile information
+  fullName    String?
+  phoneNumber String?
+  address     String?
+  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -28,6 +34,7 @@ model User {
   videoRecords VideoRecord[] @relation("VideoStaff")
   twoFactorAuth TwoFactorAuth[]
   externalServices ExternalService[]
+  deliveryPlans DeliveryPlan[]
 
   @@map("users")
 }
@@ -84,9 +91,16 @@ model Location {
   id          String @id @default(cuid())
   code        String @unique // A区画-01, V区画-12, etc.
   name        String
-  zone        String // A区画, V区画, H区画, etc.
+  zone        String // A区画, V区画, H区画, D区画(配送先), etc.
   capacity    Int?
   isActive    Boolean @default(true)
+  
+  // 配送先倉庫用フィールド
+  address     String? // 配送先住所（zone='D'の場合のみ使用）
+  phone       String? // 配送先電話番号
+  email       String? // 配送先メールアドレス
+  notes       String? // 配送先備考
+  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -98,6 +112,8 @@ model Location {
 
   @@map("locations")
 }
+
+
 
 model InventoryMovement {
   id          String   @id @default(cuid())
@@ -282,4 +298,45 @@ model PickingItem {
   pickingTask    PickingTask @relation(fields: [pickingTaskId], references: [id], onDelete: Cascade)
 
   @@map("picking_items")
+}
+
+model DeliveryPlan {
+  id              String   @id @default(cuid())
+  planNumber      String   @unique
+  sellerId        String
+  sellerName      String
+  status          String   // '下書き', '作成中', '作成完了', '準備中', '発送済', '到着済', 'キャンセル'
+  deliveryAddress String
+  contactEmail    String
+  phoneNumber     String?
+  notes           String?
+  totalItems      Int      @default(0)
+  totalValue      Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  seller          User @relation(fields: [sellerId], references: [id])
+  products        DeliveryPlanProduct[]
+
+  @@map("delivery_plans")
+}
+
+model DeliveryPlanProduct {
+  id               String   @id @default(cuid())
+  deliveryPlanId   String
+  name             String
+  category         String   // 'カメラ本体', 'レンズ', '腕時計', 'アクセサリー'
+  brand            String
+  model            String
+  serialNumber     String?
+  estimatedValue   Int
+  description      String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  deliveryPlan     DeliveryPlan @relation(fields: [deliveryPlanId], references: [id], onDelete: Cascade)
+
+  @@map("delivery_plan_products")
 }

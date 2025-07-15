@@ -7,6 +7,7 @@ import BasicInfoStep from './BasicInfoStep';
 import ProductRegistrationStep from './ProductRegistrationStep';
 import ConfirmationStep from './ConfirmationStep';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
+import { useAlert } from '@/app/components/ui/AlertProvider';
 
 interface WizardStep {
   id: number;
@@ -16,10 +17,9 @@ interface WizardStep {
 
 interface DeliveryPlanData {
   basicInfo: {
-    sellerName: string;
+    warehouseId: string;
+    warehouseName: string;
     deliveryAddress: string;
-    contactEmail: string;
-    phoneNumber: string;
     notes?: string;
   };
   products: Array<{
@@ -45,15 +45,15 @@ const steps: WizardStep[] = [
 
 export default function DeliveryPlanWizard() {
   const { showToast } = useToast();
+  const { showAlert } = useAlert();
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [planData, setPlanData] = useState<DeliveryPlanData>({
     basicInfo: {
-      sellerName: '',
+      warehouseId: '',
+      warehouseName: '',
       deliveryAddress: '',
-      contactEmail: '',
-      phoneNumber: '',
     },
     products: [],
     confirmation: {
@@ -79,33 +79,90 @@ export default function DeliveryPlanWizard() {
       setLoading(true);
       setError(null);
 
+      console.log('[DEBUG] 送信データ:', planData);
+
       const response = await fetch('/api/delivery-plan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(planData),
       });
 
+      const result = await response.json();
+      console.log('[DEBUG] API応答:', result);
+      
       if (!response.ok) {
-        throw new Error('納品プランの作成に失敗しました');
+        // 具体的なエラーメッセージを表示
+        let errorMessage = '納品プランの作成に失敗しました。';
+        
+        if (result.error) {
+          errorMessage = result.error;
+        } else if (response.status === 400) {
+          errorMessage = '入力データに問題があります。以下をご確認ください：\n' +
+                       '• 配送先倉庫が選択されているか\n' +
+                       '• 商品が登録されているか\n' +
+                       '• 必要な情報が入力されているか';
+        } else if (response.status === 401) {
+          errorMessage = 'ログインが必要です。再度ログインしてください。';
+        } else if (response.status === 500) {
+          errorMessage = 'サーバーエラーが発生しました。しばらくしてから再度お試しください。';
+        }
+        
+        showAlert({
+          type: 'error',
+          title: '納品プラン作成エラー',
+          message: errorMessage,
+          actions: [
+            {
+              label: '確認',
+              action: () => {},
+              variant: 'primary'
+            }
+          ]
+        });
+        return;
       }
 
-      const result = await response.json();
-      
+      // 成功の場合
       // PDFダウンロード処理
       if (result.pdfUrl) {
         window.open(result.pdfUrl, '_blank');
       }
       
       // 成功メッセージ表示後、リダイレクト
-      showToast({
+      showAlert({
         type: 'success',
         title: '納品プラン作成完了',
-        message: 'デモモードのため、実際の保存は行われません。プランは一時的に表示されます。',
-        duration: 4000
+        message: `納品プラン「${result.planId}」が正常に作成されました。`,
+        actions: [
+          {
+            label: '在庫管理画面へ',
+            action: () => {
+              window.location.href = '/inventory';
+            },
+            variant: 'primary'
+          }
+        ]
       });
-      window.location.href = '/inventory';
+      
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'エラーが発生しました');
+      // ネットワークエラーなどの場合はアラートボックスで対処を促す
+      showAlert({
+        type: 'error',
+        title: '接続エラー',
+        message: 'サーバーとの通信に失敗しました。しばらく時間をおいて再度お試しください。',
+        actions: [
+          {
+            label: '再試行',
+            action: () => submitPlan(),
+            variant: 'primary'
+          },
+          {
+            label: '閉じる',
+            action: () => {},
+            variant: 'secondary'
+          }
+        ]
+      });
     } finally {
       setLoading(false);
     }

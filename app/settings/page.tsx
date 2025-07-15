@@ -8,6 +8,7 @@ import { useToast } from '@/app/components/features/notifications/ToastProvider'
 import { NexusSelect, NexusButton, NexusCard, NexusLoadingSpinner } from '@/app/components/ui';
 import ContentCard from '../components/ui/ContentCard';
 import BaseModal from '@/app/components/ui/BaseModal';
+import WarehouseManagement from '@/app/components/features/WarehouseManagement';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 interface AppSettings {
@@ -39,6 +40,7 @@ export default function SettingsPage() {
   const [isDeleteConfirmModalOpen, setIsDeleteConfirmModalOpen] = useState(false);
   const [isSecondConfirmModalOpen, setIsSecondConfirmModalOpen] = useState(false);
   const [isExportConfirmModalOpen, setIsExportConfirmModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'settings' | 'warehouse' | 'account'>('settings');
 
   useEffect(() => {
     // 実際の実装はAPIから取得
@@ -246,14 +248,55 @@ export default function SettingsPage() {
           iconType="settings"
         />
 
-        {/* Delivery & Shipping Settings */}
-        <div className="intelligence-card global">
-          <div className="p-8">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-display font-bold text-nexus-text-primary">
-                配送・発送設定
-              </h2>
-            </div>
+        {/* タブナビゲーション */}
+        <div className="border-b border-nexus-border">
+          <nav className="flex space-x-8" aria-label="設定タブ">
+            <button
+              onClick={() => setActiveTab('settings')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'settings'
+                  ? 'border-primary-blue text-primary-blue'
+                  : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-nexus-border'
+              }`}
+            >
+              一般設定
+            </button>
+            {userType === 'staff' && (
+              <button
+                onClick={() => setActiveTab('warehouse')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'warehouse'
+                    ? 'border-primary-blue text-primary-blue'
+                    : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-nexus-border'
+                }`}
+              >
+                倉庫管理
+              </button>
+            )}
+            <button
+              onClick={() => setActiveTab('account')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'account'
+                  ? 'border-primary-blue text-primary-blue'
+                  : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-nexus-border'
+              }`}
+            >
+              アカウント管理
+            </button>
+          </nav>
+        </div>
+
+        {/* 一般設定タブ */}
+        {activeTab === 'settings' && (
+          <>
+            {/* Delivery & Shipping Settings */}
+            <div className="intelligence-card global">
+              <div className="p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-display font-bold text-nexus-text-primary">
+                    配送・発送設定
+                  </h2>
+                </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -574,6 +617,18 @@ export default function SettingsPage() {
             </div>
           </div>
         </BaseModal>
+
+        {/* 倉庫管理タブ */}
+        {activeTab === 'warehouse' && userType === 'staff' && (
+          <div className="intelligence-card global">
+            <div className="p-8">
+              <WarehouseManagement />
+            </div>
+          </div>
+        )}
+
+        </>
+        )}
       </div>
     </DashboardLayout>
   );
