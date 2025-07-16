@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Clock, Video, Play, Pause, Calendar, MapPin, FileText } from 'lucide-react';
+import { Clock, Video, Play, Pause, Calendar, MapPin, FileText, Trash2 } from 'lucide-react';
 import { NexusButton, NexusCard, NexusInput, NexusTextarea } from '@/app/components/ui';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
@@ -95,6 +95,25 @@ export default function TimestampVideoRecorder({
     return `security-camera/${year}/${month}/${day}/${hour}/camera-${type}-${productId}.mp4`;
   };
 
+  // タイムスタンプ削除
+  const deleteTimestamp = (timestampId: string) => {
+    const targetTimestamp = timestamps.find(ts => ts.id === timestampId);
+    if (!targetTimestamp) return;
+
+    const confirmed = window.confirm(
+      `タイムスタンプを削除しますか？\n\n時刻: ${formatTimestamp(new Date(targetTimestamp.timestamp))}\n内容: ${targetTimestamp.description}\n\n※この操作は取り消せません。`
+    );
+
+    if (confirmed) {
+      setTimestamps(prev => prev.filter(ts => ts.id !== timestampId));
+      showToast({
+        title: 'タイムスタンプを削除しました',
+        message: '記録済みタイムスタンプを削除しました',
+        type: 'info'
+      });
+    }
+  };
+
   // 動画再生
   const playVideoAtTimestamp = async (timestamp: VideoTimestamp) => {
     try {
@@ -153,25 +172,42 @@ export default function TimestampVideoRecorder({
     }
 
     try {
+      // データの妥当性チェック
+      const validTimestamps = timestamps.filter(ts => 
+        ts.id && ts.timestamp && ts.description && ts.s3VideoPath
+      );
+
+      if (validTimestamps.length === 0) {
+        throw new Error('有効なタイムスタンプが見つかりません');
+      }
+
+      const requestData = {
+        productId: productId || null,
+        orderId: null,
+        type: type || 'other',
+        sessionId: `${type}-${productId}-${Date.now()}`,
+        timestamps: validTimestamps,
+        s3VideoPath: validTimestamps[0].s3VideoPath,
+        notes: `${type === 'inspection' ? '検品' : '梱包'}作業の動画記録`
+      };
+
+      console.log('Sending timestamp data:', requestData);
+
       // タイムスタンプ記録をAPIに保存
       const response = await fetch('/api/videos/timestamps', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          productId,
-          type,
-          sessionId: `${type}-${productId}-${Date.now()}`,
-          timestamps,
-          s3VideoPath: timestamps[0].s3VideoPath,
-          notes: `${type === 'inspection' ? '検品' : '梱包'}作業の動画記録`
-        })
+        body: JSON.stringify(requestData)
       });
 
       if (!response.ok) {
-        throw new Error('タイムスタンプ記録の保存に失敗しました');
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.error || `HTTP ${response.status}: ${response.statusText}`;
+        throw new Error(errorMessage);
       }
 
-      const { record } = await response.json();
+      const result = await response.json();
+      console.log('API response:', result);
       
       setIsRecordingSession(false);
       setSessionStartTime(null);
@@ -181,14 +217,15 @@ export default function TimestampVideoRecorder({
       
       showToast({
         title: '記録セッション完了',
-        message: `${timestamps.length}個のタイムスタンプを記録しました`,
+        message: `${validTimestamps.length}個のタイムスタンプを記録しました`,
         type: 'success'
       });
     } catch (error) {
       console.error('Session end error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'タイムスタンプ記録の保存に失敗しました';
       showToast({
-        title: 'エラー',
-        message: 'タイムスタンプ記録の保存に失敗しました',
+        title: 'セッション終了エラー',
+        message: errorMessage,
         type: 'error'
       });
     }
@@ -353,14 +390,25 @@ export default function TimestampVideoRecorder({
                           {timestamp.description}
                         </p>
                       </div>
-                      <NexusButton
-                        onClick={() => playVideoAtTimestamp(timestamp)}
-                        variant="secondary"
-                        size="sm"
-                        icon={<Play className="w-4 h-4" />}
-                      >
-                        再生
-                      </NexusButton>
+                      <div className="flex items-center gap-2">
+                        <NexusButton
+                          onClick={() => playVideoAtTimestamp(timestamp)}
+                          variant="secondary"
+                          size="sm"
+                          icon={<Play className="w-4 h-4" />}
+                        >
+                          再生
+                        </NexusButton>
+                        <NexusButton
+                          onClick={() => deleteTimestamp(timestamp.id)}
+                          variant="default"
+                          size="sm"
+                          icon={<Trash2 className="w-4 h-4" />}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          削除
+                        </NexusButton>
+                      </div>
                     </div>
                   ))}
                 </div>

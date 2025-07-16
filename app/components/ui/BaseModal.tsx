@@ -73,7 +73,7 @@ export default function BaseModal({
 
   return (
     <div 
-      className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-start justify-center z-[9999] p-2 pt-8"
+      className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-start justify-center z-[10001] p-2 pt-8"
       onClick={handleOverlayClick}
       role="dialog"
       aria-modal="true"
