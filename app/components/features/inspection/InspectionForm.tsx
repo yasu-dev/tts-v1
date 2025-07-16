@@ -270,22 +270,12 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
   const validateInspectionData = (data: InspectionData) => {
     const errors: string[] = [];
 
-    // 必須チェック項目の確認
-    const exteriorChecks = Object.values(data.checklist.exterior);
-    const functionalityChecks = Object.values(data.checklist.functionality);
-    
-    if (exteriorChecks.every(check => check === false)) {
-      errors.push('外観チェック項目を少なくとも1つ確認してください');
-    }
-    
-    if (functionalityChecks.every(check => check === false)) {
-      errors.push('機能チェック項目を少なくとも1つ確認してください');
-    }
-
-    // 写真の確認
+    // 写真の確認（最低1枚必要）
     if (data.photos.length === 0) {
       errors.push('検品写真を少なくとも1枚撮影してください');
     }
+
+    // チェック項目は0個でも可（任意）
 
     return {
       isValid: errors.length === 0,
@@ -409,11 +399,11 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
 
         {currentStep === 2 && (
           <div className="space-y-6">
-            <NexusCard className="p-6">
-              <div className="mb-4">
-                <h3 className="text-lg font-semibold mb-2">検品作業の動画記録</h3>
+            <NexusCard className="p-4">
+              <div className="mb-3">
+                <h3 className="text-base font-semibold mb-1">検品作業のタイムスタンプ記録</h3>
                 <p className="text-sm text-gray-600">
-                  検品作業の様子を動画で記録します。これにより、後から作業内容を確認できます。
+                  作業の開始時刻を記録し、外部録画動画と紐付けます。タイムスタンプは任意で記録してください。
                 </p>
               </div>
             </NexusCard>
@@ -423,11 +413,8 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
               phase="phase2"
               type="inspection"
               onRecordingComplete={(timestamps) => {
-                setVideoId(timestamps.length > 0 ? timestamps[0].id : '');
-                showToast({
-                  title: '動画記録が完了しました',
-                  type: 'success'
-                });
+                // タイムスタンプが記録されるたびに呼ばれる
+                setVideoId(timestamps.length > 0 ? timestamps[0].id : null);
               }}
             />
             
@@ -443,7 +430,6 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
                 onClick={() => setCurrentStep(3)}
                 variant="primary"
                 size="lg"
-                disabled={!videoId}
               >
                 次へ（写真撮影）
               </NexusButton>

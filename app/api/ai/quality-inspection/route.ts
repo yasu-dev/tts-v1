@@ -15,6 +15,7 @@ export async function POST(request: NextRequest) {
     const images = formData.getAll('images') as File[]
     const productId = formData.get('productId') as string
     const category = formData.get('category') as string
+    const enhanceImages = formData.get('enhanceImages') === 'true'
 
     if (!images.length || !productId || !category) {
       return NextResponse.json(
@@ -39,6 +40,12 @@ export async function POST(request: NextRequest) {
     // AI品質判定の実行（実際の実装では外部AIサービスを使用）
     const qualityResults = await analyzeProductQuality(imageData, category)
 
+    // 画像品質向上処理
+    let enhancedImages: string[] = []
+    if (enhanceImages) {
+      enhancedImages = await enhanceImageQuality(imageData)
+    }
+
     // 総合評価の計算
     const overallScore = calculateOverallScore(qualityResults)
     const qualityGrade = getQualityGrade(overallScore)
@@ -53,7 +60,8 @@ export async function POST(request: NextRequest) {
       recommendation,
       details: qualityResults,
       aiConfidence: 0.95, // AI判定の信頼度
-      requiresManualReview: overallScore < 70 || qualityResults.some(r => r.issues.length > 0)
+      requiresManualReview: overallScore < 70 || qualityResults.some(r => r.issues.length > 0),
+      enhancedImages: enhancedImages.length > 0 ? enhancedImages : undefined
     }
 
     return NextResponse.json({
@@ -68,6 +76,28 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
+}
+
+/**
+ * AI画像品質向上処理（モック実装）
+ */
+async function enhanceImageQuality(images: any[]): Promise<string[]> {
+  // 実際の実装では：
+  // 1. AI画像解析で商品領域と背景を分離
+  // 2. 商品部分：明度・コントラスト・色調を統一
+  // 3. 背景部分：白色背景に置換
+  // 4. 商品の傷・汚れ・形状は一切変更しない
+  
+  console.log('AI画像品質向上開始:', images.length, '枚')
+  
+  // モック処理：実際のAI処理をシミュレート
+  await new Promise(resolve => setTimeout(resolve, 2000)) // 2秒の処理時間
+  
+  // Base64画像として返す（実際の実装では処理済み画像）
+  return images.map(image => {
+    // 元画像をそのまま返す（モック）
+    return `data:${image.mimeType};base64,${image.data}`
+  })
 }
 
 /**

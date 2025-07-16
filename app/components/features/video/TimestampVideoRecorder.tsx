@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Clock, Video, Play, Pause, Calendar, MapPin, FileText, Trash2 } from 'lucide-react';
-import { NexusButton, NexusCard, NexusInput, NexusTextarea } from '@/app/components/ui';
+import { useState } from 'react';
+import { Clock, Video, Play, Calendar, Trash2 } from 'lucide-react';
+import { NexusButton, NexusCard, NexusInput } from '@/app/components/ui';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
+import { useAlert } from '@/app/components/ui/AlertProvider';
 
 interface VideoTimestamp {
   id: string;
@@ -27,40 +28,18 @@ export default function TimestampVideoRecorder({
   onRecordingComplete
 }: TimestampVideoRecorderProps) {
   const { showToast } = useToast();
+  const { showAlert } = useAlert();
   const [timestamps, setTimestamps] = useState<VideoTimestamp[]>([]);
   const [currentDescription, setCurrentDescription] = useState('');
-  const [isRecordingSession, setIsRecordingSession] = useState(false);
-  const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
   const [selectedVideoPath, setSelectedVideoPath] = useState<string>('');
   const [videoPlayer, setVideoPlayer] = useState<HTMLVideoElement | null>(null);
 
-  // セッション開始
-  const startRecordingSession = () => {
-    setIsRecordingSession(true);
-    setSessionStartTime(new Date());
-    setTimestamps([]);
-    showToast({
-      title: '記録セッション開始',
-      message: '重要なタイミングでタイムスタンプボタンを押してください',
-      type: 'info'
-    });
-  };
-
-  // タイムスタンプ記録
-  const recordTimestamp = () => {
-    if (!isRecordingSession) {
+  // タイムスタンプ記録（作業内容と同時に実行）
+  const recordTimestampWithDescription = (description: string) => {
+    if (timestamps.length >= 5) {
       showToast({
-        title: 'セッションが開始されていません',
-        message: '先に記録セッションを開始してください',
-        type: 'warning'
-      });
-      return;
-    }
-
-    if (!currentDescription.trim()) {
-      showToast({
-        title: '説明を入力してください',
-        message: 'タイムスタンプの説明を入力してください',
+        title: 'タイムスタンプ数の上限',
+        message: 'タイムスタンプは最大5個まで記録できます',
         type: 'warning'
       });
       return;
@@ -70,16 +49,19 @@ export default function TimestampVideoRecorder({
     const newTimestamp: VideoTimestamp = {
       id: `${productId}-${now.getTime()}`,
       timestamp: now.toISOString(),
-      description: currentDescription.trim(),
+      description: description.trim(),
       s3VideoPath: generateS3VideoPath(now),
       isPlaying: false
     };
 
     setTimestamps(prev => [...prev, newTimestamp]);
-    setCurrentDescription('');
+    
+    // 親コンポーネントに通知
+    const updatedTimestamps = [...timestamps, newTimestamp];
+    onRecordingComplete?.(updatedTimestamps);
     
     showToast({
-      title: 'タイムスタンプ記録完了',
+      title: 'タイムスタンプを記録しました',
       message: `${formatTimestamp(now)} - ${newTimestamp.description}`,
       type: 'success'
     });
@@ -100,18 +82,33 @@ export default function TimestampVideoRecorder({
     const targetTimestamp = timestamps.find(ts => ts.id === timestampId);
     if (!targetTimestamp) return;
 
-    const confirmed = window.confirm(
-      `タイムスタンプを削除しますか？\n\n時刻: ${formatTimestamp(new Date(targetTimestamp.timestamp))}\n内容: ${targetTimestamp.description}\n\n※この操作は取り消せません。`
-    );
-
-    if (confirmed) {
-      setTimestamps(prev => prev.filter(ts => ts.id !== timestampId));
-      showToast({
-        title: 'タイムスタンプを削除しました',
-        message: '記録済みタイムスタンプを削除しました',
-        type: 'info'
-      });
-    }
+    showAlert({
+      type: 'warning',
+      title: 'タイムスタンプを削除しますか？',
+      message: `時刻: ${formatTimestamp(new Date(targetTimestamp.timestamp))}\n内容: ${targetTimestamp.description}\n\nこの操作は取り消せません。`,
+      actions: [
+        {
+          label: '削除',
+          action: () => {
+            const updatedTimestamps = timestamps.filter(ts => ts.id !== timestampId);
+            setTimestamps(updatedTimestamps);
+            onRecordingComplete?.(updatedTimestamps);
+            
+            showToast({
+              title: 'タイムスタンプを削除しました',
+              message: '記録済みタイムスタンプを削除しました',
+              type: 'info'
+            });
+          },
+          variant: 'danger'
+        },
+        {
+          label: 'キャンセル',
+          action: () => {},
+          variant: 'secondary'
+        }
+      ]
+    });
   };
 
   // 動画再生
@@ -160,77 +157,6 @@ export default function TimestampVideoRecorder({
     }
   };
 
-  // セッション終了
-  const endRecordingSession = async () => {
-    if (timestamps.length === 0) {
-      showToast({
-        title: 'タイムスタンプが記録されていません',
-        message: '少なくとも1つのタイムスタンプを記録してください',
-        type: 'warning'
-      });
-      return;
-    }
-
-    try {
-      // データの妥当性チェック
-      const validTimestamps = timestamps.filter(ts => 
-        ts.id && ts.timestamp && ts.description && ts.s3VideoPath
-      );
-
-      if (validTimestamps.length === 0) {
-        throw new Error('有効なタイムスタンプが見つかりません');
-      }
-
-      const requestData = {
-        productId: productId || null,
-        orderId: null,
-        type: type || 'other',
-        sessionId: `${type}-${productId}-${Date.now()}`,
-        timestamps: validTimestamps,
-        s3VideoPath: validTimestamps[0].s3VideoPath,
-        notes: `${type === 'inspection' ? '検品' : '梱包'}作業の動画記録`
-      };
-
-      console.log('Sending timestamp data:', requestData);
-
-      // タイムスタンプ記録をAPIに保存
-      const response = await fetch('/api/videos/timestamps', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestData)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.error || `HTTP ${response.status}: ${response.statusText}`;
-        throw new Error(errorMessage);
-      }
-
-      const result = await response.json();
-      console.log('API response:', result);
-      
-      setIsRecordingSession(false);
-      setSessionStartTime(null);
-      
-      // 親コンポーネントに結果を通知
-      onRecordingComplete?.(timestamps);
-      
-      showToast({
-        title: '記録セッション完了',
-        message: `${validTimestamps.length}個のタイムスタンプを記録しました`,
-        type: 'success'
-      });
-    } catch (error) {
-      console.error('Session end error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'タイムスタンプ記録の保存に失敗しました';
-      showToast({
-        title: 'セッション終了エラー',
-        message: errorMessage,
-        type: 'error'
-      });
-    }
-  };
-
   // 時刻フォーマット
   const formatTimestamp = (date: Date): string => {
     return date.toLocaleString('ja-JP', {
@@ -243,28 +169,6 @@ export default function TimestampVideoRecorder({
     });
   };
 
-  // 経過時間計算
-  const getElapsedTime = (): string => {
-    if (!sessionStartTime) return '00:00';
-    const now = new Date();
-    const elapsed = Math.floor((now.getTime() - sessionStartTime.getTime()) / 1000);
-    const minutes = Math.floor(elapsed / 60);
-    const seconds = elapsed % 60;
-    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  };
-
-  // 1秒ごとに経過時間を更新
-  useEffect(() => {
-    if (!isRecordingSession) return;
-    
-    const interval = setInterval(() => {
-      // 強制的にコンポーネントを再レンダリング
-      setSessionStartTime(prev => prev);
-    }, 1000);
-    
-    return () => clearInterval(interval);
-  }, [isRecordingSession]);
-
   const quickDescriptions = [
     `${type === 'inspection' ? '検品' : '梱包'}開始`,
     `${type === 'inspection' ? '外観確認' : '商品梱包'}`,
@@ -274,160 +178,121 @@ export default function TimestampVideoRecorder({
   ];
 
   return (
-    <NexusCard className="p-6">
-      <div className="space-y-6">
+    <NexusCard className="p-4">
+      <div className="space-y-4">
         {/* ヘッダー */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <Video className="w-5 h-5" />
-              {type === 'inspection' ? '検品作業' : '梱包作業'}動画記録
-            </h3>
-            <p className="text-sm text-gray-500 mt-1">
-              {phase === 'phase2' ? 'フェーズ2: 入庫検品' : 'フェーズ4: 出荷梱包'}
-            </p>
-          </div>
-          {isRecordingSession && (
-            <div className="flex items-center gap-2 bg-red-50 px-3 py-1 rounded-full">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-              <span className="text-sm font-medium text-red-700">記録中</span>
-              <span className="text-sm text-red-600">{getElapsedTime()}</span>
-            </div>
-          )}
+        <div>
+          <h3 className="text-base font-semibold flex items-center gap-2">
+            <Video className="w-5 h-5" />
+            {type === 'inspection' ? '検品作業' : '梱包作業'}のタイムスタンプ記録
+          </h3>
+          <p className="text-xs text-gray-500 mt-1">
+            {phase === 'phase2' ? 'フェーズ2: 入庫検品' : 'フェーズ4: 出荷梱包'}
+          </p>
         </div>
 
         {/* 説明テキスト */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="font-medium text-blue-900 mb-2">動画記録の仕組み</h4>
-          <div className="text-sm text-blue-800 space-y-1">
-            <p>• 防犯カメラが作業の全工程を自動録画しています</p>
-            <p>• 重要なタイミングでタイムスタンプボタンを押してください</p>
-            <p>• 記録したタイムスタンプから後で動画を再生できます</p>
-            <p>• 動画はAmazon S3に安全に保存されます</p>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <h4 className="font-medium text-blue-900 text-sm mb-1">タイムスタンプ記録について</h4>
+          <ul className="text-xs text-blue-800 space-y-0.5">
+            <li>• 作業内容ボタンを押すと同時に開始時刻が記録されます</li>
+            <li>• 記録した時刻から外部録画動画を呼び出して再生できます</li>
+            <li>• タイムスタンプは0～5個まで任意で記録できます</li>
+            <li>• ワンクリックで簡単に作業時刻を記録できます</li>
+          </ul>
+        </div>
+
+        {/* タイムスタンプ記録エリア */}
+        <div className="bg-gray-50 rounded-lg p-3">
+          <h4 className="font-medium text-sm mb-2 flex items-center gap-2">
+            <Clock className="w-4 h-4" />
+            作業開始時刻を記録
+          </h4>
+          
+          <div className="space-y-2">
+            {timestamps.length >= 5 ? (
+              <p className="text-sm text-orange-600 text-center py-2">
+                タイムスタンプの上限（5個）に達しました
+              </p>
+            ) : (
+              <p className="text-xs text-gray-600 mb-3">
+                作業内容を選択すると同時にタイムスタンプが記録されます
+              </p>
+            )}
+            
+            {/* 作業内容選択ボタン（ワンクリックで記録） */}
+            <div className="grid grid-cols-2 gap-2">
+              {quickDescriptions.map((desc) => (
+                <NexusButton
+                  key={desc}
+                  onClick={() => recordTimestampWithDescription(desc)}
+                  variant="primary"
+                  size="sm"
+                  disabled={timestamps.length >= 5}
+                  icon={<Calendar className="w-3 h-3" />}
+                  className="text-xs flex items-center justify-center gap-1"
+                >
+                  {desc}
+                </NexusButton>
+              ))}
+            </div>
           </div>
         </div>
 
-        {!isRecordingSession ? (
-          /* セッション開始画面 */
-          <div className="text-center py-8">
-            <Clock className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h4 className="text-lg font-semibold mb-2">記録セッションを開始</h4>
-            <p className="text-gray-600 mb-6">
-              {type === 'inspection' ? '検品作業' : '梱包作業'}を開始し、重要なタイミングでタイムスタンプを記録します
-            </p>
-            <NexusButton
-              onClick={startRecordingSession}
-              variant="primary"
-              size="lg"
-              icon={<Play className="w-5 h-5" />}
-            >
-              記録セッション開始
-            </NexusButton>
+        {/* 記録済みタイムスタンプ */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <h4 className="font-medium text-sm">記録済みタイムスタンプ</h4>
+            <span className="text-xs text-gray-600">
+              {timestamps.length} / 5 個（任意）
+            </span>
           </div>
-        ) : (
-          /* 記録中画面 */
-          <div className="space-y-6">
-            {/* タイムスタンプ記録エリア */}
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h4 className="font-medium mb-3 flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                タイムスタンプ記録
-              </h4>
-              
-              {/* 説明入力 */}
-              <div className="space-y-3">
-                <NexusInput
-                  label="作業説明"
-                  value={currentDescription}
-                  onChange={(e) => setCurrentDescription(e.target.value)}
-                  placeholder="今の作業内容を入力してください"
-                />
-                
-                {/* クイック説明ボタン */}
-                <div className="flex flex-wrap gap-2">
-                  {quickDescriptions.map((desc) => (
+          
+          {timestamps.length === 0 ? (
+            <p className="text-xs text-gray-500 text-center py-4">
+              タイムスタンプはまだ記録されていません
+            </p>
+          ) : (
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {timestamps.map((timestamp) => (
+                <div
+                  key={timestamp.id}
+                  className="flex items-center justify-between p-2 bg-white border rounded-lg hover:bg-gray-50"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1 text-xs text-gray-500">
+                      <Calendar className="w-3 h-3" />
+                      {formatTimestamp(new Date(timestamp.timestamp))}
+                    </div>
+                    <p className="font-medium text-sm text-gray-900 mt-0.5">
+                      {timestamp.description}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1 ml-2">
                     <NexusButton
-                      key={desc}
-                      onClick={() => setCurrentDescription(desc)}
+                      onClick={() => playVideoAtTimestamp(timestamp)}
+                      variant="secondary"
+                      size="sm"
+                      icon={<Play className="w-3 h-3" />}
+                      className="text-xs"
+                    >
+                      再生
+                    </NexusButton>
+                    <NexusButton
+                      onClick={() => deleteTimestamp(timestamp.id)}
                       variant="default"
                       size="sm"
+                      icon={<Trash2 className="w-3 h-3" />}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
                     >
-                      {desc}
+                      削除
                     </NexusButton>
-                  ))}
+                  </div>
                 </div>
-                
-                {/* タイムスタンプ記録ボタン */}
-                <NexusButton
-                  onClick={recordTimestamp}
-                  variant="primary"
-                  size="lg"
-                  disabled={!currentDescription.trim()}
-                  icon={<Calendar className="w-5 h-5" />}
-                  className="w-full"
-                >
-                  タイムスタンプ記録
-                </NexusButton>
-              </div>
+              ))}
             </div>
-
-            {/* 記録済みタイムスタンプ */}
-            {timestamps.length > 0 && (
-              <div className="space-y-3">
-                <h4 className="font-medium">記録済みタイムスタンプ ({timestamps.length}個)</h4>
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {timestamps.map((timestamp) => (
-                    <div
-                      key={timestamp.id}
-                      className="flex items-center justify-between p-3 bg-white border rounded-lg hover:bg-gray-50"
-                    >
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                          <Calendar className="w-4 h-4" />
-                          {formatTimestamp(new Date(timestamp.timestamp))}
-                        </div>
-                        <p className="font-medium text-gray-900 mt-1">
-                          {timestamp.description}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <NexusButton
-                          onClick={() => playVideoAtTimestamp(timestamp)}
-                          variant="secondary"
-                          size="sm"
-                          icon={<Play className="w-4 h-4" />}
-                        >
-                          再生
-                        </NexusButton>
-                        <NexusButton
-                          onClick={() => deleteTimestamp(timestamp.id)}
-                          variant="default"
-                          size="sm"
-                          icon={<Trash2 className="w-4 h-4" />}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
-                          削除
-                        </NexusButton>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* セッション終了ボタン */}
-            <div className="flex justify-end">
-              <NexusButton
-                onClick={endRecordingSession}
-                variant="primary"
-                size="lg"
-                icon={<Pause className="w-5 h-5" />}
-              >
-                記録セッション終了
-              </NexusButton>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* 動画プレーヤー */}
         {selectedVideoPath && (
@@ -438,7 +303,6 @@ export default function TimestampVideoRecorder({
               controls
               className="w-full aspect-video"
               onLoadedMetadata={(e) => {
-                // 動画読み込み完了時の処理
                 console.log('Video loaded:', e.currentTarget.duration);
               }}
             />
@@ -447,4 +311,4 @@ export default function TimestampVideoRecorder({
       </div>
     </NexusCard>
   );
-} 
+}
