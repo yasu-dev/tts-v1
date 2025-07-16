@@ -279,11 +279,11 @@ export default function InspectionResult({
       </div>
 
       {/* アクションボタン */}
-      <div className="flex justify-between pt-4">
+      <div className="flex justify-between items-center pt-4">
         <NexusButton
           onClick={onPrev}
           variant="secondary"
-          size="lg"
+          size="md"
           disabled={loading}
         >
           戻る
@@ -291,13 +291,13 @@ export default function InspectionResult({
         <NexusButton
           onClick={onSubmit}
           variant="primary"
-          size="lg"
+          size="md"
           disabled={loading}
-          className="min-w-[200px]"
+          className="px-8 flex items-center justify-center"
         >
           {loading ? (
             <span className="flex items-center">
-              <span className="animate-spin h-5 w-5 mr-3 border-b-2 border-white rounded-full"></span>
+              <span className="animate-spin h-4 w-4 mr-2 border-b-2 border-white rounded-full"></span>
               送信中...
             </span>
           ) : (

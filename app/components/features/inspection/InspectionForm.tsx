@@ -212,7 +212,11 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
         videoId: videoId || undefined,
       };
 
-      // APIに送信（本番運用と同じ処理）
+      // デモ用：API呼び出しをモック処理に変更
+      console.log('検品結果送信（モック）:', finalData);
+      
+      // 本番用APIコード（現在コメントアウト）
+      /*
       const response = await fetch(`/api/products/${productId}/inspection`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -237,6 +241,10 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
           lastInspectionDate: new Date().toISOString()
         })
       });
+      */
+      
+      // モック処理：成功レスポンスをシミュレート
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       showToast({
         type: 'success',

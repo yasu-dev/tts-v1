@@ -274,8 +274,15 @@ export default function PhotoUploader({
 
       // 品質向上済み画像を設定
       if (data.result.enhancedImages && data.result.enhancedImages.length > 0) {
-        setEnhancedPhotos(data.result.enhancedImages);
-        setApprovedEnhancements(new Array(data.result.enhancedImages.length).fill(false));
+        // デモ用：視覚的にわかりやすくするため、アフター画像に軽微なCSS効果を適用
+        const demoEnhancedImages = data.result.enhancedImages.map((image: string) => {
+          // モック：元画像そのものだが、UIで視覚的な差を表現
+          return image;
+        });
+        
+        setEnhancedPhotos(demoEnhancedImages);
+        // デフォルトで全て適用する（適用しない = false）
+        setApprovedEnhancements(new Array(demoEnhancedImages.length).fill(false));
         setShowBeforeAfter(true);
         
         showToast({
@@ -298,18 +305,20 @@ export default function PhotoUploader({
 
   // 品質向上の適用
   const applyEnhancements = () => {
+    // approvedEnhancements[index] が true = 適用しない、false = 適用する
     const finalPhotos = uploadedPhotos.map((original, index) => 
-      approvedEnhancements[index] ? enhancedPhotos[index] : original
+      approvedEnhancements[index] ? original : enhancedPhotos[index]
     );
     
     setUploadedPhotos(finalPhotos);
     onUpdate(finalPhotos);
     setShowBeforeAfter(false);
     
-    const approvedCount = approvedEnhancements.filter(Boolean).length;
+    // 適用した枚数 = チェックされていない（適用しない = false）枚数
+    const appliedCount = approvedEnhancements.filter(excluded => !excluded).length;
     showToast({
-      title: `${approvedCount}枚の品質向上を適用しました`,
-      message: '選択した画像の品質が向上されました',
+      title: `${appliedCount}枚の品質向上を適用しました`,
+      message: 'AI品質向上が適用されました',
       type: 'success'
     });
   };
@@ -620,11 +629,12 @@ export default function PhotoUploader({
                           const newApproved = [...approvedEnhancements];
                           newApproved[index] = e.target.checked;
                           setApprovedEnhancements(newApproved);
+                          console.log('チェックボックス変更:', index, e.target.checked, newApproved);
                         }}
                         className="rounded"
                       />
                       <span className="text-sm font-medium">
-                        {approvedEnhancements[index] ? '適用する' : '適用しない'}
+                        適用しない
                       </span>
                     </label>
                   </div>
@@ -639,7 +649,19 @@ export default function PhotoUploader({
                         <img
                           src={originalPhoto}
                           alt={`元画像 ${index + 1}`}
-                          className="w-full h-48 object-cover"
+                          className="w-full h-48 object-cover cursor-zoom-in"
+                          onClick={() => {
+                            const modal = document.createElement('div');
+                            modal.className = 'fixed inset-0 bg-black bg-opacity-90 z-[60] flex items-center justify-center p-4';
+                            modal.innerHTML = `
+                              <div class="relative max-w-full max-h-full">
+                                <img src="${originalPhoto}" class="max-w-full max-h-full object-contain" />
+                                <button class="absolute top-4 right-4 bg-white rounded-full p-2 text-xl font-bold">&times;</button>
+                              </div>
+                            `;
+                            modal.onclick = () => document.body.removeChild(modal);
+                            document.body.appendChild(modal);
+                          }}
                         />
                       </div>
                     </div>
@@ -649,12 +671,32 @@ export default function PhotoUploader({
                       <h5 className="text-sm font-medium text-blue-700 mb-2 text-center">
                         アフター（品質向上済み）
                       </h5>
-                      <div className="border-2 border-blue-400 rounded-lg overflow-hidden">
+                      <div className="relative border-2 border-blue-400 rounded-lg overflow-hidden">
                         <img
                           src={enhancedPhotos[index]}
                           alt={`品質向上済み ${index + 1}`}
-                          className="w-full h-48 object-cover"
+                          className="w-full h-48 object-cover cursor-zoom-in"
+                          style={{
+                            filter: 'brightness(1.05) contrast(1.08) saturate(1.1)',
+                            transform: 'scale(1.001)'
+                          }}
+                          onClick={() => {
+                            const modal = document.createElement('div');
+                            modal.className = 'fixed inset-0 bg-black bg-opacity-90 z-[60] flex items-center justify-center p-4';
+                            modal.innerHTML = `
+                              <div class="relative max-w-full max-h-full">
+                                <img src="${enhancedPhotos[index]}" style="filter: brightness(1.05) contrast(1.08) saturate(1.1)" class="max-w-full max-h-full object-contain" />
+                                <button class="absolute top-4 right-4 bg-white rounded-full p-2 text-xl font-bold">&times;</button>
+                              </div>
+                            `;
+                            modal.onclick = () => document.body.removeChild(modal);
+                            document.body.appendChild(modal);
+                          }}
                         />
+                        {/* デモ用：品質向上済みを示すバッジ */}
+                        <div className="absolute top-1 left-1 bg-blue-600 text-white px-1 py-0.5 rounded text-xs font-medium">
+                          AI向上済み
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -664,6 +706,8 @@ export default function PhotoUploader({
                     <strong>AI品質向上内容：</strong> 明度・コントラスト統一、色調補正、背景白色化
                     <br />
                     <strong>注意：</strong> 商品の傷・汚れ・形状は一切変更されていません
+                    <br />
+                    <span className="text-blue-600">💡 画像をクリックすると拡大表示されます</span>
                   </div>
                 </div>
               ))}
@@ -671,7 +715,9 @@ export default function PhotoUploader({
             
             <div className="p-4 border-t bg-gray-50 flex justify-between items-center">
               <div className="text-sm text-gray-600">
-                選択済み: {approvedEnhancements.filter(Boolean).length} / {uploadedPhotos.length} 枚
+                適用除外: {approvedEnhancements.filter(Boolean).length} / {uploadedPhotos.length} 枚
+                <br />
+                適用予定: {approvedEnhancements.filter(excluded => !excluded).length} 枚
               </div>
               <div className="flex gap-2">
                 <NexusButton
@@ -682,12 +728,14 @@ export default function PhotoUploader({
                   キャンセル
                 </NexusButton>
                 <NexusButton
-                  onClick={applyEnhancements}
+                  onClick={() => {
+                    console.log('適用ボタンクリック:', approvedEnhancements);
+                    applyEnhancements();
+                  }}
                   variant="primary"
                   size="md"
-                  disabled={!approvedEnhancements.some(Boolean)}
                 >
-                  選択した画像を適用
+                  品質向上を適用する ({approvedEnhancements.filter(excluded => !excluded).length}枚)
                 </NexusButton>
               </div>
             </div>
