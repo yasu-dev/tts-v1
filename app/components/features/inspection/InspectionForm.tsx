@@ -51,6 +51,7 @@ interface InspectionData {
   inspectionDate: string;
   inspectorId: string;
   result: 'passed' | 'failed' | 'conditional';
+  skipPhotography?: boolean; // 撮影をスキップするかどうか
 }
 
 export default function InspectionForm({ productId }: InspectionFormProps) {
@@ -174,12 +175,17 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
     }));
   };
 
-  const submitInspection = async () => {
+  const submitInspection = async (inspectionOnly = false) => {
     try {
       setLoading(true);
       
+      // 検品のみの場合はskipPhotographyフラグをセット
+      const dataToValidate = inspectionOnly 
+        ? { ...inspectionData, skipPhotography: true }
+        : inspectionData;
+      
       // バリデーション
-      const validationResult = validateInspectionData(inspectionData);
+      const validationResult = validateInspectionData(dataToValidate);
       if (!validationResult.isValid) {
         showToast({
           type: 'warning',
@@ -210,6 +216,7 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
         result,
         completedAt: new Date().toISOString(),
         videoId: videoId || undefined,
+        skipPhotography: inspectionOnly, // 検品のみかどうかのフラグ
       };
 
       // デモ用：API呼び出しをモック処理に変更
@@ -248,11 +255,16 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
 
       showToast({
         type: 'success',
-        title: '検品完了',
-        message: `検品結果を保存しました。商品ステータスが「${
-          result === 'passed' ? '出品準備完了' : 
-          result === 'conditional' ? '要確認' : '不合格'
-        }」に更新されました。(倉庫保管中)`,
+        title: inspectionOnly ? '検品完了' : '検品・撮影完了',
+        message: inspectionOnly 
+          ? `検品結果を保存しました。商品ステータスが「${
+              result === 'passed' ? '撮影待ち' : 
+              result === 'conditional' ? '要確認' : '不合格'
+            }」に更新されました。後で撮影を行ってください。`
+          : `検品・撮影が完了しました。商品ステータスが「${
+              result === 'passed' ? '出品準備完了' : 
+              result === 'conditional' ? '要確認' : '不合格'
+            }」に更新されました。`,
         duration: 4000
       });
       
@@ -278,8 +290,8 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
   const validateInspectionData = (data: InspectionData) => {
     const errors: string[] = [];
 
-    // 写真の確認（最低1枚必要）
-    if (data.photos.length === 0) {
+    // 写真の確認（撮影をスキップしない場合のみ必要）
+    if (!data.skipPhotography && data.photos.length === 0) {
       errors.push('検品写真を少なくとも1枚撮影してください');
     }
 
@@ -461,7 +473,8 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
             product={product}
             inspectionData={inspectionData}
             onNotesChange={(notes) => setInspectionData(prev => ({ ...prev, notes }))}
-            onSubmit={submitInspection}
+            onSubmit={() => submitInspection(false)} // 通常の検品・撮影完了
+            onSubmitInspectionOnly={() => submitInspection(true)} // 検品のみ完了
             onPrev={() => setCurrentStep(3)}
             loading={loading}
           />

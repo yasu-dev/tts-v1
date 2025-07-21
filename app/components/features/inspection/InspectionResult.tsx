@@ -40,6 +40,7 @@ interface InspectionData {
   inspectionDate: string;
   inspectorId: string;
   result: 'passed' | 'failed' | 'conditional';
+  skipPhotography?: boolean;
 }
 
 export interface InspectionResultProps {
@@ -47,6 +48,7 @@ export interface InspectionResultProps {
   inspectionData: InspectionData;
   onNotesChange: (notes: string) => void;
   onSubmit: () => Promise<void>;
+  onSubmitInspectionOnly?: () => Promise<void>; // 検品のみ完了の処理
   onPrev: () => void;
   loading: boolean;
 }
@@ -56,6 +58,7 @@ export default function InspectionResult({
   inspectionData,
   onNotesChange,
   onSubmit,
+  onSubmitInspectionOnly,
   onPrev,
   loading,
 }: InspectionResultProps) {
@@ -288,22 +291,35 @@ export default function InspectionResult({
         >
           戻る
         </NexusButton>
-        <NexusButton
-          onClick={onSubmit}
-          variant="primary"
-          size="md"
-          disabled={loading}
-          className="px-8 flex items-center justify-center"
-        >
-          {loading ? (
-            <span className="flex items-center">
-              <span className="animate-spin h-4 w-4 mr-2 border-b-2 border-white rounded-full"></span>
-              送信中...
-            </span>
-          ) : (
-            '検品結果を送信'
+        <div className="flex gap-3">
+          {onSubmitInspectionOnly && (
+            <NexusButton
+              onClick={onSubmitInspectionOnly}
+              variant="secondary"
+              size="md"
+              disabled={loading}
+              className="px-6"
+            >
+              検品のみ完了
+            </NexusButton>
           )}
-        </NexusButton>
+          <NexusButton
+            onClick={onSubmit}
+            variant="primary"
+            size="md"
+            disabled={loading}
+            className="px-8 flex items-center justify-center"
+          >
+            {loading ? (
+              <span className="flex items-center">
+                <span className="animate-spin h-4 w-4 mr-2 border-b-2 border-white rounded-full"></span>
+                送信中...
+              </span>
+            ) : (
+              '検品・撮影完了'
+            )}
+          </NexusButton>
+        </div>
       </div>
     </div>
   );

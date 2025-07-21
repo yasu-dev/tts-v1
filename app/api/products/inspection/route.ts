@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     const user = await AuthService.requireRole(request, ['staff', 'admin']);
 
     const body = await request.json();
-    const { productId, inspectionNotes, condition, status, locationId } = body;
+    const { productId, inspectionNotes, condition, status, locationId, skipPhotography, photographyDate } = body;
 
     if (!productId) {
       return NextResponse.json(
@@ -29,6 +29,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Prepare metadata for inspection and photography status tracking
+    const currentMetadata = product.metadata ? JSON.parse(product.metadata) : {};
+    const updatedMetadata = {
+      ...currentMetadata,
+      inspectionCompleted: true,
+      inspectionDate: new Date().toISOString(),
+      photographyCompleted: skipPhotography ? false : !!photographyDate,
+      ...(photographyDate && { photographyDate }),
+      skipPhotography: !!skipPhotography,
+    };
+
     // Update product with inspection data
     const updatedProduct = await prisma.product.update({
       where: { id: productId },
@@ -36,6 +47,7 @@ export async function POST(request: NextRequest) {
         inspectedAt: new Date(),
         inspectedBy: user.username,
         inspectionNotes,
+        metadata: JSON.stringify(updatedMetadata),
         ...(condition && {
           condition: condition.replace('新品', 'new')
                             .replace('新品同様', 'like_new')
@@ -73,6 +85,9 @@ export async function POST(request: NextRequest) {
         metadata: JSON.stringify({
           condition,
           notes: inspectionNotes,
+          skipPhotography,
+          inspectionCompleted: true,
+          photographyCompleted: !skipPhotography,
         }),
       },
     });

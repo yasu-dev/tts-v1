@@ -582,6 +582,11 @@ export default function StaffInventoryPage() {
             // 検品画面に遷移
             window.location.href = `/staff/inspection/${item.id}`;
           }}
+          onStartPhotography={(item) => {
+            setIsDetailModalOpen(false);
+            // 撮影専用モードで検品画面に遷移
+            window.location.href = `/staff/inspection/${item.id}?mode=photography`;
+          }}
         />
 
         {/* Product Edit Modal */}

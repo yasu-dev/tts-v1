@@ -10,9 +10,11 @@ import {
   QrCodeIcon,
   PrinterIcon,
   DocumentDuplicateIcon,
-  CheckIcon
+  CheckIcon,
+  CameraIcon
 } from '@heroicons/react/24/outline';
 import BarcodePrintButton from '@/app/components/features/BarcodePrintButton';
+import { parseProductMetadata, getInspectionPhotographyStatus } from '@/lib/utils/product-status';
 
 interface ItemDetailModalProps {
   isOpen: boolean;
@@ -32,11 +34,13 @@ interface ItemDetailModalProps {
     lastModified: string;
     qrCode?: string;
     notes?: string;
+    metadata?: string; // メタデータフィールド追加
   } | null;
   onEdit?: (item: any) => void;
   onMove?: (item: any) => void;
   onGenerateQR?: (item: any) => void;
   onStartInspection?: (item: any) => void;
+  onStartPhotography?: (item: any) => void; // 撮影開始ハンドラー追加
 }
 
 export default function ItemDetailModal({ 
@@ -46,14 +50,17 @@ export default function ItemDetailModal({
   onEdit, 
   onMove, 
   onGenerateQR,
-  onStartInspection 
+  onStartInspection,
+  onStartPhotography 
 }: ItemDetailModalProps) {
   const [activeTab, setActiveTab] = useState<'details' | 'history' | 'notes'>('details');
   const { showToast } = useToast();
 
   if (!isOpen || !item) return null;
 
-
+  // メタデータから検品・撮影状況を取得
+  const metadata = parseProductMetadata(item.metadata);
+  const inspectionPhotographyStatus = getInspectionPhotographyStatus(metadata);
 
   const demoHistory = [
     { date: '2024-12-24 10:00', action: 'ステータス変更', details: '検品中 → 保管中', user: '田中太郎' },
@@ -202,6 +209,19 @@ export default function ItemDetailModal({
                       状態
                     </label>
                     <p className="text-nexus-text-primary">{item.condition}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
+                      検品・撮影状況
+                    </label>
+                    <div className="flex items-center space-x-2">
+                      <p className="text-nexus-text-primary">{inspectionPhotographyStatus.displayStatus}</p>
+                      {inspectionPhotographyStatus.canStartPhotography && (
+                        <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
+                          撮影可能
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
@@ -381,6 +401,15 @@ export default function ItemDetailModal({
                 icon={<CheckIcon className="w-4 h-4" />}
               >
                 検品開始
+              </NexusButton>
+            )}
+            {onStartPhotography && inspectionPhotographyStatus.canStartPhotography && (
+              <NexusButton
+                onClick={() => onStartPhotography(item)}
+                variant="primary"
+                icon={<CameraIcon className="w-4 h-4" />}
+              >
+                撮影する
               </NexusButton>
             )}
             {onEdit && (

@@ -26,6 +26,7 @@ import { AlertCircle } from 'lucide-react';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import BaseModal from '@/app/components/ui/BaseModal';
 import NexusTextarea from '@/app/components/ui/NexusTextarea';
+import { parseProductMetadata, filterProductsByInspectionPhotographyStatus, getInspectionPhotographyStatus } from '@/lib/utils/product-status';
 
 interface ChecklistItem {
   id: string;
@@ -80,6 +81,7 @@ interface Product {
   receivedDate: string;
   priority: 'high' | 'normal' | 'low';
   imageUrl?: string;
+  metadata?: string; // メタデータフィールド追加
 }
 
 type SortField = 'name' | 'sku' | 'category' | 'receivedDate' | 'priority' | 'status';
@@ -193,18 +195,12 @@ export default function InspectionPage() {
   const [products, setProducts] = useState<Product[]>(mockProducts);
   const [loading, setLoading] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [isInspectionModalOpen, setIsInspectionModalOpen] = useState(false);
-  const [activeTask, setActiveTask] = useState<InspectionTask | null>(null);
-  const [currentChecklist, setCurrentChecklist] = useState<ChecklistTemplate | null>(null);
-  const [completedItems, setCompletedItems] = useState<{[key: string]: boolean | number}>({});
-  const [photos, setPhotos] = useState<File[]>([]);
-  const [notes, setNotes] = useState('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // フィルター・ソート・ページング状態
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedPriority, setSelectedPriority] = useState<string>('all');
+  const [selectedInspectionPhotoStatus, setSelectedInspectionPhotoStatus] = useState<string>('all'); // 検品・撮影状況フィルター追加
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('receivedDate');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -221,7 +217,7 @@ export default function InspectionPage() {
   };
 
   // フィルタリング
-  const filteredProducts = products.filter(product => {
+  let filteredProducts = products.filter(product => {
     const matchesStatus = selectedStatus === 'all' || product.status === selectedStatus;
     const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
     const matchesPriority = selectedPriority === 'all' || product.priority === selectedPriority;
@@ -233,6 +229,14 @@ export default function InspectionPage() {
     
     return matchesStatus && matchesCategory && matchesPriority && matchesSearch;
   });
+
+  // 検品・撮影状況によるフィルタリング
+  if (selectedInspectionPhotoStatus !== 'all') {
+    filteredProducts = filterProductsByInspectionPhotographyStatus(
+      filteredProducts, 
+      selectedInspectionPhotoStatus as any
+    );
+  }
 
   // ソート
   const sortedProducts = [...filteredProducts].sort((a, b) => {
@@ -274,86 +278,20 @@ export default function InspectionPage() {
       <ChevronDownIcon className="w-4 h-4" />;
   };
 
-  // 検品開始
+  // 検品開始（ページ遷移に統一）
   const handleStartInspection = (product: Product) => {
-    setSelectedProduct(product);
-    setIsInspectionModalOpen(true);
-    loadChecklistTemplate(product.category);
+    window.location.href = `/staff/inspection/${product.id}`;
   };
 
-  // 検品続行
+  // 検品続行（ページ遷移に統一）
   const handleContinueInspection = (product: Product) => {
-    setSelectedProduct(product);
-    setIsInspectionModalOpen(true);
-    loadChecklistTemplate(product.category);
+    window.location.href = `/staff/inspection/${product.id}`;
   };
 
-  // 商品詳細表示
+  // 商品詳細表示（統一化により不使用）
   const handleViewProduct = (product: Product) => {
-    setSelectedProduct(product);
-    // 詳細モーダルを開く処理
-  };
-
-  // チェックリストテンプレート読み込み
-  const loadChecklistTemplate = (category: string) => {
-    // モックチェックリストデータ
-    const mockChecklist: ChecklistTemplate = {
-      id: `checklist_${category}`,
-      name: `${categoryLabels[category as keyof typeof categoryLabels]} 検品チェックリスト`,
-      categories: [
-        {
-          name: '外観検査',
-          items: [
-            { id: 'appearance_1', label: '外観に傷がないか', type: 'boolean', required: true },
-            { id: 'appearance_2', label: '汚れやしみがないか', type: 'boolean', required: true },
-            { id: 'appearance_3', label: '色褪せがないか', type: 'boolean', required: true },
-          ]
-        },
-        {
-          name: '機能検査',
-          items: [
-            { id: 'function_1', label: '基本機能が正常に動作するか', type: 'boolean', required: true },
-            { id: 'function_2', label: '付属品が揃っているか', type: 'boolean', required: true },
-          ]
-        }
-      ]
-    };
-    setCurrentChecklist(mockChecklist);
-  };
-
-  // 項目完了処理
-  const handleItemComplete = (categoryIndex: number, itemIndex: number, value: boolean | number) => {
-    setCompletedItems(prev => ({
-      ...prev,
-      [`${categoryIndex}-${itemIndex}`]: value
-    }));
-  };
-
-  // 写真アップロード
-  const handlePhotoUpload = (files: FileList | null) => {
-    if (files) {
-      const newPhotos = Array.from(files);
-      setPhotos(prev => [...prev, ...newPhotos]);
-    }
-  };
-
-  // 写真削除
-  const removePhoto = (index: number) => {
-    setPhotos(prev => prev.filter((_, i) => i !== index));
-  };
-
-  // 検品完了
-  const handleCompleteInspection = () => {
-    if (selectedProduct) {
-      setProducts(prev => prev.map(p => 
-        p.id === selectedProduct.id ? { ...p, status: 'completed' } : p
-      ));
-      showToast({
-        title: '検品完了',
-        message: `${selectedProduct.name} の検品が完了しました`,
-        type: 'success'
-      });
-    }
+    // 詳細表示も統一のため、検品画面に遷移
+    window.location.href = `/staff/inspection/${product.id}`;
   };
 
   // カテゴリー選択肢
@@ -377,6 +315,14 @@ export default function InspectionPage() {
     { value: 'inspecting', label: '検品中' },
     { value: 'completed', label: '完了' },
     { value: 'failed', label: '不合格' }
+  ];
+
+  // 検品・撮影状況選択肢
+  const inspectionPhotoStatusOptions = [
+    { value: 'all', label: 'すべての状況' },
+    { value: 'inspection_pending', label: '検品待ち' },
+    { value: 'photography_pending', label: '撮影待ち' },
+    { value: 'completed', label: '完了' }
   ];
 
   if (loading) {
@@ -405,12 +351,19 @@ export default function InspectionPage() {
             <h3 className="text-lg font-medium text-nexus-text-primary">フィルター・検索</h3>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <NexusSelect
               label="ステータス"
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
               options={statusOptions}
+            />
+
+            <NexusSelect
+              label="検品・撮影状況"
+              value={selectedInspectionPhotoStatus}
+              onChange={(e) => setSelectedInspectionPhotoStatus(e.target.value)}
+              options={inspectionPhotoStatusOptions}
             />
 
             <NexusSelect
@@ -637,35 +590,60 @@ export default function InspectionPage() {
                     </td>
                     <td className="py-3 px-2 sm:px-4">
                       <div className="flex justify-center gap-1 sm:gap-2">
-                        {product.status === 'pending_inspection' && (
-                          <NexusButton
-                            onClick={() => handleStartInspection(product)}
-                            size="sm"
-                            variant="primary"
-                          >
-                            <span className="hidden sm:inline">検品開始</span>
-                            <span className="sm:hidden">開始</span>
-                          </NexusButton>
-                        )}
-                        {product.status === 'inspecting' && (
-                          <Link href={`/staff/inspection/${product.id}`}>
-                            <NexusButton size="sm" variant="primary">
-                              <span className="hidden sm:inline">続ける</span>
-                              <span className="sm:hidden">続行</span>
-                            </NexusButton>
-                          </Link>
-                        )}
-                        {(product.status === 'completed' || product.status === 'failed') && (
-                          <NexusButton
-                            onClick={() => handleViewProduct(product)}
-                            size="sm"
-                            variant="default"
-                            icon={<EyeIcon className="w-4 h-4" />}
-                          >
-                            <span className="hidden sm:inline">詳細</span>
-                            <span className="sm:hidden sr-only">詳細</span>
-                          </NexusButton>
-                        )}
+                        {(() => {
+                          const metadata = parseProductMetadata(product.metadata);
+                          const inspectionPhotoStatus = getInspectionPhotographyStatus ? getInspectionPhotographyStatus(metadata) : null;
+
+                          if (product.status === 'pending_inspection') {
+                            return (
+                              <Link href={`/staff/inspection/${product.id}`}>
+                                <NexusButton size="sm" variant="primary">
+                                  <span className="hidden sm:inline">検品開始</span>
+                                  <span className="sm:hidden">開始</span>
+                                </NexusButton>
+                              </Link>
+                            );
+                          }
+
+                          if (product.status === 'inspecting') {
+                            return (
+                              <Link href={`/staff/inspection/${product.id}`}>
+                                <NexusButton size="sm" variant="primary">
+                                  <span className="hidden sm:inline">続ける</span>
+                                  <span className="sm:hidden">続行</span>
+                                </NexusButton>
+                              </Link>
+                            );
+                          }
+
+                          if (inspectionPhotoStatus?.canStartPhotography) {
+                            return (
+                              <Link href={`/staff/inspection/${product.id}?mode=photography`}>
+                                <NexusButton size="sm" variant="primary" icon={<CameraIcon className="w-4 h-4" />}>
+                                  <span className="hidden sm:inline">撮影</span>
+                                  <span className="sm:hidden">撮影</span>
+                                </NexusButton>
+                              </Link>
+                            );
+                          }
+
+                          if (product.status === 'completed' || product.status === 'failed') {
+                            return (
+                              <Link href={`/staff/inspection/${product.id}`}>
+                                <NexusButton
+                                  size="sm"
+                                  variant="default"
+                                  icon={<EyeIcon className="w-4 h-4" />}
+                                >
+                                  <span className="hidden sm:inline">詳細</span>
+                                  <span className="sm:hidden sr-only">詳細</span>
+                                </NexusButton>
+                              </Link>
+                            );
+                          }
+
+                          return null;
+                        })()}
                       </div>
                     </td>
                   </tr>
@@ -674,7 +652,7 @@ export default function InspectionPage() {
                   <tr>
                     <td colSpan={7} className="py-6 px-2 sm:px-4 text-center text-nexus-text-secondary text-sm">
                       {filteredProducts.length === 0 ? 
-                        (searchQuery || selectedStatus !== 'all' || selectedCategory !== 'all' || selectedPriority !== 'all'
+                        (searchQuery || selectedStatus !== 'all' || selectedCategory !== 'all' || selectedPriority !== 'all' || selectedInspectionPhotoStatus !== 'all'
                           ? '検索条件に一致する商品がありません' 
                           : '検品対象商品がありません'
                         ) : '表示するデータがありません'
@@ -701,193 +679,21 @@ export default function InspectionPage() {
           )}
         </div>
 
-        {/* 検品モーダル */}
-        <BaseModal
-          isOpen={isInspectionModalOpen && !!selectedProduct}
-          onClose={() => {
-            setIsInspectionModalOpen(false);
-            setSelectedProduct(null);
-            setActiveTask(null);
-          }}
-          title="商品検品"
-          subtitle={selectedProduct ? `${selectedProduct.name} - ${selectedProduct.sku}` : ''}
-          size="lg"
-          className="max-w-[1600px]"
-        >
-          <div className="overflow-y-auto max-h-[calc(90vh-200px)]">
-            {currentChecklist ? (
-              <div className="space-y-6">
-                {currentChecklist.categories.map((category, catIndex) => (
-                  <div key={catIndex} className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                      {category.name}
-                    </h3>
-                    <div className="space-y-3">
-                      {category.items.map((item, itemIndex) => (
-                        <div key={item.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
-                          <div className="flex items-center space-x-3">
-                            <input
-                              type="checkbox"
-                              id={`${catIndex}-${itemIndex}`}
-                              checked={Boolean(completedItems[`${catIndex}-${itemIndex}`])}
-                              onChange={(e) => handleItemComplete(catIndex, itemIndex, e.target.checked)}
-                              className="h-5 w-5 text-blue-600 rounded"
-                            />
-                            <label htmlFor={`${catIndex}-${itemIndex}`} className="text-sm text-gray-700">
-                              {item.label}
-                              {item.required && <span className="text-red-500 ml-1">*</span>}
-                            </label>
-                          </div>
-                          {item.type === 'rating' && (
-                            <div className="flex space-x-1">
-                              {[1, 2, 3, 4, 5].map((rating) => {
-                                const currentValue = completedItems[`${catIndex}-${itemIndex}`];
-                                const isActive = typeof currentValue === 'number' && currentValue >= rating;
-                                return (
-                                  <button
-                                    key={rating}
-                                    onClick={() => handleItemComplete(catIndex, itemIndex, rating)}
-                                    className={`w-8 h-8 rounded ${
-                                      isActive ? 'bg-yellow-400' : 'bg-gray-200'
-                                    }`}
-                                  >
-                                    ★
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-
-                {/* 写真アップロード */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    商品写真
-                  </h3>
-                  <div className="space-y-4">
-                    <div className="flex flex-wrap gap-4">
-                      {photos.map((photo, index) => (
-                        <div key={index} className="relative">
-                          <img
-                            src={URL.createObjectURL(photo)}
-                            alt={`Photo ${index + 1}`}
-                            className="w-24 h-24 object-cover rounded-lg"
-                          />
-                          <button
-                            onClick={() => removePhoto(index)}
-                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={(e) => handlePhotoUpload(e.target.files)}
-                      className="hidden"
-                    />
-                    <NexusButton
-                      onClick={() => fileInputRef.current?.click()}
-                      icon={<CameraIcon className="w-5 h-5" />}
-                    >
-                      写真を追加
-                    </NexusButton>
-                  </div>
-                </div>
-
-                {/* 備考 */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    備考
-                  </h3>
-                  <NexusTextarea
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    rows={4}
-                    placeholder="検品時の気づきや特記事項を入力してください..."
-                  />
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <NexusLoadingSpinner size="md" />
-              </div>
-            )}
-          </div>
-
-          <div className="flex justify-between pt-6 border-t border-gray-200">
-            <NexusButton
-              onClick={() => {
-                setIsInspectionModalOpen(false);
-                setSelectedProduct(null);
-                setActiveTask(null);
-              }}
-              icon={<XMarkIcon className="w-5 h-5" />}
-            >
-              キャンセル
-            </NexusButton>
-            <div className="flex space-x-3">
-              <NexusButton
-                onClick={async () => {
-                  try {
-                    const inspectionData = {
-                      id: `temp_inspection_${Date.now()}`,
-                      itemId: selectedProduct?.id || 'unknown',
-                      status: 'draft',
-                      savedAt: new Date().toISOString(),
-                      inspector: 'current_user',
-                      notes: '一時保存されたデータ',
-                      condition: 'pending_review',
-                      images: [],
-                      defects: []
-                    };
-                    
-                    await new Promise(resolve => setTimeout(resolve, 800));
-                    
-                    const draftData = JSON.parse(localStorage.getItem('inspectionDrafts') || '[]');
-                    draftData.push(inspectionData);
-                    localStorage.setItem('inspectionDrafts', JSON.stringify(draftData));
-                    
-                    showToast({
-                      title: '一時保存完了',
-                      message: '検品データを正常に一時保存しました。後で作業を再開できます。',
-                      type: 'success'
-                    });
-                    
-                  } catch (error) {
-                    showToast({
-                      title: '一時保存エラー',
-                      message: 'データの保存に失敗しました。もう一度お試しください。',
-                      type: 'error'
-                    });
-                  }
-                }}
-                variant="secondary"
-              >
-                一時保存
-              </NexusButton>
-              <NexusButton
-                onClick={() => {
-                  handleCompleteInspection();
-                  setIsInspectionModalOpen(false);
-                  setSelectedProduct(null);
-                }}
-                variant="primary"
-                icon={<CheckIcon className="w-5 h-5" />}
-              >
-                検品完了
-              </NexusButton>
+        {/* 検品モーダル - 使用停止（ページ遷移に統一） */}
+        {false && (
+          <BaseModal
+            isOpen={false}
+            onClose={() => {}}
+            title="商品検品"
+            size="lg"
+          >
+            <div>
+              <p className="text-center text-gray-500">
+                検品機能はページ遷移に統一されました
+              </p>
             </div>
-          </div>
-        </BaseModal>
+          </BaseModal>
+        )}
       </div>
     </DashboardLayout>
   );
