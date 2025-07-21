@@ -23,6 +23,8 @@ import NexusSelect from '@/app/components/ui/NexusSelect';
 import NexusInput from '@/app/components/ui/NexusInput';
 import BaseModal from '@/app/components/ui/BaseModal';
 import BarcodePrintButton from '@/app/components/features/BarcodePrintButton';
+import ListingFormModal from '@/app/components/modals/ListingFormModal';
+import { checkListingEligibility, filterListableItems } from '@/lib/utils/listing-eligibility';
 
 interface InventoryItem {
   id: string;
@@ -43,6 +45,8 @@ interface InventoryItem {
   lastChecked: string;
   value?: number;
   images?: string[];
+  inspectedAt?: string; // 検品日時を追加
+  photographyDate?: string; // 撮影日時を追加
 }
 
 export default function StaffInventoryPage() {
@@ -63,6 +67,7 @@ export default function StaffInventoryPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
   const [isBarcodeScannerOpen, setIsBarcodeScannerOpen] = useState(false);
+  const [isListingModalOpen, setIsListingModalOpen] = useState(false);
   
   // ページネーション状態
   const [currentPage, setCurrentPage] = useState(1);
@@ -102,6 +107,8 @@ export default function StaffInventoryPage() {
           notes: item.description || '',
           quantity: 1,
           lastChecked: item.updatedAt || new Date().toISOString(),
+          inspectedAt: item.inspectedAt || null, // 検品日時を追加
+          photographyDate: item.photographyDate || null, // 撮影日時を追加
         }));
         
         setItems(inventoryItems);
@@ -127,7 +134,12 @@ export default function StaffInventoryPage() {
     let filtered = items;
 
     if (selectedStatus !== 'all') {
-      filtered = filtered.filter(item => item.status === selectedStatus);
+      if (selectedStatus === 'listable') {
+        // 出品可能商品のフィルタリング
+        filtered = filterListableItems(filtered);
+      } else {
+        filtered = filtered.filter(item => item.status === selectedStatus);
+      }
     }
     if (selectedCategory !== 'all') {
       filtered = filtered.filter(item => item.category === selectedCategory);
@@ -197,6 +209,15 @@ export default function StaffInventoryPage() {
     });
   };
 
+  const handleListingSuccess = (listing: any) => {
+    // 出品成功時に商品ステータスを更新
+    setItems(prev => prev.map(item => 
+      item.id === selectedItem?.id 
+        ? { ...item, status: 'listing', lastModified: new Date().toISOString() }
+        : item
+    ));
+  };
+
   const handleBarcodeScanned = (barcode: string, productData?: any) => {
     if (productData) {
       // APIから商品データが取得できた場合
@@ -228,7 +249,9 @@ export default function StaffInventoryPage() {
           quantity: 1,
           lastChecked: productData.updatedAt,
           imageUrl: productData.imageUrl,
-          assignedStaff: '山本 達也'
+          assignedStaff: '山本 達也',
+          inspectedAt: productData.inspectedAt || null, // 検品日時を追加
+          photographyDate: productData.photographyDate || null, // 撮影日時を追加
         };
         setSelectedItem(convertedItem);
         setIsDetailModalOpen(true);
@@ -371,8 +394,10 @@ export default function StaffInventoryPage() {
                   label="ステータス"
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
+                  data-testid="status-filter"
                   options={[
                     { value: 'all', label: 'すべてのステータス' },
+                    { value: 'listable', label: '出品可能' },
                     { value: 'inbound', label: '入庫待ち' },
                     { value: 'inspection', label: '検品中' },
                     { value: 'storage', label: '保管中' },
@@ -587,6 +612,11 @@ export default function StaffInventoryPage() {
             // 撮影専用モードで検品画面に遷移
             window.location.href = `/staff/inspection/${item.id}?mode=photography`;
           }}
+          onStartListing={(item) => {
+            setIsDetailModalOpen(false);
+            // 出品モーダルを開く
+            setIsListingModalOpen(true);
+          }}
         />
 
         {/* Product Edit Modal */}
@@ -603,6 +633,23 @@ export default function StaffInventoryPage() {
           onClose={() => setIsMoveModalOpen(false)}
           item={selectedItem}
           onMove={handleMove}
+        />
+
+        {/* Listing Form Modal */}
+        <ListingFormModal
+          isOpen={isListingModalOpen}
+          onClose={() => setIsListingModalOpen(false)}
+          product={selectedItem ? {
+            id: selectedItem.id,
+            name: selectedItem.name,
+            sku: selectedItem.sku,
+            category: selectedItem.category,
+            price: selectedItem.price,
+            condition: selectedItem.condition,
+            description: selectedItem.notes,
+            imageUrl: selectedItem.imageUrl
+          } : null}
+          onSuccess={handleListingSuccess}
         />
 
         {/* Barcode Scanner Modal */}

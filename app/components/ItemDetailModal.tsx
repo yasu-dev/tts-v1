@@ -11,10 +11,12 @@ import {
   PrinterIcon,
   DocumentDuplicateIcon,
   CheckIcon,
-  CameraIcon
+  CameraIcon,
+  ShoppingCartIcon
 } from '@heroicons/react/24/outline';
 import BarcodePrintButton from '@/app/components/features/BarcodePrintButton';
 import { parseProductMetadata, getInspectionPhotographyStatus } from '@/lib/utils/product-status';
+import { checkListingEligibility } from '@/lib/utils/listing-eligibility';
 
 interface ItemDetailModalProps {
   isOpen: boolean;
@@ -35,12 +37,15 @@ interface ItemDetailModalProps {
     qrCode?: string;
     notes?: string;
     metadata?: string; // メタデータフィールド追加
+    inspectedAt?: string; // 検品日時
+    photographyDate?: string; // 撮影日時
   } | null;
   onEdit?: (item: any) => void;
   onMove?: (item: any) => void;
   onGenerateQR?: (item: any) => void;
   onStartInspection?: (item: any) => void;
   onStartPhotography?: (item: any) => void; // 撮影開始ハンドラー追加
+  onStartListing?: (item: any) => void; // 出品開始ハンドラー追加
 }
 
 export default function ItemDetailModal({ 
@@ -51,7 +56,8 @@ export default function ItemDetailModal({
   onMove, 
   onGenerateQR,
   onStartInspection,
-  onStartPhotography 
+  onStartPhotography,
+  onStartListing
 }: ItemDetailModalProps) {
   const [activeTab, setActiveTab] = useState<'details' | 'history' | 'notes'>('details');
   const { showToast } = useToast();
@@ -61,6 +67,13 @@ export default function ItemDetailModal({
   // メタデータから検品・撮影状況を取得
   const metadata = parseProductMetadata(item.metadata);
   const inspectionPhotographyStatus = getInspectionPhotographyStatus(metadata);
+  
+  // 出品可能性を判定
+  const listingEligibility = checkListingEligibility({
+    status: item.status,
+    inspectedAt: item.inspectedAt || (item.status === 'storage' ? new Date().toISOString() : null),
+    photographyDate: item.photographyDate || null
+  });
 
   const demoHistory = [
     { date: '2024-12-24 10:00', action: 'ステータス変更', details: '検品中 → 保管中', user: '田中太郎' },
@@ -222,6 +235,31 @@ export default function ItemDetailModal({
                         </span>
                       )}
                     </div>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
+                      出品可能性
+                    </label>
+                    <div className="flex items-center space-x-2">
+                      <p className={`text-sm ${listingEligibility.canList ? 'text-green-600' : 'text-orange-600'}`}>
+                        {listingEligibility.overallReason}
+                      </p>
+                      {listingEligibility.canList && (
+                        <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                          出品可能
+                        </span>
+                      )}
+                    </div>
+                    {!listingEligibility.canList && (
+                      <div className="mt-2 space-y-1">
+                        {Object.entries(listingEligibility.requirements).map(([key, req]) => (
+                          <div key={key} className="flex items-center text-xs">
+                            <span className={`w-2 h-2 rounded-full mr-2 ${req.status === 'met' ? 'bg-green-500' : 'bg-gray-400'}`}></span>
+                            <span className={req.status === 'met' ? 'text-green-600' : 'text-gray-600'}>{req.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
@@ -410,6 +448,15 @@ export default function ItemDetailModal({
                 icon={<CameraIcon className="w-4 h-4" />}
               >
                 撮影する
+              </NexusButton>
+            )}
+            {onStartListing && listingEligibility.canList && (
+              <NexusButton
+                onClick={() => onStartListing(item)}
+                variant="primary"
+                icon={<ShoppingCartIcon className="w-4 h-4" />}
+              >
+                出品する
               </NexusButton>
             )}
             {onEdit && (

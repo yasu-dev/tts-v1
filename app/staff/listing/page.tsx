@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import DashboardLayout from '../../components/layouts/DashboardLayout';
 import UnifiedPageHeader from '../../components/ui/UnifiedPageHeader';
 import { NexusButton, NexusSelect, NexusInput } from '../../components/ui';
@@ -49,6 +50,22 @@ type SortField = 'name' | 'category' | 'price' | 'condition' | 'status' | 'lastU
 type SortDirection = 'asc' | 'desc';
 
 export default function ListingPage() {
+  const router = useRouter();
+  
+  // 直接アクセスを防ぐ
+  useEffect(() => {
+    // 業務フローから遷移したかチェック
+    const isFromValidFlow = sessionStorage.getItem('fromInventoryFlow');
+    
+    if (!isFromValidFlow) {
+      // 直接アクセスの場合はダッシュボードへリダイレクト
+      router.push('/staff/dashboard');
+    } else {
+      // 一度使用したら削除
+      sessionStorage.removeItem('fromInventoryFlow');
+    }
+  }, [router]);
+
   const [templates, setTemplates] = useState<ListingTemplate[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [viewMode, setViewMode] = useState<'templates' | 'products'>('products');

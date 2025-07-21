@@ -145,7 +145,9 @@ export class MockFallback {
           updatedAt: new Date('2024-01-20'),
           location: 'A-01',
           quantity: 1,
-          value: 2800000
+          value: 2800000,
+          inspectedAt: new Date('2024-01-18'), // 検品済み
+          photographyDate: new Date('2024-01-19') // 撮影済み
         },
         {
           id: 'mock-product-002',

@@ -145,6 +145,9 @@ async function main() {
       condition: 'very_good',
       entryDate: new Date('2024-06-18'),
       sellerId: seller.id,
+      inspectedAt: new Date('2024-06-19'),
+      inspectedBy: staff.id,
+      inspectionNotes: '状態良好、全機能正常動作確認済み'
     },
     {
       sku: 'CAM-NIKON-Z8-004',
