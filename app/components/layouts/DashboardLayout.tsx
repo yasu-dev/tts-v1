@@ -246,20 +246,26 @@ export default function DashboardLayout({
           });
           
           // 最上部付近では常に展開
+          // 【修正】最上部でも自動展開しない - 右上ボタンのみで開く
+          /* 
           if (currentScrollY < topThreshold) {
             console.log('最上部: フロー展開');
             setIsFlowCollapsed(false);
           }
+          */
           // 十分な下スクロールで折りたたみ
-          else if (isScrollingDown && Math.abs(scrollDelta) > scrollThreshold && currentScrollY > 60) {
+          if (isScrollingDown && Math.abs(scrollDelta) > scrollThreshold && currentScrollY > 60) {
             console.log('下スクロール: フロー折りたたみ');
             setIsFlowCollapsed(true);
           }
           // 十分な上スクロールで展開
+          // 【修正】上スクロールでも自動展開しない - 右上ボタンのみで開く
+          /*
           else if (isScrollingUp && Math.abs(scrollDelta) > scrollThreshold && currentScrollY > topThreshold) {
             console.log('上スクロール: フロー展開');
             setIsFlowCollapsed(false);
           }
+          */
           
           currentLastScrollY = currentScrollY;
           ticking = false;
@@ -282,10 +288,13 @@ export default function DashboardLayout({
         }
         
         // スクロール停止時の最上部チェック
+        // 【修正】スクロール停止時も自動展開しない - 右上ボタンのみで開く
+        /*
         if (scrollContainer.scrollTop < 15) {
           console.log('スクロール停止: 最上部でフロー展開');
           setIsFlowCollapsed(false);
         }
+        */
       }, 150);
     };
 
