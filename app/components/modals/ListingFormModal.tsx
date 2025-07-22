@@ -49,7 +49,6 @@ export default function ListingFormModal({
   const [buyItNowPrice, setBuyItNowPrice] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [previewMode, setPreviewMode] = useState(false);
 
   // 商品変更時の価格初期化
   useEffect(() => {
@@ -160,7 +159,6 @@ export default function ListingFormModal({
     setCustomTitle('');
     setCustomDescription('');
     setError(null);
-    setPreviewMode(false);
   };
 
   const handleClose = () => {
@@ -263,39 +261,17 @@ export default function ListingFormModal({
 
           <div>
             <NexusTextarea
-              label="カスタム説明文 (任意)"
+              label="カスタム説明（オプション）"
               value={customDescription}
               onChange={(e) => setCustomDescription(e.target.value)}
               rows={4}
               placeholder="空欄の場合はテンプレートの説明文を使用"
             />
           </div>
-
-          {/* プレビュー */}
-          {previewMode && selectedTemplate && (
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="font-medium text-gray-900 mb-2">プレビュー</h4>
-              {(() => {
-                const preview = generatePreview();
-                return preview ? (
-                  <div className="space-y-2">
-                    <div>
-                      <span className="text-sm font-medium">タイトル:</span>
-                      <p className="text-sm text-gray-700">{preview.title}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium">説明:</span>
-                      <p className="text-sm text-gray-700 whitespace-pre-line">{preview.description}</p>
-                    </div>
-                  </div>
-                ) : null;
-              })()}
-            </div>
-          )}
         </div>
 
         {/* フッター */}
-        <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-200">
+        <div className="flex justify-between items-center pt-6 border-t border-gray-200">
           <div className="flex space-x-2">
             <NexusButton
               onClick={handleClose}
@@ -303,16 +279,6 @@ export default function ListingFormModal({
             >
               キャンセル
             </NexusButton>
-            {selectedTemplate && (
-              <NexusButton
-                onClick={() => setPreviewMode(!previewMode)}
-                variant="secondary"
-                icon={<EyeIcon className="w-4 h-4" />}
-                disabled={isSubmitting}
-              >
-                {previewMode ? 'プレビューを閉じる' : 'プレビューを表示'}
-              </NexusButton>
-            )}
           </div>
           <NexusButton
             onClick={handleSubmit}
