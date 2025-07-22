@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import UnifiedPageHeader from '@/app/components/ui/UnifiedPageHeader';
 import PickingListManager from '@/app/components/features/picking/PickingListManager';
@@ -44,6 +44,7 @@ interface PickingStats {
 }
 
 export default function PickingPage() {
+  const taskDetailModalRef = useRef<HTMLDivElement>(null);
   const [viewMode, setViewMode] = useState<'active' | 'progress' | 'history'>('active');
   const [pickingTasks, setPickingTasks] = useState<PickingTask[]>([]);
   const [selectedTask, setSelectedTask] = useState<PickingTask | null>(null);
@@ -61,6 +62,13 @@ export default function PickingPage() {
   useEffect(() => {
     fetchPickingData();
   }, []);
+
+  // タスク詳細モーダルのスクロール位置リセット
+  useEffect(() => {
+    if (selectedTask && taskDetailModalRef.current) {
+      taskDetailModalRef.current.scrollTop = 0;
+    }
+  }, [selectedTask]);
 
   const fetchPickingData = async () => {
     try {
@@ -457,7 +465,7 @@ export default function PickingPage() {
                 </div>
               </div>
 
-              <div className="p-8 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <div className="p-8 overflow-y-auto max-h-[calc(90vh-120px)]" ref={taskDetailModalRef}>
                 <div className="mb-6">
                   <h4 className="font-semibold mb-4 text-nexus-text-primary">ピッキングアイテム</h4>
                   <div className="space-y-3">

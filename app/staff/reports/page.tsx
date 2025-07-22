@@ -45,6 +45,7 @@ interface TrendData {
 
 export default function BusinessReportsPage() {
   const { showToast } = useToast();
+  const reportModalRef = useRef<HTMLDivElement>(null);
   const [workloadData, setWorkloadData] = useState<WorkloadData[]>([]);
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([]);
   const [businessFlowData, setBusinessFlowData] = useState<BusinessFlowData[]>([]);
@@ -217,6 +218,13 @@ export default function BusinessReportsPage() {
     setPerformanceData(demoPerformanceData);
   }, []);
 
+  // レポートモーダルのスクロール位置リセット
+  useEffect(() => {
+    if (isReportModalOpen && reportModalRef.current) {
+      reportModalRef.current.scrollTop = 0;
+    }
+  }, [isReportModalOpen]);
+
   const totalTasks = workloadData.reduce((sum, data) => sum + data.tasksCompleted, 0);
   const avgEfficiency = workloadData.reduce((sum, data) => sum + data.efficiency, 0) / workloadData.length;
   const totalInspections = performanceData.reduce((sum, data) => sum + data.inspections, 0);
@@ -342,8 +350,9 @@ export default function BusinessReportsPage() {
         {/* Business Report Modal */}
         {isReportModalOpen && (
           <div className="fixed inset-0 bg-gray-500 bg-opacity-30 z-50 flex justify-center items-center">
-            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-[1600px]">
-              <h2 className="text-lg font-bold mb-4">カスタム業務レポート作成</h2>
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-[1600px] max-h-[90vh] overflow-hidden">
+              <div className="p-6 overflow-y-auto max-h-[90vh]" ref={reportModalRef}>
+                <h2 className="text-lg font-bold mb-4">カスタム業務レポート作成</h2>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
 import AIQualityResult from '@/app/components/features/inspection/AIQualityResult';
@@ -32,6 +32,7 @@ export default function PhotoUploader({
   onPrev,
   category = 'accessory',
 }: PhotoUploaderProps) {
+  const beforeAfterModalRef = useRef<HTMLDivElement>(null);
   const { showToast } = useToast();
   const [uploadedPhotos, setUploadedPhotos] = useState<string[]>(photos || []);
   const [loading, setLoading] = useState(false);
@@ -338,6 +339,13 @@ export default function PhotoUploader({
 
   const canProceed = uploadedPhotos.length >= 1; // 最低1枚必要
 
+  // ビフォアアフターモーダルのスクロール位置リセット
+  useEffect(() => {
+    if (showBeforeAfter && beforeAfterModalRef.current) {
+      beforeAfterModalRef.current.scrollTop = 0;
+    }
+  }, [showBeforeAfter]);
+
   return (
     <div className="space-y-2">
       {/* 上部: 説明 + アップロード（コンパクト） */}
@@ -608,7 +616,7 @@ export default function PhotoUploader({
       {/* AI品質向上 ビフォア・アフター比較モーダル */}
       {showBeforeAfter && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-6xl max-h-[90vh] overflow-auto">
+          <div className="bg-white rounded-lg max-w-6xl max-h-[90vh] overflow-auto" ref={beforeAfterModalRef}>
             <div className="p-4 border-b">
               <h3 className="text-lg font-semibold">AI品質向上 - ビフォア・アフター比較</h3>
               <p className="text-sm text-gray-600 mt-1">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import { BaseModal, NexusButton, NexusInput, NexusSelect, NexusTextarea } from '../ui';
@@ -13,6 +13,7 @@ interface ProductRegistrationModalProps {
 }
 
 export default function ProductRegistrationModal({ isOpen, onClose, onSubmit, initialData }: ProductRegistrationModalProps) {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [formData, setFormData] = useState({
     name: '',
     sku: '',
@@ -43,6 +44,13 @@ export default function ProductRegistrationModal({ isOpen, onClose, onSubmit, in
       });
     }
   }, [initialData, isOpen]);
+
+  // スクロール位置のリセット
+  useEffect(() => {
+    if (isOpen && scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
+  }, [isOpen]);
   const [isLoading, setIsLoading] = useState(false);
   const { showToast } = useToast();
 
@@ -162,7 +170,7 @@ export default function ProductRegistrationModal({ isOpen, onClose, onSubmit, in
       size="md"
       className="max-w-2xl"
     >
-      <div className="max-h-[90vh] overflow-y-auto">
+      <div className="max-h-[90vh] overflow-y-auto" ref={scrollContainerRef}>
 
         
         <form onSubmit={handleSubmit} className="space-y-4">

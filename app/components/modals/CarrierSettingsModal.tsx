@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { BaseModal, NexusButton, NexusInput, NexusTextarea, NexusCheckbox } from '../ui';
 
@@ -21,6 +21,7 @@ interface Carrier {
 }
 
 export default function CarrierSettingsModal({ isOpen, onClose, onSave }: CarrierSettingsModalProps) {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [carriers, setCarriers] = useState<Carrier[]>([
     {
       id: 'yamato',
@@ -51,6 +52,13 @@ export default function CarrierSettingsModal({ isOpen, onClose, onSave }: Carrie
     }
   ]);
 
+  // スクロール位置のリセット
+  useEffect(() => {
+    if (isOpen && scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
+  }, [isOpen]);
+
   const handleCarrierChange = (carrierId: string, field: keyof Carrier, value: any) => {
     setCarriers(prev => prev.map(carrier => 
       carrier.id === carrierId 
@@ -74,7 +82,7 @@ export default function CarrierSettingsModal({ isOpen, onClose, onSave }: Carrie
       size="lg"
       className="max-w-4xl"
     >
-      <div className="max-h-[90vh] overflow-y-auto">
+      <div className="max-h-[90vh] overflow-y-auto" ref={scrollContainerRef}>
 
         
         <div className="space-y-6">

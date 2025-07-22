@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { XMarkIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { BaseModal, NexusButton, NexusInput } from '../ui';
 
@@ -22,6 +22,7 @@ interface Material {
 }
 
 export default function PackingMaterialsModal({ isOpen, onClose, onOrder }: PackingMaterialsModalProps) {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [materials, setMaterials] = useState<Material[]>([
     {
       id: 'bubble',
@@ -85,6 +86,13 @@ export default function PackingMaterialsModal({ isOpen, onClose, onOrder }: Pack
     }
   ]);
 
+  // スクロール位置のリセット
+  useEffect(() => {
+    if (isOpen && scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
+  }, [isOpen]);
+
   const handleQuantityChange = (materialId: string, quantity: number) => {
     setMaterials(prev => prev.map(material => 
       material.id === materialId 
@@ -117,7 +125,7 @@ export default function PackingMaterialsModal({ isOpen, onClose, onOrder }: Pack
       size="lg"
       className="max-w-4xl"
     >
-      <div className="max-h-[90vh] overflow-y-auto">
+      <div className="max-h-[90vh] overflow-y-auto" ref={scrollContainerRef}>
 
         {lowStockItems.length > 0 && (
           <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">

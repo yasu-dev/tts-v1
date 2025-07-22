@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
 import TimestampVideoRecorder from '@/app/components/features/video/TimestampVideoRecorder';
@@ -34,11 +34,27 @@ export default function PackingInstructions({
   onComplete,
   onClose
 }: PackingInstructionsProps) {
+  const modalScrollRef = useRef<HTMLDivElement>(null);
+  const videoModalScrollRef = useRef<HTMLDivElement>(null);
   const { showToast } = useToast();
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const [currentStep, setCurrentStep] = useState(0);
   const [showVideoRecorder, setShowVideoRecorder] = useState(false);
   const [videoId, setVideoId] = useState<string | null>(null);
+
+  // メインモーダルのスクロール位置リセット
+  useEffect(() => {
+    if (modalScrollRef.current) {
+      modalScrollRef.current.scrollTop = 0;
+    }
+  }, []);
+
+  // ビデオレコーダーモーダルのスクロール位置リセット
+  useEffect(() => {
+    if (showVideoRecorder && videoModalScrollRef.current) {
+      videoModalScrollRef.current.scrollTop = 0;
+    }
+  }, [showVideoRecorder]);
 
   // 商品価値に応じた梱包レベルを決定
   const getPackingLevel = (value: number) => {
@@ -260,7 +276,7 @@ export default function PackingInstructions({
           </div>
         </div>
 
-        <div className="overflow-y-auto" style={{ maxHeight: 'calc(90vh - 200px)' }}>
+        <div className="overflow-y-auto" style={{ maxHeight: 'calc(90vh - 200px)' }} ref={modalScrollRef}>
           {/* 商品情報 */}
           <div className="p-6 bg-nexus-bg-secondary border-b border-nexus-border">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -377,7 +393,7 @@ export default function PackingInstructions({
           {showVideoRecorder && (
             <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-[10002] p-4 pt-8">
               <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
-                <div className="p-6">
+                <div className="p-6 overflow-y-auto max-h-[90vh]" ref={videoModalScrollRef}>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-bold">梱包作業の動画記録</h3>
                     <button

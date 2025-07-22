@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import BaseModal from '@/app/components/ui/BaseModal';
 import NexusButton from '@/app/components/ui/NexusButton';
@@ -41,6 +41,7 @@ interface LocationListProps {
 }
 
 export default function LocationList({ searchQuery = '' }: LocationListProps) {
+  const modalScrollRef = useRef<HTMLDivElement>(null);
   const [locations, setLocations] = useState<Location[]>([]);
   const [movements, setMovements] = useState<LocationMovement[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
@@ -75,6 +76,13 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
       setFilteredLocations(filtered);
     }
   }, [searchQuery, locations]);
+
+  // モーダルが開いたときにスクロール位置をリセット
+  useEffect(() => {
+    if (selectedLocation && modalScrollRef.current) {
+      modalScrollRef.current.scrollTop = 0;
+    }
+  }, [selectedLocation]);
 
   const fetchLocations = async () => {
     try {
@@ -599,7 +607,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
               </div>
             </div>
 
-            <div className="p-8 overflow-y-auto max-h-[calc(90vh-120px)]">
+            <div className="p-8 overflow-y-auto max-h-[calc(90vh-120px)]" ref={modalScrollRef}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                   <h4 className="font-semibold mb-3 text-nexus-text-primary">基本情報</h4>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { BaseModal, NexusButton, NexusCard, BusinessStatusIndicator } from './ui';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import { 
@@ -59,8 +59,16 @@ export default function ItemDetailModal({
   onStartPhotography,
   onStartListing
 }: ItemDetailModalProps) {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState<'details' | 'history' | 'notes'>('details');
   const { showToast } = useToast();
+
+  // スクロール位置のリセット
+  useEffect(() => {
+    if (isOpen && scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
+  }, [isOpen]);
 
   if (!isOpen || !item) return null;
 
@@ -190,7 +198,7 @@ export default function ItemDetailModal({
         </div>
 
         {/* Content */}
-        <div className="overflow-y-auto max-h-96">
+        <div className="overflow-y-auto max-h-96" ref={scrollContainerRef}>
           {activeTab === 'details' && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Basic Information */}

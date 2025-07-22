@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import NexusSelect from '@/app/components/ui/NexusSelect';
 import { getUnifiedIcon } from '@/app/components/ui/icons';
 
@@ -18,6 +18,7 @@ interface PickingHistoryRecord {
 }
 
 export default function PickingHistory() {
+  const modalScrollRef = useRef<HTMLDivElement>(null);
   const [historyRecords, setHistoryRecords] = useState<PickingHistoryRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterPeriod, setFilterPeriod] = useState('today');
@@ -27,6 +28,13 @@ export default function PickingHistory() {
   useEffect(() => {
     fetchHistory();
   }, [filterPeriod, sortBy]);
+
+  // モーダルが開いたときにスクロール位置をリセット
+  useEffect(() => {
+    if (selectedRecord && modalScrollRef.current) {
+      modalScrollRef.current.scrollTop = 0;
+    }
+  }, [selectedRecord]);
 
   const fetchHistory = async () => {
     setLoading(true);
@@ -334,27 +342,27 @@ export default function PickingHistory() {
       )}
 
       {/* 詳細モーダル */}
-      {selectedRecord && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start justify-center z-[10001] p-4 pt-8">
-          <div className="intelligence-card global max-w-[800px] w-full max-h-[90vh] overflow-hidden">
-            <div className="p-8 border-b border-nexus-border">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-xl font-display font-bold text-nexus-text-primary">
-                    ピッキング完了詳細
-                  </h3>
-                  <p className="text-nexus-text-secondary">{selectedRecord.orderId}</p>
+              {selectedRecord && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start justify-center z-[10001] p-4 pt-8">
+            <div className="intelligence-card global max-w-[800px] w-full max-h-[90vh] overflow-hidden">
+              <div className="p-8 border-b border-nexus-border">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-xl font-display font-bold text-nexus-text-primary">
+                      ピッキング完了詳細
+                    </h3>
+                    <p className="text-nexus-text-secondary">{selectedRecord.orderId}</p>
+                  </div>
+                  <button
+                    onClick={() => setSelectedRecord(null)}
+                    className="action-orb"
+                  >
+                    {getUnifiedIcon('tasks', 'w-5 h-5')}
+                  </button>
                 </div>
-                <button
-                  onClick={() => setSelectedRecord(null)}
-                  className="action-orb"
-                >
-                  {getUnifiedIcon('tasks', 'w-5 h-5')}
-                </button>
               </div>
-            </div>
 
-            <div className="p-8 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <div className="p-8 overflow-y-auto max-h-[calc(90vh-120px)]" ref={modalScrollRef}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>

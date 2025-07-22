@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect } from 'react';
+import React, { ReactNode, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { useModal } from './ModalContext';
 
@@ -35,6 +35,7 @@ export default function BaseModal({
   className = ''
 }: BaseModalProps) {
   const { setIsAnyModalOpen } = useModal();
+  const contentRef = useRef<HTMLDivElement>(null);
 
   // ESCキーでモーダルを閉じる
   useEffect(() => {
@@ -50,6 +51,11 @@ export default function BaseModal({
       document.body.style.overflow = 'hidden';
       // グローバル状態を更新（業務フローの状態は変更しない）
       setIsAnyModalOpen(true);
+      
+      // モーダルが開いたときにコンテンツエリアのスクロール位置を最上部にリセット
+      if (contentRef.current) {
+        contentRef.current.scrollTop = 0;
+      }
     } else {
       // グローバル状態をリセット（業務フローの状態は変更しない）
       setIsAnyModalOpen(false);
@@ -126,7 +132,7 @@ export default function BaseModal({
         )}
 
         {/* コンテンツ - paddingを削減 */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto p-4" ref={contentRef}>
           {children}
         </div>
       </div>

@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import UnifiedPageHeader from '@/app/components/ui/UnifiedPageHeader';
 import LocationList from '@/app/components/features/location/LocationList';
@@ -30,6 +30,7 @@ interface LocationStats {
 }
 
 export default function LocationPage() {
+  const scannerModalRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'register' | 'analytics'>('overview');
   const [isOptimizationModalOpen, setIsOptimizationModalOpen] = useState(false);
   const [isCountModalOpen, setIsCountModalOpen] = useState(false);
@@ -57,6 +58,13 @@ export default function LocationPage() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // スキャナーモーダルのスクロール位置リセット
+  useEffect(() => {
+    if (isScannerOpen && scannerModalRef.current) {
+      scannerModalRef.current.scrollTop = 0;
+    }
+  }, [isScannerOpen]);
 
   const handleOptimizeLocations = () => {
     setIsOptimizationModalOpen(true);
@@ -330,8 +338,8 @@ export default function LocationPage() {
         {/* Scanner Modal */}
         {isScannerOpen && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start justify-center z-[10001] p-4 pt-8">
-            <div className="intelligence-card global max-w-[1600px] w-full">
-              <div className="p-5">
+            <div className="intelligence-card global max-w-[1600px] w-full max-h-[90vh] overflow-hidden">
+              <div className="p-5 overflow-y-auto max-h-full" ref={scannerModalRef}>
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-bold text-nexus-text-primary">バーコードスキャン</h3>
                   <button

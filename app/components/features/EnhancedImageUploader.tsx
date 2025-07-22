@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
 
@@ -34,9 +34,17 @@ export default function EnhancedImageUploader({
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const previewModalRef = useRef<HTMLDivElement>(null);
 
   const [isDragActive, setIsDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 画像プレビューモーダルのスクロール位置リセット
+  useEffect(() => {
+    if (selectedImage && previewModalRef.current) {
+      previewModalRef.current.scrollTop = 0;
+    }
+  }, [selectedImage]);
 
   const handleFiles = useCallback((files: FileList | null) => {
     if (!files) return;
@@ -334,7 +342,8 @@ export default function EnhancedImageUploader({
       {/* Image Preview Modal */}
       {selectedImage && (
         <div
-          className="fixed inset-0 bg-black/80 z-50 flex items-start justify-center p-4 pt-8"
+          ref={previewModalRef}
+          className="fixed inset-0 bg-black/80 z-50 flex items-start justify-center p-4 pt-8 overflow-y-auto"
           onClick={() => setSelectedImage(null)}
         >
           <div className="relative max-w-4xl max-h-full">

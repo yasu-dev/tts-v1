@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import { BaseModal, NexusButton, NexusInput, NexusSelect, NexusTextarea, NexusLoadingSpinner } from './ui';
 
@@ -13,9 +13,17 @@ interface EditModalProps {
 }
 
 export default function EditModal({ isOpen, onClose, type, title, data }: EditModalProps) {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [formData, setFormData] = useState(data);
   const [isLoading, setIsLoading] = useState(false);
   const { showToast } = useToast();
+
+  // スクロール位置のリセット
+  useEffect(() => {
+    if (isOpen && scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -273,7 +281,7 @@ export default function EditModal({ isOpen, onClose, type, title, data }: EditMo
       size="xl"
     >
       <form id="edit-form" onSubmit={handleSubmit} className="flex flex-col h-full">
-        <div className="flex-1 overflow-y-auto p-6">
+        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-6">
           {renderForm()}
         </div>
 

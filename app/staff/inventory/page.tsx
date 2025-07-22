@@ -7,7 +7,7 @@ import ItemDetailModal from '../../components/ItemDetailModal';
 import ProductEditModal from '../../components/ProductEditModal';
 import ProductMoveModal from '../../components/ProductMoveModal';
 import BarcodeScanner from '../../components/features/BarcodeScanner';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   PencilIcon,
   ArrowsRightLeftIcon,
@@ -50,6 +50,7 @@ interface InventoryItem {
 }
 
 export default function StaffInventoryPage() {
+  const barcodeScannerRef = useRef<HTMLDivElement>(null);
   const { showToast } = useToast();
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<InventoryItem[]>([]);
@@ -168,6 +169,13 @@ export default function StaffInventoryPage() {
     const endIndex = startIndex + itemsPerPage;
     setPaginatedItems(filteredItems.slice(startIndex, endIndex));
   }, [filteredItems, currentPage, itemsPerPage]);
+
+  // バーコードスキャナーモーダルのスクロール位置リセット
+  useEffect(() => {
+    if (isBarcodeScannerOpen && barcodeScannerRef.current) {
+      barcodeScannerRef.current.scrollTop = 0;
+    }
+  }, [isBarcodeScannerOpen]);
 
   const updateItemStatus = (itemId: string, newStatus: InventoryItem['status']) => {
     setItems(prev => prev.map(item => 
@@ -655,8 +663,8 @@ export default function StaffInventoryPage() {
         {/* Barcode Scanner Modal */}
         {isBarcodeScannerOpen && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start justify-center z-[10001] p-4 pt-8">
-            <div className="intelligence-card global max-w-2xl w-full">
-              <div className="p-6">
+            <div className="intelligence-card global max-w-2xl w-full max-h-[90vh] overflow-hidden">
+              <div className="p-6 overflow-y-auto max-h-full" ref={barcodeScannerRef}>
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-xl font-semibold text-nexus-text-primary">バーコードスキャン</h3>
                   <NexusButton
