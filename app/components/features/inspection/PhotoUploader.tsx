@@ -341,8 +341,18 @@ export default function PhotoUploader({
 
   // ビフォアアフターモーダルのスクロール位置リセット
   useEffect(() => {
-    if (showBeforeAfter && beforeAfterModalRef.current) {
-      beforeAfterModalRef.current.scrollTop = 0;
+    if (showBeforeAfter) {
+      // ページ全体を最上部にスクロール - 正しいスクロールコンテナを対象
+      const scrollContainer = document.querySelector('.page-scroll-container');
+      if (scrollContainer) {
+        scrollContainer.scrollTop = 0;
+      } else {
+        window.scrollTo(0, 0);
+      }
+      
+      if (beforeAfterModalRef.current) {
+        beforeAfterModalRef.current.scrollTop = 0;
+      }
     }
   }, [showBeforeAfter]);
 
@@ -669,6 +679,13 @@ export default function PhotoUploader({
                             `;
                             modal.onclick = () => document.body.removeChild(modal);
                             document.body.appendChild(modal);
+                            // ページ全体を最上部にスクロール - 正しいスクロールコンテナを対象
+                            const scrollContainer = document.querySelector('.page-scroll-container');
+                            if (scrollContainer) {
+                              scrollContainer.scrollTop = 0;
+                            } else {
+                              window.scrollTo(0, 0);
+                            }
                           }}
                         />
                       </div>
@@ -693,12 +710,19 @@ export default function PhotoUploader({
                             modal.className = 'fixed inset-0 bg-black bg-opacity-90 z-[60] flex items-center justify-center p-4';
                             modal.innerHTML = `
                               <div class="relative max-w-full max-h-full">
-                                <img src="${enhancedPhotos[index]}" style="filter: brightness(1.05) contrast(1.08) saturate(1.1)" class="max-w-full max-h-full object-contain" />
+                                <img src="${enhancedPhotos[index]}" class="max-w-full max-h-full object-contain" style="filter: brightness(1.05) contrast(1.08) saturate(1.1);" />
                                 <button class="absolute top-4 right-4 bg-white rounded-full p-2 text-xl font-bold">&times;</button>
                               </div>
                             `;
                             modal.onclick = () => document.body.removeChild(modal);
                             document.body.appendChild(modal);
+                            // ページ全体を最上部にスクロール - 正しいスクロールコンテナを対象
+                            const scrollContainer = document.querySelector('.page-scroll-container');
+                            if (scrollContainer) {
+                              scrollContainer.scrollTop = 0;
+                            } else {
+                              window.scrollTo(0, 0);
+                            }
                           }}
                         />
                         {/* デモ用：品質向上済みを示すバッジ */}

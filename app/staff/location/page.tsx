@@ -61,8 +61,18 @@ export default function LocationPage() {
 
   // スキャナーモーダルのスクロール位置リセット
   useEffect(() => {
-    if (isScannerOpen && scannerModalRef.current) {
-      scannerModalRef.current.scrollTop = 0;
+    if (isScannerOpen) {
+      // ページ全体を最上部にスクロール - 正しいスクロールコンテナを対象
+      const scrollContainer = document.querySelector('.page-scroll-container');
+      if (scrollContainer) {
+        scrollContainer.scrollTop = 0;
+      } else {
+        window.scrollTo(0, 0);
+      }
+      
+      if (scannerModalRef.current) {
+        scannerModalRef.current.scrollTop = 0;
+      }
     }
   }, [isScannerOpen]);
 

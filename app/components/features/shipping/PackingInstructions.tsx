@@ -44,6 +44,14 @@ export default function PackingInstructions({
 
   // メインモーダルのスクロール位置リセット
   useEffect(() => {
+    // ページ全体を最上部にスクロール - 正しいスクロールコンテナを対象
+    const scrollContainer = document.querySelector('.page-scroll-container');
+    if (scrollContainer) {
+      scrollContainer.scrollTop = 0;
+    } else {
+      window.scrollTo(0, 0);
+    }
+    
     if (modalScrollRef.current) {
       modalScrollRef.current.scrollTop = 0;
     }
@@ -51,8 +59,18 @@ export default function PackingInstructions({
 
   // ビデオレコーダーモーダルのスクロール位置リセット
   useEffect(() => {
-    if (showVideoRecorder && videoModalScrollRef.current) {
-      videoModalScrollRef.current.scrollTop = 0;
+    if (showVideoRecorder) {
+      // ページ全体を最上部にスクロール - 正しいスクロールコンテナを対象
+      const scrollContainer = document.querySelector('.page-scroll-container');
+      if (scrollContainer) {
+        scrollContainer.scrollTop = 0;
+      } else {
+        window.scrollTo(0, 0);
+      }
+      
+      if (videoModalScrollRef.current) {
+        videoModalScrollRef.current.scrollTop = 0;
+      }
     }
   }, [showVideoRecorder]);
 

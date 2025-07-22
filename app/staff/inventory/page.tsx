@@ -172,8 +172,18 @@ export default function StaffInventoryPage() {
 
   // バーコードスキャナーモーダルのスクロール位置リセット
   useEffect(() => {
-    if (isBarcodeScannerOpen && barcodeScannerRef.current) {
-      barcodeScannerRef.current.scrollTop = 0;
+    if (isBarcodeScannerOpen) {
+      // ページ全体を最上部にスクロール - 正しいスクロールコンテナを対象
+      const scrollContainer = document.querySelector('.page-scroll-container');
+      if (scrollContainer) {
+        scrollContainer.scrollTop = 0;
+      } else {
+        window.scrollTo(0, 0);
+      }
+      
+      if (barcodeScannerRef.current) {
+        barcodeScannerRef.current.scrollTop = 0;
+      }
     }
   }, [isBarcodeScannerOpen]);
 

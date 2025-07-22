@@ -52,6 +52,15 @@ export default function BaseModal({
       // グローバル状態を更新（業務フローの状態は変更しない）
       setIsAnyModalOpen(true);
       
+      // ページ全体を最上部にスクロール - 正しいスクロールコンテナを対象
+      const scrollContainer = document.querySelector('.page-scroll-container');
+      if (scrollContainer) {
+        scrollContainer.scrollTop = 0;
+      } else {
+        // フォールバック（ログインページなど、DashboardLayoutを使用していない場合）
+        window.scrollTo(0, 0);
+      }
+      
       // モーダルが開いたときにコンテンツエリアのスクロール位置を最上部にリセット
       if (contentRef.current) {
         contentRef.current.scrollTop = 0;

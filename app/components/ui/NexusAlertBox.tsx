@@ -63,10 +63,20 @@ export default function NexusAlertBox({
     }
   }, [isOpen, onClose]);
 
-  // フォーカス管理
+  // フォーカス管理とスクロール制御
   useEffect(() => {
-    if (isOpen && alertRef.current) {
-      alertRef.current.focus();
+    if (isOpen) {
+      // ページ全体を最上部にスクロール - 正しいスクロールコンテナを対象
+      const scrollContainer = document.querySelector('.page-scroll-container');
+      if (scrollContainer) {
+        scrollContainer.scrollTop = 0;
+      } else {
+        window.scrollTo(0, 0);
+      }
+      
+      if (alertRef.current) {
+        alertRef.current.focus();
+      }
     }
   }, [isOpen]);
 

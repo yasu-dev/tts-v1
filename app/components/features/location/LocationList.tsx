@@ -79,8 +79,18 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
 
   // モーダルが開いたときにスクロール位置をリセット
   useEffect(() => {
-    if (selectedLocation && modalScrollRef.current) {
-      modalScrollRef.current.scrollTop = 0;
+    if (selectedLocation) {
+      // ページ全体を最上部にスクロール - 正しいスクロールコンテナを対象
+      const scrollContainer = document.querySelector('.page-scroll-container');
+      if (scrollContainer) {
+        scrollContainer.scrollTop = 0;
+      } else {
+        window.scrollTo(0, 0);
+      }
+      
+      if (modalScrollRef.current) {
+        modalScrollRef.current.scrollTop = 0;
+      }
     }
   }, [selectedLocation]);
 

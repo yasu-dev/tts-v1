@@ -41,8 +41,18 @@ export default function EnhancedImageUploader({
 
   // 画像プレビューモーダルのスクロール位置リセット
   useEffect(() => {
-    if (selectedImage && previewModalRef.current) {
-      previewModalRef.current.scrollTop = 0;
+    if (selectedImage) {
+      // ページ全体を最上部にスクロール - 正しいスクロールコンテナを対象
+      const scrollContainer = document.querySelector('.page-scroll-container');
+      if (scrollContainer) {
+        scrollContainer.scrollTop = 0;
+      } else {
+        window.scrollTo(0, 0);
+      }
+      
+      if (previewModalRef.current) {
+        previewModalRef.current.scrollTop = 0;
+      }
     }
   }, [selectedImage]);
 

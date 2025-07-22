@@ -65,8 +65,18 @@ export default function PickingPage() {
 
   // タスク詳細モーダルのスクロール位置リセット
   useEffect(() => {
-    if (selectedTask && taskDetailModalRef.current) {
-      taskDetailModalRef.current.scrollTop = 0;
+    if (selectedTask) {
+      // ページ全体を最上部にスクロール - 正しいスクロールコンテナを対象
+      const scrollContainer = document.querySelector('.page-scroll-container');
+      if (scrollContainer) {
+        scrollContainer.scrollTop = 0;
+      } else {
+        window.scrollTo(0, 0);
+      }
+      
+      if (taskDetailModalRef.current) {
+        taskDetailModalRef.current.scrollTop = 0;
+      }
     }
   }, [selectedTask]);
 

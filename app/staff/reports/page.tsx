@@ -220,8 +220,18 @@ export default function BusinessReportsPage() {
 
   // レポートモーダルのスクロール位置リセット
   useEffect(() => {
-    if (isReportModalOpen && reportModalRef.current) {
-      reportModalRef.current.scrollTop = 0;
+    if (isReportModalOpen) {
+      // ページ全体を最上部にスクロール - 正しいスクロールコンテナを対象
+      const scrollContainer = document.querySelector('.page-scroll-container');
+      if (scrollContainer) {
+        scrollContainer.scrollTop = 0;
+      } else {
+        window.scrollTo(0, 0);
+      }
+      
+      if (reportModalRef.current) {
+        reportModalRef.current.scrollTop = 0;
+      }
     }
   }, [isReportModalOpen]);
 

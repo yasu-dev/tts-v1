@@ -31,8 +31,18 @@ export default function PickingHistory() {
 
   // モーダルが開いたときにスクロール位置をリセット
   useEffect(() => {
-    if (selectedRecord && modalScrollRef.current) {
-      modalScrollRef.current.scrollTop = 0;
+    if (selectedRecord) {
+      // ページ全体を最上部にスクロール - 正しいスクロールコンテナを対象
+      const scrollContainer = document.querySelector('.page-scroll-container');
+      if (scrollContainer) {
+        scrollContainer.scrollTop = 0;
+      } else {
+        window.scrollTo(0, 0);
+      }
+      
+      if (modalScrollRef.current) {
+        modalScrollRef.current.scrollTop = 0;
+      }
     }
   }, [selectedRecord]);
 
