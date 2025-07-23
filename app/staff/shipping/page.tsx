@@ -20,6 +20,8 @@ import NexusButton from '@/app/components/ui/NexusButton';
 import Pagination from '@/app/components/ui/Pagination';
 import { NexusLoadingSpinner } from '@/app/components/ui';
 import { BusinessStatusIndicator } from '@/app/components/ui/StatusIndicator';
+// import WorkflowProgress from '@/app/components/ui/WorkflowProgress';
+// import { getWorkflowProgress, getNextAction, ShippingStatus } from '@/lib/utils/workflow';
 
 interface ShippingItem {
   id: string;
@@ -604,6 +606,57 @@ export default function StaffShippingPage() {
             </div>
           </div>
         </div>
+
+                  {/* Workflow Progress Section - 選択された商品の進捗表示 (一時的に無効化) */}
+          {/* {selectedDetailItem && (
+            <div className="intelligence-card global">
+              <div className="p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-lg font-semibold text-nexus-text-primary">
+                      作業進捗: {selectedDetailItem.productName}
+                    </h3>
+                    <p className="text-sm text-nexus-text-secondary mt-1">
+                      注文番号: {selectedDetailItem.orderNumber} | 顧客: {selectedDetailItem.customer}
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className={`cert-nano ${
+                      selectedDetailItem.priority === 'urgent' ? 'cert-ruby' :
+                      selectedDetailItem.priority === 'normal' ? 'cert-mint' : 'cert-gold'
+                    }`}>
+                      {selectedDetailItem.priority === 'urgent' ? '緊急' :
+                       selectedDetailItem.priority === 'normal' ? '通常' : '低'}
+                    </span>
+                    <span className="text-sm text-nexus-text-secondary">
+                      期限: {selectedDetailItem.dueDate}
+                    </span>
+                  </div>
+                </div>
+
+                <WorkflowProgress 
+                  steps={getWorkflowProgress(selectedDetailItem.status as ShippingStatus)}
+                  className="mb-6"
+                />
+
+                <div className="bg-nexus-bg-secondary rounded-lg p-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="action-orb blue">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-nexus-text-primary mb-1">次のアクション</h4>
+                      <p className="text-sm text-nexus-text-secondary">
+                        {getNextAction(selectedDetailItem.status as ShippingStatus)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )} */}
 
         {/* Filters and Shipping Items */}
         <div className="intelligence-card global">

@@ -91,7 +91,7 @@ export default function LoginPage() {
           {/* Login Form */}
           <div className="intelligence-card global shadow-xl">
             <div className="p-8">
-              <form className="space-y-6" onSubmit={handleSubmit}>
+              <form className="space-y-6" onSubmit={handleSubmit} method="post">
                 {error && (
                   <div className="bg-nexus-red/8 border-2 border-nexus-red/20 text-nexus-red p-4 rounded-lg text-sm font-medium flex items-center">
                     <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
