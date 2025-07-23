@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { BaseModal, NexusButton, BusinessStatusIndicator } from '../ui';
 import { useToast } from '../features/notifications/ToastProvider';
 import ShippingLabelUploadModal from './ShippingLabelUploadModal';
+import PackingVideoModal from './PackingVideoModal';
 import { 
   TruckIcon, 
   PrinterIcon, 
@@ -14,7 +15,9 @@ import {
   DocumentTextIcon,
   BanknotesIcon,
   DocumentArrowUpIcon,
-  DocumentCheckIcon
+  DocumentCheckIcon,
+  PhotoIcon,
+  VideoCameraIcon
 } from '@heroicons/react/24/outline';
 
 interface ShippingItem {
@@ -34,6 +37,8 @@ interface ShippingItem {
   location?: string;
   shippingLabelUrl?: string;
   shippingLabelProvider?: 'seller' | 'worlddoor';
+  productImages?: string[];
+  inspectionImages?: string[];
 }
 
 interface ShippingDetailModalProps {
@@ -54,13 +59,14 @@ export default function ShippingDetailModal({
   onPackingInstruction
 }: ShippingDetailModalProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [activeTab, setActiveTab] = useState<'details' | 'history' | 'notes'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'history' | 'notes' | 'images'>('details');
   const { showToast } = useToast();
   const [isLabelUploadModalOpen, setIsLabelUploadModalOpen] = useState(false);
   const [shippingLabelUrl, setShippingLabelUrl] = useState<string | null>(item?.shippingLabelUrl || null);
   const [shippingLabelProvider, setShippingLabelProvider] = useState<'seller' | 'worlddoor' | null>(
     item?.shippingLabelProvider || null
   );
+  const [isPackingVideoModalOpen, setIsPackingVideoModalOpen] = useState(false);
 
   // スクロール位置のリセット
   useEffect(() => {
@@ -105,26 +111,80 @@ export default function ShippingDetailModal({
     });
   };
 
-  const handlePrintLabel = () => {
-    if (onPrintLabel) {
-      onPrintLabel(item);
+  const handlePackingVideoComplete = () => {
+    setIsPackingVideoModalOpen(false);
+    
+    // ステータスを梱包済みに更新
+    if (onStatusUpdate) {
+      onStatusUpdate(item.id, 'packed');
     }
+    
     showToast({
-      title: '印刷開始',
-      message: `${item.productName}の配送ラベルを印刷します`,
-      type: 'info'
+      title: '梱包完了',
+      message: `${item.productName}の梱包が完了しました`,
+      type: 'success'
     });
   };
 
-  const handlePackingInstruction = () => {
-    if (onPackingInstruction) {
-      onPackingInstruction(item);
+  const handlePrintLabel = async () => {
+    try {
+      // PDF生成APIを呼び出し
+      const response = await fetch('/api/pdf/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'shipping-label',
+          data: {
+            orderId: item.id,
+            orderNumber: item.orderNumber,
+            productName: item.productName,
+            productSku: item.productSku,
+            customer: item.customer,
+            shippingAddress: item.shippingAddress,
+            shippingMethod: item.shippingMethod,
+            value: item.value
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('PDF生成に失敗しました');
+      }
+
+      const data = await response.json();
+      
+      // PDFをダウンロード
+      const link = document.createElement('a');
+      link.href = `data:application/pdf;base64,${data.base64Data}`;
+      link.download = `shipping-label-${item.orderNumber}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      showToast({
+        title: 'ラベル印刷完了',
+        message: `${item.productName}の配送ラベルを印刷しました`,
+        type: 'success'
+      });
+
+      // 親コンポーネントのハンドラーも呼び出し
+      if (onPrintLabel) {
+        onPrintLabel(item);
+      }
+    } catch (error) {
+      console.error('Label printing error:', error);
+      showToast({
+        title: 'ラベル印刷エラー',
+        message: 'ラベルの印刷に失敗しました',
+        type: 'error'
+      });
     }
-    showToast({
-      title: '梱包指示',
-      message: `${item.productName}の梱包指示を開始します`,
-      type: 'info'
-    });
+  };
+
+  const handlePackingInstruction = () => {
+    setIsPackingVideoModalOpen(true);
   };
 
   const handleLabelUploadComplete = (labelUrl: string, provider: 'seller' | 'worlddoor') => {
@@ -203,11 +263,12 @@ export default function ShippingDetailModal({
         {/* Tabs */}
         <div className="border-b border-nexus-border mb-6">
           <nav className="flex space-x-8">
-            {[
-              { id: 'details', label: '詳細情報', icon: DocumentTextIcon },
-              { id: 'history', label: '履歴', icon: ClockIcon },
-              { id: 'notes', label: '備考', icon: DocumentTextIcon }
-            ].map((tab) => (
+            {              [
+                { id: 'details', label: '詳細情報', icon: DocumentTextIcon },
+                { id: 'history', label: '履歴', icon: ClockIcon },
+                { id: 'notes', label: '備考', icon: DocumentTextIcon },
+                { id: 'images', label: '画像', icon: PhotoIcon }
+              ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
@@ -396,11 +457,75 @@ export default function ShippingDetailModal({
                   <p className="text-yellow-700 text-sm mt-1">
                     商品価値が50万円を超えています。取り扱いには十分注意し、保険付き配送を推奨します。
                   </p>
+                              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'images' && (
+          <div className="space-y-6">
+            {/* 納品時画像 */}
+            <div>
+              <h3 className="text-lg font-semibold text-nexus-text-primary mb-4">
+                納品時画像
+              </h3>
+              {item.productImages && item.productImages.length > 0 ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {item.productImages.map((image, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={image || '/api/placeholder/200/200'}
+                        alt={`納品時画像 ${index + 1}`}
+                        className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                        onClick={() => window.open(image, '_blank')}
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg flex items-center justify-center">
+                        <span className="text-white opacity-0 group-hover:opacity-100 text-sm">
+                          クリックして拡大
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-nexus-bg-secondary rounded-lg p-8 text-center">
+                  <p className="text-nexus-text-secondary">納品時画像がありません</p>
                 </div>
               )}
             </div>
-          )}
-        </div>
+
+            {/* 検品時画像 */}
+            <div>
+              <h3 className="text-lg font-semibold text-nexus-text-primary mb-4">
+                検品時画像
+              </h3>
+              {item.inspectionImages && item.inspectionImages.length > 0 ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {item.inspectionImages.map((image, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={image || '/api/placeholder/200/200'}
+                        alt={`検品時画像 ${index + 1}`}
+                        className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                        onClick={() => window.open(image, '_blank')}
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg flex items-center justify-center">
+                        <span className="text-white opacity-0 group-hover:opacity-100 text-sm">
+                          クリックして拡大
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-nexus-bg-secondary rounded-lg p-8 text-center">
+                  <p className="text-nexus-text-secondary">検品時画像がありません</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
 
         {/* Action Buttons */}
         <div className="border-t border-nexus-border pt-6">
@@ -463,9 +588,9 @@ export default function ShippingDetailModal({
                     onClick={handlePackingInstruction}
                     variant="secondary"
                     size="sm"
-                    icon={<ArchiveBoxIcon className="w-4 h-4" />}
+                    icon={<VideoCameraIcon className="w-4 h-4" />}
                   >
-                    梱包指示
+                    梱包動画記録
                   </NexusButton>
                 )}
                 {item.status === 'packed' && (
@@ -519,6 +644,14 @@ export default function ShippingDetailModal({
       onClose={() => setIsLabelUploadModalOpen(false)}
       itemId={item.id}
       onUploadComplete={handleLabelUploadComplete}
+    />
+    {/* 梱包動画記録モーダル */}
+    <PackingVideoModal
+      isOpen={isPackingVideoModalOpen}
+      onClose={() => setIsPackingVideoModalOpen(false)}
+      productId={item.id}
+      productName={item.productName}
+      onComplete={handlePackingVideoComplete}
     />
     </>
   );

@@ -169,4 +169,57 @@ test.describe('出荷管理機能改善', () => {
     // 成功メッセージが表示されることを確認
     await expect(page.getByText('ステータスを検査済みに更新しました')).toBeVisible();
   });
+
+  test('納品時画像へのアクセス', async ({ page }) => {
+    // 商品名をクリックして詳細モーダルを開く
+    await page.locator('.hover\\:underline').first().click();
+    
+    // 画像タブが表示されることを確認
+    const imagesTab = page.getByRole('button', { name: '画像' });
+    await expect(imagesTab).toBeVisible();
+    
+    // 画像タブをクリック
+    await imagesTab.click();
+    
+    // 納品時画像セクションが表示されることを確認
+    await expect(page.getByText('納品時画像')).toBeVisible();
+    await expect(page.getByText('検品時画像')).toBeVisible();
+    
+    // 画像が表示されることを確認（モックデータの場合）
+    const productImages = page.locator('img[alt^="納品時画像"]');
+    const imageCount = await productImages.count();
+    
+    if (imageCount > 0) {
+      // 画像がある場合、クリックして拡大表示のテキストが表示されることを確認
+      await productImages.first().hover();
+      await expect(page.getByText('クリックして拡大')).toBeVisible();
+    } else {
+      // 画像がない場合のメッセージを確認
+      await expect(page.getByText('納品時画像がありません')).toBeVisible();
+    }
+  });
+
+  test('梱包動画記録機能', async ({ page }) => {
+    // 検品済みの商品を探す
+    await page.getByRole('button', { name: /梱包待ち/ }).click();
+    
+    // 最初の商品の詳細を開く
+    await page.locator('.hover\\:underline').first().click();
+    
+    // 梱包動画記録ボタンが表示されることを確認
+    const packingButton = page.getByRole('button', { name: /梱包動画記録/ });
+    await expect(packingButton).toBeVisible();
+    
+    // 梱包動画記録ボタンをクリック
+    await packingButton.click();
+    
+    // 梱包動画記録モーダルが開くことを確認
+    await expect(page.getByText('梱包作業動画記録（任意）')).toBeVisible();
+    
+    // スキップボタンが表示されることを確認（任意機能）
+    await expect(page.getByRole('button', { name: 'スキップ' })).toBeVisible();
+    
+    // 動画記録コンポーネントが表示されることを確認
+    await expect(page.getByText('梱包作業の動画記録について')).toBeVisible();
+  });
 }); 

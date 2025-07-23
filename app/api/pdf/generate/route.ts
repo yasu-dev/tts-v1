@@ -33,6 +33,12 @@ export async function POST(request: NextRequest) {
         fileName = `barcode_labels_${Date.now()}.pdf`;
         break;
 
+      case 'shipping-label':
+        // 配送ラベルの生成
+        pdfBlob = await PDFGenerator.generateShippingLabel(data);
+        fileName = `shipping_label_${data.orderNumber || Date.now()}.pdf`;
+        break;
+
       case 'delivery-note':
         // 納品書の生成
         pdfBlob = await PDFGenerator.generateDeliveryNote(data);

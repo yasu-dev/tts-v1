@@ -4,7 +4,7 @@ import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import UnifiedPageHeader from '@/app/components/ui/UnifiedPageHeader';
 import WorkflowProgress from '@/app/components/ui/WorkflowProgress';
 import BarcodeScanner from '@/app/components/features/BarcodeScanner';
-import PackingInstructions from '@/app/components/features/shipping/PackingInstructions';
+import PackingVideoModal from '@/app/components/modals/PackingVideoModal';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
@@ -44,6 +44,8 @@ interface ShippingItem {
   shippingMethod: string;
   value: number;
   location?: string; // Added location field
+  productImages?: string[]; // Added productImages field
+  inspectionImages?: string[]; // Added inspectionImages field
 }
 
 export default function StaffShippingPage() {
@@ -66,6 +68,7 @@ export default function StaffShippingPage() {
   const [activeTab, setActiveTab] = useState<string>('all');
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [expandedRows, setExpandedRows] = useState<string[]>([]);
+  const [isPackingVideoModalOpen, setIsPackingVideoModalOpen] = useState(false);
 
   // ページング状態
   const [currentPage, setCurrentPage] = useState(1);
@@ -87,24 +90,31 @@ export default function StaffShippingPage() {
     // モックデータを拡張
     const mockItems: ShippingItem[] = [
       {
-        id: 'ship-001',
+        id: 'SHIP-001',
         productName: 'Canon EOS R5 ボディ',
-        productSku: 'TWD-CAM-001',
-        orderNumber: 'ORD-2024-0628-001',
+        productSku: 'CAM-001',
+        orderNumber: 'ORD-2024-0001',
         customer: '山田太郎',
-        shippingAddress: '東京都渋谷区1-1-1',
+        shippingAddress: '東京都渋谷区1-2-3',
         status: 'pending_inspection',
         priority: 'urgent',
-        dueDate: '17:00',
+        dueDate: '2024-01-20',
         shippingMethod: 'ヤマト宅急便',
         value: 450000,
-        location: 'A-01'
+        location: 'A-01',
+        productImages: [
+          '/api/placeholder/400/300',
+          '/api/placeholder/400/300',
+          '/api/placeholder/400/300',
+          '/api/placeholder/400/300'
+        ],
+        inspectionImages: []
       },
       {
-        id: 'ship-002',
+        id: 'SHIP-002',
         productName: 'Sony α7R V ボディ',
-        productSku: 'TWD-CAM-002',
-        orderNumber: 'ORD-2024-0628-002',
+        productSku: 'CAM-002',
+        orderNumber: 'ORD-2024-0002',
         customer: '鈴木花子',
         shippingAddress: '神奈川県横浜市1-1-1',
         status: 'packed',
@@ -113,13 +123,15 @@ export default function StaffShippingPage() {
         inspectionNotes: '動作確認済み、外観良好',
         shippingMethod: 'ヤマト宅急便',
         value: 398000,
-        location: 'A-02'
+        location: 'A-02',
+        productImages: [],
+        inspectionImages: []
       },
       {
-        id: 'ship-003',
+        id: 'SHIP-003',
         productName: 'Sony FE 24-70mm f/2.8',
-        productSku: 'TWD-LEN-005',
-        orderNumber: 'ORD-2024-0628-003',
+        productSku: 'LEN-005',
+        orderNumber: 'ORD-2024-0003',
         customer: '田中一郎',
         shippingAddress: '愛知県名古屋市中区栄1-1-1',
         status: 'inspected',
@@ -128,13 +140,15 @@ export default function StaffShippingPage() {
         inspectionNotes: '動作確認済み、レンズ内クリア',
         shippingMethod: 'ヤマト宅急便',
         value: 280000,
-        location: 'A-03'
+        location: 'A-03',
+        productImages: [],
+        inspectionImages: []
       },
       {
-        id: 'ship-004',
+        id: 'SHIP-004',
         productName: 'Rolex GMT Master',
-        productSku: 'TWD-WAT-007',
-        orderNumber: 'ORD-2024-0628-004',
+        productSku: 'WAT-007',
+        orderNumber: 'ORD-2024-0004',
         customer: '佐藤花子',
         shippingAddress: '大阪府大阪市北区梅田1-1-1',
         status: 'shipped',
@@ -144,13 +158,15 @@ export default function StaffShippingPage() {
         trackingNumber: 'YM-2024-062801',
         shippingMethod: 'ヤマト宅急便（保険付き）',
         value: 2100000,
-        location: 'B-01'
+        location: 'B-01',
+        productImages: [],
+        inspectionImages: []
       },
       {
-        id: 'ship-005',
+        id: 'SHIP-005',
         productName: 'Nikon NIKKOR Z 50mm f/1.2',
-        productSku: 'TWD-LEN-008',
-        orderNumber: 'ORD-2024-0628-005',
+        productSku: 'LEN-008',
+        orderNumber: 'ORD-2024-0005',
         customer: '高橋美咲',
         shippingAddress: '福岡県福岡市博多区1-1-1',
         status: 'pending_inspection',
@@ -158,13 +174,15 @@ export default function StaffShippingPage() {
         dueDate: '20:00',
         shippingMethod: 'ヤマト宅急便',
         value: 245000,
-        location: 'C-01'
+        location: 'C-01',
+        productImages: [],
+        inspectionImages: []
       },
       {
-        id: 'ship-006',
+        id: 'SHIP-006',
         productName: 'Omega Speedmaster',
-        productSku: 'TWD-WAT-015',
-        orderNumber: 'ORD-2024-0628-006',
+        productSku: 'WAT-015',
+        orderNumber: 'ORD-2024-0006',
         customer: '山田一郎',
         shippingAddress: '北海道札幌市中央区1-1-1',
         status: 'inspected',
@@ -173,13 +191,15 @@ export default function StaffShippingPage() {
         inspectionNotes: '動作確認済み、全体的に美品',
         shippingMethod: '佐川急便',
         value: 850000,
-        location: 'V-01'
+        location: 'V-01',
+        productImages: [],
+        inspectionImages: []
       },
       {
-        id: 'ship-007',
+        id: 'SHIP-007',
         productName: 'Fujifilm X-T5',
-        productSku: 'TWD-CAM-018',
-        orderNumber: 'ORD-2024-0628-007',
+        productSku: 'CAM-018',
+        orderNumber: 'ORD-2024-0007',
         customer: '伊藤健太',
         shippingAddress: '愛知県名古屋市中村区1-1-1',
         status: 'packed',
@@ -187,13 +207,15 @@ export default function StaffShippingPage() {
         dueDate: '21:00',
         shippingMethod: '日本郵便',
         value: 180000,
-        location: 'V-02'
+        location: 'V-02',
+        productImages: [],
+        inspectionImages: []
       },
       {
-        id: 'ship-008',
+        id: 'SHIP-008',
         productName: 'Sony FE 85mm f/1.4 GM',
-        productSku: 'TWD-LEN-021',
-        orderNumber: 'ORD-2024-0628-008',
+        productSku: 'LEN-021',
+        orderNumber: 'ORD-2024-0008',
         customer: '渡辺真理',
         shippingAddress: '神奈川県川崎市1-1-1',
         status: 'shipped',
@@ -202,13 +224,15 @@ export default function StaffShippingPage() {
         trackingNumber: 'YM-2024-062802',
         shippingMethod: 'ヤマト宅急便',
         value: 155000,
-        location: 'C-02'
+        location: 'C-02',
+        productImages: [],
+        inspectionImages: []
       },
       {
-        id: 'ship-009',
+        id: 'SHIP-009',
         productName: 'Seiko Prospex',
-        productSku: 'TWD-WAT-025',
-        orderNumber: 'ORD-2024-0628-009',
+        productSku: 'WAT-025',
+        orderNumber: 'ORD-2024-0009',
         customer: '中村由美',
         shippingAddress: '大阪府大阪市中央区1-1-1',
         status: 'pending_inspection',
@@ -216,13 +240,15 @@ export default function StaffShippingPage() {
         dueDate: '19:30',
         shippingMethod: '佐川急便',
         value: 65000,
-        location: 'B-01'
+        location: 'B-01',
+        productImages: [],
+        inspectionImages: []
       },
       {
-        id: 'ship-010',
+        id: 'SHIP-010',
         productName: 'Leica Q2',
-        productSku: 'TWD-CAM-030',
-        orderNumber: 'ORD-2024-0628-010',
+        productSku: 'CAM-030',
+        orderNumber: 'ORD-2024-0010',
         customer: '小林正人',
         shippingAddress: '東京都新宿区1-1-1',
         status: 'inspected',
@@ -231,13 +257,15 @@ export default function StaffShippingPage() {
         inspectionNotes: '高額商品・取扱い注意',
         shippingMethod: 'ヤマト宅急便（保険付き）',
         value: 750000,
-        location: 'V-01'
+        location: 'V-01',
+        productImages: [],
+        inspectionImages: []
       },
       {
-        id: 'ship-011',
+        id: 'SHIP-011',
         productName: 'Canon EF 70-200mm f/2.8L',
-        productSku: 'TWD-LEN-033',
-        orderNumber: 'ORD-2024-0628-011',
+        productSku: 'LEN-033',
+        orderNumber: 'ORD-2024-0011',
         customer: '松本彩香',
         shippingAddress: '京都府京都市下京区1-1-1',
         status: 'packed',
@@ -245,13 +273,15 @@ export default function StaffShippingPage() {
         dueDate: '20:30',
         shippingMethod: '日本郵便',
         value: 125000,
-        location: 'A-01'
+        location: 'A-01',
+        productImages: [],
+        inspectionImages: []
       },
       {
-        id: 'ship-012',
+        id: 'SHIP-012',
         productName: 'Casio G-Shock',
-        productSku: 'TWD-WAT-038',
-        orderNumber: 'ORD-2024-0628-012',
+        productSku: 'WAT-038',
+        orderNumber: 'ORD-2024-0012',
         customer: '岡田雄介',
         shippingAddress: '埼玉県さいたま市1-1-1',
         status: 'delivered',
@@ -260,13 +290,15 @@ export default function StaffShippingPage() {
         trackingNumber: 'YM-2024-062803',
         shippingMethod: 'ヤマト宅急便',
         value: 35000,
-        location: 'B-02'
+        location: 'B-02',
+        productImages: [],
+        inspectionImages: []
       },
       {
-        id: 'ship-013',
+        id: 'SHIP-013',
         productName: 'Panasonic GH6',
-        productSku: 'TWD-CAM-042',
-        orderNumber: 'ORD-2024-0628-013',
+        productSku: 'CAM-042',
+        orderNumber: 'ORD-2024-0013',
         customer: '森田千佳',
         shippingAddress: '広島県広島市中区1-1-1',
         status: 'pending_inspection',
@@ -274,13 +306,15 @@ export default function StaffShippingPage() {
         dueDate: '17:30',
         shippingMethod: '佐川急便',
         value: 220000,
-        location: 'C-01'
+        location: 'C-01',
+        productImages: [],
+        inspectionImages: []
       },
       {
-        id: 'ship-014',
+        id: 'SHIP-014',
         productName: 'Sigma 24-70mm f/2.8 DG DN',
-        productSku: 'TWD-LEN-046',
-        orderNumber: 'ORD-2024-0628-014',
+        productSku: 'LEN-046',
+        orderNumber: 'ORD-2024-0014',
         customer: '松田健太',
         shippingAddress: '宮城県仙台市青葉区1-1-1',
         status: 'inspected',
@@ -289,13 +323,15 @@ export default function StaffShippingPage() {
         inspectionNotes: '動作確認済み、外観良好',
         shippingMethod: 'ヤマト宅急便',
         value: 95000,
-        location: 'A-02'
+        location: 'A-02',
+        productImages: [],
+        inspectionImages: []
       },
       {
-        id: 'ship-015',
+        id: 'SHIP-015',
         productName: 'Citizen Eco-Drive',
-        productSku: 'TWD-WAT-050',
-        orderNumber: 'ORD-2024-0628-015',
+        productSku: 'WAT-050',
+        orderNumber: 'ORD-2024-0015',
         customer: '井上美紀',
         shippingAddress: '千葉県千葉市中央区1-1-1',
         status: 'packed',
@@ -303,7 +339,9 @@ export default function StaffShippingPage() {
         dueDate: '21:30',
         shippingMethod: '日本郵便',
         value: 42000,
-        location: 'B-01'
+        location: 'B-01',
+        productImages: [],
+        inspectionImages: []
       },
     ];
 
@@ -398,24 +436,156 @@ export default function StaffShippingPage() {
     }
   };
 
-  const handlePrintLabel = (item?: ShippingItem) => {
+  const handlePrintLabel = async (item?: ShippingItem) => {
     if (item) {
       showToast({
         title: '印刷開始',
         message: `${item.productName}の配送ラベルを印刷します`,
         type: 'info'
       });
+
+      try {
+        const labelData = {
+          orderNumber: item.orderNumber,
+          productName: item.productName,
+          productSku: item.productSku,
+          customer: item.customer,
+          shippingAddress: item.shippingAddress,
+          shippingMethod: item.shippingMethod,
+          value: item.value,
+        };
+
+        const response = await fetch('/api/pdf/generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            type: 'shipping-label',
+            data: labelData,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('配送ラベルの生成に失敗しました');
+        }
+
+        const result = await response.json();
+        
+        // PDF Base64データをBlobに変換
+        const binaryString = atob(result.base64Data);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        const blob = new Blob([bytes], { type: 'application/pdf' });
+        
+        // PDFをダウンロード
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = result.fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        showToast({
+          title: '印刷完了',
+          message: `${item.productName}の配送ラベルを生成しました`,
+          type: 'success'
+        });
+      } catch (error) {
+        console.error('PDF生成エラー:', error);
+        showToast({
+          title: 'エラー',
+          message: '配送ラベルの生成に失敗しました',
+          type: 'error'
+        });
+      }
     } else {
       showToast({
         title: '一括印刷開始',
         message: '一括配送ラベル印刷を開始します',
         type: 'info'
       });
+
+      try {
+        // 梱包済みの商品のみをフィルタ
+        const packedItems = items.filter(item => item.status === 'packed');
+        
+        if (packedItems.length === 0) {
+          showToast({
+            title: '印刷対象なし',
+            message: '梱包済みの商品がありません',
+            type: 'warning'
+          });
+          return;
+        }
+
+        // 各アイテムのラベルを順次生成
+        for (const item of packedItems) {
+          const labelData = {
+            orderNumber: item.orderNumber,
+            productName: item.productName,
+            productSku: item.productSku,
+            customer: item.customer,
+            shippingAddress: item.shippingAddress,
+            shippingMethod: item.shippingMethod,
+            value: item.value,
+          };
+
+          const response = await fetch('/api/pdf/generate', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              type: 'shipping-label',
+              data: labelData,
+            }),
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            
+            const binaryString = atob(result.base64Data);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+              bytes[i] = binaryString.charCodeAt(i);
+            }
+            const blob = new Blob([bytes], { type: 'application/pdf' });
+            
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = result.fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+          }
+        }
+
+        showToast({
+          title: '一括印刷完了',
+          message: `${packedItems.length}件の配送ラベルを生成しました`,
+          type: 'success'
+        });
+      } catch (error) {
+        console.error('一括PDF生成エラー:', error);
+        showToast({
+          title: 'エラー',
+          message: '一括配送ラベルの生成に失敗しました',
+          type: 'error'
+        });
+      }
     }
   };
 
   const handlePackingInstruction = (item: ShippingItem) => {
     setSelectedPackingItem(item);
+    setIsPackingVideoModalOpen(true);
   };
 
   const handlePackingComplete = () => {
@@ -432,6 +602,7 @@ export default function StaffShippingPage() {
         type: 'success'
       });
       setSelectedPackingItem(null);
+      setIsPackingVideoModalOpen(false);
     }
   };
 
@@ -1043,24 +1214,20 @@ export default function StaffShippingPage() {
           onPackingInstruction={handlePackingInstruction}
         />
 
-        {/* Packing Instructions Modal */}
+        {/* Packing Video Modal */}
         {selectedPackingItem && (
-          <PackingInstructions
-            item={{
-              id: selectedPackingItem.id,
-              productName: selectedPackingItem.productName,
-              productSku: selectedPackingItem.productSku,
-              category: selectedPackingItem.productName.includes('Canon') || selectedPackingItem.productName.includes('Nikon') ? 'カメラ本体' :
-                       selectedPackingItem.productName.includes('mm') ? 'レンズ' :
-                       selectedPackingItem.productName.includes('Rolex') || selectedPackingItem.productName.includes('Omega') ? '腕時計' :
-                       'アクセサリ',
-              value: selectedPackingItem.value,
-              fragile: selectedPackingItem.value > 500000
+          <PackingVideoModal
+            isOpen={isPackingVideoModalOpen}
+            onClose={() => {
+              setIsPackingVideoModalOpen(false);
+              setSelectedPackingItem(null);
             }}
+            productId={selectedPackingItem.id}
+            productName={selectedPackingItem.productName}
             onComplete={handlePackingComplete}
-            onClose={() => setSelectedPackingItem(null)}
           />
         )}
+
       </div>
     </DashboardLayout>
   );
