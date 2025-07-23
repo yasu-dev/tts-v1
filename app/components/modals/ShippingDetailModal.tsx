@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { BaseModal, NexusButton, BusinessStatusIndicator } from '../ui';
 import { useToast } from '../features/notifications/ToastProvider';
+import ShippingLabelUploadModal from './ShippingLabelUploadModal';
 import { 
   TruckIcon, 
   PrinterIcon, 
@@ -11,7 +12,9 @@ import {
   MapPinIcon,
   UserIcon,
   DocumentTextIcon,
-  BanknotesIcon
+  BanknotesIcon,
+  DocumentArrowUpIcon,
+  DocumentCheckIcon
 } from '@heroicons/react/24/outline';
 
 interface ShippingItem {
@@ -28,6 +31,9 @@ interface ShippingItem {
   trackingNumber?: string;
   shippingMethod: string;
   value: number;
+  location?: string;
+  shippingLabelUrl?: string;
+  shippingLabelProvider?: 'seller' | 'worlddoor';
 }
 
 interface ShippingDetailModalProps {
@@ -50,6 +56,11 @@ export default function ShippingDetailModal({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState<'details' | 'history' | 'notes'>('details');
   const { showToast } = useToast();
+  const [isLabelUploadModalOpen, setIsLabelUploadModalOpen] = useState(false);
+  const [shippingLabelUrl, setShippingLabelUrl] = useState<string | null>(item?.shippingLabelUrl || null);
+  const [shippingLabelProvider, setShippingLabelProvider] = useState<'seller' | 'worlddoor' | null>(
+    item?.shippingLabelProvider || null
+  );
 
   // スクロール位置のリセット
   useEffect(() => {
@@ -116,6 +127,21 @@ export default function ShippingDetailModal({
     });
   };
 
+  const handleLabelUploadComplete = (labelUrl: string, provider: 'seller' | 'worlddoor') => {
+    setShippingLabelUrl(labelUrl);
+    setShippingLabelProvider(provider);
+    setIsLabelUploadModalOpen(false);
+    
+    // 実際の実装では、ここでAPIを呼び出して商品情報を更新
+    // updateShippingItem(item.id, { shippingLabelUrl: labelUrl, shippingLabelProvider: provider });
+    
+    showToast({
+      title: '伝票アップロード完了',
+      message: `${provider === 'seller' ? 'セラー' : 'ワールドドア社'}の伝票がアップロードされました`,
+      type: 'success'
+    });
+  };
+
   // デモ履歴データ
   const demoHistory = [
     { 
@@ -139,6 +165,7 @@ export default function ShippingDetailModal({
   ];
 
   return (
+    <>
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
@@ -200,80 +227,126 @@ export default function ShippingDetailModal({
         {/* Content */}
         <div className="overflow-y-auto max-h-[50vh] mb-6" ref={scrollContainerRef}>
           {activeTab === 'details' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* 注文情報 */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-nexus-text-primary flex items-center gap-2">
-                  <UserIcon className="w-5 h-5" />
-                  注文情報
-                </h3>
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
-                      注文番号
-                    </label>
-                    <p className="text-nexus-text-primary">{item.orderNumber}</p>
+            <div className="space-y-6">
+              {/* 保管場所を大きく表示 */}
+              {item.location && (
+                <div className="bg-nexus-bg-secondary rounded-lg p-6 border-2 border-nexus-blue">
+                  <div className="flex items-center gap-3 mb-2">
+                    <MapPinIcon className="w-6 h-6 text-nexus-blue" />
+                    <h3 className="text-lg font-semibold text-nexus-text-primary">
+                      商品保管場所
+                    </h3>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
-                      お客様
-                    </label>
-                    <p className="text-nexus-text-primary font-medium">{item.customer}</p>
+                  <div className="text-3xl font-bold text-nexus-blue font-mono">
+                    {item.location}
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
-                      出荷期限
-                    </label>
-                    <p className="text-nexus-text-primary">{item.dueDate}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
-                      商品価値
-                    </label>
-                    <p className="text-nexus-text-primary font-display font-bold text-lg">
-                      ¥{item.value.toLocaleString()}
-                    </p>
-                  </div>
+                  <p className="text-sm text-nexus-text-secondary mt-2">
+                    この場所から商品をピックアップしてください
+                  </p>
                 </div>
-              </div>
-
-              {/* 配送情報 */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-nexus-text-primary flex items-center gap-2">
-                  <MapPinIcon className="w-5 h-5" />
-                  配送情報
-                </h3>
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
-                      配送先住所
-                    </label>
-                    <p className="text-nexus-text-primary">{item.shippingAddress}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
-                      配送方法
-                    </label>
-                    <p className="text-nexus-text-primary">{item.shippingMethod}</p>
-                  </div>
-                  {item.trackingNumber && (
+              )}
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* 注文情報 */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-nexus-text-primary flex items-center gap-2">
+                    <UserIcon className="w-5 h-5" />
+                    注文情報
+                  </h3>
+                  <div className="space-y-3">
                     <div>
                       <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
-                        追跡番号
+                        注文番号
                       </label>
-                      <p className="text-nexus-text-primary">
-                        <span className="cert-nano cert-mint">{item.trackingNumber}</span>
+                      <p className="text-nexus-text-primary">{item.orderNumber}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
+                        お客様
+                      </label>
+                      <p className="text-nexus-text-primary font-medium">{item.customer}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
+                        出荷期限
+                      </label>
+                      <p className="text-nexus-text-primary">{item.dueDate}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
+                        商品価値
+                      </label>
+                      <p className="text-nexus-text-primary font-display font-bold text-lg">
+                        ¥{item.value.toLocaleString()}
                       </p>
                     </div>
-                  )}
-                  {item.inspectionNotes && (
+                  </div>
+                </div>
+
+                {/* 配送情報 */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-nexus-text-primary flex items-center gap-2">
+                    <MapPinIcon className="w-5 h-5" />
+                    配送情報
+                  </h3>
+                  <div className="space-y-3">
                     <div>
                       <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
-                        検品メモ
+                        配送先住所
                       </label>
-                      <p className="text-nexus-text-primary">{item.inspectionNotes}</p>
+                      <p className="text-nexus-text-primary">{item.shippingAddress}</p>
                     </div>
-                  )}
+                    <div>
+                      <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
+                        配送方法
+                      </label>
+                      <p className="text-nexus-text-primary">{item.shippingMethod}</p>
+                    </div>
+                    {item.trackingNumber && (
+                      <div>
+                        <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
+                          追跡番号
+                        </label>
+                        <p className="text-nexus-text-primary">
+                          <span className="cert-nano cert-mint">{item.trackingNumber}</span>
+                        </p>
+                      </div>
+                    )}
+                    {item.inspectionNotes && (
+                      <div>
+                        <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
+                          検品メモ
+                        </label>
+                        <p className="text-nexus-text-primary">{item.inspectionNotes}</p>
+                      </div>
+                    )}
+                    
+                    {/* 伝票情報 */}
+                    <div>
+                      <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
+                        配送伝票
+                      </label>
+                      {shippingLabelUrl ? (
+                        <div className="flex items-center gap-2">
+                          <DocumentCheckIcon className="w-5 h-5 text-green-600" />
+                          <span className="text-sm text-nexus-text-primary">
+                            {shippingLabelProvider === 'seller' ? 'セラー' : 'ワールドドア社'}が用意
+                          </span>
+                          <NexusButton
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => window.open(shippingLabelUrl, '_blank')}
+                          >
+                            表示
+                          </NexusButton>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-nexus-text-secondary">
+                          未アップロード
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -367,31 +440,42 @@ export default function ShippingDetailModal({
               </div>
             )}
 
-            {/* アクションボタン群 */}
+            {/* アクションボタン */}
             <div>
               <h4 className="text-sm font-medium text-nexus-text-secondary mb-3">
-                操作
+                アクション
               </h4>
-              <div className="flex flex-wrap gap-3">
-                {item.status === 'inspected' && (
+              <div className="flex flex-wrap gap-2">
+                {/* 伝票アップロードボタン */}
+                {item.status !== 'delivered' && (
                   <NexusButton
-                    onClick={handlePackingInstruction}
-                    variant="default"
-                    className="flex items-center gap-2"
+                    onClick={() => setIsLabelUploadModalOpen(true)}
+                    variant={shippingLabelUrl ? 'secondary' : 'primary'}
+                    size="sm"
+                    icon={<DocumentArrowUpIcon className="w-4 h-4" />}
                   >
-                    <ArchiveBoxIcon className="w-4 h-4" />
-                    梱包指示
+                    {shippingLabelUrl ? '伝票を再アップロード' : '伝票をアップロード'}
                   </NexusButton>
                 )}
                 
+                {item.status === 'inspected' && (
+                  <NexusButton
+                    onClick={handlePackingInstruction}
+                    variant="secondary"
+                    size="sm"
+                    icon={<ArchiveBoxIcon className="w-4 h-4" />}
+                  >
+                    梱包指示
+                  </NexusButton>
+                )}
                 {item.status === 'packed' && (
                   <NexusButton
                     onClick={handlePrintLabel}
-                    variant="default"
-                    className="flex items-center gap-2"
+                    variant="secondary"
+                    size="sm"
+                    icon={<PrinterIcon className="w-4 h-4" />}
                   >
-                    <PrinterIcon className="w-4 h-4" />
-                    配送ラベル印刷
+                    ラベル印刷
                   </NexusButton>
                 )}
 
@@ -428,5 +512,14 @@ export default function ShippingDetailModal({
         </div>
       </div>
     </BaseModal>
+    
+    {/* 伝票アップロードモーダル */}
+    <ShippingLabelUploadModal
+      isOpen={isLabelUploadModalOpen}
+      onClose={() => setIsLabelUploadModalOpen(false)}
+      itemId={item.id}
+      onUploadComplete={handleLabelUploadComplete}
+    />
+    </>
   );
 } 

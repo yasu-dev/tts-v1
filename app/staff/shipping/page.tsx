@@ -15,6 +15,7 @@ import {
   ClipboardDocumentCheckIcon,
   CubeIcon,
   PrinterIcon,
+  ExclamationCircleIcon,
 } from '@heroicons/react/24/outline';
 import CarrierSettingsModal from '@/app/components/modals/CarrierSettingsModal';
 import PackingMaterialsModal from '@/app/components/modals/PackingMaterialsModal';
@@ -35,13 +36,14 @@ interface ShippingItem {
   orderNumber: string;
   customer: string;
   shippingAddress: string;
-  status: 'pending_inspection' | 'inspected' | 'packed' | 'shipped' | 'delivered';
+  status: 'pending_inspection' | 'inspected' | 'packed' | 'shipped' | 'delivered' | 'ready_for_pickup';
   priority: 'urgent' | 'normal' | 'low';
   dueDate: string;
   inspectionNotes?: string;
   trackingNumber?: string;
   shippingMethod: string;
   value: number;
+  location?: string; // Added location field
 }
 
 export default function StaffShippingPage() {
@@ -96,6 +98,7 @@ export default function StaffShippingPage() {
         dueDate: '17:00',
         shippingMethod: 'ヤマト宅急便',
         value: 450000,
+        location: 'A-01'
       },
       {
         id: 'ship-002',
@@ -110,6 +113,7 @@ export default function StaffShippingPage() {
         inspectionNotes: '動作確認済み、外観良好',
         shippingMethod: 'ヤマト宅急便',
         value: 398000,
+        location: 'A-02'
       },
       {
         id: 'ship-003',
@@ -124,6 +128,7 @@ export default function StaffShippingPage() {
         inspectionNotes: '動作確認済み、レンズ内クリア',
         shippingMethod: 'ヤマト宅急便',
         value: 280000,
+        location: 'A-03'
       },
       {
         id: 'ship-004',
@@ -139,6 +144,7 @@ export default function StaffShippingPage() {
         trackingNumber: 'YM-2024-062801',
         shippingMethod: 'ヤマト宅急便（保険付き）',
         value: 2100000,
+        location: 'B-01'
       },
       {
         id: 'ship-005',
@@ -152,6 +158,7 @@ export default function StaffShippingPage() {
         dueDate: '20:00',
         shippingMethod: 'ヤマト宅急便',
         value: 245000,
+        location: 'C-01'
       },
       {
         id: 'ship-006',
@@ -166,6 +173,7 @@ export default function StaffShippingPage() {
         inspectionNotes: '動作確認済み、全体的に美品',
         shippingMethod: '佐川急便',
         value: 850000,
+        location: 'V-01'
       },
       {
         id: 'ship-007',
@@ -179,6 +187,7 @@ export default function StaffShippingPage() {
         dueDate: '21:00',
         shippingMethod: '日本郵便',
         value: 180000,
+        location: 'V-02'
       },
       {
         id: 'ship-008',
@@ -193,6 +202,7 @@ export default function StaffShippingPage() {
         trackingNumber: 'YM-2024-062802',
         shippingMethod: 'ヤマト宅急便',
         value: 155000,
+        location: 'C-02'
       },
       {
         id: 'ship-009',
@@ -206,6 +216,7 @@ export default function StaffShippingPage() {
         dueDate: '19:30',
         shippingMethod: '佐川急便',
         value: 65000,
+        location: 'B-01'
       },
       {
         id: 'ship-010',
@@ -220,6 +231,7 @@ export default function StaffShippingPage() {
         inspectionNotes: '高額商品・取扱い注意',
         shippingMethod: 'ヤマト宅急便（保険付き）',
         value: 750000,
+        location: 'V-01'
       },
       {
         id: 'ship-011',
@@ -233,6 +245,7 @@ export default function StaffShippingPage() {
         dueDate: '20:30',
         shippingMethod: '日本郵便',
         value: 125000,
+        location: 'A-01'
       },
       {
         id: 'ship-012',
@@ -247,6 +260,7 @@ export default function StaffShippingPage() {
         trackingNumber: 'YM-2024-062803',
         shippingMethod: 'ヤマト宅急便',
         value: 35000,
+        location: 'B-02'
       },
       {
         id: 'ship-013',
@@ -260,6 +274,7 @@ export default function StaffShippingPage() {
         dueDate: '17:30',
         shippingMethod: '佐川急便',
         value: 220000,
+        location: 'C-01'
       },
       {
         id: 'ship-014',
@@ -274,6 +289,7 @@ export default function StaffShippingPage() {
         inspectionNotes: '動作確認済み、外観良好',
         shippingMethod: 'ヤマト宅急便',
         value: 95000,
+        location: 'A-02'
       },
       {
         id: 'ship-015',
@@ -287,6 +303,7 @@ export default function StaffShippingPage() {
         dueDate: '21:30',
         shippingMethod: '日本郵便',
         value: 42000,
+        location: 'B-01'
       },
     ];
 
@@ -299,7 +316,7 @@ export default function StaffShippingPage() {
     'pending_inspection': (item) => item.status === 'pending_inspection',
     'inspected': (item) => item.status === 'inspected',
     'packed': (item) => item.status === 'packed',
-    'ready_to_ship': (item) => item.status === 'packed',
+    'ready_for_pickup': (item) => item.status === 'ready_for_pickup',
     'today': (item) => {
       const today = new Date();
       const itemTime = item.dueDate.split(':');
@@ -336,7 +353,8 @@ export default function StaffShippingPage() {
     'inspected': '検品済み',
     'packed': '梱包済み',
     'shipped': '発送済み',
-    'delivered': '配送完了'
+    'delivered': '配送完了',
+    'ready_for_pickup': '集荷準備中'
   };
 
   const priorityLabels: Record<string, string> = {
@@ -519,12 +537,17 @@ export default function StaffShippingPage() {
     }
   };
 
+  const handleShowDetails = (item: ShippingItem) => {
+    setSelectedDetailItem(item);
+  };
+
   const stats = {
     total: items.length,
     pendingInspection: items.filter(i => i.status === 'pending_inspection').length,
     inspected: items.filter(i => i.status === 'inspected').length,
     packed: items.filter(i => i.status === 'packed').length,
     shipped: items.filter(i => i.status === 'shipped').length,
+    ready_for_pickup: items.filter(i => i.status === 'ready_for_pickup').length,
     urgent: items.filter(i => i.priority === 'urgent' && i.status !== 'delivered').length,
     todayCount: items.filter(i => {
       const today = new Date();
@@ -663,38 +686,26 @@ export default function StaffShippingPage() {
             </div>
 
             <div className="intelligence-card asia">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="action-orb blue w-6 h-6">
-                    <CubeIcon className="w-4 h-4" />
-                  </div>
-                  <span className="status-badge info text-[10px]">梱包済</span>
-                </div>
-                <div className="metric-value font-display text-2xl font-bold text-nexus-text-primary">
-                  {stats.packed}
-                </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
-                  出荷待ち
-                </div>
+              <div className="p-6 text-center">
+                <TruckIcon className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-nexus-text-primary">{stats.packed}</div>
+                <div className="text-sm text-nexus-text-secondary">出荷待ち</div>
+              </div>
+            </div>
+            
+            <div className="intelligence-card global">
+              <div className="p-6 text-center">
+                <ArchiveBoxIcon className="w-8 h-8 text-purple-500 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-nexus-text-primary">{stats.ready_for_pickup}</div>
+                <div className="text-sm text-nexus-text-secondary">集荷準備中</div>
               </div>
             </div>
 
-            <div className="intelligence-card americas">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="action-orb red w-6 h-6">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <span className="status-badge danger text-[10px]">緊急</span>
-                </div>
-                <div className="metric-value font-display text-2xl font-bold text-nexus-text-primary">
-                  {stats.urgent}
-                </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
-                  緊急案件
-                </div>
+            <div className="intelligence-card global">
+              <div className="p-6 text-center">
+                <ExclamationCircleIcon className="w-8 h-8 text-red-500 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-nexus-text-primary">{stats.urgent}</div>
+                <div className="text-sm text-nexus-text-secondary">緊急案件</div>
               </div>
             </div>
 
@@ -730,6 +741,7 @@ export default function StaffShippingPage() {
                   { id: 'pending_inspection', label: '検品待ち', count: stats.pendingInspection },
                   { id: 'inspected', label: '梱包待ち', count: stats.inspected },
                   { id: 'packed', label: '出荷待ち', count: stats.packed },
+                  { id: 'ready_for_pickup', label: '集荷準備中', count: stats.ready_for_pickup },
                   { id: 'today', label: '本日出荷', count: stats.todayCount },
                 ].map((tab) => (
                   <button
@@ -841,18 +853,16 @@ export default function StaffShippingPage() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                               </svg>
                             </div>
-                            <div>
-                              <h3 className="font-semibold text-nexus-text-primary">
+                            <div 
+                              className="cursor-pointer hover:text-nexus-blue transition-colors"
+                              onClick={() => handleShowDetails(item)}
+                            >
+                              <div className="font-semibold text-nexus-text-primary hover:underline">
                                 {item.productName}
-                              </h3>
-                              <div className="flex items-center space-x-2 mt-1">
-                                <span className="cert-nano cert-premium">
-                                  {item.productSku}
-                                </span>
-                                <span className="text-sm font-display font-medium text-nexus-text-primary">
-                                  ¥{item.value.toLocaleString()}
-                                </span>
                               </div>
+                              <p className="text-sm text-nexus-text-secondary">
+                                SKU: {item.productSku}
+                              </p>
                             </div>
                           </div>
                         </td>
