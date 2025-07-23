@@ -2,6 +2,7 @@
 
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import UnifiedPageHeader from '@/app/components/ui/UnifiedPageHeader';
+import WorkflowProgress from '@/app/components/ui/WorkflowProgress';
 import BarcodeScanner from '@/app/components/features/BarcodeScanner';
 import PackingInstructions from '@/app/components/features/shipping/PackingInstructions';
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -10,6 +11,10 @@ import {
   TruckIcon,
   ArchiveBoxIcon,
   InformationCircleIcon,
+  CheckCircleIcon,
+  ClipboardDocumentCheckIcon,
+  CubeIcon,
+  PrinterIcon,
 } from '@heroicons/react/24/outline';
 import CarrierSettingsModal from '@/app/components/modals/CarrierSettingsModal';
 import PackingMaterialsModal from '@/app/components/modals/PackingMaterialsModal';
@@ -20,8 +25,8 @@ import NexusButton from '@/app/components/ui/NexusButton';
 import Pagination from '@/app/components/ui/Pagination';
 import { NexusLoadingSpinner } from '@/app/components/ui';
 import { BusinessStatusIndicator } from '@/app/components/ui/StatusIndicator';
-// import WorkflowProgress from '@/app/components/ui/WorkflowProgress';
-// import { getWorkflowProgress, getNextAction, ShippingStatus } from '@/lib/utils/workflow';
+import { getWorkflowProgress, getNextAction, ShippingStatus } from '@/lib/utils/workflow';
+import React from 'react'; // Added missing import for React
 
 interface ShippingItem {
   id: string;
@@ -56,6 +61,9 @@ export default function StaffShippingPage() {
   const [deadlineFilter, setDeadlineFilter] = useState<string>('all');
 
   const [selectedDetailItem, setSelectedDetailItem] = useState<ShippingItem | null>(null);
+  const [activeTab, setActiveTab] = useState<string>('all');
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [expandedRows, setExpandedRows] = useState<string[]>([]);
 
   // ページング状態
   const [currentPage, setCurrentPage] = useState(1);
@@ -285,14 +293,30 @@ export default function StaffShippingPage() {
     setItems(mockItems);
   }, []);
 
+  // タブごとのフィルタリング
+  const tabFilters: Record<string, (item: ShippingItem) => boolean> = {
+    'all': () => true,
+    'pending_inspection': (item) => item.status === 'pending_inspection',
+    'inspected': (item) => item.status === 'inspected',
+    'packed': (item) => item.status === 'packed',
+    'ready_to_ship': (item) => item.status === 'packed',
+    'today': (item) => {
+      const today = new Date();
+      const itemTime = item.dueDate.split(':');
+      const itemDate = new Date();
+      itemDate.setHours(parseInt(itemTime[0]), parseInt(itemTime[1]));
+      return itemDate.toDateString() === today.toDateString();
+    }
+  };
+
   // フィルタリング
   const filteredItems = useMemo(() => {
     return items.filter(item => {
-      const statusMatch = selectedStatus === 'all' || item.status === selectedStatus;
+      const tabMatch = tabFilters[activeTab] ? tabFilters[activeTab](item) : true;
       const priorityMatch = selectedPriority === 'all' || item.priority === selectedPriority;
-      return statusMatch && priorityMatch;
+      return tabMatch && priorityMatch;
     });
-  }, [items, selectedStatus, selectedPriority]);
+  }, [items, activeTab, selectedPriority]);
 
   // ページネーション
   const paginatedItems = useMemo(() => {
@@ -304,12 +328,12 @@ export default function StaffShippingPage() {
   // フィルター変更時はページを1に戻す
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedStatus, selectedPriority]);
+  }, [activeTab, selectedPriority]);
 
   // ステータス表示は BusinessStatusIndicator で統一
   const statusLabels: Record<string, string> = {
-    'pending_inspection': '検査待ち',
-    'inspected': '検査済み',
+    'pending_inspection': '検品待ち',
+    'inspected': '検品済み',
     'packed': '梱包済み',
     'shipped': '発送済み',
     'delivered': '配送完了'
@@ -448,11 +472,67 @@ export default function StaffShippingPage() {
     });
   };
 
+  // 行の展開/折りたたみ
+  const toggleRowExpansion = (itemId: string) => {
+    setExpandedRows(prev => 
+      prev.includes(itemId) 
+        ? prev.filter(id => id !== itemId)
+        : [...prev, itemId]
+    );
+  };
+
+  // 一括選択
+  const handleSelectAll = () => {
+    if (selectedItems.length === paginatedItems.length) {
+      setSelectedItems([]);
+    } else {
+      setSelectedItems(paginatedItems.map(item => item.id));
+    }
+  };
+
+  // 個別選択
+  const handleSelectItem = (itemId: string) => {
+    setSelectedItems(prev => 
+      prev.includes(itemId)
+        ? prev.filter(id => id !== itemId)
+        : [...prev, itemId]
+    );
+  };
+
+  // インライン作業処理
+  const handleInlineAction = (item: ShippingItem, action: string) => {
+    switch (action) {
+      case 'inspect':
+        updateItemStatus(item.id, 'inspected');
+        break;
+      case 'pack':
+        handlePackingInstruction(item);
+        break;
+      case 'print':
+        handlePrintLabel(item);
+        break;
+      case 'ship':
+        updateItemStatus(item.id, 'shipped');
+        break;
+      default:
+        break;
+    }
+  };
+
   const stats = {
-    total: filteredItems.length,
-    pendingInspection: filteredItems.filter(i => i.status === 'pending_inspection').length,
-    readyToShip: filteredItems.filter(i => i.status === 'packed').length,
-    urgent: filteredItems.filter(i => i.priority === 'urgent' && i.status !== 'delivered').length,
+    total: items.length,
+    pendingInspection: items.filter(i => i.status === 'pending_inspection').length,
+    inspected: items.filter(i => i.status === 'inspected').length,
+    packed: items.filter(i => i.status === 'packed').length,
+    shipped: items.filter(i => i.status === 'shipped').length,
+    urgent: items.filter(i => i.priority === 'urgent' && i.status !== 'delivered').length,
+    todayCount: items.filter(i => {
+      const today = new Date();
+      const itemTime = i.dueDate.split(':');
+      const itemDate = new Date();
+      itemDate.setHours(parseInt(itemTime[0]), parseInt(itemTime[1]));
+      return itemDate.toDateString() === today.toDateString();
+    }).length,
   };
 
   if (loading) {
@@ -502,11 +582,11 @@ export default function StaffShippingPage() {
 
   return (
     <DashboardLayout userType="staff">
-      <div className="space-y-6 max-w-4xl mx-auto">
+      <div className="space-y-6 max-w-7xl mx-auto">
         {/* 統一ヘッダー */}
         <UnifiedPageHeader
           title="出荷管理"
-          subtitle="出荷待ち商品のピッキング・梱包・配送管理"
+          subtitle="eBayからの出荷指示を一元管理・処理"
           userType="staff"
           iconType="shipping"
           actions={headerActions}
@@ -526,279 +606,368 @@ export default function StaffShippingPage() {
           onOrder={handleMaterialsOrder}
         />
 
-        {/* Stats Cards */}
+        {/* Stats Cards - 統合ダッシュボード */}
         <div className="intelligence-metrics">
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             <div className="intelligence-card global">
-              <div className="p-8">
-                <div className="flex items-center justify-between mb-2 sm:mb-4">
-                  <div className="action-orb w-6 h-6 sm:w-8 sm:h-8">
-                    <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="action-orb w-6 h-6">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                     </svg>
                   </div>
-                  <span className="status-badge info text-[10px] sm:text-xs">総計</span>
+                  <span className="status-badge info text-[10px]">総計</span>
                 </div>
-                <div className="metric-value font-display text-xl sm:text-2xl md:text-3xl font-bold text-nexus-text-primary">
+                <div className="metric-value font-display text-2xl font-bold text-nexus-text-primary">
                   {stats.total}
                 </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-1 sm:mt-2 text-xs sm:text-sm">
-                  {filteredItems.length === items.length ? '総件数' : `絞り込み結果 (全${items.length}件)`}
+                <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
+                  総出荷案件
                 </div>
               </div>
             </div>
 
             <div className="intelligence-card americas">
-              <div className="p-8">
-                <div className="flex items-center justify-between mb-2 sm:mb-4">
-                  <div className="action-orb orange w-6 h-6 sm:w-8 sm:h-8">
-                    <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                    </svg>
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="action-orb orange w-6 h-6">
+                    <ClipboardDocumentCheckIcon className="w-4 h-4" />
                   </div>
-                  <span className="status-badge warning text-[10px] sm:text-xs">待機中</span>
+                  <span className="status-badge warning text-[10px]">待機</span>
                 </div>
-                <div className="metric-value font-display text-xl sm:text-2xl md:text-3xl font-bold text-nexus-text-primary">
+                <div className="metric-value font-display text-2xl font-bold text-nexus-text-primary">
                   {stats.pendingInspection}
                 </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-1 sm:mt-2 text-xs sm:text-sm">
+                <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
                   検品待ち
                 </div>
               </div>
             </div>
 
             <div className="intelligence-card europe">
-              <div className="p-8">
-                <div className="flex items-center justify-between mb-2 sm:mb-4">
-                  <div className="action-orb blue w-6 h-6 sm:w-8 sm:h-8">
-                    <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="action-orb green w-6 h-6">
+                    <CheckCircleIcon className="w-4 h-4" />
                   </div>
-                  <span className="status-badge success text-[10px] sm:text-xs">準備完了</span>
+                  <span className="status-badge success text-[10px]">検品済</span>
                 </div>
-                <div className="metric-value font-display text-xl sm:text-2xl md:text-3xl font-bold text-nexus-text-primary">
-                  {stats.readyToShip}
+                <div className="metric-value font-display text-2xl font-bold text-nexus-text-primary">
+                  {stats.inspected}
                 </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-1 sm:mt-2 text-xs sm:text-sm">
-                  出荷準備完了
+                <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
+                  梱包待ち
                 </div>
               </div>
             </div>
 
             <div className="intelligence-card asia">
-              <div className="p-8">
-                <div className="flex items-center justify-between mb-2 sm:mb-4">
-                  <div className="action-orb red w-6 h-6 sm:w-8 sm:h-8">
-                    <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="action-orb blue w-6 h-6">
+                    <CubeIcon className="w-4 h-4" />
+                  </div>
+                  <span className="status-badge info text-[10px]">梱包済</span>
+                </div>
+                <div className="metric-value font-display text-2xl font-bold text-nexus-text-primary">
+                  {stats.packed}
+                </div>
+                <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
+                  出荷待ち
+                </div>
+              </div>
+            </div>
+
+            <div className="intelligence-card americas">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="action-orb red w-6 h-6">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <span className="status-badge danger text-[10px] sm:text-xs">緊急</span>
+                  <span className="status-badge danger text-[10px]">緊急</span>
                 </div>
-                <div className="metric-value font-display text-xl sm:text-2xl md:text-3xl font-bold text-nexus-text-primary">
+                <div className="metric-value font-display text-2xl font-bold text-nexus-text-primary">
                   {stats.urgent}
                 </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-1 sm:mt-2 text-xs sm:text-sm">
+                <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
                   緊急案件
+                </div>
+              </div>
+            </div>
+
+            <div className="intelligence-card global">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="action-orb w-6 h-6">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <span className="status-badge warning text-[10px]">本日</span>
+                </div>
+                <div className="metric-value font-display text-2xl font-bold text-nexus-text-primary">
+                  {stats.todayCount}
+                </div>
+                <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
+                  本日出荷
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-                  {/* Workflow Progress Section - 選択された商品の進捗表示 (一時的に無効化) */}
-          {/* {selectedDetailItem && (
-            <div className="intelligence-card global">
-              <div className="p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h3 className="text-lg font-semibold text-nexus-text-primary">
-                      作業進捗: {selectedDetailItem.productName}
-                    </h3>
-                    <p className="text-sm text-nexus-text-secondary mt-1">
-                      注文番号: {selectedDetailItem.orderNumber} | 顧客: {selectedDetailItem.customer}
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className={`cert-nano ${
-                      selectedDetailItem.priority === 'urgent' ? 'cert-ruby' :
-                      selectedDetailItem.priority === 'normal' ? 'cert-mint' : 'cert-gold'
-                    }`}>
-                      {selectedDetailItem.priority === 'urgent' ? '緊急' :
-                       selectedDetailItem.priority === 'normal' ? '通常' : '低'}
-                    </span>
-                    <span className="text-sm text-nexus-text-secondary">
-                      期限: {selectedDetailItem.dueDate}
-                    </span>
-                  </div>
-                </div>
-
-                <WorkflowProgress 
-                  steps={getWorkflowProgress(selectedDetailItem.status as ShippingStatus)}
-                  className="mb-6"
-                />
-
-                <div className="bg-nexus-bg-secondary rounded-lg p-4">
-                  <div className="flex items-start space-x-3">
-                    <div className="action-orb blue">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-nexus-text-primary mb-1">次のアクション</h4>
-                      <p className="text-sm text-nexus-text-secondary">
-                        {getNextAction(selectedDetailItem.status as ShippingStatus)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )} */}
-
-        {/* Filters and Shipping Items */}
+        {/* ステータス別タブビュー */}
         <div className="intelligence-card global">
           <div className="p-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-              <NexusSelect
-                label="ステータス"
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                variant="nexus"
-                options={[
-                  { value: 'all', label: 'すべて' },
-                  { value: 'pending_inspection', label: '検品待ち' },
-                  { value: 'inspected', label: '検品完了' },
-                  { value: 'packed', label: '梱包完了' },
-                  { value: 'shipped', label: '出荷済み' },
-                  { value: 'delivered', label: '配送完了' }
-                ]}
-              />
-
-              <NexusSelect
-                label="優先度"
-                value={selectedPriority}
-                onChange={(e) => setSelectedPriority(e.target.value)}
-                variant="nexus"
-                options={[
-                  { value: 'all', label: 'すべて' },
-                  { value: 'urgent', label: '緊急' },
-                  { value: 'normal', label: '通常' },
-                  { value: 'low', label: '低' }
-                ]}
-              />
-
-              <NexusSelect
-                label="期限"
-                value={deadlineFilter}
-                onChange={(e) => setDeadlineFilter(e.target.value)}
-                variant="nexus"
-                options={[
-                  { value: 'all', label: 'すべて' },
-                  { value: 'today', label: '今日' },
-                  { value: 'tomorrow', label: '明日' },
-                  { value: 'week', label: '今週' },
-                  { value: 'overdue', label: '期限超過' }
-                ]}
-              />
+            {/* タブヘッダー */}
+            <div className="border-b border-nexus-border mb-6">
+              <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+                {[
+                  { id: 'all', label: '全体', count: stats.total },
+                  { id: 'pending_inspection', label: '検品待ち', count: stats.pendingInspection },
+                  { id: 'inspected', label: '梱包待ち', count: stats.inspected },
+                  { id: 'packed', label: '出荷待ち', count: stats.packed },
+                  { id: 'today', label: '本日出荷', count: stats.todayCount },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`
+                      whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors
+                      ${activeTab === tab.id
+                        ? 'border-nexus-blue text-nexus-blue'
+                        : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-gray-300'
+                      }
+                    `}
+                  >
+                    {tab.label}
+                    <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      activeTab === tab.id ? 'bg-nexus-blue text-white' : 'bg-nexus-bg-secondary text-nexus-text-secondary'
+                    }`}>
+                      {tab.count}
+                    </span>
+                  </button>
+                ))}
+              </nav>
             </div>
 
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-nexus-text-primary">出荷案件一覧</h3>
-              <p className="text-sm text-nexus-text-secondary">
-                {filteredItems.length}件中 {Math.min(itemsPerPage, filteredItems.length - (currentPage - 1) * itemsPerPage)}件を表示
-              </p>
+            {/* フィルターとアクション */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+              <div className="flex items-center gap-4">
+                <NexusSelect
+                  label=""
+                  value={selectedPriority}
+                  onChange={(e) => setSelectedPriority(e.target.value)}
+                  variant="nexus"
+                  className="w-32"
+                  options={[
+                    { value: 'all', label: '全優先度' },
+                    { value: 'urgent', label: '緊急のみ' },
+                    { value: 'normal', label: '通常のみ' },
+                    { value: 'low', label: '低のみ' }
+                  ]}
+                />
+              </div>
+
+              {selectedItems.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-nexus-text-secondary">
+                    {selectedItems.length}件選択中
+                  </span>
+                  <NexusButton
+                    variant="primary"
+                    size="sm"
+                    onClick={() => {
+                      // 一括処理実行
+                      showToast({
+                        title: '一括処理',
+                        message: `${selectedItems.length}件の処理を開始します`,
+                        type: 'info'
+                      });
+                    }}
+                  >
+                    一括処理
+                  </NexusButton>
+                </div>
+              )}
             </div>
 
-            {/* Shipping Items List */}
+            {/* 出荷案件一覧 - インライン作業機能付き */}
             <div className="holo-table">
               <table className="w-full">
                 <thead className="holo-header">
                   <tr>
-                    <th className="text-left p-4 font-medium text-nexus-text-secondary">商品情報</th>
+                    <th className="w-10 p-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedItems.length === paginatedItems.length && paginatedItems.length > 0}
+                        onChange={handleSelectAll}
+                        className="rounded border-nexus-border"
+                      />
+                    </th>
                     <th className="text-left p-4 font-medium text-nexus-text-secondary">注文情報</th>
-                    <th className="text-left p-4 font-medium text-nexus-text-secondary">配送詳細</th>
-                    <th className="text-center p-4 font-medium text-nexus-text-secondary">ステータス</th>
+                    <th className="text-left p-4 font-medium text-nexus-text-secondary">商品情報</th>
+                    <th className="text-left p-4 font-medium text-nexus-text-secondary">進捗状況</th>
+                    <th className="text-center p-4 font-medium text-nexus-text-secondary">優先度</th>
                     <th className="text-right p-4 font-medium text-nexus-text-secondary">アクション</th>
                   </tr>
                 </thead>
                 <tbody className="holo-body">
                   {paginatedItems.map((item) => (
-                    <tr key={item.id} className="holo-row">
-                      <td className="p-4">
-                        <div className="flex items-center space-x-4">
-                          <div className="action-orb">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                            </svg>
-                          </div>
+                    <React.Fragment key={item.id}>
+                      <tr className="holo-row">
+                        <td className="p-4">
+                          <input
+                            type="checkbox"
+                            checked={selectedItems.includes(item.id)}
+                            onChange={() => handleSelectItem(item.id)}
+                            className="rounded border-nexus-border"
+                          />
+                        </td>
+                        <td className="p-4">
                           <div>
-                            <h3 className="font-semibold text-nexus-text-primary">
-                              {item.productName}
-                            </h3>
-                            <div className="flex items-center space-x-2 mt-1">
-                              <span className="cert-nano cert-premium">
-                                {item.productSku}
-                              </span>
+                            <p className="font-medium text-nexus-text-primary">{item.orderNumber}</p>
+                            <p className="text-sm text-nexus-text-secondary mt-1">{item.customer}</p>
+                            <p className="text-sm text-nexus-yellow mt-1">期限: {item.dueDate}</p>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="action-orb">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                              </svg>
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-nexus-text-primary">
+                                {item.productName}
+                              </h3>
+                              <div className="flex items-center space-x-2 mt-1">
+                                <span className="cert-nano cert-premium">
+                                  {item.productSku}
+                                </span>
+                                <span className="text-sm font-display font-medium text-nexus-text-primary">
+                                  ¥{item.value.toLocaleString()}
+                                </span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <div>
-                          <p className="text-sm text-nexus-text-secondary">
-                            注文番号: {item.orderNumber}
-                          </p>
-                          <p className="text-sm font-medium text-nexus-yellow mt-1">
-                            お客様: {item.customer}
-                          </p>
-                          <p className="text-sm text-nexus-text-secondary mt-1">
-                            期限: {item.dueDate}
-                          </p>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <div>
-                          <p className="text-sm text-nexus-text-secondary">配送先</p>
-                          <p className="text-sm font-medium text-nexus-text-primary">
-                            {item.shippingAddress}
-                          </p>
-                          <p className="text-sm text-nexus-text-secondary mt-1">
-                            配送方法: {item.shippingMethod}
-                          </p>
-                          <p className="text-sm font-display font-medium text-nexus-text-primary mt-1">
-                            価値: ¥{item.value.toLocaleString()}
-                          </p>
-                          {item.trackingNumber && (
-                            <p className="text-sm text-nexus-text-primary mt-1">
-                              <span className="font-medium">追跡番号:</span> 
-                              <span className="cert-nano cert-mint ml-2">{item.trackingNumber}</span>
-                            </p>
-                          )}
-                        </div>
-                      </td>
-                      <td className="p-4 text-center">
-                        <div className="flex flex-col items-center space-y-2">
-                          <span className="cert-nano cert-premium">
+                        </td>
+                        <td className="p-4">
+                          <div className="space-y-2">
+                            <BusinessStatusIndicator status={item.status} />
+                            <button
+                              onClick={() => toggleRowExpansion(item.id)}
+                              className="text-xs text-nexus-blue hover:text-nexus-blue-dark flex items-center gap-1"
+                            >
+                              <span>詳細を{expandedRows.includes(item.id) ? '隠す' : '見る'}</span>
+                              <svg 
+                                className={`w-3 h-3 transform transition-transform ${expandedRows.includes(item.id) ? 'rotate-180' : ''}`} 
+                                fill="none" 
+                                stroke="currentColor" 
+                                viewBox="0 0 24 24"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </button>
+                          </div>
+                        </td>
+                        <td className="p-4 text-center">
+                          <span className={`cert-nano ${
+                            item.priority === 'urgent' ? 'cert-ruby' :
+                            item.priority === 'normal' ? 'cert-mint' : 'cert-gold'
+                          }`}>
                             {priorityLabels[item.priority]}
                           </span>
-                          <BusinessStatusIndicator status={item.status} />
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <div className="flex justify-center">
-                          <NexusButton
-                            onClick={() => setSelectedDetailItem(item)}
-                            variant="default"
-                            size="sm"
-                          >
-                            詳細
-                          </NexusButton>
-                        </div>
-                      </td>
-                    </tr>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex justify-end gap-2">
+                            {item.status === 'pending_inspection' && (
+                              <NexusButton
+                                onClick={() => handleInlineAction(item, 'inspect')}
+                                variant="primary"
+                                size="sm"
+                                className="flex items-center gap-1"
+                              >
+                                <CheckCircleIcon className="w-4 h-4" />
+                                検品完了
+                              </NexusButton>
+                            )}
+                            {item.status === 'inspected' && (
+                              <NexusButton
+                                onClick={() => handleInlineAction(item, 'pack')}
+                                variant="primary"
+                                size="sm"
+                                className="flex items-center gap-1"
+                              >
+                                <CubeIcon className="w-4 h-4" />
+                                梱包
+                              </NexusButton>
+                            )}
+                            {item.status === 'packed' && (
+                              <>
+                                <NexusButton
+                                  onClick={() => handleInlineAction(item, 'print')}
+                                  variant="default"
+                                  size="sm"
+                                  className="flex items-center gap-1"
+                                >
+                                  <PrinterIcon className="w-4 h-4" />
+                                  ラベル
+                                </NexusButton>
+                                <NexusButton
+                                  onClick={() => handleInlineAction(item, 'ship')}
+                                  variant="primary"
+                                  size="sm"
+                                  className="flex items-center gap-1"
+                                >
+                                  <TruckIcon className="w-4 h-4" />
+                                  出荷
+                                </NexusButton>
+                              </>
+                            )}
+                            <NexusButton
+                              onClick={() => setSelectedDetailItem(item)}
+                              variant="default"
+                              size="sm"
+                            >
+                              詳細
+                            </NexusButton>
+                          </div>
+                        </td>
+                      </tr>
+                      
+                      {/* 展開行 - ワークフロー進捗表示 */}
+                      {expandedRows.includes(item.id) && (
+                        <tr className="holo-row bg-nexus-bg-secondary">
+                          <td colSpan={6} className="p-6">
+                            <div className="space-y-4">
+                              <WorkflowProgress 
+                                steps={getWorkflowProgress(item.status as ShippingStatus)}
+                              />
+                              <div className="flex items-center justify-between">
+                                <div className="text-sm text-nexus-text-secondary">
+                                  <p>配送先: {item.shippingAddress}</p>
+                                  <p>配送方法: {item.shippingMethod}</p>
+                                  {item.trackingNumber && (
+                                    <p>追跡番号: <span className="font-medium">{item.trackingNumber}</span></p>
+                                  )}
+                                </div>
+                                <div className="bg-nexus-bg-primary rounded-lg p-3">
+                                  <p className="text-sm font-medium text-nexus-text-primary">次のアクション</p>
+                                  <p className="text-sm text-nexus-text-secondary mt-1">
+                                    {getNextAction(item.status as ShippingStatus)}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                   ))}
                 </tbody>
               </table>
@@ -811,12 +980,7 @@ export default function StaffShippingPage() {
                 </svg>
                 <h3 className="mt-2 text-sm font-medium text-nexus-text-primary">出荷案件がありません</h3>
                 <p className="mt-1 text-sm text-nexus-text-secondary">
-                  {filteredItems.length === 0 ? 
-                    (selectedStatus !== 'all' || selectedPriority !== 'all'
-                      ? '検索条件に一致する出荷案件がありません' 
-                      : '出荷案件がありません'
-                    ) : '表示するデータがありません'
-                  }
+                  条件に一致する出荷案件がありません
                 </p>
               </div>
             )}
