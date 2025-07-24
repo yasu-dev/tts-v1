@@ -4,216 +4,361 @@ import { MockFallback } from '@/lib/mock-fallback';
 
 const prisma = new PrismaClient();
 
-// ピッキングタスク取得
+// eBay商品のピッキングデータ取得
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
-    const assignee = searchParams.get('assignee');
+    const buyerId = searchParams.get('buyerId');
 
-    // 大量のモックデータを生成
-    const customers = [
-      'NEXUS Global Trading', 'EuroTech Solutions', 'Asia Pacific Electronics',
-      '株式会社東京カメラ', 'ヨーロッパ写真機材', 'アメリカンフォト', 
-      'カメラワールド', '映像機器商事', 'プロフォト株式会社', 'デジタルイメージング',
-      'フォトスタジオ エリート', 'カメラ専門店 レンズマスター', 'ビデオ機材センター',
-      '撮影機材レンタル', 'プロカメラマン協会', 'フィルムアート', 'スタジオライト',
-      'レンズテクノロジー', 'イメージングソリューション', 'カメラメンテナンス'
-    ];
-
-    const products = [
-      { name: 'Canon EOS R5 ボディ', sku: 'CAM-001', location: 'STD-A-01' },
-      { name: 'Sony α7R V ボディ', sku: 'CAM-002', location: 'STD-A-02' },
-      { name: 'Nikon Z9 ボディ', sku: 'CAM-003', location: 'STD-A-03' },
-      { name: 'Canon EOS R6 Mark II', sku: 'CAM-004', location: 'STD-A-04' },
-      { name: 'Sony FE 24-70mm F2.8 GM', sku: 'LENS-001', location: 'HUM-01' },
-      { name: 'Canon RF 24-70mm F2.8L', sku: 'LENS-002', location: 'HUM-02' },
-      { name: 'Nikon Z 24-70mm f/2.8 S', sku: 'LENS-003', location: 'HUM-03' },
-      { name: 'Sony FE 70-200mm F2.8 GM', sku: 'LENS-004', location: 'HUM-04' },
-      { name: 'Canon RF 85mm F1.2L', sku: 'LENS-005', location: 'HUM-05' },
-      { name: 'Sony FE 85mm F1.4 GM', sku: 'LENS-006', location: 'HUM-06' },
-      { name: 'Manfrotto 三脚 MT055', sku: 'ACC-001', location: 'DRY-01' },
-      { name: 'Godox ストロボ AD600', sku: 'ACC-002', location: 'DRY-02' },
-      { name: 'SanDisk CFexpress 128GB', sku: 'ACC-003', location: 'TEMP-01' },
-      { name: 'Lowepro カメラバッグ', sku: 'ACC-004', location: 'TEMP-02' },
-      { name: 'Peak Design ストラップ', sku: 'ACC-005', location: 'TEMP-03' }
-    ];
-
-    const staff = ['田中太郎', '佐藤花子', '鈴木一郎', '高橋美咲', '山田健太', '中村由香'];
-    const shippingMethods = ['ヤマト運輸', '佐川急便', '日本郵便', 'FedEx', 'DHL Express', 'UPS'];
-    const priorities = ['urgent', 'high', 'normal', 'low'];
-    const statuses = ['pending', 'in_progress', 'completed', 'on_hold'];
-
-    // 50件のピッキングタスクを動的生成
-    let pickingTasks = [];
-    
-    for (let i = 1; i <= 50; i++) {
-      const orderNumber = `ORD-2024-${String(i + 1000).padStart(4, '0')}`;
-      const taskId = `PICK-${String(i).padStart(3, '0')}`;
-      const customer = customers[Math.floor(Math.random() * customers.length)];
-      const priority = priorities[Math.floor(Math.random() * priorities.length)];
-      const taskStatus = statuses[Math.floor(Math.random() * statuses.length)];
-      const assignee = taskStatus !== 'pending' ? staff[Math.floor(Math.random() * staff.length)] : null;
-      const shippingMethod = shippingMethods[Math.floor(Math.random() * shippingMethods.length)];
-      
-      // アイテム数を1-5個でランダム生成
-      const itemCount = Math.floor(Math.random() * 5) + 1;
-      const selectedProducts = [];
-      for (let j = 0; j < itemCount; j++) {
-        selectedProducts.push(products[Math.floor(Math.random() * products.length)]);
-      }
-
-      // 進捗に応じてピッキング済み数を設定
-      let pickedItems = 0;
-      if (taskStatus === 'completed') {
-        pickedItems = itemCount;
-      } else if (taskStatus === 'in_progress') {
-        pickedItems = Math.floor(Math.random() * itemCount);
-      }
-
-      const dueDate = new Date();
-      dueDate.setDate(dueDate.getDate() + Math.floor(Math.random() * 7));
-
-      const task = {
-        id: taskId,
-        orderId: orderNumber,
-        customerName: customer,
-        priority: priority,
-        status: taskStatus,
-        assignee: assignee,
-        shippingMethod: shippingMethod,
-        totalItems: itemCount,
-        pickedItems: pickedItems,
-        createdAt: new Date(Date.now() - Math.floor(Math.random() * 7 * 24 * 60 * 60 * 1000)).toISOString(),
-        dueDate: dueDate.toISOString(),
-        items: selectedProducts.map((product, index) => {
-          const quantity = Math.floor(Math.random() * 3) + 1;
-          let pickedQuantity = 0;
-          let itemStatus = 'pending';
-          
-          if (taskStatus === 'completed') {
-            pickedQuantity = quantity;
-            itemStatus = 'verified';
-          } else if (taskStatus === 'in_progress' && index < pickedItems) {
-            pickedQuantity = quantity;
-            itemStatus = 'picked';
-          }
-
-          return {
-            id: `ITEM-${taskId}-${index + 1}`,
-            productId: `PROD-${product.sku}`,
-            productName: product.name,
-            sku: product.sku,
-            location: product.location,
-            quantity: quantity,
-            pickedQuantity: pickedQuantity,
-            status: itemStatus,
-            imageUrl: '/api/placeholder/60/60'
-          };
-        })
-      };
-
-      pickingTasks.push(task);
-    }
-
-    // 元の少ないモックデータ（互換性のため保持）
-    const originalTasks = [
+    // eBay購入に基づく商品データ
+    const ebayProducts = [
       {
-        id: 'PICK-001',
-        orderId: 'ORD-2024-0847',
-        customerName: 'NEXUS Global Trading',
-        priority: 'urgent',
+        id: 'P001',
+        productName: 'Canon EOS R5 ボディ',
+        sku: 'CAM-R5-001',
+        location: 'A-01',
+        quantity: 1,
+        pickedQuantity: 0,
         status: 'pending',
-        items: [
-          {
-            id: 'ITEM-001',
-            productId: 'TWD-2024-001',
-            productName: 'Canon EOS R5 ボディ',
-            sku: 'CAM-001',
-            location: 'STD-A-01',
-            quantity: 1,
-            pickedQuantity: 0,
-            status: 'pending',
-            imageUrl: '/api/placeholder/60/60',
-          },
-          {
-            id: 'ITEM-002',
-            productId: 'TWD-2024-002',
-            productName: 'Sony FE 24-70mm F2.8 GM',
-            sku: 'LENS-001',
-            location: 'HUM-01',
-            quantity: 2,
-            pickedQuantity: 0,
-            status: 'pending',
-            imageUrl: '/api/placeholder/60/60',
-          },
-        ],
-        assignee: '田中太郎',
-        createdAt: '2024-01-20T10:00:00',
-        dueDate: '2024-01-20T15:00:00',
-        shippingMethod: 'FedEx Priority',
-        totalItems: 3,
-        pickedItems: 0,
+        // eBay購入情報
+        ebayOrderId: 'ORD-EB-2024-001',
+        ebayItemId: '394756234567',
+        buyerName: '田中太郎',
+        buyerUserId: 'tanaka_photo_2024',
+        purchaseDate: '2024-01-20T14:30:00Z',
+        purchaseAmount: 450000,
+        // 配送情報
+        shippingAddress: {
+          name: '田中太郎',
+          address: '東京都渋谷区恵比寿1-1-1 マンション恵比寿101',
+          city: '東京都',
+          postalCode: '150-0013',
+          country: '日本',
+          phone: '03-1234-5678'
+        },
+        // 同梱可能情報
+        canCombineWith: ['P002'],
+        combineGroup: 'tanaka_photo_2024_2024-01-20'
       },
       {
-        id: 'PICK-002',
-        orderId: 'ORD-2024-0848',
-        customerName: 'Premium Camera Store',
-        priority: 'normal',
-        status: 'in_progress',
-        items: [
-          {
-            id: 'ITEM-003',
-            productId: 'TWD-2024-003',
-            productName: 'Nikon Z9 ボディ',
-            sku: 'CAM-002',
-            location: 'HUM-02',
-            quantity: 1,
-            pickedQuantity: 1,
-            status: 'picked',
-            imageUrl: '/api/placeholder/60/60',
-          },
-        ],
-        assignee: '佐藤花子',
-        createdAt: '2024-01-20T11:00:00',
-        dueDate: '2024-01-20T16:00:00',
-        shippingMethod: 'DHL Express',
-        totalItems: 1,
-        pickedItems: 1,
+        id: 'P002',
+        productName: 'Canon RF 24-70mm F2.8L USM レンズ',
+        sku: 'LENS-RF2470-001',
+        location: 'B-15',
+        quantity: 1,
+        pickedQuantity: 0,
+        status: 'pending',
+        ebayOrderId: 'ORD-EB-2024-002',
+        ebayItemId: '394756234568',
+        buyerName: '田中太郎',
+        buyerUserId: 'tanaka_photo_2024',
+        purchaseDate: '2024-01-20T14:32:00Z',
+        purchaseAmount: 280000,
+        shippingAddress: {
+          name: '田中太郎',
+          address: '東京都渋谷区恵比寿1-1-1 マンション恵比寿101',
+          city: '東京都',
+          postalCode: '150-0013',
+          country: '日本',
+          phone: '03-1234-5678'
+        },
+        canCombineWith: ['P001'],
+        combineGroup: 'tanaka_photo_2024_2024-01-20'
       },
+      {
+        id: 'P003',
+        productName: 'Rolex GMT Master II 116710BLNR',
+        sku: 'WATCH-GMT-001',
+        location: 'V-03',
+        quantity: 1,
+        pickedQuantity: 0,
+        status: 'pending',
+        ebayOrderId: 'ORD-EB-2024-003',
+        ebayItemId: '394756234569',
+        buyerName: '佐藤花子',
+        buyerUserId: 'sato_luxury_watch',
+        purchaseDate: '2024-01-21T10:15:00Z',
+        purchaseAmount: 1200000,
+        shippingAddress: {
+          name: '佐藤花子',
+          address: '大阪府大阪市北区梅田2-2-2 梅田タワー2203',
+          city: '大阪府',
+          postalCode: '530-0001',
+          country: '日本',
+          phone: '06-9876-5432'
+        },
+        combineGroup: 'sato_luxury_watch_2024-01-21'
+      },
+      {
+        id: 'P004',
+        productName: 'Sony α7R V ボディ CFexpress付き',
+        sku: 'CAM-A7RV-001',
+        location: 'A-08',
+        quantity: 1,
+        pickedQuantity: 0,
+        status: 'pending',
+        ebayOrderId: 'ORD-EB-2024-004',
+        ebayItemId: '394756234570',
+        buyerName: '鈴木次郎',
+        buyerUserId: 'suzuki_photographer',
+        purchaseDate: '2024-01-21T16:45:00Z',
+        purchaseAmount: 520000,
+        shippingAddress: {
+          name: '鈴木次郎',
+          address: '神奈川県横浜市西区みなとみらい3-3-3 みなとみらいタワー1501',
+          city: '神奈川県',
+          postalCode: '220-0012',
+          country: '日本',
+          phone: '045-2345-6789'
+        },
+        combineGroup: 'suzuki_photographer_2024-01-21'
+      },
+      {
+        id: 'P005',
+        productName: 'Nikon Z9 ボディ + バッテリーグリップ',
+        sku: 'CAM-Z9-001',
+        location: 'A-12',
+        quantity: 1,
+        pickedQuantity: 1,
+        status: 'completed',
+        ebayOrderId: 'ORD-EB-2024-005',
+        ebayItemId: '394756234571',
+        buyerName: '山田一郎',
+        buyerUserId: 'yamada_camera_pro',
+        purchaseDate: '2024-01-19T11:20:00Z',
+        purchaseAmount: 680000,
+        shippingAddress: {
+          name: '山田一郎',
+          address: '愛知県名古屋市中区栄4-4-4 栄ビルディング801',
+          city: '愛知県',
+          postalCode: '460-0008',
+          country: '日本',
+          phone: '052-3456-7890'
+        },
+        combineGroup: 'yamada_camera_pro_2024-01-19',
+        completedAt: '2024-01-20T09:15:00Z',
+        completedBy: 'スタッフA'
+      },
+      {
+        id: 'P006',
+        productName: 'Omega Speedmaster Professional Moonwatch',
+        sku: 'WATCH-SPEED-001',
+        location: 'V-07',
+        quantity: 1,
+        pickedQuantity: 0,
+        status: 'pending',
+        ebayOrderId: 'ORD-EB-2024-006',
+        ebayItemId: '394756234572',
+        buyerName: '高橋美咲',
+        buyerUserId: 'takahashi_timepiece',
+        purchaseDate: '2024-01-22T13:10:00Z',
+        purchaseAmount: 850000,
+        shippingAddress: {
+          name: '高橋美咲',
+          address: '福岡県福岡市博多区博多駅前5-5-5 博多センタービル1205',
+          city: '福岡県',
+          postalCode: '812-0011',
+          country: '日本',
+          phone: '092-4567-8901'
+        },
+        combineGroup: 'takahashi_timepiece_2024-01-22'
+      },
+             {
+         id: 'P007',
+         productName: 'Fujifilm X-T5 ボディ シルバー',
+         sku: 'CAM-XT5-001',
+         location: 'A-20',
+         quantity: 1,
+         pickedQuantity: 0,
+         status: 'ready_for_packing', // 梱包待ち
+         ebayOrderId: 'ORD-EB-2024-007',
+         ebayItemId: '394756234573',
+         buyerName: '伊藤健太',
+         buyerUserId: 'ito_street_photo',
+         purchaseDate: '2024-01-22T15:25:00Z',
+         purchaseAmount: 220000,
+         shippingAddress: {
+           name: '伊藤健太',
+           address: '北海道札幌市中央区すすきの6-6-6 すすきのプラザ902',
+           city: '北海道',
+           postalCode: '064-0804',
+           country: '日本',
+           phone: '011-5678-9012'
+         },
+         combineGroup: 'ito_street_photo_2024-01-22',
+         startedAt: '2024-01-23T08:30:00Z',
+         assignedTo: 'スタッフB'
+       },
+      {
+        id: 'P008',
+        productName: 'Sony FE 85mm F1.4 GM レンズ',
+        sku: 'LENS-FE85-001',
+        location: 'B-35',
+        quantity: 1,
+        pickedQuantity: 0,
+        status: 'pending',
+        ebayOrderId: 'ORD-EB-2024-008',
+        ebayItemId: '394756234574',
+        buyerName: '渡辺真理',
+        buyerUserId: 'watanabe_portrait',
+        purchaseDate: '2024-01-23T09:40:00Z',
+        purchaseAmount: 200000,
+        shippingAddress: {
+          name: '渡辺真理',
+          address: '広島県広島市中区八丁堀7-7-7 八丁堀ビル503',
+          city: '広島県',
+          postalCode: '730-0013',
+          country: '日本',
+          phone: '082-6789-0123'
+        },
+        combineGroup: 'watanabe_portrait_2024-01-23'
+      },
+      {
+        id: 'P009',
+        productName: 'Leica Q2 Reporter 限定モデル',
+        sku: 'CAM-Q2-001',
+        location: 'A-25',
+        quantity: 1,
+        pickedQuantity: 0,
+        status: 'pending',
+        ebayOrderId: 'ORD-EB-2024-009',
+        ebayItemId: '394756234575',
+        buyerName: '中村雄介',
+        buyerUserId: 'nakamura_leica_fan',
+        purchaseDate: '2024-01-23T12:55:00Z',
+        purchaseAmount: 780000,
+        shippingAddress: {
+          name: '中村雄介',
+          address: '京都府京都市中京区河原町通三条上る大黒町71',
+          city: '京都府',
+          postalCode: '604-8005',
+          country: '日本',
+          phone: '075-7890-1234'
+        },
+        combineGroup: 'nakamura_leica_fan_2024-01-23'
+      },
+      {
+        id: 'P010',
+        productName: 'Canon EF 70-200mm f/2.8L IS III USM',
+        sku: 'LENS-EF70200-001',
+        location: 'B-45',
+        quantity: 1,
+        pickedQuantity: 0,
+        status: 'pending',
+        ebayOrderId: 'ORD-EB-2024-010',
+        ebayItemId: '394756234576',
+        buyerName: '松本彩香',
+        buyerUserId: 'matsumoto_sports_photo',
+        purchaseDate: '2024-01-23T14:20:00Z',
+        purchaseAmount: 260000,
+        shippingAddress: {
+          name: '松本彩香',
+          address: '静岡県静岡市葵区呉服町1-1-1 呉服町ビル702',
+          city: '静岡県',
+          postalCode: '420-0031',
+          country: '日本',
+          phone: '054-8901-2345'
+        },
+        combineGroup: 'matsumoto_sports_photo_2024-01-23'
+      },
+      {
+        id: 'P011',
+        productName: 'Tag Heuer Carrera Chronograph',
+        sku: 'WATCH-TAG-001',
+        location: 'V-15',
+        quantity: 1,
+        pickedQuantity: 0,
+        status: 'pending',
+        ebayOrderId: 'ORD-EB-2024-011',
+        ebayItemId: '394756234577',
+        buyerName: '岡田正人',
+        buyerUserId: 'okada_watch_collector',
+        purchaseDate: '2024-01-24T08:15:00Z',
+        purchaseAmount: 420000,
+        shippingAddress: {
+          name: '岡田正人',
+          address: '宮城県仙台市青葉区一番町2-2-2 一番町プラザ1003',
+          city: '宮城県',
+          postalCode: '980-0811',
+          country: '日本',
+          phone: '022-9012-3456'
+        },
+        combineGroup: 'okada_watch_collector_2024-01-24'
+      },
+      {
+        id: 'P012',
+        productName: 'Panasonic LUMIX GH6 ボディ',
+        sku: 'CAM-GH6-001',
+        location: 'A-30',
+        quantity: 1,
+        pickedQuantity: 0,
+        status: 'pending',
+        ebayOrderId: 'ORD-EB-2024-012',
+        ebayItemId: '394756234578',
+        buyerName: '森田千佳',
+        buyerUserId: 'morita_video_creator',
+        purchaseDate: '2024-01-24T11:45:00Z',
+        purchaseAmount: 280000,
+        shippingAddress: {
+          name: '森田千佳',
+          address: '沖縄県那覇市久茂地3-3-3 久茂地ビル605',
+          city: '沖縄県',
+          postalCode: '900-0015',
+          country: '日本',
+          phone: '098-0123-4567'
+        },
+        combineGroup: 'morita_video_creator_2024-01-24'
+      }
     ];
-
-    // 新しい大量データと既存データを組み合わせ
-    const allTasks = [...pickingTasks, ...originalTasks];
 
     // Filter by status if provided
-    let filteredTasks = allTasks;
+    let filteredProducts = ebayProducts;
     if (status && status !== 'all') {
-      filteredTasks = filteredTasks.filter(task => task.status === status);
+      filteredProducts = filteredProducts.filter(product => product.status === status);
     }
 
-    // Filter by assignee if provided
-    if (assignee) {
-      filteredTasks = filteredTasks.filter(task => task.assignee === assignee);
+    // Filter by buyer ID if provided
+    if (buyerId) {
+      filteredProducts = filteredProducts.filter(product => product.buyerUserId === buyerId);
     }
+
+    // 同梱可能グループの生成
+    const combineGroups = generateCombineGroups(filteredProducts);
 
     return NextResponse.json({
       success: true,
-      data: filteredTasks,
-      count: filteredTasks.length
+      data: filteredProducts,
+      combineGroups: combineGroups,
+      count: filteredProducts.length,
+             stats: {
+         totalProducts: ebayProducts.length,
+         pendingProducts: ebayProducts.filter(p => p.status === 'pending').length,
+         readyForPackingProducts: ebayProducts.filter(p => p.status === 'ready_for_packing').length,
+         completedProducts: ebayProducts.filter(p => p.status === 'completed').length,
+         combinableGroups: combineGroups.length
+       }
     });
 
   } catch (error) {
-    console.error('Picking API error:', error);
+    console.error('eBay Picking API error:', error);
     
     // Prismaエラーの場合はフォールバックデータを使用
     if (MockFallback.isPrismaError(error)) {
-      console.log('Using fallback data for picking due to Prisma error');
+      console.log('Using fallback data for eBay picking due to Prisma error');
       try {
         const fallbackData = {
           success: true,
           data: [],
-          count: 0
+          combineGroups: [],
+          count: 0,
+                     stats: {
+             totalProducts: 0,
+             pendingProducts: 0,
+             readyForPackingProducts: 0,
+             completedProducts: 0,
+             combinableGroups: 0
+           }
         };
         return NextResponse.json(fallbackData);
       } catch (fallbackError) {
@@ -224,8 +369,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       { 
         success: false, 
-        error: 'ピッキングデータの取得に失敗しました',
+        error: 'eBayピッキングデータの取得に失敗しました',
         data: [],
+        combineGroups: [],
         count: 0
       },
       { status: 500 }
@@ -233,122 +379,214 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// ピッキングタスク開始/更新
+// 同梱可能グループの生成
+function generateCombineGroups(products: any[]) {
+  const groupMap = new Map();
+
+  products.forEach(product => {
+    if (product.combineGroup) {
+      if (!groupMap.has(product.combineGroup)) {
+        groupMap.set(product.combineGroup, {
+          id: product.combineGroup,
+          buyerName: product.buyerName,
+          buyerUserId: product.buyerUserId,
+          purchaseDate: product.purchaseDate.split('T')[0], // 日付部分のみ
+          productIds: [],
+          products: [],
+          combinedPackage: false
+        });
+      }
+      const group = groupMap.get(product.combineGroup);
+      group.productIds.push(product.id);
+      group.products.push({
+        id: product.id,
+        productName: product.productName,
+        location: product.location,
+        status: product.status
+      });
+    }
+  });
+
+  // 2個以上の商品があるグループのみ返す
+  return Array.from(groupMap.values()).filter(group => group.productIds.length > 1);
+}
+
+// ピッキング開始/更新
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { taskId, action, itemId, quantity } = body;
+    const { productIds, action, combineGroupId } = body;
 
-    // アクションに応じた処理
     switch (action) {
-      case 'start':
-        // タスク開始処理
+      case 'start_picking':
+        // 商品のピッキング開始処理 - 直接梱包待ちステータスに
         return NextResponse.json({
-          taskId,
-          status: 'in_progress',
-          startedAt: new Date().toISOString(),
+          success: true,
+          message: '選択した商品をピッキングして、そのまま梱包作業にお進みください',
+          productIds: productIds,
+          status: 'ready_for_packing',
+          startedAt: new Date().toISOString()
         });
 
-      case 'pick_item':
-        // アイテムピッキング処理
+      case 'combine_products':
+        // 同梱パッケージ設定
         return NextResponse.json({
-          taskId,
-          itemId,
-          pickedQuantity: quantity,
-          status: 'picked',
-          pickedAt: new Date().toISOString(),
+          success: true,
+          message: `${productIds.length}個の商品を同梱パッケージに設定しました`,
+          combineGroupId: combineGroupId,
+          productIds: productIds,
+          combinedPackage: true,
+          combinedAt: new Date().toISOString()
         });
 
-      case 'complete':
-        // タスク完了処理
+      case 'cancel_picking':
+        // ピッキングキャンセル処理
         return NextResponse.json({
-          taskId,
-          status: 'completed',
-          completedAt: new Date().toISOString(),
-        });
-
-      case 'hold':
-        // タスク保留処理
-        return NextResponse.json({
-          taskId,
-          status: 'on_hold',
-          heldAt: new Date().toISOString(),
+          success: true,
+          message: 'ピッキングをキャンセルしました',
+          productIds: productIds,
+          status: 'pending',
+          cancelledAt: new Date().toISOString()
         });
 
       default:
         return NextResponse.json(
-          { error: 'Invalid action' },
+          { success: false, error: 'Invalid action' },
           { status: 400 }
         );
     }
   } catch (error) {
     console.error('[ERROR] POST /api/picking:', error);
     return NextResponse.json(
-      { error: 'Failed to update picking task' },
+      { success: false, error: 'Failed to update picking status' },
       { status: 500 }
     );
   }
 }
 
-// バッチピッキング作成
+// バッチピッキング作成（複数商品の一括処理）
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { orderIds, assignee, priority } = body;
+    const { productIds, assignee, combineGroups } = body;
 
     // 実際の実装では:
-    // 1. 複数の注文を統合
+    // 1. 複数の商品を統合
     // 2. 最適なピッキングルートを計算
-    // 3. バッチタスクを作成
+    // 3. 同梱可能商品をグループ化
 
-    const batchTask = {
+    const batchPickingTask = {
       id: `BATCH-${Date.now()}`,
-      type: 'batch',
-      orderIds,
+      type: 'batch_picking',
+      productIds,
       assignee,
-      priority,
-      totalItems: orderIds.length * 3, // 仮の値
-      optimizedRoute: ['STD-A-01', 'HUM-01', 'STD-B-02'],
-      estimatedTime: '45分',
+      combineGroups,
+      totalProducts: productIds.length,
+      optimizedRoute: calculateOptimalRoute(productIds),
+      estimatedTime: calculateEstimatedTime(productIds.length),
       createdAt: new Date().toISOString(),
     };
 
-    return NextResponse.json(batchTask);
+    return NextResponse.json({
+      success: true,
+      data: batchPickingTask,
+      message: 'バッチピッキングタスクを作成しました'
+    });
   } catch (error) {
     console.error('[ERROR] PUT /api/picking:', error);
     return NextResponse.json(
-      { error: 'Failed to create batch picking' },
+      { success: false, error: 'Failed to create batch picking' },
       { status: 500 }
     );
   }
 }
 
-// ピッキング履歴取得
+// 最適ルート計算（簡易版）
+function calculateOptimalRoute(productIds: string[]) {
+  // 実際の実装では倉庫レイアウトに基づいて最適ルートを計算
+  const sampleRoutes = [
+    ['A-01', 'A-08', 'A-12', 'A-20', 'A-25', 'A-30'],
+    ['B-15', 'B-35', 'B-45'],
+    ['V-03', 'V-07', 'V-15']
+  ];
+  
+  return sampleRoutes.flat().slice(0, productIds.length);
+}
+
+// 予想作業時間計算
+function calculateEstimatedTime(productCount: number) {
+  const baseTime = 5; // 基本時間（分）
+  const perProductTime = 3; // 商品あたりの時間（分）
+  const totalMinutes = baseTime + (productCount * perProductTime);
+  
+  return `${totalMinutes}分`;
+}
+
+// ピッキング履歴とレポート取得
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const days = parseInt(searchParams.get('days') || '7');
 
-    // モックデータ（実際はDBから取得）
-    const history = {
+    // ピッキング履歴とパフォーマンス統計
+    const pickingHistory = {
       summary: {
-        totalCompleted: 245,
-        averageTime: '23分',
-        accuracy: 99.7,
-        topPerformer: '田中太郎',
+        totalCompleted: 156,
+        averagePickingTime: '18分',
+        accuracy: 99.8,
+        topPerformer: 'スタッフA',
+        mostPickedProduct: 'Canon EOS R5',
+        combinePackageRate: 15.2 // 同梱率
       },
       dailyStats: [
-        { date: '2024-01-20', completed: 35, avgTime: '22分' },
-        { date: '2024-01-19', completed: 42, avgTime: '24分' },
-        { date: '2024-01-18', completed: 38, avgTime: '23分' },
+        { 
+          date: '2024-01-24', 
+          completed: 28, 
+          avgTime: '17分',
+          combinePackages: 4,
+          totalValue: 8640000
+        },
+        { 
+          date: '2024-01-23', 
+          completed: 35, 
+          avgTime: '19分',
+          combinePackages: 6,
+          totalValue: 10250000
+        },
+        { 
+          date: '2024-01-22', 
+          completed: 31, 
+          avgTime: '18分',
+          combinePackages: 3,
+          totalValue: 7850000
+        },
       ],
+      categoryBreakdown: {
+        cameras: { count: 89, percentage: 57.1 },
+        watches: { count: 45, percentage: 28.8 },
+        lenses: { count: 22, percentage: 14.1 }
+      },
+      buyerStatistics: {
+        totalUniqueBuyers: 142,
+        repeatCustomers: 28,
+        averageOrderValue: 445000,
+        topBuyers: [
+          { buyerUserId: 'tanaka_photo_2024', orderCount: 8, totalValue: 3200000 },
+          { buyerUserId: 'sato_luxury_watch', orderCount: 5, totalValue: 4500000 },
+          { buyerUserId: 'yamada_camera_pro', orderCount: 6, totalValue: 2800000 }
+        ]
+      }
     };
 
-    return NextResponse.json(history);
+    return NextResponse.json({
+      success: true,
+      data: pickingHistory,
+      period: `過去${days}日間`
+    });
   } catch (error) {
     console.error('[ERROR] DELETE /api/picking:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch picking history' },
+      { success: false, error: 'Failed to fetch picking history' },
       { status: 500 }
     );
   }

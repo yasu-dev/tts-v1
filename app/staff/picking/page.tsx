@@ -7,155 +7,42 @@ import PickingListManager from '@/app/components/features/picking/PickingListMan
 import PickingProgress from '@/app/components/features/picking/PickingProgress';
 import PickingHistory from '@/app/components/features/picking/PickingHistory';
 
-interface PickingTask {
-  id: string;
-  orderId: string;
-  customerName: string;
-  priority: 'urgent' | 'high' | 'normal' | 'low';
-  status: 'pending' | 'in_progress' | 'completed' | 'on_hold';
-  items: PickingItem[];
-  assignee?: string;
-  createdAt: string;
-  dueDate: string;
-  shippingMethod: string;
-  totalItems: number;
-  pickedItems: number;
-}
-
-interface PickingItem {
-  id: string;
-  productId: string;
-  productName: string;
-  sku: string;
-  location: string;
-  quantity: number;
-  pickedQuantity: number;
-  status: 'pending' | 'picked' | 'verified';
-  imageUrl?: string;
-}
-
 interface PickingStats {
-  totalTasks: number;
-  pendingTasks: number;
-  inProgressTasks: number;
-  completedToday: number;
-  averageTime: string;
-  accuracy: number;
+  totalProducts: number;
+  pendingProducts: number;
+  readyForPackingProducts: number;
+  completedProducts: number;
+  combinableGroups: number;
 }
 
 export default function PickingPage() {
-  const taskDetailModalRef = useRef<HTMLDivElement>(null);
   const [viewMode, setViewMode] = useState<'active' | 'progress' | 'history'>('active');
-  const [pickingTasks, setPickingTasks] = useState<PickingTask[]>([]);
-  const [selectedTask, setSelectedTask] = useState<PickingTask | null>(null);
   const [stats, setStats] = useState<PickingStats>({
-    totalTasks: 0,
-    pendingTasks: 0,
-    inProgressTasks: 0,
-    completedToday: 0,
-    averageTime: '0分',
-    accuracy: 0,
+    totalProducts: 0,
+    pendingProducts: 0,
+    readyForPackingProducts: 0,
+    completedProducts: 0,
+    combinableGroups: 0,
   });
-  const [filter, setFilter] = useState<'all' | 'pending' | 'in_progress' | 'completed'>('all');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchPickingData();
+    fetchPickingStats();
   }, []);
 
-  // タスク詳細モーダルのスクロール位置リセット
-  useEffect(() => {
-    if (selectedTask) {
-      // ページ全体を最上部にスクロール - 正しいスクロールコンテナを対象
-      const scrollContainer = document.querySelector('.page-scroll-container');
-      if (scrollContainer) {
-        scrollContainer.scrollTop = 0;
-      } else {
-        window.scrollTo(0, 0);
-      }
-      
-      if (taskDetailModalRef.current) {
-        taskDetailModalRef.current.scrollTop = 0;
-      }
-    }
-  }, [selectedTask]);
-
-  const fetchPickingData = async () => {
+  const fetchPickingStats = async () => {
     try {
-      // APIからデータを取得
       const response = await fetch('/api/picking');
       const result = await response.json();
       
-      if (result.success) {
-        const tasks = result.data || [];
-        setPickingTasks(tasks);
-        
-        // 統計情報を計算
-        const stats: PickingStats = {
-          totalTasks: tasks.length,
-          pendingTasks: tasks.filter((t: PickingTask) => t.status === 'pending').length,
-          inProgressTasks: tasks.filter((t: PickingTask) => t.status === 'in_progress').length,
-          completedToday: tasks.filter((t: PickingTask) => t.status === 'completed').length,
-          averageTime: '25分',
-          accuracy: 99.5,
-        };
-        setStats(stats);
-      } else {
-        console.error('Failed to fetch picking data:', result);
-        // フォールバック用のデータ
-        setPickingTasks([]);
-        setStats({
-          totalTasks: 0,
-          pendingTasks: 0,
-          inProgressTasks: 0,
-          completedToday: 0,
-          averageTime: '0分',
-          accuracy: 0,
-        });
+      if (result.success && result.stats) {
+        setStats(result.stats);
       }
     } catch (error) {
-      console.error('Error fetching picking data:', error);
+      console.error('Error fetching picking stats:', error);
     } finally {
       setLoading(false);
     }
-  };
-
-  const priorityConfig = {
-    urgent: { label: '緊急', badge: 'danger', color: 'text-red-600' },
-    high: { label: '高', badge: 'warning', color: 'text-orange-600' },
-    normal: { label: '中', badge: 'info', color: 'text-blue-600' },
-    low: { label: '低', badge: 'success', color: 'text-green-600' },
-  };
-
-  const statusConfig = {
-    pending: { label: '未開始', badge: 'warning' },
-    in_progress: { label: '進行中', badge: 'info' },
-    completed: { label: '完了', badge: 'success' },
-    on_hold: { label: '保留', badge: 'danger' },
-  };
-
-  const getFilteredTasks = () => {
-    if (filter === 'all') return pickingTasks;
-    return pickingTasks.filter(task => task.status === filter);
-  };
-
-  const handleStartPicking = (task: PickingTask) => {
-    setSelectedTask(task);
-    // 実際の実装ではAPIを呼び出してステータスを更新
-  };
-
-  const handleItemPicked = (taskId: string, itemId: string) => {
-    // アイテムのピッキング完了処理
-    setPickingTasks(prev => prev.map(task => 
-      task.id === taskId 
-        ? {
-            ...task,
-            items: task.items.map(item =>
-              item.id === itemId ? { ...item, status: 'picked' as const, pickedQuantity: item.quantity } : item
-            )
-          }
-        : task
-    ));
   };
 
   if (loading) {
@@ -189,7 +76,7 @@ export default function PickingPage() {
         {/* 統一ヘッダー */}
         <UnifiedPageHeader
           title="ピッキングリスト"
-          subtitle="出荷準備の効率的な商品ピッキング管理"
+          subtitle="eBay購入商品の効率的なピッキング管理"
           userType="staff"
           iconType="picking"
           actions={headerActions}
@@ -201,9 +88,9 @@ export default function PickingPage() {
             <div className="p-8">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-nexus-text-secondary">待機中</p>
+                  <p className="text-sm text-nexus-text-secondary">ピッキング待ち</p>
                   <p className="text-2xl font-display font-bold text-nexus-text-primary">
-                    {stats.pendingTasks}
+                    {stats.pendingProducts}
                   </p>
                 </div>
                 <div className="action-orb yellow">
@@ -219,14 +106,14 @@ export default function PickingPage() {
             <div className="p-8">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-nexus-text-secondary">作業中</p>
+                  <p className="text-sm text-nexus-text-secondary">梱包待ち</p>
                   <p className="text-2xl font-display font-bold text-nexus-text-primary">
-                    {stats.inProgressTasks}
+                    {stats.readyForPackingProducts}
                   </p>
                 </div>
                 <div className="action-orb blue">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                   </svg>
                 </div>
               </div>
@@ -237,9 +124,9 @@ export default function PickingPage() {
             <div className="p-8">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-nexus-text-secondary">本日完了</p>
+                  <p className="text-sm text-nexus-text-secondary">出荷完了</p>
                   <p className="text-2xl font-display font-bold text-nexus-text-primary">
-                    {stats.completedToday}
+                    {stats.completedProducts}
                   </p>
                 </div>
                 <div className="action-orb green">
@@ -255,14 +142,14 @@ export default function PickingPage() {
             <div className="p-8">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-nexus-text-secondary">平均作業時間</p>
+                  <p className="text-sm text-nexus-text-secondary">同梱可能グループ</p>
                   <p className="text-2xl font-display font-bold text-nexus-text-primary">
-                    {stats.averageTime}
+                    {stats.combinableGroups}
                   </p>
                 </div>
                 <div className="action-orb">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                   </svg>
                 </div>
               </div>
@@ -277,7 +164,7 @@ export default function PickingPage() {
               {[
                 { 
                   key: 'active', 
-                  label: 'アクティブリスト', 
+                  label: 'ピッキングリスト', 
                   icon: (
                     <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 8l2 2 4-4" />
@@ -325,216 +212,6 @@ export default function PickingPage() {
             {viewMode === 'history' && <PickingHistory />}
           </div>
         </div>
-
-        {/* Filter Controls */}
-        <div className="intelligence-card global">
-          <div className="p-8">
-            <div className="flex gap-1 bg-nexus-bg-secondary p-1 rounded-lg">
-              {[
-                { key: 'all', label: 'すべて' },
-                { key: 'pending', label: '未開始' },
-                { key: 'in_progress', label: '進行中' },
-                { key: 'completed', label: '完了' },
-              ].map((tab) => (
-                <button
-                  key={tab.key}
-                  onClick={() => setFilter(tab.key as any)}
-                  className={`flex-1 py-2 px-2 sm:px-3 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 ${
-                    filter === tab.key
-                      ? 'bg-nexus-bg-primary text-nexus-yellow shadow-sm'
-                      : 'text-nexus-text-secondary hover:text-nexus-text-primary'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Picking Tasks List */}
-        <div className="intelligence-card global">
-          <div className="p-8">
-            <div className="overflow-x-auto -mx-3 sm:-mx-4 md:-mx-6 lg:-mx-8">
-              <div className="holo-table min-w-[800px] px-3 sm:px-4 md:px-6 lg:px-8">
-                <table className="w-full">
-                  <thead className="holo-header">
-                    <tr>
-                      <th className="text-left py-2 sm:py-3 px-1 sm:px-2 md:px-4 text-xs sm:text-sm">注文情報</th>
-                      <th className="text-left py-2 sm:py-3 px-1 sm:px-2 md:px-4 text-xs sm:text-sm">顧客</th>
-                      <th className="text-center py-2 sm:py-3 px-1 sm:px-2 md:px-4 text-xs sm:text-sm">優先度</th>
-                      <th className="text-center py-2 sm:py-3 px-1 sm:px-2 md:px-4 text-xs sm:text-sm">商品数</th>
-                      <th className="text-center py-2 sm:py-3 px-1 sm:px-2 md:px-4 text-xs sm:text-sm">進捗</th>
-                      <th className="text-left py-2 sm:py-3 px-1 sm:px-2 md:px-4 text-xs sm:text-sm">担当者</th>
-                      <th className="text-center py-2 sm:py-3 px-1 sm:px-2 md:px-4 text-xs sm:text-sm">ステータス</th>
-                      <th className="text-center py-2 sm:py-3 px-1 sm:px-2 md:px-4 text-xs sm:text-sm">アクション</th>
-                    </tr>
-                  </thead>
-                  <tbody className="holo-body">
-                    {getFilteredTasks().map((task) => {
-                      const progress = task.totalItems > 0 
-                        ? Math.round((task.pickedItems / task.totalItems) * 100)
-                        : 0;
-                      
-                      return (
-                        <tr key={task.id} className="holo-row">
-                          <td className="py-2 sm:py-4 px-1 sm:px-2 md:px-4">
-                            <div>
-                              <p className="font-medium text-nexus-text-primary text-xs sm:text-sm">{task.orderId}</p>
-                              <p className="text-xs text-nexus-text-secondary font-mono">{task.id}</p>
-                            </div>
-                          </td>
-                          <td className="py-2 sm:py-4 px-1 sm:px-2 md:px-4">
-                            <p className="font-medium text-xs sm:text-sm">{task.customerName}</p>
-                            <p className="text-xs text-nexus-text-secondary">{task.shippingMethod}</p>
-                          </td>
-                          <td className="py-2 sm:py-4 px-1 sm:px-2 md:px-4 text-center">
-                            <span className={`status-badge ${priorityConfig[task.priority].badge} text-xs`}>
-                              {priorityConfig[task.priority].label}
-                            </span>
-                          </td>
-                          <td className="py-2 sm:py-4 px-1 sm:px-2 md:px-4 text-center font-display text-sm sm:text-base">
-                            {task.totalItems}
-                          </td>
-                          <td className="py-2 sm:py-4 px-1 sm:px-2 md:px-4">
-                            <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
-                              <div className="flex-1 bg-nexus-bg-secondary rounded-full h-2">
-                                <div
-                                  className={`h-2 rounded-full transition-all duration-300 ${
-                                    progress === 100 ? 'bg-nexus-green' :
-                                    progress > 0 ? 'bg-nexus-blue' :
-                                    'bg-gray-300'
-                                  }`}
-                                  style={{ width: `${progress}%` }}
-                                />
-                              </div>
-                              <span className="text-xs font-medium whitespace-nowrap">
-                                {task.pickedItems}/{task.totalItems}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="py-2 sm:py-4 px-1 sm:px-2 md:px-4 text-xs sm:text-sm">
-                            {task.assignee || '-'}
-                          </td>
-                          <td className="py-2 sm:py-4 px-1 sm:px-2 md:px-4 text-center">
-                            <span className={`status-badge ${statusConfig[task.status].badge} text-xs`}>
-                              {statusConfig[task.status].label}
-                            </span>
-                          </td>
-                          <td className="py-2 sm:py-4 px-1 sm:px-2 md:px-4 text-center">
-                            {task.status === 'pending' ? (
-                              <button
-                                onClick={() => handleStartPicking(task)}
-                                className="nexus-button primary text-xs px-1.5 sm:px-2 py-1"
-                              >
-                                開始
-                              </button>
-                            ) : task.status === 'in_progress' ? (
-                              <button
-                                onClick={() => setSelectedTask(task)}
-                                className="nexus-button text-xs px-1.5 sm:px-2 py-1"
-                              >
-                                詳細
-                              </button>
-                            ) : (
-                              <button className="nexus-button text-xs px-1.5 sm:px-2 py-1" disabled>
-                                完了
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Task Detail Modal */}
-        {selectedTask && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start justify-center z-[10001] p-4 pt-8">
-            <div className="intelligence-card global max-w-[1600px] w-full max-h-[90vh] overflow-hidden">
-              <div className="p-8 border-b border-nexus-border">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-xl font-display font-bold text-nexus-text-primary">
-                      ピッキングタスク詳細
-                    </h3>
-                    <p className="text-nexus-text-secondary">{selectedTask.orderId}</p>
-                  </div>
-                  <button
-                    onClick={() => setSelectedTask(null)}
-                    className="action-orb"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              <div className="p-8 overflow-y-auto max-h-[calc(90vh-120px)]" ref={taskDetailModalRef}>
-                <div className="mb-6">
-                  <h4 className="font-semibold mb-4 text-nexus-text-primary">ピッキングアイテム</h4>
-                  <div className="space-y-3">
-                    {selectedTask.items.map((item) => (
-                      <div key={item.id} className="holo-card p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <img
-                              src={item.imageUrl || '/api/placeholder/60/60'}
-                              alt={item.productName}
-                              className="w-16 h-16 object-cover rounded-lg"
-                            />
-                            <div>
-                              <h5 className="font-medium text-nexus-text-primary">
-                                {item.productName}
-                              </h5>
-                              <p className="text-sm text-nexus-text-secondary">
-                                SKU: {item.sku} | ロケーション: <span className="font-mono">{item.location}</span>
-                              </p>
-                              <p className="text-sm mt-1">
-                                数量: <span className="font-bold">{item.quantity}</span>
-                              </p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            {item.status === 'pending' ? (
-                              <button
-                                onClick={() => handleItemPicked(selectedTask.id, item.id)}
-                                className="nexus-button primary"
-                              >
-                                ピック完了
-                              </button>
-                            ) : (
-                              <span className="status-badge success">
-                                ピック済み
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex justify-end gap-3">
-                  <button
-                    onClick={() => setSelectedTask(null)}
-                    className="nexus-button"
-                  >
-                    閉じる
-                  </button>
-                  <button className="nexus-button primary">
-                    タスク完了
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </DashboardLayout>
   );
