@@ -175,7 +175,7 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
     }));
   };
 
-  const submitInspection = async (inspectionOnly = false) => {
+  const submitInspection = async (inspectionOnly = false, locationId?: string) => {
     try {
       setLoading(true);
       
@@ -212,19 +212,17 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
       }
 
       const finalData = {
-        ...inspectionData,
-        result,
-        completedAt: new Date().toISOString(),
-        videoId: videoId || undefined,
-        skipPhotography: inspectionOnly, // 検品のみかどうかのフラグ
+        productId,
+        inspectionNotes: inspectionData.notes,
+        condition: result === 'passed' ? 'excellent' : result === 'conditional' ? 'good' : 'poor',
+        status: 'inspection',
+        locationId: locationId, // 保管場所IDを追加
+        skipPhotography: inspectionOnly,
+        photographyDate: inspectionOnly ? null : new Date().toISOString(),
       };
 
-      // デモ用：API呼び出しをモック処理に変更
-      console.log('検品結果送信（モック）:', finalData);
-      
-      // 本番用APIコード（現在コメントアウト）
-      /*
-      const response = await fetch(`/api/products/${productId}/inspection`, {
+      // 本番用APIコール
+      const response = await fetch(`/api/products/inspection`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(finalData),
@@ -232,26 +230,10 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `検品結果の保存に失敗しました: ${response.status}`);
+        throw new Error(errorData.error || `検品結果の保存に失敗しました: ${response.status}`);
       }
 
       const savedData = await response.json();
-
-      // 商品ステータスの更新
-      await fetch(`/api/inventory/${productId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          status: result === 'passed' ? 'ready_for_listing' : 
-                  result === 'conditional' ? 'needs_review' : 'rejected',
-          inspectionId: savedData.id,
-          lastInspectionDate: new Date().toISOString()
-        })
-      });
-      */
-      
-      // モック処理：成功レスポンスをシミュレート
-      await new Promise(resolve => setTimeout(resolve, 2000));
 
       showToast({
         type: 'success',
@@ -268,7 +250,7 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
         duration: 4000
       });
       
-      // 本番運用では適切な画面遷移を行う
+      // 成功時は検品ページに戻る
       setTimeout(() => {
         window.location.href = '/staff/inspection';
       }, 2000);
@@ -473,8 +455,8 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
             product={product}
             inspectionData={inspectionData}
             onNotesChange={(notes) => setInspectionData(prev => ({ ...prev, notes }))}
-            onSubmit={() => submitInspection(false)} // 通常の検品・撮影完了
-            onSubmitInspectionOnly={() => submitInspection(true)} // 検品のみ完了
+            onSubmit={(locationId) => submitInspection(false, locationId)} // 通常の検品・撮影完了
+            onSubmitInspectionOnly={(locationId) => submitInspection(true, locationId)} // 検品のみ完了
             onPrev={() => setCurrentStep(3)}
             loading={loading}
           />
