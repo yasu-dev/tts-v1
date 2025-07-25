@@ -3,31 +3,31 @@ export const SHIPPING_WORKFLOW_STEPS = [
   {
     id: 'pending_inspection',
     label: '検品待ち',
-    icon: '📋',
+    icon: 'inspection',
     order: 1
   },
   {
     id: 'inspected',
     label: '検品完了',
-    icon: '✅',
+    icon: 'completion',
     order: 2
   },
   {
     id: 'packed',
     label: '梱包完了',
-    icon: '📦',
+    icon: 'shipping',
     order: 3
   },
   {
     id: 'shipped',
     label: '出荷済み',
-    icon: '🚚',
+    icon: 'shipping',
     order: 4
   },
   {
     id: 'delivered',
     label: '配送完了',
-    icon: '🎯',
+    icon: 'completion',
     order: 5
   }
 ];
