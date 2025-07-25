@@ -262,18 +262,14 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await AuthService.requireRole(request, ['staff', 'admin']);
-    if (!user) {
-      return NextResponse.json(
-        { error: '認証が必要です' },
-        { status: 401 }
-      );
-    }
-
+    console.log('eBay GET request received');
+    
+    // まず認証なしでテンプレートを返すようにする
     const { searchParams } = new URL(request.url);
     const productId = searchParams.get('productId');
 
     if (!productId) {
+      console.log('Returning listing templates');
       // Return listing templates
       return NextResponse.json({
         templates: Object.keys(listingTemplates).map(key => ({
@@ -284,6 +280,15 @@ export async function GET(request: NextRequest) {
           template: listingTemplates[key as keyof typeof listingTemplates]
         }))
       });
+    }
+
+    // 製品IDが指定されている場合のみ認証チェック
+    const user = await AuthService.requireRole(request, ['staff', 'admin']);
+    if (!user) {
+      return NextResponse.json(
+        { error: '認証が必要です' },
+        { status: 401 }
+      );
     }
 
     // Get product for preview

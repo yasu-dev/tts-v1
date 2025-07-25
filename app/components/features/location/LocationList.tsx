@@ -105,7 +105,14 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
           type: mapLocationTypeFromApi(location.zone),
           capacity: location.capacity || 50,
           used: location._count?.products || 0,
-          products: location.products || []
+          products: (location.products || []).map((product: any) => ({
+            id: product.id,
+            name: product.name,
+            sku: product.sku,
+            category: product.category,
+            registeredAt: product.createdAt,
+            registeredBy: product.seller?.username || 'システム'
+          }))
         }));
         setLocations(fetchedLocations);
         setFilteredLocations(fetchedLocations);

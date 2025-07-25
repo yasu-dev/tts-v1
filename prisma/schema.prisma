@@ -68,6 +68,7 @@ model Product {
   inspectedAt  DateTime?
   inspectedBy  String?
   inspectionNotes String?
+  metadata     String? // JSON string for additional metadata
   
   // Location tracking
   currentLocationId String?

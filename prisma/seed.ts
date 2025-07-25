@@ -319,6 +319,57 @@ async function main() {
       entryDate: new Date('2024-07-01'),
       sellerId: seller.id,
     },
+    // 腕時計商品
+    {
+      sku: 'WATCH-ROLEX-SUB-001',
+      name: 'Rolex Submariner Date',
+      category: 'watch',
+      price: 1580000,
+      status: 'storage',
+      condition: 'excellent',
+      entryDate: new Date('2024-06-15'),
+      sellerId: seller.id,
+    },
+    {
+      sku: 'WATCH-OMEGA-SPEED-002',
+      name: 'Omega Speedmaster Professional',
+      category: 'watch',
+      price: 758000,
+      status: 'storage',
+      condition: 'very_good',
+      entryDate: new Date('2024-06-20'),
+      sellerId: seller.id,
+    },
+    {
+      sku: 'WATCH-ROLEX-GMT-003',
+      name: 'Rolex GMT-Master II',
+      category: 'watch',
+      price: 1890000,
+      status: 'listing',
+      condition: 'excellent',
+      entryDate: new Date('2024-06-25'),
+      sellerId: seller.id,
+    },
+    {
+      sku: 'WATCH-SEIKO-GS-004',
+      name: 'Grand Seiko SBGA211',
+      category: 'watch',
+      price: 658000,
+      status: 'storage',
+      condition: 'like_new',
+      entryDate: new Date('2024-06-28'),
+      sellerId: seller.id,
+    },
+    {
+      sku: 'WATCH-CASIO-GS-005',
+      name: 'Casio G-Shock MR-G',
+      category: 'watch',
+      price: 98000,
+      status: 'inspection',
+      condition: 'good',
+      entryDate: new Date('2024-07-01'),
+      sellerId: seller.id,
+    },
   ];
 
   // 商品を一括作成
@@ -337,18 +388,79 @@ async function main() {
     { code: 'STD-A-02', name: '標準棚 A-02', zone: 'A', capacity: 50 },
     { code: 'STD-B-01', name: '標準棚 B-01', zone: 'B', capacity: 30 },
     { code: 'HUM-01', name: '防湿庫 01', zone: 'H', capacity: 20 },
+    { code: 'HUM-02', name: '防湿庫 02', zone: 'H', capacity: 20 },
     { code: 'VAULT-01', name: '金庫室 01', zone: 'V', capacity: 10 },
+    { code: 'VAULT-02', name: '金庫室 02', zone: 'V', capacity: 15 },
     { code: 'PROC-01', name: '検品エリア 01', zone: 'P', capacity: 100 },
     { code: 'PROC-02', name: '撮影ブース 01', zone: 'P', capacity: 5 },
   ];
 
+  const locationMap = new Map();
   for (const loc of locations) {
     const location = await prisma.location.upsert({
       where: { code: loc.code },
       update: {},
       create: loc,
     });
+    locationMap.set(loc.code, location.id);
     console.log(`✅ ロケーションを作成しました: ${location.name}`);
+  }
+
+  // 商品をロケーションに関連付け（全商品を取得して更新）
+  console.log('🔄 商品をロケーションに関連付け中...');
+  const productsForLocation = await prisma.product.findMany();
+  
+  // ロケーション割り当てのルール
+  const locationAssignments = [
+    // 標準棚に保管する商品
+    { sku: 'CAM-SONY-A7II-002', locationCode: 'STD-A-01' },
+    { sku: 'CAM-PANASONIC-S5II-007', locationCode: 'STD-A-01' },
+    { sku: 'CAM-SONY-A9II-010', locationCode: 'STD-A-01' },
+    { sku: 'CAM-NIKON-D850-017', locationCode: 'STD-A-02' },
+    { sku: 'CAM-FUJIFILM-X100V-018', locationCode: 'STD-A-02' },
+    { sku: 'CAM-CANON-R10-016', locationCode: 'STD-B-01' },
+    { sku: 'CAM-OLYMPUS-EM1X-014', locationCode: 'STD-B-01' },
+    
+    // 防湿庫に保管する商品（高価なカメラ）
+    { sku: 'CAM-CANON-R6M2-003', locationCode: 'HUM-01' },
+    { sku: 'CAM-FUJIFILM-XT5-005', locationCode: 'HUM-01' },
+    { sku: 'CAM-NIKON-ZF-009', locationCode: 'HUM-01' },
+    { sku: 'CAM-FUJIFILM-GFX100S-012', locationCode: 'HUM-02' },
+    
+    // 金庫室に保管する商品（超高価品）
+    { sku: 'CAM-CANON-R5-006', locationCode: 'VAULT-01' }, // 売約済み
+    { sku: 'CAM-LEICA-Q2-013', locationCode: 'VAULT-01' }, // 売約済み
+    
+    // 検品エリアの商品
+    { sku: 'CAM-SONY-A7IV-001', locationCode: 'PROC-01' },
+    { sku: 'CAM-SONY-A7R5-008', locationCode: 'PROC-01' },
+    { sku: 'CAM-SIGMA-FP-015', locationCode: 'PROC-01' },
+    { sku: 'CAM-SONY-ZV1-019', locationCode: 'PROC-01' },
+    
+    // 入庫中の商品（検品エリア）
+    { sku: 'CAM-NIKON-Z8-004', locationCode: 'PROC-01' },
+    { sku: 'CAM-CANON-R3-011', locationCode: 'PROC-01' },
+    { sku: 'CAM-CANON-R7-020', locationCode: 'PROC-01' },
+    
+    // 腕時計（金庫室に保管）
+    { sku: 'WATCH-ROLEX-SUB-001', locationCode: 'VAULT-01' },
+    { sku: 'WATCH-OMEGA-SPEED-002', locationCode: 'VAULT-02' },
+    { sku: 'WATCH-ROLEX-GMT-003', locationCode: 'VAULT-02' },
+    { sku: 'WATCH-SEIKO-GS-004', locationCode: 'VAULT-01' },
+    { sku: 'WATCH-CASIO-GS-005', locationCode: 'PROC-01' }, // 検品中
+  ];
+
+  for (const assignment of locationAssignments) {
+    const product = productsForLocation.find(p => p.sku === assignment.sku);
+    const locationId = locationMap.get(assignment.locationCode);
+    
+    if (product && locationId) {
+      await prisma.product.update({
+        where: { id: product.id },
+        data: { currentLocationId: locationId }
+      });
+      console.log(`📍 ${product.name} を ${assignment.locationCode} に配置しました`);
+    }
   }
 
   // 注文データを作成（受注一覧デモ用）

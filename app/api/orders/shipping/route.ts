@@ -24,7 +24,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const order = await prisma.order.findUnique({
+    // orderIdまたはorderNumberで注文を検索
+    let order = await prisma.order.findUnique({
       where: { id: orderId },
       include: {
         items: {
@@ -34,6 +35,20 @@ export async function POST(request: NextRequest) {
         },
       },
     });
+
+    // IDで見つからない場合、orderNumberで検索を試行
+    if (!order) {
+      order = await prisma.order.findUnique({
+        where: { orderNumber: orderId },
+        include: {
+          items: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
+    }
 
     if (!order) {
       return NextResponse.json(
@@ -51,7 +66,7 @@ export async function POST(request: NextRequest) {
 
     // Update order status to shipped
     const updatedOrder = await prisma.order.update({
-      where: { id: orderId },
+      where: { id: order.id },
       data: {
         status: 'shipped',
         shippedAt: new Date(),
@@ -90,7 +105,7 @@ export async function POST(request: NextRequest) {
         type: 'shipping',
         description: `注文 ${order.orderNumber} が出荷されました`,
         userId: user.id,
-        orderId,
+        orderId: order.id,
         metadata: JSON.stringify({
           trackingNumber,
           carrier,
@@ -109,7 +124,7 @@ export async function POST(request: NextRequest) {
           description: `商品 ${item.product.name} が出荷されました (注文: ${order.orderNumber})`,
           userId: user.id,
           productId: item.productId,
-          orderId,
+          orderId: order.id,
           metadata: JSON.stringify({
             trackingNumber,
             carrier,
@@ -168,7 +183,8 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const order = await prisma.order.findUnique({
+    // orderIdまたはorderNumberで注文を検索
+    let order = await prisma.order.findUnique({
       where: { id: orderId },
       include: {
         items: {
@@ -178,6 +194,20 @@ export async function PUT(request: NextRequest) {
         },
       },
     });
+
+    // IDで見つからない場合、orderNumberで検索を試行
+    if (!order) {
+      order = await prisma.order.findUnique({
+        where: { orderNumber: orderId },
+        include: {
+          items: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
+    }
 
     if (!order) {
       return NextResponse.json(
@@ -195,7 +225,7 @@ export async function PUT(request: NextRequest) {
 
     // Update order to delivered
     const updatedOrder = await prisma.order.update({
-      where: { id: orderId },
+      where: { id: order.id },
       data: {
         status: 'delivered',
         deliveredAt: new Date(),
@@ -233,7 +263,7 @@ export async function PUT(request: NextRequest) {
         type: 'delivery',
         description: `注文 ${order.orderNumber} の配送が完了しました`,
         userId: user.id,
-        orderId,
+        orderId: order.id,
         metadata: JSON.stringify({
           deliveredAt: updatedOrder.deliveredAt,
           productCount: productIds.length,

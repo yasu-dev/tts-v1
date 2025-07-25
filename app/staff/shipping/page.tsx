@@ -688,6 +688,43 @@ export default function StaffShippingPage() {
     );
   };
 
+  // 配送完了処理
+  const handleDeliveryComplete = async (item: ShippingItem) => {
+    try {
+      const response = await fetch('/api/orders/shipping', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          orderId: item.orderNumber, 
+          status: '配送完了' 
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || '配送完了処理に失敗しました');
+      }
+
+      // ローカルステートを更新
+      updateItemStatus(item.id, 'delivered');
+      
+      showToast({
+        type: 'success',
+        title: '配送完了',
+        message: `注文 ${item.orderNumber} の配送が完了しました`,
+        duration: 3000
+      });
+    } catch (error) {
+      console.error('配送完了エラー:', error);
+      showToast({
+        type: 'error',
+        title: '配送完了エラー',
+        message: error instanceof Error ? error.message : '配送完了処理中にエラーが発生しました',
+        duration: 4000
+      });
+    }
+  };
+
   // インライン作業処理
   const handleInlineAction = (item: ShippingItem, action: string) => {
     switch (action) {
@@ -702,6 +739,9 @@ export default function StaffShippingPage() {
         break;
       case 'ship':
         updateItemStatus(item.id, 'shipped');
+        break;
+      case 'deliver':
+        handleDeliveryComplete(item);
         break;
       default:
         break;
@@ -1109,6 +1149,17 @@ export default function StaffShippingPage() {
                                   出荷
                                 </NexusButton>
                               </>
+                            )}
+                            {item.status === 'shipped' && (
+                              <NexusButton
+                                onClick={() => handleInlineAction(item, 'deliver')}
+                                variant="primary"
+                                size="sm"
+                                className="flex items-center gap-1 bg-green-600 hover:bg-green-700"
+                              >
+                                <CheckCircleIcon className="w-4 h-4" />
+                                配送完了
+                              </NexusButton>
                             )}
                             <NexusButton
                               onClick={() => setSelectedDetailItem(item)}

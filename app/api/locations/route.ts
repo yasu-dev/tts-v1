@@ -17,6 +17,18 @@ export async function GET() {
         _count: {
           select: { products: true },
         },
+        products: {
+          select: {
+            id: true,
+            name: true,
+            sku: true,
+            category: true,
+            createdAt: true,
+            seller: {
+              select: { username: true }
+            }
+          }
+        }
       },
     });
 

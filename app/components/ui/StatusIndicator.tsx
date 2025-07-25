@@ -8,7 +8,7 @@ type StatusType = 'optimal' | 'warning' | 'critical';
 type BusinessStatusType = 
   | 'inbound' | 'inspection' | 'storage' | 'listing' | 'sold' | 'maintenance'
   | 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'confirmed'
-  | 'pending_inspection' | 'inspected' | 'packed' | 'shipped' | 'delivered'
+  | 'pending_inspection' | 'inspected' | 'packed' | 'shipped' | 'delivered' | 'ready_for_pickup'
   | 'approved' | 'rejected' | 'refunded';
 
 interface StatusIndicatorProps {
@@ -48,7 +48,8 @@ const businessStatusConfig = {
   inspected: { label: '検品済み', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
   packed: { label: '梱包済み', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
   shipped: { label: '出荷済み', color: 'bg-nexus-blue/20 text-nexus-blue dark:bg-nexus-blue/30 dark:text-nexus-blue' },
-  delivered: { label: '倉庫到着', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
+  delivered: { label: '配送完了', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
+  ready_for_pickup: { label: '集荷準備中', color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' },
   
   // 返品ステータス
   approved: { label: '承認済み', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
