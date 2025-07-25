@@ -326,9 +326,9 @@ export class PDFGenerator {
   }
 
   /**
-   * 配送ラベルPDF生成
+   * 配送ラベルPDF生成（配送業者別対応）
    */
-  static async generateShippingLabel(data: any): Promise<Blob> {
+  static async generateShippingLabel(data: any, carrier?: string, service?: string): Promise<Blob> {
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
@@ -344,13 +344,26 @@ export class PDFGenerator {
     pdf.setLineWidth(1);
     pdf.rect(10, 10, 190, 277);
 
-    // ヘッダー - 会社名
+    // ヘッダー - 会社名と配送業者情報
     pdf.setFontSize(24);
     pdf.setFont('helvetica', 'bold');
     pdf.text('THE WORLD DOOR', 105, 25, { align: 'center' });
     
     pdf.setFontSize(16);
     pdf.text('SHIPPING LABEL', 105, 35, { align: 'center' });
+    
+    // 配送業者情報を追加
+    if (carrier) {
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'normal');
+      const carrierName = PDFGenerator.getCarrierDisplayName(carrier);
+      pdf.text(`Carrier: ${carrierName}`, 105, 42, { align: 'center' });
+      
+      if (service) {
+        const serviceName = PDFGenerator.getServiceDisplayName(service);
+        pdf.text(`Service: ${serviceName}`, 105, 47, { align: 'center' });
+      }
+    }
 
     // 区切り線
     pdf.setLineWidth(0.5);
@@ -491,6 +504,36 @@ export class PDFGenerator {
     pdf.text('THE WORLD DOOR - Premium Camera & Watch Resale Platform', 105, 280, { align: 'center' });
 
     return new Blob([pdf.output('blob')], { type: 'application/pdf' });
+  }
+
+  /**
+   * 配送業者名の表示用名称を取得
+   */
+  private static getCarrierDisplayName(carrier: string): string {
+    const carrierNames: Record<string, string> = {
+      'fedex': 'FedEx',
+      'yamato': 'Yamato Transport',
+      'sagawa': 'Sagawa Express',
+      'yupack': 'Yu-Pack (Japan Post)'
+    };
+    return carrierNames[carrier] || carrier.toUpperCase();
+  }
+
+  /**
+   * サービス名の表示用名称を取得
+   */
+  private static getServiceDisplayName(service: string): string {
+    const serviceNames: Record<string, string> = {
+      'standard': 'Standard',
+      'express': 'Express',
+      'priority': 'Priority',
+      'cool': 'Cool Delivery',
+      'collect_on_delivery': 'COD',
+      'large_item': 'Large Item',
+      'fragile': 'Fragile',
+      'security': 'Security'
+    };
+    return serviceNames[service] || service.charAt(0).toUpperCase() + service.slice(1);
   }
 
   // ヘルパーメソッド: 日本語をローマ字に変換（簡易版）

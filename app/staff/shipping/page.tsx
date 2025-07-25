@@ -18,6 +18,8 @@ import {
   ExclamationCircleIcon,
 } from '@heroicons/react/24/outline';
 import CarrierSettingsModal from '@/app/components/modals/CarrierSettingsModal';
+import CarrierSelectionModal from '@/app/components/modals/CarrierSelectionModal';
+import { FedExAdapter } from '@/lib/services/adapters/fedex.adapter';
 import PackingMaterialsModal from '@/app/components/modals/PackingMaterialsModal';
 import ShippingDetailModal from '@/app/components/modals/ShippingDetailModal';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
@@ -68,6 +70,8 @@ export default function StaffShippingPage() {
   const [activeTab, setActiveTab] = useState<string>('all');
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [expandedRows, setExpandedRows] = useState<string[]>([]);
+  const [isCarrierSelectionModalOpen, setIsCarrierSelectionModalOpen] = useState(false);
+  const [selectedLabelItem, setSelectedLabelItem] = useState<ShippingItem | null>(null);
   const [isPackingVideoModalOpen, setIsPackingVideoModalOpen] = useState(false);
 
   // ページング状態
@@ -588,6 +592,91 @@ export default function StaffShippingPage() {
     setIsPackingVideoModalOpen(true);
   };
 
+  const handleCarrierSelect = async (carrier: any, service: string) => {
+    if (!selectedLabelItem) return;
+
+    try {
+      showToast({
+        title: 'ラベル生成中',
+        message: `${carrier.name}のラベルを生成しています...`,
+        type: 'info'
+      });
+
+      let labelData: string;
+      let trackingNumber: string = '';
+
+      if (carrier.id === 'fedex') {
+        // FedEx API連携でラベル生成
+        const fedexAdapter = new FedExAdapter();
+        const result = await fedexAdapter.generateShippingLabel(selectedLabelItem, service);
+        labelData = result.labelData;
+        trackingNumber = result.trackingNumber;
+        
+        showToast({
+          title: 'API連携成功',
+          message: `追跡番号: ${trackingNumber}`,
+          type: 'success'
+        });
+      } else {
+        // 汎用PDFラベル生成
+        const response = await fetch('/api/pdf/generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            type: 'shipping-label',
+            data: {
+              orderId: selectedLabelItem.id,
+              orderNumber: selectedLabelItem.orderNumber,
+              productName: selectedLabelItem.productName,
+              productSku: selectedLabelItem.productSku,
+              customer: selectedLabelItem.customer,
+              shippingAddress: selectedLabelItem.shippingAddress,
+              shippingMethod: selectedLabelItem.shippingMethod,
+              value: selectedLabelItem.value
+            },
+            carrier: carrier.id,
+            service: service
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('配送ラベルの生成に失敗しました');
+        }
+
+        const result = await response.json();
+        labelData = result.base64Data;
+      }
+
+      // PDFをダウンロード
+      const link = document.createElement('a');
+      link.href = `data:application/pdf;base64,${labelData}`;
+      link.download = `shipping_label_${selectedLabelItem.orderNumber}_${carrier.id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      showToast({
+        title: 'ラベル生成完了',
+        message: `${carrier.name}の配送ラベルを生成しました`,
+        type: 'success'
+      });
+
+      // モーダルを閉じる
+      setIsCarrierSelectionModalOpen(false);
+      setSelectedLabelItem(null);
+
+    } catch (error) {
+      console.error('ラベル生成エラー:', error);
+      showToast({
+        title: 'エラー',
+        message: 'ラベル生成に失敗しました。もう一度お試しください。',
+        type: 'error'
+      });
+    }
+  };
+
   const handlePackingComplete = () => {
     if (selectedPackingItem) {
       // 梱包完了処理
@@ -735,7 +824,9 @@ export default function StaffShippingPage() {
         handlePackingInstruction(item);
         break;
       case 'print':
-        handlePrintLabel(item);
+        // 配送業者選択モーダルを直接開く
+        setSelectedLabelItem(item);
+        setIsCarrierSelectionModalOpen(true);
         break;
       case 'ship':
         updateItemStatus(item.id, 'shipped');
@@ -1261,7 +1352,6 @@ export default function StaffShippingPage() {
           onClose={() => setSelectedDetailItem(null)}
           item={selectedDetailItem}
           onStatusUpdate={updateItemStatus}
-          onPrintLabel={handlePrintLabel}
           onPackingInstruction={handlePackingInstruction}
         />
 
@@ -1278,6 +1368,17 @@ export default function StaffShippingPage() {
             onComplete={handlePackingComplete}
           />
         )}
+
+        {/* Carrier Selection Modal */}
+        <CarrierSelectionModal
+          isOpen={isCarrierSelectionModalOpen}
+          onClose={() => {
+            setIsCarrierSelectionModalOpen(false);
+            setSelectedLabelItem(null);
+          }}
+          onCarrierSelect={handleCarrierSelect}
+          item={selectedLabelItem}
+        />
 
       </div>
     </DashboardLayout>

@@ -5,6 +5,8 @@ import { BaseModal, NexusButton, BusinessStatusIndicator } from '../ui';
 import { useToast } from '../features/notifications/ToastProvider';
 import ShippingLabelUploadModal from './ShippingLabelUploadModal';
 import PackingVideoModal from './PackingVideoModal';
+import CarrierSelectionModal from './CarrierSelectionModal';
+import { FedExAdapter } from '@/lib/services/adapters/fedex.adapter';
 import { 
   TruckIcon, 
   PrinterIcon, 
@@ -27,7 +29,7 @@ interface ShippingItem {
   orderNumber: string;
   customer: string;
   shippingAddress: string;
-  status: 'pending_inspection' | 'inspected' | 'packed' | 'shipped' | 'delivered';
+  status: 'pending_inspection' | 'inspected' | 'packed' | 'shipped' | 'delivered' | 'ready_for_pickup';
   priority: 'urgent' | 'normal' | 'low';
   dueDate: string;
   inspectionNotes?: string;
@@ -55,7 +57,6 @@ export default function ShippingDetailModal({
   onClose,
   item,
   onStatusUpdate,
-  onPrintLabel,
   onPackingInstruction
 }: ShippingDetailModalProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -67,6 +68,7 @@ export default function ShippingDetailModal({
     item?.shippingLabelProvider || null
   );
   const [isPackingVideoModalOpen, setIsPackingVideoModalOpen] = useState(false);
+  const [isCarrierSelectionModalOpen, setIsCarrierSelectionModalOpen] = useState(false);
 
   // スクロール位置のリセット
   useEffect(() => {
@@ -126,58 +128,90 @@ export default function ShippingDetailModal({
     });
   };
 
-  const handlePrintLabel = async () => {
+  const handlePrintLabel = () => {
+    // 配送業者選択モーダルを開く
+    setIsCarrierSelectionModalOpen(true);
+  };
+
+  const handleCarrierSelect = async (carrier: any, service: string) => {
     try {
-      // PDF生成APIを呼び出し
-      const response = await fetch('/api/pdf/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          type: 'shipping-label',
-          data: {
-            orderId: item.id,
-            orderNumber: item.orderNumber,
-            productName: item.productName,
-            productSku: item.productSku,
-            customer: item.customer,
-            shippingAddress: item.shippingAddress,
-            shippingMethod: item.shippingMethod,
-            value: item.value
-          }
-        })
+      showToast({
+        title: 'ラベル生成中',
+        message: `${carrier.name}のラベルを生成しています...`,
+        type: 'info'
       });
 
-      if (!response.ok) {
-        throw new Error('PDF生成に失敗しました');
+      let labelData: string;
+      let trackingNumber: string = '';
+
+      if (carrier.id === 'fedex') {
+        // FedEx API連携でラベル生成
+        const fedexAdapter = new FedExAdapter();
+        const result = await fedexAdapter.generateShippingLabel(item, service);
+        labelData = result.labelData;
+        trackingNumber = result.trackingNumber;
+        
+        showToast({
+          title: 'API連携成功',
+          message: `追跡番号: ${trackingNumber}`,
+          type: 'success'
+        });
+      } else {
+        // 汎用PDFラベル生成
+        const response = await fetch('/api/pdf/generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            type: 'shipping-label',
+            data: {
+              orderId: item.id,
+              orderNumber: item.orderNumber,
+              productName: item.productName,
+              productSku: item.productSku,
+              customer: item.customer,
+              shippingAddress: item.shippingAddress,
+              shippingMethod: item.shippingMethod,
+              value: item.value
+            },
+            carrier: carrier.id,
+            service: service
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('配送ラベルの生成に失敗しました');
+        }
+
+        const result = await response.json();
+        labelData = result.base64Data;
       }
 
-      const data = await response.json();
-      
       // PDFをダウンロード
       const link = document.createElement('a');
-      link.href = `data:application/pdf;base64,${data.base64Data}`;
-      link.download = `shipping-label-${item.orderNumber}.pdf`;
+      link.href = `data:application/pdf;base64,${labelData}`;
+      link.download = `shipping_label_${item.orderNumber}_${carrier.id}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
 
       showToast({
-        title: 'ラベル印刷完了',
-        message: `${item.productName}の配送ラベルを印刷しました`,
+        title: 'ラベル生成完了',
+        message: `${carrier.name}の配送ラベルを生成しました`,
         type: 'success'
       });
 
-      // 親コンポーネントのハンドラーも呼び出し
-      if (onPrintLabel) {
-        onPrintLabel(item);
-      }
+      // モーダルを閉じる
+      setIsCarrierSelectionModalOpen(false);
+
+      // 親コンポーネントには通知なし（モーダル内で完結）
+
     } catch (error) {
-      console.error('Label printing error:', error);
+      console.error('ラベル生成エラー:', error);
       showToast({
-        title: 'ラベル印刷エラー',
-        message: 'ラベルの印刷に失敗しました',
+        title: 'エラー',
+        message: 'ラベル生成に失敗しました。もう一度お試しください。',
         type: 'error'
       });
     }
@@ -652,6 +686,14 @@ export default function ShippingDetailModal({
       productId={item.id}
       productName={item.productName}
       onComplete={handlePackingVideoComplete}
+    />
+
+    {/* 配送業者選択モーダル */}
+    <CarrierSelectionModal
+      isOpen={isCarrierSelectionModalOpen}
+      onClose={() => setIsCarrierSelectionModalOpen(false)}
+      onCarrierSelect={handleCarrierSelect}
+      item={item}
     />
     </>
   );
