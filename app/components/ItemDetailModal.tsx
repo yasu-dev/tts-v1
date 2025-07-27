@@ -12,11 +12,40 @@ import {
   DocumentDuplicateIcon,
   CheckIcon,
   CameraIcon,
-  ShoppingCartIcon
+  ShoppingCartIcon,
+  LinkIcon,
+  ArrowTopRightOnSquareIcon,
+  TagIcon
 } from '@heroicons/react/24/outline';
 import BarcodePrintButton from '@/app/components/features/BarcodePrintButton';
 import { parseProductMetadata, getInspectionPhotographyStatus } from '@/lib/utils/product-status';
 import { checkListingEligibility } from '@/lib/utils/listing-eligibility';
+
+interface EbayListingInfo {
+  hasEbayListing: boolean;
+  ebayItemId?: string;
+  listingUrl?: string;
+  startingPrice?: number;
+  buyItNowPrice?: number;
+  listedAt?: string;
+  status?: string;
+  ebayTitle?: string;
+  ebayCategory?: string;
+  ebayCondition?: string;
+  ebayShippingTime?: string;
+  ebayLocation?: string;
+  productInfo?: {
+    id: string;
+    name: string;
+    sku: string;
+    category: string;
+    price: number;
+    condition: string;
+    status: string;
+    seller: string;
+  };
+  message?: string;
+}
 
 interface ItemDetailModalProps {
   isOpen: boolean;
@@ -61,7 +90,29 @@ export default function ItemDetailModal({
 }: ItemDetailModalProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState<'details' | 'history' | 'notes'>('details');
+  const [ebayListingInfo, setEbayListingInfo] = useState<EbayListingInfo | null>(null);
+  const [loadingEbayInfo, setLoadingEbayInfo] = useState(false);
   const { showToast } = useToast();
+
+  // eBay出品情報を取得
+  const fetchEbayListingInfo = async (productId: string) => {
+    setLoadingEbayInfo(true);
+    try {
+      const response = await fetch(`/api/products/${productId}/ebay-listing`);
+      if (response.ok) {
+        const data = await response.json();
+        setEbayListingInfo(data);
+      } else {
+        console.error('Failed to fetch eBay listing info');
+        setEbayListingInfo({ hasEbayListing: false, message: 'eBay出品情報の取得に失敗しました' });
+      }
+    } catch (error) {
+      console.error('Error fetching eBay listing info:', error);
+      setEbayListingInfo({ hasEbayListing: false, message: 'eBay出品情報の取得中にエラーが発生しました' });
+    } finally {
+      setLoadingEbayInfo(false);
+    }
+  };
 
   // スクロール位置のリセット
   useEffect(() => {
@@ -69,6 +120,13 @@ export default function ItemDetailModal({
       scrollContainerRef.current.scrollTop = 0;
     }
   }, [isOpen]);
+
+  // モーダルが開いた時にeBay出品情報を取得
+  useEffect(() => {
+    if (isOpen && item) {
+      fetchEbayListingInfo(item.id);
+    }
+  }, [isOpen, item]);
 
   if (!isOpen || !item) return null;
 
@@ -89,6 +147,18 @@ export default function ItemDetailModal({
     { date: '2024-12-22 09:15', action: '商品登録', details: '初回登録完了', user: '佐藤花子' },
   ];
 
+  const handleEbayLinkClick = () => {
+    if (ebayListingInfo?.listingUrl) {
+      window.open(ebayListingInfo.listingUrl, '_blank', 'noopener,noreferrer');
+      showToast({
+        type: 'info',
+        title: 'eBayページを開きました',
+        message: '新しいタブでeBay出品ページが開きます',
+        duration: 3000
+      });
+    }
+  };
+
   const handlePrint = () => {
     const printContent = `
       商品詳細情報
@@ -104,6 +174,14 @@ export default function ItemDetailModal({
       担当者: ${item.assignedStaff || 'なし'}
       最終更新: ${new Date(item.lastModified).toLocaleDateString('ja-JP')}
       備考: ${item.notes || 'なし'}
+      
+      ${ebayListingInfo?.hasEbayListing ? `
+      eBay出品情報:
+      eBayアイテムID: ${ebayListingInfo.ebayItemId}
+      出品URL: ${ebayListingInfo.listingUrl}
+      出品価格: ¥${ebayListingInfo.buyItNowPrice?.toLocaleString()}
+      出品日: ${ebayListingInfo.listedAt ? new Date(ebayListingInfo.listedAt).toLocaleDateString('ja-JP') : ''}
+      ` : ''}
     `;
     
     const printWindow = window.open('', '_blank');
@@ -200,134 +278,225 @@ export default function ItemDetailModal({
         {/* Content */}
         <div className="overflow-y-auto max-h-96" ref={scrollContainerRef}>
           {activeTab === 'details' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Basic Information */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-nexus-text-primary">
-                  基本情報
-                </h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
-                      商品名
-                    </label>
-                    <p className="text-nexus-text-primary">{item.name}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
-                      SKU
-                    </label>
-                    <p className="text-nexus-text-primary">{item.sku}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
-                      カテゴリ
-                    </label>
-                    <p className="text-nexus-text-primary">{item.category}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
-                      状態
-                    </label>
-                    <p className="text-nexus-text-primary">{item.condition}</p>
-                  </div>
-                  <div className="col-span-2">
-                    <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
-                      検品・撮影状況
-                    </label>
-                    <div className="flex items-center space-x-2">
-                      <p className="text-nexus-text-primary">{inspectionPhotographyStatus.displayStatus}</p>
-                      {inspectionPhotographyStatus.canStartPhotography && (
-                        <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
-                          撮影可能
-                        </span>
-                      )}
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Basic Information */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-nexus-text-primary">
+                    基本情報
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
+                        商品名
+                      </label>
+                      <p className="text-nexus-text-primary">{item.name}</p>
                     </div>
-                  </div>
-                  <div className="col-span-2">
-                    <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
-                      出品可能性
-                    </label>
-                    <div className="flex items-center space-x-2">
-                      <p className={`text-sm ${listingEligibility.canList ? 'text-green-600' : 'text-orange-600'}`}>
-                        {listingEligibility.overallReason}
-                      </p>
-                      {listingEligibility.canList && (
-                        <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                          出品可能
-                        </span>
-                      )}
+                    <div>
+                      <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
+                        SKU
+                      </label>
+                      <p className="text-nexus-text-primary">{item.sku}</p>
                     </div>
-                    {!listingEligibility.canList && (
-                      <div className="mt-2 space-y-1">
-                        {Object.entries(listingEligibility.requirements).map(([key, req]) => (
-                          <div key={key} className="flex items-center text-xs">
-                            <span className={`w-2 h-2 rounded-full mr-2 ${req.status === 'met' ? 'bg-green-500' : 'bg-gray-400'}`}></span>
-                            <span className={req.status === 'met' ? 'text-green-600' : 'text-gray-600'}>{req.label}</span>
-                          </div>
-                        ))}
+                    <div>
+                      <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
+                        カテゴリ
+                      </label>
+                      <p className="text-nexus-text-primary">{item.category}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
+                        状態
+                      </label>
+                      <p className="text-nexus-text-primary">{item.condition}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
+                        検品・撮影状況
+                      </label>
+                      <div className="flex items-center space-x-2">
+                        <p className="text-nexus-text-primary">{inspectionPhotographyStatus.displayStatus}</p>
+                        {inspectionPhotographyStatus.canStartPhotography && (
+                          <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
+                            撮影可能
+                          </span>
+                        )}
                       </div>
-                    )}
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
+                        出品可能性
+                      </label>
+                      <div className="flex items-center space-x-2">
+                        <p className={`text-sm ${listingEligibility.canList ? 'text-green-600' : 'text-orange-600'}`}>
+                          {listingEligibility.overallReason}
+                        </p>
+                        {listingEligibility.canList && (
+                          <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                            出品可能
+                          </span>
+                        )}
+                      </div>
+                      {!listingEligibility.canList && (
+                        <div className="mt-2 space-y-1">
+                          {Object.entries(listingEligibility.requirements).map(([key, req]) => (
+                            <div key={key} className="flex items-center text-xs">
+                              <span className={`w-2 h-2 rounded-full mr-2 ${req.status === 'met' ? 'bg-green-500' : 'bg-gray-400'}`}></span>
+                              <span className={req.status === 'met' ? 'text-green-600' : 'text-gray-600'}>{req.label}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
+                        価格
+                      </label>
+                      <p className="text-nexus-text-primary">¥{item.price.toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
+                        ステータス
+                      </label>
+                      <BusinessStatusIndicator 
+                        status={item.status as any} 
+                        size="sm" 
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
-                      価格
-                    </label>
-                    <p className="text-nexus-text-primary">¥{item.price.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
-                      ステータス
-                    </label>
-                    <BusinessStatusIndicator 
-                      status={item.status as any} 
-                      size="sm" 
-                    />
+                </div>
+
+                {/* Location and Assignment */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-nexus-text-primary">
+                    保管・担当情報
+                  </h3>
+                  <div className="grid grid-cols-1 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
+                        保管場所
+                      </label>
+                      <p className="text-nexus-text-primary">{item.location}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
+                        担当者
+                      </label>
+                      <p className="text-nexus-text-primary">{item.assignedStaff || 'なし'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
+                        登録日
+                      </label>
+                      <p className="text-nexus-text-primary">
+                        {new Date(item.entryDate).toLocaleDateString('ja-JP')}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
+                        最終更新
+                      </label>
+                      <p className="text-nexus-text-primary">
+                        {new Date(item.lastModified).toLocaleDateString('ja-JP')}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Location and Assignment */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-nexus-text-primary">
-                  保管・担当情報
-                </h3>
-                <div className="grid grid-cols-1 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
-                      保管場所
-                    </label>
-                    <p className="text-nexus-text-primary">{item.location}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
-                      担当者
-                    </label>
-                    <p className="text-nexus-text-primary">{item.assignedStaff || 'なし'}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
-                      登録日
-                    </label>
-                    <p className="text-nexus-text-primary">
-                      {new Date(item.entryDate).toLocaleDateString('ja-JP')}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
-                      最終更新
-                    </label>
-                    <p className="text-nexus-text-primary">
-                      {new Date(item.lastModified).toLocaleDateString('ja-JP')}
-                    </p>
-                  </div>
+              {/* eBay出品情報セクション */}
+              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center mb-3">
+                  <TagIcon className="w-5 h-5 text-blue-600 mr-2" />
+                  <h4 className="font-medium text-blue-900">eBay出品情報</h4>
                 </div>
+                
+                {loadingEbayInfo ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                    <p className="text-sm text-blue-800">出品情報を取得中...</p>
+                  </div>
+                ) : ebayListingInfo?.hasEbayListing ? (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-medium text-blue-700 mb-1">
+                          アイテムID
+                        </label>
+                        <p className="text-sm text-blue-900 font-mono">{ebayListingInfo.ebayItemId}</p>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-blue-700 mb-1">
+                          ステータス
+                        </label>
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          {ebayListingInfo.status === 'active' ? '出品中' : ebayListingInfo.status}
+                        </span>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-blue-700 mb-1">
+                          出品価格
+                        </label>
+                        <p className="text-sm text-blue-900">¥{ebayListingInfo.buyItNowPrice?.toLocaleString()}</p>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-blue-700 mb-1">
+                          出品日
+                        </label>
+                        <p className="text-sm text-blue-900">
+                          {ebayListingInfo.listedAt ? new Date(ebayListingInfo.listedAt).toLocaleDateString('ja-JP') : '-'}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-xs font-medium text-blue-700 mb-1">
+                        eBayタイトル
+                      </label>
+                      <p className="text-sm text-blue-900 break-words">{ebayListingInfo.ebayTitle}</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-medium text-blue-700 mb-1">
+                          商品状態
+                        </label>
+                        <p className="text-sm text-blue-900">{ebayListingInfo.ebayCondition}</p>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-blue-700 mb-1">
+                          配送日数
+                        </label>
+                        <p className="text-sm text-blue-900">{ebayListingInfo.ebayShippingTime}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="pt-2">
+                      <NexusButton
+                        onClick={handleEbayLinkClick}
+                        variant="primary"
+                        size="sm"
+                        icon={<ArrowTopRightOnSquareIcon className="w-4 h-4" />}
+                        className="w-full sm:w-auto"
+                      >
+                        eBayページを開く
+                      </NexusButton>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-2">
+                    <LinkIcon className="w-4 h-4 text-blue-600" />
+                    <p className="text-sm text-blue-800">
+                      {ebayListingInfo?.message || 'この商品はeBayに出品されていません'}
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* 次のステップ案内 */}
-              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <h4 className="font-medium text-blue-900 mb-2">次のステップ</h4>
-                <p className="text-sm text-blue-800">
+              <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                <h4 className="font-medium text-gray-900 mb-2">次のステップ</h4>
+                <p className="text-sm text-gray-800">
                   {item.status === 'inbound' ? '商品が入庫されました。検品を開始してください。' :
                    item.status === 'inspection' ? '検品作業中です。品質確認後、保管へ移行します。' :
                    item.status === 'storage' ? '保管中です。必要に応じて検品や移動を行えます。' :
