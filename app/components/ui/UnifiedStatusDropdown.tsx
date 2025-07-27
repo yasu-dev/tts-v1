@@ -32,7 +32,7 @@ export default function UnifiedStatusDropdown({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleStatusChange = useCallback((status: string) => {
-    console.log('Status change triggered:', status);
+    // Status change triggered
     
     // 先にドロップダウンを閉じる
     onClose();
