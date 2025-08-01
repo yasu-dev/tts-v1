@@ -7,6 +7,13 @@ const prisma = new PrismaClient();
 export async function POST(request: NextRequest) {
   try {
     console.log('Inspection POST request received');
+    
+    // 🔍 デバッグ: ユーザー情報を詳しく確認
+    const currentUser = await AuthService.getUserFromRequest(request);
+    console.log('🔍 Current user:', currentUser);
+    console.log('🔍 User role:', currentUser?.role);
+    console.log('🔍 Required roles:', ['staff', 'admin']);
+    
     const user = await AuthService.requireRole(request, ['staff', 'admin']);
     console.log('User authenticated:', user?.username);
 

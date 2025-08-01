@@ -30,13 +30,13 @@ export async function GET(request: NextRequest) {
       id: orderId,
       orderNumber: 'ORD-2024-0628-001',
       status: 'processing' as const,
-      shippingStatus: 'inspected' as ShippingStatus,
+      shippingStatus: 'storage' as ShippingStatus,
       items: [
         {
           id: 'item-001',
           productName: 'Canon EOS R5 ボディ',
           productSku: 'TWD-CAM-001',
-          status: 'inspected'
+          status: 'storage'
         }
       ]
     };
@@ -48,18 +48,11 @@ export async function GET(request: NextRequest) {
     // 推奨アクションを生成
     const recommendedActions = [];
     switch (mockOrder.shippingStatus) {
-      case 'pending_inspection':
+      case 'storage':
         recommendedActions.push({
-          action: 'inspect',
-          label: '検品を開始',
-          description: 'バーコードスキャンで商品を確認し、検品を完了してください'
-        });
-        break;
-      case 'inspected':
-        recommendedActions.push({
-          action: 'pack',
-          label: '梱包を開始',
-          description: '商品を適切な梱包材で梱包してください'
+          action: 'pick',
+          label: 'ピッキングを開始',
+          description: '商品を保管場所からピッキングして梱包してください'
         });
         break;
       case 'packed':
@@ -73,6 +66,9 @@ export async function GET(request: NextRequest) {
           label: '出荷処理',
           description: '配送業者に引き渡して出荷を完了してください'
         });
+        break;
+      case 'shipped':
+        // 出荷済みの場合はアクションなし
         break;
     }
 
@@ -120,9 +116,9 @@ export async function POST(request: NextRequest) {
     let actionDescription: string;
 
     switch (action) {
-      case 'complete_inspection':
-        newStatus = 'inspected';
-        actionDescription = '検品を完了しました';
+      case 'complete_picking':
+        newStatus = 'packed';
+        actionDescription = 'ピッキング・梱包を完了しました';
         break;
       case 'complete_packing':
         newStatus = 'packed';
@@ -131,10 +127,6 @@ export async function POST(request: NextRequest) {
       case 'complete_shipping':
         newStatus = 'shipped';
         actionDescription = '出荷処理を完了しました';
-        break;
-      case 'confirm_delivery':
-        newStatus = 'delivered';
-        actionDescription = '配送が完了しました';
         break;
       default:
         return NextResponse.json(
@@ -155,7 +147,7 @@ export async function POST(request: NextRequest) {
         metadata: JSON.stringify({
           orderId,
           action,
-          previousStatus: 'pending_inspection',
+          previousStatus: 'storage' as ShippingStatus,  // TODO: 実際の実装ではデータベースから取得
           newStatus,
           data
         })
@@ -187,11 +179,9 @@ export async function POST(request: NextRequest) {
 // 推定完了時間を計算する関数
 function calculateEstimatedCompletion(currentStatus: ShippingStatus): string {
   const estimatedMinutes: Record<ShippingStatus, number> = {
-    'pending_inspection': 30,
-    'inspected': 20,
+    'storage': 20,
     'packed': 10,
-    'shipped': 5,
-    'delivered': 0
+    'shipped': 0
   };
 
   const minutes = estimatedMinutes[currentStatus] || 0;

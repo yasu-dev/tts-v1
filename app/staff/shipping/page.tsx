@@ -19,7 +19,7 @@ import {
 } from '@heroicons/react/24/outline';
 import CarrierSettingsModal from '@/app/components/modals/CarrierSettingsModal';
 import CarrierSelectionModal from '@/app/components/modals/CarrierSelectionModal';
-import { FedExAdapter } from '@/lib/services/adapters/fedex.adapter';
+
 import PackingMaterialsModal from '@/app/components/modals/PackingMaterialsModal';
 import ShippingDetailModal from '@/app/components/modals/ShippingDetailModal';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
@@ -38,7 +38,7 @@ interface ShippingItem {
   orderNumber: string;
   customer: string;
   shippingAddress: string;
-  status: 'pending_inspection' | 'inspected' | 'packed' | 'shipped' | 'delivered' | 'ready_for_pickup';
+  status: 'storage' | 'packed' | 'shipped' | 'ready_for_pickup';
   priority: 'urgent' | 'normal' | 'low';
   dueDate: string;
   inspectionNotes?: string;
@@ -100,7 +100,7 @@ export default function StaffShippingPage() {
         orderNumber: 'ORD-2024-0001',
         customer: '山田太郎',
         shippingAddress: '東京都渋谷区1-2-3',
-        status: 'pending_inspection',
+        status: 'storage',
         priority: 'urgent',
         dueDate: '2024-01-20',
         shippingMethod: 'ヤマト宅急便',
@@ -138,7 +138,7 @@ export default function StaffShippingPage() {
         orderNumber: 'ORD-2024-0003',
         customer: '田中一郎',
         shippingAddress: '愛知県名古屋市中区栄1-1-1',
-        status: 'inspected',
+        status: 'storage',
         priority: 'normal',
         dueDate: '18:00',
         inspectionNotes: '動作確認済み、レンズ内クリア',
@@ -173,7 +173,7 @@ export default function StaffShippingPage() {
         orderNumber: 'ORD-2024-0005',
         customer: '高橋美咲',
         shippingAddress: '福岡県福岡市博多区1-1-1',
-        status: 'pending_inspection',
+        status: 'storage',
         priority: 'normal',
         dueDate: '20:00',
         shippingMethod: 'ヤマト宅急便',
@@ -189,7 +189,7 @@ export default function StaffShippingPage() {
         orderNumber: 'ORD-2024-0006',
         customer: '山田一郎',
         shippingAddress: '北海道札幌市中央区1-1-1',
-        status: 'inspected',
+        status: 'storage',
         priority: 'urgent',
         dueDate: '15:00',
         inspectionNotes: '動作確認済み、全体的に美品',
@@ -239,7 +239,7 @@ export default function StaffShippingPage() {
         orderNumber: 'ORD-2024-0009',
         customer: '中村由美',
         shippingAddress: '大阪府大阪市中央区1-1-1',
-        status: 'pending_inspection',
+        status: 'storage',
         priority: 'normal',
         dueDate: '19:30',
         shippingMethod: '佐川急便',
@@ -255,7 +255,7 @@ export default function StaffShippingPage() {
         orderNumber: 'ORD-2024-0010',
         customer: '小林正人',
         shippingAddress: '東京都新宿区1-1-1',
-        status: 'inspected',
+        status: 'storage',
         priority: 'urgent',
         dueDate: '16:30',
         inspectionNotes: '高額商品・取扱い注意',
@@ -288,7 +288,7 @@ export default function StaffShippingPage() {
         orderNumber: 'ORD-2024-0012',
         customer: '岡田雄介',
         shippingAddress: '埼玉県さいたま市1-1-1',
-        status: 'delivered',
+        status: 'shipped',
         priority: 'low',
         dueDate: '22:00',
         trackingNumber: 'YM-2024-062803',
@@ -305,7 +305,7 @@ export default function StaffShippingPage() {
         orderNumber: 'ORD-2024-0013',
         customer: '森田千佳',
         shippingAddress: '広島県広島市中区1-1-1',
-        status: 'pending_inspection',
+        status: 'storage',
         priority: 'normal',
         dueDate: '17:30',
         shippingMethod: '佐川急便',
@@ -321,7 +321,7 @@ export default function StaffShippingPage() {
         orderNumber: 'ORD-2024-0014',
         customer: '松田健太',
         shippingAddress: '宮城県仙台市青葉区1-1-1',
-        status: 'inspected',
+        status: 'storage',
         priority: 'normal',
         dueDate: '18:45',
         inspectionNotes: '動作確認済み、外観良好',
@@ -355,8 +355,7 @@ export default function StaffShippingPage() {
   // タブごとのフィルタリング
   const tabFilters: Record<string, (item: ShippingItem) => boolean> = {
     'all': () => true,
-    'pending_inspection': (item) => item.status === 'pending_inspection',
-    'inspected': (item) => item.status === 'inspected',
+    'storage': (item) => item.status === 'storage',
     'packed': (item) => item.status === 'packed',
     'ready_for_pickup': (item) => item.status === 'ready_for_pickup',
     'today': (item) => {
@@ -391,11 +390,9 @@ export default function StaffShippingPage() {
 
   // ステータス表示は BusinessStatusIndicator で統一
   const statusLabels: Record<string, string> = {
-    'pending_inspection': '検品待ち',
-    'inspected': '検品済み',
+    'storage': '保管中',
     'packed': '梱包済み',
-    'shipped': '発送済み',
-    'delivered': '配送完了',
+    'shipped': '出荷済み',
     'ready_for_pickup': '集荷準備中'
   };
 
@@ -606,16 +603,31 @@ export default function StaffShippingPage() {
       let trackingNumber: string = '';
 
       if (carrier.id === 'fedex') {
-        // FedEx API連携でラベル生成
-        const fedexAdapter = new FedExAdapter();
-        const result = await fedexAdapter.generateShippingLabel(selectedLabelItem, service);
+        // FedEx API連携でラベル生成（内部API経由）
+        const response = await fetch('/api/shipping/fedex', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            item: selectedLabelItem,
+            service: service
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'FedEx APIエラー');
+        }
+
+        const result = await response.json();
         labelData = result.labelData;
         trackingNumber = result.trackingNumber;
         
         showToast({
-          title: 'API連携成功',
-          message: `追跡番号: ${trackingNumber}`,
-          type: 'success'
+          title: result.isMock ? 'モック配送ラベル生成' : 'API連携成功',
+          message: result.message || `追跡番号: ${trackingNumber}`,
+          type: result.isMock ? 'info' : 'success'
         });
       } else {
         // 汎用PDFラベル生成
@@ -795,7 +807,7 @@ export default function StaffShippingPage() {
       }
 
       // ローカルステートを更新
-      updateItemStatus(item.id, 'delivered');
+      updateItemStatus(item.id, 'shipped');
       
       showToast({
         type: 'success',
@@ -818,7 +830,7 @@ export default function StaffShippingPage() {
   const handleInlineAction = (item: ShippingItem, action: string) => {
     switch (action) {
       case 'inspect':
-        updateItemStatus(item.id, 'inspected');
+        updateItemStatus(item.id, 'packed');
         break;
       case 'pack':
         handlePackingInstruction(item);
@@ -845,12 +857,11 @@ export default function StaffShippingPage() {
 
   const stats = {
     total: items.length,
-    pendingInspection: items.filter(i => i.status === 'pending_inspection').length,
-    inspected: items.filter(i => i.status === 'inspected').length,
+    storage: items.filter(i => i.status === 'storage').length,
     packed: items.filter(i => i.status === 'packed').length,
     shipped: items.filter(i => i.status === 'shipped').length,
     ready_for_pickup: items.filter(i => i.status === 'ready_for_pickup').length,
-    urgent: items.filter(i => i.priority === 'urgent' && i.status !== 'delivered').length,
+    urgent: items.filter(i => i.priority === 'urgent' && i.status !== 'shipped').length,
     todayCount: items.filter(i => {
       const today = new Date();
       const itemTime = i.dueDate.split(':');
@@ -962,10 +973,10 @@ export default function StaffShippingPage() {
                   <span className="status-badge warning text-[10px]">待機</span>
                 </div>
                 <div className="metric-value font-display text-2xl font-bold text-nexus-text-primary">
-                  {stats.pendingInspection}
+                  {stats.storage}
                 </div>
                 <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
-                  検品待ち
+                  保管中
                 </div>
               </div>
             </div>
@@ -973,25 +984,25 @@ export default function StaffShippingPage() {
             <div className="intelligence-card europe">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-2">
-                  <div className="action-orb green w-6 h-6">
-                    <CheckCircleIcon className="w-4 h-4" />
+                  <div className="action-orb blue w-6 h-6">
+                    <ArchiveBoxIcon className="w-4 h-4" />
                   </div>
-                  <span className="status-badge success text-[10px]">検品済</span>
+                  <span className="status-badge info text-[10px]">梱包済</span>
                 </div>
                 <div className="metric-value font-display text-2xl font-bold text-nexus-text-primary">
-                  {stats.inspected}
+                  {stats.packed}
                 </div>
                 <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
-                  梱包待ち
+                  梱包済み
                 </div>
               </div>
             </div>
 
             <div className="intelligence-card asia">
               <div className="p-6 text-center">
-                <TruckIcon className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-nexus-text-primary">{stats.packed}</div>
-                <div className="text-sm text-nexus-text-secondary">出荷待ち</div>
+                <TruckIcon className="w-8 h-8 text-nexus-blue mx-auto mb-2" />
+                <div className="text-2xl font-bold text-nexus-text-primary">{stats.shipped}</div>
+                <div className="text-sm text-nexus-text-secondary">出荷済み</div>
               </div>
             </div>
             
@@ -1040,9 +1051,8 @@ export default function StaffShippingPage() {
               <nav className="-mb-px flex space-x-8" aria-label="Tabs">
                 {[
                   { id: 'all', label: '全体', count: stats.total },
-                  { id: 'pending_inspection', label: '検品待ち', count: stats.pendingInspection },
-                  { id: 'inspected', label: '梱包待ち', count: stats.inspected },
-                  { id: 'packed', label: '出荷待ち', count: stats.packed },
+                  { id: 'storage', label: '保管中', count: stats.storage },
+                  { id: 'packed', label: '梱包済み', count: stats.packed },
                   { id: 'ready_for_pickup', label: '集荷準備中', count: stats.ready_for_pickup },
                   { id: 'today', label: '本日出荷', count: stats.todayCount },
                 ].map((tab) => (
@@ -1197,18 +1207,7 @@ export default function StaffShippingPage() {
                         </td>
                         <td className="p-4">
                           <div className="flex justify-end gap-2">
-                            {item.status === 'pending_inspection' && (
-                              <NexusButton
-                                onClick={() => handleInlineAction(item, 'inspect')}
-                                variant="primary"
-                                size="sm"
-                                className="flex items-center gap-1"
-                              >
-                                <CheckCircleIcon className="w-4 h-4" />
-                                検品完了
-                              </NexusButton>
-                            )}
-                            {item.status === 'inspected' && (
+                            {item.status === 'storage' && (
                               <NexusButton
                                 onClick={() => handleInlineAction(item, 'pack')}
                                 variant="primary"
@@ -1216,7 +1215,7 @@ export default function StaffShippingPage() {
                                 className="flex items-center gap-1"
                               >
                                 <CubeIcon className="w-4 h-4" />
-                                梱包
+                                ピッキング・梱包
                               </NexusButton>
                             )}
                             {item.status === 'packed' && (
@@ -1241,17 +1240,7 @@ export default function StaffShippingPage() {
                                 </NexusButton>
                               </>
                             )}
-                            {item.status === 'shipped' && (
-                              <NexusButton
-                                onClick={() => handleInlineAction(item, 'deliver')}
-                                variant="primary"
-                                size="sm"
-                                className="flex items-center gap-1 bg-green-600 hover:bg-green-700"
-                              >
-                                <CheckCircleIcon className="w-4 h-4" />
-                                配送完了
-                              </NexusButton>
-                            )}
+                            {/* 出荷済みの場合はアクションなし */}
                             <NexusButton
                               onClick={() => setSelectedDetailItem(item)}
                               variant="default"

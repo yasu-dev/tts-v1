@@ -28,9 +28,12 @@ export default function InventoryPage() {
   const { showToast } = useToast();
   const [inventoryStats, setInventoryStats] = useState({
     totalItems: 0,
-    listed: 0,
+    inbound: 0,
     inspection: 0,
     storage: 0,
+    listed: 0,
+    sold: 0,
+    maintenance: 0,
     totalValue: 0,
   });
 
@@ -85,14 +88,30 @@ export default function InventoryPage() {
         // 統計データを計算
         const stats = {
           totalItems: inventoryItems.length,
-          listed: inventoryItems.filter((item: any) => item.status === '出品中').length,
-          inspection: inventoryItems.filter((item: any) => item.status === '検品中').length,
-          storage: inventoryItems.filter((item: any) => item.status === '保管中').length,
+          inbound: inventoryItems.filter((item: any) => item.status === '入庫').length,
+          inspection: inventoryItems.filter((item: any) => item.status === '検品').length,
+          storage: inventoryItems.filter((item: any) => item.status === '保管').length,
+          listed: inventoryItems.filter((item: any) => item.status === '出品').length,
+          sold: inventoryItems.filter((item: any) => item.status === '売約済み').length,
+          maintenance: inventoryItems.filter((item: any) => item.status === 'メンテナンス').length,
           totalValue: inventoryItems.reduce((sum: number, item: any) => sum + (item.value || 0), 0),
         };
         setInventoryStats(stats);
         
         console.log(`✅ セラー在庫データ取得完了: ${inventoryItems.length}件`);
+        
+        // 🔍 デバッグ: ステータス別件数を詳しく確認
+        const debugStatusCounts = {};
+        inventoryItems.forEach(item => {
+          debugStatusCounts[item.status] = (debugStatusCounts[item.status] || 0) + 1;
+        });
+        console.log('🔍 セラー画面 - 取得データのステータス別件数:', debugStatusCounts);
+        
+        // 🔍 デバッグ: 最初の10件のステータス確認
+        console.log('🔍 セラー画面 - 最初の10件のステータス:');
+        inventoryItems.slice(0, 10).forEach((item, index) => {
+          console.log(`  ${index + 1}. ${item.sku}: "${item.status}"`);
+        });
       } catch (error) {
         console.error('在庫データ取得エラー:', error);
         showToast({
@@ -112,26 +131,42 @@ export default function InventoryPage() {
   const filteredInventory = useMemo(() => {
     let filtered = inventory;
 
+    // 🔍 デバッグ: フィルタリング開始
+    console.log('🔍 セラー画面 - フィルタリング開始:', {
+      totalItems: inventory.length,
+      selectedStatus,
+      selectedCategory,
+      searchQuery
+    });
+
     // ステータスフィルター
     if (selectedStatus !== 'all') {
+      const beforeFilter = filtered.length;
       filtered = filtered.filter(item => item.status === selectedStatus);
+      console.log(`🔍 ステータスフィルター "${selectedStatus}": ${beforeFilter}件 → ${filtered.length}件`);
     }
 
     // カテゴリーフィルター
     if (selectedCategory !== 'all') {
+      const beforeFilter = filtered.length;
       filtered = filtered.filter(item => item.category === selectedCategory);
+      console.log(`🔍 カテゴリーフィルター "${selectedCategory}": ${beforeFilter}件 → ${filtered.length}件`);
     }
 
     // 検索フィルター
     if (searchQuery.trim()) {
+      const beforeFilter = filtered.length;
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(item => 
         item.name.toLowerCase().includes(query) ||
         item.sku.toLowerCase().includes(query) ||
         item.category.toLowerCase().includes(query)
       );
+      console.log(`🔍 検索フィルター "${searchQuery}": ${beforeFilter}件 → ${filtered.length}件`);
     }
 
+    console.log('🔍 セラー画面 - フィルタリング結果:', filtered.length + '件');
+    
     return filtered;
   }, [inventory, selectedStatus, selectedCategory, searchQuery]);
 
@@ -417,6 +452,13 @@ export default function InventoryPage() {
   // 日本語ステータスを英語キーに変換（統一性のため）
   const convertStatusToKey = (status: string) => {
     switch (status) {
+      case '入庫': return 'inbound';
+      case '検品': return 'inspection';
+      case '保管': return 'storage';
+      case '出品': return 'listing';
+      case '売約済み': return 'sold';
+      case 'メンテナンス': return 'maintenance';
+      // 旧形式との互換性
       case '出品中': return 'listing';
       case '検品中': return 'inspection';
       case '保管中': return 'storage';
@@ -426,6 +468,13 @@ export default function InventoryPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
+      case '入庫': return 'text-blue-600 bg-blue-100';
+      case '検品': return 'text-orange-600 bg-orange-100';
+      case '保管': return 'text-blue-600 bg-blue-100';
+      case '出品': return 'text-green-600 bg-green-100';
+      case '売約済み': return 'text-gray-600 bg-gray-100';
+      case 'メンテナンス': return 'text-red-600 bg-red-100';
+      // 旧形式との互換性
       case '出品中': return 'text-green-600 bg-green-100';
       case '検品中': return 'text-orange-600 bg-orange-100';
       case '保管中': return 'text-blue-600 bg-blue-100';
@@ -494,9 +543,12 @@ export default function InventoryPage() {
               onChange={(e) => setSelectedStatus(e.target.value)}
               options={[
                 { value: 'all', label: 'すべてのステータス' },
-                { value: '出品中', label: '出品中' },
-                { value: '検品中', label: '検品中' },
-                { value: '保管中', label: '保管中' }
+                { value: '入庫', label: '入庫待ち' },
+                { value: '検品', label: '検品中' },
+                { value: '保管', label: '保管中' },
+                { value: '出品', label: '出品中' },
+                { value: '売約済み', label: '売約済み' },
+                { value: 'メンテナンス', label: 'メンテナンス' }
               ]}
             />
 

@@ -96,6 +96,7 @@ export default function StaffInventoryPage() {
                              .replace('検品', 'inspection')
                              .replace('保管', 'storage')
                              .replace('出品', 'listing')
+                             .replace('メンテナンス', 'maintenance')
                              .replace('売約済み', 'sold')
                              .replace('返品', 'returned'),
           location: item.location || '未設定',

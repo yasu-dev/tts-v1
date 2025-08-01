@@ -7,7 +7,7 @@ import { BusinessStatusIndicator } from './StatusIndicator';
 type BusinessStatusType = 
   | 'inbound' | 'inspection' | 'storage' | 'listing' | 'sold' | 'maintenance'
   | 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'confirmed'
-  | 'pending_inspection' | 'inspected' | 'packed' | 'shipped' | 'delivered'
+  | 'packed' | 'shipped'
   | 'approved' | 'rejected' | 'refunded';
 
 interface UnifiedStatusDropdownProps {

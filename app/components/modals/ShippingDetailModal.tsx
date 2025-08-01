@@ -6,7 +6,7 @@ import { useToast } from '../features/notifications/ToastProvider';
 import ShippingLabelUploadModal from './ShippingLabelUploadModal';
 import PackingVideoModal from './PackingVideoModal';
 import CarrierSelectionModal from './CarrierSelectionModal';
-import { FedExAdapter } from '@/lib/services/adapters/fedex.adapter';
+
 import { 
   TruckIcon, 
   PrinterIcon, 
@@ -29,7 +29,7 @@ interface ShippingItem {
   orderNumber: string;
   customer: string;
   shippingAddress: string;
-  status: 'pending_inspection' | 'inspected' | 'packed' | 'shipped' | 'delivered' | 'ready_for_pickup';
+  status: 'storage' | 'packed' | 'shipped' | 'ready_for_pickup';
   priority: 'urgent' | 'normal' | 'low';
   dueDate: string;
   inspectionNotes?: string;
@@ -80,11 +80,10 @@ export default function ShippingDetailModal({
   if (!isOpen || !item) return null;
 
   const statusLabels: Record<string, string> = {
-    'pending_inspection': '検査待ち',
-    'inspected': '検査済み',
+    'storage': '保管中',
     'packed': '梱包済み',
-    'shipped': '発送済み',
-    'delivered': '配送完了'
+    'shipped': '出荷済み',
+    'ready_for_pickup': '集荷準備中'
   };
 
   const priorityLabels: Record<string, string> = {
@@ -94,7 +93,7 @@ export default function ShippingDetailModal({
   };
 
   const getAvailableStatuses = (currentStatus: ShippingItem['status']): ShippingItem['status'][] => {
-    const allStatuses: ShippingItem['status'][] = ['pending_inspection', 'inspected', 'packed', 'shipped', 'delivered'];
+    const allStatuses: ShippingItem['status'][] = ['storage', 'packed', 'shipped'];
     const currentIndex = allStatuses.indexOf(currentStatus);
     const availableStatuses = allStatuses.filter((_, index) => index > currentIndex);
     console.log('getAvailableStatuses:', { currentStatus, currentIndex, availableStatuses });
@@ -145,16 +144,31 @@ export default function ShippingDetailModal({
       let trackingNumber: string = '';
 
       if (carrier.id === 'fedex') {
-        // FedEx API連携でラベル生成
-        const fedexAdapter = new FedExAdapter();
-        const result = await fedexAdapter.generateShippingLabel(item, service);
+        // FedEx API連携でラベル生成（内部API経由）
+        const response = await fetch('/api/shipping/fedex', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            item: item,
+            service: service
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'FedEx APIエラー');
+        }
+
+        const result = await response.json();
         labelData = result.labelData;
         trackingNumber = result.trackingNumber;
         
         showToast({
-          title: 'API連携成功',
-          message: `追跡番号: ${trackingNumber}`,
-          type: 'success'
+          title: result.isMock ? 'モック配送ラベル生成' : 'API連携成功',
+          message: result.message || `追跡番号: ${trackingNumber}`,
+          type: result.isMock ? 'info' : 'success'
         });
       } else {
         // 汎用PDFラベル生成
@@ -565,7 +579,7 @@ export default function ShippingDetailModal({
         <div className="border-t border-nexus-border pt-6">
           <div className="space-y-6">
             {/* ステータス変更セクション */}
-            {item.status !== 'delivered' && (
+            {item.status !== 'shipped' && (
               <div>
                 <h4 className="text-sm font-medium text-nexus-text-secondary mb-3">
                   ステータス変更
@@ -606,7 +620,7 @@ export default function ShippingDetailModal({
               </h4>
               <div className="flex flex-wrap gap-2">
                 {/* 伝票アップロードボタン */}
-                {item.status !== 'delivered' && (
+                {item.status !== 'shipped' && (
                   <NexusButton
                     onClick={() => setIsLabelUploadModalOpen(true)}
                     variant={shippingLabelUrl ? 'secondary' : 'primary'}
@@ -617,7 +631,7 @@ export default function ShippingDetailModal({
                   </NexusButton>
                 )}
                 
-                {item.status === 'inspected' && (
+                {item.status === 'storage' && (
                   <NexusButton
                     onClick={handlePackingInstruction}
                     variant="secondary"
