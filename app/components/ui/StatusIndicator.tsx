@@ -30,7 +30,7 @@ interface BusinessStatusIndicatorProps {
 const businessStatusConfig = {
   // 在庫ステータス
   inbound: { label: '入庫待ち', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' }, // セラーが発送した商品がスタッフに受け取られる前の状態
-  inspection: { label: '検品中', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' }, // スタッフが品質検査を実施中
+  inspection: { label: '検品中', color: 'bg-orange-600 text-white dark:bg-orange-700 dark:text-white' }, // スタッフが品質検査を実施中
   storage: { label: '保管中', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' }, // 検品完了後、出品準備中
   listing: { label: '出品中', color: 'bg-nexus-blue/20 text-nexus-blue dark:bg-nexus-blue/30 dark:text-nexus-blue' }, // 各プラットフォームで販売中
   sold: { label: '売約済み', color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200' }, // 取引完了

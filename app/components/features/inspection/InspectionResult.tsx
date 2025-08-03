@@ -490,7 +490,7 @@ export default function InspectionResult({
               variant="secondary"
               size="lg"
               disabled={loading || !selectedLocation}
-              className="min-w-[160px]"
+              className="min-w-[180px] text-center justify-center px-6"
             >
               {loading ? '処理中...' : '検品のみ完了'}
             </NexusButton>
@@ -500,7 +500,7 @@ export default function InspectionResult({
             variant="primary"
             size="lg"
             disabled={loading || !selectedLocation}
-            className="min-w-[160px]"
+            className="min-w-[180px] text-center justify-center px-6"
           >
             {loading ? '処理中...' : '検品・撮影完了'}
           </NexusButton>

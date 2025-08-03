@@ -454,7 +454,7 @@ export default function ListingPage() {
     switch (status) {
       case 'ready': return 'bg-blue-100 text-blue-800';
       case 'listed': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'pending': return 'bg-orange-600 text-white';
       case 'error': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }

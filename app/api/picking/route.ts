@@ -418,6 +418,18 @@ export async function POST(request: NextRequest) {
     const { productIds, action, combineGroupId } = body;
 
     switch (action) {
+      case 'create_picking_list':
+        // ピッキングリスト作成（ロケーション一覧から）
+        return NextResponse.json({
+          success: true,
+          message: 'ピッキングリストを作成しました',
+          pickingListId: `PICK-${Date.now()}`,
+          productIds: productIds,
+          locationCode: body.locationCode,
+          locationName: body.locationName,
+          createdAt: new Date().toISOString()
+        });
+
       case 'start_picking':
         // 商品のピッキング開始処理 - 直接梱包待ちステータスに
         return NextResponse.json({

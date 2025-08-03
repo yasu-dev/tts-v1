@@ -258,7 +258,7 @@ export default function BarcodeScanner({
               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                 lastProductData.status === 'ready_for_listing' ? 'bg-green-100 text-green-800' :
                 lastProductData.status === 'storage' ? 'bg-blue-100 text-blue-800' :
-                lastProductData.status === 'needs_review' ? 'bg-yellow-100 text-yellow-800' :
+                                  lastProductData.status === 'needs_review' ? 'bg-orange-600 text-white' :
                 'bg-nexus-bg-secondary text-nexus-text-secondary'
               }`}>
                 {lastProductData.status === 'ready_for_listing' ? '出品準備完了' :

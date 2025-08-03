@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import UnifiedPageHeader from '@/app/components/ui/UnifiedPageHeader';
 import PickingListManager from '@/app/components/features/picking/PickingListManager';
 import PickingProgress from '@/app/components/features/picking/PickingProgress';
 import PickingHistory from '@/app/components/features/picking/PickingHistory';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 interface PickingStats {
   totalProducts: number;
@@ -16,6 +18,8 @@ interface PickingStats {
 }
 
 export default function PickingPage() {
+  const searchParams = useSearchParams();
+  const { showToast } = useToast();
   const [viewMode, setViewMode] = useState<'active' | 'progress' | 'history'>('active');
   const [stats, setStats] = useState<PickingStats>({
     totalProducts: 0,
@@ -25,10 +29,22 @@ export default function PickingPage() {
     combinableGroups: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [showWelcomeMessage, setShowWelcomeMessage] = useState(false);
 
   useEffect(() => {
     fetchPickingStats();
-  }, []);
+    
+    // ロケーション一覧から遷移してきた場合
+    if (searchParams.get('from') === 'location') {
+      setShowWelcomeMessage(true);
+      showToast({
+        type: 'info',
+        title: 'ピッキングリスト作成済み',
+        message: '作成したピッキングリストが下部に表示されています。商品を選択してピッキングを開始してください。',
+        duration: 5000
+      });
+    }
+  }, [searchParams]);
 
   const fetchPickingStats = async () => {
     try {
@@ -81,6 +97,42 @@ export default function PickingPage() {
           iconType="picking"
           actions={headerActions}
         />
+
+        {/* Welcome Message for Location Flow */}
+        {showWelcomeMessage && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+            <div className="flex items-start gap-4">
+              <div className="action-orb blue flex-shrink-0">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-blue-900 mb-2">ピッキングリストが作成されました</h3>
+                <p className="text-blue-800 mb-3">
+                  ロケーション一覧から作成したピッキングリストが下部の「アクティブなピッキング」セクションに表示されています。
+                </p>
+                <div className="bg-white/60 rounded-lg p-4">
+                  <h4 className="font-medium text-blue-900 mb-2">🔄 作業フロー</h4>
+                  <ol className="list-decimal list-inside space-y-2 text-sm text-blue-800">
+                    <li>下部のリストから商品を選択（チェックボックス）</li>
+                    <li>「ピッキング開始」ボタンをクリック</li>
+                    <li>指定されたロケーションから商品を物理的にピッキング</li>
+                    <li>バーコードスキャンで確認後、梱包作業へ</li>
+                  </ol>
+                </div>
+                <div className="mt-4 flex items-center gap-2">
+                  <button 
+                    onClick={() => setShowWelcomeMessage(false)}
+                    className="text-sm text-blue-700 hover:text-blue-800 underline"
+                  >
+                    このメッセージを閉じる
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

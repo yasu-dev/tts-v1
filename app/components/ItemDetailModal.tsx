@@ -317,7 +317,7 @@ export default function ItemDetailModal({
                       <div className="flex items-center space-x-2">
                         <p className="text-nexus-text-primary">{inspectionPhotographyStatus.displayStatus}</p>
                         {inspectionPhotographyStatus.canStartPhotography && (
-                          <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
+                          <span className="px-2 py-1 bg-orange-600 text-white text-xs rounded-full">
                             撮影可能
                           </span>
                         )}

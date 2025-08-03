@@ -202,15 +202,7 @@ export default function InspectionChecklist({
       </div>
 
       {/* ナビゲーションボタン */}
-      <div className="flex justify-between gap-3 pt-2">
-        <NexusButton
-          onClick={onPrev}
-          variant="secondary"
-          size="md"
-          className="flex-1 sm:flex-none"
-        >
-          戻る
-        </NexusButton>
+      <div className="flex justify-end gap-3 pt-2">
         <NexusButton
           onClick={onNext}
           variant="primary"

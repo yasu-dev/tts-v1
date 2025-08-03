@@ -26,7 +26,9 @@ export async function GET(request: NextRequest) {
           deadline: "16:00",
           status: "梱包待ち",
           trackingNumber: "",
-          value: 398000
+          value: 398000,
+          locationCode: "STD-A-01",
+          locationName: "標準棚A-01"
         },
         {
           id: "ship-002",
@@ -40,7 +42,9 @@ export async function GET(request: NextRequest) {
           deadline: "18:00",
           status: "準備完了",
           trackingNumber: "1234-5678-9012",
-          value: 198000
+          value: 198000,
+          locationCode: "STD-A-01",
+          locationName: "標準棚A-01"
         },
         {
           id: "ship-003",
@@ -54,7 +58,57 @@ export async function GET(request: NextRequest) {
           deadline: "15:00",
           status: "出荷完了",
           trackingNumber: "YM-2024-062801",
-          value: 1200000
+          value: 1200000,
+          locationCode: "VAULT-01",
+          locationName: "金庫室01"
+        },
+        {
+          id: "ship-004",
+          orderId: "ORD-2024-0628-004",
+          productId: "TWD-LEN-007",
+          productName: "Nikon Z 24-120mm F4 S",
+          customer: "鈴木次郎",
+          address: "福岡県福岡市博多区1-1-1",
+          shippingMethod: "ヤマト宅急便",
+          priority: "normal",
+          deadline: "17:00",
+          status: "梱包待ち",
+          trackingNumber: "",
+          value: 145000,
+          locationCode: "HUM-01",
+          locationName: "防湿庫01"
+        },
+        {
+          id: "ship-005",
+          orderId: "ORD-2024-0628-005",
+          productId: "TWD-CAM-013",
+          productName: "Sony α7R V",
+          customer: "高橋美咲",
+          address: "北海道札幌市中央区1-1-1",
+          shippingMethod: "佐川急便",
+          priority: "urgent",
+          deadline: "16:00",
+          status: "梱包待ち",
+          trackingNumber: "",
+          value: 498000,
+          locationCode: "STD-B-02",
+          locationName: "標準棚B-02"
+        },
+        {
+          id: "ship-006",
+          orderId: "ORD-2024-0628-006",
+          productId: "TWD-ACC-021",
+          productName: "Peak Design Everyday Backpack 30L",
+          customer: "渡辺健太",
+          address: "宮城県仙台市青葉区1-1-1",
+          shippingMethod: "ゆうパック",
+          priority: "normal",
+          deadline: "18:00",
+          status: "準備完了",
+          trackingNumber: "",
+          value: 39800,
+          locationCode: "STD-B-02",
+          locationName: "標準棚B-02"
         }
       ],
       carriers: [

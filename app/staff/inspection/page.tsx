@@ -414,7 +414,7 @@ export default function InspectionPage() {
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-yellow-100 rounded-full flex items-center justify-center">
                 <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600" />
               </div>
-              <span className="px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                  <span className="px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-orange-600 text-white">
                 待機中
               </span>
             </div>
@@ -573,7 +573,7 @@ export default function InspectionPage() {
                       <div className="flex justify-center">
                         <span className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs font-medium ${
                           product.priority === 'high' ? 'bg-red-100 text-red-800' :
-                          product.priority === 'normal' ? 'bg-yellow-100 text-yellow-800' :
+                          product.priority === 'normal' ? 'bg-orange-600 text-white' :
                           'bg-green-100 text-green-800'
                         }`}>
                           {product.priority === 'high' ? '高' : product.priority === 'normal' ? '中' : '低'}

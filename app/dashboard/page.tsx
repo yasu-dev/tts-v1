@@ -923,7 +923,7 @@ export default function DashboardPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3" />
                     </svg>
                   </div>
-                  <span className="px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800">総計</span>
+                  <span className="px-2 py-1 rounded text-xs font-medium bg-orange-600 text-white">総計</span>
                 </div>
                 <div className="text-2xl font-bold text-nexus-text-primary">
                   {dashboardData?.returnAnalysis?.totalReturns || '0'}
@@ -992,7 +992,7 @@ export default function DashboardPage() {
                   <h2 className="text-2xl font-display font-bold text-nexus-text-primary">
                     返品理由別分析
                   </h2>
-                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-orange-600 text-white">
                     要改善
                   </span>
                 </div>

@@ -463,7 +463,7 @@ export default function DeliveryPage() {
       case '到着済':
         return 'bg-green-200 text-green-900';
       case '検品中':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-orange-600 text-white';
       case '配送完了':
         return 'bg-green-300 text-green-900';
       case '返送済':

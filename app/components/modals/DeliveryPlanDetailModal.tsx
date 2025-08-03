@@ -51,7 +51,7 @@ interface DeliveryPlanDetailModalProps {
 
 const statusConfig = {
   '下書き': { color: 'bg-gray-100 text-gray-800', icon: DocumentTextIcon, label: '下書き' },
-  '作成中': { color: 'bg-yellow-100 text-yellow-800', icon: ClockIcon, label: '作成中' },
+      '作成中': { color: 'bg-orange-600 text-white', icon: ClockIcon, label: '作成中' },
   '作成完了': { color: 'bg-blue-100 text-blue-800', icon: CheckCircleIcon, label: '作成完了' },
   '準備中': { color: 'bg-orange-100 text-orange-800', icon: ClockIcon, label: '準備中' },
   '発送済': { color: 'bg-green-100 text-green-800', icon: TruckIcon, label: '発送済' },

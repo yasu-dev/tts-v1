@@ -539,7 +539,7 @@ export default function StaffTasksPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-              <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">待機</span>
+              <span className="px-3 py-1 rounded-full text-xs font-medium bg-orange-600 text-white">待機</span>
                 </div>
             <div className="text-3xl font-bold text-nexus-text-primary mb-2">
               {stats.pending}件

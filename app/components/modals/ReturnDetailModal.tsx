@@ -90,7 +90,7 @@ export default function ReturnDetailModal({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-orange-600 text-white';
       case 'approved':
         return 'bg-green-100 text-green-800';
       case 'rejected':

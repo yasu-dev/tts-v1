@@ -58,7 +58,7 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
   const { showToast } = useToast();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
-  const [currentStep, setCurrentStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState(1);
   const [videoId, setVideoId] = useState<string | null>(null);
   const [inspectionData, setInspectionData] = useState<InspectionData>({
     productId,
@@ -90,15 +90,6 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
   });
 
   const steps = [
-    { 
-      id: 0, 
-      title: '基本情報', 
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 8l2 2 4-4" />
-        </svg>
-      )
-    },
     { 
       id: 1, 
       title: '検品項目', 
@@ -361,41 +352,13 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
 
       {/* ステップコンテンツ */}
       <div className="min-h-[500px]">
-        {currentStep === 0 && (
-          <NexusCard className="p-6">
-            <h3 className="text-lg font-semibold mb-4">検品開始前の確認</h3>
-            <div className="space-y-4">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <p className="text-blue-800">
-                  これから商品の検品を開始します。以下の点をご確認ください：
-                </p>
-                <ul className="mt-3 space-y-2 text-sm text-blue-700">
-                  <li>• 商品を清潔な場所に置いてください</li>
-                  <li>• 十分な照明を確保してください</li>
-                  <li>• カメラやタブレットの準備ができているか確認してください</li>
-                  <li>• 手袋を着用することを推奨します</li>
-                </ul>
-              </div>
-              <div className="flex justify-end">
-                <NexusButton
-                  onClick={() => setCurrentStep(1)}
-                  variant="primary"
-                  size="lg"
-                >
-                  検品を開始
-                </NexusButton>
-              </div>
-            </div>
-          </NexusCard>
-        )}
-
         {currentStep === 1 && (
           <InspectionChecklist
             category={product.category}
             checklist={inspectionData.checklist}
             onUpdate={updateChecklist}
             onNext={() => setCurrentStep(2)}
-            onPrev={() => setCurrentStep(0)}
+            onPrev={() => {}} // 最初のステップなので戻るボタンは無効
           />
         )}
 
