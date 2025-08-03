@@ -12,8 +12,10 @@ import {
   FunnelIcon,
   ChevronUpIcon,
   ChevronDownIcon,
+  ShoppingCartIcon,
 } from '@heroicons/react/24/outline';
 import ProductRegistrationModal from '../components/modals/ProductRegistrationModal';
+import ListingFormModal from '../components/modals/ListingFormModal';
 import { ContentCard, NexusInput, NexusButton, NexusLoadingSpinner, NexusSelect, BusinessStatusIndicator } from '@/app/components/ui';
 import Pagination from '@/app/components/ui/Pagination';
 import BaseModal from '../components/ui/BaseModal';
@@ -49,6 +51,7 @@ export default function InventoryPage() {
   const [productToDelete, setProductToDelete] = useState<any>(null);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isListingModalOpen, setIsListingModalOpen] = useState(false);
 
   // フィルター・ソート・ページング状態
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
@@ -449,6 +452,41 @@ export default function InventoryPage() {
     }
   };
 
+  // 出品開始ハンドラー
+  const handleStartListing = (product: any) => {
+    setSelectedProduct(product);
+    setIsDetailModalOpen(false);
+    setIsListingModalOpen(true);
+  };
+
+  // 出品成功ハンドラー
+  const handleListingSuccess = async (listing: any) => {
+    showToast({
+      title: '出品完了',
+      message: `${selectedProduct?.name}の出品が完了しました`,
+      type: 'success'
+    });
+    setIsListingModalOpen(false);
+    
+    // データを再取得して最新状態を反映
+    const updatedResponse = await fetch('/api/inventory');
+    if (updatedResponse.ok) {
+      const updatedData = await updatedResponse.json();
+      const inventoryItems = updatedData.data.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        sku: item.sku,
+        category: item.category,
+        status: item.status,
+        location: item.location || '未設定',
+        value: item.price || 0,
+        certifications: ['AUTHENTIC'],
+      }));
+      setInventory(inventoryItems);
+      setItems(updatedData.data);
+    }
+  };
+
   // 日本語ステータスを英語キーに変換（統一性のため）
   const convertStatusToKey = (status: string) => {
     switch (status) {
@@ -680,6 +718,21 @@ export default function InventoryPage() {
                   ))}
                 </div>
               </div>
+              
+              {/* セラー向けアクションボタン - 保管中のみ出品ボタンを表示 */}
+              {selectedProduct.status === '保管' && (
+                <div className="pt-4 border-t border-gray-200">
+                  <div className="flex justify-end">
+                    <NexusButton
+                      onClick={() => handleStartListing(selectedProduct)}
+                      variant="primary"
+                      icon={<ShoppingCartIcon className="w-4 h-4" />}
+                    >
+                      出品する
+                    </NexusButton>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </BaseModal>
@@ -937,6 +990,23 @@ export default function InventoryPage() {
             </div>
           </div>
         </BaseModal>
+
+        {/* Listing Form Modal */}
+        <ListingFormModal
+          isOpen={isListingModalOpen}
+          onClose={() => setIsListingModalOpen(false)}
+          product={selectedProduct ? {
+            id: selectedProduct.id,
+            name: selectedProduct.name,
+            sku: selectedProduct.sku,
+            category: selectedProduct.category,
+            price: selectedProduct.value,
+            condition: '良品',
+            description: selectedProduct.notes || selectedProduct.name,
+            imageUrl: selectedProduct.imageUrl
+          } : null}
+          onSuccess={handleListingSuccess}
+        />
       </div>
     </DashboardLayout>
   );
