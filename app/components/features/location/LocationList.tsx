@@ -252,7 +252,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
           customer: "山田太郎",
           locationCode: "STD-A-01",
           locationName: "標準棚A-01",
-          status: "梱包待ち",
+          status: "ピッキング待ち",
           priority: "urgent",
           deadline: "16:00"
         },
@@ -699,9 +699,9 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                 </div>
               ) : (
                 shippingData.filter(locationGroup => {
-                  // 未処理の商品があるロケーションのみ表示
+                  // ピッキング待ちの商品があるロケーションのみ表示
                   const activeItems = locationGroup.items.filter((item: any) => 
-                    item.status !== '出荷完了' && item.status !== 'ピッキング済み'
+                    item.status === 'ピッキング待ち' || item.status === '準備完了'
                   );
                   
                   if (activeItems.length === 0) return false;
@@ -717,10 +717,10 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                     );
                 }).map((locationGroup) => {
                   const activeItems = locationGroup.items.filter((item: any) => 
-                    item.status !== '出荷完了' && item.status !== 'ピッキング済み'
+                    item.status === 'ピッキング待ち' || item.status === '準備完了'
                   );
                   const completedItems = locationGroup.items.filter((item: any) => 
-                    item.status === '出荷完了' || item.status === 'ピッキング済み'
+                    item.status === '出荷完了' || item.status === 'ピッキング済み' || item.status === '梱包待ち'
                   );
                   
                   return (
@@ -751,7 +751,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                         <div 
                           key={item.id} 
                           className={`flex justify-between items-start p-4 rounded-lg border ${
-                            item.status === '出荷完了' || item.status === 'ピッキング済み' 
+                            item.status === '出荷完了' || item.status === 'ピッキング済み' || item.status === '梱包待ち'
                               ? 'bg-gray-50 border-gray-200 opacity-60' 
                               : 'bg-nexus-bg-secondary border-nexus-border'
                           }`}
@@ -759,7 +759,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                           <div className="flex-1">
                             <div className="flex items-center gap-3">
                               <h4 className={`font-medium ${
-                                item.status === '出荷完了' || item.status === 'ピッキング済み'
+                                item.status === '出荷完了' || item.status === 'ピッキング済み' || item.status === '梱包待ち'
                                   ? 'text-gray-500'
                                   : 'text-nexus-text-primary'
                               }`}>{item.productName}</h4>
@@ -776,7 +776,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                               </span>
                               <span className="text-nexus-text-secondary">
                                 締切: <span className={`font-medium ${
-                                  item.status === '出荷完了' || item.status === 'ピッキング済み'
+                                  item.status === '出荷完了' || item.status === 'ピッキング済み' || item.status === '梱包待ち'
                                     ? 'text-gray-500'
                                     : 'text-nexus-yellow'
                                 }`}>{item.deadline}</span>
@@ -785,10 +785,11 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                           </div>
                           <div className="text-right">
                             <span className={`status-badge ${
-                              item.status === '梱包待ち' ? 'warning' :
+                              item.status === 'ピッキング待ち' ? 'warning' :
                               item.status === 'ピッキング中' ? 'processing' :
                               item.status === 'ピッキング済み' ? 'success' :
                               item.status === '準備完了' ? 'success' :
+                              item.status === '梱包待ち' ? 'info' :
                               item.status === '出荷完了' ? 'info' : 'info'
                             }`}>
                               {item.status}

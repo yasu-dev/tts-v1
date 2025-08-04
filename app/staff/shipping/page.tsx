@@ -27,7 +27,7 @@ import NexusSelect from '@/app/components/ui/NexusSelect';
 import NexusButton from '@/app/components/ui/NexusButton';
 import Pagination from '@/app/components/ui/Pagination';
 import { NexusLoadingSpinner } from '@/app/components/ui';
-import { BusinessStatusIndicator } from '@/app/components/ui/StatusIndicator';
+
 import { getWorkflowProgress, getNextAction, ShippingStatus } from '@/lib/utils/workflow';
 import React from 'react'; // Added missing import for React
 
@@ -38,7 +38,7 @@ interface ShippingItem {
   orderNumber: string;
   customer: string;
   shippingAddress: string;
-  status: 'storage' | 'packed' | 'shipped' | 'ready_for_pickup';
+  status: 'storage' | 'picked' | 'workstation' | 'packed' | 'shipped' | 'ready_for_pickup';
   priority: 'urgent' | 'normal' | 'low';
   dueDate: string;
   inspectionNotes?: string;
@@ -100,7 +100,7 @@ export default function StaffShippingPage() {
         orderNumber: 'ORD-2024-0001',
         customer: '山田太郎',
         shippingAddress: '東京都渋谷区1-2-3',
-        status: 'storage',
+        status: 'workstation',
         priority: 'urgent',
         dueDate: '2024-01-20',
         shippingMethod: 'ヤマト宅急便',
@@ -138,7 +138,7 @@ export default function StaffShippingPage() {
         orderNumber: 'ORD-2024-0003',
         customer: '田中一郎',
         shippingAddress: '愛知県名古屋市中区栄1-1-1',
-        status: 'storage',
+        status: 'picked',
         priority: 'normal',
         dueDate: '18:00',
         inspectionNotes: '動作確認済み、レンズ内クリア',
@@ -356,6 +356,7 @@ export default function StaffShippingPage() {
   const tabFilters: Record<string, (item: ShippingItem) => boolean> = {
     'all': () => true,
     'storage': (item) => item.status === 'storage',
+    'workstation': (item) => item.status === 'picked' || item.status === 'workstation',
     'packed': (item) => item.status === 'packed',
     'ready_for_pickup': (item) => item.status === 'ready_for_pickup',
     'today': (item) => {
@@ -390,7 +391,9 @@ export default function StaffShippingPage() {
 
   // ステータス表示は BusinessStatusIndicator で統一
   const statusLabels: Record<string, string> = {
-    'storage': '保管中',
+    'storage': '出荷待ち',
+    'picked': 'ピッキング済み',
+    'workstation': '梱包待ち',
     'packed': '梱包済み',
     'shipped': '出荷済み',
     'ready_for_pickup': '集荷準備中'
@@ -587,6 +590,16 @@ export default function StaffShippingPage() {
   const handlePackingInstruction = (item: ShippingItem) => {
     setSelectedPackingItem(item);
     setIsPackingVideoModalOpen(true);
+    
+    // 梱包作業開始後にステータスを更新
+    setTimeout(() => {
+      updateItemStatus(item.id, 'packed');
+      showToast({
+        title: '梱包完了',
+        message: `${item.productName}の梱包が完了しました`,
+        type: 'success'
+      });
+    }, 2000); // 2秒後に自動的にpackedに更新（実際の梱包作業時間を想定）
   };
 
   const handleCarrierSelect = async (carrier: any, service: string) => {
@@ -858,6 +871,7 @@ export default function StaffShippingPage() {
   const stats = {
     total: items.length,
     storage: items.filter(i => i.status === 'storage').length,
+    workstation: items.filter(i => i.status === 'picked' || i.status === 'workstation').length,
     packed: items.filter(i => i.status === 'packed').length,
     shipped: items.filter(i => i.status === 'shipped').length,
     ready_for_pickup: items.filter(i => i.status === 'ready_for_pickup').length,
@@ -976,7 +990,24 @@ export default function StaffShippingPage() {
                   {stats.storage}
                 </div>
                 <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
-                  保管中
+                  ピッキング待ち
+                </div>
+              </div>
+            </div>
+
+            <div className="intelligence-card europe">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="action-orb purple w-6 h-6">
+                    <CubeIcon className="w-4 h-4" />
+                  </div>
+                  <span className="status-badge success text-[10px]">梱包待ち</span>
+                </div>
+                <div className="metric-value font-display text-2xl font-bold text-nexus-text-primary">
+                  {stats.workstation}
+                </div>
+                <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
+                  梱包待ち
                 </div>
               </div>
             </div>
@@ -1051,7 +1082,8 @@ export default function StaffShippingPage() {
               <nav className="-mb-px flex space-x-8" aria-label="Tabs">
                 {[
                   { id: 'all', label: '全体', count: stats.total },
-                  { id: 'storage', label: '保管中', count: stats.storage },
+                  { id: 'storage', label: 'ピッキング待ち', count: stats.storage },
+                  { id: 'workstation', label: '梱包待ち', count: stats.workstation },
                   { id: 'packed', label: '梱包済み', count: stats.packed },
                   { id: 'ready_for_pickup', label: '集荷準備中', count: stats.ready_for_pickup },
                   { id: 'today', label: '本日出荷', count: stats.todayCount },
@@ -1132,10 +1164,9 @@ export default function StaffShippingPage() {
                         className="rounded border-nexus-border"
                       />
                     </th>
-                    <th className="text-left p-4 font-medium text-nexus-text-secondary">注文情報</th>
                     <th className="text-left p-4 font-medium text-nexus-text-secondary">商品情報</th>
-                    <th className="text-left p-4 font-medium text-nexus-text-secondary">進捗状況</th>
-                    <th className="text-center p-4 font-medium text-nexus-text-secondary">優先度</th>
+                    <th className="text-left p-4 font-medium text-nexus-text-secondary">注文情報</th>
+                    <th className="text-left p-4 font-medium text-nexus-text-secondary">ステータス</th>
                     <th className="text-right p-4 font-medium text-nexus-text-secondary">アクション</th>
                   </tr>
                 </thead>
@@ -1152,13 +1183,6 @@ export default function StaffShippingPage() {
                           />
                         </td>
                         <td className="p-4">
-                          <div>
-                            <p className="font-medium text-nexus-text-primary">{item.orderNumber}</p>
-                            <p className="text-sm text-nexus-text-secondary mt-1">{item.customer}</p>
-                            <p className="text-sm text-nexus-yellow mt-1">期限: {item.dueDate}</p>
-                          </div>
-                        </td>
-                        <td className="p-4">
                           <div className="flex items-center space-x-3">
                             <div className="action-orb">
                               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1169,8 +1193,13 @@ export default function StaffShippingPage() {
                               className="cursor-pointer hover:text-nexus-blue transition-colors"
                               onClick={() => handleShowDetails(item)}
                             >
-                              <div className="font-semibold text-nexus-text-primary hover:underline">
+                              <div className={`font-semibold hover:underline flex items-center gap-2 ${
+                                item.priority === 'urgent' ? 'text-red-600' : 'text-nexus-text-primary'
+                              }`}>
                                 {item.productName}
+                                {item.priority === 'urgent' && (
+                                  <span className="cert-nano cert-ruby">緊急</span>
+                                )}
                               </div>
                               <p className="text-sm text-nexus-text-secondary">
                                 SKU: {item.productSku}
@@ -1179,8 +1208,24 @@ export default function StaffShippingPage() {
                           </div>
                         </td>
                         <td className="p-4">
+                          <div>
+                            <p className="font-medium text-nexus-text-primary">{item.orderNumber}</p>
+                            <p className="text-sm text-nexus-text-secondary mt-1">{item.customer}</p>
+                            <p className="text-sm text-nexus-yellow mt-1">期限: {item.dueDate}</p>
+                          </div>
+                        </td>
+                        <td className="p-4">
                           <div className="space-y-2">
-                            <BusinessStatusIndicator status={item.status} />
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              item.status === 'storage' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                              item.status === 'picked' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+                              item.status === 'workstation' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
+                              item.status === 'packed' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                              item.status === 'shipped' ? 'bg-nexus-blue/20 text-nexus-blue dark:bg-nexus-blue/30 dark:text-nexus-blue' :
+                              'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+                            }`}>
+                              {statusLabels[item.status]}
+                            </span>
                             <button
                               onClick={() => toggleRowExpansion(item.id)}
                               className="text-xs text-nexus-blue hover:text-nexus-blue-dark flex items-center gap-1"
@@ -1197,17 +1242,19 @@ export default function StaffShippingPage() {
                             </button>
                           </div>
                         </td>
-                        <td className="p-4 text-center">
-                          <span className={`cert-nano ${
-                            item.priority === 'urgent' ? 'cert-ruby' :
-                            item.priority === 'normal' ? 'cert-mint' : 'cert-gold'
-                          }`}>
-                            {priorityLabels[item.priority]}
-                          </span>
-                        </td>
                         <td className="p-4">
                           <div className="flex justify-end gap-2">
                             {item.status === 'storage' && (
+                              <div className="flex items-center gap-2 text-sm text-nexus-text-secondary bg-nexus-bg-secondary px-3 py-2 rounded-lg">
+                                <svg className="w-4 h-4 text-nexus-yellow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                <span>ピッキング待ち</span>
+                                <span className="text-xs text-nexus-text-tertiary">(ロケーション管理で処理)</span>
+                              </div>
+                            )}
+                            {(item.status === 'picked' || item.status === 'workstation') && (
                               <NexusButton
                                 onClick={() => handleInlineAction(item, 'pack')}
                                 variant="primary"
@@ -1215,7 +1262,7 @@ export default function StaffShippingPage() {
                                 className="flex items-center gap-1"
                               >
                                 <CubeIcon className="w-4 h-4" />
-                                ピッキング・梱包
+                                梱包開始
                               </NexusButton>
                             )}
                             {item.status === 'packed' && (
@@ -1240,14 +1287,17 @@ export default function StaffShippingPage() {
                                 </NexusButton>
                               </>
                             )}
-                            {/* 出荷済みの場合はアクションなし */}
-                            <NexusButton
-                              onClick={() => setSelectedDetailItem(item)}
-                              variant="default"
-                              size="sm"
-                            >
-                              詳細
-                            </NexusButton>
+                            {item.status === 'shipped' && (
+                              <NexusButton
+                                onClick={() => handleInlineAction(item, 'deliver')}
+                                variant="primary"
+                                size="sm"
+                                className="flex items-center gap-1"
+                              >
+                                <CheckCircleIcon className="w-4 h-4" />
+                                配送完了
+                              </NexusButton>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -1255,7 +1305,7 @@ export default function StaffShippingPage() {
                       {/* 展開行 - ワークフロー進捗表示 */}
                       {expandedRows.includes(item.id) && (
                         <tr className="holo-row bg-nexus-bg-secondary">
-                          <td colSpan={6} className="p-6">
+                          <td colSpan={5} className="p-6">
                             <div className="space-y-4">
                               <WorkflowProgress 
                                 steps={getWorkflowProgress(item.status as ShippingStatus)}
