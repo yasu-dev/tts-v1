@@ -401,11 +401,11 @@ export default function DashboardLayout({
       href: '/staff/dashboard',
       icon: icons.dashboard
     },
-    { 
-      label: 'タスク管理', 
-      href: '/staff/tasks',
-      icon: icons.tasks
-    },
+    // { 
+    //   label: 'タスク管理', 
+    //   href: '/staff/tasks',
+    //   icon: icons.tasks
+    // },
     { 
       label: '在庫管理', 
       href: '/staff/inventory',
