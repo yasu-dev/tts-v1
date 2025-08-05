@@ -195,6 +195,7 @@ export default function InspectionPage() {
   const [products, setProducts] = useState<Product[]>(mockProducts);
   const [loading, setLoading] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [progressData, setProgressData] = useState<{[key: string]: {currentStep: number, lastUpdated: string}}>({});
 
   // フィルター・ソート・ページング状態
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
@@ -206,6 +207,70 @@ export default function InspectionPage() {
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
+
+  // 保存された状態を復元する関数
+  const restoreSavedState = () => {
+    try {
+      const savedState = sessionStorage.getItem('inspectionListState');
+      if (savedState) {
+        const state = JSON.parse(savedState);
+        
+        // 1時間以内のデータのみ復元（古いデータは無視）
+        const oneHour = 60 * 60 * 1000;
+        if (Date.now() - state.timestamp < oneHour) {
+          setSelectedStatus(state.selectedStatus || 'all');
+          setSelectedCategory(state.selectedCategory || 'all');
+          setSelectedPriority(state.selectedPriority || 'all');
+          setSelectedInspectionPhotoStatus(state.selectedInspectionPhotoStatus || 'all');
+          setSearchQuery(state.searchQuery || '');
+          setSortField(state.sortField || 'receivedDate');
+          setSortDirection(state.sortDirection || 'desc');
+          setCurrentPage(state.currentPage || 1);
+          
+          // 状態復元を通知
+          showToast({
+            type: 'info',
+            title: '前回の表示状態を復元しました',
+            message: 'フィルター・検索条件が復元されています',
+            duration: 3000
+          });
+          
+          // 復元後はsessionStorageから削除
+          sessionStorage.removeItem('inspectionListState');
+        }
+      }
+    } catch (error) {
+      console.error('[ERROR] Failed to restore saved state:', error);
+    }
+  };
+
+  // 進捗データを読み込む関数
+  const loadProgressData = async () => {
+    try {
+      const response = await fetch('/api/products/inspection/progress/all');
+      if (response.ok) {
+        const result = await response.json();
+        setProgressData(result.data || {});
+      }
+    } catch (error) {
+      console.error('[ERROR] Failed to load progress data:', error);
+    }
+  };
+
+  // コンポーネント初期化時に状態復元と進捗データ読み込み
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('restored') === '1') {
+      restoreSavedState();
+      
+      // URLからrestoredパラメーターを削除（履歴に残さない）
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+    
+    // 進捗データを読み込み
+    loadProgressData();
+  }, []);
 
   // 統計データ計算
   const inspectionStats = {
@@ -278,19 +343,60 @@ export default function InspectionPage() {
       <ChevronDownIcon className="w-4 h-4" />;
   };
 
+  // 進捗ステップ表示用の関数
+  const getProgressStepDisplay = (productId: string) => {
+    const progress = progressData[productId];
+    if (!progress) {
+      return { label: '未開始', color: 'bg-gray-100 text-gray-800' };
+    }
+    
+    switch (progress.currentStep) {
+      case 1:
+        return { label: '検品項目', color: 'bg-blue-100 text-blue-800' };
+      case 2:
+        return { label: '動画記録', color: 'bg-yellow-100 text-yellow-800' };
+      case 3:
+        return { label: '写真撮影', color: 'bg-purple-100 text-purple-800' };
+      case 4:
+        return { label: '確認完了', color: 'bg-green-100 text-green-800' };
+      default:
+        return { label: '未開始', color: 'bg-gray-100 text-gray-800' };
+    }
+  };
+
+  // 現在の画面状態を保存する関数
+  const saveCurrentState = () => {
+    const currentState = {
+      selectedStatus,
+      selectedCategory,
+      selectedPriority,
+      selectedInspectionPhotoStatus,
+      searchQuery,
+      currentPage,
+      sortField,
+      sortDirection,
+      timestamp: Date.now()
+    };
+    
+    sessionStorage.setItem('inspectionListState', JSON.stringify(currentState));
+  };
+
   // 検品開始（ページ遷移に統一）
   const handleStartInspection = (product: Product) => {
+    saveCurrentState();
     window.location.href = `/staff/inspection/${product.id}`;
   };
 
   // 検品続行（ページ遷移に統一）
   const handleContinueInspection = (product: Product) => {
+    saveCurrentState();
     window.location.href = `/staff/inspection/${product.id}`;
   };
 
   // 商品詳細表示（統一化により不使用）
   const handleViewProduct = (product: Product) => {
     // 詳細表示も統一のため、検品画面に遷移
+    saveCurrentState();
     window.location.href = `/staff/inspection/${product.id}`;
   };
 
@@ -539,6 +645,7 @@ export default function InspectionPage() {
                       {getSortIcon('status')}
                     </div>
                   </th>
+                  <th className="text-center py-3 px-2 sm:px-4 text-sm font-medium text-nexus-text-secondary">検品進捗</th>
                   <th className="text-center py-3 px-2 sm:px-4 text-sm font-medium text-nexus-text-secondary">アクション</th>
                 </tr>
               </thead>
@@ -589,6 +696,18 @@ export default function InspectionPage() {
                       </div>
                     </td>
                     <td className="py-3 px-2 sm:px-4">
+                      <div className="flex justify-center">
+                        {(() => {
+                          const stepDisplay = getProgressStepDisplay(product.id);
+                          return (
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${stepDisplay.color}`}>
+                              {stepDisplay.label}
+                            </span>
+                          );
+                        })()}
+                      </div>
+                    </td>
+                    <td className="py-3 px-2 sm:px-4">
                       <div className="flex justify-center gap-1 sm:gap-2">
                         {(() => {
                           const metadata = parseProductMetadata(product.metadata);
@@ -596,49 +715,58 @@ export default function InspectionPage() {
 
                           if (product.status === 'pending_inspection') {
                             return (
-                              <Link href={`/staff/inspection/${product.id}`}>
-                                <NexusButton size="sm" variant="primary">
-                                  <span className="hidden sm:inline">検品開始</span>
-                                  <span className="sm:hidden">開始</span>
-                                </NexusButton>
-                              </Link>
+                              <NexusButton 
+                                size="sm" 
+                                variant="primary"
+                                onClick={() => handleStartInspection(product)}
+                              >
+                                <span className="hidden sm:inline">検品開始</span>
+                                <span className="sm:hidden">開始</span>
+                              </NexusButton>
                             );
                           }
 
                           if (product.status === 'inspecting') {
                             return (
-                              <Link href={`/staff/inspection/${product.id}`}>
-                                <NexusButton size="sm" variant="primary">
-                                  <span className="hidden sm:inline">続ける</span>
-                                  <span className="sm:hidden">続行</span>
-                                </NexusButton>
-                              </Link>
+                              <NexusButton 
+                                size="sm" 
+                                variant="primary"
+                                onClick={() => handleContinueInspection(product)}
+                              >
+                                <span className="hidden sm:inline">続ける</span>
+                                <span className="sm:hidden">続行</span>
+                              </NexusButton>
                             );
                           }
 
                           if (inspectionPhotoStatus?.canStartPhotography) {
                             return (
-                              <Link href={`/staff/inspection/${product.id}?mode=photography`}>
-                                <NexusButton size="sm" variant="primary" icon={<CameraIcon className="w-4 h-4" />}>
-                                  <span className="hidden sm:inline">撮影</span>
-                                  <span className="sm:hidden">撮影</span>
-                                </NexusButton>
-                              </Link>
+                              <NexusButton 
+                                size="sm" 
+                                variant="primary" 
+                                icon={<CameraIcon className="w-4 h-4" />}
+                                onClick={() => {
+                                  saveCurrentState();
+                                  window.location.href = `/staff/inspection/${product.id}?mode=photography`;
+                                }}
+                              >
+                                <span className="hidden sm:inline">撮影</span>
+                                <span className="sm:hidden">撮影</span>
+                              </NexusButton>
                             );
                           }
 
                           if (product.status === 'completed' || product.status === 'failed') {
                             return (
-                              <Link href={`/staff/inspection/${product.id}`}>
-                                <NexusButton
-                                  size="sm"
-                                  variant="default"
-                                  icon={<EyeIcon className="w-4 h-4" />}
-                                >
-                                  <span className="hidden sm:inline">詳細</span>
-                                  <span className="sm:hidden sr-only">詳細</span>
-                                </NexusButton>
-                              </Link>
+                              <NexusButton
+                                size="sm"
+                                variant="default"
+                                icon={<EyeIcon className="w-4 h-4" />}
+                                onClick={() => handleViewProduct(product)}
+                              >
+                                <span className="hidden sm:inline">詳細</span>
+                                <span className="sm:hidden sr-only">詳細</span>
+                              </NexusButton>
                             );
                           }
 
@@ -650,7 +778,7 @@ export default function InspectionPage() {
                 ))}
                 {paginatedProducts.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="py-6 px-2 sm:px-4 text-center text-nexus-text-secondary text-sm">
+                    <td colSpan={8} className="py-6 px-2 sm:px-4 text-center text-nexus-text-secondary text-sm">
                       {filteredProducts.length === 0 ? 
                         (searchQuery || selectedStatus !== 'all' || selectedCategory !== 'all' || selectedPriority !== 'all' || selectedInspectionPhotoStatus !== 'all'
                           ? '検索条件に一致する商品がありません' 

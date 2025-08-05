@@ -58,7 +58,6 @@ export interface InspectionResultProps {
   inspectionData: InspectionData;
   onNotesChange: (notes: string) => void;
   onSubmit: (locationId?: string) => Promise<void>;
-  onSubmitInspectionOnly?: (locationId?: string) => Promise<void>; // 検品のみ完了の処理
   onPrev: () => void;
   loading: boolean;
 }
@@ -77,7 +76,6 @@ export default function InspectionResult({
   inspectionData,
   onNotesChange,
   onSubmit,
-  onSubmitInspectionOnly,
   onPrev,
   loading,
 }: InspectionResultProps) {
@@ -149,19 +147,7 @@ export default function InspectionResult({
     await onSubmit(selectedLocation);
   };
 
-  const handleSubmitInspectionOnly = async () => {
-    if (!selectedLocation) {
-      showToast({
-        type: 'warning',
-        title: '保管場所未選択',
-        message: '商品の保管場所を選択してください'
-      });
-      return;
-    }
-    if (onSubmitInspectionOnly) {
-      await onSubmitInspectionOnly(selectedLocation);
-    }
-  };
+
 
   // チェック項目の集計
   const getChecklistSummary = () => {
@@ -483,28 +469,15 @@ export default function InspectionResult({
           戻る
         </NexusButton>
         
-        <div className="flex gap-3">
-          {onSubmitInspectionOnly && (
-            <NexusButton
-              onClick={handleSubmitInspectionOnly}
-              variant="secondary"
-              size="lg"
-              disabled={loading || !selectedLocation}
-              className="min-w-[180px] text-center justify-center px-6"
-            >
-              {loading ? '処理中...' : '検品のみ完了'}
-            </NexusButton>
-          )}
-          <NexusButton
-            onClick={handleSubmit}
-            variant="primary"
-            size="lg"
-            disabled={loading || !selectedLocation}
-            className="min-w-[180px] text-center justify-center px-6"
-          >
-            {loading ? '処理中...' : '検品・撮影完了'}
-          </NexusButton>
-        </div>
+        <NexusButton
+          onClick={handleSubmit}
+          variant="primary"
+          size="lg"
+          disabled={loading || !selectedLocation}
+          className="min-w-[180px] text-center justify-center px-6"
+        >
+          {loading ? '処理中...' : '検品・撮影完了'}
+        </NexusButton>
       </div>
     </div>
   );

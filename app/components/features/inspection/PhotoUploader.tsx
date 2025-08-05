@@ -13,7 +13,9 @@ export interface PhotoUploaderProps {
   onUpdate: (photos: string[]) => void;
   onNext: () => void;
   onPrev: () => void;
+  onSaveAndReturn?: () => void;
   category?: string; // AI判定用のカテゴリ
+  loading?: boolean;
 }
 
 interface PhotoSlot {
@@ -30,7 +32,9 @@ export default function PhotoUploader({
   onUpdate,
   onNext,
   onPrev,
+  onSaveAndReturn,
   category = 'accessory',
+  loading: externalLoading = false,
 }: PhotoUploaderProps) {
   const beforeAfterModalRef = useRef<HTMLDivElement>(null);
   const { showToast } = useToast();
@@ -806,18 +810,31 @@ export default function PhotoUploader({
 
       {/* ナビゲーションボタン */}
       <div className="flex justify-between pt-2">
-        <NexusButton
-          onClick={onPrev}
-          variant="secondary"
-          size="md"
-        >
-          戻る
-        </NexusButton>
+        <div className="flex gap-3">
+          <NexusButton
+            onClick={onPrev}
+            variant="secondary"
+            size="md"
+            disabled={externalLoading}
+          >
+            戻る
+          </NexusButton>
+          {onSaveAndReturn && (
+            <NexusButton
+              onClick={onSaveAndReturn}
+              variant="outline"
+              size="md"
+              disabled={externalLoading}
+            >
+              {externalLoading ? '保存中...' : '保存して一覧に戻る'}
+            </NexusButton>
+          )}
+        </div>
         <NexusButton
           onClick={onNext}
           variant="primary"
           size="md"
-          disabled={!canProceed}
+          disabled={!canProceed || externalLoading}
         >
           次へ（確認画面）
           {!canProceed && (

@@ -26,9 +26,16 @@ export async function POST(request: NextRequest) {
     // 基本的なバリデーション（デモ環境対応）
     console.log('[DEBUG] 受信データ:', JSON.stringify(planData, null, 2));
     
-    if (!planData.basicInfo?.warehouseId || !planData.basicInfo?.deliveryAddress) {
+    if (!planData.basicInfo?.deliveryAddress) {
       return NextResponse.json(
-        { error: '配送先倉庫と納品先住所は必須です。倉庫を選択してください。' },
+        { error: '納品先住所は必須です。' },
+        { status: 400 }
+      );
+    }
+
+    if (!planData.basicInfo?.contactEmail) {
+      return NextResponse.json(
+        { error: '連絡先メールアドレスは必須です。' },
         { status: 400 }
       );
     }
@@ -61,16 +68,17 @@ export async function POST(request: NextRequest) {
       const savedPlan = await tx.deliveryPlan.create({
         data: {
           id: planId,
+          planNumber: planId,
           sellerId: user.id,
-          warehouseId: planData.basicInfo.warehouseId,
-          warehouseName: planData.basicInfo.warehouseName,
+          sellerName: user.username || user.email,
           deliveryAddress: planData.basicInfo.deliveryAddress,
-          expectedDeliveryDate: planData.basicInfo.expectedDeliveryDate ? new Date(planData.basicInfo.expectedDeliveryDate) : null,
-          status: 'pending',
+          contactEmail: planData.basicInfo.contactEmail,
+          phoneNumber: planData.basicInfo.phoneNumber || null,
+          status: '作成完了',
+          totalItems: planData.products.length,
           totalValue: planData.products.reduce((sum: number, product: any) => 
             sum + (product.estimatedValue || 0), 0
           ),
-          generateBarcodes: planData.confirmation?.generateBarcodes || false,
           notes: planData.confirmation?.notes
         }
       });
@@ -110,7 +118,6 @@ export async function POST(request: NextRequest) {
               sellerId: user.id,
               metadata: JSON.stringify({
                 deliveryPlanId: planId,
-                expectedDeliveryDate: planData.basicInfo.expectedDeliveryDate,
                 brand: product.brand,
                 model: product.model,
                 serialNumber: product.serialNumber
@@ -136,7 +143,7 @@ export async function POST(request: NextRequest) {
 
     console.log('[INFO] 納品プラン作成成功:', {
       planId,
-      warehouseName: planData.basicInfo.warehouseName,
+      deliveryAddress: planData.basicInfo.deliveryAddress,
       productCount: planData.products.length,
       totalValue: deliveryPlan.totalValue,
       createdInventoryItems: deliveryPlan.createdInventoryItems.length

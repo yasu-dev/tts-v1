@@ -29,6 +29,8 @@ export default function BasicInfoStep({
     warehouseId: '',
     warehouseName: '',
     deliveryAddress: '',
+    contactEmail: '',
+    phoneNumber: '',
     notes: ''
   });
 
@@ -57,6 +59,8 @@ export default function BasicInfoStep({
           warehouseId: data.basicInfo?.warehouseId || '',
           warehouseName: data.basicInfo?.warehouseName || '',
           deliveryAddress: data.basicInfo?.deliveryAddress || '',
+          contactEmail: data.basicInfo?.contactEmail || userResult.user?.email || '',
+          phoneNumber: data.basicInfo?.phoneNumber || userResult.user?.phoneNumber || '',
           notes: data.basicInfo?.notes || ''
         };
         setFormData(initialData);
@@ -99,13 +103,13 @@ export default function BasicInfoStep({
   };
 
   const handleNext = () => {
-    if (formData.warehouseId && formData.deliveryAddress.trim()) {
+    if (formData.deliveryAddress.trim() && formData.contactEmail.trim()) {
       onNext();
     } else {
       showToast({
         type: 'warning',
         title: '入力エラー',
-        message: '配送先倉庫を選択してください。',
+        message: '納品先住所と連絡先メールアドレスを入力してください。',
         duration: 3000
       });
     }
@@ -191,6 +195,25 @@ export default function BasicInfoStep({
           required
           variant="nexus"
           disabled={!selectedWarehouse}
+        />
+
+        <NexusInput
+          label="連絡先メールアドレス"
+          type="email"
+          value={formData.contactEmail}
+          onChange={(e) => handleInputChange('contactEmail', e.target.value)}
+          placeholder="連絡先メールアドレス"
+          required
+          variant="nexus"
+        />
+
+        <NexusInput
+          label="電話番号（任意）"
+          type="tel"
+          value={formData.phoneNumber}
+          onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+          placeholder="電話番号（任意）"
+          variant="nexus"
         />
 
         <NexusTextarea

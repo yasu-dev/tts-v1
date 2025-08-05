@@ -129,22 +129,93 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
     },
   ];
 
-  useEffect(() => {
-    // 商品情報を取得（実際はAPIから）
-    setTimeout(() => {
-      setProduct({
-        id: productId,
-        name: 'Canon EOS R5 ボディ',
-        sku: `TWD-2024-${productId}`,
-        category: 'camera_body',
-        brand: 'Canon',
-        model: 'EOS R5',
-        status: 'pending_inspection',
-        imageUrl: '/api/placeholder/400/300',
+  // 保存された進捗を読み込む関数
+  const loadProgress = async () => {
+    try {
+      const response = await fetch(`/api/products/inspection/progress/${productId}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
       });
-      setLoading(false);
-    }, 500);
+
+      if (response.ok) {
+        const progressData = await response.json();
+        
+        // 保存された進捗が存在する場合は復元
+        if (progressData.currentStep) {
+          console.log(`[INFO] Restoring progress for product ${productId}:`, progressData);
+          
+          setCurrentStep(progressData.currentStep);
+          setInspectionData(prev => ({
+            ...prev,
+            checklist: progressData.checklist || prev.checklist,
+            photos: progressData.photos || prev.photos,
+            notes: progressData.notes || prev.notes,
+          }));
+          setVideoId(progressData.videoId || null);
+          
+          // Toast表示は別のuseEffectで行う
+          return progressData;
+        }
+      }
+      // エラーの場合は新規開始（ログは出力するが処理は継続）
+      return null;
+    } catch (error) {
+      console.error('[INFO] No previous progress found, starting fresh:', error);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    // 商品情報を取得と進捗復元を並行実行
+    const init = async () => {
+      try {
+        // 商品情報を取得（実際はAPIから）
+        setProduct({
+          id: productId,
+          name: 'Canon EOS R5 ボディ',
+          sku: `TWD-2024-${productId}`,
+          category: 'camera_body',
+          brand: 'Canon',
+          model: 'EOS R5',
+          status: 'pending_inspection',
+          imageUrl: '/api/placeholder/400/300',
+        });
+
+        // 保存された進捗を読み込み
+        const restoredProgress = await loadProgress();
+        
+        // 進捗復元のトースト表示
+        if (restoredProgress) {
+          setTimeout(() => {
+            showToast({
+              type: 'info',
+              title: '前回の作業を復元しました',
+              message: `ステップ${restoredProgress.currentStep}「${getStepName(restoredProgress.currentStep)}」から再開します`,
+              duration: 4000
+            });
+          }, 500); // 少し遅延させてUIの初期化を待つ
+        }
+        
+      } catch (error) {
+        console.error('[ERROR] Initialization error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    init();
   }, [productId]);
+
+  // ステップ名を取得するヘルパー関数
+  const getStepName = (step: number): string => {
+    switch (step) {
+      case 1: return '検品項目';
+      case 2: return '動画記録';
+      case 3: return '写真撮影';
+      case 4: return '確認完了';
+      default: return '不明';
+    }
+  };
 
   const updateChecklist = (category: string, item: string, value: boolean) => {
     setInspectionData(prev => ({
@@ -164,6 +235,69 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
       ...prev,
       photos,
     }));
+  };
+
+  // 部分保存機能（各ステップで作業を中断して保存）
+  const saveProgress = async (step: number) => {
+    try {
+      setLoading(true);
+      
+      const progressData = {
+        productId,
+        currentStep: step,
+        checklist: inspectionData.checklist,
+        photos: inspectionData.photos,
+        notes: inspectionData.notes,
+        videoId: videoId,
+        lastUpdated: new Date().toISOString(),
+        status: 'inspecting', // 進行中ステータス
+      };
+
+      // 進捗保存API（新規作成）
+      const response = await fetch(`/api/products/inspection/progress`, {
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(progressData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('[ERROR] API Response Error:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorData
+        });
+        throw new Error(errorData.details || errorData.error || `進捗保存に失敗しました: ${response.status} ${response.statusText}`);
+      }
+
+      showToast({
+        type: 'success',
+        title: '進捗を保存しました',
+        message: `ステップ${step}までの作業内容を保存しました。後で続きから再開できます。`,
+        duration: 3000
+      });
+      
+      // 一覧画面に戻る（状態復元フラグ付き）
+      setTimeout(() => {
+        window.location.href = '/staff/inspection?restored=1';
+      }, 1500);
+      
+    } catch (error) {
+      console.error('[ERROR] Progress save - Full error details:', {
+        error,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      });
+      
+      showToast({
+        type: 'error',
+        title: '進捗保存エラー',
+        message: error instanceof Error ? error.message : '進捗保存中にエラーが発生しました。コンソールで詳細を確認してください。',
+        duration: 6000
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const submitInspection = async (inspectionOnly = false, locationId?: string) => {
@@ -225,6 +359,17 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
       }
 
       const savedData = await response.json();
+
+      // 検品完了時は進捗データをクリア
+      try {
+        await fetch(`/api/products/inspection/progress/${productId}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+        });
+      } catch (error) {
+        console.error('[WARN] Failed to clear progress data:', error);
+        // エラーでも処理は継続
+      }
 
       showToast({
         type: 'success',
@@ -359,6 +504,8 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
             onUpdate={updateChecklist}
             onNext={() => setCurrentStep(2)}
             onPrev={() => {}} // 最初のステップなので戻るボタンは無効
+            onSaveAndReturn={() => saveProgress(1)}
+            loading={loading}
           />
         )}
 
@@ -384,17 +531,29 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
             />
             
             <div className="flex justify-between">
-              <NexusButton
-                onClick={() => setCurrentStep(1)}
-                variant="secondary"
-                size="lg"
-              >
-                戻る
-              </NexusButton>
+              <div className="flex gap-3">
+                <NexusButton
+                  onClick={() => setCurrentStep(1)}
+                  variant="secondary"
+                  size="lg"
+                  disabled={loading}
+                >
+                  戻る
+                </NexusButton>
+                <NexusButton
+                  onClick={() => saveProgress(2)}
+                  variant="outline"
+                  size="lg"
+                  disabled={loading}
+                >
+                  {loading ? '保存中...' : '保存して一覧に戻る'}
+                </NexusButton>
+              </div>
               <NexusButton
                 onClick={() => setCurrentStep(3)}
                 variant="primary"
                 size="lg"
+                disabled={loading}
               >
                 次へ（写真撮影）
               </NexusButton>
@@ -409,7 +568,9 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
             onUpdate={updatePhotos}
             onNext={() => setCurrentStep(4)}
             onPrev={() => setCurrentStep(2)}
+            onSaveAndReturn={() => saveProgress(3)}
             category={product.category}
+            loading={loading}
           />
         )}
 
@@ -418,8 +579,7 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
             product={product}
             inspectionData={inspectionData}
             onNotesChange={(notes) => setInspectionData(prev => ({ ...prev, notes }))}
-            onSubmit={(locationId) => submitInspection(false, locationId)} // 通常の検品・撮影完了
-            onSubmitInspectionOnly={(locationId) => submitInspection(true, locationId)} // 検品のみ完了
+            onSubmit={(locationId) => submitInspection(false, locationId)}
             onPrev={() => setCurrentStep(3)}
             loading={loading}
           />

@@ -29,6 +29,8 @@ export interface InspectionChecklistProps {
   onUpdate: (category: string, item: string, value: boolean) => void;
   onNext: () => void;
   onPrev: () => void;
+  onSaveAndReturn?: () => void;
+  loading?: boolean;
 }
 
 interface CheckItem {
@@ -43,6 +45,8 @@ export default function InspectionChecklist({
   onUpdate,
   onNext,
   onPrev,
+  onSaveAndReturn,
+  loading = false,
 }: InspectionChecklistProps) {
   // 検品項目の定義
   const checkItems: { [key: string]: CheckItem[] } = {
@@ -202,11 +206,23 @@ export default function InspectionChecklist({
       </div>
 
       {/* ナビゲーションボタン */}
-      <div className="flex justify-end gap-3 pt-2">
+      <div className="flex justify-between gap-3 pt-2">
+        {onSaveAndReturn && (
+          <NexusButton
+            onClick={onSaveAndReturn}
+            variant="outline"
+            size="md"
+            disabled={loading}
+            className="flex-1 sm:flex-none"
+          >
+            {loading ? '保存中...' : '保存して一覧に戻る'}
+          </NexusButton>
+        )}
         <NexusButton
           onClick={onNext}
           variant="primary"
           size="md"
+          disabled={loading}
           className="flex-1 sm:flex-none"
         >
           次へ（動画記録）

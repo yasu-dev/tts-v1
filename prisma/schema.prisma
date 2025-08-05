@@ -340,3 +340,17 @@ model DeliveryPlanProduct {
 
   @@map("delivery_plan_products")
 }
+
+model InspectionProgress {
+  id           String   @id @default(cuid())
+  productId    String   @unique  // 1商品につき1つの進捗のみ
+  currentStep  Int      // 1:検品項目, 2:動画記録, 3:写真撮影, 4:確認完了
+  checklist    String?  // チェックリストの状態（JSON文字列）
+  photos       String?  // 写真データ（JSON配列）
+  notes        String?  // メモ
+  videoId      String?  // 動画ID
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("inspection_progress")
+}

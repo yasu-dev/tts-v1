@@ -133,7 +133,59 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { productId, template, customTitle, customDescription, startingPrice, buyItNowPrice } = body;
+    const { 
+      productId, 
+      template, 
+      // Title
+      title: customTitle,
+      subtitle,
+      customLabel,
+      // Category
+      category,
+      storeCategory,
+      // Item Specifics
+      brand,
+      type,
+      model,
+      upc,
+      format,
+      color,
+      focusType,
+      series,
+      features,
+      mpn,
+      unitQuantity,
+      unitType,
+      countryManufacture,
+      yearManufactured,
+      warranty,
+      itemWeight,
+      californiaProp65,
+      itemHeight,
+      itemLength,
+      itemWidth,
+      customSpecifics,
+      // Condition
+      condition,
+      conditionDescription,
+      // Description
+      description: customDescription,
+      // Pricing
+      formatType,
+      price: buyItNowPrice,
+      quantity,
+      paymentPolicy,
+      allowOffers,
+      minimumOffer,
+      autoAccept,
+      scheduleYourListing,
+      // Promotion
+      generalPromotion,
+      priorityPromotion,
+      // Photos & Video
+      photos,
+      video
+    } = body;
 
     if (!productId) {
       return NextResponse.json(
@@ -174,21 +226,64 @@ export async function POST(request: NextRequest) {
       title: customTitle || templateData.title
         .replace('{name}', product.name)
         .replace('{sku}', product.sku),
+      subtitle: subtitle,
       description: customDescription || templateData.description
         .replace(/{name}/g, product.name)
         .replace(/{sku}/g, product.sku)
         .replace(/{condition}/g, product.condition)
         .replace(/{description}/g, product.description || '詳細は画像をご確認ください'),
-      category: templateData.category,
-      startingPrice: startingPrice || Math.floor(product.price * 0.8),
+      category: category || templateData.category,
+      storeCategory: storeCategory,
+      startingPrice: formatType === 'Auction' ? (buyItNowPrice || product.price) : undefined,
       buyItNowPrice: buyItNowPrice || product.price,
-      condition: getEbayCondition(product.condition),
+      condition: condition ? getEbayCondition(condition) : getEbayCondition(product.condition),
+      conditionDescription: conditionDescription,
       images: product.imageUrl ? [product.imageUrl] : [],
-      sku: product.sku,
-      quantity: 1,
+      sku: customLabel || product.sku,
+      quantity: quantity || 1,
       returnsAccepted: templateData.returnsAccepted,
       shippingTime: templateData.shippingTime,
-      location: 'Tokyo, Japan'
+      location: 'Tokyo, Japan',
+      // Item Specifics
+      itemSpecifics: {
+        brand,
+        type,
+        model,
+        upc,
+        format,
+        color,
+        focusType,
+        series,
+        features,
+        mpn,
+        unitQuantity,
+        unitType,
+        countryManufacture,
+        yearManufactured,
+        warranty,
+        itemWeight,
+        californiaProp65,
+        itemHeight,
+        itemLength,
+        itemWidth,
+        ...(customSpecifics?.reduce((acc: any, spec: any) => {
+          if (spec.name && spec.value) {
+            acc[spec.name] = spec.value;
+          }
+          return acc;
+        }, {}) || {})
+      },
+      // Pricing options
+      allowOffers,
+      minimumOffer,
+      autoAccept,
+      paymentPolicy,
+      scheduleYourListing,
+      // Promotion
+      promotions: {
+        general: generalPromotion,
+        priority: priorityPromotion
+      }
     };
 
     // Create eBay listing (mock)
@@ -213,7 +308,10 @@ export async function POST(request: NextRequest) {
           ebayItemId: ebayResponse.itemId,
           listingUrl: ebayResponse.listingUrl,
           startingPrice: listingData.startingPrice,
-          buyItNowPrice: listingData.buyItNowPrice
+          buyItNowPrice: listingData.buyItNowPrice,
+          subtitle: listingData.subtitle,
+          promotions: listingData.promotions,
+          itemSpecifics: listingData.itemSpecifics
         })
       }
     });
@@ -352,7 +450,12 @@ function getEbayCondition(condition: string): string {
     'very_good': '3000', // Used
     'good': '3000', // Used
     'fair': '3000', // Used
-    'poor': '7000' // For parts or not working
+    'poor': '7000', // For parts or not working
+    'New': '1000',
+    'Used': '3000',
+    'Open Box': '1750',
+    'Refurbished': '2000',
+    'For Parts': '7000'
   };
   
   return conditionMap[condition] || '3000';
