@@ -54,7 +54,7 @@ interface InspectionTask {
   productId: string;
   productName: string;
   type: 'camera' | 'watch' | 'lens' | 'accessory';
-  priority: 'high' | 'medium' | 'low';
+
   assignee: string;
   status: 'pending' | 'in_progress' | 'completed';
   dueDate: string;
@@ -79,12 +79,12 @@ interface Product {
   model: string;
   status: 'pending_inspection' | 'inspecting' | 'completed' | 'failed';
   receivedDate: string;
-  priority: 'high' | 'normal' | 'low';
+
   imageUrl?: string;
   metadata?: string; // メタデータフィールド追加
 }
 
-type SortField = 'name' | 'sku' | 'category' | 'receivedDate' | 'priority' | 'status';
+type SortField = 'name' | 'sku' | 'category' | 'receivedDate' | 'status';
 type SortDirection = 'asc' | 'desc';
 
 // モックデータ（実際はAPIから取得）
@@ -98,7 +98,7 @@ const mockProducts: Product[] = [
     model: 'EOS R5',
     status: 'pending_inspection',
     receivedDate: '2024-01-20',
-    priority: 'high',
+
     imageUrl: '/api/placeholder/150/150',
   },
   {
@@ -110,7 +110,7 @@ const mockProducts: Product[] = [
     model: 'SEL2470GM',
     status: 'inspecting',
     receivedDate: '2024-01-19',
-    priority: 'high',
+
     imageUrl: '/api/placeholder/150/150',
   },
   {
@@ -122,7 +122,7 @@ const mockProducts: Product[] = [
     model: 'D850',
     status: 'completed',
     receivedDate: '2024-01-18',
-    priority: 'normal',
+
     imageUrl: '/api/placeholder/150/150',
   },
   {
@@ -134,7 +134,7 @@ const mockProducts: Product[] = [
     model: 'EF70-200mm',
     status: 'failed',
     receivedDate: '2024-01-17',
-    priority: 'low',
+
     imageUrl: '/api/placeholder/150/150',
   },
   {
@@ -146,7 +146,7 @@ const mockProducts: Product[] = [
     model: 'Submariner',
     status: 'pending_inspection',
     receivedDate: '2024-01-21',
-    priority: 'high',
+
     imageUrl: '/api/placeholder/150/150',
   },
   {
@@ -158,7 +158,7 @@ const mockProducts: Product[] = [
     model: 'Seamaster',
     status: 'inspecting',
     receivedDate: '2024-01-16',
-    priority: 'normal',
+
     imageUrl: '/api/placeholder/150/150',
   },
 ];
@@ -200,7 +200,7 @@ export default function InspectionPage() {
   // フィルター・ソート・ページング状態
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [selectedPriority, setSelectedPriority] = useState<string>('all');
+
   const [selectedInspectionPhotoStatus, setSelectedInspectionPhotoStatus] = useState<string>('all'); // 検品・撮影状況フィルター追加
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('receivedDate');
@@ -220,7 +220,7 @@ export default function InspectionPage() {
         if (Date.now() - state.timestamp < oneHour) {
           setSelectedStatus(state.selectedStatus || 'all');
           setSelectedCategory(state.selectedCategory || 'all');
-          setSelectedPriority(state.selectedPriority || 'all');
+    
           setSelectedInspectionPhotoStatus(state.selectedInspectionPhotoStatus || 'all');
           setSearchQuery(state.searchQuery || '');
           setSortField(state.sortField || 'receivedDate');
@@ -285,14 +285,14 @@ export default function InspectionPage() {
   let filteredProducts = products.filter(product => {
     const matchesStatus = selectedStatus === 'all' || product.status === selectedStatus;
     const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
-    const matchesPriority = selectedPriority === 'all' || product.priority === selectedPriority;
+
     const matchesSearch = !searchQuery || 
       product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.model.toLowerCase().includes(searchQuery.toLowerCase());
     
-    return matchesStatus && matchesCategory && matchesPriority && matchesSearch;
+    return matchesStatus && matchesCategory && matchesSearch;
   });
 
   // 検品・撮影状況によるフィルタリング
@@ -369,7 +369,7 @@ export default function InspectionPage() {
     const currentState = {
       selectedStatus,
       selectedCategory,
-      selectedPriority,
+
       selectedInspectionPhotoStatus,
       searchQuery,
       currentPage,
@@ -406,13 +406,7 @@ export default function InspectionPage() {
     ...Object.entries(categoryLabels).map(([key, label]) => ({ value: key, label }))
   ];
 
-  // 優先度選択肢
-  const priorityOptions = [
-    { value: 'all', label: 'すべての優先度' },
-    { value: 'high', label: '高' },
-    { value: 'normal', label: '中' },
-    { value: 'low', label: '低' }
-  ];
+
 
   // ステータス選択肢
   const statusOptions = [
@@ -479,12 +473,7 @@ export default function InspectionPage() {
               options={categoryOptions}
             />
 
-            <NexusSelect
-              label="優先度"
-              value={selectedPriority}
-              onChange={(e) => setSelectedPriority(e.target.value)}
-              options={priorityOptions}
-            />
+
 
             <NexusInput
               type="text"
@@ -496,93 +485,7 @@ export default function InspectionPage() {
           </div>
         </div>
 
-        {/* 統計カード */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-          <div className="bg-white rounded-xl border border-nexus-border p-4 sm:p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                <ClipboardDocumentListIcon className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
-              </div>
-              <span className="px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                総計
-              </span>
-            </div>
-            <div className="text-2xl sm:text-3xl font-bold text-nexus-text-primary mb-2">
-              {inspectionStats.total}
-            </div>
-            <div className="text-sm text-nexus-text-secondary font-medium">
-              総商品数
-            </div>
-          </div>
 
-          <div className="bg-white rounded-xl border border-nexus-border p-4 sm:p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-yellow-100 rounded-full flex items-center justify-center">
-                <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600" />
-              </div>
-                                  <span className="px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-orange-600 text-white">
-                待機中
-              </span>
-            </div>
-            <div className="text-2xl sm:text-3xl font-bold text-nexus-text-primary mb-2">
-              {inspectionStats.pending}
-            </div>
-            <div className="text-sm text-nexus-text-secondary font-medium">
-              検品待ち
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl border border-nexus-border p-4 sm:p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                <BookOpenIcon className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
-              </div>
-              <span className="px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                進行中
-              </span>
-            </div>
-            <div className="text-2xl sm:text-3xl font-bold text-nexus-text-primary mb-2">
-              {inspectionStats.inspecting}
-            </div>
-            <div className="text-sm text-nexus-text-secondary font-medium">
-              検品中
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl border border-nexus-border p-4 sm:p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-full flex items-center justify-center">
-                <CheckIcon className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
-              </div>
-              <span className="px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                完了
-              </span>
-            </div>
-            <div className="text-2xl sm:text-3xl font-bold text-nexus-text-primary mb-2">
-              {inspectionStats.completed}
-            </div>
-            <div className="text-sm text-nexus-text-secondary font-medium">
-              完了
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl border border-nexus-border p-4 sm:p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-full flex items-center justify-center">
-                <XMarkIcon className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
-              </div>
-              <span className="px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                要対応
-              </span>
-            </div>
-            <div className="text-2xl sm:text-3xl font-bold text-nexus-text-primary mb-2">
-              {inspectionStats.failed}
-            </div>
-            <div className="text-sm text-nexus-text-secondary font-medium">
-              不合格
-            </div>
-          </div>
-        </div>
 
         {/* 検品リスト */}
         <div className="bg-white rounded-xl border border-nexus-border p-4 sm:p-6">
@@ -627,15 +530,7 @@ export default function InspectionPage() {
                       {getSortIcon('receivedDate')}
                     </div>
                   </th>
-                  <th 
-                    className="text-center py-3 px-2 sm:px-4 text-sm font-medium text-nexus-text-secondary cursor-pointer hover:bg-nexus-bg-tertiary"
-                    onClick={() => handleSort('priority')}
-                  >
-                    <div className="flex items-center justify-center gap-1">
-                      優先度
-                      {getSortIcon('priority')}
-                    </div>
-                  </th>
+
                   <th 
                     className="text-center py-3 px-2 sm:px-4 text-sm font-medium text-nexus-text-secondary cursor-pointer hover:bg-nexus-bg-tertiary"
                     onClick={() => handleSort('status')}
@@ -780,7 +675,7 @@ export default function InspectionPage() {
                   <tr>
                     <td colSpan={8} className="py-6 px-2 sm:px-4 text-center text-nexus-text-secondary text-sm">
                       {filteredProducts.length === 0 ? 
-                        (searchQuery || selectedStatus !== 'all' || selectedCategory !== 'all' || selectedPriority !== 'all' || selectedInspectionPhotoStatus !== 'all'
+                        (searchQuery || selectedStatus !== 'all' || selectedCategory !== 'all' || selectedInspectionPhotoStatus !== 'all'
                           ? '検索条件に一致する商品がありません' 
                           : '検品対象商品がありません'
                         ) : '表示するデータがありません'

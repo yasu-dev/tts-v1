@@ -253,7 +253,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
           locationCode: "STD-A-01",
           locationName: "標準棚A-01",
           status: "ピッキング待ち",
-          priority: "urgent",
+      
           deadline: "16:00"
         },
         {
@@ -265,7 +265,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
           locationCode: "STD-A-01",
           locationName: "標準棚A-01",
           status: "準備完了",
-          priority: "normal",
+      
           deadline: "18:00"
         },
         {
@@ -277,7 +277,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
           locationCode: "VAULT-01",
           locationName: "金庫室01",
           status: "出荷完了",
-          priority: "urgent",
+      
           deadline: "15:00"
         }
       ];
@@ -763,9 +763,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                                   ? 'text-gray-500'
                                   : 'text-nexus-text-primary'
                               }`}>{item.productName}</h4>
-                              {item.priority === 'urgent' && item.status !== '出荷完了' && (
-                                <span className="status-badge danger text-xs">緊急</span>
-                              )}
+                              
                             </div>
                             <p className="text-sm text-nexus-text-secondary font-mono mt-1">
                               商品ID: {item.productId} | 注文ID: {item.orderId}
@@ -1009,11 +1007,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                   </p>
                 </div>
                 <div className="text-right">
-                  <span className={`status-badge ${
-                    item.priority === 'urgent' ? 'danger' : 'info'
-                  } text-xs`}>
-                    {item.priority === 'urgent' ? '緊急' : '通常'}
-                  </span>
+
                   <p className="text-sm text-nexus-text-secondary mt-1">
                     締切: {item.deadline}
                   </p>

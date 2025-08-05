@@ -148,7 +148,7 @@ export default function EnhancedNotificationPanel({
         sales: '/sales',
         reports: '/reports',
         billing: '/billing',
-        tasks: userType === 'staff' ? '/staff/tasks' : '/dashboard',
+        tasks: userType === 'staff' ? '/staff/dashboard' : '/dashboard',
         returns: userType === 'staff' ? '/staff/returns' : '/returns',
         shipping: userType === 'staff' ? '/staff/shipping' : '/delivery',
         system: userType === 'staff' ? '/staff/dashboard' : '/dashboard'

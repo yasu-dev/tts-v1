@@ -16,7 +16,7 @@ export default function DashboardPage() {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [isProductDetailOpen, setIsProductDetailOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<'urgent' | 'revenue' | 'operations' | 'returns'>('urgent');
+  const [activeTab, setActiveTab] = useState<'revenue' | 'operations' | 'returns'>('revenue');
   const [selectedPeriod, setSelectedPeriod] = useState<{
     startDate: Date;
     endDate: Date;
@@ -44,57 +44,7 @@ export default function DashboardPage() {
       .then((data) => {
         // カメラと時計に特化した実践的なデータ構造
         const practicalData = {
-          // 緊急タスク
-          urgentTasks: [
-            {
-              id: 'inspection-overdue',
-              type: 'critical',
-              title: '検品期限超過',
-              count: 8,
-              description: '3日以上検品待ちの商品',
-              value: '¥2,340,000',
-              action: '即座に検品開始',
-              priority: 'high',
-              deadline: '今日',
-              items: ['Canon EOS R5', 'Nikon Z9', 'Rolex Submariner']
-            },
-            {
-              id: 'stock-shortage',
-              type: 'warning',
-              title: '在庫切れ直前',
-              count: 5,
-              description: '48時間以内に在庫切れ予想',
-              value: '¥890,000',
-              action: '緊急補充手配',
-              priority: 'high',
-              deadline: '2日以内',
-              items: ['Sony α7R V', 'Omega Speedmaster']
-            },
-            {
-              id: 'shipping-delay',
-              type: 'urgent',
-              title: '出荷遅延',
-              count: 12,
-              description: '予定日を過ぎた未出荷注文',
-              value: '¥1,560,000',
-              action: '即座に出荷処理',
-              priority: 'critical',
-              deadline: '今日',
-              items: ['Leica M11', 'TAG Heuer Formula 1', 'Canon RF 70-200mm']
-            },
-            {
-              id: 'high-value-returns',
-              type: 'critical',
-              title: '高額返品処理',
-              count: 3,
-              description: '50万円以上の返品商品',
-              value: '¥1,890,000',
-              action: '優先的に再検品・再出品',
-              priority: 'high',
-              deadline: '3日以内',
-              items: ['Patek Philippe Nautilus', 'Leica M10-P', 'Rolex GMT-Master II']
-            }
-          ],
+
           
           // 返品理由分析データ（カメラ・時計専門）
           returnAnalysis: {
@@ -316,7 +266,7 @@ export default function DashboardPage() {
               value: 890000,
               status: '検品待ち',
               location: 'A-01',
-              priority: 'high',
+
               daysInInventory: 3
             },
             {
@@ -326,7 +276,7 @@ export default function DashboardPage() {
               value: 1200000,
               status: '出品準備',
               location: 'S-05',
-              priority: 'critical',
+
               daysInInventory: 1
             },
             {
@@ -336,7 +286,7 @@ export default function DashboardPage() {
               value: 680000,
               status: '価格調査',
               location: 'B-12',
-              priority: 'medium',
+
               daysInInventory: 5
             }
           ]
@@ -361,7 +311,7 @@ export default function DashboardPage() {
       });
   }, [selectedPeriod]); // 選択期間が変更されたときに再読み込み
 
-  const handleUrgentTaskAction = (task: any) => {
+  const handleTaskAction = (task: any) => {
     showToast({
       type: 'info',
       title: 'タスク実行',
@@ -379,14 +329,7 @@ export default function DashboardPage() {
     setIsProductDetailOpen(true);
   };
 
-  const getUrgencyColor = (type: string) => {
-    switch (type) {
-      case 'critical': return 'border-red-500 bg-red-50';
-      case 'urgent': return 'border-orange-500 bg-orange-50';
-      case 'warning': return 'border-yellow-500 bg-yellow-50';
-      default: return 'border-gray-300 bg-gray-50';
-    }
-  };
+
 
   const getUrgencyIcon = (type: string) => {
     switch (type) {
@@ -467,7 +410,7 @@ export default function DashboardPage() {
         {/* 統一ヘッダー */}
         <UnifiedPageHeader
           title="ダッシュボード"
-          subtitle="緊急タスク・収益・運営効率・返品分析の統合管理"
+                        subtitle="作業管理・収益・運営効率・返品分析の統合管理"
           userType="seller"
           iconType="dashboard"
           actions={headerActions}
@@ -498,26 +441,7 @@ export default function DashboardPage() {
         {/* タブナビゲーション */}
         <div className="mt-8 border-b border-nexus-border">
           <nav className="-mb-px flex space-x-8">
-            <button
-              onClick={() => setActiveTab('urgent')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'urgent'
-                  ? 'border-red-500 text-red-600'
-                  : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-                緊急タスク
-                {dashboardData?.urgentTasks?.length > 0 && (
-                  <span className="bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
-                    {dashboardData.urgentTasks.length}
-                  </span>
-                )}
-              </div>
-            </button>
+
             <button
               onClick={() => setActiveTab('revenue')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
@@ -571,65 +495,7 @@ export default function DashboardPage() {
           </nav>
         </div>
 
-        {/* 緊急タスクタブ */}
-        {activeTab === 'urgent' && (
-          <div className="space-y-6">
-            {/* 緊急度別タスク一覧 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {dashboardData?.urgentTasks?.map((task: any) => (
-                <div key={task.id} className={`p-6 rounded-lg border-2 ${getUrgencyColor(task.type)}`}>
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      {getUrgencyIcon(task.type)}
-                      <div>
-                        <h3 className="text-lg font-bold text-nexus-text-primary">{task.title}</h3>
-                        <p className="text-sm text-nexus-text-secondary">{task.description}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium text-nexus-text-secondary">期限</p>
-                      <p className="text-lg font-bold text-red-600">{task.deadline}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-3 gap-4 mb-4">
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-nexus-text-primary">{task.count}</p>
-                      <p className="text-xs text-nexus-text-secondary">件数</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-green-600">{task.value}</p>
-                      <p className="text-xs text-nexus-text-secondary">金額</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sm font-bold text-orange-600">{task.priority.toUpperCase()}</p>
-                      <p className="text-xs text-nexus-text-secondary">優先度</p>
-                    </div>
-                  </div>
 
-                  <div className="mb-4">
-                    <p className="text-sm font-medium text-nexus-text-secondary mb-2">対象商品例:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {task.items?.slice(0, 3).map((item: string, index: number) => (
-                        <span key={index} className="px-2 py-1 bg-white rounded border text-xs">
-                          {item}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  <NexusButton
-                    onClick={() => handleUrgentTaskAction(task)}
-                    variant="primary"
-                    className="w-full"
-                  >
-                    {task.action}
-                  </NexusButton>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* 収益管理タブ */}
         {activeTab === 'revenue' && (

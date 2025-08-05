@@ -187,62 +187,7 @@ export default function TimelinePage() {
           </div>
         </BaseModal>
 
-        {/* 統計指標 - ダッシュボードと統一 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="bg-white rounded-xl border border-nexus-border p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                <CalendarIcon className="w-6 h-6 text-blue-600" />
-              </div>
-              <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                在庫
-              </span>
-            </div>
-            <div className="text-3xl font-bold text-nexus-text-primary mb-2">
-              10日
-            </div>
-            <div className="text-nexus-text-secondary font-medium">
-              在庫日数
-            </div>
-            <div className="text-xs text-nexus-text-secondary mt-1">平均: 15日</div>
-          </div>
 
-          <div className="bg-white rounded-xl border border-nexus-border p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                <ArchiveBoxIcon className="w-6 h-6 text-green-600" />
-              </div>
-              <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                現在
-              </span>
-            </div>
-            <div className="text-3xl font-bold text-green-600 mb-2">
-              出品中
-            </div>
-            <div className="text-nexus-text-secondary font-medium">
-              ステータス
-            </div>
-            <div className="text-xs text-nexus-text-secondary mt-1">更新: 1日前</div>
-          </div>
-
-          <div className="bg-white rounded-xl border border-nexus-border p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                <ChartBarIcon className="w-6 h-6 text-purple-600" />
-              </div>
-              <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                履歴
-              </span>
-            </div>
-            <div className="text-3xl font-bold text-nexus-text-primary mb-2">
-              9件
-            </div>
-            <div className="text-nexus-text-secondary font-medium">
-              イベント数
-            </div>
-            <div className="text-xs text-nexus-text-secondary mt-1">過去30日</div>
-          </div>
-        </div>
 
         {/* メインコンテンツ - 他の画面と統一されたレイアウト */}
         <div className="space-y-6">

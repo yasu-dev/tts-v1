@@ -224,18 +224,7 @@ export default function EditModal({ isOpen, onClose, type, title, data }: EditMo
           value={formData.dueDate || ''}
           onChange={(e) => handleInputChange('dueDate', e.target.value)}
         />
-        <NexusSelect
-          label="優先度"
-          value={formData.priority || ''}
-          onChange={(e) => handleInputChange('priority', e.target.value)}
-          options={[
-            { value: "", label: "選択してください" },
-            { value: "low", label: "低" },
-            { value: "medium", label: "中" },
-            { value: "high", label: "高" },
-            { value: "urgent", label: "緊急" }
-          ]}
-        />
+
         <NexusSelect
           label="ステータス"
           value={formData.status || ''}

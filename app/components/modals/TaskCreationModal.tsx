@@ -65,7 +65,7 @@ export default function TaskCreationModal({ isOpen, onClose, onSubmit }: TaskCre
       setFormData({
         title: '',
         description: '',
-        priority: 'medium',
+
         category: 'inspection',
         assignedTo: '',
         dueDate: '',
@@ -145,22 +145,7 @@ export default function TaskCreationModal({ isOpen, onClose, onSubmit }: TaskCre
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <NexusSelect
-                label="優先度 *"
-                name="priority"
-                value={formData.priority}
-                onChange={handleChange}
-                required
-                disabled={isSubmitting}
-                options={[
-                  { value: "low", label: "低" },
-                  { value: "medium", label: "中" },
-                  { value: "high", label: "高" },
-                  { value: "urgent", label: "緊急" }
-                ]}
-              />
-            </div>
+
 
             <div>
               <NexusSelect

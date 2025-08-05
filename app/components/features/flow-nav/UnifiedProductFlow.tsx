@@ -19,7 +19,7 @@ interface FlowStep {
     count: number;
     avgDays: number;
     status: 'active' | 'waiting' | 'completed';
-    priority: 'high' | 'medium' | 'low';
+  
   }[];
 }
 
@@ -100,9 +100,9 @@ export default function UnifiedProductFlow({
       bgColor: '#e3f2fd',
       icon: stepIcons.preparation,
       tasks: [
-        { id: 'sourcing', name: '商品仕入れ', count: 0, avgDays: 3, status: 'active', priority: 'high' },
-        { id: 'plan', name: '納品プラン作成', count: 0, avgDays: 1, status: 'waiting', priority: 'medium' },
-        { id: 'shipping', name: 'ATW倉庫発送', count: 0, avgDays: 2, status: 'waiting', priority: 'medium' }
+        { id: 'sourcing', name: '商品仕入れ', count: 0, avgDays: 3, status: 'active',  },
+        { id: 'plan', name: '納品プラン作成', count: 0, avgDays: 1, status: 'waiting',  },
+        { id: 'shipping', name: 'ATW倉庫発送', count: 0, avgDays: 2, status: 'waiting',  }
       ]
     },
     {
@@ -115,9 +115,9 @@ export default function UnifiedProductFlow({
       bgColor: '#f3e5f5',
       icon: stepIcons.inbound,
       tasks: [
-        { id: 'receive', name: '商品受取', count: 0, avgDays: 1, status: 'active', priority: 'high' },
-        { id: 'inspection', name: '検品・撮影', count: 0, avgDays: 2, status: 'waiting', priority: 'high' },
-        { id: 'register', name: '在庫登録', count: 0, avgDays: 1, status: 'waiting', priority: 'medium' }
+        { id: 'receive', name: '商品受取', count: 0, avgDays: 1, status: 'active',  },
+        { id: 'inspection', name: '検品・撮影', count: 0, avgDays: 2, status: 'waiting',  },
+        { id: 'register', name: '在庫登録', count: 0, avgDays: 1, status: 'waiting',  }
       ]
     },
     {
@@ -130,9 +130,9 @@ export default function UnifiedProductFlow({
       bgColor: '#e8f5e8',
       icon: stepIcons.sales,
       tasks: [
-        { id: 'listing', name: 'eBay自動出品', count: 0, avgDays: 1, status: 'active', priority: 'medium' },
-        { id: 'order', name: '商品注文', count: 0, avgDays: 0, status: 'waiting', priority: 'low' },
-        { id: 'process', name: '受注処理', count: 0, avgDays: 1, status: 'waiting', priority: 'high' }
+        { id: 'listing', name: 'eBay自動出品', count: 0, avgDays: 1, status: 'active',  },
+        { id: 'order', name: '商品注文', count: 0, avgDays: 0, status: 'waiting',  },
+        { id: 'process', name: '受注処理', count: 0, avgDays: 1, status: 'waiting',  }
       ]
     },
     {
@@ -145,9 +145,9 @@ export default function UnifiedProductFlow({
       bgColor: '#e0f7fa',
       icon: stepIcons.shipping,
       tasks: [
-        { id: 'picking', name: 'ピッキング', count: 0, avgDays: 1, status: 'active', priority: 'high' },
-        { id: 'packing', name: '梱包・発送', count: 0, avgDays: 1, status: 'waiting', priority: 'high' },
-        { id: 'delivery', name: '購入者受取', count: 0, avgDays: 3, status: 'waiting', priority: 'low' }
+        { id: 'picking', name: 'ピッキング', count: 0, avgDays: 1, status: 'active',  },
+        { id: 'packing', name: '梱包・発送', count: 0, avgDays: 1, status: 'waiting',  },
+        { id: 'delivery', name: '購入者受取', count: 0, avgDays: 3, status: 'waiting',  }
       ]
     },
     {
@@ -160,9 +160,9 @@ export default function UnifiedProductFlow({
       bgColor: '#fff8e1',
       icon: stepIcons.completion,
       tasks: [
-        { id: 'calculation', name: '売上計算', count: 0, avgDays: 1, status: 'active', priority: 'medium' },
-        { id: 'settlement', name: '精算確認', count: 0, avgDays: 2, status: 'waiting', priority: 'high' },
-        { id: 'next', name: '次回仕入れ', count: 0, avgDays: 0, status: 'waiting', priority: 'low' }
+        { id: 'calculation', name: '売上計算', count: 0, avgDays: 1, status: 'active',  },
+        { id: 'settlement', name: '精算確認', count: 0, avgDays: 2, status: 'waiting',  },
+        { id: 'next', name: '次回仕入れ', count: 0, avgDays: 0, status: 'waiting',  }
       ]
     },
     {
@@ -175,9 +175,9 @@ export default function UnifiedProductFlow({
       bgColor: '#fff3e0',
       icon: stepIcons.returns,
       tasks: [
-        { id: 'return-receive', name: '返品受付', count: 0, avgDays: 1, status: 'active', priority: 'high' },
-        { id: 'return-inspect', name: '返品検品', count: 0, avgDays: 2, status: 'waiting', priority: 'high' },
-        { id: 'return-process', name: '再出品・廃棄', count: 0, avgDays: 1, status: 'waiting', priority: 'medium' }
+        { id: 'return-receive', name: '返品受付', count: 0, avgDays: 1, status: 'active',  },
+        { id: 'return-inspect', name: '返品検品', count: 0, avgDays: 2, status: 'waiting',  },
+        { id: 'return-process', name: '再出品・廃棄', count: 0, avgDays: 1, status: 'waiting',  }
       ]
     }
   ];
@@ -349,14 +349,7 @@ export default function UnifiedProductFlow({
     }
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'bg-red-600 text-white';
-      case 'medium': return 'bg-yellow-500 text-white';
-      case 'low': return 'bg-gray-400 text-white';
-      default: return 'bg-gray-400 text-white';
-    }
-  };
+
 
   if (loading) {
     return (
@@ -497,11 +490,7 @@ export default function UnifiedProductFlow({
                       >
                         <div className="flex items-center gap-2">
                           <span className="text-gray-700 font-medium">{task.name}</span>
-                          {task.priority === 'high' && task.count > 0 && (
-                            <span className={`px-1 py-0.5 rounded text-[10px] font-medium ${getPriorityColor(task.priority)}`}>
-                              緊急
-                            </span>
-                          )}
+
                         </div>
                         {showCounts && task.count > 0 && (
                           <span 

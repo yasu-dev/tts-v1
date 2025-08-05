@@ -379,209 +379,148 @@ export default function ReturnsPage() {
               </>
             ) : (
               <>
-                {/* サマリー統計 */}
-                <div className="intelligence-metrics">
-                  <div className="unified-grid-4">
-                    <div className="intelligence-card americas">
-                      <div className="p-5">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-nexus-text-secondary">本日の返品</p>
-                            <p className="metric-value font-display text-3xl font-bold text-nexus-text-primary mt-2">{filteredReturns.length}件</p>
-                            <p className="text-sm text-nexus-text-secondary mt-1">前日比 +{filteredReturns.length - returnsData.pendingReturns.length}件</p>
-                          </div>
-                          <div className="action-orb blue">
-                            <ArchiveBoxIcon className="w-6 h-6" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="intelligence-card europe">
-                      <div className="p-5">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-nexus-text-secondary">検品待ち</p>
-                            <p className="metric-value font-display text-3xl font-bold text-nexus-text-primary mt-2">{returnsData.pendingReturns.length}件</p>
-                            <p className="text-sm text-yellow-600 mt-1">要対応</p>
-                          </div>
-                          <div className="action-orb yellow">
-                            <ClockIcon className="w-6 h-6" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="intelligence-card asia">
-                      <div className="p-5">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-nexus-text-secondary">返品率</p>
-                            <p className="metric-value font-display text-3xl font-bold text-nexus-text-primary mt-2">3.8%</p>
-                            <p className="text-sm text-green-600 mt-1">業界平均以下</p>
-                          </div>
-                          <div className="action-orb green">
-                            <ArrowTrendingUpIcon className="w-6 h-6" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="intelligence-card africa">
-                      <div className="p-5">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-nexus-text-secondary">平均処理時間</p>
-                            <p className="metric-value font-display text-3xl font-bold text-nexus-text-primary mt-2">2.1日</p>
-                            <p className="text-sm text-nexus-text-secondary mt-1">目標: 2日以内</p>
-                          </div>
-                          <div className="action-orb orange">
-                            <ExclamationCircleIcon className="w-6 h-6" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+
 
                 {/* 返品リスト */}
-                <div className="intelligence-card global">
-                  <div className="p-5">
-                    <h2 className="text-xl font-display font-bold text-nexus-text-primary mb-6">返品商品リスト</h2>
-                    
-                    {/* フィルター */}
-                    <div className="flex gap-1 bg-nexus-bg-secondary p-1 rounded-lg mb-6">
-                      <button
-                        onClick={() => setFilter('all')}
-                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                          filter === 'all' 
-                            ? 'bg-nexus-bg-primary text-nexus-yellow shadow-sm' 
-                            : 'text-nexus-text-secondary hover:text-nexus-text-primary'
-                        }`}
-                      >
-                        すべて
-                      </button>
-                      <button
-                        onClick={() => setFilter('pending')}
-                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                          filter === 'pending' 
-                            ? 'bg-nexus-bg-primary text-nexus-yellow shadow-sm' 
-                            : 'text-nexus-text-secondary hover:text-nexus-text-primary'
-                        }`}
-                      >
-                        検品待ち
-                      </button>
-                      <button
-                        onClick={() => setFilter('inspecting')}
-                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                          filter === 'inspecting' 
-                            ? 'bg-nexus-bg-primary text-nexus-yellow shadow-sm' 
-                            : 'text-nexus-text-secondary hover:text-nexus-text-primary'
-                        }`}
-                      >
-                        検品中
-                      </button>
-                      <button
-                        onClick={() => setFilter('completed')}
-                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                          filter === 'completed' 
-                            ? 'bg-nexus-bg-primary text-nexus-yellow shadow-sm' 
-                            : 'text-nexus-text-secondary hover:text-nexus-text-primary'
-                        }`}
-                      >
-                        完了
-                      </button>
-                    </div>
-                    
-                    <div className="holo-table">
-                      <table className="w-full">
-                        <thead className="holo-header">
-                          <tr>
-                            <th className="text-left py-3 px-4">注文ID</th>
-                            <th className="text-left py-3 px-4">商品名</th>
-                            <th className="text-left py-3 px-4">返品日</th>
-                            <th className="text-left py-3 px-4">理由</th>
-                            <th className="text-left py-3 px-4">顧客</th>
-                            <th className="text-center py-3 px-4">ステータス</th>
-                            <th className="text-center py-3 px-4">アクション</th>
-                          </tr>
-                        </thead>
-                        <tbody className="holo-body">
-                          {filteredReturns.map((item) => (
-                            <tr key={item.id} className="holo-row">
-                              <td className="py-4 px-4 font-mono text-sm">{item.orderId}</td>
-                              <td className="py-4 px-4 font-medium">{item.productName}</td>
-                              <td className="py-4 px-4">{item.returnDate}</td>
-                              <td className="py-4 px-4">{item.returnReason}</td>
-                              <td className="py-4 px-4">{item.customer}</td>
-                              <td className="text-center py-4 px-4">
-                                <BusinessStatusIndicator 
-                                  status={
-                                    item.status === 'inspecting' ? 'inspection' :
-                                    item.status === 'approved' ? 'completed' :
-                                    item.status === 'rejected' ? 'cancelled' :
-                                    item.status === 'refunded' ? 'completed' :
-                                    item.status
-                                  } 
-                                />
-                              </td>
-                              <td className="text-center py-4 px-4">
-                                <div className="flex gap-2 justify-center">
-                                  <button
-                                    onClick={() => handleViewDetails(item)}
-                                    className="nexus-button text-sm"
-                                  >
-                                    詳細
-                                  </button>
-                                  {item.status === 'pending' && (
+                {!isUnsellableModalOpen && !isRelistingModalOpen && !isDetailModalOpen && (
+                  <div className="intelligence-card global">
+                    <div className="p-5">
+                      <h2 className="text-xl font-display font-bold text-nexus-text-primary mb-6">返品商品リスト</h2>
+                      
+                      {/* フィルター */}
+                      <div className="flex gap-1 bg-nexus-bg-secondary p-1 rounded-lg mb-6">
+                        <button
+                          onClick={() => setFilter('all')}
+                          className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                            filter === 'all' 
+                              ? 'bg-nexus-bg-primary text-nexus-yellow shadow-sm' 
+                              : 'text-nexus-text-secondary hover:text-nexus-text-primary'
+                          }`}
+                        >
+                          すべて
+                        </button>
+                        <button
+                          onClick={() => setFilter('pending')}
+                          className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                            filter === 'pending' 
+                              ? 'bg-nexus-bg-primary text-nexus-yellow shadow-sm' 
+                              : 'text-nexus-text-secondary hover:text-nexus-text-primary'
+                          }`}
+                        >
+                          検品待ち
+                        </button>
+                        <button
+                          onClick={() => setFilter('inspecting')}
+                          className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                            filter === 'inspecting' 
+                              ? 'bg-nexus-bg-primary text-nexus-yellow shadow-sm' 
+                              : 'text-nexus-text-secondary hover:text-nexus-text-primary'
+                          }`}
+                        >
+                          検品中
+                        </button>
+                        <button
+                          onClick={() => setFilter('completed')}
+                          className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                            filter === 'completed' 
+                              ? 'bg-nexus-bg-primary text-nexus-yellow shadow-sm' 
+                              : 'text-nexus-text-secondary hover:text-nexus-text-primary'
+                          }`}
+                        >
+                          完了
+                        </button>
+                      </div>
+                      
+                      <div className="holo-table">
+                        <table className="w-full">
+                          <thead className="holo-header">
+                            <tr>
+                              <th className="text-left py-3 px-4">注文ID</th>
+                              <th className="text-left py-3 px-4">商品名</th>
+                              <th className="text-left py-3 px-4">返品日</th>
+                              <th className="text-left py-3 px-4">理由</th>
+                              <th className="text-left py-3 px-4">顧客</th>
+                              <th className="text-center py-3 px-4">ステータス</th>
+                              <th className="text-center py-3 px-4">アクション</th>
+                            </tr>
+                          </thead>
+                          <tbody className="holo-body">
+                            {filteredReturns.map((item) => (
+                              <tr key={item.id} className="holo-row">
+                                <td className="py-4 px-4 font-mono text-sm">{item.orderId}</td>
+                                <td className="py-4 px-4 font-medium">{item.productName}</td>
+                                <td className="py-4 px-4">{item.returnDate}</td>
+                                <td className="py-4 px-4">{item.returnReason}</td>
+                                <td className="py-4 px-4">{item.customer}</td>
+                                <td className="text-center py-4 px-4">
+                                  <BusinessStatusIndicator 
+                                    status={
+                                      item.status === 'inspecting' ? 'inspection' :
+                                      item.status === 'approved' ? 'completed' :
+                                      item.status === 'rejected' ? 'cancelled' :
+                                      item.status === 'refunded' ? 'completed' :
+                                      item.status
+                                    } 
+                                  />
+                                </td>
+                                <td className="text-center py-4 px-4">
+                                  <div className="flex gap-2 justify-center">
                                     <button
-                                      onClick={() => handleStartInspection(item)}
-                                      className="nexus-button primary text-sm"
+                                      onClick={() => handleViewDetails(item)}
+                                      className="nexus-button text-sm"
                                     >
-                                      検品開始
+                                      詳細
                                     </button>
-                                  )}
-                                  {item.status === 'inspecting' && (
-                                    <>
+                                    {item.status === 'pending' && (
                                       <button
-                                        onClick={() => handleApproveReturn(item)}
+                                        onClick={() => handleStartInspection(item)}
                                         className="nexus-button primary text-sm"
                                       >
-                                        承認
+                                        検品開始
                                       </button>
+                                    )}
+                                    {item.status === 'inspecting' && (
+                                      <>
+                                        <button
+                                          onClick={() => handleApproveReturn(item)}
+                                          className="nexus-button primary text-sm"
+                                        >
+                                          承認
+                                        </button>
+                                        <button
+                                          onClick={() => handleRejectReturn(item)}
+                                          className="nexus-button text-sm"
+                                        >
+                                          拒否
+                                        </button>
+                                      </>
+                                    )}
+                                    {item.status === 'approved' && (
                                       <button
-                                        onClick={() => handleRejectReturn(item)}
-                                        className="nexus-button text-sm"
+                                        onClick={() => handleProcessRefund(item)}
+                                        className="nexus-button primary text-sm"
                                       >
-                                        拒否
+                                        返金処理
                                       </button>
-                                    </>
-                                  )}
-                                  {item.status === 'approved' && (
-                                    <button
-                                      onClick={() => handleProcessRefund(item)}
-                                      className="nexus-button primary text-sm"
-                                    >
-                                      返金処理
-                                    </button>
-                                  )}
-                                  {item.status === 'refunded' && (
-                                    <button
-                                      onClick={() => handleStartRelisting(item)}
-                                      className="nexus-button primary text-sm"
-                                    >
-                                      再出品
-                                    </button>
-                                  )}
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                                    )}
+                                    {item.status === 'refunded' && (
+                                      <button
+                                        onClick={() => handleStartRelisting(item)}
+                                        className="nexus-button primary text-sm"
+                                      >
+                                        再出品
+                                      </button>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </>
             )}
           </div>

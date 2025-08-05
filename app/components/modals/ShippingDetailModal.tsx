@@ -30,7 +30,7 @@ interface ShippingItem {
   customer: string;
   shippingAddress: string;
   status: 'storage' | 'packed' | 'shipped' | 'ready_for_pickup';
-  priority: 'urgent' | 'normal' | 'low';
+
   dueDate: string;
   inspectionNotes?: string;
   trackingNumber?: string;
@@ -86,11 +86,7 @@ export default function ShippingDetailModal({
     'ready_for_pickup': '集荷準備中'
   };
 
-  const priorityLabels: Record<string, string> = {
-    urgent: '緊急',
-    normal: '通常',
-    low: '低'
-  };
+
 
   const getAvailableStatuses = (currentStatus: ShippingItem['status']): ShippingItem['status'][] => {
     const allStatuses: ShippingItem['status'][] = ['storage', 'packed', 'shipped'];

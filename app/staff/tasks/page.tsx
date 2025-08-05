@@ -23,7 +23,7 @@ interface Task {
   id: string;
   title: string;
   description: string;
-  priority: 'high' | 'medium' | 'low';
+
   status: 'pending' | 'in_progress' | 'completed';
   assignedTo: string;
   dueDate: string;
@@ -41,7 +41,7 @@ export default function StaffTasksPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [assigneeFilter, setAssigneeFilter] = useState<string>('all');
   const [dueDateFilter, setDueDateFilter] = useState<string>('all');
-  const [priorityFilter, setPriorityFilter] = useState<string>('all');
+
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState<any>(null);
@@ -75,7 +75,7 @@ export default function StaffTasksPage() {
           id: task.id,
           title: task.title,
           description: task.description,
-          priority: task.priority,
+
           status: task.status,
           assignedTo: task.assignedTo || 'スタッフ',
           dueDate: task.dueDate,
@@ -116,8 +116,7 @@ export default function StaffTasksPage() {
       // 担当者フィルター
       if (assigneeFilter !== 'all' && task.assignedTo !== assigneeFilter) return false;
       
-      // 優先度フィルター
-      if (priorityFilter !== 'all' && task.priority !== priorityFilter) return false;
+
       
       // 期限フィルター
       if (dueDateFilter !== 'all') {
@@ -164,7 +163,7 @@ export default function StaffTasksPage() {
       
       return true;
     });
-  }, [tasks, filter, categoryFilter, assigneeFilter, priorityFilter, dueDateFilter, searchQuery]);
+  }, [tasks, filter, categoryFilter, assigneeFilter, dueDateFilter, searchQuery]);
 
   // ページネーション
   useEffect(() => {
@@ -176,13 +175,9 @@ export default function StaffTasksPage() {
   // フィルタ変更時はページを1に戻す
   useEffect(() => {
     setCurrentPage(1);
-  }, [filter, categoryFilter, assigneeFilter, priorityFilter, dueDateFilter, searchQuery]);
+  }, [filter, categoryFilter, assigneeFilter, dueDateFilter, searchQuery]);
 
-  const priorityLabels: Record<string, string> = {
-    high: '高',
-    medium: '中',
-    low: '低'
-  };
+
 
 
 
@@ -266,7 +261,6 @@ export default function StaffTasksPage() {
       assignee: task.assignedTo,
       dueDate: task.dueDate,
       status: task.status,
-      priority: task.priority,
       description: task.description,
       notes: task.notes
     };
@@ -362,12 +356,12 @@ export default function StaffTasksPage() {
       pending: filteredTasks.filter(t => t.status === 'pending').length,
       inProgress: filteredTasks.filter(t => t.status === 'in_progress').length,
       completed: filteredTasks.filter(t => t.status === 'completed').length,
-      highPriority: filteredTasks.filter(t => t.priority === 'high' && t.status !== 'completed').length,
+
     };
   }, [filteredTasks]);
 
   const taskCategories = [
-    { id: 'urgent', name: '緊急タスク', icon: '🔥', color: 'americas' },
+
     { id: 'today', name: '本日完了', icon: '📅', color: 'europe' },
     { id: 'pending', name: '保留中', icon: '⏸️', color: 'asia' },
     { id: 'review', name: 'レビュー待ち', icon: '👀', color: 'africa' },
@@ -532,13 +526,13 @@ export default function StaffTasksPage() {
                   </div>
               <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">急ぎ</span>
                 </div>
-            <div className="text-3xl font-bold text-red-600 mb-2">
-              {stats.highPriority}件
+            <div className="text-3xl font-bold text-green-600 mb-2">
+              {stats.completed}件
                 </div>
             <div className="text-nexus-text-secondary font-medium">
-              緊急タスク
+              完了済み
                 </div>
-            <div className="text-xs text-nexus-text-secondary mt-1">優先対応必要</div>
+            <div className="text-xs text-nexus-text-secondary mt-1">今日の実績</div>
             </div>
 
           <div className="bg-white rounded-xl border border-nexus-border p-6 hover:shadow-lg transition-shadow">
@@ -642,21 +636,7 @@ export default function StaffTasksPage() {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                  優先度
-                </label>
-                <select
-                  value={priorityFilter}
-                  onChange={(e) => setPriorityFilter(e.target.value)}
-                  className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg text-sm text-nexus-text-primary"
-                >
-                  <option value="all">すべて</option>
-                  <option value="high">高</option>
-                  <option value="medium">中</option>
-                  <option value="low">低</option>
-                </select>
-              </div>
+
 
               <div>
                 <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
@@ -724,9 +704,7 @@ export default function StaffTasksPage() {
                       </td>
                       <td className="p-4">
                         <div className="flex flex-col items-center space-y-1">
-                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            {priorityLabels[task.priority]}
-                          </span>
+
                           <BusinessStatusIndicator status={task.status} size="sm" />
                         </div>
                       </td>
@@ -903,7 +881,7 @@ export default function StaffTasksPage() {
                     タスクタグ
                   </label>
                   <div className="flex flex-wrap gap-2">
-                    {['緊急', '重要', '簡単', '複雑', '要確認'].map(tag => (
+                    {['重要', '簡単', '複雑', '要確認'].map(tag => (
                       <NexusCheckbox
                         key={tag}
                         label={tag}
@@ -921,7 +899,7 @@ export default function StaffTasksPage() {
                     setFilter('all');
                     setCategoryFilter('all');
                     setAssigneeFilter('all');
-                    setPriorityFilter('all');
+
                     setDueDateFilter('all');
                     setSearchQuery('');
                     showToast({
@@ -1000,18 +978,7 @@ export default function StaffTasksPage() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                  優先度設定
-                </label>
-                <select className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue">
-                  <option value="">優先度を選択</option>
-                  <option value="low">低</option>
-                  <option value="medium">中</option>
-                  <option value="high">高</option>
-                  <option value="urgent">緊急</option>
-                </select>
-              </div>
+
               <div>
                 <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
                   期限設定

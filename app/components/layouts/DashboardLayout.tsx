@@ -401,11 +401,6 @@ export default function DashboardLayout({
       href: '/staff/dashboard',
       icon: icons.dashboard
     },
-    // { 
-    //   label: 'タスク管理', 
-    //   href: '/staff/tasks',
-    //   icon: icons.tasks
-    // },
     { 
       label: '在庫管理', 
       href: '/staff/inventory',
@@ -450,7 +445,7 @@ export default function DashboardLayout({
       }
       return 'storage';
     }
-    if (pathname.includes('/tasks')) return 'inspection';
+
     if (pathname.includes('/shipping')) return 'shipping';
     return undefined;
   };

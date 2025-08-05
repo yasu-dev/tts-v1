@@ -518,78 +518,40 @@ export default function DeliveryPage() {
           }
         />
 
-        {/* 統計カード */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-nexus-border">
-            <div className="flex items-center">
-              <DocumentTextIcon className="h-8 w-8 text-primary-blue" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-nexus-text-secondary">総プラン数</p>
-                <p className="text-2xl font-bold text-nexus-text-primary">{stats.totalPlans}</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-nexus-border">
-            <div className="flex items-center">
-              <TruckIcon className="h-8 w-8 text-green-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-nexus-text-secondary">総商品数</p>
-                <p className="text-2xl font-bold text-nexus-text-primary">{stats.totalItems}</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-nexus-border">
-            <div className="flex items-center">
-              <CalendarIcon className="h-8 w-8 text-yellow-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-nexus-text-secondary">総予想価格</p>
-                <p className="text-2xl font-bold text-nexus-text-primary">¥{stats.totalValue.toLocaleString()}</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-nexus-border">
-            <div className="flex items-center">
-              <CheckCircleIcon className="h-8 w-8 text-red-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-nexus-text-secondary">処理中</p>
-                <p className="text-2xl font-bold text-nexus-text-primary">
-                  {(stats.statusCounts['検品中'] || 0) + (stats.statusCounts['発送済'] || 0)}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+
 
         {/* フィルター・検索バー */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-nexus-border">
-          <div className="flex items-center gap-2 mb-4">
-            <FunnelIcon className="h-5 w-5 text-nexus-text-secondary" />
-            <h3 className="text-lg font-medium text-nexus-text-primary">フィルター・検索</h3>
+        {!isDetailModalOpen && (
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-nexus-border">
+            <div className="flex items-center gap-2 mb-4">
+              <FunnelIcon className="h-5 w-5 text-nexus-text-secondary" />
+              <h3 className="text-lg font-medium text-nexus-text-primary">フィルター・検索</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <NexusSelect
+                label="ステータス"
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                options={statusOptions}
+                variant="nexus"
+              />
+              <NexusSelect
+                label="期間"
+                value={dateRange}
+                onChange={(e) => setDateRange(e.target.value)}
+                options={dateRangeOptions}
+                variant="nexus"
+              />
+              <NexusInput
+                label="検索"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="住所、メール、備考で検索..."
+                variant="nexus"
+              />
+            </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <NexusSelect
-              label="ステータス"
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              options={statusOptions}
-              variant="nexus"
-            />
-            <NexusSelect
-              label="期間"
-              value={dateRange}
-              onChange={(e) => setDateRange(e.target.value)}
-              options={dateRangeOptions}
-              variant="nexus"
-            />
-            <NexusInput
-              label="検索"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="住所、メール、備考で検索..."
-              variant="nexus"
-            />
-          </div>
-        </div>
+        )}
 
         {/* 納品プラン一覧テーブル */}
         <div className="bg-white rounded-lg shadow-sm border border-nexus-border">

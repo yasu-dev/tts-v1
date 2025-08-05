@@ -653,7 +653,7 @@ export default function ProfilePage() {
                 checked={notificationSettings.sms}
                 onChange={(e) => handleNotificationChange('sms', e.target.checked)}
                 label="SMS通知"
-                description="緊急時にSMSで通知を受け取る"
+                description="重要な連絡をSMSで受け取る"
                 variant="nexus"
               />
             </div>

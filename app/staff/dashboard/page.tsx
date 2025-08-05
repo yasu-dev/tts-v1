@@ -23,7 +23,7 @@ interface StaffTask {
   id: string;
   title: string;
   description: string;
-  priority: 'high' | 'medium' | 'low';
+
   status: 'pending' | 'in_progress' | 'completed';
   assignee: string;
   dueDate: string;
@@ -46,13 +46,13 @@ interface Task {
   assignee: string;
   dueDate: string;
   status: string;
-  priority: string;
+
   description?: string;
 }
 
 interface StaffData {
   staffTasks: {
-    urgentTasks: StaffTask[];
+  
     normalTasks: StaffTask[];
   };
   staffStats: {
@@ -81,7 +81,7 @@ export default function StaffDashboardPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [filterPriority, setFilterPriority] = useState<string>('all');
+
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -108,7 +108,7 @@ export default function StaffDashboardPage() {
 
         const data = await response.json();
         setStaffData(data);
-        setTasks(data.staffTasks?.urgentTasks || []);
+        setTasks(data.staffTasks?.normalTasks || []);
       } catch (err) {
         console.error('Staff dashboard data fetch error:', err);
         setError(err instanceof Error ? err.message : 'データの取得に失敗しました');
@@ -116,12 +116,12 @@ export default function StaffDashboardPage() {
         // フォールバック用のモックデータ
         const mockStaffData = {
           staffTasks: {
-            urgentTasks: [
+            normalTasks: [
               {
                 id: 'task-001',
                 title: 'Canon EOS R5 検品',
                 description: '高優先度の検品タスク',
-                priority: 'high',
+        
                 status: 'pending',
                 assignee: 'スタッフ',
                 dueDate: '2024-06-27',
@@ -144,7 +144,7 @@ export default function StaffDashboardPage() {
           }
         };
         setStaffData(mockStaffData);
-        setTasks(mockStaffData.staffTasks.urgentTasks);
+        setTasks(mockStaffData.staffTasks.normalTasks);
       } finally {
         setIsLoading(false);
       }
@@ -155,21 +155,14 @@ export default function StaffDashboardPage() {
 
   const getAllTasks = (): StaffTask[] => {
     if (!staffData) return [];
-    return [...staffData.staffTasks.urgentTasks, ...staffData.staffTasks.normalTasks];
+    return staffData.staffTasks.normalTasks;
   };
 
   const getFilteredTasks = (): StaffTask[] => {
     const allTasks = getAllTasks();
     let filtered = allTasks;
 
-    // Apply priority/urgency filter
-    if (filterPriority === 'urgent') {
-      filtered = staffData?.staffTasks.urgentTasks || [];
-    } else if (filterPriority === 'normal') {
-      filtered = staffData?.staffTasks.normalTasks || [];
-    } else if (filterPriority !== 'all') {
-      filtered = allTasks.filter(task => task.priority === filterPriority);
-    }
+    // フィルター処理を先入れ先出しに変更
 
     // Apply type filter
     if (filterStatus !== 'all') {
@@ -188,11 +181,7 @@ export default function StaffDashboardPage() {
     return filtered;
   };
 
-  const priorityLabels: Record<string, string> = {
-    high: '高',
-    medium: '中',
-    low: '低'
-  };
+
 
   // ステータス表示は BusinessStatusIndicator で統一
 
@@ -232,11 +221,7 @@ export default function StaffDashboardPage() {
     
     const newStaffData = { ...staffData };
     
-    // Update in urgent tasks
-    const urgentIndex = newStaffData.staffTasks.urgentTasks.findIndex(t => t.id === taskId);
-    if (urgentIndex !== -1) {
-      newStaffData.staffTasks.urgentTasks[urgentIndex].status = newStatus;
-    }
+    // 先入れ先出しでタスク更新
     
     // Update in normal tasks
     const normalIndex = newStaffData.staffTasks.normalTasks.findIndex(t => t.id === taskId);
@@ -253,14 +238,10 @@ export default function StaffDashboardPage() {
     pending: allTasks.filter(t => t.status === 'pending').length,
     inProgress: allTasks.filter(t => t.status === 'in_progress').length,
     completed: allTasks.filter(t => t.status === 'completed').length,
-    urgent: staffData?.staffTasks.urgentTasks.filter(t => t.status !== 'completed').length || 0,
+
   };
 
-  const taskPrioritySettings = {
-    high: '緊急',
-    medium: '中',
-    low: '低',
-  };
+
 
   const taskCategorySettings = {
     inspection: '',
@@ -289,7 +270,7 @@ export default function StaffDashboardPage() {
       assignee: task.assignee,
       dueDate: task.dueDate,
       status: task.status,
-      priority: task.priority,
+
       description: task.description
     };
     setSelectedTask(taskData);
@@ -302,15 +283,10 @@ export default function StaffDashboardPage() {
     
     const newStaffData = { ...staffData };
     
-    // タスクの更新処理
-    const urgentIndex = newStaffData.staffTasks.urgentTasks.findIndex(t => t.id === selectedTask.id);
-    if (urgentIndex !== -1) {
-      newStaffData.staffTasks.urgentTasks[urgentIndex] = { ...selectedTask, ...updatedTask };
-    } else {
-      const normalIndex = newStaffData.staffTasks.normalTasks.findIndex(t => t.id === selectedTask.id);
-      if (normalIndex !== -1) {
-        newStaffData.staffTasks.normalTasks[normalIndex] = { ...selectedTask, ...updatedTask };
-      }
+    // 先入れ先出しでタスク更新
+    const normalIndex = newStaffData.staffTasks.normalTasks.findIndex(t => t.id === selectedTask.id);
+    if (normalIndex !== -1) {
+      newStaffData.staffTasks.normalTasks[normalIndex] = { ...selectedTask, ...updatedTask };
     }
     
     setStaffData(newStaffData);
@@ -335,7 +311,7 @@ export default function StaffDashboardPage() {
           id: taskData.id,
           title: taskData.title,
           description: taskData.description,
-          priority: taskData.priority,
+    
           status: 'pending',
           assignee: taskData.assignedToName || '未割り当て',
           dueDate: taskData.dueDate || new Date().toISOString().split('T')[0],
@@ -374,7 +350,7 @@ export default function StaffDashboardPage() {
       assignee: task.assignee,
       dueDate: task.dueDate,
       status: task.status,
-      priority: task.priority,
+
       description: task.description,
       attachments: [],
       comments: []
@@ -503,18 +479,18 @@ export default function StaffDashboardPage() {
             <div className="intelligence-card americas">
               <div className="p-8">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
-                  <div className="action-orb red w-6 h-6 sm:w-8 sm:h-8">
+                  <div className="action-orb green w-6 h-6 sm:w-8 sm:h-8">
                     <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <span className="status-badge danger text-[10px] sm:text-xs">緊急</span>
+                  <span className="status-badge success text-[10px] sm:text-xs">完了</span>
                 </div>
                 <div className="metric-value font-display text-xl sm:text-2xl md:text-3xl font-bold text-nexus-text-primary">
-                  {stats.urgent}
+                  {stats.completed}
                 </div>
                 <div className="metric-label text-nexus-text-secondary font-medium mt-1 sm:mt-2 text-xs sm:text-sm">
-                  緊急タスク
+                  完了済み
                 </div>
               </div>
             </div>
@@ -679,19 +655,10 @@ export default function StaffDashboardPage() {
                   </div>
                 </div>
 
-                {/* 優先作業アラート */}
+                {/* 作業状況サマリー */}
                 <div className="bg-nexus-bg-secondary rounded-lg p-6">
-                  <h3 className="text-lg font-medium text-nexus-text-primary mb-4">優先作業アラート</h3>
+                  <h3 className="text-lg font-medium text-nexus-text-primary mb-4">作業状況サマリー</h3>
                   <div className="space-y-3">
-                    {stats.urgent > 0 && (
-                      <div className="flex items-start space-x-3 p-3 bg-nexus-red/10 rounded-lg">
-                        <ExclamationCircleIcon className="w-5 h-5 text-nexus-red flex-shrink-0 mt-0.5" />
-                        <div>
-                          <div className="text-sm font-medium text-nexus-text-primary">緊急タスク {stats.urgent}件</div>
-                          <div className="text-xs text-nexus-text-secondary mt-1">至急対応が必要です</div>
-                        </div>
-                      </div>
-                    )}
                     <div className="flex items-start space-x-3 p-3 bg-nexus-yellow/10 rounded-lg">
                       <svg className="w-5 h-5 text-nexus-yellow flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -758,22 +725,7 @@ export default function StaffDashboardPage() {
         <div className="intelligence-card global">
           <div className="p-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {/* Priority Filter */}
-              <div>
-                <NexusSelect
-                  label="優先度フィルター"
-                  value={filterPriority}
-                  onChange={(e) => setFilterPriority(e.target.value as any)}
-                  options={[
-                    { value: 'all', label: 'すべて' },
-                    { value: 'urgent', label: '緊急タスク' },
-                    { value: 'normal', label: '通常タスク' },
-                    { value: 'high', label: '高優先度' },
-                    { value: 'medium', label: '中優先度' },
-                    { value: 'low', label: '低優先度' }
-                  ]}
-                />
-              </div>
+
 
               {/* Type Filter */}
               <div>
@@ -885,9 +837,6 @@ export default function StaffDashboardPage() {
                         </td>
                         <td className="p-4">
                           <div className="flex items-center space-x-2">
-                            <span className="cert-nano cert-premium">
-                              {(priorityLabels[row.priority as keyof typeof priorityLabels] as unknown) as string}
-                            </span>
                             <BusinessStatusIndicator status={row.status} />
                           </div>
                         </td>

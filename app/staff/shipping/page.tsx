@@ -39,7 +39,7 @@ interface ShippingItem {
   customer: string;
   shippingAddress: string;
   status: 'storage' | 'picked' | 'workstation' | 'packed' | 'shipped' | 'ready_for_pickup';
-  priority: 'urgent' | 'normal' | 'low';
+
   dueDate: string;
   inspectionNotes?: string;
   trackingNumber?: string;
@@ -53,7 +53,7 @@ interface ShippingItem {
 export default function StaffShippingPage() {
   const [items, setItems] = useState<ShippingItem[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  const [selectedPriority, setSelectedPriority] = useState<string>('all');
+
   const [isBarcodeScannerOpen, setIsBarcodeScannerOpen] = useState(false);
   const [scannedItems, setScannedItems] = useState<string[]>([]);
   const [selectedPackingItem, setSelectedPackingItem] = useState<ShippingItem | null>(null);
@@ -110,7 +110,7 @@ export default function StaffShippingPage() {
           customer: item.customer,
           shippingAddress: item.shippingAddress,
           status: item.status,
-          priority: item.priority,
+
           dueDate: item.dueDate,
           shippingMethod: item.shippingMethod,
           value: item.value,
@@ -154,10 +154,9 @@ export default function StaffShippingPage() {
   const filteredItems = useMemo(() => {
     return items.filter(item => {
       const tabMatch = tabFilters[activeTab] ? tabFilters[activeTab](item) : true;
-      const priorityMatch = selectedPriority === 'all' || item.priority === selectedPriority;
-      return tabMatch && priorityMatch;
+      return tabMatch;
     });
-  }, [items, activeTab, selectedPriority]);
+  }, [items, activeTab]);
 
   // ページネーション
   const paginatedItems = useMemo(() => {
@@ -169,7 +168,7 @@ export default function StaffShippingPage() {
   // フィルター変更時はページを1に戻す
   useEffect(() => {
     setCurrentPage(1);
-  }, [activeTab, selectedPriority]);
+  }, [activeTab]);
 
   // ステータス表示は BusinessStatusIndicator で統一
   const statusLabels: Record<string, string> = {
@@ -181,11 +180,7 @@ export default function StaffShippingPage() {
     'ready_for_pickup': '集荷準備中'
   };
 
-  const priorityLabels: Record<string, string> = {
-    urgent: '緊急',
-    normal: '通常',
-    low: '低'
-  };
+
 
   const updateItemStatus = (itemId: string, newStatus: ShippingItem['status']) => {
     // ステータス更新を実行
@@ -710,7 +705,7 @@ export default function StaffShippingPage() {
     packed: items.filter(i => i.status === 'packed').length,
     shipped: items.filter(i => i.status === 'shipped').length,
     ready_for_pickup: items.filter(i => i.status === 'ready_for_pickup').length,
-    urgent: items.filter(i => i.priority === 'urgent' && i.status !== 'shipped').length,
+
     todayCount: items.filter(i => {
       const today = new Date();
       const itemTime = i.dueDate.split(':');
@@ -791,123 +786,7 @@ export default function StaffShippingPage() {
           onOrder={handleMaterialsOrder}
         />
 
-        {/* Stats Cards - 統合ダッシュボード */}
-        <div className="intelligence-metrics">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            <div className="intelligence-card global">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="action-orb w-6 h-6">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                    </svg>
-                  </div>
-                  <span className="status-badge info text-[10px]">総計</span>
-                </div>
-                <div className="metric-value font-display text-2xl font-bold text-nexus-text-primary">
-                  {stats.total}
-                </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
-                  総出荷案件
-                </div>
-              </div>
-            </div>
 
-            <div className="intelligence-card americas">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="action-orb orange w-6 h-6">
-                    <ClipboardDocumentCheckIcon className="w-4 h-4" />
-                  </div>
-                  <span className="status-badge warning text-[10px]">待機</span>
-                </div>
-                <div className="metric-value font-display text-2xl font-bold text-nexus-text-primary">
-                  {stats.storage}
-                </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
-                  ピッキング待ち
-                </div>
-              </div>
-            </div>
-
-            <div className="intelligence-card europe">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="action-orb purple w-6 h-6">
-                    <CubeIcon className="w-4 h-4" />
-                  </div>
-                  <span className="status-badge success text-[10px]">梱包待ち</span>
-                </div>
-                <div className="metric-value font-display text-2xl font-bold text-nexus-text-primary">
-                  {stats.workstation}
-                </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
-                  梱包待ち
-                </div>
-              </div>
-            </div>
-
-            <div className="intelligence-card europe">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="action-orb blue w-6 h-6">
-                    <ArchiveBoxIcon className="w-4 h-4" />
-                  </div>
-                  <span className="status-badge info text-[10px]">梱包済</span>
-                </div>
-                <div className="metric-value font-display text-2xl font-bold text-nexus-text-primary">
-                  {stats.packed}
-                </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
-                  梱包済み
-                </div>
-              </div>
-            </div>
-
-            <div className="intelligence-card asia">
-              <div className="p-6 text-center">
-                <TruckIcon className="w-8 h-8 text-nexus-blue mx-auto mb-2" />
-                <div className="text-2xl font-bold text-nexus-text-primary">{stats.shipped}</div>
-                                        <div className="text-sm text-nexus-text-secondary">集荷準備完了</div>
-              </div>
-            </div>
-            
-            <div className="intelligence-card global">
-              <div className="p-6 text-center">
-                <ArchiveBoxIcon className="w-8 h-8 text-purple-500 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-nexus-text-primary">{stats.ready_for_pickup}</div>
-                <div className="text-sm text-nexus-text-secondary">集荷準備中</div>
-              </div>
-            </div>
-
-            <div className="intelligence-card global">
-              <div className="p-6 text-center">
-                <ExclamationCircleIcon className="w-8 h-8 text-red-500 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-nexus-text-primary">{stats.urgent}</div>
-                <div className="text-sm text-nexus-text-secondary">緊急案件</div>
-              </div>
-            </div>
-
-            <div className="intelligence-card global">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="action-orb w-6 h-6">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                  <span className="status-badge warning text-[10px]">本日</span>
-                </div>
-                <div className="metric-value font-display text-2xl font-bold text-nexus-text-primary">
-                  {stats.todayCount}
-                </div>
-                <div className="metric-label text-nexus-text-secondary font-medium mt-1 text-xs">
-                  本日出荷
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* ステータス別タブビュー */}
         <div className="intelligence-card global">
@@ -948,19 +827,7 @@ export default function StaffShippingPage() {
             {/* フィルターとアクション */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
               <div className="flex items-center gap-4">
-                <NexusSelect
-                  label=""
-                  value={selectedPriority}
-                  onChange={(e) => setSelectedPriority(e.target.value)}
-                  variant="nexus"
-                  className="w-32"
-                  options={[
-                    { value: 'all', label: '全優先度' },
-                    { value: 'urgent', label: '緊急のみ' },
-                    { value: 'normal', label: '通常のみ' },
-                    { value: 'low', label: '低のみ' }
-                  ]}
-                />
+                {/* フィルター削除 - 先入れ先出しで処理 */}
               </div>
 
               {selectedItems.length > 0 && (
@@ -1028,13 +895,8 @@ export default function StaffShippingPage() {
                               className="cursor-pointer hover:text-nexus-blue transition-colors"
                               onClick={() => handleShowDetails(item)}
                             >
-                              <div className={`font-semibold hover:underline flex items-center gap-2 ${
-                                item.priority === 'urgent' ? 'text-red-600' : 'text-nexus-text-primary'
-                              }`}>
+                              <div className="font-semibold hover:underline flex items-center gap-2 text-nexus-text-primary">
                                 {item.productName}
-                                {item.priority === 'urgent' && (
-                                  <span className="cert-nano cert-ruby">緊急</span>
-                                )}
                               </div>
                               <p className="text-sm text-nexus-text-secondary">
                                 SKU: {item.productSku}

@@ -21,7 +21,7 @@ const returnItemsData = [
     returnAmount: 2800000,
     inspector: '山田次郎',
     status: 'inspecting',
-    priority: 'high',
+
     location: 'A-01',
     estimatedLoss: 150000,
     relistable: false,
@@ -42,7 +42,7 @@ const returnItemsData = [
     returnAmount: 1800000,
     inspector: '田中花子',
     status: 'completed',
-    priority: 'medium',
+
     location: 'B-03',
     estimatedLoss: 0,
     relistable: true,
@@ -63,7 +63,7 @@ const returnItemsData = [
     returnAmount: 198000,
     inspector: '佐藤太郎',
     status: 'pending',
-    priority: 'high',
+
     location: 'A-05',
     estimatedLoss: 198000,
     relistable: false,
@@ -84,7 +84,7 @@ const returnItemsData = [
     returnAmount: 450000,
     inspector: '鈴木次郎',
     status: 'completed',
-    priority: 'low',
+
     location: 'B-08',
     estimatedLoss: 0,
     relistable: true,
@@ -105,7 +105,7 @@ const returnItemsData = [
     returnAmount: 520000,
     inspector: '山田次郎',
     status: 'inspecting',
-    priority: 'high',
+
     location: 'A-02',
     estimatedLoss: 80000,
     relistable: true,
@@ -125,7 +125,7 @@ const sellerPerformanceData = [
     totalLoss: 230000,
     faultReturns: 2,
     riskLevel: 'high',
-    actionPlan: '緊急品質改善指導',
+    actionPlan: '品質改善指導',
     lastContact: '2024-06-20',
     nextReview: '2024-06-30'
   },
@@ -163,7 +163,7 @@ const improvementActions = [
     expectedImprovement: '品質起因返品を60%削減',
     deadline: '1週間以内',
     responsible: '品質管理チーム',
-    priority: 'critical'
+
   },
   {
     issue: '商品説明との相違',
@@ -185,7 +185,7 @@ const improvementActions = [
 
 export function ReturnReasonAnalysis() {
   const [statusFilter, setStatusFilter] = useState('all')
-  const [priorityFilter, setPriorityFilter] = useState('all')
+
   const [sellerFilter, setSellerFilter] = useState('all')
   const [selectedSeller, setSelectedSeller] = useState<string | null>(null)
 
@@ -203,9 +203,9 @@ export function ReturnReasonAnalysis() {
   // フィルタリング
   const filteredItems = returnItemsData.filter(item => {
     const statusMatch = statusFilter === 'all' || item.status === statusFilter
-    const priorityMatch = priorityFilter === 'all' || item.priority === priorityFilter
+
     const sellerMatch = sellerFilter === 'all' || item.sellerId === sellerFilter
-    return statusMatch && priorityMatch && sellerMatch
+    return statusMatch && sellerMatch
   })
 
   const formatCurrency = (amount: number) => {
@@ -221,14 +221,7 @@ export function ReturnReasonAnalysis() {
     }
   }
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'text-red-600'
-      case 'medium': return 'text-yellow-600'
-      case 'low': return 'text-green-600'
-      default: return 'text-nexus-text-secondary'
-    }
-  }
+
 
   const getRiskLevelColor = (riskLevel: string) => {
     switch (riskLevel) {
@@ -313,7 +306,7 @@ export function ReturnReasonAnalysis() {
                 <div className="action-orb red w-6 h-6 sm:w-8 sm:h-8">
                   <UserIcon className="w-4 h-4 sm:w-6 sm:h-6" />
                 </div>
-                <span className="status-badge danger text-[10px] sm:text-xs">緊急</span>
+                <span className="status-badge danger text-[10px] sm:text-xs">注意</span>
               </div>
               <div className="metric-value font-display text-xl sm:text-2xl md:text-3xl font-bold text-nexus-text-primary">
                 {highRiskSellers}
@@ -417,13 +410,7 @@ export function ReturnReasonAnalysis() {
                       <span className="text-nexus-text-secondary">担当: {action.responsible}</span>
                     </div>
                   </div>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    action.priority === 'critical' ? 'bg-red-100 text-red-600' :
-                    action.priority === 'high' ? 'bg-yellow-100 text-yellow-600' :
-                    'bg-green-100 text-green-600'
-                  }`}>
-                    {action.priority === 'critical' ? '緊急' : action.priority === 'high' ? '高' : '中'}
-                  </span>
+
                 </div>
                 
                 <div className="flex justify-end">
@@ -453,17 +440,7 @@ export function ReturnReasonAnalysis() {
               ]}
             />
             
-            <NexusSelect
-              label="優先度"
-              value={priorityFilter}
-              onChange={(e) => setPriorityFilter(e.target.value)}
-              options={[
-                { value: 'all', label: 'すべて' },
-                { value: 'high', label: '高' },
-                { value: 'medium', label: '中' },
-                { value: 'low', label: '低' }
-              ]}
-            />
+
             
             <NexusSelect
               label="セラー"
