@@ -22,6 +22,7 @@ import CarrierSelectionModal from '@/app/components/modals/CarrierSelectionModal
 
 import PackingMaterialsModal from '@/app/components/modals/PackingMaterialsModal';
 import ShippingDetailModal from '@/app/components/modals/ShippingDetailModal';
+import BundlePackingConfirmModal from '@/app/components/modals/BundlePackingConfirmModal';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import NexusSelect from '@/app/components/ui/NexusSelect';
 import NexusButton from '@/app/components/ui/NexusButton';
@@ -48,6 +49,12 @@ interface ShippingItem {
   location?: string; // Added location field
   productImages?: string[]; // Added productImages field
   inspectionImages?: string[]; // Added inspectionImages field
+  
+  // 同梱関連フィールド
+  isBundle?: boolean; // 同梱パッケージかどうか
+  bundledItems?: ShippingItem[]; // 同梱された商品リスト
+  isBundled?: boolean; // 他の商品に同梱されているか
+  bundleId?: string; // 同梱パッケージID
 }
 
 export default function StaffShippingPage() {
@@ -73,6 +80,8 @@ export default function StaffShippingPage() {
   const [isCarrierSelectionModalOpen, setIsCarrierSelectionModalOpen] = useState(false);
   const [selectedLabelItem, setSelectedLabelItem] = useState<ShippingItem | null>(null);
   const [isPackingVideoModalOpen, setIsPackingVideoModalOpen] = useState(false);
+  const [isBundleConfirmModalOpen, setIsBundleConfirmModalOpen] = useState(false);
+  const [bundleItems, setBundleItems] = useState<ShippingItem[]>([]);
 
   // ページング状態
   const [currentPage, setCurrentPage] = useState(1);
@@ -153,6 +162,11 @@ export default function StaffShippingPage() {
   // フィルタリング
   const filteredItems = useMemo(() => {
     return items.filter(item => {
+      // 同梱された個別商品は表示しない
+      if (item.isBundled && !item.isBundle) {
+        return false;
+      }
+      
       const tabMatch = tabFilters[activeTab] ? tabFilters[activeTab](item) : true;
       return tabMatch;
     });
@@ -234,6 +248,8 @@ export default function StaffShippingPage() {
           shippingAddress: item.shippingAddress,
           shippingMethod: item.shippingMethod,
           value: item.value,
+          isBundle: item.isBundle,
+          bundledItems: item.bundledItems
         };
 
         const response = await fetch('/api/pdf/generate', {
@@ -400,7 +416,11 @@ export default function StaffShippingPage() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            item: selectedLabelItem,
+            item: {
+              ...selectedLabelItem,
+              isBundle: selectedLabelItem.isBundle,
+              bundledItems: selectedLabelItem.bundledItems
+            },
             service: service
           })
         });
@@ -434,6 +454,8 @@ export default function StaffShippingPage() {
               productName: selectedLabelItem.productName,
               productSku: selectedLabelItem.productSku,
               customer: selectedLabelItem.customer,
+              isBundle: selectedLabelItem.isBundle,
+              bundledItems: selectedLabelItem.bundledItems,
               shippingAddress: selectedLabelItem.shippingAddress,
               shippingMethod: selectedLabelItem.shippingMethod,
               value: selectedLabelItem.value
@@ -632,30 +654,38 @@ export default function StaffShippingPage() {
   // 出荷処理
   const handleShipItem = async (item: ShippingItem) => {
     try {
-      const response = await fetch('/api/orders/shipping', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          orderId: item.orderNumber,
-          trackingNumber: `TRK-${Date.now()}`,
-          carrier: 'ヤマト運輸',
-          shippingMethod: 'ヤマト宅急便',
-          notes: '出荷処理完了'
-        })
-      });
+      // TODO: 実際のAPIが実装されたら以下のコメントを解除
+      // const response = await fetch('/api/orders/shipping', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ 
+      //     orderId: item.orderNumber,
+      //     trackingNumber: `TRK-${Date.now()}`,
+      //     carrier: 'ヤマト運輸',
+      //     shippingMethod: 'ヤマト宅急便',
+      //     notes: '出荷処理完了',
+      //     isBundle: item.isBundle,
+      //     bundledItems: item.bundledItems
+      //   })
+      // });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || '出荷処理に失敗しました');
-      }
+      // if (!response.ok) {
+      //   const errorData = await response.json();
+      //   throw new Error(errorData.error || '出荷処理に失敗しました');
+      // }
 
-      // ローカルステートを更新
-      updateItemStatus(item.id, 'shipped');
+      // 一時的にローカルステートのみ更新
+      updateItemStatus(item.id, 'ready_for_pickup');
+      
+      // 同梱パッケージの場合の表示メッセージを調整
+      const orderDisplay = item.isBundle && item.bundledItems 
+        ? `同梱パッケージ（${item.bundledItems.length}件）`
+        : `注文 ${item.orderNumber}`;
       
       showToast({
         type: 'success',
         title: '集荷準備完了',
-        message: `注文 ${item.orderNumber} の集荷準備が完了しました（配送業者による集荷待ち）`,
+        message: `${orderDisplay} の集荷準備が完了しました（配送業者による集荷待ち）`,
         duration: 3000
       });
     } catch (error) {
@@ -667,6 +697,206 @@ export default function StaffShippingPage() {
         duration: 4000
       });
     }
+  };
+
+  // 一括アクションボタンの生成
+  const getBulkActionButton = () => {
+    const selectedItemData = items.filter(item => selectedItems.includes(item.id));
+    
+    if (selectedItemData.length === 0) return null;
+
+    // 選択されたアイテムのステータスを分析
+    const statusCounts = selectedItemData.reduce((acc, item) => {
+      acc[item.status] = (acc[item.status] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    // 梱包待ち商品が複数選択されている場合は同梱梱包を提案
+    const workstationCount = (statusCounts['workstation'] || 0) + (statusCounts['picked'] || 0);
+    const packedCount = statusCounts['packed'] || 0;
+
+    if (workstationCount >= 2) {
+      return (
+        <div className="flex items-center gap-2">
+          <NexusButton
+            variant="primary"
+            size="sm"
+            onClick={handleBundlePacking}
+            className="flex items-center gap-1"
+          >
+            <CubeIcon className="w-4 h-4" />
+            同梱梱包開始 ({workstationCount}件)
+          </NexusButton>
+        </div>
+      );
+    } else if (workstationCount === 1) {
+      return (
+        <NexusButton
+          variant="primary"
+          size="sm"
+          onClick={() => {
+            const workstationItem = selectedItemData.find(item => 
+              item.status === 'workstation' || item.status === 'picked'
+            );
+            if (workstationItem) handleInlineAction(workstationItem, 'pack');
+          }}
+          className="flex items-center gap-1"
+        >
+          <CubeIcon className="w-4 h-4" />
+          梱包開始
+        </NexusButton>
+      );
+    } else if (packedCount >= 1) {
+      const packedItems = selectedItemData.filter(item => item.status === 'packed');
+      return (
+        <div className="flex items-center gap-2">
+          <NexusButton
+            variant="default"
+            size="sm"
+            onClick={() => handleBulkPrintLabels(packedItems)}
+            className="flex items-center gap-1"
+          >
+            <PrinterIcon className="w-4 h-4" />
+            一括ラベル印刷 ({packedCount}件)
+          </NexusButton>
+          <NexusButton
+            variant="primary"
+            size="sm"
+            onClick={() => handleBulkShip(packedItems)}
+            className="flex items-center gap-1"
+          >
+            <TruckIcon className="w-4 h-4" />
+            一括集荷準備 ({packedCount}件)
+          </NexusButton>
+        </div>
+      );
+    }
+
+    return (
+      <NexusButton
+        variant="secondary"
+        size="sm"
+        onClick={() => {
+          showToast({
+            title: '選択内容確認',
+            message: `選択された商品は現在一括処理できません`,
+            type: 'info'
+          });
+        }}
+      >
+        選択確認
+      </NexusButton>
+    );
+  };
+
+  // 同梱梱包処理
+  const handleBundlePacking = async () => {
+    const selectedItemData = items.filter(item => selectedItems.includes(item.id));
+    const workstationItems = selectedItemData.filter(item => 
+      (item.status === 'workstation' || item.status === 'picked') && !item.isBundle
+    );
+
+    if (workstationItems.length < 2) {
+      showToast({
+        title: '同梱不可',
+        message: '同梱には個別の梱包待ち商品が2件以上必要です',
+        type: 'warning'
+      });
+      return;
+    }
+
+    // 同梱確認モーダルを表示
+    setBundleItems(workstationItems);
+    setIsBundleConfirmModalOpen(true);
+  };
+
+  // 同梱確認後の処理
+  const handleBundleConfirm = async () => {
+    try {
+      // 同梱ID生成
+      const bundleId = `BUNDLE-${Date.now()}`;
+      
+      // 同梱された商品の合計価値を計算
+      const totalValue = bundleItems.reduce((sum, item) => sum + (item.value || 0), 0);
+      
+      // 最も早い期限を取得
+      const earliestDueDate = bundleItems
+        .map(item => item.dueDate)
+        .sort()[0];
+      
+      // 同梱パッケージの作成
+      const bundlePackage: ShippingItem = {
+        id: bundleId,
+        productName: `同梱パッケージ (${bundleItems.length}件)`,
+        productSku: bundleId,
+        orderNumber: bundleItems.map(item => item.orderNumber).join(', '),
+        customer: bundleItems[0].customer, // 同じ顧客と仮定
+        shippingAddress: bundleItems[0].shippingAddress, // 同じ配送先と仮定
+        status: 'packed',
+        dueDate: earliestDueDate,
+        shippingMethod: bundleItems[0].shippingMethod,
+        value: totalValue,
+        isBundle: true,
+        bundledItems: bundleItems.map(item => ({ ...item, isBundled: true, bundleId }))
+      };
+      
+      // アイテムリストを更新：個別商品を非表示にし、同梱パッケージを追加
+      setItems(prev => {
+        // 同梱された商品をフィルタリング（非表示）
+        const filteredItems = prev.map(item => {
+          if (bundleItems.some(bi => bi.id === item.id)) {
+            return { ...item, isBundled: true, bundleId, status: 'packed' as const };
+          }
+          return item;
+        });
+        
+        // 同梱パッケージを追加
+        return [...filteredItems, bundlePackage];
+      });
+
+      // 選択解除
+      setSelectedItems([]);
+      setBundleItems([]);
+
+      showToast({
+        title: '同梱梱包完了',
+        message: `${bundleItems.length}件の商品を同梱パッケージとして作成しました`,
+        type: 'success'
+      });
+
+      // 梱包モーダルを表示
+      setSelectedPackingItem(bundlePackage);
+      setIsPackingVideoModalOpen(true);
+
+    } catch (error) {
+      console.error('同梱梱包エラー:', error);
+      showToast({
+        title: 'エラー',
+        message: '同梱梱包処理に失敗しました',
+        type: 'error'
+      });
+    }
+  };
+
+  // 一括ラベル印刷
+  const handleBulkPrintLabels = async (packedItems: ShippingItem[]) => {
+    for (const item of packedItems) {
+      await handlePrintLabel(item);
+    }
+    setSelectedItems([]);
+  };
+
+  // 一括集荷準備
+  const handleBulkShip = async (packedItems: ShippingItem[]) => {
+    for (const item of packedItems) {
+      updateItemStatus(item.id, 'ready_for_pickup');
+    }
+    setSelectedItems([]);
+    showToast({
+      title: '一括集荷準備完了',
+      message: `${packedItems.length}件の商品を集荷準備状態にしました`,
+      type: 'success'
+    });
   };
 
   // インライン作業処理
@@ -699,14 +929,15 @@ export default function StaffShippingPage() {
   };
 
   const stats = {
-    total: items.length,
-    storage: items.filter(i => i.status === 'storage').length,
-    workstation: items.filter(i => i.status === 'picked' || i.status === 'workstation').length,
-    packed: items.filter(i => i.status === 'packed').length,
-    shipped: items.filter(i => i.status === 'shipped').length,
-    ready_for_pickup: items.filter(i => i.status === 'ready_for_pickup').length,
+    total: items.filter(i => !i.isBundled || i.isBundle).length,
+    storage: items.filter(i => (!i.isBundled || i.isBundle) && i.status === 'storage').length,
+    workstation: items.filter(i => (!i.isBundled || i.isBundle) && (i.status === 'picked' || i.status === 'workstation')).length,
+    packed: items.filter(i => (!i.isBundled || i.isBundle) && i.status === 'packed').length,
+    shipped: items.filter(i => (!i.isBundled || i.isBundle) && i.status === 'shipped').length,
+    ready_for_pickup: items.filter(i => (!i.isBundled || i.isBundle) && i.status === 'ready_for_pickup').length,
 
     todayCount: items.filter(i => {
+      if (i.isBundled && !i.isBundle) return false;
       const today = new Date();
       const itemTime = i.dueDate.split(':');
       const itemDate = new Date();
@@ -835,20 +1066,7 @@ export default function StaffShippingPage() {
                   <span className="text-sm text-nexus-text-secondary">
                     {selectedItems.length}件選択中
                   </span>
-                  <NexusButton
-                    variant="primary"
-                    size="sm"
-                    onClick={() => {
-                      // 一括処理実行
-                      showToast({
-                        title: '一括処理',
-                        message: `${selectedItems.length}件の処理を開始します`,
-                        type: 'info'
-                      });
-                    }}
-                  >
-                    一括処理
-                  </NexusButton>
+                  {getBulkActionButton()}
                 </div>
               )}
             </div>
@@ -887,9 +1105,13 @@ export default function StaffShippingPage() {
                         <td className="p-4">
                           <div className="flex items-center space-x-3">
                             <div className="action-orb">
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                              </svg>
+                              {item.isBundle ? (
+                                <CubeIcon className="w-5 h-5" />
+                              ) : (
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                </svg>
+                              )}
                             </div>
                             <div 
                               className="cursor-pointer hover:text-nexus-blue transition-colors"
@@ -897,10 +1119,20 @@ export default function StaffShippingPage() {
                             >
                               <div className="font-semibold hover:underline flex items-center gap-2 text-nexus-text-primary">
                                 {item.productName}
+                                {item.isBundle && (
+                                  <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-nexus-blue/20 text-nexus-blue rounded-full">
+                                    同梱
+                                  </span>
+                                )}
                               </div>
                               <p className="text-sm text-nexus-text-secondary">
                                 SKU: {item.productSku}
                               </p>
+                              {item.isBundle && item.bundledItems && (
+                                <div className="mt-1 text-xs text-nexus-text-secondary">
+                                  含む商品: {item.bundledItems.map(bi => bi.productName).join(', ')}
+                                </div>
+                              )}
                             </div>
                           </div>
                         </td>
@@ -1008,6 +1240,42 @@ export default function StaffShippingPage() {
                               <WorkflowProgress 
                                 steps={getWorkflowProgress(item.status as ShippingStatus)}
                               />
+                              
+                              {/* 同梱パッケージの詳細 */}
+                              {item.isBundle && item.bundledItems && (
+                                <div className="bg-nexus-bg-primary rounded-lg p-4 border border-nexus-border">
+                                  <h4 className="text-sm font-medium text-nexus-text-primary mb-3 flex items-center gap-2">
+                                    <CubeIcon className="w-4 h-4" />
+                                    同梱内容 ({item.bundledItems.length}件)
+                                  </h4>
+                                  <div className="space-y-2">
+                                    {item.bundledItems.map((bundledItem, index) => (
+                                      <div key={bundledItem.id} className="flex items-start gap-3 text-sm">
+                                        <span className="inline-flex items-center justify-center w-5 h-5 bg-nexus-blue/20 text-nexus-blue text-xs font-medium rounded-full flex-shrink-0">
+                                          {index + 1}
+                                        </span>
+                                        <div className="flex-1">
+                                          <p className="font-medium text-nexus-text-primary">{bundledItem.productName}</p>
+                                          <div className="flex items-center gap-4 mt-1 text-nexus-text-secondary">
+                                            <span>SKU: {bundledItem.productSku}</span>
+                                            <span>注文: {bundledItem.orderNumber}</span>
+                                            <span>価値: ¥{bundledItem.value?.toLocaleString()}</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                  <div className="mt-3 pt-3 border-t border-nexus-border">
+                                    <div className="flex items-center justify-between text-sm">
+                                      <span className="text-nexus-text-secondary">合計価値</span>
+                                      <span className="font-semibold text-nexus-text-primary">
+                                        ¥{item.value.toLocaleString()}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                              
                               <div className="flex items-center justify-between">
                                 <div className="text-sm text-nexus-text-secondary">
                                   <p>配送先: {item.shippingAddress}</p>
@@ -1115,6 +1383,17 @@ export default function StaffShippingPage() {
           }}
           onCarrierSelect={handleCarrierSelect}
           item={selectedLabelItem}
+        />
+
+        {/* Bundle Packing Confirm Modal */}
+        <BundlePackingConfirmModal
+          isOpen={isBundleConfirmModalOpen}
+          onClose={() => {
+            setIsBundleConfirmModalOpen(false);
+            setBundleItems([]);
+          }}
+          onConfirm={handleBundleConfirm}
+          items={bundleItems}
         />
 
       </div>

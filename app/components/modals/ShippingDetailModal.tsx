@@ -290,15 +290,6 @@ export default function ShippingDetailModal({
                   {item.productSku}
                 </span>
                 <BusinessStatusIndicator status={item.status} />
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  item.priority === 'urgent' 
-                    ? 'bg-red-100 text-red-800' 
-                    : item.priority === 'normal'
-                    ? 'bg-blue-100 text-blue-800'
-                    : 'bg-gray-100 text-gray-800'
-                }`}>
-                  {priorityLabels[item.priority]}
-                </span>
               </div>
             </div>
           </div>

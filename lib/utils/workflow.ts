@@ -7,26 +7,34 @@ export const SHIPPING_WORKFLOW_STEPS = [
     order: 1
   },
   {
-    id: 'packed',
-    label: '梱包完了',
+    id: 'workstation',
+    label: '梱包作業中',
     icon: 'shipping',
     order: 2
   },
   {
-    id: 'shipped',
-    label: '出荷済み',
+    id: 'packed',
+    label: '梱包完了',
     icon: 'shipping',
     order: 3
+  },
+  {
+    id: 'ready_for_pickup',
+    label: '出荷済み',
+    icon: 'shipping',
+    order: 4
   }
 ];
 
-export type ShippingStatus = 'storage' | 'packed' | 'shipped';
+export type ShippingStatus = 'storage' | 'picked' | 'workstation' | 'packed' | 'ready_for_pickup';
 
 /**
  * 商品のステータスに基づいてワークフローのプログレス情報を生成
  */
 export function getWorkflowProgress(currentStatus: ShippingStatus) {
-  const currentStep = SHIPPING_WORKFLOW_STEPS.find(step => step.id === currentStatus);
+  // picked ステータスは workstation ステップにマッピング
+  const mappedStatus = currentStatus === 'picked' ? 'workstation' : currentStatus;
+  const currentStep = SHIPPING_WORKFLOW_STEPS.find(step => step.id === mappedStatus);
   const currentOrder = currentStep?.order || 1;
 
   return SHIPPING_WORKFLOW_STEPS.map(step => ({
@@ -46,8 +54,10 @@ export function getWorkflowProgress(currentStatus: ShippingStatus) {
  */
 export const STATUS_LABELS: Record<ShippingStatus, string> = {
   'storage': '保管中',
+  'picked': '梱包作業中',
+  'workstation': '梱包作業中',
   'packed': '梱包済み',
-  'shipped': '出荷済み'
+  'ready_for_pickup': '出荷済み'
 };
 
 /**
@@ -57,10 +67,13 @@ export function getNextAction(currentStatus: ShippingStatus): string {
   switch (currentStatus) {
     case 'storage':
       return '商品をピッキングして梱包してください';
+    case 'picked':
+    case 'workstation':
+      return '梱包作業を完了してください';
     case 'packed':
       return '出荷処理を行ってください';
-    case 'shipped':
-      return '作業完了';
+    case 'ready_for_pickup':
+      return '配送業者による集荷待ち';
     default:
       return '次の作業を確認してください';
   }
