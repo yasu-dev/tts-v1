@@ -277,9 +277,16 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
         duration: 3000
       });
       
-      // 一覧画面に戻る（状態復元フラグ付き）
+      // 適切な一覧画面に戻る（状態復元フラグ付き）
       setTimeout(() => {
-        window.location.href = '/staff/inspection?restored=1';
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('from') === 'inventory') {
+          // 在庫画面から来た場合は状態復元フラグ付きで在庫画面に戻る
+          window.location.href = '/staff/inventory?restored=1';
+        } else {
+          // その他の場合は検品一覧に戻る
+          window.location.href = '/staff/inspection?restored=1';
+        }
       }, 1500);
       
     } catch (error) {
@@ -386,9 +393,16 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
         duration: 4000
       });
       
-      // 成功時は検品ページに戻る
+      // 成功時は適切な画面に戻る
       setTimeout(() => {
-        window.location.href = '/staff/inspection';
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('from') === 'inventory') {
+          // 在庫画面から来た場合は状態復元フラグ付きで在庫画面に戻る
+          window.location.href = '/staff/inventory?restored=1';
+        } else {
+          // その他の場合は検品一覧に戻る
+          window.location.href = '/staff/inspection';
+        }
       }, 2000);
       
     } catch (error) {

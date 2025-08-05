@@ -99,9 +99,16 @@ export default function PhotographyOnlyForm({ productId }: PhotographyOnlyFormPr
         duration: 4000
       });
 
-      // 検品管理画面に戻る
+      // 適切な画面に戻る
       setTimeout(() => {
-        router.push('/staff/inspection');
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('from') === 'inventory') {
+          // 在庫画面から来た場合は状態復元フラグ付きで在庫画面に戻る
+          window.location.href = '/staff/inventory?restored=1';
+        } else {
+          // その他の場合は検品一覧に戻る
+          router.push('/staff/inspection');
+        }
       }, 2000);
 
     } catch (error) {
@@ -118,7 +125,14 @@ export default function PhotographyOnlyForm({ productId }: PhotographyOnlyFormPr
   };
 
   const handleGoBack = () => {
-    router.push('/staff/inspection');
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('from') === 'inventory') {
+      // 在庫画面から来た場合は状態復元フラグ付きで在庫画面に戻る
+      window.location.href = '/staff/inventory?restored=1';
+    } else {
+      // その他の場合は検品一覧に戻る
+      router.push('/staff/inspection');
+    }
   };
 
   if (loading && !product) {

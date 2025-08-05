@@ -75,6 +75,77 @@ export default function StaffInventoryPage() {
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [paginatedItems, setPaginatedItems] = useState<InventoryItem[]>([]);
 
+  // 状態を保存する関数
+  const saveCurrentState = () => {
+    try {
+      const state = {
+        selectedStatus,
+        selectedCategory,
+        selectedLocation,
+        selectedStaff,
+        searchQuery,
+        viewMode,
+        currentPage,
+        itemsPerPage,
+        timestamp: Date.now()
+      };
+      sessionStorage.setItem('inventoryListState', JSON.stringify(state));
+      console.log('🔄 在庫画面の状態を保存しました:', state);
+    } catch (error) {
+      console.error('[ERROR] Failed to save inventory state:', error);
+    }
+  };
+
+  // 保存された状態を復元する関数
+  const restoreSavedState = () => {
+    try {
+      const savedState = sessionStorage.getItem('inventoryListState');
+      if (savedState) {
+        const state = JSON.parse(savedState);
+        
+        // 1時間以内のデータのみ復元（古いデータは無視）
+        const oneHour = 60 * 60 * 1000;
+        if (Date.now() - state.timestamp < oneHour) {
+          setSelectedStatus(state.selectedStatus || 'all');
+          setSelectedCategory(state.selectedCategory || 'all');
+          setSelectedLocation(state.selectedLocation || 'all');
+          setSelectedStaff(state.selectedStaff || 'all');
+          setSearchQuery(state.searchQuery || '');
+          setViewMode(state.viewMode || 'table');
+          setCurrentPage(state.currentPage || 1);
+          setItemsPerPage(state.itemsPerPage || 20);
+          
+          // 状態復元を通知
+          showToast({
+            type: 'info',
+            title: '前回の表示状態を復元しました',
+            message: 'フィルター・検索条件が復元されています',
+            duration: 3000
+          });
+          
+          console.log('🔄 在庫画面の状態を復元しました:', state);
+          
+          // 復元後はsessionStorageから削除
+          sessionStorage.removeItem('inventoryListState');
+        }
+      }
+    } catch (error) {
+      console.error('[ERROR] Failed to restore inventory state:', error);
+    }
+  };
+
+  // コンポーネント初期化時に状態復元をチェック
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('restored') === '1') {
+      restoreSavedState();
+      
+      // URLからrestoredパラメーターを削除（履歴に残さない）
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, []);
+
   // APIから実際のデータを取得
   useEffect(() => {
     const fetchInventoryData = async () => {
@@ -654,13 +725,15 @@ export default function StaffInventoryPage() {
           }}
           onStartInspection={(item) => {
             setIsDetailModalOpen(false);
-            // 検品画面に遷移
-            window.location.href = `/staff/inspection/${item.id}`;
+            // 状態を保存してから検品画面に遷移
+            saveCurrentState();
+            window.location.href = `/staff/inspection/${item.id}?from=inventory`;
           }}
           onStartPhotography={(item) => {
             setIsDetailModalOpen(false);
-            // 撮影専用モードで検品画面に遷移
-            window.location.href = `/staff/inspection/${item.id}?mode=photography`;
+            // 状態を保存してから撮影専用モードで検品画面に遷移
+            saveCurrentState();
+            window.location.href = `/staff/inspection/${item.id}?mode=photography&from=inventory`;
           }}
           onStartListing={(item) => {
             setIsDetailModalOpen(false);

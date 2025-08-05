@@ -269,6 +269,13 @@ export default function ListingFormModal({
   const [photos, setPhotos] = useState<File[]>([]);
   const [video, setVideo] = useState<File | null>(null);
   
+  // Image Upload Methods
+  const [uploadMethod, setUploadMethod] = useState<'computer' | 'photography'>('computer');
+  const [photographyImages, setPhotographyImages] = useState<string[]>([]);
+  const [selectedPhotographyImages, setSelectedPhotographyImages] = useState<string[]>([]);
+  const [loadingPhotography, setLoadingPhotography] = useState(false);
+  const [photographyError, setPhotographyError] = useState<string | null>(null);
+  
   // Title
   const [itemTitle, setItemTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
@@ -330,12 +337,63 @@ export default function ListingFormModal({
       setItemPrice(product.price);
       setCondition(product.condition);
       setDescription(product.description || '');
+      
+      // 撮影済み画像を取得
+      fetchPhotographyImages(product.id);
     }
   }, [product]);
+
+  // 撮影済み画像を取得
+  const fetchPhotographyImages = async (productId: string) => {
+    try {
+      setLoadingPhotography(true);
+      setPhotographyError(null);
+      
+      const response = await fetch(`/api/products/${productId}/photography`);
+      if (!response.ok) {
+        throw new Error('撮影データの取得に失敗しました');
+      }
+      
+      const data = await response.json();
+      if (data.success && data.data.photos) {
+        setPhotographyImages(data.data.photos);
+      }
+    } catch (error) {
+      console.error('Photography images fetch error:', error);
+      setPhotographyError(error instanceof Error ? error.message : '撮影データの取得に失敗しました');
+    } finally {
+      setLoadingPhotography(false);
+    }
+  };
 
   const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     setPhotos(prev => [...prev, ...files].slice(0, 24));
+  };
+
+  // 撮影済み画像の選択処理
+  const handlePhotographyImageSelect = (imageUrl: string) => {
+    setSelectedPhotographyImages(prev => {
+      const isSelected = prev.includes(imageUrl);
+      if (isSelected) {
+        return prev.filter(url => url !== imageUrl);
+      } else {
+        // 最大24枚まで選択可能
+        if (prev.length >= 24) {
+          return prev;
+        }
+        return [...prev, imageUrl];
+      }
+    });
+  };
+
+  // 撮影済み画像を全選択/全解除
+  const handleSelectAllPhotography = () => {
+    if (selectedPhotographyImages.length === photographyImages.length) {
+      setSelectedPhotographyImages([]);
+    } else {
+      setSelectedPhotographyImages(photographyImages.slice(0, 24));
+    }
   };
 
   const handleSubmit = async () => {
@@ -348,10 +406,16 @@ export default function ListingFormModal({
     setError(null);
 
     try {
+      // 撮影済み画像をFileオブジェクトに変換（必要に応じて）
+      const allImages = uploadMethod === 'computer' ? photos : [];
+      const photographyImageUrls = uploadMethod === 'photography' ? selectedPhotographyImages : [];
+
       const listingData = {
         productId: product.id,
         // Photos & Video
-        photos: photos,
+        photos: allImages,
+        photographyImages: photographyImageUrls,
+        uploadMethod: uploadMethod,
         video: video,
         // Title
         title: itemTitle,
@@ -483,34 +547,182 @@ export default function ListingFormModal({
             <section>
               <h3 className="text-lg font-semibold mb-2">{t.photosVideo}</h3>
               <p className="text-sm text-gray-600 mb-4">{t.photosVideoDesc}</p>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                <PhotoIcon className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-600 mb-2">{photos.length}/25</p>
-                <p className="text-gray-500 mb-4">{t.dragDropFiles}</p>
-                <label className="inline-block">
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*,video/*"
-                    onChange={handlePhotoUpload}
-                    className="hidden"
-                  />
-                  <span className="px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
-                    {t.uploadFromComputer}
-                  </span>
-                </label>
+              
+              {/* Upload Method Tabs */}
+              <div className="mb-4">
+                <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+                  <button
+                    onClick={() => setUploadMethod('computer')}
+                    className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                      uploadMethod === 'computer'
+                        ? 'bg-white text-blue-600 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    <svg className="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    ローカルPCから
+                  </button>
+                  <button
+                    onClick={() => setUploadMethod('photography')}
+                    className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                      uploadMethod === 'photography'
+                        ? 'bg-white text-blue-600 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    <svg className="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    撮影済み画像から
+                  </button>
+                </div>
               </div>
-              {photos.length > 0 && (
+
+              {/* Computer Upload */}
+              {uploadMethod === 'computer' && (
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                  <PhotoIcon className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                  <p className="text-gray-600 mb-2">{photos.length}/24</p>
+                  <p className="text-gray-500 mb-4">{t.dragDropFiles}</p>
+                  <label className="inline-block">
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*,video/*"
+                      onChange={handlePhotoUpload}
+                      className="hidden"
+                    />
+                    <span className="px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                      {t.uploadFromComputer}
+                    </span>
+                  </label>
+                </div>
+              )}
+
+              {/* Photography Images Selection */}
+              {uploadMethod === 'photography' && (
+                <div className="border-2 border-gray-300 rounded-lg p-4">
+                  {loadingPhotography ? (
+                    <div className="text-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                      <p className="text-gray-600 mt-2">撮影済み画像を読み込み中...</p>
+                    </div>
+                  ) : photographyError ? (
+                    <div className="text-center py-8">
+                      <svg className="w-12 h-12 mx-auto text-red-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <p className="text-red-600 mb-2">{photographyError}</p>
+                      <button
+                        onClick={() => product && fetchPhotographyImages(product.id)}
+                        className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                      >
+                        再読み込み
+                      </button>
+                    </div>
+                  ) : photographyImages.length === 0 ? (
+                    <div className="text-center py-8">
+                      <svg className="w-12 h-12 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <p className="text-gray-600">この商品の撮影済み画像はありません</p>
+                      <p className="text-gray-500 text-sm mt-1">撮影工程で商品の撮影を完了してください</p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex justify-between items-center mb-4">
+                        <p className="text-gray-600">
+                          撮影済み画像: {photographyImages.length}枚 
+                          <span className="ml-2 text-blue-600">
+                            （選択済み: {selectedPhotographyImages.length}枚）
+                          </span>
+                        </p>
+                        <button
+                          onClick={handleSelectAllPhotography}
+                          className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50"
+                        >
+                          {selectedPhotographyImages.length === photographyImages.length ? '全解除' : '全選択'}
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-4 md:grid-cols-6 gap-3 max-h-64 overflow-y-auto">
+                        {photographyImages.map((imageUrl, index) => {
+                          const isSelected = selectedPhotographyImages.includes(imageUrl);
+                          return (
+                            <div
+                              key={index}
+                              onClick={() => handlePhotographyImageSelect(imageUrl)}
+                              className={`aspect-square relative cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
+                                isSelected 
+                                  ? 'border-blue-500 ring-2 ring-blue-200' 
+                                  : 'border-gray-200 hover:border-blue-300'
+                              }`}
+                            >
+                              <img
+                                src={imageUrl}
+                                alt={`撮影画像 ${index + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+                              {isSelected && (
+                                <div className="absolute top-1 right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Selected Images Preview */}
+              {uploadMethod === 'computer' && photos.length > 0 && (
                 <div className="mt-4 grid grid-cols-6 gap-2">
                   {photos.map((photo, index) => (
-                    <div key={index} className="aspect-square bg-gray-100 rounded border">
+                    <div key={index} className="aspect-square bg-gray-100 rounded border relative">
                       <img
                         src={URL.createObjectURL(photo)}
                         alt={`Photo ${index + 1}`}
                         className="w-full h-full object-cover rounded"
                       />
+                      <button
+                        onClick={() => setPhotos(prev => prev.filter((_, i) => i !== index))}
+                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs hover:bg-red-600"
+                      >
+                        ×
+                      </button>
                     </div>
                   ))}
+                </div>
+              )}
+
+              {uploadMethod === 'photography' && selectedPhotographyImages.length > 0 && (
+                <div className="mt-4">
+                  <p className="text-sm text-gray-600 mb-2">選択された画像のプレビュー:</p>
+                  <div className="grid grid-cols-6 gap-2 max-h-32 overflow-y-auto">
+                    {selectedPhotographyImages.map((imageUrl, index) => (
+                      <div key={index} className="aspect-square bg-gray-100 rounded border relative">
+                        <img
+                          src={imageUrl}
+                          alt={`選択画像 ${index + 1}`}
+                          className="w-full h-full object-cover rounded"
+                        />
+                        <button
+                          onClick={() => handlePhotographyImageSelect(imageUrl)}
+                          className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs hover:bg-red-600"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </section>
