@@ -86,36 +86,54 @@ export default function StaffInventoryPage() {
         }
         const data = await response.json();
         
-        // APIレスポンスの形式に合わせてデータを変換
+        // APIレスポンスの形式に合わせてデータを変換（英語→日本語変換）
         const inventoryItems: InventoryItem[] = data.data.map((item: any) => ({
           id: item.id,
           name: item.name,
           sku: item.sku,
-          category: item.category,
-          status: item.status.replace('入庫', 'inbound')
-                             .replace('検品', 'inspection')
-                             .replace('保管', 'storage')
-                             .replace('出品', 'listing')
-                             .replace('メンテナンス', 'maintenance')
-                             .replace('売約済み', 'sold')
-                             .replace('返品', 'returned'),
+          category: item.category.replace('camera_body', 'カメラ本体')
+                                 .replace('lens', 'レンズ')
+                                 .replace('watch', '腕時計')
+                                 .replace('accessory', 'アクセサリ'),
+          status: item.status, // 英語ステータスをそのまま保持（BusinessStatusIndicator用）
+          statusOriginal: item.status,
+          statusDisplay: item.status.replace('inbound', '入荷待ち')
+                            .replace('inspection', '検品中')
+                            .replace('storage', '保管中')
+                            .replace('listing', '出品中')
+                            .replace('ordered', '受注済み')
+                            .replace('shipping', '出荷中')
+                            .replace('maintenance', 'メンテナンス')
+                            .replace('sold', '売約済み')
+                            .replace('returned', '返品'),
           location: item.location || '未設定',
           price: item.price || 0,
-          condition: item.condition || '良品',
-          entryDate: item.createdAt ? new Date(item.createdAt).toISOString().split('T')[0] : '2024-01-01',
-          assignedStaff: '山本 達也', // 統一されたスタッフ名
+          condition: item.condition.replace('new', '新品')
+                                  .replace('like_new', '新品同様')
+                                  .replace('excellent', '極美品')
+                                  .replace('very_good', '美品')
+                                  .replace('good', '良品')
+                                  .replace('fair', '中古美品')
+                                  .replace('poor', '中古')
+                                  .replace('unknown', '状態不明'),
+          entryDate: item.entryDate || item.createdAt?.split('T')[0] || '2024-01-01',
+          assignedStaff: item.seller?.username || '山本 達也',
           lastModified: item.updatedAt || new Date().toISOString(),
           qrCode: `QR-${item.sku}`,
           notes: item.description || '',
           quantity: 1,
           lastChecked: item.updatedAt || new Date().toISOString(),
-          inspectedAt: item.inspectedAt || null, // 検品日時を追加
-          photographyDate: item.photographyDate || null, // 撮影日時を追加
+          inspectedAt: item.inspectedAt || null,
+          photographyDate: item.photographyDate || null,
         }));
         
         setItems(inventoryItems);
         setFilteredItems(inventoryItems);
-        console.log(`✅ 在庫データ取得完了: ${inventoryItems.length}件`);
+        console.log(`✅ スタッフ在庫データ取得完了: ${inventoryItems.length}件`);
+        console.log('🔍 ステータス別分布:', inventoryItems.reduce((acc: any, item) => {
+          acc[item.status] = (acc[item.status] || 0) + 1;
+          return acc;
+        }, {}));
       } catch (error) {
         console.error('在庫データ取得エラー:', error);
         showToast({
@@ -140,6 +158,19 @@ export default function StaffInventoryPage() {
         // 出品可能商品のフィルタリング
         filtered = filterListableItems(filtered);
       } else {
+        // 英語ステータスを日本語に変換してフィルタリング
+        const statusMapping: Record<string, string> = {
+          'inbound': '入荷待ち',
+          'inspection': '検品中',
+          'storage': '保管中',
+          'listing': '出品中',
+          'ordered': '受注済み',
+          'shipping': '出荷中',
+          'maintenance': 'メンテナンス',
+          'sold': '売約済み',
+          'returned': '返品'
+        };
+        // selectedStatusは英語のまま、itemのstatusも英語なので直接比較
         filtered = filtered.filter(item => item.status === selectedStatus);
       }
     }

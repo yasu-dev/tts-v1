@@ -178,7 +178,7 @@ const categoryLabels = {
 const convertStatusToBusinessStatus = (status: string) => {
   switch (status) {
     case 'pending_inspection':
-      return 'pending_inspection';
+      return 'pending';  // 修正: 'pending_inspection' → 'pending'
     case 'inspecting':
       return 'inspection';
     case 'completed':

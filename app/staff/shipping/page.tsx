@@ -91,265 +91,47 @@ export default function StaffShippingPage() {
   }, []);
 
   useEffect(() => {
-    // モックデータを拡張
-    const mockItems: ShippingItem[] = [
-      {
-        id: 'SHIP-001',
-        productName: 'Canon EOS R5 ボディ',
-        productSku: 'CAM-001',
-        orderNumber: 'ORD-2024-0001',
-        customer: '山田太郎',
-        shippingAddress: '東京都渋谷区1-2-3',
-        status: 'workstation',
-        priority: 'urgent',
-        dueDate: '2024-01-20',
-        shippingMethod: 'ヤマト宅急便',
-        value: 450000,
-        location: 'A-01',
-        productImages: [
-          '/api/placeholder/400/300',
-          '/api/placeholder/400/300',
-          '/api/placeholder/400/300',
-          '/api/placeholder/400/300'
-        ],
-        inspectionImages: []
-      },
-      {
-        id: 'SHIP-002',
-        productName: 'Sony α7R V ボディ',
-        productSku: 'CAM-002',
-        orderNumber: 'ORD-2024-0002',
-        customer: '鈴木花子',
-        shippingAddress: '神奈川県横浜市1-1-1',
-        status: 'packed',
-        priority: 'normal',
-        dueDate: '19:00',
-        inspectionNotes: '動作確認済み、外観良好',
-        shippingMethod: 'ヤマト宅急便',
-        value: 398000,
-        location: 'A-02',
-        productImages: [],
-        inspectionImages: []
-      },
-      {
-        id: 'SHIP-003',
-        productName: 'Sony FE 24-70mm f/2.8',
-        productSku: 'LEN-005',
-        orderNumber: 'ORD-2024-0003',
-        customer: '田中一郎',
-        shippingAddress: '愛知県名古屋市中区栄1-1-1',
-        status: 'picked',
-        priority: 'normal',
-        dueDate: '18:00',
-        inspectionNotes: '動作確認済み、レンズ内クリア',
-        shippingMethod: 'ヤマト宅急便',
-        value: 280000,
-        location: 'A-03',
-        productImages: [],
-        inspectionImages: []
-      },
-      {
-        id: 'SHIP-004',
-        productName: 'Rolex GMT Master',
-        productSku: 'WAT-007',
-        orderNumber: 'ORD-2024-0004',
-        customer: '佐藤花子',
-        shippingAddress: '大阪府大阪市北区梅田1-1-1',
-        status: 'shipped',
-        priority: 'urgent',
-        dueDate: '16:00',
-        inspectionNotes: '高額商品・保険付き配送',
-        trackingNumber: 'YM-2024-062801',
-        shippingMethod: 'ヤマト宅急便（保険付き）',
-        value: 2100000,
-        location: 'B-01',
-        productImages: [],
-        inspectionImages: []
-      },
-      {
-        id: 'SHIP-005',
-        productName: 'Nikon NIKKOR Z 50mm f/1.2',
-        productSku: 'LEN-008',
-        orderNumber: 'ORD-2024-0005',
-        customer: '高橋美咲',
-        shippingAddress: '福岡県福岡市博多区1-1-1',
-        status: 'storage',
-        priority: 'normal',
-        dueDate: '20:00',
-        shippingMethod: 'ヤマト宅急便',
-        value: 245000,
-        location: 'C-01',
-        productImages: [],
-        inspectionImages: []
-      },
-      {
-        id: 'SHIP-006',
-        productName: 'Omega Speedmaster',
-        productSku: 'WAT-015',
-        orderNumber: 'ORD-2024-0006',
-        customer: '山田一郎',
-        shippingAddress: '北海道札幌市中央区1-1-1',
-        status: 'storage',
-        priority: 'urgent',
-        dueDate: '15:00',
-        inspectionNotes: '動作確認済み、全体的に美品',
-        shippingMethod: '佐川急便',
-        value: 850000,
-        location: 'V-01',
-        productImages: [],
-        inspectionImages: []
-      },
-      {
-        id: 'SHIP-007',
-        productName: 'Fujifilm X-T5',
-        productSku: 'CAM-018',
-        orderNumber: 'ORD-2024-0007',
-        customer: '伊藤健太',
-        shippingAddress: '愛知県名古屋市中村区1-1-1',
-        status: 'packed',
-        priority: 'low',
-        dueDate: '21:00',
-        shippingMethod: '日本郵便',
-        value: 180000,
-        location: 'V-02',
-        productImages: [],
-        inspectionImages: []
-      },
-      {
-        id: 'SHIP-008',
-        productName: 'Sony FE 85mm f/1.4 GM',
-        productSku: 'LEN-021',
-        orderNumber: 'ORD-2024-0008',
-        customer: '渡辺真理',
-        shippingAddress: '神奈川県川崎市1-1-1',
-        status: 'shipped',
-        priority: 'normal',
-        dueDate: '18:30',
-        trackingNumber: 'YM-2024-062802',
-        shippingMethod: 'ヤマト宅急便',
-        value: 155000,
-        location: 'C-02',
-        productImages: [],
-        inspectionImages: []
-      },
-      {
-        id: 'SHIP-009',
-        productName: 'Seiko Prospex',
-        productSku: 'WAT-025',
-        orderNumber: 'ORD-2024-0009',
-        customer: '中村由美',
-        shippingAddress: '大阪府大阪市中央区1-1-1',
-        status: 'storage',
-        priority: 'normal',
-        dueDate: '19:30',
-        shippingMethod: '佐川急便',
-        value: 65000,
-        location: 'B-01',
-        productImages: [],
-        inspectionImages: []
-      },
-      {
-        id: 'SHIP-010',
-        productName: 'Leica Q2',
-        productSku: 'CAM-030',
-        orderNumber: 'ORD-2024-0010',
-        customer: '小林正人',
-        shippingAddress: '東京都新宿区1-1-1',
-        status: 'storage',
-        priority: 'urgent',
-        dueDate: '16:30',
-        inspectionNotes: '高額商品・取扱い注意',
-        shippingMethod: 'ヤマト宅急便（保険付き）',
-        value: 750000,
-        location: 'V-01',
-        productImages: [],
-        inspectionImages: []
-      },
-      {
-        id: 'SHIP-011',
-        productName: 'Canon EF 70-200mm f/2.8L',
-        productSku: 'LEN-033',
-        orderNumber: 'ORD-2024-0011',
-        customer: '松本彩香',
-        shippingAddress: '京都府京都市下京区1-1-1',
-        status: 'packed',
-        priority: 'normal',
-        dueDate: '20:30',
-        shippingMethod: '日本郵便',
-        value: 125000,
-        location: 'A-01',
-        productImages: [],
-        inspectionImages: []
-      },
-      {
-        id: 'SHIP-012',
-        productName: 'Casio G-Shock',
-        productSku: 'WAT-038',
-        orderNumber: 'ORD-2024-0012',
-        customer: '岡田雄介',
-        shippingAddress: '埼玉県さいたま市1-1-1',
-        status: 'shipped',
-        priority: 'low',
-        dueDate: '22:00',
-        trackingNumber: 'YM-2024-062803',
-        shippingMethod: 'ヤマト宅急便',
-        value: 35000,
-        location: 'B-02',
-        productImages: [],
-        inspectionImages: []
-      },
-      {
-        id: 'SHIP-013',
-        productName: 'Panasonic GH6',
-        productSku: 'CAM-042',
-        orderNumber: 'ORD-2024-0013',
-        customer: '森田千佳',
-        shippingAddress: '広島県広島市中区1-1-1',
-        status: 'storage',
-        priority: 'normal',
-        dueDate: '17:30',
-        shippingMethod: '佐川急便',
-        value: 220000,
-        location: 'C-01',
-        productImages: [],
-        inspectionImages: []
-      },
-      {
-        id: 'SHIP-014',
-        productName: 'Sigma 24-70mm f/2.8 DG DN',
-        productSku: 'LEN-046',
-        orderNumber: 'ORD-2024-0014',
-        customer: '松田健太',
-        shippingAddress: '宮城県仙台市青葉区1-1-1',
-        status: 'storage',
-        priority: 'normal',
-        dueDate: '18:45',
-        inspectionNotes: '動作確認済み、外観良好',
-        shippingMethod: 'ヤマト宅急便',
-        value: 95000,
-        location: 'A-02',
-        productImages: [],
-        inspectionImages: []
-      },
-      {
-        id: 'SHIP-015',
-        productName: 'Citizen Eco-Drive',
-        productSku: 'WAT-050',
-        orderNumber: 'ORD-2024-0015',
-        customer: '井上美紀',
-        shippingAddress: '千葉県千葉市中央区1-1-1',
-        status: 'packed',
-        priority: 'low',
-        dueDate: '21:30',
-        shippingMethod: '日本郵便',
-        value: 42000,
-        location: 'B-01',
-        productImages: [],
-        inspectionImages: []
-      },
-    ];
+    // APIから配送データを取得
+    const fetchShippingItems = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/orders/shipping');
+        if (!response.ok) {
+          throw new Error('Failed to fetch shipping data');
+        }
+        const data = await response.json();
+        
+        // APIレスポンスの形式に合わせてデータを変換
+        const shippingItems: ShippingItem[] = data.items ? data.items.map((item: any) => ({
+          id: item.id,
+          productName: item.productName,
+          productSku: item.productSku,
+          orderNumber: item.orderNumber,
+          customer: item.customer,
+          shippingAddress: item.shippingAddress,
+          status: item.status,
+          priority: item.priority,
+          dueDate: item.dueDate,
+          shippingMethod: item.shippingMethod,
+          value: item.value,
+          location: item.location,
+          productImages: item.productImages || [],
+          inspectionImages: item.inspectionImages || [],
+          inspectionNotes: item.inspectionNotes,
+        })) : [];
+        
+        setItems(shippingItems);
+        console.log(`✅ 配送データ取得完了: ${shippingItems.length}件`);
+      } catch (error) {
+        console.error('配送データ取得エラー:', error);
+        // フォールバック: 空配列
+        setItems([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    setItems(mockItems);
+    fetchShippingItems();
   }, []);
 
   // タブごとのフィルタリング

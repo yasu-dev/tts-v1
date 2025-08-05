@@ -8,23 +8,58 @@ const prisma = new PrismaClient();
 
 export async function GET(request: NextRequest) {
   try {
-    // Prismaを使用してスタッフタスクデータを取得
-    // TODO: 実際のPrismaクエリを実装する際は、以下のような構造になる
-    // const tasks = await prisma.staffTask.findMany({ where: { assignedTo: staffId } });
-    
-    // 現在はJSONファイルからデータを読み込む（Prismaスキーマが整備されるまで）
-    const filePath = path.join(process.cwd(), 'data', 'staff-mock.json');
-    const fileContents = await fs.readFile(filePath, 'utf8');
-    const staffData = JSON.parse(fileContents);
-    
-    // タスクデータを抽出
-    const tasks = staffData.staffTasks.urgentTasks.concat(staffData.staffTasks.normalTasks);
+    // SQLiteからタスクデータを生成（商品データベースから）
+    const products = await prisma.product.findMany({
+      where: {
+        status: {
+          in: ['inbound', 'inspection', 'storage']
+        }
+      },
+      include: {
+        seller: {
+          select: { username: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 20
+    });
 
+    // 商品データからタスクを生成
+    const tasks = products.map((product, index) => {
+      const taskType = product.status === 'inbound' ? 'inspection' : 
+                      product.status === 'inspection' ? 'photography' : 'listing';
+      
+      const priority = index < 3 ? 'high' : index < 8 ? 'medium' : 'low';
+      const status = index < 2 ? 'in_progress' : index < 10 ? 'pending' : 'completed';
+
+      return {
+        id: `task-${product.id}`,
+        title: `${product.name} ${taskType === 'inspection' ? '検品作業' : 
+                                 taskType === 'photography' ? '商品撮影' : 'eBay出品作業'}`,
+        description: taskType === 'inspection' ? 
+          `${product.name}の動作確認、外観チェック、付属品確認` :
+          taskType === 'photography' ?
+          `${product.name}の全角度撮影、状態詳細記録` :
+          `${product.name}の商品説明文作成、価格設定`,
+        priority,
+        status,
+        assignedTo: '山本達也',
+        dueDate: new Date(Date.now() + (index + 1) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        category: taskType,
+        productSku: product.sku,
+        productName: product.name,
+        estimatedTime: taskType === 'inspection' ? 90 : 
+                      taskType === 'photography' ? 120 : 75,
+        notes: `セラー: ${product.seller.username} | 登録日: ${product.createdAt.toLocaleDateString('ja-JP')}`
+      };
+    });
+
+    console.log(`✅ タスクデータ生成完了: ${tasks.length}件 (SQLite商品データベース基準)`);
     return NextResponse.json({ tasks });
   } catch (error) {
     console.error('Staff tasks API error:', error);
     
-    // Prismaエラーやファイル読み込みエラーの場合はフォールバックデータを使用
+    // Prismaエラーの場合はフォールバックデータを使用
     if (MockFallback.isPrismaError(error)) {
       console.log('Using fallback data for staff tasks due to Prisma error');
       try {

@@ -59,95 +59,50 @@ export default function StaffTasksPage() {
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [paginatedTasks, setPaginatedTasks] = useState<Task[]>([]);
 
-  // デモデータ
+  // APIからタスクデータを取得
   useEffect(() => {
-    const demoTasks: Task[] = [
-      {
-        id: '1',
-        title: 'Canon EOS R5 検品作業',
-        description: 'カメラ本体の動作確認、外観チェック、付属品確認、シャッター回数測定',
-        priority: 'high',
-        status: 'pending',
-        assignedTo: '田中',
-        dueDate: '2024-06-29',
-        category: 'inspection',
-        productSku: 'CAM-001',
-        productName: 'Canon EOS R5',
-        estimatedTime: 90,
-        notes: 'セラーより「付属品完備」との申告あり',
-      },
-      {
-        id: '2',
-        title: 'Hermès Birkin 商品撮影',
-        description: '全角度撮影、真贋確認、状態詳細記録',
-        priority: 'high',
-        status: 'in_progress',
-        assignedTo: '佐藤',
-        dueDate: '2024-06-28',
-        category: 'photography',
-        productSku: 'ACC-003',
-        productName: 'Hermès Birkin 30',
-        estimatedTime: 120,
-        notes: 'プレミアム商品のため特別な撮影ライティング必要',
-      },
-      {
-        id: '3',
-        title: 'Rolex Submariner 梱包・出荷',
-        description: '高級時計用梱包材使用、保険付き配送手配',
-        priority: 'medium',
-        status: 'pending',
-        assignedTo: '鈴木',
-        dueDate: '2024-06-30',
-        category: 'shipping',
-        productSku: 'WAT-001',
-        productName: 'Rolex Submariner',
-        estimatedTime: 45,
-        notes: '購入者指定の配送時間：午前中',
-      },
-      {
-        id: '4',
-        title: 'Sony FE 24-70mm 返品処理',
-        description: '返品商品の状態確認、再出品可否判定、写真更新',
-        priority: 'medium',
-        status: 'completed',
-        assignedTo: '山田',
-        dueDate: '2024-06-27',
-        category: 'returns',
-        productSku: 'LEN-002',
-        productName: 'Sony FE 24-70mm f/2.8',
-        estimatedTime: 60,
-        notes: '顧客理由による返品、商品状態良好',
-      },
-      {
-        id: '5',
-        title: 'Leica M11 eBay出品作業',
-        description: '商品説明文作成、価格設定、カテゴリー設定',
-        priority: 'low',
-        status: 'pending',
-        assignedTo: '田中',
-        dueDate: '2024-07-01',
-        category: 'listing',
-        productSku: 'CAM-005',
-        productName: 'Leica M11',
-        estimatedTime: 75,
-        notes: '類似商品の売却価格を参考に価格設定',
-      },
-      {
-        id: '6',
-        title: 'Nikon Z9 検品・撮影',
-        description: '動作確認後、商品撮影まで一括対応',
-        priority: 'medium',
-        status: 'pending',
-        assignedTo: '佐藤',
-        dueDate: '2024-07-02',
-        category: 'inspection',
-        productSku: 'CAM-006',
-        productName: 'Nikon Z9',
-        estimatedTime: 105,
-      },
-    ];
-    setTasks(demoTasks);
-    setLoading(false);
+    const fetchTasks = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/staff/tasks');
+        if (!response.ok) {
+          throw new Error('Failed to fetch tasks');
+        }
+        const data = await response.json();
+        
+        // APIレスポンスの形式に合わせてデータを変換
+        const tasksData: Task[] = data.tasks ? data.tasks.map((task: any) => ({
+          id: task.id,
+          title: task.title,
+          description: task.description,
+          priority: task.priority,
+          status: task.status,
+          assignedTo: task.assignedTo || 'スタッフ',
+          dueDate: task.dueDate,
+          category: task.category,
+          productSku: task.productSku,
+          productName: task.productName,
+          estimatedTime: task.estimatedTime || 60,
+          notes: task.notes,
+        })) : [];
+        
+        setTasks(tasksData);
+        console.log(`✅ タスクデータ取得完了: ${tasksData.length}件`);
+      } catch (error) {
+        console.error('タスクデータ取得エラー:', error);
+        showToast({
+          title: 'データ取得エラー',
+          message: 'タスクデータの取得に失敗しました',
+          type: 'error'
+        });
+        // フォールバック: 空配列
+        setTasks([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTasks();
   }, []);
 
   const filteredTasks = useMemo(() => {

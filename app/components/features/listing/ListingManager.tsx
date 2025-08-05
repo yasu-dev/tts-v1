@@ -39,54 +39,36 @@ export default function ListingManager() {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      // モックデータ（実際にはAPIから取得）
-      const mockProducts: Product[] = [
-        {
-          id: '1',
-          sku: 'TWD-CAM-001',
-          name: 'Canon EOS R5',
-          category: 'カメラ本体',
-          price: 450000,
-          condition: 'A',
-          status: 'ready',
-          location: 'A-01',
-          lastUpdated: '2024-06-28T10:00:00',
-        },
-        {
-          id: '2',
-          sku: 'TWD-LEN-005',
-          name: 'Canon RF 24-70mm F2.8',
-          category: 'レンズ',
-          price: 198000,
-          condition: 'A+',
-          status: 'listed',
-          location: 'A-15',
-          lastUpdated: '2024-06-27T14:30:00',
-        },
-        {
-          id: '3',
-          sku: 'TWD-WAT-007',
-          name: 'Rolex GMT Master',
-          category: '腕時計',
-          price: 2100000,
-          condition: 'S',
-          status: 'pending',
-          location: 'V-03',
-          lastUpdated: '2024-06-27T09:00:00',
-        },
-        {
-          id: '4',
-          sku: 'TWD-CAM-012',
-          name: 'Sony α7R V',
-          category: 'カメラ本体',
-          price: 320000,
-          condition: 'B+',
-          status: 'ready',
-          location: 'H2-08',
-          lastUpdated: '2024-06-25T16:00:00',
-        },
-      ];
-      setProducts(mockProducts);
+      // APIから実際のデータを取得
+      const response = await fetch('/api/inventory?status=storage,listing');
+      if (response.ok) {
+        const data = await response.json();
+        const products: Product[] = data.data.map((item: any) => ({
+          id: item.id,
+          sku: item.sku,
+          name: item.name,
+          category: item.category.replace('camera_body', 'カメラ本体')
+                                 .replace('camera', 'カメラ')
+                                 .replace('lens', 'レンズ')
+                                 .replace('watch', '腕時計')
+                                 .replace('accessory', 'アクセサリ'),
+          price: item.price || 0,
+          condition: item.condition.replace('new', 'S')
+                                  .replace('like_new', 'A+')
+                                  .replace('excellent', 'A')
+                                  .replace('very_good', 'A-')
+                                  .replace('good', 'B+')
+                                  .replace('fair', 'B')
+                                  .replace('poor', 'C'),
+          status: item.status === 'storage' ? 'ready' : 
+                  item.status === 'listing' ? 'listed' : 'pending',
+          location: item.location || '未設定',
+          lastUpdated: item.updatedAt || new Date().toISOString(),
+        }));
+        setProducts(products);
+      } else {
+        throw new Error('Failed to fetch products');
+      }
     } catch (error) {
       console.error('[ERROR] Fetching products:', error);
     } finally {

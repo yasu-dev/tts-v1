@@ -73,35 +73,72 @@ export default function InventoryPage() {
         }
         const data = await response.json();
         
-        // APIレスポンスの形式に合わせてデータを変換
-        const inventoryItems = data.data.map((item: any) => ({
-          id: item.id,
-          name: item.name,
-          sku: item.sku,
-          category: item.category,
-          status: item.status,
-          location: item.location || '未設定',
-          value: item.price || 0,
-          certifications: ['AUTHENTIC'], // デフォルト認証
-        }));
+        // APIレスポンスの形式に合わせてデータを変換（ステータス変換を含む）
+        console.log('🔍 セラー - APIレスポンス詳細:', {
+          hasData: !!data.data,
+          dataLength: data.data?.length || 0,
+          firstItem: data.data?.[0],
+          dataKeys: data.data?.[0] ? Object.keys(data.data[0]) : []  
+        });
+
+        const inventoryItems = data.data.map((item: any, index: number) => {
+          try {
+            const transformedItem = {
+              id: item.id,
+              name: item.name,
+              sku: item.sku,
+              category: (item.category || '').replace('camera_body', 'カメラ本体')
+                                         .replace('lens', 'レンズ') 
+                                         .replace('watch', '腕時計')
+                                         .replace('camera', 'カメラ')
+                                         .replace('accessory', 'アクセサリ'),
+              status: item.status, // 英語ステータスのまま保持
+              statusDisplay: (item.status || '').replace('inbound', '入荷待ち')
+                                         .replace('inspection', '検品中')
+                                         .replace('storage', '保管中')
+                                         .replace('listing', '出品中')
+                                         .replace('ordered', '受注済み')
+                                         .replace('shipping', '出荷中')
+                                         .replace('sold', '売約済み')
+                                         .replace('returned', '返品'),
+              location: item.location || '未設定',
+              value: item.price || 0,
+              certifications: ['AUTHENTIC'], // デフォルト認証
+            };
+            
+            if (index < 3) {
+              console.log(`🔍 セラー - 変換後データ${index + 1}:`, transformedItem);
+            }
+            
+            return transformedItem;
+          } catch (error) {
+            console.error(`❌ データ変換エラー (index: ${index}):`, error, item);
+            throw error;
+          }
+        });
         
         setInventory(inventoryItems);
         setItems(data.data);
         
-        // 統計データを計算
+        // 統計データを計算（英語ステータスに基づく）
         const stats = {
           totalItems: inventoryItems.length,
-          inbound: inventoryItems.filter((item: any) => item.status === '入庫').length,
-          inspection: inventoryItems.filter((item: any) => item.status === '検品').length,
-          storage: inventoryItems.filter((item: any) => item.status === '保管').length,
-          listed: inventoryItems.filter((item: any) => item.status === '出品').length,
-          sold: inventoryItems.filter((item: any) => item.status === '売約済み').length,
-          maintenance: inventoryItems.filter((item: any) => item.status === 'メンテナンス').length,
+          inbound: inventoryItems.filter((item: any) => item.status === 'inbound').length,
+          inspection: inventoryItems.filter((item: any) => item.status === 'inspection').length,
+          storage: inventoryItems.filter((item: any) => item.status === 'storage').length,
+          listed: inventoryItems.filter((item: any) => item.status === 'listing').length,
+          sold: inventoryItems.filter((item: any) => item.status === 'sold').length,
+          maintenance: inventoryItems.filter((item: any) => item.status === 'maintenance').length,
           totalValue: inventoryItems.reduce((sum: number, item: any) => sum + (item.value || 0), 0),
         };
         setInventoryStats(stats);
         
         console.log(`✅ セラー在庫データ取得完了: ${inventoryItems.length}件`);
+        console.log('🔍 セラー - ステータス別分布:', inventoryItems.reduce((acc: any, item) => {
+          acc[item.status] = (acc[item.status] || 0) + 1;
+          return acc;
+        }, {}));
+        console.log('🔍 セラー - サンプルアイテム:', inventoryItems.slice(0, 3));
         
         // 🔍 デバッグ: ステータス別件数を詳しく確認
         const debugStatusCounts = {};
@@ -116,12 +153,21 @@ export default function InventoryPage() {
           console.log(`  ${index + 1}. ${item.sku}: "${item.status}"`);
         });
       } catch (error) {
-        console.error('在庫データ取得エラー:', error);
+        console.error('❌ 在庫データ取得エラー:', error);
+        console.error('エラーの詳細:', {
+          message: error.message,
+          stack: error.stack
+        });
+        
         showToast({
           title: 'データ取得エラー',
           message: '在庫データの取得に失敗しました',
           type: 'error'
         });
+        
+        // エラー時も空配列を設定してローディング状態を解除
+        setInventory([]);
+        setItems([]);
       } finally {
         setLoading(false);
       }
@@ -142,11 +188,24 @@ export default function InventoryPage() {
       searchQuery
     });
 
-    // ステータスフィルター
+    // ステータスフィルター（英語ステータスと日本語表示の両方をチェック）
     if (selectedStatus !== 'all') {
       const beforeFilter = filtered.length;
-      filtered = filtered.filter(item => item.status === selectedStatus);
+      filtered = filtered.filter(item => {
+        // データベースの英語ステータスとフィルター値を照合
+        const match = item.status === selectedStatus;
+        return match;
+      });
       console.log(`🔍 ステータスフィルター "${selectedStatus}": ${beforeFilter}件 → ${filtered.length}件`);
+      
+      // デバッグ: アイテムのステータス確認
+      if (filtered.length === 0 && beforeFilter > 0) {
+        console.log('🔍 フィルター不一致デバッグ:', {
+          selectedStatus,
+          availableStatuses: [...new Set(inventory.map(item => item.status))],
+          sampleItem: inventory[0]
+        });
+      }
     }
 
     // カテゴリーフィルター
@@ -487,20 +546,28 @@ export default function InventoryPage() {
     }
   };
 
-  // 日本語ステータスを英語キーに変換（統一性のため）
+  // ステータス変換（APIは既に英語ステータスを返すので、そのまま返す）
   const convertStatusToKey = (status: string) => {
+    // データベースには既に英語ステータスが保存されているので、そのまま返す
+    const validStatuses = ['inbound', 'inspection', 'storage', 'listing', 'ordered', 'shipping', 'sold', 'returned', 'maintenance'];
+    
+    // 英語ステータスの場合はそのまま返す
+    if (validStatuses.includes(status)) {
+      return status;
+    }
+    
+    // 念のため日本語ステータスの変換も残す（後方互換性）
     switch (status) {
-      case '入庫': return 'inbound';
-      case '検品': return 'inspection';
-      case '保管': return 'storage';
-      case '出品': return 'listing';
-      case '売約済み': return 'sold';
-      case 'メンテナンス': return 'maintenance';
-      // 旧形式との互換性
-      case '出品中': return 'listing';
+      case '入荷待ち': return 'inbound';
       case '検品中': return 'inspection';
       case '保管中': return 'storage';
-      default: return 'storage';
+      case '出品中': return 'listing';
+      case '受注済み': return 'ordered';
+      case '出荷中': return 'shipping';
+      case '売約済み': return 'sold';
+      case '返品': return 'returned';
+      case 'メンテナンス': return 'maintenance';
+      default: return status; // 不明な場合はそのまま返す
     }
   };
 
@@ -581,12 +648,15 @@ export default function InventoryPage() {
               onChange={(e) => setSelectedStatus(e.target.value)}
               options={[
                 { value: 'all', label: 'すべてのステータス' },
-                { value: '入庫', label: '入庫待ち' },
-                { value: '検品', label: '検品中' },
-                { value: '保管', label: '保管中' },
-                { value: '出品', label: '出品中' },
-                { value: '売約済み', label: '売約済み' },
-                { value: 'メンテナンス', label: 'メンテナンス' }
+                { value: 'inbound', label: '入荷待ち' },
+                { value: 'inspection', label: '検品中' },
+                { value: 'storage', label: '保管中' },
+                { value: 'listing', label: '出品中' },
+                { value: 'ordered', label: '受注済み' },
+                { value: 'shipping', label: '出荷中' },
+                { value: 'sold', label: '売約済み' },
+                { value: 'returned', label: '返品' },
+                { value: 'maintenance', label: 'メンテナンス' }
               ]}
             />
 

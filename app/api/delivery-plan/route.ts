@@ -55,19 +55,77 @@ export async function POST(request: NextRequest) {
     // 納品プランIDを生成
     const planId = `DP-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-    // デモ用のレスポンス（実際の実装では、データベースに保存）
-    const deliveryPlan = {
-      id: planId,
-      sellerId: user.id,
-      basicInfo: planData.basicInfo,
-      products: planData.products,
-      confirmation: planData.confirmation,
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-      totalValue: planData.products.reduce((sum: number, product: any) => 
-        sum + (product.estimatedValue || 0), 0
-      ),
-    };
+    // データベーストランザクション内で納品プランと商品を保存
+    const deliveryPlan = await prisma.$transaction(async (tx) => {
+      // 1. 納品プランをデータベースに保存
+      const savedPlan = await tx.deliveryPlan.create({
+        data: {
+          id: planId,
+          sellerId: user.id,
+          warehouseId: planData.basicInfo.warehouseId,
+          warehouseName: planData.basicInfo.warehouseName,
+          deliveryAddress: planData.basicInfo.deliveryAddress,
+          expectedDeliveryDate: planData.basicInfo.expectedDeliveryDate ? new Date(planData.basicInfo.expectedDeliveryDate) : null,
+          status: 'pending',
+          totalValue: planData.products.reduce((sum: number, product: any) => 
+            sum + (product.estimatedValue || 0), 0
+          ),
+          generateBarcodes: planData.confirmation?.generateBarcodes || false,
+          notes: planData.confirmation?.notes
+        }
+      });
+
+      // 2. 納品プランの商品をDeliveryPlanProductテーブルに保存
+      const planProducts = await Promise.all(
+        planData.products.map((product: any) => 
+          tx.deliveryPlanProduct.create({
+            data: {
+              deliveryPlanId: planId,
+              name: product.name,
+              category: product.category,
+              brand: product.brand || '',
+              model: product.model || '',
+              serialNumber: product.serialNumber,
+              estimatedValue: product.estimatedValue || 0,
+              description: product.description
+            }
+          })
+        )
+      );
+
+      // 3. スタッフの在庫管理画面用にProductテーブルに「入荷待ち」商品を生成
+      const createdProducts = await Promise.all(
+        planData.products.map((product: any) => {
+          const sku = `${planId}-${Math.random().toString(36).substr(2, 6)}`.toUpperCase();
+          
+          return tx.product.create({
+            data: {
+              name: product.name,
+              sku: sku,
+              category: product.category,
+              status: 'inbound', // 入荷待ちステータス
+              price: product.estimatedValue || 0,
+              condition: 'unknown', // 検品前なので状態不明
+              description: `納品プラン ${planId} からの入庫予定商品。${product.description || ''}`,
+              sellerId: user.id,
+              metadata: JSON.stringify({
+                deliveryPlanId: planId,
+                expectedDeliveryDate: planData.basicInfo.expectedDeliveryDate,
+                brand: product.brand,
+                model: product.model,
+                serialNumber: product.serialNumber
+              })
+            }
+          });
+        })
+      );
+
+      return {
+        ...savedPlan,
+        products: planProducts,
+        createdInventoryItems: createdProducts
+      };
+    });
 
     // バーコード生成フラグがtrueの場合、PDF URLを生成
     let pdfUrl = null;
@@ -80,15 +138,23 @@ export async function POST(request: NextRequest) {
       planId,
       warehouseName: planData.basicInfo.warehouseName,
       productCount: planData.products.length,
-      totalValue: deliveryPlan.totalValue
+      totalValue: deliveryPlan.totalValue,
+      createdInventoryItems: deliveryPlan.createdInventoryItems.length
     });
 
     return NextResponse.json({
       success: true,
       planId,
       pdfUrl,
-      message: '納品プランが正常に作成されました',
-      deliveryPlan
+      message: '納品プランが正常に作成されました。スタッフの在庫管理画面に「入荷待ち」商品が登録されました。',
+      deliveryPlan: {
+        id: deliveryPlan.id,
+        sellerId: deliveryPlan.sellerId,
+        status: deliveryPlan.status,
+        totalValue: deliveryPlan.totalValue,
+        createdAt: deliveryPlan.createdAt,
+        inventoryItemsCreated: deliveryPlan.createdInventoryItems.length
+      }
     });
 
   } catch (error) {

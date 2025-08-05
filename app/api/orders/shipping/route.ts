@@ -4,6 +4,70 @@ import { AuthService } from '@/lib/auth';
 
 const prisma = new PrismaClient();
 
+export async function GET(request: NextRequest) {
+  try {
+    // SQLiteから出荷準備中・出荷済みの注文データを取得
+    const orders = await prisma.order.findMany({
+      where: {
+        status: {
+          in: ['confirmed', 'processing', 'shipped']
+        }
+      },
+      include: {
+        customer: {
+          select: { username: true }
+        },
+        items: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                sku: true,
+                price: true,
+                imageUrl: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 50
+    });
+
+    // 配送アイテム形式に変換
+    const shippingItems = orders.flatMap(order => 
+      order.items.map(item => ({
+        id: `SHIP-${order.id}-${item.id}`,
+        productName: item.product.name,
+        productSku: item.product.sku,
+        orderNumber: order.orderNumber,
+        customer: order.customer.username,
+        shippingAddress: order.shippingAddress || '住所未設定',
+        status: order.status === 'confirmed' ? 'workstation' :
+                order.status === 'processing' ? 'packed' : 'shipped',
+        priority: order.totalAmount > 500000 ? 'urgent' : 'normal',
+        dueDate: new Date(order.createdAt.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        shippingMethod: 'ヤマト宅急便',
+        value: item.product.price,
+        location: 'A-01',
+        productImages: item.product.imageUrl ? [item.product.imageUrl] : [],
+        inspectionImages: [],
+        inspectionNotes: '動作確認済み、外観良好'
+      }))
+    );
+
+    console.log(`✅ 配送データ取得完了: ${shippingItems.length}件 (SQLite注文データベース基準)`);
+    return NextResponse.json({ items: shippingItems });
+  } catch (error) {
+    console.error('Shipping items fetch error:', error);
+    return NextResponse.json(
+      { error: '配送データの取得中にエラーが発生しました' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const user = await AuthService.requireRole(request, ['staff', 'admin']);

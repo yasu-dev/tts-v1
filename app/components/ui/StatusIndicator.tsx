@@ -9,7 +9,8 @@ type BusinessStatusType =
   | 'inbound' | 'inspection' | 'storage' | 'listing' | 'sold' | 'maintenance'
   | 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'confirmed'
   | 'packed' | 'shipped' | 'ready_for_pickup'
-  | 'approved' | 'rejected' | 'refunded';
+  | 'approved' | 'rejected' | 'refunded'
+  | 'ordered' | 'shipping' | 'returned';
 
 interface StatusIndicatorProps {
   status: StatusType;
@@ -29,12 +30,15 @@ interface BusinessStatusIndicatorProps {
 // 業務ステータス設定
 const businessStatusConfig = {
   // 在庫ステータス
-  inbound: { label: '入庫待ち', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' }, // セラーが発送した商品がスタッフに受け取られる前の状態
+  inbound: { label: '入荷待ち', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' }, // セラーが発送した商品がスタッフに受け取られる前の状態
   inspection: { label: '検品中', color: 'bg-orange-600 text-white dark:bg-orange-700 dark:text-white' }, // スタッフが品質検査を実施中
   storage: { label: '保管中', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' }, // 検品完了後、出品準備中
   listing: { label: '出品中', color: 'bg-nexus-blue/20 text-nexus-blue dark:bg-nexus-blue/30 dark:text-nexus-blue' }, // 各プラットフォームで販売中
   sold: { label: '売約済み', color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200' }, // 取引完了
   maintenance: { label: 'メンテナンス', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' }, // 修理・クリーニング中
+  ordered: { label: '受注済み', color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' }, // 注文を受けた状態
+  shipping: { label: '出荷中', color: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200' }, // 配送中
+  returned: { label: '返品', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' }, // 返品された商品
   
   // タスクステータス
   pending: { label: '未開始', color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200' },
