@@ -177,7 +177,7 @@ export default function StaffShippingPage() {
     'picked': 'ピッキング済み',
     'workstation': '梱包待ち',
     'packed': '梱包済み',
-    'shipped': '出荷済み',
+    'shipped': '集荷準備完了',
     'ready_for_pickup': '集荷準備中'
   };
 
@@ -584,9 +584,22 @@ export default function StaffShippingPage() {
     );
   };
 
-  // 配送完了処理
+  // 注意: 配送完了は配送業者トラッキングシステムから自動更新されるべき機能
+  // 現在は手動操作として残すが、将来的にはAPIトラッキング連携に置き換え予定
   const handleDeliveryComplete = async (item: ShippingItem) => {
     try {
+      // 確認ダイアログを表示
+      const confirmed = window.confirm(
+        `注意：配送完了は通常、配送業者のトラッキングシステムから自動更新されます。\n` +
+        `手動で配送完了にしますか？\n\n` +
+        `注文: ${item.orderNumber}\n` +
+        `商品: ${item.productName}`
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
       const response = await fetch('/api/orders/shipping', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -601,13 +614,13 @@ export default function StaffShippingPage() {
         throw new Error(errorData.error || '配送完了処理に失敗しました');
       }
 
-      // ローカルステートを更新
-      updateItemStatus(item.id, 'shipped');
+      // 配送完了後はアイテムを一覧から除去（配送済みのため）
+      setItems(prev => prev.filter(i => i.id !== item.id));
       
       showToast({
         type: 'success',
-        title: '配送完了',
-        message: `注文 ${item.orderNumber} の配送が完了しました`,
+        title: '配送完了（手動処理）',
+        message: `注文 ${item.orderNumber} の配送完了処理を行いました`,
         duration: 3000
       });
     } catch (error) {
@@ -616,6 +629,46 @@ export default function StaffShippingPage() {
         type: 'error',
         title: '配送完了エラー',
         message: error instanceof Error ? error.message : '配送完了処理中にエラーが発生しました',
+        duration: 4000
+      });
+    }
+  };
+
+  // 出荷処理
+  const handleShipItem = async (item: ShippingItem) => {
+    try {
+      const response = await fetch('/api/orders/shipping', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          orderId: item.orderNumber,
+          trackingNumber: `TRK-${Date.now()}`,
+          carrier: 'ヤマト運輸',
+          shippingMethod: 'ヤマト宅急便',
+          notes: '出荷処理完了'
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || '出荷処理に失敗しました');
+      }
+
+      // ローカルステートを更新
+      updateItemStatus(item.id, 'shipped');
+      
+      showToast({
+        type: 'success',
+        title: '集荷準備完了',
+        message: `注文 ${item.orderNumber} の集荷準備が完了しました（配送業者による集荷待ち）`,
+        duration: 3000
+      });
+    } catch (error) {
+      console.error('出荷処理エラー:', error);
+      showToast({
+        type: 'error',
+        title: '出荷処理エラー',
+        message: error instanceof Error ? error.message : '出荷処理中にエラーが発生しました',
         duration: 4000
       });
     }
@@ -636,7 +689,7 @@ export default function StaffShippingPage() {
         setIsCarrierSelectionModalOpen(true);
         break;
       case 'ship':
-        updateItemStatus(item.id, 'shipped');
+        handleShipItem(item);
         break;
       case 'deliver':
         handleDeliveryComplete(item);
@@ -815,7 +868,7 @@ export default function StaffShippingPage() {
               <div className="p-6 text-center">
                 <TruckIcon className="w-8 h-8 text-nexus-blue mx-auto mb-2" />
                 <div className="text-2xl font-bold text-nexus-text-primary">{stats.shipped}</div>
-                <div className="text-sm text-nexus-text-secondary">出荷済み</div>
+                                        <div className="text-sm text-nexus-text-secondary">集荷準備完了</div>
               </div>
             </div>
             
@@ -1065,7 +1118,7 @@ export default function StaffShippingPage() {
                                   className="flex items-center gap-1"
                                 >
                                   <TruckIcon className="w-4 h-4" />
-                                  出荷
+                                  集荷準備
                                 </NexusButton>
                               </>
                             )}
@@ -1075,9 +1128,10 @@ export default function StaffShippingPage() {
                                 variant="primary"
                                 size="sm"
                                 className="flex items-center gap-1"
+                                title="本来は配送業者トラッキングAPIから自動更新される機能"
                               >
                                 <CheckCircleIcon className="w-4 h-4" />
-                                配送完了
+                                配送完了（手動）
                               </NexusButton>
                             )}
                           </div>
