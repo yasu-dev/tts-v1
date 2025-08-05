@@ -190,11 +190,26 @@ export default function DashboardLayout({
       // 初期安定化状態を設定
       setIsInitialStabilizing(true);
       
-      // 2秒後に自動制御を有効化
+      // 【修正】DOM準備完了チェック付きの短縮初期化
+      const checkAndStabilize = () => {
+        const scrollContainer = document.querySelector('.page-scroll-container');
+        if (scrollContainer && scrollContainer.scrollHeight > 0) {
+          console.log('DOM準備完了 - 早期安定化終了');
+          setIsInitialStabilizing(false);
+        } else {
+          // まだ準備できていない場合は少し待つ
+          setTimeout(checkAndStabilize, 200);
+        }
+      };
+      
+      // 即座にチェック開始
+      setTimeout(checkAndStabilize, 500);
+      
+      // 最大でも1.5秒で強制終了
       const stabilizeTimer = setTimeout(() => {
+        console.log('強制安定化終了: 自動フロー制御を有効化');
         setIsInitialStabilizing(false);
-        console.log('初期安定化完了: 自動フロー制御を有効化');
-      }, 2000);
+      }, 1500);
       
       return () => clearTimeout(stabilizeTimer);
     }
@@ -202,12 +217,25 @@ export default function DashboardLayout({
 
   // 自動スクロール検知によるフロー開閉
   useEffect(() => {
-    const scrollContainer = scrollContainerRef.current;
-    console.log('スクロール検知初期化:', scrollContainer);
-    if (!scrollContainer) {
-      console.log('scrollContainer が null です');
+    // 【修正】初期化の強化 - 複数回試行
+    const initializeScrollHandler = () => {
+      const scrollContainer = scrollContainerRef.current;
+      console.log('スクロール検知初期化:', scrollContainer, 'pathname:', pathname);
+      
+      if (!scrollContainer) {
+        console.log('scrollContainer が null です - 再試行中...');
+        // 少し待ってから再試行
+        setTimeout(initializeScrollHandler, 100);
+        return false;
+      }
+      return true;
+    };
+
+    if (!initializeScrollHandler()) {
       return;
     }
+
+    const scrollContainer = scrollContainerRef.current!;
 
     let ticking = false;
     let scrollTimeout: NodeJS.Timeout;
@@ -234,7 +262,7 @@ export default function DashboardLayout({
           const scrollDelta = currentScrollY - currentLastScrollY;
           const isScrollingDown = scrollDelta > 0;
           const isScrollingUp = scrollDelta < 0;
-          const scrollThreshold = 25;
+          const scrollThreshold = 5; // 【修正】スムーススクロール対応のため25px → 5pxに下げる
           const topThreshold = 15;
           
           console.log('スクロール検知:', {
@@ -242,7 +270,13 @@ export default function DashboardLayout({
             scrollDelta,
             isScrollingDown,
             isScrollingUp,
-            isFlowCollapsed
+            isFlowCollapsed,
+            // 【デバッグ強化】状態詳細を追加
+            isInitialStabilizing,
+            isAnyModalOpen,
+            pathname,
+            scrollThreshold,
+            conditionMet: isScrollingDown && Math.abs(scrollDelta) > scrollThreshold && currentScrollY > 250
           });
           
           // 最上部付近では常に展開
@@ -254,9 +288,19 @@ export default function DashboardLayout({
           }
           */
           // 十分な下スクロールで折りたたみ
-          if (isScrollingDown && Math.abs(scrollDelta) > scrollThreshold && currentScrollY > 60) {
-            console.log('下スクロール: フロー折りたたみ');
+          // 【テスト調整】60px -> 250px に変更（感覚調整のため、ロールバック可能性高）
+          if (isScrollingDown && Math.abs(scrollDelta) > scrollThreshold && currentScrollY > 250) {
+            console.log('下スクロール: フロー折りたたみ (250px閾値) - 実行中');
             setIsFlowCollapsed(true);
+            console.log('setIsFlowCollapsed(true) 実行完了');
+          } else {
+            console.log('下スクロール条件未満:', {
+              isScrollingDown,
+              deltaCheck: Math.abs(scrollDelta) > scrollThreshold,
+              positionCheck: currentScrollY > 250,
+              actualDelta: Math.abs(scrollDelta),
+              actualPosition: currentScrollY
+            });
           }
           // 十分な上スクロールで展開
           // 【修正】上スクロールでも自動展開しない - 右上ボタンのみで開く
@@ -329,7 +373,7 @@ export default function DashboardLayout({
       scrollContainer.removeEventListener('scroll', handleScroll);
       clearTimeout(scrollTimeout);
     };
-  }, [isInitialStabilizing, isAnyModalOpen]);
+  }, [isInitialStabilizing, isAnyModalOpen, pathname]); // 【修正】pathnameを依存配列に追加
 
   const handleSearchSubmit = (query: string) => {
     setSearchQuery(query);
