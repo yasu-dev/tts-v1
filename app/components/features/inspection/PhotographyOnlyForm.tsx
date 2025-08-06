@@ -90,6 +90,12 @@ export default function PhotographyOnlyForm({ productId }: PhotographyOnlyFormPr
       // モック処理：成功レスポンスをシミュレート
       await new Promise(resolve => setTimeout(resolve, 2000));
 
+      // モックデータ用：ステータス更新イベントを発火
+      const inspectionCompleteEvent = new CustomEvent('inspectionComplete', {
+        detail: { productId, newStatus: 'completed' }
+      });
+      window.dispatchEvent(inspectionCompleteEvent);
+
       showToast({
         type: 'success',
         title: photos.length > 0 ? '撮影完了' : '撮影作業完了',
@@ -106,8 +112,8 @@ export default function PhotographyOnlyForm({ productId }: PhotographyOnlyFormPr
           // 在庫画面から来た場合は状態復元フラグ付きで在庫画面に戻る
           window.location.href = '/staff/inventory?restored=1';
         } else {
-          // その他の場合は検品一覧に戻る
-          router.push('/staff/inspection');
+          // その他の場合は検品一覧に戻る（状態復元フラグ付き）
+          window.location.href = '/staff/inspection?restored=1';
         }
       }, 2000);
 
@@ -130,8 +136,8 @@ export default function PhotographyOnlyForm({ productId }: PhotographyOnlyFormPr
       // 在庫画面から来た場合は状態復元フラグ付きで在庫画面に戻る
       window.location.href = '/staff/inventory?restored=1';
     } else {
-      // その他の場合は検品一覧に戻る
-      router.push('/staff/inspection');
+      // その他の場合は検品一覧に戻る（状態復元フラグ付き）
+      window.location.href = '/staff/inspection?restored=1';
     }
   };
 

@@ -23,7 +23,7 @@ interface StaffTask {
   id: string;
   title: string;
   description: string;
-
+  priority: string;
   status: 'pending' | 'in_progress' | 'completed';
   assignee: string;
   dueDate: string;
@@ -343,6 +343,7 @@ export default function StaffDashboardPage() {
 
   const handleTaskDetail = (task: StaffTask) => {
     // StaffTaskをTaskDetailModalで使用するTask形式に変換
+    // 添付ファイルとコメントは表示しない仕様
     const taskDetailData = {
       id: task.id,
       title: task.title,
@@ -350,10 +351,9 @@ export default function StaffDashboardPage() {
       assignee: task.assignee,
       dueDate: task.dueDate,
       status: task.status,
-
-      description: task.description,
-      attachments: [],
-      comments: []
+      priority: task.priority || 'medium',
+      description: task.description
+      // attachments, commentsは意図的に除外
     };
     setSelectedTask(taskDetailData);
     setIsDetailModalOpen(true);

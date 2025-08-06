@@ -60,7 +60,7 @@ export default function ShippingDetailModal({
   onPackingInstruction
 }: ShippingDetailModalProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [activeTab, setActiveTab] = useState<'details' | 'history' | 'notes' | 'images'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'history' | 'notes'>('details');
   const { showToast } = useToast();
   const [isLabelUploadModalOpen, setIsLabelUploadModalOpen] = useState(false);
   const [shippingLabelUrl, setShippingLabelUrl] = useState<string | null>(item?.shippingLabelUrl || null);
@@ -298,11 +298,11 @@ export default function ShippingDetailModal({
         {/* Tabs */}
         <div className="border-b border-nexus-border mb-6">
           <nav className="flex space-x-8">
-            {              [
+            {[
                 { id: 'details', label: '詳細情報', icon: DocumentTextIcon },
                 { id: 'history', label: '履歴', icon: ClockIcon },
-                { id: 'notes', label: '備考', icon: DocumentTextIcon },
-                { id: 'images', label: '画像', icon: PhotoIcon }
+                { id: 'notes', label: '備考', icon: DocumentTextIcon }
+                // 画像タブは表示しない仕様のため削除
               ].map((tab) => (
               <button
                 key={tab.id}
@@ -497,69 +497,7 @@ export default function ShippingDetailModal({
           </div>
         )}
 
-        {activeTab === 'images' && (
-          <div className="space-y-6">
-            {/* 納品時画像 */}
-            <div>
-              <h3 className="text-lg font-semibold text-nexus-text-primary mb-4">
-                納品時画像
-              </h3>
-              {item.productImages && item.productImages.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {item.productImages.map((image, index) => (
-                    <div key={index} className="relative group">
-                      <img
-                        src={image || '/api/placeholder/200/200'}
-                        alt={`納品時画像 ${index + 1}`}
-                        className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                        onClick={() => window.open(image, '_blank')}
-                      />
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg flex items-center justify-center">
-                        <span className="text-white opacity-0 group-hover:opacity-100 text-sm">
-                          クリックして拡大
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-nexus-bg-secondary rounded-lg p-8 text-center">
-                  <p className="text-nexus-text-secondary">納品時画像がありません</p>
-                </div>
-              )}
-            </div>
-
-            {/* 検品時画像 */}
-            <div>
-              <h3 className="text-lg font-semibold text-nexus-text-primary mb-4">
-                検品時画像
-              </h3>
-              {item.inspectionImages && item.inspectionImages.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {item.inspectionImages.map((image, index) => (
-                    <div key={index} className="relative group">
-                      <img
-                        src={image || '/api/placeholder/200/200'}
-                        alt={`検品時画像 ${index + 1}`}
-                        className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                        onClick={() => window.open(image, '_blank')}
-                      />
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg flex items-center justify-center">
-                        <span className="text-white opacity-0 group-hover:opacity-100 text-sm">
-                          クリックして拡大
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-nexus-bg-secondary rounded-lg p-8 text-center">
-                  <p className="text-nexus-text-secondary">検品時画像がありません</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+        {/* 画像タブは表示しない仕様のため削除 */}
       </div>
 
         {/* Action Buttons */}

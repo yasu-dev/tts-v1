@@ -178,15 +178,15 @@ const categoryLabels = {
 const convertStatusToBusinessStatus = (status: string) => {
   switch (status) {
     case 'pending_inspection':
-      return 'pending';  // 修正: 'pending_inspection' → 'pending'
+      return 'inbound';  // 検品待ち → 入荷待ち
     case 'inspecting':
-      return 'inspection';
+      return 'inspection';  // 検品中
     case 'completed':
-      return 'completed';
+      return 'completed';  // 完了
     case 'failed':
-      return 'cancelled';
+      return 'rejected';  // 不合格 → 拒否
     default:
-      return 'pending';
+      return 'inbound';
   }
 };
 
@@ -196,6 +196,25 @@ export default function InspectionPage() {
   const [loading, setLoading] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [progressData, setProgressData] = useState<{[key: string]: {currentStep: number, lastUpdated: string}}>({});
+
+  // モックデータのステータス更新機能
+  const updateProductStatus = (productId: string, newStatus: string) => {
+    setProducts(prevProducts => 
+      prevProducts.map(product => 
+        product.id === productId 
+          ? { ...product, status: newStatus }
+          : product
+      )
+    );
+    
+    // sessionStorageにも保存（ページリロード時の状態維持用）
+    const updatedProducts = products.map(product => 
+      product.id === productId 
+        ? { ...product, status: newStatus }
+        : product
+    );
+    sessionStorage.setItem('mockProductsStatus', JSON.stringify(updatedProducts));
+  };
 
   // フィルター・ソート・ページング状態
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
@@ -211,6 +230,13 @@ export default function InspectionPage() {
   // 保存された状態を復元する関数
   const restoreSavedState = () => {
     try {
+      // モックデータのステータス状態を復元
+      const savedProductsStatus = sessionStorage.getItem('mockProductsStatus');
+      if (savedProductsStatus) {
+        const parsedProducts = JSON.parse(savedProductsStatus);
+        setProducts(parsedProducts);
+      }
+
       const savedState = sessionStorage.getItem('inspectionListState');
       if (savedState) {
         const state = JSON.parse(savedState);
@@ -270,7 +296,26 @@ export default function InspectionPage() {
     
     // 進捗データを読み込み
     loadProgressData();
-  }, []);
+
+    // 検品完了イベントリスナーを追加
+    const handleInspectionComplete = (event: CustomEvent) => {
+      const { productId, newStatus } = event.detail;
+      updateProductStatus(productId, newStatus);
+      
+      showToast({
+        type: 'success',
+        title: 'ステータス更新',
+        message: `商品のステータスが更新されました`,
+        duration: 3000
+      });
+    };
+
+    window.addEventListener('inspectionComplete', handleInspectionComplete as EventListener);
+    
+    return () => {
+      window.removeEventListener('inspectionComplete', handleInspectionComplete as EventListener);
+    };
+  }, [products, updateProductStatus]);
 
   // 統計データ計算
   const inspectionStats = {
@@ -411,10 +456,10 @@ export default function InspectionPage() {
   // ステータス選択肢
   const statusOptions = [
     { value: 'all', label: 'すべてのステータス' },
-    { value: 'pending_inspection', label: '検品待ち' },
+    { value: 'pending_inspection', label: '入荷待ち' },
     { value: 'inspecting', label: '検品中' },
     { value: 'completed', label: '完了' },
-    { value: 'failed', label: '不合格' }
+    { value: 'failed', label: '拒否' }
   ];
 
   // 検品・撮影状況選択肢
@@ -531,16 +576,7 @@ export default function InspectionPage() {
                     </div>
                   </th>
 
-                  <th 
-                    className="text-center py-3 px-2 sm:px-4 text-sm font-medium text-nexus-text-secondary cursor-pointer hover:bg-nexus-bg-tertiary"
-                    onClick={() => handleSort('status')}
-                  >
-                    <div className="flex items-center justify-center gap-1">
-                      ステータス
-                      {getSortIcon('status')}
-                    </div>
-                  </th>
-                  <th className="text-center py-3 px-2 sm:px-4 text-sm font-medium text-nexus-text-secondary">検品進捗</th>
+                  <th className="text-center py-3 px-2 sm:px-4 text-sm font-medium text-nexus-text-secondary">ステータス</th>
                   <th className="text-center py-3 px-2 sm:px-4 text-sm font-medium text-nexus-text-secondary">アクション</th>
                 </tr>
               </thead>
@@ -573,33 +609,10 @@ export default function InspectionPage() {
                     </td>
                     <td className="py-3 px-2 sm:px-4">
                       <div className="flex justify-center">
-                        <span className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs font-medium ${
-                          product.priority === 'high' ? 'bg-red-100 text-red-800' :
-                          product.priority === 'normal' ? 'bg-orange-600 text-white' :
-                          'bg-green-100 text-green-800'
-                        }`}>
-                          {product.priority === 'high' ? '高' : product.priority === 'normal' ? '中' : '低'}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-2 sm:px-4">
-                      <div className="flex justify-center">
                         <BusinessStatusIndicator 
                           status={convertStatusToBusinessStatus(product.status) as any}
                           size="sm"
                         />
-                      </div>
-                    </td>
-                    <td className="py-3 px-2 sm:px-4">
-                      <div className="flex justify-center">
-                        {(() => {
-                          const stepDisplay = getProgressStepDisplay(product.id);
-                          return (
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${stepDisplay.color}`}>
-                              {stepDisplay.label}
-                            </span>
-                          );
-                        })()}
                       </div>
                     </td>
                     <td className="py-3 px-2 sm:px-4">
@@ -673,7 +686,7 @@ export default function InspectionPage() {
                 ))}
                 {paginatedProducts.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="py-6 px-2 sm:px-4 text-center text-nexus-text-secondary text-sm">
+                    <td colSpan={7} className="py-6 px-2 sm:px-4 text-center text-nexus-text-secondary text-sm">
                       {filteredProducts.length === 0 ? 
                         (searchQuery || selectedStatus !== 'all' || selectedCategory !== 'all' || selectedInspectionPhotoStatus !== 'all'
                           ? '検索条件に一致する商品がありません' 

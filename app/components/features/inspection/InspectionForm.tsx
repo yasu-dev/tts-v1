@@ -378,6 +378,16 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
         // エラーでも処理は継続
       }
 
+      // モックデータ用：ステータス更新イベントを発火
+      const newStatus = inspectionOnly 
+        ? (result === 'passed' ? 'completed' : result === 'conditional' ? 'inspecting' : 'failed')
+        : (result === 'passed' ? 'completed' : result === 'conditional' ? 'inspecting' : 'failed');
+      
+      const inspectionCompleteEvent = new CustomEvent('inspectionComplete', {
+        detail: { productId, newStatus }
+      });
+      window.dispatchEvent(inspectionCompleteEvent);
+
       showToast({
         type: 'success',
         title: inspectionOnly ? '検品完了' : '検品・撮影完了',
@@ -400,8 +410,8 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
           // 在庫画面から来た場合は状態復元フラグ付きで在庫画面に戻る
           window.location.href = '/staff/inventory?restored=1';
         } else {
-          // その他の場合は検品一覧に戻る
-          window.location.href = '/staff/inspection';
+          // その他の場合は検品一覧に戻る（状態復元フラグ付き）
+          window.location.href = '/staff/inspection?restored=1';
         }
       }, 2000);
       

@@ -261,8 +261,10 @@ export default function StaffTasksPage() {
       assignee: task.assignedTo,
       dueDate: task.dueDate,
       status: task.status,
+      priority: 'medium', // デフォルト優先度を設定
       description: task.description,
       notes: task.notes
+      // attachments, commentsは表示しない仕様
     };
     setSelectedTask(taskForModal);
     setIsDetailModalOpen(true);

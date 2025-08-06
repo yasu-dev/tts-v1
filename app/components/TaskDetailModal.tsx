@@ -21,6 +21,9 @@ interface Task {
   priority: string;
   description?: string;
   notes?: string;
+  type?: string; // StaffTask互換性のため追加
+  // 添付ファイルは表示しない仕様のためコメントアウト
+  // attachments?: string[];
 }
 
 interface TaskDetailModalProps {
