@@ -6,6 +6,18 @@ import NexusInput from '@/app/components/ui/NexusInput';
 import NexusSelect from '@/app/components/ui/NexusSelect';
 import NexusTextarea from '@/app/components/ui/NexusTextarea';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
+import InspectionChecklistInput, { InspectionChecklistData } from '@/app/components/features/inspection/InspectionChecklistInput';
+
+interface Product {
+  name: string;
+  condition: string;
+  purchasePrice: number;
+  purchaseDate: string;
+  supplier: string;
+  supplierDetails: string;
+  category?: string;
+  inspectionChecklist?: InspectionChecklistData;
+}
 
 interface ProductRegistrationStepProps {
   data: any;
@@ -23,6 +35,14 @@ const categoryOptions = [
   { value: 'accessory', label: 'アクセサリー' }
 ];
 
+const conditionOptions = [
+  { value: 'excellent', label: '優良' },
+  { value: 'very_good', label: '美品' },
+  { value: 'good', label: '良好' },
+  { value: 'fair', label: '普通' },
+  { value: 'poor', label: '要修理' }
+];
+
 export default function ProductRegistrationStep({ 
   data, 
   onUpdate, 
@@ -32,16 +52,38 @@ export default function ProductRegistrationStep({
   isLastStep
 }: ProductRegistrationStepProps) {
   const { showToast } = useToast();
-  const defaultProducts = [
+  
+  const defaultProducts: Product[] = [
     // デモ用のデフォルト商品データ
     {
       name: 'Canon EOS R5',
+      condition: 'excellent',
+      purchasePrice: 380000,
+      purchaseDate: '',
+      supplier: '',
+      supplierDetails: '',
       category: 'camera_body',
-      brand: 'Canon',
-      model: 'EOS R5',
-      serialNumber: 'DEMO123456',
-      estimatedValue: 380000,
-      description: 'デモ用カメラボディ'
+      inspectionChecklist: {
+        exterior: {
+          scratches: false,
+          dents: false,
+          discoloration: false,
+          dust: false,
+        },
+        functionality: {
+          powerOn: false,
+          allButtonsWork: false,
+          screenDisplay: false,
+          connectivity: false,
+        },
+        optical: {
+          lensClarity: false,
+          aperture: false,
+          focusAccuracy: false,
+          stabilization: false,
+        },
+        notes: '',
+      }
     }
   ];
 
@@ -55,14 +97,35 @@ export default function ProductRegistrationStep({
   }, []);
 
   const addProduct = () => {
-    const newProduct = {
+    const newProduct: Product = {
       name: '',
-      category: 'camera_body' as const,
-      brand: '',
-      model: '',
-      serialNumber: '',
-      estimatedValue: 0,
-      description: ''
+      condition: 'excellent',
+      purchasePrice: 0,
+      purchaseDate: '',
+      supplier: '',
+      supplierDetails: '',
+      category: 'camera_body',
+      inspectionChecklist: {
+        exterior: {
+          scratches: false,
+          dents: false,
+          discoloration: false,
+          dust: false,
+        },
+        functionality: {
+          powerOn: false,
+          allButtonsWork: false,
+          screenDisplay: false,
+          connectivity: false,
+        },
+        optical: {
+          lensClarity: false,
+          aperture: false,
+          focusAccuracy: false,
+          stabilization: false,
+        },
+        notes: '',
+      }
     };
     const updatedProducts = [...products, newProduct];
     setProducts(updatedProducts);
@@ -72,6 +135,14 @@ export default function ProductRegistrationStep({
   const updateProduct = (index: number, field: string, value: any) => {
     const updatedProducts = products.map((product: any, i: number) => 
       i === index ? { ...product, [field]: value } : product
+    );
+    setProducts(updatedProducts);
+    onUpdate({ products: updatedProducts });
+  };
+
+  const updateInspectionChecklist = (index: number, checklistData: InspectionChecklistData) => {
+    const updatedProducts = products.map((product: any, i: number) => 
+      i === index ? { ...product, inspectionChecklist: checklistData } : product
     );
     setProducts(updatedProducts);
     onUpdate({ products: updatedProducts });
@@ -94,14 +165,14 @@ export default function ProductRegistrationStep({
     }
     
     const hasIncompleteProducts = products.some((product: any) => 
-      !product.name || !product.brand || !product.model || product.estimatedValue <= 0
+      !product.name || !product.condition || product.purchasePrice <= 0
     );
     
     if (hasIncompleteProducts) {
       showToast({
         type: 'warning',
         title: '入力不完全',
-        message: 'すべての商品の必須項目を入力してください'
+        message: 'すべての商品の必須項目（商品名、コンディション、購入価格）を入力してください'
       });
       return;
     }
@@ -139,6 +210,7 @@ export default function ProductRegistrationStep({
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* 必須項目 */}
                 <NexusInput
                   label="商品名"
                   value={product.name}
@@ -149,61 +221,90 @@ export default function ProductRegistrationStep({
                 />
 
                 <NexusSelect
-                  label="カテゴリ"
-                  value={product.category}
+                  label="カテゴリー"
+                  value={product.category || 'camera_body'}
                   onChange={(e) => updateProduct(index, 'category', e.target.value)}
                   options={categoryOptions}
+                  variant="nexus"
+                />
+
+                <NexusSelect
+                  label="コンディション"
+                  value={product.condition}
+                  onChange={(e) => updateProduct(index, 'condition', e.target.value)}
+                  options={conditionOptions}
                   required
                   variant="nexus"
                 />
 
                 <NexusInput
-                  label="ブランド"
-                  value={product.brand}
-                  onChange={(e) => updateProduct(index, 'brand', e.target.value)}
-                  placeholder="ブランド名を入力"
-                  required
-                  variant="nexus"
-                />
-
-                <NexusInput
-                  label="モデル"
-                  value={product.model}
-                  onChange={(e) => updateProduct(index, 'model', e.target.value)}
-                  placeholder="モデル名を入力"
-                  required
-                  variant="nexus"
-                />
-
-                <NexusInput
-                  label="シリアル番号"
-                  value={product.serialNumber}
-                  onChange={(e) => updateProduct(index, 'serialNumber', e.target.value)}
-                  placeholder="シリアル番号を入力"
-                  variant="nexus"
-                />
-
-                <NexusInput
-                  label="予想価格"
+                  label="購入価格"
                   type="number"
-                  value={product.estimatedValue}
-                  onChange={(e) => updateProduct(index, 'estimatedValue', parseInt(e.target.value) || 0)}
-                  placeholder="予想価格を入力"
+                  value={product.purchasePrice}
+                  onChange={(e) => updateProduct(index, 'purchasePrice', parseInt(e.target.value) || 0)}
+                  placeholder="購入価格を入力"
                   min="0"
                   required
                   variant="nexus"
                 />
 
+                {/* 任意項目 */}
+                <NexusInput
+                  label="仕入日"
+                  type="date"
+                  value={product.purchaseDate}
+                  onChange={(e) => updateProduct(index, 'purchaseDate', e.target.value)}
+                  variant="nexus"
+                />
+
+                <NexusInput
+                  label="仕入先"
+                  value={product.supplier}
+                  onChange={(e) => updateProduct(index, 'supplier', e.target.value)}
+                  placeholder="仕入先を入力"
+                  variant="nexus"
+                />
+
                 <div className="md:col-span-2">
                   <NexusTextarea
-                    label="商品説明"
-                    value={product.description}
-                    onChange={(e) => updateProduct(index, 'description', e.target.value)}
+                    label="仕入れ詳細"
+                    value={product.supplierDetails}
+                    onChange={(e) => updateProduct(index, 'supplierDetails', e.target.value)}
                     rows={3}
-                    placeholder="商品の状態や特記事項があれば入力"
+                    placeholder="仕入れに関する詳細情報があれば入力"
                     variant="nexus"
                   />
                 </div>
+              </div>
+
+              {/* 検品チェックリスト入力 */}
+              <div className="mt-6 border-t pt-6">
+                <InspectionChecklistInput
+                  data={product.inspectionChecklist || {
+                    exterior: {
+                      scratches: false,
+                      dents: false,
+                      discoloration: false,
+                      dust: false,
+                    },
+                    functionality: {
+                      powerOn: false,
+                      allButtonsWork: false,
+                      screenDisplay: false,
+                      connectivity: false,
+                    },
+                    optical: product.category === 'camera_body' || product.category === 'lens' ? {
+                      lensClarity: false,
+                      aperture: false,
+                      focusAccuracy: false,
+                      stabilization: false,
+                    } : undefined,
+                    notes: '',
+                  }}
+                  onChange={(checklistData) => updateInspectionChecklist(index, checklistData)}
+                  showOptical={product.category === 'camera_body' || product.category === 'lens'}
+                  readOnly={false}
+                />
               </div>
             </div>
           ))}
@@ -226,4 +327,4 @@ export default function ProductRegistrationStep({
       </div>
     </div>
   );
-} 
+}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import UnifiedPageHeader from '@/app/components/ui/UnifiedPageHeader';
@@ -86,6 +86,7 @@ interface Product {
 
 type SortField = 'name' | 'sku' | 'category' | 'receivedDate' | 'status';
 type SortDirection = 'asc' | 'desc';
+type BusinessStatus = 'inbound' | 'inspection' | 'completed' | 'rejected' | 'pending' | 'processing';
 
 // モックデータ（実際はAPIから取得）
 const mockProducts: Product[] = [
@@ -175,7 +176,7 @@ const categoryLabels = {
 };
 
 // ステータス変換関数（BusinessStatusIndicatorに合わせる）
-const convertStatusToBusinessStatus = (status: string) => {
+const convertStatusToBusinessStatus = (status: string): BusinessStatus => {
   switch (status) {
     case 'pending_inspection':
       return 'inbound';  // 検品待ち → 入荷待ち
@@ -196,6 +197,21 @@ export default function InspectionPage() {
   const [loading, setLoading] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [progressData, setProgressData] = useState<{[key: string]: {currentStep: number, lastUpdated: string}}>({});
+  const [expandedRows, setExpandedRows] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState<string>('all');
+
+
+
+  // ステップ名を取得するヘルパー関数
+  const getStepName = (step: number): string => {
+    switch (step) {
+      case 1: return '検品項目';
+      case 2: return '写真撮影';
+      case 3: return '梱包・ラベル';
+      case 4: return '棚保管';
+      default: return '不明';
+    }
+  };
 
   // モックデータのステータス更新機能
   const updateProductStatus = (productId: string, newStatus: string) => {
@@ -315,7 +331,7 @@ export default function InspectionPage() {
     return () => {
       window.removeEventListener('inspectionComplete', handleInspectionComplete as EventListener);
     };
-  }, [products, updateProductStatus]);
+  }, []); // 初回のみ実行
 
   // 統計データ計算
   const inspectionStats = {
@@ -326,8 +342,18 @@ export default function InspectionPage() {
     failed: products.filter(p => p.status === 'failed').length,
   };
 
+  // タブごとのフィルタリング
+  const tabFilters: Record<string, (product: Product) => boolean> = {
+    'all': () => true,
+    'pending_inspection': (product) => product.status === 'pending_inspection',
+    'inspecting': (product) => product.status === 'inspecting',
+    'completed': (product) => product.status === 'completed',
+    'failed': (product) => product.status === 'failed',
+  };
+
   // フィルタリング
   let filteredProducts = products.filter(product => {
+    const tabMatch = tabFilters[activeTab] ? tabFilters[activeTab](product) : true;
     const matchesStatus = selectedStatus === 'all' || product.status === selectedStatus;
     const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
 
@@ -337,7 +363,7 @@ export default function InspectionPage() {
       product.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.model.toLowerCase().includes(searchQuery.toLowerCase());
     
-    return matchesStatus && matchesCategory && matchesSearch;
+    return tabMatch && matchesStatus && matchesCategory && matchesSearch;
   });
 
   // 検品・撮影状況によるフィルタリング
@@ -414,7 +440,6 @@ export default function InspectionPage() {
     const currentState = {
       selectedStatus,
       selectedCategory,
-
       selectedInspectionPhotoStatus,
       searchQuery,
       currentPage,
@@ -443,6 +468,15 @@ export default function InspectionPage() {
     // 詳細表示も統一のため、検品画面に遷移
     saveCurrentState();
     window.location.href = `/staff/inspection/${product.id}`;
+  };
+
+  // 行の展開/折りたたみ
+  const toggleRowExpansion = (productId: string) => {
+    setExpandedRows(prev => 
+      prev.includes(productId) 
+        ? prev.filter(id => id !== productId)
+        : [...prev, productId]
+    );
   };
 
   // カテゴリー選択肢
@@ -532,8 +566,40 @@ export default function InspectionPage() {
 
 
 
-        {/* 検品リスト */}
+        {/* ステータス別タブビュー */}
         <div className="bg-white rounded-xl border border-nexus-border p-4 sm:p-6">
+          {/* タブヘッダー */}
+          <div className="border-b border-nexus-border mb-6">
+            <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+              {[
+                { id: 'all', label: '全体', count: inspectionStats.total },
+                { id: 'pending_inspection', label: '検品待ち', count: inspectionStats.pending },
+                { id: 'inspecting', label: '検品中', count: inspectionStats.inspecting },
+                { id: 'completed', label: '完了', count: inspectionStats.completed },
+                { id: 'failed', label: '不合格', count: inspectionStats.failed },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`
+                    whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors
+                    ${activeTab === tab.id
+                      ? 'border-nexus-blue text-nexus-blue'
+                      : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-gray-300'
+                    }
+                  `}
+                >
+                  {tab.label}
+                  <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    activeTab === tab.id ? 'bg-nexus-blue text-white' : 'bg-nexus-bg-secondary text-nexus-text-secondary'
+                  }`}>
+                    {tab.count}
+                  </span>
+                </button>
+              ))}
+            </nav>
+          </div>
+
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-lg font-bold text-nexus-text-primary">検品リスト</h3>
@@ -582,107 +648,199 @@ export default function InspectionPage() {
               </thead>
               <tbody>
                 {paginatedProducts.map((product) => (
-                  <tr key={product.id} className="border-b border-nexus-border hover:bg-nexus-bg-tertiary">
-                    <td className="py-3 px-2 sm:px-4">
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <img
-                          src={product.imageUrl || '/api/placeholder/60/60'}
-                          alt={product.name}
-                          className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-lg"
-                        />
-                        <div className="min-w-0 flex-1">
-                          <div className="font-medium text-nexus-text-primary text-sm truncate">{product.name}</div>
-                          <p className="text-xs sm:text-sm text-nexus-text-secondary truncate">{product.brand} | {product.model}</p>
+                  <React.Fragment key={product.id}>
+                    <tr className="border-b border-nexus-border hover:bg-nexus-bg-tertiary">
+                      <td className="py-3 px-2 sm:px-4">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <img
+                            src={product.imageUrl || '/api/placeholder/60/60'}
+                            alt={product.name}
+                            className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-lg"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <div className="font-medium text-nexus-text-primary text-sm truncate">{product.name}</div>
+                            <p className="text-xs sm:text-sm text-nexus-text-secondary truncate">{product.brand} | {product.model}</p>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="py-3 px-2 sm:px-4">
-                      <span className="font-mono text-xs sm:text-sm text-nexus-text-primary">{product.sku}</span>
-                    </td>
-                    <td className="py-3 px-2 sm:px-4">
-                      <span className="text-xs sm:text-sm text-nexus-text-primary">
-                        {categoryLabels[product.category as keyof typeof categoryLabels]}
-                      </span>
-                    </td>
-                    <td className="py-3 px-2 sm:px-4">
-                      <span className="text-xs sm:text-sm text-nexus-text-primary">{product.receivedDate}</span>
-                    </td>
-                    <td className="py-3 px-2 sm:px-4">
-                      <div className="flex justify-center">
-                        <BusinessStatusIndicator 
-                          status={convertStatusToBusinessStatus(product.status) as any}
-                          size="sm"
-                        />
-                      </div>
-                    </td>
-                    <td className="py-3 px-2 sm:px-4">
-                      <div className="flex justify-center gap-1 sm:gap-2">
-                        {(() => {
-                          const metadata = parseProductMetadata(product.metadata);
-                          const inspectionPhotoStatus = getInspectionPhotographyStatus ? getInspectionPhotographyStatus(metadata) : null;
+                      </td>
+                      <td className="py-3 px-2 sm:px-4">
+                        <span className="font-mono text-xs sm:text-sm text-nexus-text-primary">{product.sku}</span>
+                      </td>
+                      <td className="py-3 px-2 sm:px-4">
+                        <span className="text-xs sm:text-sm text-nexus-text-primary">
+                          {categoryLabels[product.category as keyof typeof categoryLabels]}
+                        </span>
+                      </td>
+                      <td className="py-3 px-2 sm:px-4">
+                        <span className="text-xs sm:text-sm text-nexus-text-primary">{product.receivedDate}</span>
+                      </td>
+                      <td className="py-3 px-2 sm:px-4">
+                        <div className="space-y-2">
+                          <div className="flex justify-center">
+                            <BusinessStatusIndicator 
+                              status={convertStatusToBusinessStatus(product.status) as any}
+                              size="sm"
+                            />
+                          </div>
+                          <button
+                            onClick={() => toggleRowExpansion(product.id)}
+                            className="text-xs text-nexus-blue hover:text-nexus-blue-dark flex items-center gap-1 mx-auto"
+                          >
+                            <span>詳細を{expandedRows.includes(product.id) ? '隠す' : '見る'}</span>
+                            <svg 
+                              className={`w-3 h-3 transform transition-transform ${expandedRows.includes(product.id) ? 'rotate-180' : ''}`} 
+                              fill="none" 
+                              stroke="currentColor" 
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                      <td className="py-3 px-2 sm:px-4">
+                        <div className="flex justify-center gap-1 sm:gap-2">
+                          {(() => {
+                            const metadata = parseProductMetadata(product.metadata);
+                            const inspectionPhotoStatus = getInspectionPhotographyStatus ? getInspectionPhotographyStatus(metadata) : null;
 
-                          if (product.status === 'pending_inspection') {
-                            return (
-                              <NexusButton 
-                                size="sm" 
-                                variant="primary"
-                                onClick={() => handleStartInspection(product)}
-                              >
-                                <span className="hidden sm:inline">検品開始</span>
-                                <span className="sm:hidden">開始</span>
-                              </NexusButton>
-                            );
-                          }
+                            if (product.status === 'pending_inspection') {
+                              return (
+                                <NexusButton 
+                                  size="sm" 
+                                  variant="primary"
+                                  onClick={() => handleStartInspection(product)}
+                                >
+                                  <span className="hidden sm:inline">検品開始</span>
+                                  <span className="sm:hidden">開始</span>
+                                </NexusButton>
+                              );
+                            }
 
-                          if (product.status === 'inspecting') {
-                            return (
-                              <NexusButton 
-                                size="sm" 
-                                variant="primary"
-                                onClick={() => handleContinueInspection(product)}
-                              >
-                                <span className="hidden sm:inline">続ける</span>
-                                <span className="sm:hidden">続行</span>
-                              </NexusButton>
-                            );
-                          }
+                            if (product.status === 'inspecting') {
+                              return (
+                                <NexusButton 
+                                  size="sm" 
+                                  variant="primary"
+                                  onClick={() => handleContinueInspection(product)}
+                                >
+                                  <span className="hidden sm:inline">続ける</span>
+                                  <span className="sm:hidden">続行</span>
+                                </NexusButton>
+                              );
+                            }
 
-                          if (inspectionPhotoStatus?.canStartPhotography) {
-                            return (
-                              <NexusButton 
-                                size="sm" 
-                                variant="primary" 
-                                icon={<CameraIcon className="w-4 h-4" />}
-                                onClick={() => {
-                                  saveCurrentState();
-                                  window.location.href = `/staff/inspection/${product.id}?mode=photography`;
-                                }}
-                              >
-                                <span className="hidden sm:inline">撮影</span>
-                                <span className="sm:hidden">撮影</span>
-                              </NexusButton>
-                            );
-                          }
+                            if (inspectionPhotoStatus?.canStartPhotography) {
+                              return (
+                                <NexusButton 
+                                  size="sm" 
+                                  variant="primary" 
+                                  icon={<CameraIcon className="w-4 h-4" />}
+                                  onClick={() => {
+                                    saveCurrentState();
+                                    window.location.href = `/staff/inspection/${product.id}?mode=photography`;
+                                  }}
+                                >
+                                  <span className="hidden sm:inline">撮影</span>
+                                  <span className="sm:hidden">撮影</span>
+                                </NexusButton>
+                              );
+                            }
 
-                          if (product.status === 'completed' || product.status === 'failed') {
-                            return (
-                              <NexusButton
-                                size="sm"
-                                variant="default"
-                                icon={<EyeIcon className="w-4 h-4" />}
-                                onClick={() => handleViewProduct(product)}
-                              >
-                                <span className="hidden sm:inline">詳細</span>
-                                <span className="sm:hidden sr-only">詳細</span>
-                              </NexusButton>
-                            );
-                          }
+                            if (product.status === 'completed' || product.status === 'failed') {
+                              return (
+                                <NexusButton
+                                  size="sm"
+                                  variant="default"
+                                  icon={<EyeIcon className="w-4 h-4" />}
+                                  onClick={() => handleViewProduct(product)}
+                                >
+                                  <span className="hidden sm:inline">詳細</span>
+                                  <span className="sm:hidden sr-only">詳細</span>
+                                </NexusButton>
+                              );
+                            }
 
-                          return null;
-                        })()}
-                      </div>
-                    </td>
-                  </tr>
+                            return null;
+                          })()}
+                        </div>
+                      </td>
+                    </tr>
+                    
+                    {/* 詳細展開行 */}
+                    {expandedRows.includes(product.id) && (
+                      <tr className="bg-nexus-bg-secondary">
+                        <td colSpan={6} className="p-6">
+                          <div className="space-y-4">
+                            {/* 検品進捗表示 */}
+                            <div className="bg-nexus-bg-primary rounded-lg p-4 border border-nexus-border">
+                              <h4 className="text-sm font-medium text-nexus-text-primary mb-3">検品進捗</h4>
+                              <div className="flex items-center space-x-4">
+                                {[
+                                  { step: 1, name: '検品項目', icon: '✓' },
+                                  { step: 2, name: '写真撮影', icon: '📷' },
+                                  { step: 3, name: '梱包・ラベル', icon: '📦' },
+                                  { step: 4, name: '棚保管', icon: '🏪' }
+                                ].map((stepInfo, index) => {
+                                  const progress = progressData[product.id];
+                                  const isCompleted = progress && progress.currentStep > stepInfo.step;
+                                  const isCurrent = progress && progress.currentStep === stepInfo.step;
+                                  
+                                  return (
+                                    <div key={stepInfo.step} className="flex items-center">
+                                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
+                                        isCompleted ? 'bg-green-100 text-green-800' :
+                                        isCurrent ? 'bg-blue-100 text-blue-800' :
+                                        'bg-gray-100 text-gray-500'
+                                      }`}>
+                                        {isCompleted ? '✓' : stepInfo.step}
+                                      </div>
+                                      <span className={`ml-2 text-sm ${
+                                        isCompleted ? 'text-green-800' :
+                                        isCurrent ? 'text-blue-800' :
+                                        'text-gray-500'
+                                      }`}>
+                                        {stepInfo.name}
+                                      </span>
+                                      {index < 3 && (
+                                        <div className={`mx-4 h-0.5 w-8 ${
+                                          isCompleted ? 'bg-green-300' : 'bg-gray-200'
+                                        }`} />
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+
+                            {/* 商品詳細情報 */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="bg-nexus-bg-primary rounded-lg p-4 border border-nexus-border">
+                                <h4 className="text-sm font-medium text-nexus-text-primary mb-3">商品情報</h4>
+                                <div className="space-y-2 text-sm text-nexus-text-secondary">
+                                  <div><strong>受領日:</strong> {product.receivedDate}</div>
+                                  <div><strong>カテゴリ:</strong> {categoryLabels[product.category as keyof typeof categoryLabels]}</div>
+                                  {product.metadata && (
+                                    <div><strong>メタデータ:</strong> {product.metadata}</div>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              <div className="bg-nexus-bg-primary rounded-lg p-4 border border-nexus-border">
+                                <h4 className="text-sm font-medium text-nexus-text-primary mb-3">次のアクション</h4>
+                                <div className="text-sm text-nexus-text-secondary">
+                                  {product.status === 'pending_inspection' && '検品チェックリストを開始してください'}
+                                  {product.status === 'inspecting' && '検品作業を続行してください'}
+                                  {product.status === 'completed' && '検品が完了しています'}
+                                  {product.status === 'failed' && '検品で不合格となりました'}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 ))}
                 {paginatedProducts.length === 0 && (
                   <tr>

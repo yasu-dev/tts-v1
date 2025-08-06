@@ -4,9 +4,11 @@ import { useState, useEffect } from 'react';
 import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
 import InspectionChecklist from './InspectionChecklist';
+import InspectionChecklistInput, { InspectionChecklistData } from './InspectionChecklistInput';
 import PhotoUploader from './PhotoUploader';
 import InspectionResult from './InspectionResult';
-import TimestampVideoRecorder from '@/app/components/features/video/TimestampVideoRecorder';
+import PackagingAndLabelStep from './PackagingAndLabelStep';
+import ShelfStorageStep from './ShelfStorageStep';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 export interface InspectionFormProps {
@@ -22,6 +24,32 @@ interface Product {
   model: string;
   status: string;
   imageUrl?: string;
+  metadata?: string;
+}
+
+interface ExistingInspectionChecklist {
+  id: string;
+  productId?: string;
+  deliveryPlanProductId?: string;
+  hasScratches: boolean;
+  hasDents: boolean;
+  hasDiscoloration: boolean;
+  hasDust: boolean;
+  powerOn: boolean;
+  allButtonsWork: boolean;
+  screenDisplay: boolean;
+  connectivity: boolean;
+  lensClarity: boolean;
+  aperture: boolean;
+  focusAccuracy: boolean;
+  stabilization: boolean;
+  notes?: string;
+  createdBy: string;
+  createdAt: string;
+  verifiedBy?: string;
+  verifiedAt?: string;
+  updatedBy?: string;
+  updatedAt: string;
 }
 
 interface InspectionData {
@@ -60,6 +88,8 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
   const [loading, setLoading] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
   const [videoId, setVideoId] = useState<string | null>(null);
+  const [existingChecklist, setExistingChecklist] = useState<ExistingInspectionChecklist | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [inspectionData, setInspectionData] = useState<InspectionData>({
     productId,
     checklist: {
@@ -101,15 +131,6 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
     },
     { 
       id: 2, 
-      title: '動画記録', 
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-        </svg>
-      )
-    },
-    { 
-      id: 3, 
       title: '写真撮影', 
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -119,11 +140,20 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
       )
     },
     { 
-      id: 4, 
-      title: '確認・完了', 
+      id: 3, 
+      title: '梱包・ラベル', 
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M9 21h6" />
+        </svg>
+      )
+    },
+    { 
+      id: 4, 
+      title: '棚保管', 
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m3 0H4a2 2 0 00-2 2v14a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zM9 12h6m-6 4h6" />
         </svg>
       )
     },
@@ -169,23 +199,82 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
     // 商品情報を取得と進捗復元を並行実行
     const init = async () => {
       try {
-        // 商品情報を取得（実際はAPIから）
-        setProduct({
-          id: productId,
-          name: 'Canon EOS R5 ボディ',
-          sku: `TWD-2024-${productId}`,
-          category: 'camera_body',
-          brand: 'Canon',
-          model: 'EOS R5',
-          status: 'pending_inspection',
-          imageUrl: '/api/placeholder/400/300',
-        });
+        // 商品情報とセラーが入力した検品チェックリストを取得
+        const [productResponse, checklistResponse] = await Promise.all([
+          fetch(`/api/products/${productId}`),
+          fetch(`/api/products/${productId}/inspection-checklist`)
+        ]);
+
+        if (productResponse.ok) {
+          const productData = await productResponse.json();
+          setProduct(productData);
+          
+          // メタデータから検品チェックリストの有無を確認
+          if (productData.metadata) {
+            const metadata = JSON.parse(productData.metadata);
+            console.log('[INFO] Product metadata:', metadata);
+          }
+        } else {
+          // デモ用フォールバック
+          setProduct({
+            id: productId,
+            name: 'Canon EOS R5 ボディ',
+            sku: `TWD-2024-${productId}`,
+            category: 'camera_body',
+            brand: 'Canon',
+            model: 'EOS R5',
+            status: 'pending_inspection',
+            imageUrl: '/api/placeholder/400/300',
+          });
+          console.log('[DEBUG] デモ用商品データを設定 - カテゴリー: camera_body');
+        }
+
+        // セラーが入力した検品チェックリストがある場合は読み込み
+        if (checklistResponse.ok) {
+          const checklistData = await checklistResponse.json();
+          if (checklistData) {
+            setExistingChecklist(checklistData);
+            
+            // 既存のチェックリストデータを検品データに反映
+            setInspectionData(prev => ({
+              ...prev,
+              checklist: {
+                exterior: {
+                  scratches: checklistData.hasScratches,
+                  dents: checklistData.hasDents,
+                  discoloration: checklistData.hasDiscoloration,
+                  dust: checklistData.hasDust,
+                },
+                functionality: {
+                  powerOn: checklistData.powerOn,
+                  allButtonsWork: checklistData.allButtonsWork,
+                  screenDisplay: checklistData.screenDisplay,
+                  connectivity: checklistData.connectivity,
+                },
+                optical: {
+                  lensClarity: checklistData.lensClarity,
+                  aperture: checklistData.aperture,
+                  focusAccuracy: checklistData.focusAccuracy,
+                  stabilization: checklistData.stabilization,
+                },
+              },
+              notes: checklistData.notes || prev.notes,
+            }));
+
+            showToast({
+              type: 'info',
+              title: 'セラー入力データを読み込みました',
+              message: `セラー ${checklistData.createdBy} が入力した検品チェックリストを表示しています`,
+              duration: 4000
+            });
+          }
+        }
 
         // 保存された進捗を読み込み
         const restoredProgress = await loadProgress();
         
         // 進捗復元のトースト表示
-        if (restoredProgress) {
+        if (restoredProgress && !existingChecklist) {
           setTimeout(() => {
             showToast({
               type: 'info',
@@ -210,9 +299,9 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
   const getStepName = (step: number): string => {
     switch (step) {
       case 1: return '検品項目';
-      case 2: return '動画記録';
-      case 3: return '写真撮影';
-      case 4: return '確認完了';
+      case 2: return '写真撮影';
+      case 3: return '梱包・ラベル';
+      case 4: return '棚保管';
       default: return '不明';
     }
   };
@@ -522,62 +611,132 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
       {/* ステップコンテンツ */}
       <div className="min-h-[500px]">
         {currentStep === 1 && (
-          <InspectionChecklist
-            category={product.category}
-            checklist={inspectionData.checklist}
-            onUpdate={updateChecklist}
-            onNext={() => setCurrentStep(2)}
-            onPrev={() => {}} // 最初のステップなので戻るボタンは無効
-            onSaveAndReturn={() => saveProgress(1)}
-            loading={loading}
-          />
-        )}
-
-        {currentStep === 2 && (
           <div className="space-y-6">
-            <NexusCard className="p-4">
-              <div className="mb-3">
-                <h3 className="text-base font-semibold mb-1">検品作業のタイムスタンプ記録</h3>
-                <p className="text-sm text-gray-600">
-                  作業の開始時刻を記録し、外部録画動画と紐付けます。タイムスタンプは任意で記録してください。
-                </p>
-              </div>
-            </NexusCard>
-            
-            <TimestampVideoRecorder
-              productId={productId}
-              phase="phase2"
-              type="inspection"
-              onRecordingComplete={(timestamps) => {
-                // タイムスタンプが記録されるたびに呼ばれる
-                setVideoId(timestamps.length > 0 ? timestamps[0].id : null);
-              }}
-            />
-            
+            {/* セラーが入力した検品チェックリストがある場合は表示 */}
+            {existingChecklist && (
+              <NexusCard className="p-4 bg-blue-50 border-blue-200">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h3 className="text-base font-semibold text-blue-900">セラー入力済みの検品データ</h3>
+                    <p className="text-sm text-blue-700 mt-1">
+                      セラー {existingChecklist.createdBy} が {new Date(existingChecklist.createdAt).toLocaleDateString('ja-JP')} に入力
+                    </p>
+                  </div>
+                  <NexusButton
+                    onClick={() => setIsEditMode(!isEditMode)}
+                    variant="secondary"
+                    size="sm"
+                  >
+                    {isEditMode ? '編集を終了' : '編集する'}
+                  </NexusButton>
+                </div>
+                
+                <InspectionChecklistInput
+                  data={{
+                    exterior: {
+                      scratches: inspectionData.checklist.exterior.scratches,
+                      dents: inspectionData.checklist.exterior.dents,
+                      discoloration: inspectionData.checklist.exterior.discoloration,
+                      dust: inspectionData.checklist.exterior.dust,
+                    },
+                    functionality: {
+                      powerOn: inspectionData.checklist.functionality.powerOn,
+                      allButtonsWork: inspectionData.checklist.functionality.allButtonsWork,
+                      screenDisplay: inspectionData.checklist.functionality.screenDisplay,
+                      connectivity: inspectionData.checklist.functionality.connectivity,
+                    },
+                    optical: {
+                      lensClarity: inspectionData.checklist.optical?.lensClarity || false,
+                      aperture: inspectionData.checklist.optical?.aperture || false,
+                      focusAccuracy: inspectionData.checklist.optical?.focusAccuracy || false,
+                      stabilization: inspectionData.checklist.optical?.stabilization || false,
+                    },
+                    notes: inspectionData.notes,
+                  }}
+                  onChange={(checklistData) => {
+                    if (isEditMode) {
+                      setInspectionData(prev => ({
+                        ...prev,
+                        checklist: {
+                          exterior: checklistData.exterior,
+                          functionality: checklistData.functionality,
+                          optical: checklistData.optical || prev.checklist.optical,
+                        },
+                        notes: checklistData.notes || prev.notes,
+                      }));
+                    }
+                  }}
+                  showOptical={true}
+                  readOnly={!isEditMode}
+                  verifiedBy={existingChecklist.verifiedBy}
+                  verifiedAt={existingChecklist.verifiedAt}
+                />
+              </NexusCard>
+            )}
+
+            {/* セラーが入力していない場合は新規検品チェックリスト */}
+            {!existingChecklist && (
+              <NexusCard className="p-4">
+                <div className="mb-3">
+                  <h3 className="text-base font-semibold text-gray-900">検品チェックリスト</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    各項目を確認してチェックしてください
+                  </p>
+                </div>
+                
+                <InspectionChecklistInput
+                  data={{
+                    exterior: {
+                      scratches: inspectionData.checklist.exterior.scratches,
+                      dents: inspectionData.checklist.exterior.dents,
+                      discoloration: inspectionData.checklist.exterior.discoloration,
+                      dust: inspectionData.checklist.exterior.dust,
+                    },
+                    functionality: {
+                      powerOn: inspectionData.checklist.functionality.powerOn,
+                      allButtonsWork: inspectionData.checklist.functionality.allButtonsWork,
+                      screenDisplay: inspectionData.checklist.functionality.screenDisplay,
+                      connectivity: inspectionData.checklist.functionality.connectivity,
+                    },
+                    optical: {
+                      lensClarity: inspectionData.checklist.optical?.lensClarity || false,
+                      aperture: inspectionData.checklist.optical?.aperture || false,
+                      focusAccuracy: inspectionData.checklist.optical?.focusAccuracy || false,
+                      stabilization: inspectionData.checklist.optical?.stabilization || false,
+                    },
+                    notes: inspectionData.notes,
+                  }}
+                  onChange={(checklistData) => {
+                    console.log('[DEBUG] チェックリストデータ変更:', checklistData);
+                    setInspectionData(prev => ({
+                      ...prev,
+                      checklist: {
+                        exterior: checklistData.exterior,
+                        functionality: checklistData.functionality,
+                        optical: checklistData.optical || prev.checklist.optical,
+                      },
+                      notes: checklistData.notes || prev.notes,
+                    }));
+                  }}
+                  showOptical={true}
+                  readOnly={false}
+                />
+              </NexusCard>
+            )}
+
+            {/* 次へボタン */}
             <div className="flex justify-between">
-              <div className="flex gap-3">
-                <NexusButton
-                  onClick={() => setCurrentStep(1)}
-                  variant="secondary"
-                  size="lg"
-                  disabled={loading}
-                >
-                  戻る
-                </NexusButton>
-                <NexusButton
-                  onClick={() => saveProgress(2)}
-                  variant="outline"
-                  size="lg"
-                  disabled={loading}
-                >
-                  {loading ? '保存中...' : '保存して一覧に戻る'}
-                </NexusButton>
-              </div>
               <NexusButton
-                onClick={() => setCurrentStep(3)}
+                onClick={() => saveProgress(1)}
+                variant="secondary"
+                size="lg"
+              >
+                保存して後で続ける
+              </NexusButton>
+              <NexusButton
+                onClick={() => setCurrentStep(2)}
                 variant="primary"
                 size="lg"
-                disabled={loading}
               >
                 次へ（写真撮影）
               </NexusButton>
@@ -585,26 +744,37 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
           </div>
         )}
 
-        {currentStep === 3 && (
+        {currentStep === 2 && (
           <PhotoUploader
             productId={productId}
             photos={inspectionData.photos}
             onUpdate={updatePhotos}
-            onNext={() => setCurrentStep(4)}
-            onPrev={() => setCurrentStep(2)}
-            onSaveAndReturn={() => saveProgress(3)}
+            onNext={() => setCurrentStep(3)}
+            onPrev={() => setCurrentStep(1)}
+            onSaveAndReturn={() => saveProgress(2)}
             category={product.category}
             loading={loading}
           />
         )}
 
-        {currentStep === 4 && (
-          <InspectionResult
+        {currentStep === 3 && (
+          <PackagingAndLabelStep
+            productId={productId}
             product={product}
-            inspectionData={inspectionData}
-            onNotesChange={(notes) => setInspectionData(prev => ({ ...prev, notes }))}
-            onSubmit={(locationId) => submitInspection(false, locationId)}
+            onNext={() => setCurrentStep(4)}
+            onPrev={() => setCurrentStep(2)}
+            onSaveAndReturn={() => saveProgress(3)}
+            loading={loading}
+          />
+        )}
+
+        {currentStep === 4 && (
+          <ShelfStorageStep
+            productId={productId}
+            product={product}
+            onComplete={(locationId) => submitInspection(false, locationId)}
             onPrev={() => setCurrentStep(3)}
+            onSaveAndReturn={() => saveProgress(4)}
             loading={loading}
           />
         )}

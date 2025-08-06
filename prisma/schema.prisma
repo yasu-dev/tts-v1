@@ -84,6 +84,7 @@ model Product {
   orderItems   OrderItem[]
   activities   Activity[]
   videoRecords VideoRecord[]
+  inspectionChecklist InspectionChecklist?
 
   @@map("products")
 }
@@ -337,6 +338,7 @@ model DeliveryPlanProduct {
 
   // Relations
   deliveryPlan     DeliveryPlan @relation(fields: [deliveryPlanId], references: [id], onDelete: Cascade)
+  inspectionChecklist InspectionChecklist?
 
   @@map("delivery_plan_products")
 }
@@ -353,4 +355,44 @@ model InspectionProgress {
   updatedAt    DateTime @updatedAt
 
   @@map("inspection_progress")
+}
+
+model InspectionChecklist {
+  id                    String   @id @default(cuid())
+  productId             String?  @unique
+  deliveryPlanProductId String?  @unique
+  
+  // 外観チェック項目
+  hasScratches          Boolean  @default(false)
+  hasDents              Boolean  @default(false)
+  hasDiscoloration      Boolean  @default(false)
+  hasDust               Boolean  @default(false)
+  
+  // 機能チェック項目
+  powerOn               Boolean  @default(false)
+  allButtonsWork        Boolean  @default(false)
+  screenDisplay         Boolean  @default(false)
+  connectivity          Boolean  @default(false)
+  
+  // 光学系チェック項目（カメラ・レンズ用）
+  lensClarity           Boolean  @default(false)
+  aperture              Boolean  @default(false)
+  focusAccuracy         Boolean  @default(false)
+  stabilization         Boolean  @default(false)
+  
+  // メタ情報
+  createdBy             String   // セラーが作成
+  createdAt             DateTime @default(now())
+  verifiedBy            String?  // スタッフが確認
+  verifiedAt            DateTime?
+  updatedBy             String?
+  updatedAt             DateTime @updatedAt
+  
+  notes                 String?
+  
+  // Relations
+  product               Product? @relation(fields: [productId], references: [id])
+  deliveryPlanProduct   DeliveryPlanProduct? @relation(fields: [deliveryPlanProductId], references: [id])
+
+  @@map("inspection_checklists")
 }

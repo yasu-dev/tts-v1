@@ -85,47 +85,111 @@ export async function POST(request: NextRequest) {
 
       // 2. 納品プランの商品をDeliveryPlanProductテーブルに保存
       const planProducts = await Promise.all(
-        planData.products.map((product: any) => 
-          tx.deliveryPlanProduct.create({
+        planData.products.map(async (product: any) => {
+          const deliveryPlanProduct = await tx.deliveryPlanProduct.create({
             data: {
               deliveryPlanId: planId,
               name: product.name,
-              category: product.category,
-              brand: product.brand || '',
-              model: product.model || '',
-              serialNumber: product.serialNumber,
-              estimatedValue: product.estimatedValue || 0,
-              description: product.description
+              category: product.category || 'general',
+              brand: '',
+              model: '',
+              serialNumber: '',
+              estimatedValue: product.purchasePrice || 0,
+              description: `コンディション: ${product.condition}${product.supplierDetails ? `\n仕入れ詳細: ${product.supplierDetails}` : ''}`
             }
-          })
-        )
+          });
+
+          // 検品チェックリストがある場合は保存
+          if (product.inspectionChecklist) {
+            console.log('[DEBUG] 検品チェックリストデータ:', JSON.stringify(product.inspectionChecklist, null, 2));
+            
+            try {
+              // 検品チェックリストの構造を確認
+              const exterior = product.inspectionChecklist.exterior || {};
+              const functionality = product.inspectionChecklist.functionality || {};
+              const optical = product.inspectionChecklist.optical || {};
+              
+              await tx.inspectionChecklist.create({
+                data: {
+                  deliveryPlanProductId: deliveryPlanProduct.id,
+                  hasScratches: Boolean(exterior.scratches),
+                  hasDents: Boolean(exterior.dents),
+                  hasDiscoloration: Boolean(exterior.discoloration),
+                  hasDust: Boolean(exterior.dust),
+                  powerOn: Boolean(functionality.powerOn),
+                  allButtonsWork: Boolean(functionality.allButtonsWork),
+                  screenDisplay: Boolean(functionality.screenDisplay),
+                  connectivity: Boolean(functionality.connectivity),
+                  lensClarity: Boolean(optical.lensClarity),
+                  aperture: Boolean(optical.aperture),
+                  focusAccuracy: Boolean(optical.focusAccuracy),
+                  stabilization: Boolean(optical.stabilization),
+                  notes: product.inspectionChecklist.notes || null,
+                  createdBy: user.username || user.email,
+                }
+              });
+              console.log('[INFO] 検品チェックリスト保存成功');
+            } catch (checklistError) {
+              console.error('[ERROR] 検品チェックリスト保存エラー:', checklistError);
+              // エラーが発生しても処理を継続（検品チェックリストは任意）
+            }
+          }
+
+          return deliveryPlanProduct;
+        })
       );
 
       // 3. スタッフの在庫管理画面用にProductテーブルに「入荷待ち」商品を生成
-      const createdProducts = await Promise.all(
-        planData.products.map((product: any) => {
-          const sku = `${planId}-${Math.random().toString(36).substr(2, 6)}`.toUpperCase();
-          
-          return tx.product.create({
-            data: {
-              name: product.name,
-              sku: sku,
-              category: product.category,
-              status: 'inbound', // 入荷待ちステータス
-              price: product.estimatedValue || 0,
-              condition: 'unknown', // 検品前なので状態不明
-              description: `納品プラン ${planId} からの入庫予定商品。${product.description || ''}`,
-              sellerId: user.id,
-              metadata: JSON.stringify({
-                deliveryPlanId: planId,
-                brand: product.brand,
-                model: product.model,
-                serialNumber: product.serialNumber
-              })
+      const createdProducts = [];
+      
+      for (let index = 0; index < planData.products.length; index++) {
+        const product = planData.products[index];
+        const correspondingPlanProduct = planProducts[index];
+        
+        const sku = `${planId}-${Math.random().toString(36).substr(2, 6)}`.toUpperCase();
+        
+        const createdProduct = await tx.product.create({
+          data: {
+            name: product.name,
+            sku: sku,
+            category: product.category || 'general',
+            status: 'inbound', // 入荷待ちステータス
+            price: product.purchasePrice || 0,
+            condition: product.condition,
+            description: `納品プラン ${planId} からの入庫予定商品。${product.supplierDetails || ''}`,
+            sellerId: user.id,
+            metadata: JSON.stringify({
+              deliveryPlanId: planId,
+              deliveryPlanProductId: correspondingPlanProduct.id,
+              purchaseDate: product.purchaseDate,
+              supplier: product.supplier,
+              supplierDetails: product.supplierDetails,
+              hasInspectionChecklist: !!product.inspectionChecklist
+            })
+          }
+        });
+
+        // 検品チェックリストがある場合は、ProductのIDも関連付け
+        if (product.inspectionChecklist && correspondingPlanProduct) {
+          try {
+            const existingChecklist = await tx.inspectionChecklist.findUnique({
+              where: { deliveryPlanProductId: correspondingPlanProduct.id }
+            });
+            
+            if (existingChecklist) {
+              await tx.inspectionChecklist.update({
+                where: { deliveryPlanProductId: correspondingPlanProduct.id },
+                data: { productId: createdProduct.id }
+              });
             }
-          });
-        })
-      );
+          } catch (updateError) {
+            console.error('[WARN] 検品チェックリストのProduct関連付けに失敗:', updateError);
+            // エラーでも処理は継続
+          }
+        }
+
+        createdProducts.push(createdProduct);
+      }
 
       return {
         ...savedPlan,
@@ -166,8 +230,16 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('[ERROR] 納品プラン作成エラー:', error);
+    
+    // エラーメッセージを詳細化
+    let errorMessage = '納品プランの作成に失敗しました';
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      console.error('[ERROR] 詳細:', error.stack);
+    }
+    
     return NextResponse.json(
-      { error: '納品プランの作成に失敗しました' },
+      { error: errorMessage },
       { status: 500 }
     );
   }
