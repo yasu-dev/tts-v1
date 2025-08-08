@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
 import NexusInput from '@/app/components/ui/NexusInput';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
-import BarcodeScanner from '@/app/components/features/BarcodeScanner';
 
 interface ShelfStorageStepProps {
   productId: string;
@@ -42,32 +41,39 @@ export default function ShelfStorageStep({
   const { showToast } = useToast();
   const [scannedLocation, setScannedLocation] = useState<string>('');
   const [locationData, setLocationData] = useState<StorageLocation | null>(null);
-  const [isScanning, setIsScanning] = useState(false);
   const [isValidatingLocation, setIsValidatingLocation] = useState(false);
   const locationInputRef = useRef<HTMLInputElement>(null);
 
-  // バーコードスキャンによる棚番号読み取り
-  const handleBarcodeScan = async (barcode: string) => {
-    console.log('Scanned barcode:', barcode);
-    setScannedLocation(barcode);
-    setIsScanning(false);
-    
-    // 棚番号の検証
-    await validateLocation(barcode);
-  };
+  // ステップ表示時に棚番号入力へ自動フォーカス
+  useEffect(() => {
+    if (locationInputRef.current) {
+      locationInputRef.current.focus();
+      // 既存値があれば選択して上書きしやすくする
+      try {
+        const inputEl = locationInputRef.current as HTMLInputElement;
+        if (inputEl.value) {
+          inputEl.select();
+        }
+      } catch (_) {
+        // no-op
+      }
+    }
+  }, []);
+
+  // バーコードスキャナは入力欄に直接入力する前提のため、
+  // 専用UIやフローは持たず、入力欄に集約する
 
   // 棚番号の手動入力
-  const handleLocationInput = async (locationCode: string) => {
+  const handleLocationInput = (locationCode: string) => {
+    // 入力中は検証しない（スキャナの逐次入力でエラーが出ないようにする）
     setScannedLocation(locationCode);
-    if (locationCode.trim()) {
-      await validateLocation(locationCode.trim());
-    } else {
+    if (!locationCode.trim()) {
       setLocationData(null);
     }
   };
 
   // 棚番号の検証
-  const validateLocation = async (locationCode: string) => {
+  const validateLocation = async (locationCode: string): Promise<StorageLocation | null> => {
     try {
       setIsValidatingLocation(true);
       
@@ -92,7 +98,7 @@ export default function ShelfStorageStep({
           message: `棚 ${location.name} は満杯です。別の棚を選択してください。`,
           duration: 4000
         });
-        return;
+        return null;
       }
 
       showToast({
@@ -101,7 +107,7 @@ export default function ShelfStorageStep({
         message: `棚 ${location.name} (${location.zone}ゾーン) を確認しました。`,
         duration: 3000
       });
-
+      return location;
     } catch (error) {
       console.error('Location validation error:', error);
       setLocationData(null);
@@ -111,42 +117,50 @@ export default function ShelfStorageStep({
         message: error instanceof Error ? error.message : '棚番号の検証中にエラーが発生しました',
         duration: 4000
       });
+      return null;
     } finally {
       setIsValidatingLocation(false);
     }
   };
 
   // 保管完了処理
-  const handleStorageComplete = () => {
+  const handleStorageComplete = async () => {
+    // 未検証の場合はここで検証を実施
     if (!locationData) {
-      showToast({
-        type: 'warning',
-        title: '保管場所未選択',
-        message: '保管場所を選択してください。',
-        duration: 3000
-      });
+      const code = scannedLocation.trim();
+      if (!code) {
+        showToast({
+          type: 'warning',
+          title: '保管場所未入力',
+          message: '棚番号をスキャンまたは入力してください。',
+          duration: 3000
+        });
+        return;
+      }
+      const validated = await validateLocation(code);
+      if (!validated) {
+        return;
+      }
+    }
+
+    if (!locationData) {
+      // 検証失敗時
       return;
     }
+
+    // 保管完了の即座のフィードバック
+    showToast({
+      type: 'success',
+      title: '保管完了',
+      message: `${product.name} を ${locationData.name} に保管しました。検品一覧に戻ります...`,
+      duration: 1500
+    });
 
     onComplete(locationData.id);
   };
 
-  // スキャナーを開く
-  const startScanning = () => {
-    setIsScanning(true);
-  };
-
-  // スキャナーを閉じる
-  const stopScanning = () => {
-    setIsScanning(false);
-  };
-
-  // 入力フィールドにフォーカス
-  const focusInput = () => {
-    if (locationInputRef.current) {
-      locationInputRef.current.focus();
-    }
-  };
+  // 入力フィールドにフォーカス（モーダル/画面表示時）
+  // スキャナはフォーカスされた入力欄へ自動で文字列を入力する前提
 
   return (
     <div className="space-y-6">
@@ -166,68 +180,17 @@ export default function ShelfStorageStep({
           </div>
         </div>
 
-        {/* バーコードスキャナー */}
+        {/* 単一の入力欄（スキャン／直接入力の双方に対応） */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h4 className="text-base font-medium">棚番号スキャン</h4>
-            <NexusButton
-              onClick={startScanning}
-              variant="primary"
-              size="sm"
-              disabled={isScanning}
-            >
-              {isScanning ? 'スキャン中...' : 'バーコードスキャン'}
-            </NexusButton>
-          </div>
-
-          {isScanning && (
-            <NexusCard className="p-4 bg-blue-50 border-blue-200">
-              <div className="flex items-center justify-between mb-3">
-                <h5 className="text-sm font-medium text-blue-900">バーコードスキャナー</h5>
-                <NexusButton
-                  onClick={stopScanning}
-                  variant="secondary"
-                  size="sm"
-                >
-                  キャンセル
-                </NexusButton>
-              </div>
-              <BarcodeScanner
-                onScan={handleBarcodeScan}
-                onError={(error) => {
-                  console.error('Barcode scan error:', error);
-                  showToast({
-                    type: 'error',
-                    title: 'スキャンエラー',
-                    message: 'バーコードの読み取りに失敗しました。',
-                    duration: 3000
-                  });
-                }}
-              />
-            </NexusCard>
-          )}
-
-          {/* 手動入力 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              または棚番号を直接入力
-            </label>
-            <div className="flex gap-2">
-              <NexusInput
-                ref={locationInputRef}
-                value={scannedLocation}
-                onChange={(e) => handleLocationInput(e.target.value)}
-                placeholder="棚番号を入力してください（例: A-01-001）"
-                disabled={isValidatingLocation}
-              />
-              <NexusButton
-                onClick={focusInput}
-                variant="secondary"
-                size="sm"
-              >
-                フォーカス
-              </NexusButton>
-            </div>
+            <NexusInput
+              ref={locationInputRef}
+              value={scannedLocation}
+              onChange={(e) => handleLocationInput(e.target.value)}
+              placeholder="棚番号をスキャンまたは入力してください（例: A-01-001）"
+              autoFocus
+              disabled={isValidatingLocation}
+            />
             {isValidatingLocation && (
               <p className="text-sm text-blue-600 mt-2">棚番号を確認中...</p>
             )}
@@ -288,7 +251,7 @@ export default function ShelfStorageStep({
           onClick={handleStorageComplete}
           variant="primary"
           size="lg"
-          disabled={!locationData || loading}
+          disabled={!(scannedLocation.trim().length > 0) || loading}
         >
           {loading ? '保管中...' : '保管完了'}
         </NexusButton>

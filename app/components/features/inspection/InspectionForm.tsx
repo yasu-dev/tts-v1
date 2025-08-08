@@ -295,6 +295,24 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
     init();
   }, [productId]);
 
+  // クエリパラメータ step により初期表示ステップを上書き（例: ?step=4 で棚保管を開く）
+  useEffect(() => {
+    try {
+      const url = new URL(window.location.href);
+      const stepParam = url.searchParams.get('step');
+      if (stepParam) {
+        const stepNum = parseInt(stepParam, 10);
+        if ([1,2,3,4].includes(stepNum)) {
+          setCurrentStep(stepNum);
+          // step指定で来た場合はUI初期化が落ち着くまで軽く待ってからフォーカスさせる
+          // 実フォーカスは各ステップ側のuseEffectで対応（棚保管ステップで実装済み）
+        }
+      }
+    } catch (e) {
+      // no-op
+    }
+  }, []);
+
   // ステップ名を取得するヘルパー関数
   const getStepName = (step: number): string => {
     switch (step) {
@@ -489,10 +507,10 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
               result === 'passed' ? '出品準備完了' : 
               result === 'conditional' ? '要確認' : '不合格'
             }」に更新されました。`,
-        duration: 4000
+        duration: 2000
       });
       
-      // 成功時は適切な画面に戻る
+      // 成功時は適切な画面に戻る（即座に遷移）
       setTimeout(() => {
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('from') === 'inventory') {
@@ -502,7 +520,7 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
           // その他の場合は検品一覧に戻る（状態復元フラグ付き）
           window.location.href = '/staff/inspection?restored=1';
         }
-      }, 2000);
+      }, 500); // 2秒から0.5秒に短縮
       
     } catch (error) {
       console.error('[ERROR] Inspection submission:', error);

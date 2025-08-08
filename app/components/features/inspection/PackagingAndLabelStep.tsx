@@ -65,13 +65,19 @@ export default function PackagingAndLabelStep({
         throw new Error('ラベル生成に失敗しました');
       }
 
-      const labelData = await response.json();
+      const result = await response.json();
       
-      // ラベル印刷（実際の印刷機能は別途実装）
-      if (labelData.labelUrl) {
-        // 新しいタブでラベルPDFを開く
-        window.open(labelData.labelUrl, '_blank');
+      if (!result.success || !result.base64Data) {
+        throw new Error(result.message || 'ラベルPDFデータの取得に失敗しました');
       }
+
+      // PDFをダウンロード
+      const link = document.createElement('a');
+      link.href = `data:application/pdf;base64,${result.base64Data}`;
+      link.download = result.fileName || `product_label_${product.sku}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
 
       setLabelPrinted(true);
       showToast({

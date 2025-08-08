@@ -1,6 +1,24 @@
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
+// 型定義
+interface BarcodeLabel {
+  sku: string;
+  barcode: string;
+  productName: string;
+  category?: string;
+  price?: string;
+}
+
+interface ProductLabelData {
+  sku: string;
+  name: string;
+  brand?: string;
+  model?: string;
+  price?: number;
+  category?: string;
+}
+
 /**
  * PDF生成ユーティリティ
  */
@@ -675,6 +693,142 @@ export class PDFGenerator {
   }
 
   /**
+   * 商品ラベルPDF生成
+   */
+  static async generateProductLabel(data: ProductLabelData): Promise<Blob> {
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: [100, 150] // 100mm x 150mm のラベルサイズ
+    });
+
+    const labelWidth = 100;
+    const labelHeight = 150;
+    const margin = 5;
+
+    // ラベル枠線
+    pdf.setDrawColor(0);
+    pdf.setLineWidth(0.5);
+    pdf.rect(2, 2, labelWidth - 4, labelHeight - 4);
+
+    // 会社ロゴ・名称
+    pdf.setFontSize(16);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('THE WORLD DOOR', labelWidth / 2, 15, { align: 'center' });
+
+    // 区切り線
+    pdf.setLineWidth(0.3);
+    pdf.line(margin, 20, labelWidth - margin, 20);
+
+    // 商品情報
+    let yPos = 30;
+    
+    // SKU
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('SKU:', margin, yPos);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(data.sku, margin + 15, yPos);
+
+    yPos += 8;
+    
+    // 商品名（複数行対応）
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('商品名:', margin, yPos);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(10);
+    const nameLines = pdf.splitTextToSize(data.name, labelWidth - 20);
+    pdf.text(nameLines, margin, yPos + 6);
+    
+    yPos += 6 + (nameLines.length * 4);
+
+    // ブランド・モデル
+    if (data.brand) {
+      yPos += 4;
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(11);
+      pdf.text('ブランド:', margin, yPos);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(data.brand, margin + 25, yPos);
+    }
+
+    if (data.model) {
+      yPos += 6;
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('モデル:', margin, yPos);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(data.model, margin + 20, yPos);
+    }
+
+    // バーコード生成エリア
+    yPos += 15;
+    const barcodeWidth = labelWidth - 20;
+    const barcodeHeight = 20;
+    const barcodeX = (labelWidth - barcodeWidth) / 2;
+    
+    // バーコード背景
+    pdf.setFillColor(255, 255, 255);
+    pdf.rect(barcodeX - 2, yPos - 2, barcodeWidth + 4, barcodeHeight + 4, 'F');
+    
+    // バーコード線（簡易実装）
+    pdf.setLineWidth(0.8);
+    pdf.setDrawColor(0);
+    
+    const barcodeData = data.sku.replace(/[^A-Za-z0-9]/g, '');
+    const barCount = 50;
+    
+    for (let i = 0; i < barCount; i++) {
+      const x = barcodeX + (i * (barcodeWidth / barCount));
+      const shouldDraw = PDFGenerator.getBarcodePattern(barcodeData, i);
+      
+      if (shouldDraw) {
+        pdf.setLineWidth(1);
+        pdf.line(x, yPos, x, yPos + barcodeHeight);
+      }
+    }
+    
+    // バーコード番号
+    yPos += barcodeHeight + 8;
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(data.sku, labelWidth / 2, yPos, { align: 'center' });
+
+    // 価格（もしあれば）
+    if (data.price) {
+      yPos += 12;
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(`¥${data.price.toLocaleString()}`, labelWidth / 2, yPos, { align: 'center' });
+    }
+
+    // 生成日時
+    yPos += 15;
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(`生成日: ${new Date().toLocaleDateString('ja-JP')}`, margin, yPos);
+    
+    yPos += 4;
+    pdf.text(`生成者: ${data.generatedBy || 'システム'}`, margin, yPos);
+
+    // QRコード風エリア（右下）
+    const qrSize = 25;
+    const qrX = labelWidth - qrSize - margin;
+    const qrY = labelHeight - qrSize - margin;
+    
+    pdf.setFillColor(0);
+    // 簡易QRコードパターン
+    for (let row = 0; row < 12; row++) {
+      for (let col = 0; col < 12; col++) {
+        if (PDFGenerator.getQRPattern(barcodeData, row, col)) {
+          pdf.rect(qrX + col * 2, qrY + row * 2, 2, 2, 'F');
+        }
+      }
+    }
+
+    return pdf.output('blob');
+  }
+
+  /**
    * HTMLエレメントからPDF生成
    */
   static async generateFromHTML(elementId: string, fileName: string = 'document.pdf'): Promise<void> {
@@ -740,4 +894,14 @@ interface PickingListData {
     isPicked: boolean;
   }>;
   qrCode?: string;
+}
+
+interface ProductLabelData {
+  productId: string;
+  sku: string;
+  name: string;
+  brand?: string;
+  model?: string;
+  price?: number;
+  generatedBy?: string;
 } 

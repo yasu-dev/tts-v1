@@ -26,7 +26,7 @@ import { AlertCircle } from 'lucide-react';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import BaseModal from '@/app/components/ui/BaseModal';
 import NexusTextarea from '@/app/components/ui/NexusTextarea';
-import { parseProductMetadata, filterProductsByInspectionPhotographyStatus, getInspectionPhotographyStatus } from '@/lib/utils/product-status';
+import { parseProductMetadata, getInspectionPhotographyStatus } from '@/lib/utils/product-status';
 
 interface ChecklistItem {
   id: string;
@@ -94,7 +94,7 @@ const mockProducts: Product[] = [
     id: '001',
     name: 'Canon EOS R5 ボディ',
     sku: 'TWD-2024-001',
-    category: 'camera_body',
+    category: 'camera',
     brand: 'Canon',
     model: 'EOS R5',
     status: 'pending_inspection',
@@ -106,7 +106,7 @@ const mockProducts: Product[] = [
     id: '002',
     name: 'Sony FE 24-70mm F2.8 GM',
     sku: 'TWD-2024-002',
-    category: 'lens',
+    category: 'camera',
     brand: 'Sony',
     model: 'SEL2470GM',
     status: 'inspecting',
@@ -118,7 +118,7 @@ const mockProducts: Product[] = [
     id: '003',
     name: 'Nikon D850 ボディ',
     sku: 'TWD-2024-003',
-    category: 'camera_body',
+    category: 'camera',
     brand: 'Nikon',
     model: 'D850',
     status: 'completed',
@@ -130,7 +130,7 @@ const mockProducts: Product[] = [
     id: '004',
     name: 'Canon EF 70-200mm F2.8L IS III',
     sku: 'TWD-2024-004',
-    category: 'lens',
+    category: 'camera',
     brand: 'Canon',
     model: 'EF70-200mm',
     status: 'failed',
@@ -162,16 +162,23 @@ const mockProducts: Product[] = [
 
     imageUrl: '/api/placeholder/150/150',
   },
+  {
+    id: '007',
+    name: 'カメラストラップ',
+    sku: 'TWD-2024-007',
+    category: 'other',
+    brand: 'Generic',
+    model: 'Strap-001',
+    status: 'pending_inspection',
+    receivedDate: '2024-01-15',
+
+    imageUrl: '/api/placeholder/150/150',
+  },
 ];
 
 const categoryLabels = {
-  camera_body: 'カメラボディ',
-  lens: 'レンズ',
+  camera: 'カメラ',
   watch: '腕時計',
-  accessory: 'アクセサリー',
-  bag: 'バッグ',
-  jewelry: 'ジュエリー',
-  electronics: '電子機器',
   other: 'その他',
 };
 
@@ -196,7 +203,15 @@ export default function InspectionPage() {
   const [products, setProducts] = useState<Product[]>(mockProducts);
   const [loading, setLoading] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [progressData, setProgressData] = useState<{[key: string]: {currentStep: number, lastUpdated: string}}>({});
+  const [progressData, setProgressData] = useState<{[key: string]: {currentStep: number, lastUpdated: string}}>({
+    '001': { currentStep: 1, lastUpdated: '2024-01-20T10:00:00Z' }, // 検品項目
+    '002': { currentStep: 2, lastUpdated: '2024-01-19T14:30:00Z' }, // 写真撮影
+    '003': { currentStep: 4, lastUpdated: '2024-01-18T16:00:00Z' }, // 完了
+    '004': { currentStep: 3, lastUpdated: '2024-01-17T11:00:00Z' }, // 梱包・ラベル
+    '005': { currentStep: 1, lastUpdated: '2024-01-21T09:00:00Z' }, // 検品項目
+    '006': { currentStep: 2, lastUpdated: '2024-01-16T13:00:00Z' }, // 写真撮影
+    '007': { currentStep: 1, lastUpdated: '2024-01-15T15:00:00Z' }, // 検品項目
+  });
   const [expandedRows, setExpandedRows] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string>('all');
 
@@ -291,8 +306,18 @@ export default function InspectionPage() {
     try {
       const response = await fetch('/api/products/inspection/progress/all');
       if (response.ok) {
-        const result = await response.json();
-        setProgressData(result.data || {});
+        const list = await response.json();
+        // APIは配列を返すため、製品IDをキーにしたマップへ整形
+        const mapped: { [key: string]: { currentStep: number; lastUpdated: string } } = {};
+        (list || []).forEach((item: any) => {
+          if (item?.productId) {
+            mapped[item.productId] = {
+              currentStep: item.currentStep,
+              lastUpdated: item.lastUpdated || item.updatedAt || new Date().toISOString()
+            };
+          }
+        });
+        setProgressData(mapped);
       }
     } catch (error) {
       console.error('[ERROR] Failed to load progress data:', error);
@@ -366,12 +391,29 @@ export default function InspectionPage() {
     return tabMatch && matchesStatus && matchesCategory && matchesSearch;
   });
 
-  // 検品・撮影状況によるフィルタリング
+  // 検品・撮影状況によるフィルタリング（ステップベース）
   if (selectedInspectionPhotoStatus !== 'all') {
-    filteredProducts = filterProductsByInspectionPhotographyStatus(
-      filteredProducts, 
-      selectedInspectionPhotoStatus as any
-    );
+    filteredProducts = filteredProducts.filter(product => {
+      const progress = progressData[product.id];
+      
+      if (selectedInspectionPhotoStatus === 'not_started') {
+        // 未開始 = プログレスデータがない
+        return !progress;
+      }
+      
+      if (selectedInspectionPhotoStatus === 'completed') {
+        // 完了 = ステップ4まで完了している
+        return progress && progress.currentStep >= 4;
+      }
+      
+      if (selectedInspectionPhotoStatus.startsWith('step_')) {
+        const stepNumber = parseInt(selectedInspectionPhotoStatus.replace('step_', ''));
+        // 指定されたステップが現在のステップ
+        return progress && progress.currentStep === stepNumber;
+      }
+      
+      return true;
+    });
   }
 
   // ソート
@@ -460,7 +502,11 @@ export default function InspectionPage() {
   // 検品続行（ページ遷移に統一）
   const handleContinueInspection = (product: Product) => {
     saveCurrentState();
-    window.location.href = `/staff/inspection/${product.id}`;
+    const progress = progressData[product.id];
+    // 梱包・ラベル（ステップ3）で中断している場合のみ、棚保管（ステップ4）に直接遷移
+    const shouldJumpToStorage = progress && progress.currentStep === 3;
+    const stepQuery = shouldJumpToStorage ? '?step=4' : '';
+    window.location.href = `/staff/inspection/${product.id}${stepQuery}`;
   };
 
   // 商品詳細表示（統一化により不使用）
@@ -493,14 +539,17 @@ export default function InspectionPage() {
     { value: 'pending_inspection', label: '入荷待ち' },
     { value: 'inspecting', label: '検品中' },
     { value: 'completed', label: '完了' },
-    { value: 'failed', label: '拒否' }
+    { value: 'failed', label: '不合格' }
   ];
 
-  // 検品・撮影状況選択肢
+  // 検品・撮影状況選択肢（ステップベース）
   const inspectionPhotoStatusOptions = [
     { value: 'all', label: 'すべての状況' },
-    { value: 'inspection_pending', label: '検品待ち' },
-    { value: 'photography_pending', label: '撮影待ち' },
+    { value: 'not_started', label: '未開始' },
+    { value: 'step_1', label: '検品項目' },
+    { value: 'step_2', label: '写真撮影' },
+    { value: 'step_3', label: '梱包・ラベル' },
+    { value: 'step_4', label: '棚保管' },
     { value: 'completed', label: '完了' }
   ];
 

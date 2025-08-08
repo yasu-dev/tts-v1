@@ -54,7 +54,7 @@ const businessStatusConfig = {
   
   // 返品ステータス
   approved: { label: '承認済み', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
-  rejected: { label: '拒否', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' },
+  rejected: { label: '不合格', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' },
   refunded: { label: '返金済み', color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200' },
 };
 

@@ -403,27 +403,26 @@ export default function DeliveryPage() {
         throw new Error(errorData.error || 'バーコードPDFの生成に失敗しました');
       }
 
-      // HTMLレスポンスを受け取って新しいタブで開く
-      const htmlContent = await response.text();
-      const newWindow = window.open('', '_blank');
-      if (newWindow) {
-        newWindow.document.write(htmlContent);
-        newWindow.document.close();
-        
-        // 印刷ダイアログを表示
-        setTimeout(() => {
-          newWindow.print();
-        }, 500);
-        
-        showToast({
-          type: 'success',
-          title: 'バーコードPDF生成完了',
-          message: 'バーコードPDFが新しいタブで開きました。',
-          duration: 3000
-        });
-      } else {
-        throw new Error('新しいタブを開けませんでした');
+      const result = await response.json();
+      
+      if (!result.success || !result.base64Data) {
+        throw new Error(result.message || 'PDFデータの取得に失敗しました');
       }
+
+      // PDFをダウンロード
+      const link = document.createElement('a');
+      link.href = `data:application/pdf;base64,${result.base64Data}`;
+      link.download = result.fileName || `delivery-plan-${planId}-barcodes.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      showToast({
+        type: 'success',
+        title: 'バーコードPDF生成完了',
+        message: 'バーコードPDFをダウンロードしました。',
+        duration: 3000
+      });
     } catch (error) {
       console.error('PDF生成エラー:', error);
       showToast({

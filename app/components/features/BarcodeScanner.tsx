@@ -62,7 +62,8 @@ export default function BarcodeScanner({
 
     // 短時間で入力が完了した場合はスキャナーからの入力と判定
     scanTimeoutRef.current = setTimeout(() => {
-      if (newValue.length >= 8) { // 最小バーコード長
+      const minLength = scanType === 'location' ? 4 : 8; // ロケーションは短いコードもあり得る
+      if (newValue.length >= minLength) {
         handleScan(newValue);
       }
       setIsScanning(false);
@@ -188,8 +189,11 @@ export default function BarcodeScanner({
       // 商品バーコード: JAN/EAN/UPC形式など
       return /^[0-9]{8,13}$/.test(barcode) || /^TWD-\d{8}-\d{5}$/.test(barcode);
     } else if (type === 'location') {
-      // ロケーションバーコード: 独自形式
-      return /^[A-Z]-\d{2}$/.test(barcode) || /^[A-Z]\d{2}$/.test(barcode);
+      // ロケーションバーコード: 独自形式（短縮/長形式の両方を許容）
+      // 例: A-01, A01, A-01-001
+      return /^[A-Z]-\d{2}$/.test(barcode)
+        || /^[A-Z]\d{2}$/.test(barcode)
+        || /^[A-Z]-\d{2}-\d{3}$/.test(barcode);
     }
     
     return true;

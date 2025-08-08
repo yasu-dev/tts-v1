@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import NexusButton from '@/app/components/ui/NexusButton';
 import NexusCard from '@/app/components/ui/NexusCard';
 import NexusCheckbox from '@/app/components/ui/NexusCheckbox';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
+import { ExternalLink } from 'lucide-react';
 
 interface ConfirmationStepProps {
   data: any;
@@ -146,9 +148,8 @@ export default function ConfirmationStep({
                   </div>
                   <div>
                     <span className="font-medium">カテゴリ:</span> 
-                    {product.category === 'camera_body' ? 'カメラボディ' :
-                     product.category === 'lens' ? 'レンズ' :
-                     product.category === 'watch' ? '腕時計' : 'アクセサリー'}
+                    {product.category === 'camera' ? 'カメラ' :
+                     product.category === 'watch' ? '腕時計' : 'その他'}
                   </div>
                   {product.serialNumber && (
                     <div>
@@ -205,15 +206,19 @@ export default function ConfirmationStep({
               onChange={(e) => handleTermsChange(e.target.checked)}
               className="w-4 h-4 text-primary-blue border-nexus-border rounded focus:ring-primary-blue mt-1"
             />
-            <label className="ml-2 text-sm text-nexus-text-primary cursor-pointer">
+            <label className="ml-2 text-sm text-nexus-text-primary">
               <span className="text-red-500">*</span> 
-              THE WORLD DOORの利用規約およびプライバシーポリシーに同意します
+              THE WORLD DOORの利用規約および
+              <Link 
+                href="/privacy-policy" 
+                target="_blank" 
+                className="text-primary-blue hover:text-blue-700 underline inline-flex items-center mx-1"
+              >
+                プライバシーポリシー
+                <ExternalLink className="w-3 h-3 ml-1" />
+              </Link>
+              に同意します
             </label>
-          </div>
-          <div className="text-xs text-nexus-text-secondary space-y-1 ml-7">
-            <p>• 商品の査定価格は市場状況により変動する場合があります</p>
-            <p>• 商品の状態により査定額が変更される場合があります</p>
-            <p>• 納品後のキャンセルはお受けできません</p>
           </div>
         </div>
       </NexusCard>

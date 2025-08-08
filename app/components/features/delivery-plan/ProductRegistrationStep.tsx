@@ -29,10 +29,9 @@ interface ProductRegistrationStepProps {
 }
 
 const categoryOptions = [
-  { value: 'camera_body', label: 'カメラボディ' },
-  { value: 'lens', label: 'レンズ' },
+  { value: 'camera', label: 'カメラ' },
   { value: 'watch', label: '腕時計' },
-  { value: 'accessory', label: 'アクセサリー' }
+  { value: 'other', label: 'その他' }
 ];
 
 const conditionOptions = [
@@ -62,7 +61,7 @@ export default function ProductRegistrationStep({
       purchaseDate: '',
       supplier: '',
       supplierDetails: '',
-      category: 'camera_body',
+      category: 'camera',
       inspectionChecklist: {
         exterior: {
           scratches: false,
@@ -104,7 +103,7 @@ export default function ProductRegistrationStep({
       purchaseDate: '',
       supplier: '',
       supplierDetails: '',
-      category: 'camera_body',
+      category: 'camera',
       inspectionChecklist: {
         exterior: {
           scratches: false,
@@ -222,7 +221,7 @@ export default function ProductRegistrationStep({
 
                 <NexusSelect
                   label="カテゴリー"
-                  value={product.category || 'camera_body'}
+                  value={product.category || 'camera'}
                   onChange={(e) => updateProduct(index, 'category', e.target.value)}
                   options={categoryOptions}
                   variant="nexus"
