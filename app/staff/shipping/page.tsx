@@ -149,14 +149,7 @@ export default function StaffShippingPage() {
     'storage': (item) => item.status === 'storage',
     'workstation': (item) => item.status === 'picked' || item.status === 'workstation',
     'packed': (item) => item.status === 'packed',
-    'ready_for_pickup': (item) => item.status === 'ready_for_pickup',
-    'today': (item) => {
-      const today = new Date();
-      const itemTime = item.dueDate.split(':');
-      const itemDate = new Date();
-      itemDate.setHours(parseInt(itemTime[0]), parseInt(itemTime[1]));
-      return itemDate.toDateString() === today.toDateString();
-    }
+    'ready_for_pickup': (item) => item.status === 'ready_for_pickup'
   };
 
   // フィルタリング
@@ -191,7 +184,7 @@ export default function StaffShippingPage() {
     'workstation': '梱包待ち',
     'packed': '梱包済み',
     'shipped': '集荷準備完了',
-    'ready_for_pickup': '集荷準備中'
+    'ready_for_pickup': '集荷準備完了'
   };
 
 
@@ -684,8 +677,8 @@ export default function StaffShippingPage() {
       
       showToast({
         type: 'success',
-        title: '集荷準備完了',
-        message: `${orderDisplay} の集荷準備が完了しました（配送業者による集荷待ち）`,
+        title: '作業完了',
+        message: `${orderDisplay} の集荷エリアへの移動が完了しました（配送業者の集荷待ち）`,
         duration: 3000
       });
     } catch (error) {
@@ -766,7 +759,7 @@ export default function StaffShippingPage() {
             className="flex items-center gap-1"
           >
             <TruckIcon className="w-4 h-4" />
-            一括集荷準備 ({packedCount}件)
+            集荷エリアへ移動 ({packedCount}件)
           </NexusButton>
         </div>
       );
@@ -893,8 +886,8 @@ export default function StaffShippingPage() {
     }
     setSelectedItems([]);
     showToast({
-      title: '一括集荷準備完了',
-      message: `${packedItems.length}件の商品を集荷準備状態にしました`,
+      title: '一括作業完了',
+      message: `${packedItems.length}件の商品を集荷エリアへ移動しました`,
       type: 'success'
     });
   };
@@ -934,16 +927,7 @@ export default function StaffShippingPage() {
     workstation: items.filter(i => (!i.isBundled || i.isBundle) && (i.status === 'picked' || i.status === 'workstation')).length,
     packed: items.filter(i => (!i.isBundled || i.isBundle) && i.status === 'packed').length,
     shipped: items.filter(i => (!i.isBundled || i.isBundle) && i.status === 'shipped').length,
-    ready_for_pickup: items.filter(i => (!i.isBundled || i.isBundle) && i.status === 'ready_for_pickup').length,
-
-    todayCount: items.filter(i => {
-      if (i.isBundled && !i.isBundle) return false;
-      const today = new Date();
-      const itemTime = i.dueDate.split(':');
-      const itemDate = new Date();
-      itemDate.setHours(parseInt(itemTime[0]), parseInt(itemTime[1]));
-      return itemDate.toDateString() === today.toDateString();
-    }).length,
+    ready_for_pickup: items.filter(i => (!i.isBundled || i.isBundle) && i.status === 'ready_for_pickup').length
   };
 
   if (loading) {
@@ -1024,34 +1008,58 @@ export default function StaffShippingPage() {
           <div className="p-8">
             {/* タブヘッダー */}
             <div className="border-b border-nexus-border mb-6">
-              <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-                {[
-                  { id: 'all', label: '全体', count: stats.total },
-                  { id: 'storage', label: 'ピッキング待ち', count: stats.storage },
-                  { id: 'workstation', label: '梱包待ち', count: stats.workstation },
-                  { id: 'packed', label: '梱包済み', count: stats.packed },
-                  { id: 'ready_for_pickup', label: '集荷準備中', count: stats.ready_for_pickup },
-                  { id: 'today', label: '本日出荷', count: stats.todayCount },
-                ].map((tab) => (
+              <nav className="-mb-px flex items-center" aria-label="Tabs">
+                {/* 作業があるタブグループ */}
+                <div className="flex space-x-6 border-r border-nexus-border pr-6 mr-6">
+                  <span className="text-xs text-nexus-text-tertiary font-medium uppercase tracking-wider self-center">作業中</span>
+                  {[
+                    { id: 'all', label: '全体', count: stats.total },
+                    { id: 'storage', label: 'ピッキング待ち', count: stats.storage },
+                    { id: 'workstation', label: '梱包待ち', count: stats.workstation },
+                    { id: 'packed', label: '梱包済み', count: stats.packed },
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`
+                        whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors
+                        ${activeTab === tab.id
+                          ? 'border-nexus-blue text-nexus-blue'
+                          : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-gray-300'
+                        }
+                      `}
+                    >
+                      {tab.label}
+                      <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        activeTab === tab.id ? 'bg-nexus-blue text-white' : 'bg-nexus-bg-secondary text-nexus-text-secondary'
+                      }`}>
+                        {tab.count}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                
+                {/* 作業がないタブグループ */}
+                <div className="flex items-center space-x-6">
+                  <span className="text-xs text-nexus-text-tertiary font-medium uppercase tracking-wider">作業完了</span>
                   <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
+                    onClick={() => setActiveTab('ready_for_pickup')}
                     className={`
                       whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors
-                      ${activeTab === tab.id
-                        ? 'border-nexus-blue text-nexus-blue'
+                      ${activeTab === 'ready_for_pickup'
+                        ? 'border-green-500 text-green-600'
                         : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-gray-300'
                       }
                     `}
                   >
-                    {tab.label}
+                    集荷準備完了
                     <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      activeTab === tab.id ? 'bg-nexus-blue text-white' : 'bg-nexus-bg-secondary text-nexus-text-secondary'
+                      activeTab === 'ready_for_pickup' ? 'bg-green-100 text-green-800' : 'bg-nexus-bg-secondary text-nexus-text-secondary'
                     }`}>
-                      {tab.count}
+                      {stats.ready_for_pickup}
                     </span>
                   </button>
-                ))}
+                </div>
               </nav>
             </div>
 
@@ -1149,7 +1157,8 @@ export default function StaffShippingPage() {
                               item.status === 'storage' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
                               item.status === 'picked' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
                               item.status === 'workstation' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
-                              item.status === 'packed' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                              item.status === 'packed' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' :
+                              item.status === 'ready_for_pickup' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
                               item.status === 'shipped' ? 'bg-nexus-blue/20 text-nexus-blue dark:bg-nexus-blue/30 dark:text-nexus-blue' :
                               'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
                             }`}>
@@ -1212,7 +1221,7 @@ export default function StaffShippingPage() {
                                   className="flex items-center gap-1"
                                 >
                                   <TruckIcon className="w-4 h-4" />
-                                  集荷準備
+                                  集荷エリアへ移動
                                 </NexusButton>
                               </>
                             )}
@@ -1227,6 +1236,13 @@ export default function StaffShippingPage() {
                                 <CheckCircleIcon className="w-4 h-4" />
                                 配送完了（手動）
                               </NexusButton>
+                            )}
+                            {item.status === 'ready_for_pickup' && (
+                              <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 dark:bg-green-900/20 px-3 py-2 rounded-lg">
+                                <CheckCircleIcon className="w-4 h-4" />
+                                <span className="font-medium">作業完了</span>
+                                <span className="text-xs text-green-500">（配送業者の集荷待ち）</span>
+                              </div>
                             )}
                           </div>
                         </td>
