@@ -790,7 +790,7 @@ export default function InventoryPage() {
               </div>
               
               {/* セラー向けアクションボタン - 保管中のみ出品ボタンを表示 */}
-              {selectedProduct.status === '保管' && (
+              {selectedProduct.status === 'storage' && (
                 <div className="pt-4 border-t border-gray-200">
                   <div className="flex justify-end">
                     <NexusButton

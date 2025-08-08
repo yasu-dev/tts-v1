@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { BaseModal, NexusButton, NexusSelect, NexusInput, NexusTextarea, NexusCheckbox } from '@/app/components/ui';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
+import TemplateEditor from '@/app/components/features/listing/TemplateEditor';
 import { 
   PhotoIcon, 
   VideoCameraIcon, 
@@ -12,6 +13,13 @@ import {
   MinusIcon,
   InformationCircleIcon
 } from '@heroicons/react/24/outline';
+import { FileCode, Edit3, Loader2, RefreshCw, Eye } from 'lucide-react';
+import { 
+  ebayListingTemplates, 
+  TemplateFields, 
+  defaultTemplateFields,
+  applyFieldsToTemplate 
+} from '@/lib/templates/ebay-listing-templates';
 
 interface Product {
   id: string;
@@ -314,6 +322,26 @@ export default function ListingFormModal({
   
   // Description
   const [description, setDescription] = useState('');
+  const [useTemplate, setUseTemplate] = useState(false);
+  const [showTemplateEditor, setShowTemplateEditor] = useState(false);
+  
+  // Template editing states
+  const [selectedTemplateId, setSelectedTemplateId] = useState('template1');
+  const [templateFields, setTemplateFields] = useState<TemplateFields>(defaultTemplateFields);
+  const [templatePreviewHtml, setTemplatePreviewHtml] = useState('');
+  const [isTemplatePreviewMode, setIsTemplatePreviewMode] = useState(false);
+  const [templateOpticsChecks, setTemplateOpticsChecks] = useState({
+    noFungus: true,
+    noHaze: true,
+    noScratches: true,
+    fewDust: true,
+    noProblem: true
+  });
+  const [templateOpticsAdditionalComment, setTemplateOpticsAdditionalComment] = useState('');
+  
+  // Refs for scroll synchronization
+  const templateEditRef = useRef<HTMLDivElement>(null);
+  const templatePreviewRef = useRef<HTMLDivElement>(null);
   
   // Pricing
   const [formatType, setFormatType] = useState('Buy It Now');
@@ -338,10 +366,43 @@ export default function ListingFormModal({
       setCondition(product.condition);
       setDescription(product.description || '');
       
+      // テンプレートフィールドを商品情報で初期化
+      setTemplateFields({
+        ...defaultTemplateFields,
+        itemTitle: product.name,
+        serialNumber: product.sku
+      });
+      
       // 撮影済み画像を取得
       fetchPhotographyImages(product.id);
     }
   }, [product]);
+
+  // テンプレートプレビューHTMLを更新
+  useEffect(() => {
+    if (useTemplate) {
+      const selectedTemplate = ebayListingTemplates.find(t => t.id === selectedTemplateId);
+      if (selectedTemplate) {
+        const html = applyFieldsToTemplate(selectedTemplate.html, templateFields);
+        setTemplatePreviewHtml(html);
+        setDescription(html); // メインのdescriptionも更新
+      }
+    }
+  }, [selectedTemplateId, templateFields, useTemplate]);
+
+  // Opticsフィールドを更新
+  useEffect(() => {
+    if (useTemplate) {
+      const opticsText = `Beautiful condition.<br>
+${templateOpticsChecks.noFungus ? 'There is no fungus.<br>' : ''}
+${templateOpticsChecks.noHaze ? 'There is no haze.<br>' : ''}
+${templateOpticsChecks.noScratches ? 'There is no scratches.<br>' : ''}
+${templateOpticsChecks.fewDust ? 'There is a few dust.<br>' : ''}
+${templateOpticsChecks.noProblem ? '<strong>No problem in the shooting.</strong>' : ''}${templateOpticsAdditionalComment ? '<br>' + templateOpticsAdditionalComment.replace(/\n/g, '<br>') : ''}`;
+      
+      setTemplateFields(prev => ({ ...prev, optics: opticsText }));
+    }
+  }, [templateOpticsChecks, templateOpticsAdditionalComment, useTemplate]);
 
   // 撮影済み画像を取得
   const fetchPhotographyImages = async (productId: string) => {
@@ -394,6 +455,38 @@ export default function ListingFormModal({
     } else {
       setSelectedPhotographyImages(photographyImages.slice(0, 24));
     }
+  };
+
+  // スクロール連動機能
+  const handleTemplateScroll = (source: 'edit' | 'preview') => {
+    return (e: React.UIEvent<HTMLDivElement>) => {
+      const sourceElement = e.target as HTMLDivElement;
+      const targetElement = source === 'edit' ? templatePreviewRef.current : templateEditRef.current;
+      
+      if (targetElement && sourceElement) {
+        const scrollRatio = sourceElement.scrollTop / (sourceElement.scrollHeight - sourceElement.clientHeight);
+        const targetScrollTop = scrollRatio * (targetElement.scrollHeight - targetElement.clientHeight);
+        targetElement.scrollTop = targetScrollTop;
+      }
+    };
+  };
+
+  // テンプレートフィールド変更ハンドラー
+  const handleTemplateFieldChange = (fieldName: keyof TemplateFields, value: string) => {
+    setTemplateFields(prev => ({ ...prev, [fieldName]: value }));
+  };
+
+  // テンプレートリセット処理
+  const handleTemplateReset = () => {
+    setTemplateFields(defaultTemplateFields);
+    setTemplateOpticsChecks({
+      noFungus: true,
+      noHaze: true,
+      noScratches: true,
+      fewDust: true,
+      noProblem: true
+    });
+    setTemplateOpticsAdditionalComment('');
   };
 
   const handleSubmit = async () => {
@@ -501,6 +594,35 @@ export default function ListingFormModal({
   };
 
   if (!isOpen || !product) return null;
+
+  // テンプレートエディタを表示
+  if (showTemplateEditor) {
+    return (
+      <BaseModal
+        isOpen={isOpen}
+        onClose={onClose}
+        title={language === 'ja' ? 'eBay出品テンプレート編集' : 'eBay Listing Template Editor'}
+        size="xl"
+        showBusinessFlow={false}
+      >
+        <div className="h-[70vh]">
+          <TemplateEditor
+            initialDescription={description}
+            onSave={(html) => {
+              setDescription(html);
+              setShowTemplateEditor(false);
+              showToast({
+                title: language === 'ja' ? 'テンプレート適用完了' : 'Template Applied',
+                message: language === 'ja' ? 'テンプレートが適用されました' : 'Template has been applied',
+                type: 'success'
+              });
+            }}
+            onCancel={() => setShowTemplateEditor(false)}
+          />
+        </div>
+      </BaseModal>
+    );
+  }
 
   return (
     <>
@@ -1058,23 +1180,307 @@ export default function ListingFormModal({
             <section>
               <h3 className="text-lg font-semibold mb-4">{t.description}</h3>
               <div className="space-y-4">
-                <NexusTextarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder={t.writeDescription}
-                  rows={8}
-                  maxLength={1000}
-                />
-                <p className="text-xs text-gray-500">{description.length}/1000</p>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    setIsGeneratingAI(true);
-                    try {
-                      // AI説明生成のシミュレーション
-                      await new Promise(resolve => setTimeout(resolve, 2000));
-                      
-                      const aiDescription = `【${product?.name}】
+                {/* テンプレート使用オプション */}
+                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center gap-2">
+                    <FileCode className="w-5 h-5 text-blue-600" />
+                    <span className="text-sm font-medium text-gray-700">
+                      {language === 'ja' ? 'プロフェッショナルテンプレートを使用' : 'Use Professional Template'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <NexusCheckbox
+                      checked={useTemplate}
+                      onChange={(e) => setUseTemplate(e.target.checked)}
+                      label=""
+                    />
+                    {useTemplate && (
+                      <NexusButton
+                        size="sm"
+                        onClick={() => setShowTemplateEditor(true)}
+                        className="bg-gradient-to-r from-[#0064D2] to-[#0078FF] text-white"
+                      >
+                        <Edit3 className="w-3 h-3 mr-1" />
+                        {language === 'ja' ? 'テンプレート編集' : 'Edit Template'}
+                      </NexusButton>
+                    )}
+                  </div>
+                </div>
+
+                {/* 通常のテキストエリア（テンプレート未使用時） */}
+                {!useTemplate && (
+                  <>
+                    <NexusTextarea
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder={t.writeDescription}
+                      rows={8}
+                      maxLength={4000}
+                    />
+                    <p className="text-xs text-gray-500">{description.length}/4000</p>
+                  </>
+                )}
+
+                {/* テンプレート使用時の編集・プレビュー */}
+                {useTemplate && (
+                  <div className="border rounded-lg overflow-hidden bg-white">
+                    {/* テンプレート選択 */}
+                    <div className="p-3 bg-gray-50 border-b">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {language === 'ja' ? 'テンプレート選択' : 'Template Selection'}
+                      </label>
+                      <div className="grid grid-cols-5 gap-2">
+                        {ebayListingTemplates.map((template) => (
+                          <div
+                            key={template.id}
+                            onClick={() => setSelectedTemplateId(template.id)}
+                            className={`cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
+                              selectedTemplateId === template.id
+                                ? 'border-blue-500 shadow-lg scale-105'
+                                : 'border-gray-200 hover:border-gray-400'
+                            }`}
+                          >
+                            <img
+                              src={template.coverImage}
+                              alt={template.name}
+                              className="w-full h-12 object-cover"
+                            />
+                            <div className="p-1 text-xs text-center font-medium">
+                              {template.name}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* ヘッダーコントロール */}
+                    <div className="p-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+                      <div className="flex justify-between items-center">
+                        <h4 className="font-semibold">
+                          {language === 'ja' ? 'テンプレート編集・プレビュー' : 'Template Editor & Preview'}
+                        </h4>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setIsTemplatePreviewMode(!isTemplatePreviewMode)}
+                            className="px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg transition-colors flex items-center gap-2 text-white text-sm"
+                          >
+                            {isTemplatePreviewMode ? (
+                              <>
+                                <Edit3 className="w-4 h-4" />
+                                {language === 'ja' ? '編集に戻る' : 'Edit'}
+                              </>
+                            ) : (
+                              <>
+                                <Eye className="w-4 h-4" />
+                                {language === 'ja' ? 'プレビュー' : 'Preview'}
+                              </>
+                            )}
+                          </button>
+                          <button
+                            onClick={handleTemplateReset}
+                            className="px-2 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg transition-colors flex items-center gap-1 text-white text-sm"
+                          >
+                            <RefreshCw className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 編集・プレビューエリア */}
+                    <div className="flex h-96 overflow-hidden">
+                      {/* 左側：編集フォーム */}
+                      <div 
+                        ref={templateEditRef}
+                        className={`${isTemplatePreviewMode ? 'hidden' : 'flex'} md:flex flex-col w-full md:w-1/2 p-4 overflow-y-auto bg-white border-r`}
+                        onScroll={handleTemplateScroll('edit')}
+                      >
+                        <div className="space-y-3">
+                          {/* Item Title */}
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                              {language === 'ja' ? '商品タイトル' : 'Item Title'}
+                            </label>
+                            <NexusInput
+                              value={templateFields.itemTitle}
+                              onChange={(e) => handleTemplateFieldChange('itemTitle', e.target.value)}
+                              placeholder="例: Canon AE-1 Program 35mm Film Camera"
+                              size="sm"
+                            />
+                          </div>
+
+                          {/* Total Condition */}
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                              {language === 'ja' ? '全体の状態' : 'Total Condition'}
+                            </label>
+                            <NexusSelect
+                              value={templateFields.totalCondition}
+                              onChange={(e) => handleTemplateFieldChange('totalCondition', e.target.value)}
+                              size="sm"
+                            >
+                              <option value="Mint condition">Mint condition (新品同様)</option>
+                              <option value="Near Mint condition">Near Mint condition (極美品)</option>
+                              <option value="Excellent condition">Excellent condition (美品)</option>
+                              <option value="Very Good condition">Very Good condition (良品)</option>
+                              <option value="Good condition">Good condition (並品)</option>
+                              <option value="Fair condition">Fair condition (難あり)</option>
+                            </NexusSelect>
+                          </div>
+
+                          {/* Serial Number */}
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                              {language === 'ja' ? 'シリアル番号' : 'Serial Number'}
+                            </label>
+                            <NexusInput
+                              value={templateFields.serialNumber}
+                              onChange={(e) => handleTemplateFieldChange('serialNumber', e.target.value)}
+                              placeholder="例: 1234567"
+                              size="sm"
+                            />
+                          </div>
+
+                          {/* Appearance */}
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                              {language === 'ja' ? '外観' : 'Appearance'}
+                            </label>
+                            <NexusTextarea
+                              value={templateFields.appearance.replace(/<br>/g, '\n')}
+                              onChange={(e) => handleTemplateFieldChange('appearance', e.target.value.replace(/\n/g, '<br>'))}
+                              rows={3}
+                              placeholder="外観の状態を詳しく記載"
+                              size="sm"
+                            />
+                          </div>
+
+                          {/* Optics */}
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                              {language === 'ja' ? '光学系 (カメラ・レンズ用)' : 'Optics'}
+                            </label>
+                            <div className="space-y-1 p-2 bg-gray-50 rounded-lg text-xs">
+                              <NexusCheckbox
+                                checked={templateOpticsChecks.noFungus}
+                                onChange={(e) => setTemplateOpticsChecks(prev => ({ ...prev, noFungus: e.target.checked }))}
+                                label="No fungus (カビなし)"
+                                size="sm"
+                              />
+                              <NexusCheckbox
+                                checked={templateOpticsChecks.noHaze}
+                                onChange={(e) => setTemplateOpticsChecks(prev => ({ ...prev, noHaze: e.target.checked }))}
+                                label="No haze (くもりなし)"
+                                size="sm"
+                              />
+                              <NexusCheckbox
+                                checked={templateOpticsChecks.noScratches}
+                                onChange={(e) => setTemplateOpticsChecks(prev => ({ ...prev, noScratches: e.target.checked }))}
+                                label="No scratches (キズなし)"
+                                size="sm"
+                              />
+                              <NexusCheckbox
+                                checked={templateOpticsChecks.fewDust}
+                                onChange={(e) => setTemplateOpticsChecks(prev => ({ ...prev, fewDust: e.target.checked }))}
+                                label="Few dust (チリ少量)"
+                                size="sm"
+                              />
+                              <NexusCheckbox
+                                checked={templateOpticsChecks.noProblem}
+                                onChange={(e) => setTemplateOpticsChecks(prev => ({ ...prev, noProblem: e.target.checked }))}
+                                label="No problem in shooting (撮影に問題なし)"
+                                size="sm"
+                              />
+                            </div>
+                            <NexusTextarea
+                              value={templateOpticsAdditionalComment}
+                              onChange={(e) => setTemplateOpticsAdditionalComment(e.target.value)}
+                              rows={2}
+                              placeholder="追加コメント（オプション）"
+                              className="mt-1"
+                              size="sm"
+                            />
+                          </div>
+
+                          {/* Functional */}
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                              {language === 'ja' ? '動作状態' : 'Functional'}
+                            </label>
+                            <NexusSelect
+                              value={templateFields.functional}
+                              onChange={(e) => handleTemplateFieldChange('functional', e.target.value)}
+                              size="sm"
+                            >
+                              <option value="It works properly.">It works properly (正常動作)</option>
+                              <option value="It works with minor issues.">It works with minor issues (軽微な問題あり)</option>
+                              <option value="It has some issues.">It has some issues (問題あり)</option>
+                              <option value="For parts only.">For parts only (部品取り)</option>
+                              <option value="Not tested.">Not tested (動作未確認)</option>
+                            </NexusSelect>
+                          </div>
+
+                          {/* Bundled Items */}
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                              {language === 'ja' ? '付属品' : 'Bundled Items'}
+                            </label>
+                            <NexusTextarea
+                              value={templateFields.bundledItems.replace(/<br>/g, '\n')}
+                              onChange={(e) => handleTemplateFieldChange('bundledItems', e.target.value.replace(/\n/g, '<br>'))}
+                              rows={3}
+                              placeholder="付属品を記載（例: Camera body, Lens cap, Strap...）"
+                              size="sm"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 右側：プレビュー */}
+                      <div 
+                        ref={templatePreviewRef}
+                        className={`${isTemplatePreviewMode ? 'w-full' : 'hidden'} md:block md:w-1/2 p-4 bg-gray-50 overflow-y-auto`}
+                        onScroll={handleTemplateScroll('preview')}
+                      >
+                        <div className="h-full flex flex-col">
+                          <div className="flex justify-between items-center mb-2">
+                            <h5 className="text-xs font-medium text-gray-700">
+                              {language === 'ja' ? 'プレビュー' : 'Preview'}
+                            </h5>
+                          </div>
+                          <div className="flex-1 bg-white rounded-lg shadow-inner overflow-auto border">
+                            {templatePreviewHtml ? (
+                              <div
+                                dangerouslySetInnerHTML={{ __html: templatePreviewHtml }}
+                                className="w-full min-h-full p-2"
+                                style={{ 
+                                  fontSize: '11px',
+                                  lineHeight: '1.4',
+                                  fontFamily: 'Verdana, sans-serif'
+                                }}
+                              />
+                            ) : (
+                              <div className="flex items-center justify-center h-32 text-gray-500 text-sm">
+                                {language === 'ja' ? 'プレビューを生成中...' : 'Generating preview...'}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* AI生成ボタン（テンプレート未使用時のみ） */}
+                {!useTemplate && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setIsGeneratingAI(true);
+                      try {
+                        // AI説明生成のシミュレーション
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        
+                        const aiDescription = `【${product?.name}】
 
 ■ 商品の特徴
 ・${brand}製の${type || 'カメラ'}です
@@ -1097,41 +1503,39 @@ ${conditionDescription ? `・${conditionDescription}` : ''}
 ■ 注意事項
 ・中古品のため、神経質な方はご遠慮ください
 ・返品・返金は商品説明と著しく異なる場合のみ対応いたします`;
-                      
-                      setDescription(aiDescription);
-                      showToast({
-                        title: language === 'ja' ? 'AI説明生成完了' : 'AI Description Generated',
-                        message: language === 'ja' ? '商品説明が自動生成されました' : 'Product description has been generated',
-                        type: 'success'
-                      });
-                    } catch (error) {
-                      showToast({
-                        title: language === 'ja' ? 'エラー' : 'Error',
-                        message: language === 'ja' ? 'AI説明の生成に失敗しました' : 'Failed to generate AI description',
-                        type: 'error'
-                      });
-                    } finally {
-                      setIsGeneratingAI(false);
-                    }
-                  }}
-                  disabled={isGeneratingAI}
-                  className="flex items-center px-4 py-2 text-sm text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isGeneratingAI ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      {language === 'ja' ? '生成中...' : 'Generating...'}
-                    </>
-                  ) : (
-                    <>
-                      <PlusIcon className="w-4 h-4 mr-2" />
-                      {t.useAiDescription}
-                    </>
-                  )}
-                </button>
+                        
+                        setDescription(aiDescription);
+                        showToast({
+                          title: language === 'ja' ? 'AI説明生成完了' : 'AI Description Generated',
+                          message: language === 'ja' ? '商品説明が自動生成されました' : 'Product description has been generated',
+                          type: 'success'
+                        });
+                      } catch (error) {
+                        showToast({
+                          title: language === 'ja' ? 'エラー' : 'Error',
+                          message: language === 'ja' ? 'AI説明の生成に失敗しました' : 'Failed to generate AI description',
+                          type: 'error'
+                        });
+                      } finally {
+                        setIsGeneratingAI(false);
+                      }
+                    }}
+                    disabled={isGeneratingAI}
+                    className="flex items-center px-4 py-2 text-sm text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isGeneratingAI ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        {language === 'ja' ? '生成中...' : 'Generating...'}
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                        {t.useAiDescription}
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </section>
 
@@ -1533,13 +1937,32 @@ ${conditionDescription ? `・${conditionDescription}` : ''}
                     
                     <div>
                       <h3 className="font-bold mb-4">商品説明</h3>
-                      <div className="whitespace-pre-wrap">
-                        {description || '商品説明が入力されていません'}
+                      <div className="border rounded-lg p-4 bg-gray-50 min-h-[200px]">
+                        {description ? (
+                          useTemplate ? (
+                            <div
+                              dangerouslySetInnerHTML={{ __html: description }}
+                              style={{ 
+                                fontSize: '12px',
+                                lineHeight: '1.4',
+                                fontFamily: 'Verdana, sans-serif'
+                              }}
+                            />
+                          ) : (
+                            <div className="whitespace-pre-wrap text-sm">
+                              {description}
+                            </div>
+                          )
+                        ) : (
+                          <div className="text-gray-500 text-sm">
+                            商品説明が入力されていません
+                          </div>
+                        )}
                       </div>
                       {conditionDescription && (
                         <>
                           <h4 className="font-bold mt-6 mb-2">状態の詳細</h4>
-                          <div className="whitespace-pre-wrap">
+                          <div className="whitespace-pre-wrap text-sm bg-gray-50 rounded-lg p-3">
                             {conditionDescription}
                           </div>
                         </>
