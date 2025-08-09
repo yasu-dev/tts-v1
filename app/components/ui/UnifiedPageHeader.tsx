@@ -2,12 +2,20 @@
 
 import React from 'react';
 import { getUnifiedIcon, IconType } from './icons';
+import { NexusButton } from './index';
+
+interface ActionButton {
+  label: string;
+  onClick: () => void;
+  icon?: React.ReactNode;
+  variant: 'primary' | 'secondary';
+}
 
 interface UnifiedPageHeaderProps {
   title: string;
   subtitle?: string;
   userType: 'seller' | 'staff';
-  actions?: React.ReactNode;
+  actions?: React.ReactNode | ActionButton[];
   iconType?: IconType; // 新しく追加: 各ページに対応するアイコンタイプ
 }
 
@@ -68,7 +76,19 @@ export default function UnifiedPageHeader({
           {/* アクションボタン */}
           {actions && (
             <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
-              {actions}
+              {Array.isArray(actions)
+                ? actions.map((action, index) => (
+                    <NexusButton
+                      key={index}
+                      variant={action.variant}
+                      onClick={action.onClick}
+                      icon={action.icon}
+                    >
+                      {action.label}
+                    </NexusButton>
+                  ))
+                : actions
+              }
             </div>
           )}
         </div>

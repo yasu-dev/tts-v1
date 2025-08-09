@@ -3,8 +3,8 @@ import { AuthService } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
-    // ユーザー認証
-    const user = await AuthService.requireRole(request, ['staff', 'admin']);
+    // ユーザー認証 - セラーもアップロード可能に
+    const user = await AuthService.requireRole(request, ['seller', 'staff', 'admin']);
     if (!user) {
       return NextResponse.json(
         { error: '認証が必要です' },

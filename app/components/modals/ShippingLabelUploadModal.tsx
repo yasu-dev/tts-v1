@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { BaseModal, NexusButton, NexusRadioGroup } from '../ui';
+import { BaseModal, NexusButton } from '../ui';
 import { useToast } from '../features/notifications/ToastProvider';
 import { 
   DocumentArrowUpIcon,
@@ -25,23 +25,12 @@ export default function ShippingLabelUploadModal({
 }: ShippingLabelUploadModalProps) {
   const { showToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [provider, setProvider] = useState<'seller' | 'worlddoor'>('seller');
+  const [provider] = useState<'seller' | 'worlddoor'>('seller'); // 常にセラーが作成
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
 
-  const providerOptions = [
-    {
-      value: 'seller',
-      label: 'セラーが用意',
-      description: 'セラーが他の配送業者システムで作成した伝票をアップロード'
-    },
-    {
-      value: 'worlddoor',
-      label: 'ワールドドア社が用意',
-      description: 'スタッフが他の配送業者システムで作成した伝票をアップロード'
-    }
-  ];
+
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -136,7 +125,6 @@ export default function ShippingLabelUploadModal({
     if (!isOpen) {
       setSelectedFile(null);
       setUploadedUrl(null);
-      setProvider('seller');
     }
   }, [isOpen]);
 
@@ -148,19 +136,6 @@ export default function ShippingLabelUploadModal({
       size="md"
     >
       <div className="space-y-6">
-        {/* 作成者選択 */}
-        <div>
-          <h3 className="text-lg font-semibold text-nexus-text-primary mb-4">
-            伝票の作成者
-          </h3>
-          <NexusRadioGroup
-            options={providerOptions}
-            value={provider}
-            onChange={(value) => setProvider(value as 'seller' | 'worlddoor')}
-            name="provider"
-          />
-        </div>
-
         {/* ファイル選択エリア */}
         <div>
           <h3 className="text-lg font-semibold text-nexus-text-primary mb-4">

@@ -669,11 +669,27 @@ async function main() {
       createdAt: new Date('2024-12-20T10:00:00')
     },
     {
+      type: 'label_generated',
+      description: '注文 ORD-2024-0002 の配送ラベルをFedExで生成しました',
+      userId: seller.id,
+      orderId: (await prisma.order.findFirst({ where: { orderNumber: 'ORD-2024-0002' } }))?.id,
+      metadata: JSON.stringify({ carrier: 'fedex', trackingNumber: 'FEDEX1234567890' }),
+      createdAt: new Date('2024-12-20T09:50:00')
+    },
+    {
       type: 'delivered',
       description: '注文 ORD-2024-0003 が配送完了しました',
       userId: staff.id,
       orderId: (await prisma.order.findFirst({ where: { orderNumber: 'ORD-2024-0003' } }))?.id,
       createdAt: new Date('2024-12-20T16:45:00')
+    },
+    {
+      type: 'label_uploaded',
+      description: '注文 ORD-2024-0001 の配送ラベルをセラーがアップロードしました',
+      userId: seller.id,
+      orderId: (await prisma.order.findFirst({ where: { orderNumber: 'ORD-2024-0001' } }))?.id,
+      metadata: JSON.stringify({ provider: 'seller', fileName: 'yamato_label_ord0001.pdf' }),
+      createdAt: new Date('2024-12-20T09:40:00')
     },
     {
       type: 'inspection',

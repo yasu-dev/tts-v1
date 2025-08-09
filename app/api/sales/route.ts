@@ -6,8 +6,11 @@ import path from 'path';
 
 const prisma = new PrismaClient();
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const type = searchParams.get('type');
+    
     // Prismaを使用して売上データを取得
     const orders = await prisma.order.findMany({
       include: {
@@ -41,16 +44,35 @@ export async function GET() {
     const completedOrders = orders.filter(order => order.status === 'delivered').length;
     const averageOrderValue = totalOrders > 0 ? Math.round(totalSales / totalOrders) : 0;
 
+    // アクティビティからラベル生成/アップロードの有無を判定
+    const orderIds = orders.map(o => o.id);
+    const labelActivities = await prisma.activity.findMany({
+      where: {
+        orderId: { in: orderIds },
+        OR: [{ type: 'label_generated' }, { type: 'label_uploaded' }]
+      }
+    });
+    const orderIdToLabel = new Map<string, boolean>();
+    for (const act of labelActivities) {
+      if (act.orderId) orderIdToLabel.set(act.orderId, true);
+    }
+
     // 受注一覧用データに変換
-    const recentOrders = orders.map(order => ({
-      id: order.id,
-      orderId: order.orderNumber,
-      product: order.items.length > 0 ? order.items[0].product.name : '商品なし',
-      customer: order.customer.username,
-      amount: order.totalAmount,
-      status: mapOrderStatus(order.status),
-      date: order.orderDate.toLocaleDateString('ja-JP')
-    }));
+    const recentOrders = orders.map(order => {
+      const statusKey = order.status; // pending | confirmed | processing | shipped | delivered | cancelled | returned
+      const labelGenerated = orderIdToLabel.get(order.id) || ['shipped', 'delivered'].includes(order.status);
+      return {
+        id: order.id,
+        orderId: order.orderNumber,
+        product: order.items.length > 0 ? order.items[0].product.name : '商品なし',
+        customer: order.customer.username,
+        amount: order.totalAmount,
+        status: mapOrderStatus(order.status),
+        statusKey,
+        labelGenerated,
+        date: order.orderDate.toLocaleDateString('ja-JP')
+      };
+    });
 
     // トップ商品を計算（注文数の多い商品）
     const productCounts = new Map();
@@ -145,13 +167,13 @@ export async function POST(request: Request) {
 // 注文ステータスを日本語に変換
 function mapOrderStatus(status: string): string {
   const statusMap: { [key: string]: string } = {
-    'pending': '保留中',
-    'confirmed': '確認済み',
-    'processing': '処理中',
-    'shipped': '出荷済',
-    'delivered': '配送完了',
-    'cancelled': 'キャンセル',
-    'returned': '返品'
+    pending: '未確定',
+    confirmed: '受注確定',
+    processing: '出荷準備中',
+    shipped: '出荷済み',
+    delivered: '配達完了',
+    cancelled: 'キャンセル',
+    returned: '返品'
   };
   return statusMap[status] || status;
 }
