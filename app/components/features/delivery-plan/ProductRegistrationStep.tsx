@@ -71,40 +71,7 @@ export default function ProductRegistrationStep({
 }: ProductRegistrationStepProps) {
   const { showToast } = useToast();
   
-  const defaultProducts: Product[] = [
-    // デモ用のデフォルト商品データ
-    {
-      name: 'Canon EOS R5',
-      condition: 'excellent',
-      purchasePrice: 380000,
-      purchaseDate: '',
-      supplier: '',
-      supplierDetails: '',
-      category: 'camera',
-      images: [], // 画像配列を初期化
-      inspectionChecklist: {
-        exterior: {
-          scratches: false,
-          dents: false,
-          discoloration: false,
-          dust: false,
-        },
-        functionality: {
-          powerOn: false,
-          allButtonsWork: false,
-          screenDisplay: false,
-          connectivity: false,
-        },
-        optical: {
-          lensClarity: false,
-          aperture: false,
-          focusAccuracy: false,
-          stabilization: false,
-        },
-        notes: '',
-      }
-    }
-  ];
+  const defaultProducts: Product[] = [];
 
   // productsの安全な初期化
   const initialProducts = (() => {
@@ -116,17 +83,7 @@ export default function ProductRegistrationStep({
 
   const [products, setProducts] = useState<Product[]>(initialProducts);
 
-  // 初期化時に商品データを親コンポーネントに送信（useLayoutEffectで初回レンダリング前に実行）
-  useEffect(() => {
-    // 既にdata.productsがある場合はスキップ
-    if (!Array.isArray(data.products) || data.products.length === 0) {
-      // 非同期で更新を実行（レンダリング中のsetState警告を回避）
-      const timer = setTimeout(() => {
-        onUpdate({ products: defaultProducts });
-      }, 0);
-      return () => clearTimeout(timer);
-    }
-  }, []);
+  // 商品が空の場合は何も自動更新しない
 
   const addProduct = () => {
     const newProduct: Product = {
@@ -186,6 +143,18 @@ export default function ProductRegistrationStep({
     try {
       const formData = new FormData();
       files.forEach(file => formData.append('images', file));
+      
+      // productIdとcategoryを追加（一意のIDを生成）
+      const productId = `product-${index}-${Date.now()}`;
+      formData.append('productId', productId);
+      formData.append('category', 'general');
+      
+      console.log('[DEBUG] 画像アップロード開始:', {
+        productIndex: index,
+        productId,
+        fileCount: files.length,
+        files: files.map(f => f.name)
+      });
       
       const response = await fetch('/api/images/upload', {
         method: 'POST',

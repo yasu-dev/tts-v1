@@ -306,7 +306,12 @@ export default function DashboardPage() {
         setLoading(false);
       })
       .catch((error) => {
-        console.error('Dashboard data fetch error:', error);
+        console.error('[ERROR] Dashboard data fetch error:', error);
+        showToast({
+          type: 'error',
+          title: 'データ読み込みエラー',
+          message: 'ダッシュボードデータの読み込みに失敗しました。'
+        });
         setLoading(false);
       });
   }, [selectedPeriod]); // 選択期間が変更されたときに再読み込み

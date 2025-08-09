@@ -8,8 +8,8 @@ import { useToast } from '@/app/components/features/notifications/ToastProvider'
 import NexusCheckbox from '@/app/components/ui/NexusCheckbox';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('seller@example.com'); // デフォルトでテスト用メール
+  const [password, setPassword] = useState('password123'); // デフォルトでテスト用パスワード
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -45,7 +45,13 @@ export default function LoginPage() {
         throw new Error(errorData.error || 'サーバーエラーが発生しました。');
       }
     } catch (error: any) {
+      console.error('[ERROR] ログインエラー:', error);
       setError(error.message || 'ログインに失敗しました');
+      showToast({ 
+        type: 'error', 
+        title: 'ログインエラー', 
+        message: error.message || 'ログインに失敗しました' 
+      });
     } finally {
       setIsLoading(false);
     }
@@ -92,6 +98,15 @@ export default function LoginPage() {
           <div className="intelligence-card global shadow-xl">
             <div className="p-8">
               <form className="space-y-6" onSubmit={handleSubmit} method="post">
+                {/* テスト用認証情報表示 */}
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-md text-sm">
+                  <div className="font-medium text-blue-800 mb-1">🧪 テスト用認証情報</div>
+                  <div className="text-blue-600">
+                    <div>メール: seller@example.com</div>
+                    <div>パスワード: password123</div>
+                  </div>
+                </div>
+
                 {error && (
                   <div className="bg-nexus-red/8 border-2 border-nexus-red/20 text-nexus-red p-4 rounded-lg text-sm font-medium flex items-center">
                     <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -9,10 +9,13 @@ const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('[DEBUG] 納品プラン作成API開始');
+    
     // 認証チェック（セラーのみ）
     let user;
     try {
       user = await AuthService.requireRole(request, ['seller']);
+      console.log('[DEBUG] 認証成功:', user.email);
     } catch (authError) {
       console.error('[ERROR] 認証エラー:', authError);
       return NextResponse.json(
@@ -33,12 +36,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!planData.basicInfo?.contactEmail) {
-      return NextResponse.json(
-        { error: '連絡先メールアドレスは必須です。' },
-        { status: 400 }
-      );
-    }
+    // 連絡先メールアドレスはユーザーのメールアドレスを使用
 
     if (!planData.products || planData.products.length === 0) {
       return NextResponse.json(
@@ -63,8 +61,22 @@ export async function POST(request: NextRequest) {
     const planId = `DP-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
     // データベーストランザクション内で納品プランと商品を保存
+    console.log('[DEBUG] データベース処理開始');
+    
     const deliveryPlan = await prisma.$transaction(async (tx) => {
+      console.log('[DEBUG] トランザクション内処理開始');
+      
       // 1. 納品プランをデータベースに保存
+      console.log('[DEBUG] 納品プラン作成データ:', {
+        planId,
+        sellerId: user.id,
+        sellerName: user.username || user.email,
+        deliveryAddress: planData.basicInfo.deliveryAddress,
+        contactEmail: user.email,
+        phoneNumber: planData.basicInfo.phoneNumber || null,
+        totalItems: validProducts.length
+      });
+      
       const savedPlan = await tx.deliveryPlan.create({
         data: {
           id: planId,
@@ -72,20 +84,24 @@ export async function POST(request: NextRequest) {
           sellerId: user.id,
           sellerName: user.username || user.email,
           deliveryAddress: planData.basicInfo.deliveryAddress,
-          contactEmail: planData.basicInfo.contactEmail,
+          contactEmail: user.email,
           phoneNumber: planData.basicInfo.phoneNumber || null,
           status: '発送待ち',
-          totalItems: planData.products.length,
-          totalValue: planData.products.reduce((sum: number, product: any) => 
+          totalItems: validProducts.length,
+          totalValue: validProducts.reduce((sum: number, product: any) => 
             sum + (product.estimatedValue || 0), 0
           ),
           notes: planData.confirmation?.notes
         }
       });
+      
+      console.log('[DEBUG] 納品プラン作成完了:', savedPlan.id);
 
       // 2. 納品プランの商品をDeliveryPlanProductテーブルに保存
+      console.log('[DEBUG] 商品データ処理開始:', validProducts.length, '件');
       const planProducts = await Promise.all(
-        planData.products.map(async (product: any) => {
+        validProducts.map(async (product: any, index: number) => {
+          console.log(`[DEBUG] 商品${index + 1}処理中:`, product.name);
           const deliveryPlanProduct = await tx.deliveryPlanProduct.create({
             data: {
               deliveryPlanId: planId,
@@ -230,17 +246,34 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('[ERROR] 納品プラン作成エラー:', error);
+    console.error('[ERROR] エラータイプ:', typeof error);
+    console.error('[ERROR] エラー名前:', error?.constructor?.name);
     
     // エラーメッセージを詳細化
     let errorMessage = '納品プランの作成に失敗しました';
+    let statusCode = 500;
+    
     if (error instanceof Error) {
       errorMessage = error.message;
       console.error('[ERROR] 詳細:', error.stack);
+      
+      // Prisma関連のエラーかどうかをチェック
+      if (error.name === 'PrismaClientKnownRequestError') {
+        console.error('[ERROR] Prismaエラーコード:', (error as any).code);
+        errorMessage = 'データベースエラーが発生しました。入力データを確認してください。';
+      } else if (error.name === 'PrismaClientValidationError') {
+        console.error('[ERROR] Prismaバリデーションエラー');
+        errorMessage = 'データの形式が正しくありません。';
+        statusCode = 400;
+      }
     }
     
     return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 }
+      { 
+        error: errorMessage,
+        details: process.env.NODE_ENV === 'development' ? error?.message : undefined
+      },
+      { status: statusCode }
     );
   }
 }

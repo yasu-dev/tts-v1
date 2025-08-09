@@ -306,7 +306,7 @@ model DeliveryPlan {
   planNumber         String   @unique
   sellerId           String
   sellerName         String
-  status             String   // '下書き', '発送待ち', '発送済'
+  status             String   // '発送待ち', '発送済'
   deliveryAddress    String
   contactEmail       String
   phoneNumber        String?
@@ -315,7 +315,7 @@ model DeliveryPlan {
   totalValue         Int      @default(0)
   shippingTrackingNumber String? // 発送伝票番号（任意）
   shippedAt          DateTime? // 発送日時
-  draftData          String?  // 下書き用データ（JSON）
+
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
@@ -419,4 +419,16 @@ model InspectionChecklist {
   deliveryPlanProduct   DeliveryPlanProduct? @relation(fields: [deliveryPlanProductId], references: [id])
 
   @@map("inspection_checklists")
+}
+
+model Warehouse {
+  id            String   @id @default(cuid())
+  name          String
+  address       String
+  contactPerson String
+  phoneNumber   String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("warehouses")
 }

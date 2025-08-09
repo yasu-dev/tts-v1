@@ -20,7 +20,6 @@ import {
   FunnelIcon,
   ChevronUpIcon,
   ChevronDownIcon,
-  PencilIcon
 } from '@heroicons/react/24/outline';
 import NexusButton from '@/app/components/ui/NexusButton';
 import NexusInput from '@/app/components/ui/NexusInput';
@@ -387,8 +386,7 @@ export default function DeliveryPage() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case '下書き':
-        return <DocumentTextIcon className="h-5 w-5 text-gray-600" />;
+
       case '発送待ち':
         return <CheckCircleIcon className="h-5 w-5 text-blue-600" />;
       case '発送済':
@@ -400,8 +398,7 @@ export default function DeliveryPage() {
 
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
-      case '下書き':
-        return 'bg-gray-100 text-gray-800';
+
       case '発送待ち':
         return 'bg-blue-100 text-blue-800';
       case '発送済':
@@ -413,7 +410,7 @@ export default function DeliveryPage() {
 
   const statusOptions = [
     { value: 'all', label: '全てのステータス' },
-    { value: '下書き', label: '下書き' },
+
     { value: '発送待ち', label: '発送待ち' },
     { value: '発送済', label: '発送済' }
   ];
@@ -666,18 +663,7 @@ export default function DeliveryPage() {
                             <EyeIcon className="h-4 w-4" />
                             <span className="ml-1">詳細</span>
                           </NexusButton>
-                          {plan.status === '下書き' && (
-                            <NexusButton
-                              variant="primary"
-                              size="sm"
-                              onClick={() => window.open(`/delivery-plan?edit=${plan.id}`, '_blank')}
-                              className="flex items-center gap-1"
-                              title="下書きを編集"
-                            >
-                              <PencilIcon className="h-4 w-4" />
-                              <span className="ml-1">編集</span>
-                            </NexusButton>
-                          )}
+
                           {plan.status === '発送待ち' && (
                             <NexusButton
                               variant="primary"
@@ -799,14 +785,7 @@ export default function DeliveryPage() {
               >
                 閉じる
               </NexusButton>
-              {selectedPlan.status === '下書き' && (
-                <NexusButton
-                  variant="primary"
-                  onClick={() => router.push(`/delivery-plan?edit=${selectedPlan.id}`)}
-                >
-                  編集
-                </NexusButton>
-              )}
+
               <NexusButton
                 variant="primary"
                 onClick={() => generateBarcodePDF(selectedPlan.id)}

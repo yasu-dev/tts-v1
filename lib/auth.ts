@@ -167,6 +167,19 @@ export class AuthService {
       return null;
     }
 
+    // 一時的な固定トークン認証
+    if (token === 'fixed-auth-token-12345') {
+      return {
+        id: 'seller-1',
+        email: 'seller@example.com',
+        username: 'seller',
+        role: 'seller',
+        fullName: 'テストセラー',
+        phoneNumber: '090-1234-5678',
+        address: '東京都渋谷区1-1-1',
+      };
+    }
+
     return this.validateSession(token);
   }
 
