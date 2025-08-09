@@ -49,12 +49,32 @@ export default function InspectionChecklistInput({
 
   const handleCheckChange = (category: string, item: string, value: boolean) => {
     const updatedData = { ...data };
-    if (category === 'exterior') {
-      updatedData.exterior = { ...updatedData.exterior, [item]: value };
-    } else if (category === 'functionality') {
-      updatedData.functionality = { ...updatedData.functionality, [item]: value };
-    } else if (category === 'optical' && updatedData.optical) {
-      updatedData.optical = { ...updatedData.optical, [item]: value };
+    // 統一された12項目のマッピング
+    const itemMapping: { [key: string]: { category: string; field: string } } = {
+      'exteriorScratches': { category: 'exterior', field: 'scratches' },
+      'dentsImpacts': { category: 'exterior', field: 'dents' },
+      'missingParts': { category: 'exterior', field: 'discoloration' },
+      'dirtDust': { category: 'exterior', field: 'dust' },
+      'agingDeterioration': { category: 'functionality', field: 'powerOn' },
+      'functionalIssues': { category: 'functionality', field: 'allButtonsWork' },
+      'controlIssues': { category: 'functionality', field: 'screenDisplay' },
+      'displayIssues': { category: 'functionality', field: 'connectivity' },
+      'coreComponentIssues': { category: 'optical', field: 'lensClarity' },
+      'waterproofIssues': { category: 'optical', field: 'aperture' },
+      'accessoryDiscrepancy': { category: 'optical', field: 'focusAccuracy' },
+      'warrantyAuthenticity': { category: 'optical', field: 'stabilization' },
+    };
+
+    const mapping = itemMapping[item];
+    if (mapping) {
+      if (mapping.category === 'exterior') {
+        updatedData.exterior = { ...updatedData.exterior, [mapping.field]: value };
+      } else if (mapping.category === 'functionality') {
+        updatedData.functionality = { ...updatedData.functionality, [mapping.field]: value };
+      } else if (mapping.category === 'optical') {
+        if (!updatedData.optical) updatedData.optical = { lensClarity: false, aperture: false, focusAccuracy: false, stabilization: false };
+        updatedData.optical = { ...updatedData.optical, [mapping.field]: value };
+      }
     }
     onChange(updatedData);
   };
@@ -63,44 +83,39 @@ export default function InspectionChecklistInput({
     onChange({ ...data, notes });
   };
 
-  const checklistItems = [
+  interface ChecklistItem {
+    key: string;
+    label: string;
+    description: string;
+    checked: boolean;
+  }
+
+  interface ChecklistCategory {
+    category: string;
+    key: string;
+    items: ChecklistItem[];
+  }
+
+  const checklistItems: ChecklistCategory[] = [
     {
-      category: '外観',
-      key: 'exterior',
+      category: '検品チェックリスト（該当項目のみチェック）',
+      key: 'issues',
       items: [
-        { key: 'scratches', label: '傷なし', checked: data.exterior.scratches },
-        { key: 'dents', label: 'へこみなし', checked: data.exterior.dents },
-        { key: 'discoloration', label: '変色なし', checked: data.exterior.discoloration },
-        { key: 'dust', label: 'ほこりなし', checked: data.exterior.dust },
-      ],
-    },
-    {
-      category: '機能',
-      key: 'functionality',
-      items: [
-        { key: 'powerOn', label: '電源ON確認', checked: data.functionality.powerOn },
-        { key: 'allButtonsWork', label: 'ボタン動作確認', checked: data.functionality.allButtonsWork },
-        { key: 'screenDisplay', label: '画面表示確認', checked: data.functionality.screenDisplay },
-        { key: 'connectivity', label: '接続確認', checked: data.functionality.connectivity },
+        { key: 'exteriorScratches', label: '外装キズ', description: '目立つ傷がある場合チェック', checked: data.exterior.scratches },
+        { key: 'dentsImpacts', label: '打痕・へこみ', description: '落下痕等がある場合チェック', checked: data.exterior.dents },
+        { key: 'missingParts', label: '部品欠損', description: '欠品がある場合チェック', checked: data.exterior.discoloration },
+        { key: 'dirtDust', label: '汚れ・ホコリ', description: '清掃が必要な場合チェック', checked: data.exterior.dust },
+        { key: 'agingDeterioration', label: '経年劣化', description: 'ラバー劣化等がある場合チェック', checked: data.functionality.powerOn },
+        { key: 'functionalIssues', label: '動作不良', description: '基本機能に問題がある場合チェック', checked: data.functionality.allButtonsWork },
+        { key: 'controlIssues', label: '操作系異常', description: 'ボタン・ダイヤル不良がある場合チェック', checked: data.functionality.screenDisplay },
+        { key: 'displayIssues', label: '表示異常', description: '液晶・針に問題がある場合チェック', checked: data.functionality.connectivity },
+        { key: 'coreComponentIssues', label: '光学系/ムーブメント異常', description: '核心部品に問題がある場合チェック', checked: data.optical?.lensClarity || false },
+        { key: 'waterproofIssues', label: '防水性能劣化', description: '密閉性に問題がある場合チェック', checked: data.optical?.aperture || false },
+        { key: 'accessoryDiscrepancy', label: '付属品相違', description: '申告と異なる場合チェック', checked: data.optical?.focusAccuracy || false },
+        { key: 'warrantyAuthenticity', label: '保証書・真贋問題', description: '疑義がある場合チェック', checked: data.optical?.stabilization || false },
       ],
     },
   ];
-
-  if (showOptical && data.optical) {
-    console.log('[DEBUG] 光学系項目を追加:', { showOptical, optical: data.optical });
-    checklistItems.push({
-      category: '光学系',
-      key: 'optical',
-      items: [
-        { key: 'lensClarity', label: 'レンズクリア', checked: data.optical.lensClarity },
-        { key: 'aperture', label: '絞り動作確認', checked: data.optical.aperture },
-        { key: 'focusAccuracy', label: 'フォーカス精度', checked: data.optical.focusAccuracy },
-        { key: 'stabilization', label: '手ぶれ補正確認', checked: data.optical.stabilization },
-      ],
-    });
-  } else {
-    console.log('[DEBUG] 光学系項目をスキップ:', { showOptical, hasOptical: !!data.optical });
-  }
 
   // 全項目数とチェック済み項目数を計算
   const totalItems = checklistItems.reduce((sum, cat) => sum + cat.items.length, 0);
@@ -146,15 +161,19 @@ export default function InspectionChecklistInput({
             {checklistItems.map((category) => (
               <div key={category.key}>
                 <h4 className="text-sm font-medium text-gray-700 mb-3">{category.category}</h4>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3">
                   {category.items.map((item) => (
-                    <NexusCheckbox
-                      key={item.key}
-                      label={item.label}
-                      checked={item.checked}
-                      onChange={(checked) => handleCheckChange(category.key, item.key, checked)}
-                      disabled={readOnly}
-                    />
+                    <div key={item.key} className="p-2 rounded-md border border-gray-200 hover:border-blue-300 transition-all bg-white">
+                      <NexusCheckbox
+                        label={item.label}
+                        checked={item.checked}
+                        onChange={(checked) => handleCheckChange(category.key, item.key, checked)}
+                        disabled={readOnly}
+                      />
+                      {item.description && (
+                        <p className="text-xs text-gray-600 mt-1 ml-6">{item.description}</p>
+                      )}
+                    </div>
                   ))}
                 </div>
               </div>

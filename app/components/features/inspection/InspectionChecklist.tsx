@@ -48,30 +48,23 @@ export default function InspectionChecklist({
   onSaveAndReturn,
   loading = false,
 }: InspectionChecklistProps) {
-  // 検品項目の定義
+  // 検品項目の定義（12項目統一・任意チェック）
   const checkItems: { [key: string]: CheckItem[] } = {
-    exterior: [
-      { key: 'scratches', label: '傷の有無', description: '本体に目立つ傷がないか確認' },
-      { key: 'dents', label: 'へこみ', description: '落下痕や打痕がないか確認' },
-      { key: 'discoloration', label: '変色・退色', description: '色あせや変色がないか確認' },
-      { key: 'dust', label: 'ホコリ・汚れ', description: '清掃が必要な汚れがないか確認' },
-    ],
-    functionality: [
-      { key: 'powerOn', label: '電源ON/OFF', description: '正常に起動・終了するか確認' },
-      { key: 'allButtonsWork', label: 'ボタン動作', description: 'すべてのボタンが正常に動作するか' },
-      { key: 'screenDisplay', label: '画面表示', description: 'LCD/EVFが正常に表示されるか' },
-      { key: 'connectivity', label: '接続端子', description: 'USB/HDMI等の端子が正常か' },
-    ],
-    optical: [
-      { key: 'lensClarity', label: 'レンズ透明度', description: 'カビ・曇り・傷がないか確認' },
-      { key: 'aperture', label: '絞り動作', description: '絞り羽根が正常に動作するか' },
-      { key: 'focusAccuracy', label: 'フォーカス精度', description: 'AF/MFが正確に動作するか' },
-      { key: 'stabilization', label: '手ぶれ補正', description: '手ぶれ補正機能が動作するか' },
+    issues: [
+      { key: 'exteriorScratches', label: '外装キズ', description: '目立つ傷がある場合チェック' },
+      { key: 'dentsImpacts', label: '打痕・へこみ', description: '落下痕等がある場合チェック' },
+      { key: 'missingParts', label: '部品欠損', description: '欠品がある場合チェック' },
+      { key: 'dirtDust', label: '汚れ・ホコリ', description: '清掃が必要な場合チェック' },
+      { key: 'agingDeterioration', label: '経年劣化', description: 'ラバー劣化等がある場合チェック' },
+      { key: 'functionalIssues', label: '動作不良', description: '基本機能に問題がある場合チェック' },
+      { key: 'controlIssues', label: '操作系異常', description: 'ボタン・ダイヤル不良がある場合チェック' },
+      { key: 'displayIssues', label: '表示異常', description: '液晶・針に問題がある場合チェック' },
+      { key: 'coreComponentIssues', label: '光学系/ムーブメント異常', description: '核心部品に問題がある場合チェック' },
+      { key: 'waterproofIssues', label: '防水性能劣化', description: '密閉性に問題がある場合チェック' },
+      { key: 'accessoryDiscrepancy', label: '付属品相違', description: '申告と異なる場合チェック' },
+      { key: 'warrantyAuthenticity', label: '保証書・真贋問題', description: '疑義がある場合チェック' },
     ],
   };
-
-  // カメラボディの場合のみ光学系チェックを表示
-  const showOptical = category === 'camera_body' || category === 'lens';
 
   // 一括チェック機能
   const handleBulkCheck = (sectionKey: string, checked: boolean) => {
@@ -156,37 +149,14 @@ export default function InspectionChecklist({
         </div>
       </div>
 
-      {/* 外観チェック */}
+      {/* 統一検品チェック（12項目） */}
       {renderCheckSection(
-        'exterior',
-        '外観チェック',
+        'issues',
+        '検品チェックリスト（該当項目のみチェック）',
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>,
-        checkItems.exterior
-      )}
-
-      {/* 機能チェック */}
-      {renderCheckSection(
-        'functionality',
-        '機能チェック',
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>,
-        checkItems.functionality
-      )}
-
-      {/* 光学系チェック（カメラ・レンズのみ） */}
-      {showOptical && checklist.optical && renderCheckSection(
-        'optical',
-        '光学系チェック',
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>,
-        checkItems.optical
+        checkItems.issues
       )}
 
       {/* 進捗表示 - コンパクトに */}
@@ -194,13 +164,7 @@ export default function InspectionChecklist({
         <div className="flex justify-between items-center">
           <span className="text-xs font-medium text-gray-700">チェック項目</span>
           <span className="text-xs text-gray-600">
-            {Object.values(checklist).flatMap(section => 
-              Object.values(section || {})
-            ).filter(v => v).length} / {
-              Object.values(checklist).flatMap(section => 
-                Object.values(section || {})
-              ).length
-            } 項目（任意）
+            {checklist.issues ? Object.values(checklist.issues).filter(v => v).length : 0} / 12 項目（任意）
           </span>
         </div>
       </div>

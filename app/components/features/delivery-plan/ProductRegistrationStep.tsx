@@ -331,6 +331,45 @@ export default function ProductRegistrationStep({
                   variant="nexus"
                 />
 
+                {/* 追加必須項目 */}
+                <NexusInput
+                  label="ブランド"
+                  value={product.brand || ''}
+                  onChange={(e) => updateProduct(index, 'brand', e.target.value)}
+                  placeholder="ブランド名を入力"
+                  required
+                  variant="nexus"
+                />
+
+                <NexusInput
+                  label="モデル/型番"
+                  value={product.model || ''}
+                  onChange={(e) => updateProduct(index, 'model', e.target.value)}
+                  placeholder="モデル・型番を入力"
+                  required
+                  variant="nexus"
+                />
+
+                <NexusInput
+                  label="シリアル番号"
+                  value={product.serialNumber || ''}
+                  onChange={(e) => updateProduct(index, 'serialNumber', e.target.value)}
+                  placeholder="シリアル番号を入力"
+                  required
+                  variant="nexus"
+                />
+
+                <NexusInput
+                  label="保険申告価値"
+                  type="number"
+                  value={product.insuranceValue === 0 ? '' : product.insuranceValue?.toString() || ''}
+                  onChange={(e) => updateProduct(index, 'insuranceValue', e.target.value === '' ? 0 : parseInt(e.target.value) || 0)}
+                  placeholder="保険申告価値を入力"
+                  min="0"
+                  required
+                  variant="nexus"
+                />
+
                 {/* 任意項目 */}
                 <NexusInput
                   label="仕入日"
