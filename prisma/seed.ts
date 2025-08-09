@@ -905,28 +905,24 @@ async function main() {
       const brand = brands[Math.floor(Math.random() * brands.length)];
       const estimatedValue = Math.floor(Math.random() * 500000) + 50000; // 50,000〜550,000円
       
-      let productName, model, serialNumber;
+      let productName;
       
       if (category === 'カメラ本体') {
         const models = ['α7R V', 'EOS R5', 'Z9', 'X-T5', 'S5 II', 'OM-D E-M1X'];
-        model = models[Math.floor(Math.random() * models.length)];
+        const model = models[Math.floor(Math.random() * models.length)];
         productName = `${brand} ${model}`;
-        serialNumber = `${brand.toUpperCase()}${model.replace(/[^A-Z0-9]/g, '')}${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
       } else if (category === 'レンズ') {
         const lensTypes = ['24-70mm F2.8', '70-200mm F4', '85mm F1.4', '35mm F1.8', '50mm F1.2'];
-        model = lensTypes[Math.floor(Math.random() * lensTypes.length)];
+        const model = lensTypes[Math.floor(Math.random() * lensTypes.length)];
         productName = `${brand} ${model}`;
-        serialNumber = `${brand.toUpperCase()}L${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
       } else if (category === '腕時計') {
         const watchModels = ['Submariner', 'Daytona', 'Speedmaster', 'Seamaster', 'G-SHOCK'];
-        model = watchModels[Math.floor(Math.random() * watchModels.length)];
+        const model = watchModels[Math.floor(Math.random() * watchModels.length)];
         productName = `${brand} ${model}`;
-        serialNumber = `${brand.toUpperCase()}W${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
       } else {
         const accessories = ['ストラップ', 'フィルター', 'バッテリー', 'ケース', 'アダプター'];
-        model = accessories[Math.floor(Math.random() * accessories.length)];
+        const model = accessories[Math.floor(Math.random() * accessories.length)];
         productName = `${brand} ${model}`;
-        serialNumber = `${brand.toUpperCase()}A${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
       }
 
       await prisma.deliveryPlanProduct.create({
@@ -934,11 +930,8 @@ async function main() {
           deliveryPlanId: deliveryPlan.id,
           name: productName,
           category,
-          brand,
-          model,
-          serialNumber,
           estimatedValue,
-          description: `${category}の${brand}製品。推定価格: ¥${estimatedValue.toLocaleString()}`
+          description: `${category}の商品。推定価格: ¥${estimatedValue.toLocaleString()}`
         }
       });
 

@@ -106,10 +106,7 @@ export async function POST(request: NextRequest) {
             data: {
               deliveryPlanId: planId,
               name: product.name,
-              category: product.category || 'general',
-              brand: '',
-              model: '',
-              serialNumber: '',
+              category: product.category || 'camera',
               estimatedValue: product.purchasePrice || 0,
               description: `コンディション: ${product.condition}${product.supplierDetails ? `\n仕入れ詳細: ${product.supplierDetails}` : ''}`
             }
@@ -361,9 +358,6 @@ export async function GET(request: NextRequest) {
       products: plan.products.map(product => ({
         name: product.name,
         category: product.category,
-        brand: product.brand,
-        model: product.model,
-        serialNumber: product.serialNumber,
         estimatedValue: product.estimatedValue,
         description: product.description
       }))

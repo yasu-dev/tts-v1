@@ -207,14 +207,14 @@ export default function ConfirmationStep({
       <NexusCard className="p-6 bg-yellow-50 border-yellow-200">
         <h3 className="text-lg font-medium text-nexus-text-primary mb-4">利用規約</h3>
         <div className="space-y-4">
-          <div className="flex items-start">
+          <div className="flex items-center">
             <input
               type="checkbox"
               checked={agreedToTerms}
               onChange={(e) => handleTermsChange(e.target.checked)}
-              className="w-4 h-4 text-primary-blue border-nexus-border rounded focus:ring-primary-blue mt-1"
+              className="w-4 h-4 text-primary-blue border-nexus-border rounded focus:ring-primary-blue flex-shrink-0"
             />
-            <label className="ml-2 text-sm text-nexus-text-primary">
+            <label className="ml-3 text-sm text-nexus-text-primary leading-relaxed">
               <span className="text-red-500">*</span> 
               THE WORLD DOORの利用規約および
               <Link 

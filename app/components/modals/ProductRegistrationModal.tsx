@@ -18,7 +18,6 @@ export default function ProductRegistrationModal({ isOpen, onClose, onSubmit, in
     name: '',
     sku: '',
     category: '',
-    brand: '',
     condition: 'excellent',
     purchasePrice: '',
     sellingPrice: '',
@@ -34,7 +33,6 @@ export default function ProductRegistrationModal({ isOpen, onClose, onSubmit, in
         name: initialData.name || '',
         sku: initialData.sku || '',
         category: initialData.category || '',
-        brand: initialData.brand || '',
         condition: initialData.condition || 'excellent',
         purchasePrice: initialData.purchasePrice?.toString() || '',
         sellingPrice: initialData.value?.toString() || '',
@@ -107,7 +105,6 @@ export default function ProductRegistrationModal({ isOpen, onClose, onSubmit, in
           name: '',
           sku: '',
           category: '',
-          brand: '',
           condition: 'excellent',
           purchasePrice: '',
           sellingPrice: '',
@@ -217,16 +214,7 @@ export default function ProductRegistrationModal({ isOpen, onClose, onSubmit, in
                 ]}
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">ブランド</label>
-              <NexusInput
-                type="text"
-                name="brand"
-                value={formData.brand}
-                onChange={handleChange}
-                placeholder="例: Canon"
-              />
-            </div>
+
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

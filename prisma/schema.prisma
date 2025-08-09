@@ -1,8 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
@@ -12,29 +9,24 @@ datasource db {
 }
 
 model User {
-  id          String   @id @default(cuid())
-  email       String   @unique
-  username    String   @unique
-  password    String
-  role        String   @default("seller") // seller, staff, admin
-  
-  // Profile information
-  fullName    String?
-  phoneNumber String?
-  address     String?
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
-  products    Product[]
-  orders      Order[]
-  activities  Activity[]
-  sessions    Session[]
-  videoRecords VideoRecord[] @relation("VideoStaff")
-  twoFactorAuth TwoFactorAuth[]
+  id               String            @id @default(cuid())
+  email            String            @unique
+  username         String            @unique
+  password         String
+  role             String            @default("seller")
+  fullName         String?
+  phoneNumber      String?
+  address          String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  activities       Activity[]
+  deliveryPlans    DeliveryPlan[]
   externalServices ExternalService[]
-  deliveryPlans DeliveryPlan[]
+  orders           Order[]
+  products         Product[]
+  sessions         Session[]
+  twoFactorAuth    TwoFactorAuth[]
+  videoRecords     VideoRecord[]     @relation("VideoStaff")
 
   @@map("users")
 }
@@ -45,149 +37,123 @@ model Session {
   token     String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("sessions")
 }
 
 model Product {
-  id           String           @id @default(cuid())
-  name         String
-  sku          String           @unique
-  category     String           // camera_body, lens, watch, accessory
-  status       String           @default("inbound") // inbound, inspection, storage, listing, ordered, shipping, delivery, sold, returned
-  price        Int
-  condition    String           // new, like_new, excellent, very_good, good, fair, poor
-  description  String?
-  imageUrl     String?
-  entryDate    DateTime         @default(now())
-  sellerId     String
-  
-  // Inspection data
-  inspectedAt  DateTime?
-  inspectedBy  String?
-  inspectionNotes String?
-  metadata     String? // JSON string for additional metadata
-  
-  // Location tracking
-  currentLocationId String?
-  
-  // Timestamps
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  // Relations
-  seller       User @relation(fields: [sellerId], references: [id])
-  currentLocation Location? @relation(fields: [currentLocationId], references: [id])
-  movements    InventoryMovement[]
-  orderItems   OrderItem[]
-  activities   Activity[]
-  videoRecords VideoRecord[]
+  id                  String               @id @default(cuid())
+  name                String
+  sku                 String               @unique
+  category            String
+  status              String               @default("inbound")
+  price               Int
+  condition           String
+  description         String?
+  imageUrl            String?
+  entryDate           DateTime             @default(now())
+  sellerId            String
+  inspectedAt         DateTime?
+  inspectedBy         String?
+  inspectionNotes     String?
+  metadata            String?
+  currentLocationId   String?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  activities          Activity[]
   inspectionChecklist InspectionChecklist?
+  movements           InventoryMovement[]
+  orderItems          OrderItem[]
+  currentLocation     Location?            @relation(fields: [currentLocationId], references: [id])
+  seller              User                 @relation(fields: [sellerId], references: [id])
+  videoRecords        VideoRecord[]
 
   @@map("products")
 }
 
 model Location {
-  id          String @id @default(cuid())
-  code        String @unique // A区画-01, V区画-12, etc.
-  name        String
-  zone        String // A区画, V区画, H区画, D区画(配送先), etc.
-  capacity    Int?
-  isActive    Boolean @default(true)
-  
-  // 配送先倉庫用フィールド
-  address     String? // 配送先住所（zone='D'の場合のみ使用）
-  phone       String? // 配送先電話番号
-  email       String? // 配送先メールアドレス
-  notes       String? // 配送先備考
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
-  products    Product[]
-  movementsFrom InventoryMovement[] @relation("MovementFrom")
-  movementsTo   InventoryMovement[] @relation("MovementTo")
+  id              String              @id @default(cuid())
+  code            String              @unique
+  name            String
+  zone            String
+  capacity        Int?
+  isActive        Boolean             @default(true)
+  address         String?
+  phone           String?
+  email           String?
+  notes           String?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
   barcodeScanners BarcodeScanner[]
+  movementsTo     InventoryMovement[] @relation("MovementTo")
+  movementsFrom   InventoryMovement[] @relation("MovementFrom")
+  products        Product[]
 
   @@map("locations")
 }
 
-
-
 model InventoryMovement {
-  id          String   @id @default(cuid())
-  productId   String
+  id             String    @id @default(cuid())
+  productId      String
   fromLocationId String?
   toLocationId   String?
-  movedBy     String
-  notes       String?
-  createdAt   DateTime @default(now())
-
-  // Relations
-  product     Product @relation(fields: [productId], references: [id])
-  fromLocation Location? @relation("MovementFrom", fields: [fromLocationId], references: [id])
-  toLocation   Location? @relation("MovementTo", fields: [toLocationId], references: [id])
+  movedBy        String
+  notes          String?
+  createdAt      DateTime  @default(now())
+  toLocation     Location? @relation("MovementTo", fields: [toLocationId], references: [id])
+  fromLocation   Location? @relation("MovementFrom", fields: [fromLocationId], references: [id])
+  product        Product   @relation(fields: [productId], references: [id])
 
   @@map("inventory_movements")
 }
 
 model Order {
-  id            String      @id @default(cuid())
-  orderNumber   String      @unique
-  customerId    String
-  status        String      @default("pending") // pending, confirmed, processing, shipped, delivered, cancelled, returned
-  totalAmount   Int
+  id              String        @id @default(cuid())
+  orderNumber     String        @unique
+  customerId      String
+  status          String        @default("pending")
+  totalAmount     Int
   shippingAddress String?
-  paymentMethod String?
-  notes         String?
-  
-  // Timestamps
-  orderDate     DateTime @default(now())
-  shippedAt     DateTime?
-  deliveredAt   DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  // Relations
-  customer      User @relation(fields: [customerId], references: [id])
-  items         OrderItem[]
-  activities    Activity[]
-  videoRecords  VideoRecord[]
+  paymentMethod   String?
+  notes           String?
+  orderDate       DateTime      @default(now())
+  shippedAt       DateTime?
+  deliveredAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  activities      Activity[]
+  items           OrderItem[]
+  customer        User          @relation(fields: [customerId], references: [id])
+  videoRecords    VideoRecord[]
 
   @@map("orders")
 }
 
 model OrderItem {
-  id        String @id @default(cuid())
+  id        String  @id @default(cuid())
   orderId   String
   productId String
-  quantity  Int    @default(1)
+  quantity  Int     @default(1)
   price     Int
-  
-  // Relations
-  order     Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product   Product @relation(fields: [productId], references: [id])
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@map("order_items")
 }
 
 model Activity {
   id          String   @id @default(cuid())
-  type        String   // inbound, inspection, listing, sold, etc.
+  type        String
   description String
   userId      String?
   productId   String?
   orderId     String?
-  metadata    String?  // JSON data stored as string
+  metadata    String?
   createdAt   DateTime @default(now())
-
-  // Relations
-  user        User? @relation(fields: [userId], references: [id])
+  order       Order?   @relation(fields: [orderId], references: [id])
   product     Product? @relation(fields: [productId], references: [id])
-  order       Order? @relation(fields: [orderId], references: [id])
+  user        User?    @relation(fields: [userId], references: [id])
 
   @@map("activities")
 }
@@ -196,87 +162,77 @@ model VideoRecord {
   id          String   @id @default(cuid())
   productId   String?
   orderId     String?
-  type        String   // inspection, packing, shipping, etc.
-  sessionId   String?  // 記録セッションID
-  timestamps  String?  // タイムスタンプのJSON配列
-  s3VideoPath String?  // S3での動画パス
+  type        String
+  sessionId   String?
+  timestamps  String?
+  s3VideoPath String?
   staffId     String
   notes       String?
   createdAt   DateTime @default(now())
-  
-  // Relations
-  product     Product? @relation(fields: [productId], references: [id])
-  order       Order?   @relation(fields: [orderId], references: [id])
   staff       User     @relation("VideoStaff", fields: [staffId], references: [id])
+  order       Order?   @relation(fields: [orderId], references: [id])
+  product     Product? @relation(fields: [productId], references: [id])
 
   @@map("video_records")
 }
 
 model TwoFactorAuth {
-  id          String   @id @default(cuid())
-  userId      String
-  code        String
-  expiresAt   DateTime
-  verified    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  
-  // Relations
-  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  userId    String
+  code      String
+  expiresAt DateTime
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("two_factor_auth")
 }
 
 model ExternalService {
-  id          String   @id @default(cuid())
-  service     String   // ebay, yamato, sagawa, stripe, etc.
-  type        String   // api_call, webhook, etc.
-  endpoint    String
-  method      String
-  requestBody String?  // JSON string
-  response    String?  // JSON string
-  status      String   // success, error, pending
+  id           String   @id @default(cuid())
+  service      String
+  type         String
+  endpoint     String
+  method       String
+  requestBody  String?
+  response     String?
+  status       String
   errorMessage String?
-  userId      String?
-  createdAt   DateTime @default(now())
-  
-  // Relations
-  user        User? @relation(fields: [userId], references: [id])
+  userId       String?
+  createdAt    DateTime @default(now())
+  user         User?    @relation(fields: [userId], references: [id])
 
   @@map("external_services")
 }
 
 model BarcodeScanner {
-  id          String   @id @default(cuid())
-  locationId  String
-  deviceName  String
-  ipAddress   String?
-  isActive    Boolean  @default(true)
-  lastUsedAt  DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Relations
-  location    Location @relation(fields: [locationId], references: [id])
+  id         String    @id @default(cuid())
+  locationId String
+  deviceName String
+  ipAddress  String?
+  isActive   Boolean   @default(true)
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  location   Location  @relation(fields: [locationId], references: [id])
 
   @@map("barcode_scanners")
 }
 
 model PickingTask {
-  id            String           @id @default(cuid())
-  orderId       String           @unique
-  customerName  String
-  priority      String           // 'urgent', 'high', 'normal', 'low'
-  status        String           // 'pending', 'in_progress', 'completed', 'on_hold'
-  assignee      String?
+  id             String        @id @default(cuid())
+  orderId        String        @unique
+  customerName   String
+  priority       String
+  status         String
+  assignee       String?
   shippingMethod String
-  totalItems    Int
-  pickedItems   Int              @default(0)
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
-  dueDate       DateTime
-  
-  // Relations
-  items         PickingItem[]
+  totalItems     Int
+  pickedItems    Int           @default(0)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  dueDate        DateTime
+  items          PickingItem[]
 
   @@map("picking_tasks")
 }
@@ -290,133 +246,110 @@ model PickingItem {
   location       String
   quantity       Int
   pickedQuantity Int         @default(0)
-  status         String      // 'pending', 'picked', 'verified'
+  status         String
   imageUrl       String?
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
-
-  // Relations
   pickingTask    PickingTask @relation(fields: [pickingTaskId], references: [id], onDelete: Cascade)
 
   @@map("picking_items")
 }
 
 model DeliveryPlan {
-  id                 String   @id @default(cuid())
-  planNumber         String   @unique
-  sellerId           String
-  sellerName         String
-  status             String   // '発送待ち', '発送済'
-  deliveryAddress    String
-  contactEmail       String
-  phoneNumber        String?
-  notes              String?
-  totalItems         Int      @default(0)
-  totalValue         Int      @default(0)
-  shippingTrackingNumber String? // 発送伝票番号（任意）
-  shippedAt          DateTime? // 発送日時
-
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-
-  // Relations
-  seller             User @relation(fields: [sellerId], references: [id])
-  products           DeliveryPlanProduct[]
+  id                     String                @id @default(cuid())
+  planNumber             String                @unique
+  sellerId               String
+  sellerName             String
+  status                 String
+  deliveryAddress        String
+  contactEmail           String
+  phoneNumber            String?
+  notes                  String?
+  totalItems             Int                   @default(0)
+  totalValue             Int                   @default(0)
+  shippingTrackingNumber String?
+  shippedAt              DateTime?
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
+  products               DeliveryPlanProduct[]
+  seller                 User                  @relation(fields: [sellerId], references: [id])
 
   @@map("delivery_plans")
 }
 
 model DeliveryPlanProduct {
-  id               String   @id @default(cuid())
-  deliveryPlanId   String
-  name             String
-  category         String   // 'カメラ本体', 'レンズ', '腕時計', 'アクセサリー'
-  brand            String
-  model            String
-  serialNumber     String?
-  estimatedValue   Int
-  description      String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-
-  // Relations
-  deliveryPlan     DeliveryPlan @relation(fields: [deliveryPlanId], references: [id], onDelete: Cascade)
+  id                  String                     @id @default(cuid())
+  deliveryPlanId      String
+  name                String
+  category            String
+  estimatedValue      Int
+  description         String?
+  createdAt           DateTime                   @default(now())
+  updatedAt           DateTime                   @updatedAt
+  images              DeliveryPlanProductImage[]
+  deliveryPlan        DeliveryPlan               @relation(fields: [deliveryPlanId], references: [id], onDelete: Cascade)
   inspectionChecklist InspectionChecklist?
-  images           DeliveryPlanProductImage[]
 
   @@map("delivery_plan_products")
 }
 
 model DeliveryPlanProductImage {
-  id                    String   @id @default(cuid())
+  id                    String              @id @default(cuid())
   deliveryPlanProductId String
-  url                   String   // 画像URL
-  thumbnailUrl          String?  // サムネイルURL
-  filename              String   // ファイル名
-  size                  Int      // ファイルサイズ（バイト）
-  mimeType              String   // MIMEタイプ
-  category              String?  // 画像カテゴリ（商品、内箱、付属品など）
-  description           String?  // 画像の説明
-  sortOrder             Int      @default(0)  // 表示順序
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-
-  // Relations
+  url                   String
+  thumbnailUrl          String?
+  filename              String
+  size                  Int
+  mimeType              String
+  category              String?
+  description           String?
+  sortOrder             Int                 @default(0)
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
   deliveryPlanProduct   DeliveryPlanProduct @relation(fields: [deliveryPlanProductId], references: [id], onDelete: Cascade)
 
   @@map("delivery_plan_product_images")
 }
 
 model InspectionProgress {
-  id           String   @id @default(cuid())
-  productId    String   @unique  // 1商品につき1つの進捗のみ
-  currentStep  Int      // 1:検品項目, 2:動画記録, 3:写真撮影, 4:確認完了
-  checklist    String?  // チェックリストの状態（JSON文字列）
-  photos       String?  // 写真データ（JSON配列）
-  notes        String?  // メモ
-  videoId      String?  // 動画ID
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id          String   @id @default(cuid())
+  productId   String   @unique
+  currentStep Int
+  checklist   String?
+  photos      String?
+  notes       String?
+  videoId     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@map("inspection_progress")
 }
 
 model InspectionChecklist {
-  id                    String   @id @default(cuid())
-  productId             String?  @unique
-  deliveryPlanProductId String?  @unique
-  
-  // 外観チェック項目
-  hasScratches          Boolean  @default(false)
-  hasDents              Boolean  @default(false)
-  hasDiscoloration      Boolean  @default(false)
-  hasDust               Boolean  @default(false)
-  
-  // 機能チェック項目
-  powerOn               Boolean  @default(false)
-  allButtonsWork        Boolean  @default(false)
-  screenDisplay         Boolean  @default(false)
-  connectivity          Boolean  @default(false)
-  
-  // 光学系チェック項目（カメラ・レンズ用）
-  lensClarity           Boolean  @default(false)
-  aperture              Boolean  @default(false)
-  focusAccuracy         Boolean  @default(false)
-  stabilization         Boolean  @default(false)
-  
-  // メタ情報
-  createdBy             String   // セラーが作成
-  createdAt             DateTime @default(now())
-  verifiedBy            String?  // スタッフが確認
+  id                    String               @id @default(cuid())
+  productId             String?              @unique
+  deliveryPlanProductId String?              @unique
+  hasScratches          Boolean              @default(false)
+  hasDents              Boolean              @default(false)
+  hasDiscoloration      Boolean              @default(false)
+  hasDust               Boolean              @default(false)
+  powerOn               Boolean              @default(false)
+  allButtonsWork        Boolean              @default(false)
+  screenDisplay         Boolean              @default(false)
+  connectivity          Boolean              @default(false)
+  lensClarity           Boolean              @default(false)
+  aperture              Boolean              @default(false)
+  focusAccuracy         Boolean              @default(false)
+  stabilization         Boolean              @default(false)
+  createdBy             String
+  createdAt             DateTime             @default(now())
+  verifiedBy            String?
   verifiedAt            DateTime?
   updatedBy             String?
-  updatedAt             DateTime @updatedAt
-  
+  updatedAt             DateTime             @updatedAt
   notes                 String?
-  
-  // Relations
-  product               Product? @relation(fields: [productId], references: [id])
   deliveryPlanProduct   DeliveryPlanProduct? @relation(fields: [deliveryPlanProductId], references: [id])
+  product               Product?             @relation(fields: [productId], references: [id])
 
   @@map("inspection_checklists")
 }
