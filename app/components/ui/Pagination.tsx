@@ -72,7 +72,7 @@ export default function Pagination({
             <select
               value={itemsPerPage}
               onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-              className="px-2 py-1 text-sm border border-nexus-border rounded-md bg-nexus-bg-primary text-nexus-text-primary focus:outline-none focus:ring-2 focus:ring-nexus-blue focus:border-transparent"
+              className="px-2 py-1 text-sm border border-nexus-border rounded-md bg-nexus-bg-primary text-nexus-text-primary focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent"
             >
               {itemsPerPageOptions.map(option => (
                 <option key={option} value={option}>
@@ -113,7 +113,7 @@ export default function Pagination({
                 className={`
                   px-3 py-2 rounded-md text-sm font-medium transition-colors
                   ${page === currentPage
-                    ? 'bg-nexus-blue text-white'
+                    ? 'bg-primary-blue text-white'
                     : 'text-nexus-text-primary hover:bg-nexus-bg-secondary'
                   }
                 `}

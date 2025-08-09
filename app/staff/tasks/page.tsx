@@ -961,11 +961,11 @@ export default function StaffTasksPage() {
               </label>
               <div className="space-y-2 border border-nexus-border rounded-lg p-3">
                 <NexusCheckbox
-                  label="田中太郎"
+                  label="スタッフA"
                   size="sm"
                 />
                 <NexusCheckbox
-                  label="佐藤花子"
+                  label="スタッフB"
                   size="sm"
                 />
                 <NexusCheckbox

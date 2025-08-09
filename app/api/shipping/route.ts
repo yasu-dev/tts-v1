@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
           orderId: "ORD-2024-0628-002",
           productId: "TWD-LEN-005",
           productName: "Canon RF 24-70mm F2.8",
-          customer: "佐藤花子",
+          customer: "顧客B",
           address: "大阪府大阪市中央区1-1-1",
           shippingMethod: "佐川急便",
           priority: "normal",

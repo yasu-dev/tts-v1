@@ -537,12 +537,12 @@ async function main() {
     },
     {
       orderNumber: 'ORD-2024-0006',
-      customerId: customerUsers[5].id, // 渡辺恵子
-      status: 'cancelled',
+      customerId: customerUsers[5].id,
+      status: 'shipped',
       totalAmount: 192800,
-      shippingAddress: '宮城県仙台市青葉区中央1-10-11 仙台プラザ 601号室',
+      shippingAddress: '宮城県○○市○○区○○1-10-11 ○○プラザ 601号室',
       paymentMethod: 'credit_card',
-      notes: '顧客都合によりキャンセル',
+      notes: '発送完了',
       orderDate: new Date('2024-12-17T10:30:00'),
       items: [
         { productSku: 'CAM-CANON-R10-016', quantity: 1, price: 92800 },
@@ -587,7 +587,9 @@ async function main() {
     productMap.set(product.sku, product.id);
   });
 
-  // 注文とアイテムを作成
+  // 注文とアイテムを作成（一時的にコメントアウト）
+  console.log('📝 注文データ作成をスキップ中...');
+  /*
   for (const order of orderData) {
     const createdOrder = await prisma.order.create({
       data: {
@@ -621,9 +623,10 @@ async function main() {
 
     console.log(`✅ 注文を作成しました: ${order.orderNumber} - ${order.status}`);
   }
+  */
 
-  // アクティビティデータを作成
-  console.log('📋 アクティビティデータを作成中...');
+  // アクティビティデータを作成（一時的にスキップ）
+  console.log('📋 アクティビティデータ作成をスキップ中...');
   
   const activities = [
     {
@@ -714,12 +717,14 @@ async function main() {
     }
   ];
 
+  /*
   for (const activity of activities) {
     await prisma.activity.create({
       data: activity
     });
     console.log(`✅ アクティビティを作成しました: ${activity.type} - ${activity.description}`);
   }
+  */
 
   console.log('🎉 シードデータの作成が完了しました！');
   console.log('');
@@ -839,27 +844,35 @@ async function main() {
   // 納品プランデータを作成
   console.log('📝 納品プランデータを作成中...');
   
-  const deliveryStatuses = ['下書き', '作成中', '作成完了', '準備中', '発送済', '到着済', 'キャンセル'];
+  const deliveryStatuses = ['下書き', '発送待ち', '発送済'];
   const categories = ['カメラ本体', 'レンズ', '腕時計', 'アクセサリー'];
   const brands = ['Canon', 'Sony', 'Nikon', 'FUJIFILM', 'Panasonic', 'Olympus', 'Rolex', 'Omega', 'Casio'];
-  const sellerNames = ['田中太郎', '佐藤花子', '鈴木一郎', '高橋美子', '渡辺健太', '山田恵子', '中村雄一', '小林優子'];
+  const sellerNames = ['セラーA', 'セラーB', 'セラーC', 'セラーD', 'セラーE', 'セラーF', 'セラーG', 'セラーH'];
   const deliveryAddresses = [
-    '東京都渋谷区神宮前1-1-1',
-    '大阪府大阪市北区梅田2-2-2',
-    '愛知県名古屋市中村区名駅3-3-3',
-    '福岡県福岡市博多区博多駅前4-4-4',
-    '北海道札幌市中央区大通西5-5-5',
-    '宮城県仙台市青葉区中央6-6-6',
-    '広島県広島市中区基町7-7-7',
-    '神奈川県横浜市西区みなとみらい8-8-8'
+    '東京都○○区○○1-1-1',
+    '大阪府○○市○○区○○2-2-2', 
+    '愛知県○○市○○区○○3-3-3',
+    '福岡県○○市○○区○○4-4-4',
+    '北海道○○市○○区○○5-5-5',
+    '宮城県○○市○○区○○6-6-6',
+    '広島県○○市○○区○○7-7-7',
+    '神奈川県○○市○○区○○8-8-8',
+    '埼玉県○○市○○区○○9-9-9',
+    '千葉県○○市○○区○○10-10-10',
+    '京都府○○市○○区○○11-11-11',
+    '兵庫県○○市○○区○○12-12-12',
+    '静岡県○○市○○区○○13-13-13',
+    '茨城県○○市○○区○○14-14-14',
+    '栃木県○○市○○区○○15-15-15',
+    '群馬県○○市○○区○○16-16-16'
   ];
 
-  for (let i = 0; i < 25; i++) {
+  for (let i = 0; i < 100; i++) {
     const statusIndex = i % deliveryStatuses.length;
     const sellerIndex = i % sellerNames.length;
     const addressIndex = i % deliveryAddresses.length;
     
-    const planNumber = `DP-${Date.now()}-${(i + 1).toString().padStart(3, '0')}`;
+    const planNumber = `DP-${Date.now()}-${Math.random().toString(36).substr(2, 9)}-${(i + 1).toString().padStart(3, '0')}`;
     const status = deliveryStatuses[statusIndex];
     const sellerName = sellerNames[sellerIndex];
     const deliveryAddress = deliveryAddresses[addressIndex];
@@ -875,14 +888,14 @@ async function main() {
         sellerName,
         status,
         deliveryAddress,
-        contactEmail: `${sellerName.toLowerCase()}@example.com`,
+        contactEmail: `seller${sellerIndex + 1}_${i + 1}@example.com`,
         phoneNumber: `0${Math.floor(Math.random() * 9) + 1}0-${Math.floor(Math.random() * 9000) + 1000}-${Math.floor(Math.random() * 9000) + 1000}`,
-        notes: status === 'キャンセル' ? 'セラーからのキャンセル要求により中止' : 
-               status === '発送済' ? '追跡番号: JP12345678901234567' :
-               status === '到着済' ? '正常に到着確認済み' : '通常納品',
+        notes: status === '発送済' ? `追跡番号: JP${Math.floor(Math.random() * 1000000000000000).toString().padStart(15, '0')}` : 
+               status === '下書き' ? '下書き保存中の納品プラン。内容を確認してから発送待ちに変更してください。' : 
+               '通常の納品プランです。発送準備が完了次第、発送予定です。',
         totalItems: productCount,
         totalValue: 0, // 後で更新
-        createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000) // 過去30日以内のランダム日付
+        createdAt: new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000) // 過去90日以内のランダム日付
       }
     });
 

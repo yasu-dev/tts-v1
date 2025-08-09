@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
           deliveryAddress: planData.basicInfo.deliveryAddress,
           contactEmail: planData.basicInfo.contactEmail,
           phoneNumber: planData.basicInfo.phoneNumber || null,
-          status: '作成完了',
+          status: '発送待ち',
           totalItems: planData.products.length,
           totalValue: planData.products.reduce((sum: number, product: any) => 
             sum + (product.estimatedValue || 0), 0

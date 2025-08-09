@@ -188,7 +188,7 @@ export default function StaffInventoryPage() {
                                   .replace('poor', '中古')
                                   .replace('unknown', '状態不明'),
           entryDate: item.entryDate || item.createdAt?.split('T')[0] || '2024-01-01',
-          assignedStaff: item.seller?.username || '山本 達也',
+          assignedStaff: item.seller?.username || '担当者未設定',
           lastModified: item.updatedAt || new Date().toISOString(),
           qrCode: `QR-${item.sku}`,
           notes: item.description || '',

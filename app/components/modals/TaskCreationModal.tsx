@@ -176,10 +176,10 @@ export default function TaskCreationModal({ isOpen, onClose, onSubmit }: TaskCre
                 disabled={isSubmitting}
                 options={[
                   { value: "", label: "未割り当て" },
-                  { value: "staff001", label: "田中太郎" },
-                  { value: "staff002", label: "佐藤花子" },
-                  { value: "staff003", label: "山田次郎" },
-                  { value: "staff004", label: "鈴木美香" }
+                  { value: "staff001", label: "スタッフA" },
+                  { value: "staff002", label: "スタッフB" },
+                  { value: "staff003", label: "スタッフC" },
+                  { value: "staff004", label: "スタッフD" }
                 ]}
               />
             </div>

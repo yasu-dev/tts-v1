@@ -302,23 +302,26 @@ model PickingItem {
 }
 
 model DeliveryPlan {
-  id              String   @id @default(cuid())
-  planNumber      String   @unique
-  sellerId        String
-  sellerName      String
-  status          String   // '下書き', '作成中', '作成完了', '準備中', '発送済', '到着済', 'キャンセル'
-  deliveryAddress String
-  contactEmail    String
-  phoneNumber     String?
-  notes           String?
-  totalItems      Int      @default(0)
-  totalValue      Int      @default(0)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                 String   @id @default(cuid())
+  planNumber         String   @unique
+  sellerId           String
+  sellerName         String
+  status             String   // '下書き', '発送待ち', '発送済'
+  deliveryAddress    String
+  contactEmail       String
+  phoneNumber        String?
+  notes              String?
+  totalItems         Int      @default(0)
+  totalValue         Int      @default(0)
+  shippingTrackingNumber String? // 発送伝票番号（任意）
+  shippedAt          DateTime? // 発送日時
+  draftData          String?  // 下書き用データ（JSON）
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   // Relations
-  seller          User @relation(fields: [sellerId], references: [id])
-  products        DeliveryPlanProduct[]
+  seller             User @relation(fields: [sellerId], references: [id])
+  products           DeliveryPlanProduct[]
 
   @@map("delivery_plans")
 }
@@ -339,8 +342,29 @@ model DeliveryPlanProduct {
   // Relations
   deliveryPlan     DeliveryPlan @relation(fields: [deliveryPlanId], references: [id], onDelete: Cascade)
   inspectionChecklist InspectionChecklist?
+  images           DeliveryPlanProductImage[]
 
   @@map("delivery_plan_products")
+}
+
+model DeliveryPlanProductImage {
+  id                    String   @id @default(cuid())
+  deliveryPlanProductId String
+  url                   String   // 画像URL
+  thumbnailUrl          String?  // サムネイルURL
+  filename              String   // ファイル名
+  size                  Int      // ファイルサイズ（バイト）
+  mimeType              String   // MIMEタイプ
+  category              String?  // 画像カテゴリ（商品、内箱、付属品など）
+  description           String?  // 画像の説明
+  sortOrder             Int      @default(0)  // 表示順序
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  // Relations
+  deliveryPlanProduct   DeliveryPlanProduct @relation(fields: [deliveryPlanProductId], references: [id], onDelete: Cascade)
+
+  @@map("delivery_plan_product_images")
 }
 
 model InspectionProgress {

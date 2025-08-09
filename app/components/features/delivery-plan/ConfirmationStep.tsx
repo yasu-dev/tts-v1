@@ -41,11 +41,13 @@ export default function ConfirmationStep({
           setUser(result.user);
         }
       } catch (error) {
-        console.error('ユーザー情報の取得に失敗しました:', error);
+        console.error('[ERROR] ユーザー情報の取得に失敗しました:', error);
       }
     };
 
-    fetchUserInfo();
+    fetchUserInfo().catch(error => {
+      console.error('[ERROR] fetchUserInfo Promise rejection:', error);
+    });
   }, []);
 
   const handleTermsChange = (checked: boolean) => {
@@ -81,7 +83,13 @@ export default function ConfirmationStep({
   };
 
   const getTotalValue = () => {
-    return data.products?.reduce((total: number, product: any) => total + (product.estimatedValue || 0), 0) || 0;
+    if (!Array.isArray(data.products)) {
+      return 0;
+    }
+    return data.products.reduce((total: number, product: any) => {
+      const value = typeof product?.estimatedValue === 'number' ? product.estimatedValue : 0;
+      return total + value;
+    }, 0);
   };
 
   return (

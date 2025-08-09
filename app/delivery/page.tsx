@@ -19,7 +19,8 @@ import {
   XCircleIcon,
   FunnelIcon,
   ChevronUpIcon,
-  ChevronDownIcon
+  ChevronDownIcon,
+  PencilIcon
 } from '@heroicons/react/24/outline';
 import NexusButton from '@/app/components/ui/NexusButton';
 import NexusInput from '@/app/components/ui/NexusInput';
@@ -40,145 +41,7 @@ export default function DeliveryPage() {
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMoreData, setHasMoreData] = useState(false);
-  const [staticData] = useState([
-    { 
-      id: 1, 
-      date: '2024-01-15', 
-      status: '作成完了', 
-      items: 5, 
-      value: 450000,
-      sellerName: '田中太郎',
-      sellerId: 'user1',
-      deliveryAddress: '東京都渋谷区神宮前1-1-1',
-      contactEmail: 'tanaka@example.com',
-      phoneNumber: '03-1234-5678',
-      notes: 'カメラ機材の納品です。取り扱いにご注意ください。',
-      products: [
-        {
-          name: 'Canon EOS R5',
-          category: 'カメラ本体',
-          brand: 'Canon',
-          model: 'EOS R5',
-          serialNumber: 'CR5001234567',
-          estimatedValue: 350000,
-          description: '新品同様、フルサイズミラーレス一眼カメラ'
-        },
-        {
-          name: 'RF 24-70mm F2.8L IS USM',
-          category: 'レンズ',
-          brand: 'Canon',
-          model: 'RF 24-70mm F2.8L IS USM',
-          serialNumber: 'RF24701234567',
-          estimatedValue: 100000,
-          description: '標準ズームレンズ、美品'
-        }
-      ]
-    },
-    { 
-      id: 2, 
-      date: '2024-01-12', 
-      status: '発送済', 
-      items: 3, 
-      value: 280000,
-      sellerName: '佐藤花子',
-      sellerId: 'user2',
-      deliveryAddress: '大阪府大阪市北区梅田2-2-2',
-      contactEmail: 'sato@example.com',
-      phoneNumber: '06-5678-9012',
-      products: [
-        {
-          name: 'Sony α7R V',
-          category: 'カメラ本体',
-          brand: 'Sony',
-          model: 'α7R V',
-          serialNumber: 'SA7R5987654321',
-          estimatedValue: 200000,
-          description: '高解像度ミラーレス一眼カメラ'
-        }
-      ]
-    },
-    { 
-      id: 3, 
-      date: '2024-01-10', 
-      status: '到着済', 
-      items: 8, 
-      value: 620000,
-      sellerName: '鈴木一郎',
-      sellerId: 'user3',
-      deliveryAddress: '愛知県名古屋市中区栄3-3-3',
-      contactEmail: 'suzuki@example.com',
-      phoneNumber: '052-9876-5432',
-      products: [
-        {
-          name: 'Nikon D850',
-          category: 'カメラ本体',
-          brand: 'Nikon',
-          model: 'D850',
-          serialNumber: 'ND850123456789',
-          estimatedValue: 250000,
-          description: '高画質一眼レフカメラ'
-        },
-        {
-          name: 'NIKKOR 70-200mm f/2.8E FL ED VR',
-          category: 'レンズ',
-          brand: 'Nikon',
-          model: 'NIKKOR 70-200mm f/2.8E FL ED VR',
-          serialNumber: 'NL70200123456',
-          estimatedValue: 220000,
-          description: '高性能望遠ズームレンズ'
-        }
-      ]
-    },
-    { 
-      id: 4, 
-      date: '2024-01-08', 
-      status: '検品中', 
-      items: 2, 
-      value: 180000,
-      sellerName: '高橋次郎',
-      sellerId: 'user4',
-      deliveryAddress: '神奈川県横浜市中区山手町4-4-4',
-      contactEmail: 'takahashi@example.com',
-      phoneNumber: '045-1111-2222',
-      products: [
-        {
-          name: 'ROLEX Submariner',
-          category: '腕時計',
-          brand: 'ROLEX',
-          model: 'Submariner Date',
-          serialNumber: 'RX116610LN123',
-          estimatedValue: 180000,
-          description: '高級機械式腕時計'
-        }
-      ]
-    },
-    { 
-      id: 5, 
-      date: '2024-01-05', 
-      status: '配送完了', 
-      items: 6, 
-      value: 720000,
-      sellerName: '山田三郎',
-      sellerId: 'user5',
-      deliveryAddress: '福岡県福岡市博多区博多駅前5-5-5',
-      contactEmail: 'yamada@example.com',
-      phoneNumber: '092-3333-4444',
-      products: []
-    },
-    { 
-      id: 6, 
-      date: '2024-01-03', 
-      status: '返送済', 
-      items: 1, 
-      value: 85000,
-      sellerName: '伊藤四郎',
-      sellerId: 'user6',
-      deliveryAddress: '北海道札幌市中央区大通西6-6-6',
-      contactEmail: 'ito@example.com',
-      phoneNumber: '011-5555-6666',
-      products: []
-    }
-  ]);
+  const [error, setError] = useState<string | null>(null);
 
   // フィルター・ソート・ページング状態
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
@@ -190,6 +53,8 @@ export default function DeliveryPage() {
 
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
+  const [isShippingModalOpen, setIsShippingModalOpen] = useState(false);
+  const [shippingTrackingNumber, setShippingTrackingNumber] = useState('');
 
   // 納品プランデータを取得
   const fetchDeliveryPlans = async () => {
@@ -209,25 +74,38 @@ export default function DeliveryPage() {
         params.append('search', searchQuery);
       }
 
-      const response = await fetch(`/api/delivery-plan?${params}`);
+      const response = await fetch(`/api/delivery-plan?${params}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.status === 401) {
+        // 認証エラーの場合、ログイン画面にリダイレクト
+        window.location.href = '/login';
+        return;
+      }
+      
       const result = await response.json();
       
       if (result.success) {
         setAllDeliveryPlans(result.deliveryPlans || []);
         setTotalCount(result.pagination?.total || 0);
         setHasMoreData(result.pagination?.hasMore || false);
+        setError(null);
       } else {
-        // エラーの場合は静的データを使用
-        console.log('API取得失敗、静的データを使用');
-        setAllDeliveryPlans(staticData);
-        setTotalCount(staticData.length);
+        console.error('API取得失敗:', result.error);
+        setError(result.error || 'データの取得に失敗しました');
+        setAllDeliveryPlans([]);
+        setTotalCount(0);
         setHasMoreData(false);
       }
     } catch (error) {
-      console.error('納品プランの取得に失敗しました:', error);
-      // エラーの場合は静的データを使用
-      setAllDeliveryPlans(staticData);
-      setTotalCount(staticData.length);
+      console.error('[ERROR] 納品プランの取得に失敗しました:', error);
+      setError('サーバーとの通信に失敗しました。しばらく時間をおいてから再度お試しください。');
+      setAllDeliveryPlans([]);
+      setTotalCount(0);
       setHasMoreData(false);
     } finally {
       setLoading(false);
@@ -238,23 +116,33 @@ export default function DeliveryPage() {
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        const response = await fetch('/api/auth/session');
+        const response = await fetch('/api/auth/session', {
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
         const result = await response.json();
         if (result.success && result.user) {
           setUser(result.user);
         }
       } catch (error) {
-        console.error('ユーザー情報の取得に失敗しました:', error);
+        console.error('[ERROR] ユーザー情報の取得に失敗しました:', error);
+        // エラー時もユーザー取得処理は継続（ゲストモードでの表示など）
       }
     };
 
-    fetchUserInfo();
+    fetchUserInfo().catch(error => {
+      console.error('[ERROR] fetchUserInfo Promise rejection:', error);
+    });
   }, []);
 
   // 納品プランデータを取得
   useEffect(() => {
     if (user) {
-      fetchDeliveryPlans();
+      fetchDeliveryPlans().catch(error => {
+        console.error('[ERROR] fetchDeliveryPlans Promise rejection:', error);
+      });
     }
   }, [user, currentPage, itemsPerPage, selectedStatus, searchQuery]);
 
@@ -381,10 +269,68 @@ export default function DeliveryPage() {
     setAllDeliveryPlans(prev => 
       prev.map((plan: any) => 
         plan.id === planId 
-          ? { ...plan, status: action === 'confirm' ? '発送済' : '返送済' }
+          ? { ...plan, status: action === 'confirm' ? '発送済' : '発送待ち' }
           : plan
       )
     );
+  };
+
+  const handleShippingUpdate = async (planId: number) => {
+    try {
+      const response = await fetch(`/api/delivery-plan/${planId}/shipping`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: '発送済',
+          trackingNumber: shippingTrackingNumber.trim() || null
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || '発送更新に失敗しました');
+      }
+
+      // ローカルデータを更新
+      setAllDeliveryPlans(prev => 
+        prev.map((plan: any) => 
+          plan.id === planId 
+            ? { 
+                ...plan, 
+                status: '発送済',
+                shippingTrackingNumber: shippingTrackingNumber.trim() || null,
+                shippedAt: new Date().toISOString()
+              }
+            : plan
+        )
+      );
+
+      showToast({
+        type: 'success',
+        title: '発送完了',
+        message: '納品プランを発送済みに更新しました',
+        duration: 3000
+      });
+
+      setIsShippingModalOpen(false);
+      setShippingTrackingNumber('');
+      
+    } catch (error) {
+      console.error('Shipping update error:', error);
+      showToast({
+        type: 'error',
+        title: '発送更新エラー',
+        message: error instanceof Error ? error.message : '発送更新に失敗しました',
+        duration: 5000
+      });
+    }
+  };
+
+  const openShippingModal = (plan: any) => {
+    setSelectedPlan(plan);
+    setShippingTrackingNumber('');
+    setIsShippingModalOpen(true);
   };
 
   const generateBarcodePDF = async (planId: number) => {
@@ -396,7 +342,12 @@ export default function DeliveryPage() {
         duration: 2000
       });
 
-      const response = await fetch(`/api/delivery-plan/${planId}/barcode-pdf`);
+      const response = await fetch(`/api/delivery-plan/${planId}/barcode-pdf`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
       
       if (!response.ok) {
         const errorData = await response.json();
@@ -436,18 +387,12 @@ export default function DeliveryPage() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case '作成完了':
-        return <CheckCircleIcon className="h-5 w-5 text-green-600" />;
+      case '下書き':
+        return <DocumentTextIcon className="h-5 w-5 text-gray-600" />;
+      case '発送待ち':
+        return <CheckCircleIcon className="h-5 w-5 text-blue-600" />;
       case '発送済':
-        return <TruckIcon className="h-5 w-5 text-blue-600" />;
-      case '到着済':
-        return <CheckIcon className="h-5 w-5 text-green-700" />;
-      case '検品中':
-        return <ClockIcon className="h-5 w-5 text-yellow-600" />;
-      case '配送完了':
-        return <CheckCircleIcon className="h-5 w-5 text-green-800" />;
-      case '返送済':
-        return <XCircleIcon className="h-5 w-5 text-red-600" />;
+        return <TruckIcon className="h-5 w-5 text-green-600" />;
       default:
         return <ClockIcon className="h-5 w-5 text-gray-600" />;
     }
@@ -455,18 +400,12 @@ export default function DeliveryPage() {
 
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
-      case '作成完了':
-        return 'bg-green-100 text-green-800';
-      case '発送済':
+      case '下書き':
+        return 'bg-gray-100 text-gray-800';
+      case '発送待ち':
         return 'bg-blue-100 text-blue-800';
-      case '到着済':
-        return 'bg-green-200 text-green-900';
-      case '検品中':
-        return 'bg-orange-600 text-white';
-      case '配送完了':
-        return 'bg-green-300 text-green-900';
-      case '返送済':
-        return 'bg-red-100 text-red-800';
+      case '発送済':
+        return 'bg-green-100 text-green-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -474,12 +413,9 @@ export default function DeliveryPage() {
 
   const statusOptions = [
     { value: 'all', label: '全てのステータス' },
-    { value: '作成完了', label: '作成完了' },
-    { value: '発送済', label: '発送済' },
-    { value: '到着済', label: '到着済' },
-    { value: '検品中', label: '検品中' },
-    { value: '配送完了', label: '配送完了' },
-    { value: '返送済', label: '返送済' }
+    { value: '下書き', label: '下書き' },
+    { value: '発送待ち', label: '発送待ち' },
+    { value: '発送済', label: '発送済' }
   ];
 
   const dateRangeOptions = [
@@ -654,13 +590,40 @@ export default function DeliveryPage() {
                       </div>
                     </td>
                   </tr>
+                ) : error ? (
+                  <tr>
+                    <td colSpan={user?.role === 'staff' ? 7 : 6} className="px-6 py-12 text-center text-nexus-text-secondary">
+                      <div className="flex flex-col items-center">
+                        <XCircleIcon className="h-12 w-12 text-red-500 mb-4" />
+                        <p className="text-lg font-medium mb-2 text-red-600">データ取得エラー</p>
+                        <p className="text-sm mb-4">{error}</p>
+                        <button
+                          onClick={() => {
+                            setError(null);
+                            fetchDeliveryPlans();
+                          }}
+                          className="px-4 py-2 bg-nexus-primary text-white rounded-md hover:bg-nexus-primary-dark transition-colors"
+                        >
+                          再試行
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
                 ) : paginatedPlans.length === 0 ? (
                   <tr>
                     <td colSpan={user?.role === 'staff' ? 7 : 6} className="px-6 py-12 text-center text-nexus-text-secondary">
                       <div className="flex flex-col items-center">
                         <DocumentTextIcon className="h-12 w-12 text-nexus-text-tertiary mb-4" />
                         <p className="text-lg font-medium mb-2">納品プランが見つかりません</p>
-                        <p className="text-sm">検索条件を変更するか、新しい納品プランを作成してください</p>
+                        <p className="text-sm mb-4">検索条件を変更するか、新しい納品プランを作成してください</p>
+                        <NexusButton
+                          variant="primary"
+                          onClick={handleCreatePlan}
+                          className="flex items-center gap-2"
+                        >
+                          <PlusIcon className="h-4 w-4" />
+                          新規作成
+                        </NexusButton>
                       </div>
                     </td>
                   </tr>
@@ -698,16 +661,34 @@ export default function DeliveryPage() {
                             variant="secondary"
                             size="sm"
                             onClick={() => handleViewDetails(plan)}
+                            title="詳細表示"
                           >
                             <EyeIcon className="h-4 w-4" />
+                            <span className="ml-1">詳細</span>
                           </NexusButton>
-                          <NexusButton
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => generateBarcodePDF(plan.id)}
-                          >
-                            <QrCodeIcon className="h-4 w-4" />
-                          </NexusButton>
+                          {plan.status === '下書き' && (
+                            <NexusButton
+                              variant="primary"
+                              size="sm"
+                              onClick={() => window.open(`/delivery-plan?edit=${plan.id}`, '_blank')}
+                              className="flex items-center gap-1"
+                              title="下書きを編集"
+                            >
+                              <PencilIcon className="h-4 w-4" />
+                              <span className="ml-1">編集</span>
+                            </NexusButton>
+                          )}
+                          {plan.status === '発送待ち' && (
+                            <NexusButton
+                              variant="primary"
+                              size="sm"
+                              onClick={() => openShippingModal(plan)}
+                              className="flex items-center gap-1"
+                            >
+                              <TruckIcon className="h-4 w-4" />
+                              発送
+                            </NexusButton>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -818,6 +799,14 @@ export default function DeliveryPage() {
               >
                 閉じる
               </NexusButton>
+              {selectedPlan.status === '下書き' && (
+                <NexusButton
+                  variant="primary"
+                  onClick={() => router.push(`/delivery-plan?edit=${selectedPlan.id}`)}
+                >
+                  編集
+                </NexusButton>
+              )}
               <NexusButton
                 variant="primary"
                 onClick={() => generateBarcodePDF(selectedPlan.id)}
@@ -825,6 +814,59 @@ export default function DeliveryPage() {
                 <QrCodeIcon className="h-4 w-4 mr-2" />
                 バーコードPDF
               </NexusButton>
+            </div>
+          </div>
+        )}
+      </BaseModal>
+
+      {/* 発送モーダル */}
+      <BaseModal
+        isOpen={isShippingModalOpen}
+        onClose={() => setIsShippingModalOpen(false)}
+        title="発送処理"
+      >
+        {selectedPlan && (
+          <div className="space-y-4">
+            <div className="p-4 bg-nexus-bg-secondary rounded-lg">
+              <h4 className="font-medium text-nexus-text-primary mb-2">納品プラン情報</h4>
+              <div className="text-sm space-y-1">
+                <div><span className="font-medium">プランID:</span> {selectedPlan.id}</div>
+                <div><span className="font-medium">セラー:</span> {selectedPlan.sellerName}</div>
+                <div><span className="font-medium">商品数:</span> {selectedPlan.items}点</div>
+                <div><span className="font-medium">納品先:</span> {selectedPlan.deliveryAddress}</div>
+              </div>
+            </div>
+
+            <div>
+              <NexusInput
+                label="発送伝票番号（任意）"
+                value={shippingTrackingNumber}
+                onChange={(e) => setShippingTrackingNumber(e.target.value)}
+                placeholder="例：123-4567-8901（入力しない場合は空欄のまま）"
+                variant="nexus"
+              />
+              <p className="text-xs text-nexus-text-secondary mt-1">
+                発送伝票番号は任意です。後から追記することも可能です。
+              </p>
+            </div>
+
+            <div className="border-t pt-4">
+              <div className="flex justify-end gap-2">
+                <NexusButton
+                  variant="secondary"
+                  onClick={() => setIsShippingModalOpen(false)}
+                >
+                  キャンセル
+                </NexusButton>
+                <NexusButton
+                  variant="primary"
+                  onClick={() => handleShippingUpdate(selectedPlan.id)}
+                  className="flex items-center gap-2"
+                >
+                  <TruckIcon className="h-4 w-4" />
+                  発送済みにする
+                </NexusButton>
+              </div>
             </div>
           </div>
         )}

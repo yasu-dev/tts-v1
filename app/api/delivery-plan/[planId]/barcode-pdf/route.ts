@@ -7,13 +7,16 @@ export async function GET(
   { params }: { params: { planId: string } }
 ) {
   try {
+    console.log('[DEBUG] barcode-pdf endpoint called');
+    
     // 認証チェック（デモ環境対応）
     let user = null;
     try {
       user = await AuthService.requireRole(request, ['seller', 'staff']);
+      console.log('[DEBUG] Auth successful:', user.username);
     } catch (authError) {
       // デモ環境では認証をバイパス
-      console.log('Auth bypass for demo environment:', authError);
+      console.log('[DEBUG] Auth bypass for demo environment:', authError);
       user = { 
         id: 'demo-user', 
         role: 'seller', 
@@ -23,8 +26,10 @@ export async function GET(
     }
 
     const { planId } = params;
+    console.log('[DEBUG] planId:', planId);
 
     if (!planId) {
+      console.error('[ERROR] Missing planId');
       return NextResponse.json(
         { error: 'プランIDが必要です' },
         { status: 400 }
@@ -51,25 +56,39 @@ export async function GET(
       }
     ];
 
+    console.log('[DEBUG] Barcode labels data:', barcodeLabels);
+
     // PDFを生成
+    console.log('[DEBUG] Starting PDF generation...');
     const pdfBlob = await PDFGenerator.generateBarcodeLabels(barcodeLabels);
+    console.log('[DEBUG] PDF generation completed, size:', pdfBlob.size);
     
     // PDFをBase64エンコード
+    console.log('[DEBUG] Converting PDF to base64...');
     const buffer = await pdfBlob.arrayBuffer();
     const base64 = Buffer.from(buffer).toString('base64');
+    console.log('[DEBUG] Base64 conversion completed, length:', base64.length);
 
-    return NextResponse.json({
+    const result = {
       success: true,
       fileName: `delivery-plan-${planId}-barcodes.pdf`,
       fileSize: pdfBlob.size,
       base64Data: base64,
       message: 'バーコードラベルPDFが正常に生成されました'
-    });
+    };
+
+    console.log('[INFO] PDF generation successful:', result.fileName);
+    return NextResponse.json(result);
 
   } catch (error) {
-    console.error('[ERROR] Barcode PDF generation:', error);
+    console.error('[ERROR] Barcode PDF generation error:', error);
+    console.error('[ERROR] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    
     return NextResponse.json(
-      { error: 'PDFの生成中にエラーが発生しました' },
+      { 
+        error: 'バーコードPDFの生成に失敗しました',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }

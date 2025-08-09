@@ -67,7 +67,7 @@ export default function BasicInfoStep({
         onUpdate({ basicInfo: initialData });
         
       } catch (error) {
-        console.error('初期データの取得に失敗しました:', error);
+        console.error('[ERROR] 初期データの取得に失敗しました:', error);
         showToast({
           type: 'error',
           title: 'エラー',
@@ -78,7 +78,9 @@ export default function BasicInfoStep({
       }
     };
 
-    fetchInitialData();
+    fetchInitialData().catch(error => {
+      console.error('[ERROR] fetchInitialData Promise rejection:', error);
+    });
   }, []);
 
   const handleInputChange = (field: string, value: string) => {
