@@ -22,35 +22,63 @@ export default function LoginPage() {
     setError('');
     
     try {
+      console.log('[CLIENT] ログイン処理開始:', { email, password: '***' });
+      
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
+      }).catch((networkError) => {
+        console.error('[CLIENT] ネットワークエラー:', networkError);
+        throw new Error('ネットワークエラーが発生しました。');
       });
 
+      console.log('[CLIENT] レスポンス受信:', response.status, response.statusText);
+
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json().catch((jsonError) => {
+          console.error('[CLIENT] JSONパースエラー:', jsonError);
+          throw new Error('サーバーレスポンスの解析に失敗しました。');
+        });
+        
+        console.log('[CLIENT] レスポンスデータ:', data);
+        
         if (data.success) {
           showToast({ type: 'success', title: 'ログイン成功', message: 'ダッシュボードへようこそ！' });
-          if (data.user.role === 'staff') {
-            router.push('/staff/dashboard');
-          } else {
-            router.push('/dashboard');
-          }
+          
+          // ログイン成功後のリダイレクト
+          const redirectPath = data.user.role === 'staff' || data.user.role === 'admin' ? '/staff/dashboard' : '/dashboard';
+          console.log('[CLIENT] リダイレクト先:', redirectPath);
+          
+          router.push(redirectPath);
+          return; // 成功時は処理終了
         } else {
+          console.error('[CLIENT] ログイン失敗 - success: false');
           throw new Error(data.error || 'ログインに失敗しました');
         }
       } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'サーバーエラーが発生しました。');
+        console.error('[CLIENT] HTTPエラー:', response.status, response.statusText);
+        
+        let errorMessage = 'サーバーエラーが発生しました。';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+          console.error('[CLIENT] エラーデータ:', errorData);
+        } catch (parseError) {
+          console.error('[CLIENT] エラーレスポンスの解析に失敗:', parseError);
+        }
+        
+        throw new Error(errorMessage);
       }
     } catch (error: any) {
-      console.error('[ERROR] ログインエラー:', error);
-      setError(error.message || 'ログインに失敗しました');
+      console.error('[CLIENT] ログインエラー:', error);
+      const errorMessage = error.message || 'ログインに失敗しました';
+      
+      setError(errorMessage);
       showToast({ 
         type: 'error', 
         title: 'ログインエラー', 
-        message: error.message || 'ログインに失敗しました' 
+        message: errorMessage 
       });
     } finally {
       setIsLoading(false);

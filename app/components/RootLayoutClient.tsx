@@ -1,10 +1,53 @@
 'use client';
 
+import { useEffect } from 'react';
+
 interface RootLayoutClientProps {
   children: React.ReactNode;
 }
 
 export default function RootLayoutClient({ children }: RootLayoutClientProps) {
+  useEffect(() => {
+    // アプリケーション全体でのunhandled promise rejectionを監視
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      console.error('[ROOT LAYOUT] Unhandled promise rejection:', event.reason);
+      
+      // ログイン関連のエラーの場合は詳細をログ出力
+      if (event.reason instanceof Error) {
+        const error = event.reason;
+        if (error.message.includes('login') || error.message.includes('ログイン') || error.message.includes('auth')) {
+          console.error('[ROOT LAYOUT] ログイン関連エラー詳細:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+          });
+        }
+      }
+      
+      // エラーイベントを防止（コンソールの "Uncaught (in promise)" エラーを抑制）
+      event.preventDefault();
+    };
+
+    const handleError = (event: ErrorEvent) => {
+      console.error('[ROOT LAYOUT] Global error:', {
+        message: event.message,
+        filename: event.filename,
+        lineno: event.lineno,
+        colno: event.colno,
+        error: event.error
+      });
+    };
+
+    // イベントリスナーを登録
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    window.addEventListener('error', handleError);
+
+    // クリーンアップ
+    return () => {
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+      window.removeEventListener('error', handleError);
+    };
+  }, []);
   return (
     <div className="app-container">
       {/* Skip to main content for accessibility */}
