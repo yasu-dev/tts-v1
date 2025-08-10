@@ -218,24 +218,24 @@ export default function LocationPage() {
                 <p className="text-nexus-text-secondary mb-6">
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="bg-blue-50 p-4 rounded-lg">
-                        <h4 className="font-medium text-blue-900 mb-2">使用率</h4>
-                        <p className="text-2xl font-bold text-blue-700">78.5%</p>
-                        <p className="text-sm text-blue-600">平均使用率</p>
+                      <div className="holo-card p-4">
+                        <h4 className="font-medium text-nexus-text-primary mb-2">使用率</h4>
+                        <p className="text-2xl font-bold text-nexus-primary">78.5%</p>
+                        <p className="text-sm text-nexus-text-secondary">平均使用率</p>
                       </div>
-                      <div className="bg-green-50 p-4 rounded-lg">
-                        <h4 className="font-medium text-green-900 mb-2">効率性</h4>
-                        <p className="text-2xl font-bold text-green-700">92.3%</p>
-                        <p className="text-sm text-green-600">アクセス効率</p>
+                      <div className="holo-card p-4">
+                        <h4 className="font-medium text-nexus-text-primary mb-2">効率性</h4>
+                        <p className="text-2xl font-bold text-green-600">92.3%</p>
+                        <p className="text-sm text-nexus-text-secondary">アクセス効率</p>
                       </div>
-                      <div className="bg-orange-50 p-4 rounded-lg">
-                        <h4 className="font-medium text-orange-900 mb-2">改善提案</h4>
-                        <p className="text-2xl font-bold text-orange-700">3</p>
-                        <p className="text-sm text-orange-600">件の提案</p>
+                      <div className="holo-card p-4">
+                        <h4 className="font-medium text-nexus-text-primary mb-2">改善提案</h4>
+                        <p className="text-2xl font-bold text-nexus-yellow">3</p>
+                        <p className="text-sm text-nexus-text-secondary">件の提案</p>
                       </div>
                     </div>
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <h4 className="font-medium text-gray-900 mb-2">レポート生成</h4>
+                    <div className="holo-card p-4">
+                      <h4 className="font-medium text-nexus-text-primary mb-2">レポート生成</h4>
                       <div className="flex gap-2">
                         <NexusButton variant="primary" size="sm">
                           週次レポート

@@ -25,6 +25,7 @@ import NexusButton from '@/app/components/ui/NexusButton';
 import NexusInput from '@/app/components/ui/NexusInput';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import NexusSelect from '@/app/components/ui/NexusSelect';
+import BusinessStatusIndicator from '@/app/components/ui/StatusIndicator';
 import Pagination from '@/app/components/ui/Pagination';
 import BaseModal from '@/app/components/ui/BaseModal';
 
@@ -638,12 +639,20 @@ export default function DeliveryPage() {
                         {plan.date}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          {getStatusIcon(plan.status)}
-                          <span className={`ml-2 ${getStatusBadgeClass(plan.status)}`}>
-                            {plan.status}
-                          </span>
-                        </div>
+                        <BusinessStatusIndicator 
+                          status={(() => {
+                            const mappedStatus = plan.status === 'draft' ? 'pending' : 
+                                                plan.status === 'submitted' ? 'processing' :
+                                                plan.status === 'in_transit' ? 'shipping' :
+                                                plan.status === 'delivered' ? 'delivered' :
+                                                plan.status === 'approved' ? 'confirmed' :
+                                                plan.status === 'completed' ? 'completed' :
+                                                'pending';
+                            console.log(`[DEBUG] Plan ${plan.id} status: ${plan.status} -> ${mappedStatus}`);
+                            return mappedStatus;
+                          })()} 
+                          size="sm" 
+                        />
                       </td>
                       {user?.role === 'staff' && (
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-nexus-text-primary">

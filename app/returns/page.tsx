@@ -17,6 +17,7 @@ import NexusTextarea from '@/app/components/ui/NexusTextarea';
 import BaseModal from '@/app/components/ui/BaseModal';
 import { NexusCard } from '@/app/components/ui';
 import ReturnDetailModal from '@/app/components/modals/ReturnDetailModal';
+import { BusinessStatusIndicator } from '@/app/components/ui/StatusIndicator';
 
 export default function ReturnsPage() {
   const router = useRouter();
@@ -381,22 +382,18 @@ export default function ReturnsPage() {
                       <td className="font-medium text-nexus-text-primary">{returnItem.product}</td>
                       <td>{returnItem.reason}</td>
                       <td className="text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <div className={`status-orb status-${
-                            returnItem.status === '申請' ? 'monitoring' :
-                            returnItem.status === '受領' ? 'optimal' :
-                            returnItem.status === '再検品' ? 'monitoring' :
-                            'optimal'
-                          }`} />
-                          <span className={`status-badge ${
-                            returnItem.status === '申請' ? 'warning' :
-                            returnItem.status === '受領' ? 'info' :
-                            returnItem.status === '再検品' ? 'warning' :
-                            'success'
-                          }`}>
-                            {returnItem.status}
-                          </span>
-                        </div>
+                        <BusinessStatusIndicator 
+                          status={
+                            returnItem.status === '申請' ? 'pending' :
+                            returnItem.status === '受領' ? 'processing' :
+                            returnItem.status === '再検品' ? 'processing' :
+                            returnItem.status === 'approved' ? 'approved' :
+                            returnItem.status === 'processing' ? 'processing' :
+                            'completed'
+                          } 
+                          size="sm" 
+                          showLabel={true}
+                        />
                       </td>
                       <td className="font-mono text-sm">{returnItem.date}</td>
                       <td className="text-center">

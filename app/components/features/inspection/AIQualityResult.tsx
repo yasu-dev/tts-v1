@@ -70,11 +70,11 @@ export default function AIQualityResult({
   const getGradeColor = (grade: string) => {
     switch (grade) {
       case 'S': return 'text-nexus-purple bg-nexus-purple/20'
-      case 'A': return 'text-blue-600 bg-blue-100'
-      case 'B': return 'text-green-600 bg-green-100'
-      case 'C': return 'text-yellow-600 bg-yellow-100'
-      case 'D': return 'text-orange-600 bg-orange-100'
-      default: return 'text-red-600 bg-red-100'
+      case 'A': return 'status-badge primary'
+      case 'B': return 'status-badge success'
+      case 'C': return 'status-badge warning'
+      case 'D': return 'status-badge warning'
+      default: return 'status-badge error'
     }
   }
 

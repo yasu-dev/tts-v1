@@ -61,7 +61,7 @@ const businessStatusConfig = {
   // 返品ステータス
   approved: { label: '承認済み', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
   rejected: { label: '不合格', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' },
-  refunded: { label: '返金済み', color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200' },
+  refunded: { label: '返金済み', color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200' }
 };
 
 export default function StatusIndicator({
@@ -90,6 +90,12 @@ export default function StatusIndicator({
       glow: 'shadow-[0_0_20px_rgba(229,50,56,0.7)]', 
       textColor: 'text-nexus-red',
       ring: 'ring-nexus-red/30'
+    },
+    normal: {
+      color: 'bg-gray-500',
+      glow: 'shadow-[0_0_20px_rgba(107,114,128,0.7)]',
+      textColor: 'text-gray-500',
+      ring: 'ring-gray-500/30'
     }
   };
 
@@ -111,8 +117,8 @@ export default function StatusIndicator({
     }
   };
 
-  const config = statusConfig[status];
-  const sizing = sizeConfig[size];
+  const config = statusConfig[status] || statusConfig.normal;
+  const sizing = sizeConfig[size] || sizeConfig.md;
 
   return (
     <div className={`
@@ -171,11 +177,14 @@ export function BusinessStatusIndicator({
   showLabel = true,
   className = ''
 }: BusinessStatusIndicatorProps) {
-  const config = businessStatusConfig[status];
+  const config = businessStatusConfig[status] || {
+    label: status || '不明',
+    color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+  };
   
-  if (!config) {
-    console.warn(`Unknown business status: ${status}`);
-    return null;
+  if (!status) {
+    console.warn(`Status is undefined in BusinessStatusIndicator`);
+    return <span className="status-badge neutral">不明</span>;
   }
 
   const sizeConfig = {

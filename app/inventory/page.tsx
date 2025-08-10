@@ -571,21 +571,7 @@ export default function InventoryPage() {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case '入庫': return 'text-blue-600 bg-blue-100';
-      case '検品': return 'text-orange-600 bg-orange-100';
-      case '保管': return 'text-blue-600 bg-blue-100';
-      case '出品': return 'text-green-600 bg-green-100';
-      case '売約済み': return 'text-gray-600 bg-gray-100';
-      case 'メンテナンス': return 'text-red-600 bg-red-100';
-      // 旧形式との互換性
-      case '出品中': return 'text-green-600 bg-green-100';
-      case '検品中': return 'text-orange-600 bg-orange-100';
-      case '保管中': return 'text-blue-600 bg-blue-100';
-      default: return 'text-gray-600 bg-gray-100';
-    }
-  };
+
 
   const headerActions = (
     <>
@@ -635,7 +621,7 @@ export default function InventoryPage() {
         />
 
         {/* フィルター */}
-        <div className="bg-white rounded-xl border border-nexus-border p-6">
+        <div className="intelligence-card global p-6">
           <div className="flex items-center gap-2 mb-4">
             <FunnelIcon className="w-5 h-5 text-nexus-text-secondary" />
             <h3 className="text-lg font-medium text-nexus-text-primary">フィルター・検索</h3>
@@ -782,7 +768,7 @@ export default function InventoryPage() {
                 <h4 className="font-bold text-nexus-text-primary mb-2">認証情報</h4>
                 <div className="flex gap-2 flex-wrap">
                   {selectedProduct.certifications.map((cert: string) => (
-                    <span key={cert} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                    <span key={cert} className="status-badge info">
                       {cert}
                     </span>
                   ))}
@@ -810,7 +796,7 @@ export default function InventoryPage() {
 
 
         {/* Inventory Table - シンプル化 */}
-        <div className="bg-white rounded-xl border border-nexus-border p-6">
+        <div className="intelligence-card oceania p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-lg font-bold text-nexus-text-primary">在庫リスト</h3>
@@ -821,9 +807,9 @@ export default function InventoryPage() {
           </div>
             
           <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-nexus-border">
+              <table className="holo-table">
+                <thead className="holo-header">
+                  <tr>
                     <th 
                       className="text-left p-4 font-medium text-nexus-text-secondary cursor-pointer hover:bg-nexus-bg-tertiary"
                       onClick={() => handleSort('name')}
@@ -863,9 +849,9 @@ export default function InventoryPage() {
                     <th className="text-center p-4 font-medium text-nexus-text-secondary">操作</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="holo-body">
                   {paginatedInventory.map((item: any) => (
-                    <tr key={item.id} className="border-b border-nexus-border hover:bg-nexus-bg-tertiary">
+                    <tr key={item.id} className="holo-row">
                       <td className="p-4">
                         <div>
                           <span className="font-medium text-nexus-text-primary">{item.name}</span>

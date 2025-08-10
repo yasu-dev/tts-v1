@@ -30,6 +30,7 @@ import Pagination from '@/app/components/ui/Pagination';
 import { NexusLoadingSpinner } from '@/app/components/ui';
 
 import { getWorkflowProgress, getNextAction, ShippingStatus } from '@/lib/utils/workflow';
+import { BusinessStatusIndicator } from '@/app/components/ui/StatusIndicator';
 import React from 'react'; // Added missing import for React
 
 interface ShippingItem {
@@ -979,9 +980,13 @@ export default function StaffShippingPage() {
                     `}
                   >
                     集荷準備完了
-                    <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      activeTab === 'ready_for_pickup' ? 'bg-green-100 text-green-800' : 'bg-nexus-bg-secondary text-nexus-text-secondary'
-                    }`}>
+                    <BusinessStatusIndicator 
+                      status={activeTab === 'ready_for_pickup' ? 'completed' : 'pending'} 
+                      size="sm" 
+                      showLabel={false}
+                      className="ml-2"
+                    />
+                    <span className="ml-1 text-sm">
                       {stats.ready_for_pickup}
                     </span>
                   </button>
@@ -1079,16 +1084,18 @@ export default function StaffShippingPage() {
                         </td>
                         <td className="p-4">
                           <div className="space-y-2">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              item.status === 'picked' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
-                              item.status === 'workstation' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
-                              item.status === 'packed' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' :
-                              item.status === 'ready_for_pickup' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
-                              item.status === 'shipped' ? 'bg-nexus-blue/20 text-nexus-blue dark:bg-nexus-blue/30 dark:text-nexus-blue' :
-                              'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
-                            }`}>
-                              {statusLabels[item.status]}
-                            </span>
+                            <BusinessStatusIndicator 
+                              status={
+                                item.status === 'picked' ? 'processing' :
+                                item.status === 'workstation' ? 'in_progress' :
+                                item.status === 'packed' ? 'packed' :
+                                item.status === 'ready_for_pickup' ? 'ready_for_pickup' :
+                                item.status === 'shipped' ? 'shipped' :
+                                'pending'
+                              } 
+                              size="sm" 
+                              showLabel={true}
+                            />
                             <button
                               onClick={() => toggleRowExpansion(item.id)}
                               className="text-xs text-nexus-blue hover:text-nexus-blue-dark flex items-center gap-1"

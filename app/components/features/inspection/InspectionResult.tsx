@@ -170,11 +170,11 @@ export default function InspectionResult({
   // 検品結果の判定
   const getResultStatus = () => {
     if (summary.percentage >= 90) {
-      return { label: 'A級品', color: 'text-green-600', bg: 'bg-green-100' };
+      return { label: 'A級品', color: 'status-badge success' };
     } else if (summary.percentage >= 70) {
-      return { label: 'B級品', color: 'text-yellow-600', bg: 'bg-yellow-100' };
+      return { label: 'B級品', color: 'status-badge warning' };
     } else {
-      return { label: 'C級品', color: 'text-red-600', bg: 'bg-red-100' };
+      return { label: 'C級品', color: 'status-badge error' };
     }
   };
 

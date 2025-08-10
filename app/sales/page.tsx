@@ -365,11 +365,11 @@ export default function SalesPage() {
                 ]}
                 renderCell={(value, column, row) => {
                   if (column.key === 'amount') {
-                    return `¥${Number(value).toLocaleString()}`;
+                    return `¥${Number(row.totalAmount || value || 0).toLocaleString()}`;
                   }
                   
                   if (column.key === 'status') {
-                    return <BusinessStatusIndicator status={row.statusKey} size="md" showLabel={true} />;
+                    return <BusinessStatusIndicator status={row.status} size="md" showLabel={true} />;
                   }
 
                   if (column.key === 'labelStatus') {
@@ -388,7 +388,7 @@ export default function SalesPage() {
                   }
                   
                   if (column.key === 'actions') {
-                    if (['confirmed', 'processing'].includes(row.statusKey) && !row.labelGenerated) {
+                    if (['confirmed', 'processing'].includes(row.status) && !row.labelGenerated) {
                       return (
                         <NexusButton
                           size="sm"

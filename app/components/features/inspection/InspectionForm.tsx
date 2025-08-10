@@ -773,13 +773,22 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
               >
                 保存して後で続ける
               </NexusButton>
-              <NexusButton
-                onClick={() => handleStepChange(2)}
-                variant="primary"
-                size="lg"
-              >
-                次へ（写真撮影）
-              </NexusButton>
+              <div className="flex gap-3">
+                <NexusButton
+                  onClick={() => submitInspection(true, null)}
+                  variant="outline"
+                  size="lg"
+                >
+                  検品のみ完了
+                </NexusButton>
+                <NexusButton
+                  onClick={() => handleStepChange(2)}
+                  variant="primary"
+                  size="lg"
+                >
+                  検品・撮影完了
+                </NexusButton>
+              </div>
             </div>
           </div>
         )}
