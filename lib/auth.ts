@@ -162,22 +162,57 @@ export class AuthService {
   }
 
   static async getUserFromRequest(request: NextRequest): Promise<SessionUser | null> {
-    const token = request.cookies.get('auth-token')?.value;
+    // Cookieから認証トークンを取得
+    let token = request.cookies.get('auth-token')?.value;
+    
+    // CookieにトークンがなければAuthorizationヘッダーを確認
+    if (!token) {
+      const authHeader = request.headers.get('authorization');
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+      }
+    }
+    
     if (!token) {
       return null;
     }
 
     // 一時的な固定トークン認証
-    if (token === 'fixed-auth-token-12345') {
-      return {
-        id: 'seller-1',
-        email: 'seller@example.com',
-        username: 'seller',
-        role: 'seller',
-        fullName: 'テストセラー',
-        phoneNumber: '090-1234-5678',
-        address: '東京都渋谷区1-1-1',
+    if (token.startsWith('fixed-auth-token-')) {
+      const tokenMap = {
+        'fixed-auth-token-seller-1': {
+          id: 'seller-1',
+          email: 'seller@example.com',
+          username: 'seller',
+          role: 'seller',
+          fullName: 'テストセラー',
+          phoneNumber: '090-1234-5678',
+          address: '東京都渋谷区1-1-1',
+        },
+        'fixed-auth-token-staff-1': {
+          id: 'staff-1',
+          email: 'staff@example.com',
+          username: 'staff',
+          role: 'staff',
+          fullName: 'テストスタッフ',
+          phoneNumber: '090-1234-5679',
+          address: '東京都渋谷区1-1-2',
+        },
+        'fixed-auth-token-admin-1': {
+          id: 'admin-1',
+          email: 'admin@example.com',
+          username: 'admin',
+          role: 'admin',
+          fullName: '管理者',
+          phoneNumber: '090-1234-5680',
+          address: '東京都渋谷区1-1-3',
+        }
       };
+      
+      const user = tokenMap[token as keyof typeof tokenMap];
+      if (user) {
+        return user;
+      }
     }
 
     return this.validateSession(token);

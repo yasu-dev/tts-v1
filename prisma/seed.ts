@@ -319,7 +319,158 @@ async function main() {
       entryDate: new Date('2024-07-01'),
       sellerId: seller.id,
     },
-    // 腕時計商品
+    // 追加のカメラ商品（ページネーション用）
+    {
+      sku: 'CAM-SONY-A1-021',
+      name: 'Sony α1 ボディ',
+      category: 'camera',
+      price: 798000,
+      status: 'storage',
+      condition: 'excellent',
+      entryDate: new Date('2024-06-08'),
+      sellerId: seller.id,
+    },
+    {
+      sku: 'CAM-CANON-R6-022',
+      name: 'Canon EOS R6 ボディ',
+      category: 'camera',
+      price: 248000,
+      status: 'listing',
+      condition: 'very_good',
+      entryDate: new Date('2024-06-16'),
+      sellerId: seller.id,
+    },
+    {
+      sku: 'CAM-NIKON-Z7II-023',
+      name: 'Nikon Z7 II ボディ',
+      category: 'camera',
+      price: 298000,
+      status: 'storage',
+      condition: 'excellent',
+      entryDate: new Date('2024-06-07'),
+      sellerId: seller.id,
+    },
+    {
+      sku: 'CAM-FUJIFILM-XH2-024',
+      name: 'FUJIFILM X-H2 ボディ',
+      category: 'camera',
+      price: 248000,
+      status: 'inspection',
+      condition: 'very_good',
+      entryDate: new Date('2024-07-04'),
+      sellerId: seller.id,
+    },
+    {
+      sku: 'CAM-PANASONIC-GH6-025',
+      name: 'Panasonic LUMIX GH6 ボディ',
+      category: 'camera',
+      price: 248000,
+      status: 'storage',
+      condition: 'good',
+      entryDate: new Date('2024-06-21'),
+      sellerId: seller.id,
+    },
+    {
+      sku: 'CAM-OLYMPUS-EM1III-026',
+      name: 'OLYMPUS OM-D E-M1 Mark III ボディ',
+      category: 'camera',
+      price: 178000,
+      status: 'listing',
+      condition: 'very_good',
+      entryDate: new Date('2024-06-17'),
+      sellerId: seller.id,
+    },
+    {
+      sku: 'CAM-CANON-RP-027',
+      name: 'Canon EOS RP ボディ',
+      category: 'camera',
+      price: 98000,
+      status: 'storage',
+      condition: 'good',
+      entryDate: new Date('2024-06-19'),
+      sellerId: seller.id,
+    },
+    {
+      sku: 'CAM-SONY-A7C-028',
+      name: 'Sony α7C ボディ',
+      category: 'camera',
+      price: 198000,
+      status: 'inspection',
+      condition: 'very_good',
+      entryDate: new Date('2024-07-05'),
+      sellerId: seller.id,
+    },
+    {
+      sku: 'CAM-NIKON-Z6II-029',
+      name: 'Nikon Z6 II ボディ',
+      category: 'camera',
+      price: 228000,
+      status: 'storage',
+      condition: 'excellent',
+      entryDate: new Date('2024-06-06'),
+      sellerId: seller.id,
+    },
+    {
+      sku: 'CAM-FUJIFILM-XT4-030',
+      name: 'FUJIFILM X-T4 ボディ',
+      category: 'camera',
+      price: 168000,
+      status: 'listing',
+      condition: 'good',
+      entryDate: new Date('2024-06-13'),
+      sellerId: seller.id,
+    },
+    {
+      sku: 'CAM-CANON-M50II-031',
+      name: 'Canon EOS M50 Mark II ボディ',
+      category: 'camera',
+      price: 68000,
+      status: 'storage',
+      condition: 'good',
+      entryDate: new Date('2024-06-24'),
+      sellerId: seller.id,
+    },
+    {
+      sku: 'CAM-SONY-A6600-032',
+      name: 'Sony α6600 ボディ',
+      category: 'camera',
+      price: 128000,
+      status: 'inspection',
+      condition: 'very_good',
+      entryDate: new Date('2024-07-06'),
+      sellerId: seller.id,
+    },
+    {
+      sku: 'CAM-PANASONIC-S1R-033',
+      name: 'Panasonic LUMIX S1R ボディ',
+      category: 'camera',
+      price: 298000,
+      status: 'storage',
+      condition: 'excellent',
+      entryDate: new Date('2024-06-04'),
+      sellerId: seller.id,
+    },
+    {
+      sku: 'CAM-OLYMPUS-EM5III-034',
+      name: 'OLYMPUS OM-D E-M5 Mark III ボディ',
+      category: 'camera',
+      price: 118000,
+      status: 'listing',
+      condition: 'good',
+      entryDate: new Date('2024-06-15'),
+      sellerId: seller.id,
+    },
+    {
+      sku: 'CAM-CANON-90D-035',
+      name: 'Canon EOS 90D ボディ',
+      category: 'camera',
+      price: 128000,
+      status: 'storage',
+      condition: 'very_good',
+      entryDate: new Date('2024-06-23'),
+      sellerId: seller.id,
+    },
+    // 腕時計商品（大幅に拡張）
     {
       sku: 'WATCH-ROLEX-SUB-001',
       name: 'Rolex Submariner Date',
@@ -368,6 +519,107 @@ async function main() {
       status: 'inspection',
       condition: 'good',
       entryDate: new Date('2024-07-01'),
+      sellerId: seller.id,
+    },
+    // 追加の腕時計商品（ページネーション用）
+    {
+      sku: 'WATCH-ROLEX-DAY-006',
+      name: 'Rolex Day-Date 40',
+      category: 'watch',
+      price: 4280000,
+      status: 'storage',
+      condition: 'excellent',
+      entryDate: new Date('2024-06-10'),
+      sellerId: seller.id,
+    },
+    {
+      sku: 'WATCH-PATEK-NAU-007',
+      name: 'Patek Philippe Nautilus',
+      category: 'watch',
+      price: 12800000,
+      status: 'listing',
+      condition: 'excellent',
+      entryDate: new Date('2024-06-05'),
+      sellerId: seller.id,
+    },
+    {
+      sku: 'WATCH-AUDEMARS-ROY-008',
+      name: 'Audemars Piguet Royal Oak',
+      category: 'watch',
+      price: 8900000,
+      status: 'sold',
+      condition: 'very_good',
+      entryDate: new Date('2024-05-28'),
+      sellerId: seller.id,
+    },
+    {
+      sku: 'WATCH-OMEGA-PLAN-009',
+      name: 'Omega Planet Ocean',
+      category: 'watch',
+      price: 480000,
+      status: 'storage',
+      condition: 'good',
+      entryDate: new Date('2024-06-22'),
+      sellerId: seller.id,
+    },
+    {
+      sku: 'WATCH-TAG-CAR-010',
+      name: 'TAG Heuer Carrera',
+      category: 'watch',
+      price: 350000,
+      status: 'inspection',
+      condition: 'very_good',
+      entryDate: new Date('2024-07-02'),
+      sellerId: seller.id,
+    },
+    {
+      sku: 'WATCH-BREITLING-NAV-011',
+      name: 'Breitling Navitimer',
+      category: 'watch',
+      price: 680000,
+      status: 'storage',
+      condition: 'excellent',
+      entryDate: new Date('2024-06-18'),
+      sellerId: seller.id,
+    },
+    {
+      sku: 'WATCH-IWC-PILOT-012',
+      name: 'IWC Pilot\'s Watch',
+      category: 'watch',
+      price: 520000,
+      status: 'listing',
+      condition: 'very_good',
+      entryDate: new Date('2024-06-14'),
+      sellerId: seller.id,
+    },
+    {
+      sku: 'WATCH-TUDOR-BLACK-013',
+      name: 'Tudor Black Bay',
+      category: 'watch',
+      price: 280000,
+      status: 'storage',
+      condition: 'good',
+      entryDate: new Date('2024-06-26'),
+      sellerId: seller.id,
+    },
+    {
+      sku: 'WATCH-LONGINES-MASTER-014',
+      name: 'Longines Master Collection',
+      category: 'watch',
+      price: 180000,
+      status: 'inspection',
+      condition: 'very_good',
+      entryDate: new Date('2024-07-03'),
+      sellerId: seller.id,
+    },
+    {
+      sku: 'WATCH-ZENITH-CHRONO-015',
+      name: 'Zenith Chronomaster',
+      category: 'watch',
+      price: 780000,
+      status: 'storage',
+      condition: 'excellent',
+      entryDate: new Date('2024-06-12'),
       sellerId: seller.id,
     },
   ];
@@ -441,6 +693,23 @@ async function main() {
     { sku: 'CAM-NIKON-Z8-004', locationCode: 'PROC-01' },
     { sku: 'CAM-CANON-R3-011', locationCode: 'PROC-01' },
     { sku: 'CAM-CANON-R7-020', locationCode: 'PROC-01' },
+    { sku: 'CAM-FUJIFILM-XH2-024', locationCode: 'PROC-01' },
+    { sku: 'CAM-SONY-A7C-028', locationCode: 'PROC-01' },
+    { sku: 'CAM-SONY-A6600-032', locationCode: 'PROC-01' },
+    
+    // 追加商品のロケーション配置
+    { sku: 'CAM-SONY-A1-021', locationCode: 'HUM-02' },
+    { sku: 'CAM-CANON-R6-022', locationCode: 'STD-A-01' },
+    { sku: 'CAM-NIKON-Z7II-023', locationCode: 'HUM-01' },
+    { sku: 'CAM-PANASONIC-GH6-025', locationCode: 'STD-B-01' },
+    { sku: 'CAM-OLYMPUS-EM1III-026', locationCode: 'STD-A-02' },
+    { sku: 'CAM-CANON-RP-027', locationCode: 'STD-B-01' },
+    { sku: 'CAM-NIKON-Z6II-029', locationCode: 'HUM-01' },
+    { sku: 'CAM-FUJIFILM-XT4-030', locationCode: 'STD-A-01' },
+    { sku: 'CAM-CANON-M50II-031', locationCode: 'STD-B-01' },
+    { sku: 'CAM-PANASONIC-S1R-033', locationCode: 'HUM-02' },
+    { sku: 'CAM-OLYMPUS-EM5III-034', locationCode: 'STD-A-02' },
+    { sku: 'CAM-CANON-90D-035', locationCode: 'STD-B-01' },
     
     // 腕時計（金庫室に保管）
     { sku: 'WATCH-ROLEX-SUB-001', locationCode: 'VAULT-01' },
@@ -587,9 +856,9 @@ async function main() {
     productMap.set(product.sku, product.id);
   });
 
-  // 注文とアイテムを作成（一時的にコメントアウト）
-  console.log('📝 注文データ作成をスキップ中...');
-  /*
+  // 注文とアイテムを作成
+  console.log('📝 注文データを作成中...');
+  
   for (const order of orderData) {
     const createdOrder = await prisma.order.create({
       data: {
@@ -623,10 +892,9 @@ async function main() {
 
     console.log(`✅ 注文を作成しました: ${order.orderNumber} - ${order.status}`);
   }
-  */
 
-  // アクティビティデータを作成（一時的にスキップ）
-  console.log('📋 アクティビティデータ作成をスキップ中...');
+  // アクティビティデータを作成
+  console.log('📋 アクティビティデータを作成中...');
   
   const activities = [
     {
@@ -717,14 +985,12 @@ async function main() {
     }
   ];
 
-  /*
   for (const activity of activities) {
     await prisma.activity.create({
       data: activity
     });
     console.log(`✅ アクティビティを作成しました: ${activity.type} - ${activity.description}`);
   }
-  */
 
   console.log('🎉 シードデータの作成が完了しました！');
   console.log('');
@@ -795,50 +1061,51 @@ async function main() {
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + Math.floor(Math.random() * 7)); // 今日から7日以内
 
-    // ピッキングタスクの作成は現在APIで動的生成されているためコメントアウト
-    // try {
-    //   const task = await prisma.pickingTask.create({
-    //     data: {
-    //       orderId: orderNumber,
-    //       customerName: customer,
-    //       priority: priority,
-    //       status: status,
-    //       assignee: assignee,
-    //       shippingMethod: shippingMethod,
-    //       totalItems: itemCount,
-    //       pickedItems: pickedItems,
-    //       dueDate: dueDate,
-    //       items: {
-    //         create: selectedProducts.map((product, index) => {
-    //           const quantity = Math.floor(Math.random() * 3) + 1;
-    //           let pickedQuantity = 0;
-    //           let itemStatus = 'pending';
-    //           
-    //           if (status === 'completed') {
-    //             pickedQuantity = quantity;
-    //             itemStatus = 'verified';
-    //           } else if (status === 'in_progress' && index < pickedItems) {
-    //             pickedQuantity = quantity;
-    //             itemStatus = 'picked';
-    //           }
-    //
-    //           return {
-    //             productId: `PROD-${product.sku}`,
-    //             productName: product.name,
-    //             sku: product.sku,
-    //             location: product.location,
-    //             quantity: quantity,
-    //             pickedQuantity: pickedQuantity,
-    //             status: itemStatus,
-    //             imageUrl: '/api/placeholder/60/60'
-    //           };
-    //         })
-    //       }
-    //     }
-    //   });
-    // } catch (error) {
-    //   console.log(`⚠️ ピッキングタスク ${i} の作成をスキップしました（マイグレーションが必要）`);
-    // }
+    // ピッキングタスクをデータベースに作成
+    try {
+      const task = await prisma.pickingTask.create({
+        data: {
+          orderId: orderNumber,
+          customerName: customer,
+          priority: priority,
+          status: status,
+          assignee: assignee,
+          shippingMethod: shippingMethod,
+          totalItems: itemCount,
+          pickedItems: pickedItems,
+          dueDate: dueDate,
+          items: {
+            create: selectedProducts.map((product, index) => {
+              const quantity = Math.floor(Math.random() * 3) + 1;
+              let pickedQuantity = 0;
+              let itemStatus = 'pending';
+              
+              if (status === 'completed') {
+                pickedQuantity = quantity;
+                itemStatus = 'verified';
+              } else if (status === 'in_progress' && index < pickedItems) {
+                pickedQuantity = quantity;
+                itemStatus = 'picked';
+              }
+
+              return {
+                productId: `PROD-${product.sku}`,
+                productName: product.name,
+                sku: product.sku,
+                location: product.location,
+                quantity: quantity,
+                pickedQuantity: pickedQuantity,
+                status: itemStatus,
+                imageUrl: '/api/placeholder/60/60'
+              };
+            })
+          }
+        }
+      });
+      console.log(`✅ ピッキングタスク ${i} を作成しました: ${orderNumber} (${status})`);
+    } catch (error) {
+      console.log(`⚠️ ピッキングタスク ${i} の作成をスキップしました:`, error);
+    }
   }
 
   // 納品プランデータを作成
@@ -947,12 +1214,52 @@ async function main() {
     console.log(`✅ 納品プラン ${i + 1} を作成しました: ${planNumber} (${status}, ${productCount}件, ¥${totalValue.toLocaleString()})`);
   }
 
-  console.log('📦 商品データ: 20件のカメラを作成しました');
-  console.log('📍 ロケーションデータ: 7件のロケーションを作成しました');
+  // 検品チェックリストデータを作成
+  console.log('🔍 検品チェックリストデータを作成中...');
+  
+  const inspectionProducts = [
+    'CAM-SONY-A7IV-001',
+    'CAM-SONY-A7R5-008', 
+    'CAM-SIGMA-FP-015',
+    'CAM-SONY-ZV1-019',
+    'WATCH-CASIO-GS-005',
+    'WATCH-TAG-CAR-010',
+    'WATCH-LONGINES-MASTER-014'
+  ];
+
+  for (const productSku of inspectionProducts) {
+    const productId = productMap.get(productSku);
+    if (productId) {
+      await prisma.inspectionChecklist.create({
+        data: {
+          productId: productId,
+          hasScratches: Math.random() > 0.7,
+          hasDents: Math.random() > 0.8,
+          hasDiscoloration: Math.random() > 0.9,
+          hasDust: Math.random() > 0.6,
+          powerOn: Math.random() > 0.1,
+          allButtonsWork: Math.random() > 0.2,
+          screenDisplay: Math.random() > 0.15,
+          connectivity: Math.random() > 0.25,
+          lensClarity: productSku.includes('CAM') ? Math.random() > 0.2 : true,
+          aperture: productSku.includes('CAM') ? Math.random() > 0.3 : true,
+          focusAccuracy: productSku.includes('CAM') ? Math.random() > 0.25 : true,
+          stabilization: productSku.includes('CAM') ? Math.random() > 0.4 : true,
+          createdBy: staff.id,
+          notes: `${productSku.includes('CAM') ? 'カメラ' : '腕時計'}の詳細検品を実施。全体的に良好な状態です。`,
+        }
+      });
+      console.log(`✅ 検品チェックリストを作成しました: ${productSku}`);
+    }
+  }
+
+  console.log('📦 商品データ: 30件以上の商品を作成しました（カメラ・腕時計）');
+  console.log('📍 ロケーションデータ: 9件のロケーションを作成しました');
   console.log('🛒 注文データ: 8件の注文を作成しました（様々なステータス）');
-  console.log('📋 アクティビティデータ: 10件のアクティビティを作成しました');
-  console.log('📝 納品プランデータ: 25件の納品プランを作成しました（全ステータス含む）');
-  console.log('🎯 ピッキングタスクデータ: APIで動的生成されます（50件以上）');
+  console.log('📋 アクティビティデータ: 12件のアクティビティを作成しました');
+  console.log('📝 納品プランデータ: 100件の納品プランを作成しました（全ステータス含む）');
+  console.log('🎯 ピッキングタスクデータ: 50件のピッキングタスクを作成しました');
+  console.log('🔍 検品チェックリストデータ: 7件の検品データを作成しました');
 }
 
 main()

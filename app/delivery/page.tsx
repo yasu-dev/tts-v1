@@ -396,15 +396,20 @@ export default function DeliveryPage() {
     }
   };
 
-  const getStatusBadgeColor = (status: string) => {
+  const getStatusBadgeClass = (status: string) => {
     switch (status) {
-
+      case 'draft':
+        return 'status-badge info';
+      case 'submitted':
+        return 'status-badge warning';
+      case 'delivered':
+        return 'status-badge success';
       case '発送待ち':
-        return 'bg-blue-100 text-blue-800';
+        return 'status-badge warning';
       case '発送済':
-        return 'bg-green-100 text-green-800';
+        return 'status-badge success';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'status-badge info';
     }
   };
 
@@ -454,11 +459,12 @@ export default function DeliveryPage() {
 
         {/* フィルター・検索バー */}
         {!isDetailModalOpen && (
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-nexus-border">
-            <div className="flex items-center gap-2 mb-4">
-              <FunnelIcon className="h-5 w-5 text-nexus-text-secondary" />
-              <h3 className="text-lg font-medium text-nexus-text-primary">フィルター・検索</h3>
-            </div>
+          <div className="intelligence-card global">
+            <div className="p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <FunnelIcon className="h-5 w-5 text-nexus-text-secondary" />
+                <h3 className="text-lg font-medium text-nexus-text-primary">フィルター・検索</h3>
+              </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <NexusSelect
                 label="ステータス"
@@ -482,12 +488,13 @@ export default function DeliveryPage() {
                 variant="nexus"
               />
             </div>
+            </div>
           </div>
         )}
 
         {/* 納品プラン一覧テーブル */}
-        <div className="bg-white rounded-lg shadow-sm border border-nexus-border">
-          <div className="px-6 py-4 border-b border-nexus-border">
+        <div className="intelligence-card oceania">
+          <div className="p-6 border-b border-nexus-border">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-medium text-nexus-text-primary">納品プラン一覧</h3>
               <div className="flex items-center gap-2">
@@ -508,8 +515,8 @@ export default function DeliveryPage() {
           </div>
           
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-nexus-border">
-              <thead className="bg-nexus-bg-secondary">
+            <table className="holo-table">
+              <thead className="holo-header">
                 <tr>
                   <th 
                     className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer hover:bg-nexus-bg-tertiary"
@@ -576,7 +583,7 @@ export default function DeliveryPage() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-nexus-border">
+              <tbody className="holo-body">
                 {loading ? (
                   <tr>
                     <td colSpan={user?.role === 'staff' ? 7 : 6} className="px-6 py-12 text-center text-nexus-text-secondary">
@@ -626,14 +633,14 @@ export default function DeliveryPage() {
                   </tr>
                 ) : (
                   paginatedPlans.map((plan: any) => (
-                    <tr key={plan.id} className="hover:bg-nexus-bg-tertiary">
+                    <tr key={plan.id} className="holo-row">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-nexus-text-primary">
                         {plan.date}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           {getStatusIcon(plan.status)}
-                          <span className={`ml-2 px-2 py-1 text-xs font-medium rounded-full ${getStatusBadgeColor(plan.status)}`}>
+                          <span className={`ml-2 ${getStatusBadgeClass(plan.status)}`}>
                             {plan.status}
                           </span>
                         </div>
@@ -686,7 +693,7 @@ export default function DeliveryPage() {
 
           {/* ページング */}
           {totalPages > 1 && (
-            <div className="px-6 py-4 border-t border-nexus-border">
+            <div className="p-6 border-t border-nexus-border">
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { AuthService } from '@/lib/auth';
-import { MockFallback } from '@/lib/mock-fallback';
+
 
 const prisma = new PrismaClient();
 
@@ -139,15 +139,7 @@ export async function GET(request: NextRequest) {
     console.error('Inventory fetch error:', error);
     
     // Prismaエラーの場合はモックデータでフォールバック
-    if (MockFallback.isPrismaError(error)) {
-      console.log('Using fallback data for inventory due to Prisma error');
-      try {
-        const fallbackData = MockFallback.getInventoryMockData();
-        return NextResponse.json(fallbackData);
-      } catch (fallbackError) {
-        console.error('Fallback data error:', fallbackError);
-      }
-    }
+
 
     return NextResponse.json(
       { error: '在庫データの取得中にエラーが発生しました' },
@@ -225,21 +217,7 @@ export async function POST(request: NextRequest) {
     console.error('Product creation error:', error);
     
     // Prismaエラーの場合はモック成功レスポンスを返す
-    if (MockFallback.isPrismaError(error)) {
-      console.log('Using fallback response for product creation due to Prisma error');
-      const mockProduct = {
-        id: `mock-${Date.now()}`,
-        name: 'モック商品',
-        sku: `MOCK-${Date.now()}`,
-        category: 'camera',
-        price: 100000,
-        condition: 'good',
-        description: 'モック商品の説明',
-        imageUrl: '/api/placeholder/200/200',
-        createdAt: new Date(),
-      };
-      return NextResponse.json({ success: true, product: mockProduct }, { status: 201 });
-    }
+
 
     return NextResponse.json(
       { error: '商品登録中にエラーが発生しました' },
@@ -323,22 +301,7 @@ export async function PUT(request: NextRequest) {
   } catch (error) {
     console.error('Product update error:', error);
     
-    // Prismaエラーの場合はモック成功レスポンスを返す
-    if (MockFallback.isPrismaError(error)) {
-      console.log('Using fallback response for product update due to Prisma error');
-      const mockUpdatedProduct = {
-        id: `mock-${Date.now()}`,
-        name: '更新済み商品',
-        sku: `MOCK-${Date.now()}`,
-        price: 100000,
-        condition: 'good',
-        description: 'モック更新済み商品の説明',
-        imageUrl: '/api/placeholder/200/200',
-        status: 'storage',
-        updatedAt: new Date(),
-      };
-      return NextResponse.json({ success: true, product: mockUpdatedProduct });
-    }
+
 
     return NextResponse.json(
       { error: '商品更新中にエラーが発生しました' },
@@ -414,11 +377,7 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error('Product deletion error:', error);
     
-    // Prismaエラーの場合はモック成功レスポンスを返す
-    if (MockFallback.isPrismaError(error)) {
-      console.log('Using fallback response for product deletion due to Prisma error');
-      return NextResponse.json({ success: true, message: '商品を削除しました（モックレスポンス）' });
-    }
+
 
     return NextResponse.json(
       { error: '商品削除中にエラーが発生しました' },

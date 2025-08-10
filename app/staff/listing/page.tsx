@@ -88,7 +88,23 @@ export default function ListingPage() {
 
   const fetchData = async () => {
     try {
-      // モックデータ
+      // APIからデータを取得
+      const response = await fetch('/api/listing');
+      if (response.ok) {
+        const data = await response.json();
+        setTemplates(data.templates || []);
+        setProducts(data.products || []);
+        setStats(data.stats || {
+          totalActive: 0,
+          pendingListing: 0,
+          soldThisMonth: 0,
+          averagePrice: 0,
+          platforms: { ebay: 0, amazon: 0, mercari: 0, yahoo: 0 }
+        });
+        return;
+      }
+      
+      // フォールバック用のモックデータ
       const mockTemplates: ListingTemplate[] = [
         {
           id: 'TPL-001',

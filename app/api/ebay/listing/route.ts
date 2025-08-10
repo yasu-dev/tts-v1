@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { AuthService } from '@/lib/auth';
-import { MockFallback } from '@/lib/mock-fallback';
+
 
 const prisma = new PrismaClient();
 
-// eBay listing templates
+// eBay listing templates - Prismaから取得するため削除予定
 const listingTemplates = {
   camera: {
     title: '【美品】{name} - プロフェッショナルカメラ',

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { MockFallback } from '@/lib/mock-fallback';
+
 
 const prisma = new PrismaClient();
 
@@ -69,16 +69,7 @@ export async function GET() {
   } catch (error) {
     console.error('Inventory stats error:', error);
     
-    // Prismaエラーの場合はフォールバックデータを使用
-    if (MockFallback.isPrismaError(error)) {
-      console.log('Using fallback data for inventory stats due to Prisma error');
-      try {
-        const fallbackData = MockFallback.getInventoryStatsMockData();
-        return NextResponse.json(fallbackData);
-      } catch (fallbackError) {
-        console.error('Fallback data error:', fallbackError);
-      }
-    }
+
     
     // エラー時はデフォルトデータを返す
     return NextResponse.json({

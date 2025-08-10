@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { AuthService } from '@/lib/auth';
-import { MockFallback } from '@/lib/mock-fallback';
+
 import { promises as fs } from 'fs';
 import path from 'path';
 
@@ -377,25 +377,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('[ERROR] 納品プラン取得エラー:', error);
     
-    // Prismaエラーの場合はフォールバックデータを使用
-    if (MockFallback.isPrismaError(error)) {
-      console.log('Using fallback data for delivery plans due to Prisma error');
-      try {
-        const fallbackData = {
-          success: true,
-          deliveryPlans: [],
-          pagination: {
-            total: 0,
-            limit: 20,
-            offset: 0,
-            hasMore: false
-          }
-        };
-        return NextResponse.json(fallbackData);
-      } catch (fallbackError) {
-        console.error('Fallback data error:', fallbackError);
-      }
-    }
+
     
     return NextResponse.json(
       { error: '納品プランの取得に失敗しました' },

@@ -7,6 +7,7 @@ import UnifiedPageHeader from '@/app/components/ui/UnifiedPageHeader';
 import {
   Cog6ToothIcon,
   TicketIcon,
+  FunnelIcon,
 } from '@heroicons/react/24/outline';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import HoloTable from '@/app/components/ui/HoloTable';
@@ -246,10 +247,65 @@ export default function SalesPage() {
           ]}
         />
 
+        {/* フィルター・検索セクション */}
+        <div className="intelligence-card global">
+          <div className="p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <FunnelIcon className="w-5 h-5 text-nexus-text-secondary" />
+              <h3 className="text-lg font-medium text-nexus-text-primary">フィルター・検索</h3>
+            </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <NexusSelect
+              label="ステータス"
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              options={[
+                { value: 'all', label: 'すべて' },
+                { value: 'pending', label: '未確定' },
+                { value: 'confirmed', label: '受注確定' },
+                { value: 'processing', label: '出荷準備中' },
+                { value: 'shipped', label: '出荷済み' },
+                { value: 'delivered', label: '配達完了' },
+                { value: 'cancelled', label: 'キャンセル' },
+                { value: 'returned', label: '返品' }
+              ]}
+            />
+            
+            <NexusSelect
+              label="表示件数"
+              value={pageSize.toString()}
+              onChange={(e) => {
+                setPageSize(parseInt(e.target.value));
+                setCurrentPage(1);
+              }}
+              options={[
+                { value: '10', label: '10' },
+                { value: '20', label: '20' },
+                { value: '50', label: '50' },
+                { value: '100', label: '100' }
+              ]}
+            />
+            
+            {/* ページネーション情報 */}
+            {salesData?.pagination && (
+              <div className="flex items-end">
+                <div className="text-sm text-nexus-text-secondary">
+                  {salesData.pagination.totalCount}件中 {((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, salesData.pagination.totalCount)}件を表示
+                </div>
+              </div>
+            )}
+          </div>
+          </div>
+        </div>
+
         {/* メイン注文リスト */}
-        <div className="bg-white dark:bg-nexus-bg-card rounded-lg border border-nexus-border shadow-sm">
+        <div className="intelligence-card oceania">
           <div className="p-6 border-b border-nexus-border">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-lg font-semibold text-nexus-text-primary">
                   注文管理
@@ -257,54 +313,6 @@ export default function SalesPage() {
                 <p className="text-sm text-nexus-text-secondary mt-1">
                   すべての受注・配送状況を管理
                 </p>
-              </div>
-              
-              {/* ページネーション情報 */}
-              {salesData?.pagination && (
-                <div className="text-sm text-nexus-text-secondary">
-                  {salesData.pagination.totalCount}件中 {((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, salesData.pagination.totalCount)}件を表示
-                </div>
-              )}
-            </div>
-            
-            {/* フィルターとページサイズ選択 */}
-            <div className="flex gap-4 items-center">
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-nexus-text-primary">ステータス:</label>
-                <NexusSelect
-                  value={statusFilter}
-                  onChange={(e) => {
-                    setStatusFilter(e.target.value);
-                    setCurrentPage(1); // フィルター変更時は1ページ目に戻る
-                  }}
-                  className="w-40"
-                >
-                  <option value="all">すべて</option>
-                  <option value="pending">未確定</option>
-                  <option value="confirmed">受注確定</option>
-                  <option value="processing">出荷準備中</option>
-                  <option value="shipped">出荷済み</option>
-                  <option value="delivered">配達完了</option>
-                  <option value="cancelled">キャンセル</option>
-                  <option value="returned">返品</option>
-                </NexusSelect>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-nexus-text-primary">表示件数:</label>
-                <NexusSelect
-                  value={pageSize.toString()}
-                  onChange={(e) => {
-                    setPageSize(parseInt(e.target.value));
-                    setCurrentPage(1); // ページサイズ変更時は1ページ目に戻る
-                  }}
-                  className="w-20"
-                >
-                  <option value="10">10</option>
-                  <option value="20">20</option>
-                  <option value="50">50</option>
-                  <option value="100">100</option>
-                </NexusSelect>
               </div>
             </div>
           </div>
@@ -367,13 +375,13 @@ export default function SalesPage() {
                   if (column.key === 'labelStatus') {
                     if (row.labelGenerated) {
                       return (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        <span className="status-badge success">
                           生成済み
                         </span>
                       );
                     }
                     return (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                      <span className="status-badge info">
                         未生成
                       </span>
                     );

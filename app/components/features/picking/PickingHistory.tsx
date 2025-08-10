@@ -49,7 +49,16 @@ export default function PickingHistory() {
   const fetchHistory = async () => {
     setLoading(true);
     try {
-      // モックデータ
+      // APIからデータを取得
+      const response = await fetch('/api/picking/history');
+      if (response.ok) {
+        const data = await response.json();
+        setHistory(data.history || []);
+        setLoading(false);
+        return;
+      }
+      
+      // フォールバック用のモックデータ
       const mockHistory: PickingHistoryRecord[] = [
         {
           id: '1',

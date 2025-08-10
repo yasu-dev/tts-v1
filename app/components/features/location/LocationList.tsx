@@ -126,7 +126,8 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
         return;
       }
       
-      // フォールバック: モックデータ
+      // APIエラー時のフォールバック
+      console.error('Failed to fetch locations from API');
       const mockLocations: Location[] = [
         {
           code: 'STD-A-01',
@@ -233,30 +234,35 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
 
   const fetchShippingData = async () => {
     try {
-      // orderedステータスの商品を取得
-      const response = await fetch('/api/inventory?status=ordered');
+      // ピッキングタスクデータを取得
+      const response = await fetch('/api/picking');
       if (response.ok) {
         const data = await response.json();
-        // orderedステータスの商品を出荷リスト形式に変換
-        const orderedProducts = (data.data || []).map((product: any) => ({
-          id: `ship-${product.id}`,
-          orderId: product.orderId || `ORD-${product.id}`,
-          productId: product.id,
-          productName: product.name,
-          customer: product.customer || '顧客情報取得中',
-          locationCode: product.location || 'NO_LOCATION',
-          locationName: product.locationName || '未設定',
-          status: 'ピッキング待ち',
-          deadline: '18:00', // 実装では注文情報から取得
-          sku: product.sku
-        }));
+        // ピッキングタスクを出荷リスト形式に変換
+        const pickingItems = (data.tasks || []).flatMap((task: any) => 
+          (task.items || []).map((item: any) => ({
+            id: `pick-${item.id}`,
+            orderId: task.orderId,
+            productId: item.productId,
+            productName: item.productName,
+            customer: task.customerName,
+            locationCode: item.location,
+            locationName: `ロケーション ${item.location}`,
+            status: item.status === 'picked' ? 'ピッキング済み' : 'ピッキング待ち',
+            deadline: new Date(task.dueDate).toLocaleTimeString('ja-JP', { 
+              hour: '2-digit', 
+              minute: '2-digit' 
+            }),
+            sku: item.sku
+          }))
+        );
         
-        const groupedByLocation = groupShippingDataByLocation(orderedProducts);
+        const groupedByLocation = groupShippingDataByLocation(pickingItems);
         setShippingData(groupedByLocation);
         return;
       }
       
-      // フォールバック: モックデータ（orderedステータスの商品を想定）
+      // フォールバック: モックデータ
       const mockShippingData = [
         {
           id: "ship-001",
@@ -264,8 +270,8 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
           productId: "TWD-CAM-011",
           productName: "Nikon Z8",
           customer: "山田太郎",
-          locationCode: "STD-A-01",
-          locationName: "標準棚A-01",
+          locationCode: "A-01",
+          locationName: "A棚1段目",
           status: "ピッキング待ち",
           deadline: "16:00"
         },
@@ -274,17 +280,55 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
           orderId: "ORD-2024-0628-002",
           productId: "TWD-LEN-005",
           productName: "Canon RF 24-70mm F2.8",
-          customer: "顧客B",
-          locationCode: "STD-A-01",
-          locationName: "標準棚A-01",
+          customer: "佐藤花子",
+          locationCode: "B-01",
+          locationName: "B棚1段目",
           status: "ピッキング待ち",
           deadline: "18:00"
+        },
+        {
+          id: "ship-003",
+          orderId: "ORD-2024-0628-003",
+          productId: "TWD-WATCH-001",
+          productName: "Rolex Submariner",
+          customer: "田中一郎",
+          locationCode: "C-01",
+          locationName: "C棚1段目（高価値商品）",
+          status: "ピッキング待ち",
+          deadline: "17:00"
         }
       ];
       const groupedData = groupShippingDataByLocation(mockShippingData);
       setShippingData(groupedData);
     } catch (error) {
       console.error('[ERROR] Fetch shipping data:', error);
+      // エラー時もモックデータを表示
+      const mockShippingData = [
+        {
+          id: "ship-001",
+          orderId: "ORD-2024-0628-001",
+          productId: "TWD-CAM-011",
+          productName: "Nikon Z8",
+          customer: "山田太郎",
+          locationCode: "A-01",
+          locationName: "A棚1段目",
+          status: "ピッキング待ち",
+          deadline: "16:00"
+        },
+        {
+          id: "ship-002",
+          orderId: "ORD-2024-0628-002",
+          productId: "TWD-LEN-005",
+          productName: "Canon RF 24-70mm F2.8",
+          customer: "佐藤花子",
+          locationCode: "B-01",
+          locationName: "B棚1段目",
+          status: "ピッキング待ち",
+          deadline: "18:00"
+        }
+      ];
+      const groupedData = groupShippingDataByLocation(mockShippingData);
+      setShippingData(groupedData);
     }
   };
 

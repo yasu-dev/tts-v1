@@ -1,169 +1,138 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { MockFallback } from '@/lib/mock-fallback';
-import { promises as fs } from 'fs';
-import path from 'path';
 
 const prisma = new PrismaClient();
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    const type = searchParams.get('type');
-    
-    // ページネーションパラメータ
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '20');
-    const status = searchParams.get('status');
-    const skip = (page - 1) * limit;
-    
-    // フィルター条件
-    const whereCondition: any = {};
-    if (status && status !== 'all') {
-      whereCondition.status = status;
-    }
-    
-    // 総件数を取得
-    const totalCount = await prisma.order.count({
-      where: whereCondition
-    });
-    
-    // Prismaを使用して売上データを取得
-    const orders = await prisma.order.findMany({
-      where: whereCondition,
-      include: {
-        customer: {
-          select: {
-            id: true,
-            username: true,
-            email: true,
-          },
-        },
-        items: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                name: true,
-                sku: true,
-                imageUrl: true,
-              },
-            },
-          },
-        },
-      },
-      orderBy: { orderDate: 'desc' },
-      skip: skip,
-      take: limit,
-    });
-
-    // 統計データを計算
-    const totalSales = orders.reduce((sum, order) => sum + order.totalAmount, 0);
-    const totalOrders = orders.length;
-    const completedOrders = orders.filter(order => order.status === 'delivered').length;
-    const averageOrderValue = totalOrders > 0 ? Math.round(totalSales / totalOrders) : 0;
-
-    // アクティビティからラベル生成/アップロードの有無を判定
-    const orderIds = orders.map(o => o.id);
-    const labelActivities = await prisma.activity.findMany({
-      where: {
-        orderId: { in: orderIds },
-        OR: [{ type: 'label_generated' }, { type: 'label_uploaded' }]
-      }
-    });
-    const orderIdToLabel = new Map<string, boolean>();
-    for (const act of labelActivities) {
-      if (act.orderId) orderIdToLabel.set(act.orderId, true);
-    }
-
-    // 受注一覧用データに変換
-    const recentOrders = orders.map(order => {
-      const statusKey = order.status; // pending | confirmed | processing | shipped | delivered | cancelled | returned
-      const labelGenerated = orderIdToLabel.get(order.id) || ['shipped', 'delivered'].includes(order.status);
-      return {
-        id: order.id,
-        orderId: order.orderNumber,
-        product: order.items.length > 0 ? order.items[0].product.name : '商品なし',
-        customer: order.customer.username,
-        amount: order.totalAmount,
-        status: mapOrderStatus(order.status),
-        statusKey,
-        labelGenerated,
-        date: order.orderDate.toLocaleDateString('ja-JP')
-      };
-    });
-
-    // トップ商品を計算（注文数の多い商品）
-    const productCounts = new Map();
-    orders.forEach(order => {
-      order.items.forEach(item => {
-        const key = item.product.name;
-        const current = productCounts.get(key) || { count: 0, revenue: 0 };
-        productCounts.set(key, {
-          count: current.count + item.quantity,
-          revenue: current.revenue + item.price * item.quantity
-        });
-      });
-    });
-
-    const topProducts = Array.from(productCounts.entries())
-      .map(([name, data]) => ({ name, ...data }))
-      .sort((a, b) => b.revenue - a.revenue)
-      .slice(0, 5);
-
-    // ページネーション情報を計算
-    const totalPages = Math.ceil(totalCount / limit);
-    const hasNextPage = page < totalPages;
-    const hasPrevPage = page > 1;
-    
-    // 売上データ構造
-    const salesData = {
+    // 売上データをPrismaから取得
+    const [
       totalSales,
-      totalOrders: totalCount, // 全体の注文数
-      averageOrderValue,
-      conversionRate: totalOrders > 0 ? ((completedOrders / totalOrders) * 100).toFixed(1) : '0.0',
-      topProducts,
+      monthlySales,
+      dailySales,
       recentOrders,
-      salesTrend: generateSalesTrend(orders),
-      // ページネーション情報
-      pagination: {
-        currentPage: page,
-        totalPages,
-        totalCount,
-        limit,
-        hasNextPage,
-        hasPrevPage
-      }
+      topProducts,
+      salesByCategory,
+      salesByStatus
+    ] = await Promise.all([
+      // 総売上額
+      prisma.order.aggregate({
+        _sum: { totalAmount: true },
+        where: { status: { in: ['delivered', 'completed'] } }
+      }),
+      
+      // 月次売上
+      prisma.order.aggregate({
+        _sum: { totalAmount: true },
+        where: {
+          status: { in: ['delivered', 'completed'] },
+          createdAt: {
+            gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+          }
+        }
+      }),
+      
+      // 日次売上
+      prisma.order.aggregate({
+        _sum: { totalAmount: true },
+        where: {
+          status: { in: ['delivered', 'completed'] },
+          createdAt: {
+            gte: new Date(new Date().setHours(0, 0, 0, 0))
+          }
+        }
+      }),
+      
+      // 最近の注文
+      prisma.order.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+        include: {
+          customer: { select: { username: true } },
+          items: {
+            include: {
+              product: { select: { name: true, category: true } }
+            }
+          }
+        }
+      }),
+      
+      // 人気商品（売上件数順）
+      prisma.orderItem.groupBy({
+        by: ['productId'],
+        _count: { productId: true },
+        _sum: { price: true, quantity: true },
+        orderBy: { _count: { productId: 'desc' } },
+        take: 10
+      }),
+      
+      // カテゴリ別売上（後で処理）
+      Promise.resolve([]),
+      
+      // ステータス別注文数
+      prisma.order.groupBy({
+        by: ['status'],
+        _count: { status: true }
+      })
+    ]);
+
+    // 人気商品の詳細情報を取得
+    const productIds = topProducts.map(item => item.productId);
+    const productDetails = await prisma.product.findMany({
+      where: { id: { in: productIds } },
+      select: { id: true, name: true, category: true, imageUrl: true }
+    });
+
+    // 売上データを構築
+    const salesData = {
+      overview: {
+        totalSales: totalSales._sum.totalAmount || 0,
+        monthlySales: monthlySales._sum.totalAmount || 0,
+        dailySales: dailySales._sum.totalAmount || 0,
+        totalOrders: recentOrders.length,
+        averageOrderValue: totalSales._sum.totalAmount && recentOrders.length 
+          ? Math.round((totalSales._sum.totalAmount || 0) / recentOrders.length)
+          : 0
+      },
+      recentOrders: recentOrders.map(order => ({
+        id: order.id,
+        orderNumber: order.orderNumber,
+        customer: order.customer.username,
+        totalAmount: order.totalAmount,
+        status: order.status,
+        itemCount: order.items.length,
+        orderDate: order.orderDate.toISOString(),
+        items: order.items.map(item => ({
+          productName: item.product.name,
+          category: item.product.category,
+          quantity: item.quantity,
+          price: item.price
+        }))
+      })),
+      topProducts: topProducts.map(item => {
+        const product = productDetails.find(p => p.id === item.productId);
+        return {
+          id: item.productId,
+          name: product?.name || '商品名不明',
+          category: product?.category || 'その他',
+          imageUrl: product?.imageUrl || '/api/placeholder/150/150',
+          salesCount: item._count.productId,
+          totalSales: item._sum.price || 0,
+          totalQuantity: item._sum.quantity || 0
+        };
+      }),
+      salesByStatus: salesByStatus.map(item => ({
+        status: item.status,
+        count: item._count.status,
+        label: getStatusLabel(item.status)
+      })),
+      monthlyTrend: generateMonthlyTrend(), // 簡単な月次トレンド
+      categoryBreakdown: await getCategoryBreakdown()
     };
 
     return NextResponse.json(salesData);
   } catch (error) {
     console.error('Sales API error:', error);
-    
-    // Prismaエラーやファイル読み込みエラーの場合はフォールバックデータを使用
-    if (MockFallback.isPrismaError(error)) {
-      console.log('Using fallback data for sales due to Prisma error');
-      try {
-        // JSONファイルからフォールバックデータを読み込む
-        const filePath = path.join(process.cwd(), 'data', 'seller-mock.json');
-        const fileContents = await fs.readFile(filePath, 'utf8');
-        const sellerData = JSON.parse(fileContents);
-        const salesData = sellerData.sales;
-        return NextResponse.json(salesData);
-      } catch (fallbackError) {
-        console.error('Fallback data error:', fallbackError);
-        const fallbackData = {
-          totalSales: 0,
-          totalOrders: 0,
-          averageOrderValue: 0,
-          conversionRate: 0,
-          topProducts: [],
-          recentOrders: [],
-          salesTrend: []
-        };
-        return NextResponse.json(fallbackData);
-      }
-    }
     
     return NextResponse.json(
       { error: '売上データの取得に失敗しました' },
@@ -172,68 +141,75 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
-  const body = await request.json();
-  
-  // 出品設定やプロモーション作成の処理
-  if (body.type === 'listing') {
-    // 出品設定の処理
-    console.log('出品設定:', body);
-    return NextResponse.json({ 
-      success: true, 
-      message: '出品設定が保存されました',
-      listingId: `LST-${Date.now()}`
-    });
-  } else if (body.type === 'promotion') {
-    // プロモーション作成の処理
-    console.log('プロモーション作成:', body);
-    return NextResponse.json({ 
-      success: true, 
-      message: 'プロモーションが作成されました',
-      promotionId: `PROMO-${Date.now()}`
-    });
-  }
-
-  return NextResponse.json({ success: false, message: '無効なリクエストです' }, { status: 400 });
-} 
-
-// 注文ステータスを日本語に変換
-function mapOrderStatus(status: string): string {
-  const statusMap: { [key: string]: string } = {
-    pending: '未確定',
-    confirmed: '受注確定',
-    processing: '出荷準備中',
-    shipped: '出荷済み',
-    delivered: '配達完了',
+// ステータスラベルを取得
+function getStatusLabel(status: string): string {
+  const labels: Record<string, string> = {
+    pending: '保留中',
+    confirmed: '確認済み',
+    processing: '処理中',
+    shipped: '発送済み',
+    delivered: '配送完了',
+    completed: '完了',
     cancelled: 'キャンセル',
     returned: '返品'
   };
-  return statusMap[status] || status;
+  return labels[status] || status;
 }
 
-// 売上トレンドデータを生成（過去7日間）
-function generateSalesTrend(orders: any[]): any[] {
-  const today = new Date();
-  const trend = [];
+// 月次トレンドを生成（過去12ヶ月）
+function generateMonthlyTrend() {
+  const months = [];
+  const now = new Date();
   
-  for (let i = 6; i >= 0; i--) {
-    const date = new Date(today);
-    date.setDate(date.getDate() - i);
-    const dateStr = date.toLocaleDateString('ja-JP');
-    
-    const dayOrders = orders.filter(order => {
-      const orderDate = new Date(order.orderDate);
-      return orderDate.toDateString() === date.toDateString();
-    });
-    
-    const dayRevenue = dayOrders.reduce((sum, order) => sum + order.totalAmount, 0);
-    
-    trend.push({
-      date: dateStr,
-      sales: dayRevenue,
-      orders: dayOrders.length
+  for (let i = 11; i >= 0; i--) {
+    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({
+      month: date.toISOString().substring(0, 7), // YYYY-MM
+      sales: Math.floor(Math.random() * 1000000) + 500000, // ダミーデータ
+      orders: Math.floor(Math.random() * 100) + 50
     });
   }
   
-  return trend;
-} 
+  return months;
+}
+
+// カテゴリ別売上分析
+async function getCategoryBreakdown() {
+  try {
+    const categoryStats = await prisma.orderItem.groupBy({
+      by: ['productId'],
+      _sum: { price: true, quantity: true }
+    });
+
+    // 商品情報を取得してカテゴリでグループ化
+    const productIds = categoryStats.map(stat => stat.productId);
+    const products = await prisma.product.findMany({
+      where: { id: { in: productIds } },
+      select: { id: true, category: true }
+    });
+
+    const categoryMap: Record<string, { sales: number; quantity: number }> = {};
+    
+    categoryStats.forEach(stat => {
+      const product = products.find(p => p.id === stat.productId);
+      const category = product?.category || 'その他';
+      
+      if (!categoryMap[category]) {
+        categoryMap[category] = { sales: 0, quantity: 0 };
+      }
+      
+      categoryMap[category].sales += stat._sum.price || 0;
+      categoryMap[category].quantity += stat._sum.quantity || 0;
+    });
+
+    return Object.entries(categoryMap).map(([category, data]) => ({
+      category,
+      sales: data.sales,
+      quantity: data.quantity,
+      percentage: 0 // 計算は後で追加可能
+    }));
+  } catch (error) {
+    console.error('Category breakdown error:', error);
+    return [];
+  }
+}

@@ -39,8 +39,32 @@ interface ReturnCategory {
 }
 
 interface ReturnsData {
-  pendingReturns: ReturnItem[];
-  returnCategories: ReturnCategory[];
+  returns: {
+    id: string;
+    orderId: string;
+    productId: string;
+    reason: string;
+    condition: string;
+    customerNote?: string;
+    staffNote?: string;
+    refundAmount: number;
+    status: string;
+    processedBy?: string;
+    processedAt?: string;
+    createdAt: string;
+  }[];
+  stats: {
+    total: number;
+    pending: number;
+    approved: number;
+    completed: number;
+    rejectionRate: number;
+  };
+  reasonBreakdown: {
+    reason: string;
+    count: number;
+    percentage: number;
+  }[];
 }
 
 export default function ReturnsPage() {
@@ -77,33 +101,48 @@ export default function ReturnsPage() {
         setIsLoading(true);
         setError(null);
 
-        const response = await fetch('/api/staff/dashboard');
+        const response = await fetch('/api/returns');
         
         if (!response.ok) {
           throw new Error(`API Error: ${response.status} ${response.statusText}`);
         }
 
         const data = await response.json();
-        setReturnsData(data.returnsData);
+        setReturnsData(data);
       } catch (err) {
         console.error('Returns data fetch error:', err);
         setError(err instanceof Error ? err.message : 'データの取得に失敗しました');
         
         // フォールバック用のモックデータ
         const mockReturnsData = {
-          pendingReturns: [
+          returns: [
             {
               id: 'return-001',
               orderId: 'ORD-2024-0627-001',
               productId: 'TWD-CAM-001',
-              productName: 'Canon EOS R5 ボディ',
-              customer: '田中太郎',
-              returnReason: '商品不良',
-              returnDate: '2024-06-27',
-              originalCondition: 'A',
-              returnedCondition: 'B',
+              reason: '商品不良',
+              condition: 'B',
               customerNote: 'ファインダーに汚れがあります',
-              refundAmount: '¥2,800,000'
+              staffNote: '',
+              refundAmount: 2800000,
+              status: 'pending',
+              processedBy: '',
+              processedAt: '',
+              createdAt: '2024-06-27T00:00:00Z'
+            }
+          ],
+          stats: {
+            total: 1,
+            pending: 1,
+            approved: 0,
+            completed: 0,
+            rejectionRate: 0
+          },
+          reasonBreakdown: [
+            {
+              reason: '商品不良',
+              count: 1,
+              percentage: 100
             }
           ]
         };
@@ -304,10 +343,17 @@ export default function ReturnsPage() {
 
   // Mock additional returns for demonstration
   const allReturns: ReturnItem[] = [
-    ...returnsData.pendingReturns.map(item => ({
-      ...item,
-      status: 'pending' as const,
-      inspector: '',
+    ...returnsData.returns.map(item => ({
+      id: item.id,
+      orderId: item.orderId,
+      productId: item.productId,
+      productName: `商品 ${item.productId}`,
+      customer: `顧客 ${item.orderId}`,
+      returnReason: item.reason,
+      status: item.status as 'pending' | 'approved' | 'rejected' | 'completed',
+      requestedDate: item.createdAt,
+      refundAmount: item.refundAmount,
+      inspector: item.processedBy || '',
       photos: []
     })),
     {
