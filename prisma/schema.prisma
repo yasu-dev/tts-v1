@@ -64,8 +64,8 @@ model Product {
   activities          Activity[]
   inspectionChecklist InspectionChecklist?
   movements           InventoryMovement[]
-  orderItems          OrderItem[]
   listings            Listing[]
+  orderItems          OrderItem[]
   currentLocation     Location?            @relation(fields: [currentLocationId], references: [id])
   seller              User                 @relation(fields: [sellerId], references: [id])
   videoRecords        VideoRecord[]
@@ -378,7 +378,7 @@ model ListingTemplate {
   shippingMethod String
   isActive       Boolean  @default(true)
   appliedCount   Int      @default(0)
-  fields         String?  // JSON string for template fields
+  fields         String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -386,20 +386,20 @@ model ListingTemplate {
 }
 
 model Listing {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   productId   String
   templateId  String?
   platform    String
-  listingId   String?  // External platform listing ID
+  listingId   String?
   title       String
   description String?
   price       Int
-  status      String   @default("draft") // draft, active, sold, ended
+  status      String    @default("draft")
   listedAt    DateTime?
   soldAt      DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  product     Product  @relation(fields: [productId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  product     Product   @relation(fields: [productId], references: [id])
 
   @@map("listings")
 }
@@ -411,8 +411,8 @@ model Shipment {
   trackingNumber String?
   carrier        String
   method         String
-  status         String    @default("pending") // pending, picked, packed, shipped, delivered
-  priority       String    @default("normal") // urgent, high, normal, low
+  status         String    @default("pending")
+  priority       String    @default("normal")
   customerName   String
   address        String
   deadline       DateTime?
@@ -429,53 +429,53 @@ model Shipment {
 }
 
 model Task {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  category    String
-  priority    String   @default("normal") // urgent, high, normal, low
-  status      String   @default("pending") // pending, in_progress, completed, cancelled
-  assignedTo  String?
+  id            String    @id @default(cuid())
+  title         String
+  description   String?
+  category      String
+  priority      String    @default("normal")
+  status        String    @default("pending")
+  assignedTo    String?
   estimatedTime String?
-  dueDate     DateTime?
-  completedAt DateTime?
-  notes       String?
-  metadata    String?  // JSON string for additional data
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  dueDate       DateTime?
+  completedAt   DateTime?
+  notes         String?
+  metadata      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   @@map("tasks")
 }
 
 model KPIMetric {
-  id          String   @id @default(cuid())
-  name        String
-  category    String
-  value       Float
-  unit        String?
-  period      String   // daily, weekly, monthly, yearly
-  date        DateTime
-  metadata    String?  // JSON string for additional data
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  name      String
+  category  String
+  value     Float
+  unit      String?
+  period    String
+  date      DateTime
+  metadata  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("kpi_metrics")
 }
 
 model Return {
-  id              String   @id @default(cuid())
-  orderId         String
-  productId       String
-  reason          String
-  condition       String
-  customerNote    String?
-  staffNote       String?
-  refundAmount    Int
-  status          String   @default("pending") // pending, approved, rejected, completed
-  processedBy     String?
-  processedAt     DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id           String    @id @default(cuid())
+  orderId      String
+  productId    String
+  reason       String
+  condition    String
+  customerNote String?
+  staffNote    String?
+  refundAmount Int
+  status       String    @default("pending")
+  processedBy  String?
+  processedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   @@map("returns")
 }
