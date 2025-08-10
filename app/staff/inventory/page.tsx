@@ -7,7 +7,7 @@ import ItemDetailModal from '../../components/ItemDetailModal';
 import ProductEditModal from '../../components/ProductEditModal';
 import ProductMoveModal from '../../components/ProductMoveModal';
 import BarcodeScanner from '../../components/features/BarcodeScanner';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import {
   PencilIcon,
   ArrowsRightLeftIcon,
@@ -31,6 +31,7 @@ interface InventoryItem {
   name: string;
   sku: string;
   category: string;
+  originalCategory?: string; // 元の英語カテゴリーを保持用
   status: 'inbound' | 'inspection' | 'storage' | 'listing' | 'sold' | 'maintenance';
   location: string;
   price: number;
@@ -119,7 +120,7 @@ export default function StaffInventoryPage() {
           showToast({
             type: 'info',
             title: '前回の表示状態を復元しました',
-            message: 'フィルター・検索条件が復元されています',
+            message: '日本語フィルター・検索条件が復元されました',
             duration: 3000
           });
           
@@ -162,6 +163,7 @@ export default function StaffInventoryPage() {
           id: item.id,
           name: item.name,
           sku: item.sku,
+          originalCategory: item.category, // 元の英語カテゴリーを保持
           category: item.category.replace('camera_body', 'カメラ本体')
                                  .replace('lens', 'レンズ')
                                  .replace('watch', '腕時計')
@@ -245,8 +247,9 @@ export default function StaffInventoryPage() {
         filtered = filtered.filter(item => item.status === selectedStatus);
       }
     }
+    // カテゴリーフィルター（元データの英語カテゴリーと比較）
     if (selectedCategory !== 'all') {
-      filtered = filtered.filter(item => item.category === selectedCategory);
+      filtered = filtered.filter(item => item.originalCategory === selectedCategory);
     }
     if (selectedLocation !== 'all') {
       filtered = filtered.filter(item => item.location.includes(selectedLocation));
@@ -265,6 +268,29 @@ export default function StaffInventoryPage() {
     setFilteredItems(filtered);
     setCurrentPage(1); // フィルタ変更時はページを1に戻す
   }, [items, selectedStatus, selectedCategory, selectedLocation, selectedStaff, searchQuery]);
+
+  // 動的カテゴリーオプション生成
+  const categoryOptions = useMemo(() => {
+    // 英語カテゴリーを日本語ラベルでマッピング
+    const categoryMap = {
+      'camera_body': 'カメラ本体',
+      'lens': 'レンズ',
+      'watch': '腕時計',
+      'accessory': 'アクセサリ',
+      'camera': 'カメラ'
+    };
+    
+    // 実際に存在するカテゴリーを取得（元データから英語カテゴリーを取得）
+    const rawCategories = Array.from(new Set(items.map(item => item.originalCategory).filter(Boolean)));
+    
+    return [
+      { value: 'all', label: 'すべてのカテゴリー' },
+      ...rawCategories.map(category => ({
+        value: category,
+        label: categoryMap[category as keyof typeof categoryMap] || category
+      }))
+    ];
+  }, [items]);
 
   // ページネーション
   useEffect(() => {
@@ -534,13 +560,7 @@ export default function StaffInventoryPage() {
                   label="カテゴリー"
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  options={[
-                    { value: 'all', label: 'すべて' },
-                    { value: 'カメラ本体', label: 'カメラ本体' },
-                    { value: 'レンズ', label: 'レンズ' },
-                    { value: '腕時計', label: '腕時計' },
-                    { value: 'アクセサリ', label: 'アクセサリ' }
-                  ]}
+                  options={categoryOptions}
                 />
               </div>
 
@@ -575,7 +595,7 @@ export default function StaffInventoryPage() {
                 <NexusInput
                   type="text"
                   label="検索"
-                  placeholder="商品名・SKU・QR検索"
+                  placeholder="商品名・SKU・カテゴリーで検索（日本語）"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -691,7 +711,7 @@ export default function StaffInventoryPage() {
               </svg>
               <h3 className="mt-2 text-sm font-medium text-nexus-text-primary">商品が見つかりません</h3>
               <p className="mt-1 text-sm text-nexus-text-secondary">
-                フィルター条件を変更するか、新しい商品を登録してください。
+                日本語フィルター条件を変更するか、新しい商品を登録してください。
               </p>
             </div>
           </div>
@@ -798,7 +818,7 @@ export default function StaffInventoryPage() {
                 </div>
                 <BarcodeScanner
                   onScan={handleBarcodeScanned}
-                  placeholder="商品バーコードをスキャンしてください"
+                  placeholder="商品バーコードをスキャン（日本語対応）"
                   scanType="product"
                   enableDatabaseLookup={true}
                 />

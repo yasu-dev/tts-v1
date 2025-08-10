@@ -208,10 +208,14 @@ export default function InventoryPage() {
       }
     }
 
-    // カテゴリーフィルター
+    // カテゴリーフィルター（元データの英語カテゴリーと比較）
     if (selectedCategory !== 'all') {
       const beforeFilter = filtered.length;
-      filtered = filtered.filter(item => item.category === selectedCategory);
+      filtered = filtered.filter(item => {
+        // 元データから英語カテゴリーを取得
+        const originalItem = items.find((original: any) => original.id === item.id);
+        return originalItem && originalItem.category === selectedCategory;
+      });
       console.log(`🔍 カテゴリーフィルター "${selectedCategory}": ${beforeFilter}件 → ${filtered.length}件`);
     }
 
@@ -287,12 +291,26 @@ export default function InventoryPage() {
 
   // カテゴリー一覧を取得
   const categoryOptions = useMemo(() => {
-    const categories = Array.from(new Set(inventory.map(item => item.category)));
+    // 英語カテゴリーを日本語ラベルでマッピング
+    const categoryMap = {
+      'camera_body': 'カメラ本体',
+      'lens': 'レンズ',
+      'watch': '腕時計',
+      'camera': 'カメラ',
+      'accessory': 'アクセサリ'
+    };
+    
+    // 実際に存在するカテゴリーを取得（元データから英語カテゴリーを取得）
+    const rawCategories = Array.from(new Set(items.map((item: any) => item.category).filter(Boolean)));
+    
     return [
       { value: 'all', label: 'すべてのカテゴリー' },
-      ...categories.map(category => ({ value: category, label: category }))
+      ...rawCategories.map(category => ({
+        value: category,
+        label: categoryMap[category as keyof typeof categoryMap] || category
+      }))
     ];
-  }, [inventory]);
+  }, [items]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -319,8 +337,8 @@ export default function InventoryPage() {
       ...filteredInventory.map(item => [
         item.name,
         item.sku,
-        item.category,
-        item.status,
+        item.category, // 既に日本語に変換済み
+        item.statusDisplay || item.status, // 日本語ステータスを優先
         item.location,
         item.value.toLocaleString(),
         item.certifications.join('|')
@@ -656,7 +674,7 @@ export default function InventoryPage() {
             <NexusInput
               type="text"
               label="検索"
-              placeholder="商品名・SKU・カテゴリーで検索"
+              placeholder="商品名・SKU・カテゴリーで検索（日本語）"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
