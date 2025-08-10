@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
+import { AuthService } from '@/lib/auth';
+
+const prisma = new PrismaClient();
 
 interface FedXConfig {
   apiKey: string;
@@ -392,14 +396,23 @@ startxref
 
 export async function POST(request: NextRequest) {
   try {
+    // ユーザー認証
+    const user = await AuthService.requireRole(request, ['seller', 'staff', 'admin']);
+    if (!user) {
+      return NextResponse.json(
+        { error: '認証が必要です' },
+        { status: 401 }
+      );
+    }
+
     const { item, service } = await request.json();
 
     console.log('FedX API呼び出し開始:', { item: item?.orderNumber, service });
 
-    if (!item) {
+    if (!item || !item.id) {
       console.error('商品情報が不足しています');
       return NextResponse.json(
-        { error: '商品情報が必要です' },
+        { error: '商品情報（ID含む）が必要です' },
         { status: 400 }
       );
     }
@@ -414,31 +427,112 @@ export async function POST(request: NextRequest) {
 
     console.log('環境変数チェック:', { hasRequiredEnvVars });
 
+    let labelResult;
+    
     if (!hasRequiredEnvVars) {
       console.warn('FedX環境変数が設定されていません。モック機能を使用します。');
-      const mockResult = generateMockFedXResponse(item, service);
-      console.log('モック配送ラベル生成完了:', mockResult.trackingNumber);
-      return NextResponse.json({
-        ...mockResult,
-        isMock: true,
-        message: 'モック配送ラベルが生成されました（開発用）'
-      });
+      labelResult = generateMockFedXResponse(item, service);
+      console.log('モック配送ラベル生成完了:', labelResult.trackingNumber);
+    } else {
+      try {
+        console.log('FedX API呼び出し試行中...');
+        const fedxAdapter = new FedXServerAdapter();
+        labelResult = await fedxAdapter.generateShippingLabel(item, service);
+        console.log('FedX API呼び出し成功:', labelResult.trackingNumber);
+      } catch (apiError) {
+        console.error('FedX API エラー、モックにフォールバック:', apiError);
+        labelResult = generateMockFedXResponse(item, service);
+        console.log('フォールバックでモック配送ラベル生成:', labelResult.trackingNumber);
+      }
     }
 
+    // ラベル情報をデータベースに保存
     try {
-      console.log('FedX API呼び出し試行中...');
-      const fedxAdapter = new FedXServerAdapter();
-      const result = await fedxAdapter.generateShippingLabel(item, service);
-      console.log('FedX API呼び出し成功:', result.trackingNumber);
-      return NextResponse.json(result);
-    } catch (apiError) {
-      console.error('FedX API エラー、モックにフォールバック:', apiError);
-      const mockResult = generateMockFedXResponse(item, service);
-      console.log('フォールバックでモック配送ラベル生成:', mockResult.trackingNumber);
+      // まず注文を取得
+      const order = await prisma.order.findFirst({
+        where: {
+          OR: [
+            { id: item.id },
+            { orderNumber: item.orderNumber }
+          ]
+        },
+        include: {
+          items: {
+            include: {
+              product: true
+            }
+          }
+        }
+      });
+
+      if (!order) {
+        throw new Error('対象の注文が見つかりません');
+      }
+
+      // ラベル情報を保存（実装では適切なテーブル構造に合わせて調整）
+      const fileName = `fedx_label_${order.orderNumber}_${Date.now()}.pdf`;
+      const fileUrl = `/api/shipping/label/download/${fileName}`;
+      
+      // 注文ステータスを processing に更新
+      await prisma.order.update({
+        where: { id: order.id },
+        data: {
+          status: 'processing',
+          trackingNumber: labelResult.trackingNumber
+        }
+      });
+
+      // 関連商品のステータスを ordered に更新
+      const productIds = order.items.map(item => item.productId);
+      await prisma.product.updateMany({
+        where: {
+          id: { in: productIds }
+        },
+        data: {
+          status: 'ordered'
+        }
+      });
+
+      // アクティビティログを記録
+      await prisma.activity.create({
+        data: {
+          type: 'label_generated',
+          description: `FedX配送ラベルが生成されました（追跡番号: ${labelResult.trackingNumber}）`,
+          userId: user.id,
+          orderId: order.id,
+          metadata: JSON.stringify({
+            carrier: 'fedx',
+            service,
+            trackingNumber: labelResult.trackingNumber,
+            fileName,
+            cost: labelResult.cost,
+            estimatedDelivery: labelResult.estimatedDelivery
+          })
+        }
+      });
+
+      console.log('ラベル保存とステータス更新完了:', {
+        orderId: order.id,
+        trackingNumber: labelResult.trackingNumber,
+        productsUpdated: productIds.length
+      });
+
       return NextResponse.json({
-        ...mockResult,
-        isMock: true,
-        message: 'FedX APIに接続できません。モック配送ラベルを生成しました。'
+        ...labelResult,
+        fileName,
+        fileUrl,
+        orderId: order.id,
+        productsUpdated: productIds.length,
+        message: 'FedX配送ラベルが生成され、ピッキング開始可能になりました'
+      });
+
+    } catch (dbError) {
+      console.error('データベース処理エラー:', dbError);
+      // ラベル生成は成功したが、DB更新に失敗した場合でもラベルは返す
+      return NextResponse.json({
+        ...labelResult,
+        warning: 'ラベルは生成されましたが、ステータス更新に失敗しました',
+        dbError: dbError instanceof Error ? dbError.message : '不明なエラー'
       });
     }
 

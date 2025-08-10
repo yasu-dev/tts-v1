@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AuthService } from '@/lib/auth';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
   try {
@@ -49,34 +52,96 @@ export async function POST(request: NextRequest) {
     const fileName = `shipping-label-${itemId}-${timestamp}.${file.type.split('/')[1]}`;
     const fileUrl = `/api/shipping/label/download/${fileName}`;
 
-    // データベースに保存（実際の実装）
-    // await prisma.shippingLabel.create({
-    //   data: {
-    //     orderId: itemId,
-    //     fileName,
-    //     fileUrl,
-    //     provider,
-    //     uploadedBy: user.id,
-    //     uploadedAt: new Date()
-    //   }
-    // });
+    // 注文情報を取得してステータス更新
+    try {
+      // 注文を取得
+      const order = await prisma.order.findFirst({
+        where: {
+          OR: [
+            { id: itemId },
+            { orderNumber: itemId }
+          ]
+        },
+        include: {
+          items: {
+            include: {
+              product: true
+            }
+          }
+        }
+      });
 
-    // ログ記録
-    console.log('Shipping label uploaded:', {
-      itemId,
-      fileName,
-      provider,
-      uploadedBy: user.username,
-      fileSize: file.size
-    });
+      if (!order) {
+        throw new Error('対象の注文が見つかりません');
+      }
 
-    return NextResponse.json({
-      success: true,
-      fileUrl,
-      fileName,
-      provider,
-      message: '配送伝票が正常にアップロードされました'
-    });
+      // 注文ステータスを processing に更新
+      await prisma.order.update({
+        where: { id: order.id },
+        data: {
+          status: 'processing'
+        }
+      });
+
+      // 関連商品のステータスを ordered に更新
+      const productIds = order.items.map(item => item.productId);
+      await prisma.product.updateMany({
+        where: {
+          id: { in: productIds }
+        },
+        data: {
+          status: 'ordered'
+        }
+      });
+
+      // アクティビティログを記録
+      await prisma.activity.create({
+        data: {
+          type: 'label_uploaded',
+          description: `外部配送業者のラベルがアップロードされました`,
+          userId: user.id,
+          orderId: order.id,
+          metadata: JSON.stringify({
+            fileName,
+            provider,
+            fileSize: file.size,
+            fileType: file.type
+          })
+        }
+      });
+
+      // ログ記録
+      console.log('Shipping label uploaded and status updated:', {
+        orderId: order.id,
+        fileName,
+        provider,
+        uploadedBy: user.username,
+        fileSize: file.size,
+        productsUpdated: productIds.length
+      });
+
+      return NextResponse.json({
+        success: true,
+        fileUrl,
+        fileName,
+        provider,
+        orderId: order.id,
+        productsUpdated: productIds.length,
+        message: '配送伝票がアップロードされ、ピッキング開始可能になりました'
+      });
+
+    } catch (dbError) {
+      console.error('データベース処理エラー:', dbError);
+      // ファイルアップロードは成功したが、DB更新に失敗した場合
+      return NextResponse.json({
+        success: true,
+        fileUrl,
+        fileName,
+        provider,
+        warning: 'ファイルはアップロードされましたが、ステータス更新に失敗しました',
+        dbError: dbError instanceof Error ? dbError.message : '不明なエラー'
+      });
+    }
 
   } catch (error) {
     console.error('Shipping label upload error:', error);

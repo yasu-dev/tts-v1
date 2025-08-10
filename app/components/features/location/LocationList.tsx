@@ -233,16 +233,30 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
 
   const fetchShippingData = async () => {
     try {
-      const response = await fetch('/api/shipping');
+      // orderedステータスの商品を取得
+      const response = await fetch('/api/inventory?status=ordered');
       if (response.ok) {
         const data = await response.json();
-        // 出荷データをロケーションごとにグループ化
-        const groupedByLocation = groupShippingDataByLocation(data.todayShipments || []);
+        // orderedステータスの商品を出荷リスト形式に変換
+        const orderedProducts = (data.data || []).map((product: any) => ({
+          id: `ship-${product.id}`,
+          orderId: product.orderId || `ORD-${product.id}`,
+          productId: product.id,
+          productName: product.name,
+          customer: product.customer || '顧客情報取得中',
+          locationCode: product.location || 'NO_LOCATION',
+          locationName: product.locationName || '未設定',
+          status: 'ピッキング待ち',
+          deadline: '18:00', // 実装では注文情報から取得
+          sku: product.sku
+        }));
+        
+        const groupedByLocation = groupShippingDataByLocation(orderedProducts);
         setShippingData(groupedByLocation);
         return;
       }
       
-      // フォールバック: モックデータ
+      // フォールバック: モックデータ（orderedステータスの商品を想定）
       const mockShippingData = [
         {
           id: "ship-001",
@@ -253,7 +267,6 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
           locationCode: "STD-A-01",
           locationName: "標準棚A-01",
           status: "ピッキング待ち",
-      
           deadline: "16:00"
         },
         {
@@ -264,21 +277,8 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
           customer: "顧客B",
           locationCode: "STD-A-01",
           locationName: "標準棚A-01",
-          status: "準備完了",
-      
+          status: "ピッキング待ち",
           deadline: "18:00"
-        },
-        {
-          id: "ship-003",
-          orderId: "ORD-2024-0628-003",
-          productId: "TWD-WAT-001",
-          productName: "Rolex Submariner",
-          customer: "田中一郎",
-          locationCode: "VAULT-01",
-          locationName: "金庫室01",
-          status: "出荷完了",
-      
-          deadline: "15:00"
         }
       ];
       const groupedData = groupShippingDataByLocation(mockShippingData);
@@ -695,13 +695,14 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
             <div className="space-y-6">
               {shippingData.length === 0 ? (
                 <div className="text-center p-8 text-nexus-text-secondary">
-                  本日の出荷予定はありません
+                  ピッキング対象の商品はありません
+                  <p className="text-sm mt-2">ラベル準備完了後、商品がここに表示されます</p>
                 </div>
               ) : (
                 shippingData.filter(locationGroup => {
                   // ピッキング待ちの商品があるロケーションのみ表示
                   const activeItems = locationGroup.items.filter((item: any) => 
-                    item.status === 'ピッキング待ち' || item.status === '準備完了'
+                    item.status === 'ピッキング待ち'
                   );
                   
                   if (activeItems.length === 0) return false;
@@ -713,15 +714,14 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                     locationGroup.locationName.toLowerCase().includes(searchQuery.toLowerCase()) ||
                     locationGroup.items.some((item: any) => 
                       item.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      item.productId.toLowerCase().includes(searchQuery.toLowerCase())
+                      item.productId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      item.sku?.toLowerCase().includes(searchQuery.toLowerCase())
                     );
                 }).map((locationGroup) => {
                   const activeItems = locationGroup.items.filter((item: any) => 
-                    item.status === 'ピッキング待ち' || item.status === '準備完了'
+                    item.status === 'ピッキング待ち'
                   );
-                  const completedItems = locationGroup.items.filter((item: any) => 
-                    item.status === '出荷完了' || item.status === 'ピッキング済み' || item.status === '梱包待ち'
-                  );
+                  const completedItems = []; // orderedステータスの商品は全てピッキング待ち
                   
                   return (
                   <div key={locationGroup.locationCode} className="holo-card p-6">
@@ -750,19 +750,11 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                       {locationGroup.items.map((item: any) => (
                         <div 
                           key={item.id} 
-                          className={`flex justify-between items-start p-4 rounded-lg border ${
-                            item.status === '出荷完了' || item.status === 'ピッキング済み' || item.status === '梱包待ち'
-                              ? 'bg-gray-50 border-gray-200 opacity-60' 
-                              : 'bg-nexus-bg-secondary border-nexus-border'
-                          }`}
+                          className="flex justify-between items-start p-4 rounded-lg border bg-nexus-bg-secondary border-nexus-border"
                         >
                           <div className="flex-1">
                             <div className="flex items-center gap-3">
-                              <h4 className={`font-medium ${
-                                item.status === '出荷完了' || item.status === 'ピッキング済み' || item.status === '梱包待ち'
-                                  ? 'text-gray-500'
-                                  : 'text-nexus-text-primary'
-                              }`}>{item.productName}</h4>
+                              <h4 className="font-medium text-nexus-text-primary">{item.productName}</h4>
                               
                             </div>
                             <p className="text-sm text-nexus-text-secondary font-mono mt-1">
@@ -773,11 +765,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                                 顧客: <span className="font-medium text-nexus-text-primary">{item.customer}</span>
                               </span>
                               <span className="text-nexus-text-secondary">
-                                締切: <span className={`font-medium ${
-                                  item.status === '出荷完了' || item.status === 'ピッキング済み' || item.status === '梱包待ち'
-                                    ? 'text-gray-500'
-                                    : 'text-nexus-yellow'
-                                }`}>{item.deadline}</span>
+                                締切: <span className="font-medium text-nexus-yellow">{item.deadline}</span>
                               </span>
                             </div>
                           </div>

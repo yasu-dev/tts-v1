@@ -145,8 +145,7 @@ export default function StaffShippingPage() {
 
   // タブごとのフィルタリング
   const tabFilters: Record<string, (item: ShippingItem) => boolean> = {
-    'all': () => true,
-    'storage': (item) => item.status === 'storage',
+    'all': (item) => ['picked', 'workstation', 'packed', 'shipped', 'ready_for_pickup'].includes(item.status),
     'workstation': (item) => item.status === 'picked' || item.status === 'workstation',
     'packed': (item) => item.status === 'packed',
     'ready_for_pickup': (item) => item.status === 'ready_for_pickup'
@@ -179,7 +178,6 @@ export default function StaffShippingPage() {
 
   // ステータス表示は BusinessStatusIndicator で統一
   const statusLabels: Record<string, string> = {
-    'storage': '出荷待ち',
     'picked': 'ピッキング済み',
     'workstation': '梱包待ち',
     'packed': '梱包済み',
@@ -224,79 +222,62 @@ export default function StaffShippingPage() {
     }
   };
 
-  const handlePrintLabel = async (item?: ShippingItem) => {
+  const handleDownloadLabel = async (item?: ShippingItem) => {
     if (item) {
       showToast({
-        title: '印刷開始',
-        message: `${item.productName}の配送ラベルを印刷します`,
+        title: 'ラベル取得中',
+        message: `${item.productName}の配送ラベルを取得しています`,
         type: 'info'
       });
 
       try {
-        const labelData = {
-          orderNumber: item.orderNumber,
-          productName: item.productName,
-          productSku: item.productSku,
-          customer: item.customer,
-          shippingAddress: item.shippingAddress,
-          shippingMethod: item.shippingMethod,
-          value: item.value,
-          isBundle: item.isBundle,
-          bundledItems: item.bundledItems
-        };
-
-        const response = await fetch('/api/pdf/generate', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            type: 'shipping-label',
-            data: labelData,
-          }),
-        });
-
+        // セラーが準備したラベルを取得
+        const response = await fetch(`/api/shipping/label/get?orderId=${item.orderNumber}`);
+        
         if (!response.ok) {
-          throw new Error('配送ラベルの生成に失敗しました');
+          if (response.status === 404) {
+            throw new Error('配送ラベルが見つかりません。セラーによるラベル準備をお待ちください。');
+          }
+          throw new Error('配送ラベルの取得に失敗しました');
         }
 
-        const result = await response.json();
+        const labelInfo = await response.json();
         
-        // PDF Base64データをBlobに変換
-        const binaryString = atob(result.base64Data);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
+        // ラベルファイルをダウンロード
+        const labelResponse = await fetch(labelInfo.url);
+        if (!labelResponse.ok) {
+          throw new Error('ラベルファイルのダウンロードに失敗しました');
         }
-        const blob = new Blob([bytes], { type: 'application/pdf' });
+
+        const blob = await labelResponse.blob();
         
-        // PDFをダウンロード
+        // ダウンロード実行
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = result.fileName;
+        link.download = labelInfo.fileName;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
 
         showToast({
-          title: '印刷完了',
-          message: `${item.productName}の配送ラベルを生成しました`,
+          title: 'ダウンロード完了',
+          message: `${item.productName}の配送ラベルをダウンロードしました`,
           type: 'success'
         });
       } catch (error) {
-        console.error('PDF生成エラー:', error);
+        console.error('ラベルダウンロードエラー:', error);
         showToast({
           title: 'エラー',
-          message: '配送ラベルの生成に失敗しました',
+          message: error instanceof Error ? error.message : '配送ラベルの取得に失敗しました',
           type: 'error'
         });
       }
     } else {
       showToast({
-        title: '一括印刷開始',
-        message: '一括配送ラベル印刷を開始します',
+        title: '一括ダウンロード開始',
+        message: '一括配送ラベルダウンロードを開始します',
         type: 'info'
       });
 
@@ -306,67 +287,66 @@ export default function StaffShippingPage() {
         
         if (packedItems.length === 0) {
           showToast({
-            title: '印刷対象なし',
+            title: 'ダウンロード対象なし',
             message: '梱包済みの商品がありません',
             type: 'warning'
           });
           return;
         }
 
-        // 各アイテムのラベルを順次生成
+        let successCount = 0;
+        let errorCount = 0;
+
+        // 各アイテムのラベルを順次ダウンロード
         for (const item of packedItems) {
-          const labelData = {
-            orderNumber: item.orderNumber,
-            productName: item.productName,
-            productSku: item.productSku,
-            customer: item.customer,
-            shippingAddress: item.shippingAddress,
-            shippingMethod: item.shippingMethod,
-            value: item.value,
-          };
-
-          const response = await fetch('/api/pdf/generate', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              type: 'shipping-label',
-              data: labelData,
-            }),
-          });
-
-          if (response.ok) {
-            const result = await response.json();
+          try {
+            const response = await fetch(`/api/shipping/label/get?orderId=${item.orderNumber}`);
             
-            const binaryString = atob(result.base64Data);
-            const bytes = new Uint8Array(binaryString.length);
-            for (let i = 0; i < binaryString.length; i++) {
-              bytes[i] = binaryString.charCodeAt(i);
+            if (response.ok) {
+              const labelInfo = await response.json();
+              const labelResponse = await fetch(labelInfo.url);
+              
+              if (labelResponse.ok) {
+                const blob = await labelResponse.blob();
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = labelInfo.fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                successCount++;
+              } else {
+                errorCount++;
+              }
+            } else {
+              errorCount++;
             }
-            const blob = new Blob([bytes], { type: 'application/pdf' });
-            
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = result.fileName;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
+          } catch (error) {
+            console.error(`ラベルダウンロードエラー (${item.orderNumber}):`, error);
+            errorCount++;
           }
         }
 
-        showToast({
-          title: '一括印刷完了',
-          message: `${packedItems.length}件の配送ラベルを生成しました`,
-          type: 'success'
-        });
+        if (successCount > 0) {
+          showToast({
+            title: '一括ダウンロード完了',
+            message: `${successCount}件の配送ラベルをダウンロードしました${errorCount > 0 ? ` (${errorCount}件エラー)` : ''}`,
+            type: successCount === packedItems.length ? 'success' : 'warning'
+          });
+        } else {
+          showToast({
+            title: 'ダウンロード失敗',
+            message: 'すべての配送ラベルのダウンロードに失敗しました',
+            type: 'error'
+          });
+        }
       } catch (error) {
-        console.error('一括PDF生成エラー:', error);
+        console.error('一括ラベルダウンロードエラー:', error);
         showToast({
           title: 'エラー',
-          message: '一括配送ラベルの生成に失敗しました',
+          message: '一括配送ラベルのダウンロードに失敗しました',
           type: 'error'
         });
       }
@@ -823,7 +803,7 @@ export default function StaffShippingPage() {
   // 一括ラベル印刷
   const handleBulkPrintLabels = async (packedItems: ShippingItem[]) => {
     for (const item of packedItems) {
-      await handlePrintLabel(item);
+      await handleDownloadLabel(item);
     }
     setSelectedItems([]);
   };
@@ -870,8 +850,7 @@ export default function StaffShippingPage() {
   };
 
   const stats = {
-    total: items.filter(i => !i.isBundled || i.isBundle).length,
-    storage: items.filter(i => (!i.isBundled || i.isBundle) && i.status === 'storage').length,
+    total: items.filter(i => (!i.isBundled || i.isBundle) && ['picked', 'workstation', 'packed', 'shipped', 'ready_for_pickup'].includes(i.status)).length,
     workstation: items.filter(i => (!i.isBundled || i.isBundle) && (i.status === 'picked' || i.status === 'workstation')).length,
     packed: items.filter(i => (!i.isBundled || i.isBundle) && i.status === 'packed').length,
     shipped: items.filter(i => (!i.isBundled || i.isBundle) && i.status === 'shipped').length,
@@ -962,7 +941,6 @@ export default function StaffShippingPage() {
                   <span className="text-xs text-nexus-text-tertiary font-medium uppercase tracking-wider self-center">作業中</span>
                   {[
                     { id: 'all', label: '全体', count: stats.total },
-                    { id: 'storage', label: 'ピッキング待ち', count: stats.storage },
                     { id: 'workstation', label: '梱包待ち', count: stats.workstation },
                     { id: 'packed', label: '梱包済み', count: stats.packed },
                   ].map((tab) => (
@@ -1102,7 +1080,6 @@ export default function StaffShippingPage() {
                         <td className="p-4">
                           <div className="space-y-2">
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              item.status === 'storage' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
                               item.status === 'picked' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
                               item.status === 'workstation' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
                               item.status === 'packed' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' :
@@ -1130,16 +1107,7 @@ export default function StaffShippingPage() {
                         </td>
                         <td className="p-4">
                           <div className="flex justify-end gap-2">
-                            {item.status === 'storage' && (
-                              <div className="flex items-center gap-2 text-sm text-nexus-text-secondary bg-nexus-bg-secondary px-3 py-2 rounded-lg">
-                                <svg className="w-4 h-4 text-nexus-yellow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                                <span>ピッキング待ち</span>
-                                <span className="text-xs text-nexus-text-tertiary">(ロケーション管理で処理)</span>
-                              </div>
-                            )}
+
                             {(item.status === 'picked' || item.status === 'workstation') && (
                               <NexusButton
                                 onClick={() => handleInlineAction(item, 'pack')}
