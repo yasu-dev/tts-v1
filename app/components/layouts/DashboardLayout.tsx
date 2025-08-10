@@ -194,7 +194,7 @@ export default function DashboardLayout({
       const checkAndStabilize = () => {
         const scrollContainer = document.querySelector('.page-scroll-container');
         if (scrollContainer && scrollContainer.scrollHeight > 0) {
-          console.log('DOM準備完了 - 早期安定化終了');
+          // DOM準備完了（ログ削除）
           setIsInitialStabilizing(false);
         } else {
           // まだ準備できていない場合は少し待つ
@@ -207,7 +207,7 @@ export default function DashboardLayout({
       
       // 最大でも1.5秒で強制終了
       const stabilizeTimer = setTimeout(() => {
-        console.log('強制安定化終了: 自動フロー制御を有効化');
+        // 強制安定化終了（ログ削除）
         setIsInitialStabilizing(false);
       }, 1500);
       
@@ -220,10 +220,10 @@ export default function DashboardLayout({
     // 【修正】初期化の強化 - 複数回試行
     const initializeScrollHandler = () => {
       const scrollContainer = scrollContainerRef.current;
-      console.log('スクロール検知初期化:', scrollContainer, 'pathname:', pathname);
+      // スクロール検知初期化（ログ削除）
       
       if (!scrollContainer) {
-        console.log('scrollContainer が null です - 再試行中...');
+        // scrollContainer null - 再試行中（ログ削除）
         // 少し待ってから再試行
         setTimeout(initializeScrollHandler, 100);
         return false;
@@ -242,11 +242,11 @@ export default function DashboardLayout({
     let currentLastScrollY = 0;
     
     const handleScroll = () => {
-      console.log('🚀 handleScroll が呼ばれました - scrollTop:', scrollContainer.scrollTop);
+      // スクロールログは業務フロー制御のみに限定
       
       // 初期安定化中は自動制御を無効化
       if (isInitialStabilizing) {
-        console.log('初期安定化中: 自動フロー制御をスキップ');
+        // 初期安定化中（ログ削除）
         return;
       }
       
@@ -265,19 +265,7 @@ export default function DashboardLayout({
           const scrollThreshold = 5; // 【修正】スムーススクロール対応のため25px → 5pxに下げる
           const topThreshold = 15;
           
-          console.log('スクロール検知:', {
-            currentScrollY,
-            scrollDelta,
-            isScrollingDown,
-            isScrollingUp,
-            isFlowCollapsed,
-            // 【デバッグ強化】状態詳細を追加
-            isInitialStabilizing,
-            isAnyModalOpen,
-            pathname,
-            scrollThreshold,
-            conditionMet: isScrollingDown && Math.abs(scrollDelta) > scrollThreshold && currentScrollY > 250
-          });
+          // スクロール検知ログは削除（業務フロー制御のみ出力）
           
           // 最上部付近では常に展開
           // 【修正】最上部でも自動展開しない - 右上ボタンのみで開く
@@ -290,18 +278,11 @@ export default function DashboardLayout({
           // 十分な下スクロールで折りたたみ
           // 【テスト調整】60px -> 250px に変更（感覚調整のため、ロールバック可能性高）
           if (isScrollingDown && Math.abs(scrollDelta) > scrollThreshold && currentScrollY > 250) {
-            console.log('下スクロール: フロー折りたたみ (250px閾値) - 実行中');
-            setIsFlowCollapsed(true);
-            console.log('setIsFlowCollapsed(true) 実行完了');
-          } else {
-            console.log('下スクロール条件未満:', {
-              isScrollingDown,
-              deltaCheck: Math.abs(scrollDelta) > scrollThreshold,
-              positionCheck: currentScrollY > 250,
-              actualDelta: Math.abs(scrollDelta),
-              actualPosition: currentScrollY
-            });
-          }
+              // 業務フローを閉じる時のみログ出力
+              console.log('🟡 業務フローを自動的に閉じます（スクロール検出）');
+              setIsFlowCollapsed(true);
+          } 
+          // 条件未満時のログは削除（不要なログを制限）
           // 十分な上スクロールで展開
           // 【修正】上スクロールでも自動展開しない - 右上ボタンのみで開く
           /*
@@ -342,34 +323,10 @@ export default function DashboardLayout({
       }, 150);
     };
 
-    console.log('スクロールイベントリスナー追加');
-    const scrollDetails = {
-      scrollHeight: scrollContainer.scrollHeight,
-      clientHeight: scrollContainer.clientHeight,
-      scrollTop: scrollContainer.scrollTop,
-      hasScrollbar: scrollContainer.scrollHeight > scrollContainer.clientHeight,
-      offsetHeight: scrollContainer.offsetHeight,
-      className: scrollContainer.className,
-      tagName: scrollContainer.tagName,
-      style: {
-        overflow: scrollContainer.style.overflow,
-        overflowY: scrollContainer.style.overflowY,
-        height: scrollContainer.style.height,
-        maxHeight: scrollContainer.style.maxHeight
-      }
-    };
-    console.log('scrollContainer の詳細:', scrollDetails);
-    
-    // スクロール可能性をテスト
-    if (scrollContainer.scrollHeight <= scrollContainer.clientHeight) {
-      console.warn('⚠️ スクロール不可: scrollHeight <= clientHeight');
-    } else {
-      console.log('✅ スクロール可能');
-    }
+    // スクロール初期化ログは削除（業務フロー制御のみ出力）
     
     scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
-      console.log('スクロールイベントリスナー削除');
       scrollContainer.removeEventListener('scroll', handleScroll);
       clearTimeout(scrollTimeout);
     };

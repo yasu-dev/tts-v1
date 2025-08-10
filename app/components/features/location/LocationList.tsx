@@ -47,7 +47,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
   const [movements, setMovements] = useState<LocationMovement[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'movement' | 'shipping'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'movement' | 'shipping'>('shipping');
   const [filteredLocations, setFilteredLocations] = useState<Location[]>([]);
   const [shippingData, setShippingData] = useState<any[]>([]);
   const [mounted, setMounted] = useState(false);
@@ -56,6 +56,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
   const [isPickingModalOpen, setIsPickingModalOpen] = useState(false);
   const [selectedPickingItems, setSelectedPickingItems] = useState<any[]>([]);
   const [selectedLocationName, setSelectedLocationName] = useState<string>('');
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const { showToast } = useToast();
   const router = useRouter();
 
@@ -796,27 +797,50 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                           key={item.id} 
                           className="flex justify-between items-start p-4 rounded-lg border bg-nexus-bg-secondary border-nexus-border"
                         >
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3">
-                              <h4 className="font-medium text-nexus-text-primary">{item.productName}</h4>
-                              
-                            </div>
-                            <p className="text-sm text-nexus-text-secondary font-mono mt-1">
-                              商品ID: {item.productId} | 注文ID: {item.orderId}
-                            </p>
-                            <div className="flex items-center gap-4 mt-2 text-sm">
-                              <span className="text-nexus-text-secondary">
-                                顧客: <span className="font-medium text-nexus-text-primary">{item.customer}</span>
-                              </span>
-                              <span className="text-nexus-text-secondary">
-                                締切: <span className="font-medium text-nexus-yellow">{item.deadline}</span>
-                              </span>
+                          <div className="flex items-start gap-3 flex-1">
+                            {/* 商品選択チェックボックス */}
+                            {item.status === 'ピッキング待ち' && (
+                              <div className="mt-1">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedProductIds.includes(item.id)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setSelectedProductIds(prev => [...prev, item.id]);
+                                    } else {
+                                      setSelectedProductIds(prev => prev.filter(id => id !== item.id));
+                                    }
+                                  }}
+                                  className="w-4 h-4 text-nexus-yellow bg-nexus-bg-primary border-nexus-border rounded focus:ring-nexus-yellow focus:ring-2"
+                                />
+                              </div>
+                            )}
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3">
+                                <h4 className="font-medium text-nexus-text-primary">{item.productName}</h4>
+                                {item.sku && (
+                                  <span className="text-xs font-mono bg-nexus-bg-primary px-2 py-1 rounded text-nexus-text-secondary">
+                                    {item.sku}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm text-nexus-text-secondary font-mono mt-1">
+                                商品ID: {item.productId} | 注文ID: {item.orderId}
+                              </p>
+                              <div className="flex items-center gap-4 mt-2 text-sm">
+                                <span className="text-nexus-text-secondary">
+                                  顧客: <span className="font-medium text-nexus-text-primary">{item.customer}</span>
+                                </span>
+                                <span className="text-nexus-text-secondary">
+                                  締切: <span className="font-medium text-nexus-yellow">{item.deadline}</span>
+                                </span>
+                              </div>
                             </div>
                           </div>
                           <div className="text-right">
                             <span className={`status-badge ${
                               item.status === 'ピッキング待ち' ? 'warning' :
-                              item.status === 'ピッキング中' ? 'processing' :
+                              item.status === 'ピッキング作業中' ? 'processing' :
                               item.status === 'ピッキング済み' ? 'success' :
                               item.status === '準備完了' ? 'success' :
                               item.status === '梱包待ち' ? 'info' :
@@ -831,24 +855,80 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                     
                     <div className="mt-4 pt-4 border-t border-nexus-border">
                       <div className="flex items-center justify-between">
-                        <p className="text-sm text-nexus-text-secondary">
-                          このロケーションからピッキングする商品をまとめて処理できます
-                        </p>
-                        <NexusButton
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedPickingItems(activeItems);
-                            setSelectedLocationName(locationGroup.locationName);
-                            setIsPickingModalOpen(true);
-                          }}
-                          disabled={activeItems.length === 0}
-                        >
-                          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                          </svg>
-                          ピッキングリスト作成
-                        </NexusButton>
+                        <div className="flex items-center gap-4">
+                          {activeItems.length > 0 && (
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                checked={activeItems.every(item => selectedProductIds.includes(item.id))}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    const newIds = activeItems.map(item => item.id);
+                                    setSelectedProductIds(prev => [...new Set([...prev, ...newIds])]);
+                                  } else {
+                                    const activeItemIds = activeItems.map(item => item.id);
+                                    setSelectedProductIds(prev => prev.filter(id => !activeItemIds.includes(id)));
+                                  }
+                                }}
+                                className="w-4 h-4 text-nexus-yellow bg-nexus-bg-primary border-nexus-border rounded focus:ring-nexus-yellow focus:ring-2"
+                              />
+                              <span className="text-sm text-nexus-text-secondary">
+                                このロケーションの全商品を選択
+                              </span>
+                            </div>
+                          )}
+                          {selectedProductIds.filter(id => 
+                            activeItems.some(item => item.id === id)
+                          ).length > 0 && (
+                            <span className="text-sm font-medium text-nexus-text-primary">
+                              {selectedProductIds.filter(id => 
+                                activeItems.some(item => item.id === id)
+                              ).length}件選択済み
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <NexusButton
+                            variant="default"
+                            size="sm"
+                            onClick={() => {
+                              const currentLocationSelectedIds = selectedProductIds.filter(id => 
+                                activeItems.some(item => item.id === id)
+                              );
+                              if (currentLocationSelectedIds.length > 0) {
+                                setSelectedProductIds(prev => prev.filter(id => !currentLocationSelectedIds.includes(id)));
+                              }
+                            }}
+                            disabled={selectedProductIds.filter(id => 
+                              activeItems.some(item => item.id === id)
+                            ).length === 0}
+                          >
+                            選択解除
+                          </NexusButton>
+                          <NexusButton
+                            variant="primary"
+                            size="sm"
+                            onClick={() => {
+                              const selectedItemsFromThisLocation = activeItems.filter(item => 
+                                selectedProductIds.includes(item.id)
+                              );
+                              setSelectedPickingItems(selectedItemsFromThisLocation);
+                              setSelectedLocationName(locationGroup.locationName);
+                              setIsPickingModalOpen(true);
+                            }}
+                            disabled={selectedProductIds.filter(id => 
+                              activeItems.some(item => item.id === id)
+                            ).length === 0}
+                          >
+                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                            </svg>
+                            選択商品をピッキング指示
+                            ({selectedProductIds.filter(id => 
+                              activeItems.some(item => item.id === id)
+                            ).length})
+                          </NexusButton>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1015,16 +1095,16 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
           setSelectedPickingItems([]);
           setSelectedLocationName('');
         }}
-        title="ピッキングリスト作成"
+        title="ピッキング指示作成"
         size="lg"
       >
         <div>
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-nexus-text-primary mb-2">
-              {selectedLocationName}の商品
+              {selectedLocationName}の選択商品
             </h3>
             <p className="text-sm text-nexus-text-secondary">
-              以下の{selectedPickingItems.length}件の商品のピッキングリストを作成します
+              以下の{selectedPickingItems.length}件の商品に対してピッキング指示を作成し、出荷管理に追加します
             </p>
           </div>
 
@@ -1037,11 +1117,18 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                   <p className="text-sm text-nexus-text-secondary">
                     商品ID: {item.productId} | 顧客: {item.customer}
                   </p>
+                  {item.sku && (
+                    <p className="text-xs font-mono text-nexus-text-secondary mt-1">
+                      SKU: {item.sku}
+                    </p>
+                  )}
                 </div>
                 <div className="text-right">
-
-                  <p className="text-sm text-nexus-text-secondary mt-1">
+                  <p className="text-sm text-nexus-text-secondary">
                     締切: {item.deadline}
+                  </p>
+                  <p className="text-xs text-nexus-text-secondary mt-1">
+                    ロケーション: {selectedLocationName}
                   </p>
                 </div>
               </div>
@@ -1050,19 +1137,19 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
 
           {/* 次のステップの説明 */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <h4 className="font-semibold text-blue-900 mb-2">🚀 次のステップ</h4>
+            <h4 className="font-semibold text-blue-900 mb-2">📋 作業フロー</h4>
             <ol className="list-decimal list-inside space-y-2 text-sm text-blue-800">
-              <li>ピッキング画面に移動して、リストを確認</li>
-              <li>指定されたロケーションから商品をピッキング</li>
-              <li>バーコードスキャンで商品確認</li>
-              <li>梱包・出荷作業へ進む</li>
+              <li>商品ステータスを「ピッキング作業中」に更新</li>
+              <li>出荷管理画面に作業対象として追加</li>
+              <li>スタッフが物理的なピッキング作業を実施</li>
+              <li>ピッキング完了後、梱包・出荷作業へ進行</li>
             </ol>
           </div>
 
           {/* アクションボタン */}
           <div className="flex justify-between items-center">
             <p className="text-sm text-nexus-text-secondary">
-              ※ ピッキング画面で詳細な作業指示を確認できます
+              ※ 出荷管理画面で詳細な作業指示を確認できます
             </p>
             <div className="flex gap-3">
               <NexusButton
@@ -1078,37 +1165,45 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
               <NexusButton
                 onClick={async () => {
                   try {
-                    // ピッキングリストを作成
+                    // ピッキング指示を作成
+                    const productIds = selectedPickingItems.map(item => item.productId || item.id);
+                    
                     const response = await fetch('/api/picking', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({
-                        productIds: selectedPickingItems.map(item => item.productId),
-                        action: 'create_picking_list',
-                        locationCode: selectedPickingItems[0]?.locationCode,
+                        productIds,
+                        action: 'create_picking_instruction',
+                        locationCode: selectedLocationName.split(' ')[0] || 'UNKNOWN',
                         locationName: selectedLocationName
                       })
                     });
 
                     if (response.ok) {
+                      const result = await response.json();
+                      
+                      // 選択された商品のIDをクリア
+                      const processedIds = selectedPickingItems.map(item => item.id);
+                      setSelectedProductIds(prev => prev.filter(id => !processedIds.includes(id)));
+
                       showToast({
                         type: 'success',
-                        title: 'ピッキングリスト作成完了',
-                        message: `${selectedLocationName}の商品${selectedPickingItems.length}件のピッキングリストを作成しました`,
+                        title: 'ピッキング指示作成完了',
+                        message: `${selectedLocationName}の商品${selectedPickingItems.length}件を出荷管理に追加しました`,
                         duration: 4000
                       });
 
-                      // ピッキング画面へ遷移
-                      router.push('/staff/picking?from=location');
+                      // 出荷管理画面へ遷移
+                      router.push('/staff/shipping?status=workstation');
                     } else {
-                      throw new Error('ピッキングリスト作成に失敗しました');
+                      throw new Error('ピッキング指示作成に失敗しました');
                     }
                   } catch (error) {
-                    console.error('Error creating picking list:', error);
+                    console.error('Error creating picking instruction:', error);
                     showToast({
                       type: 'error',
                       title: 'エラー',
-                      message: 'ピッキングリスト作成中にエラーが発生しました',
+                      message: 'ピッキング指示作成中にエラーが発生しました',
                       duration: 4000
                     });
                   }
@@ -1119,7 +1214,10 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                 }}
                 variant="primary"
               >
-                ピッキング画面へ進む
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                ピッキング指示を作成
               </NexusButton>
             </div>
           </div>

@@ -6,59 +6,79 @@ const prisma = new PrismaClient();
 
 export async function GET(request: NextRequest) {
   try {
-    // SQLiteから出荷準備中・出荷済みの注文データを取得
-    const orders = await prisma.order.findMany({
-      where: {
-        status: {
-          in: ['confirmed', 'processing', 'shipped']
-        }
-      },
-      include: {
-        customer: {
-          select: { username: true }
-        },
-        items: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                name: true,
-                sku: true,
-                price: true,
-                imageUrl: true
-              }
-            }
-          }
-        }
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 50
-    });
-
-    // 配送アイテム形式に変換
-    const shippingItems = orders.flatMap(order => 
-      order.items.map(item => ({
-        id: `SHIP-${order.id}-${item.id}`,
-        productName: item.product.name,
-        productSku: item.product.sku,
-        orderNumber: order.orderNumber,
-        customer: order.customer.username,
-        shippingAddress: order.shippingAddress || '住所未設定',
-        status: order.status === 'confirmed' ? 'workstation' :
-                order.status === 'processing' ? 'packed' : 'shipped',
-        priority: order.totalAmount > 500000 ? 'urgent' : 'normal',
-        dueDate: new Date(order.createdAt.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        shippingMethod: 'ヤマト宅急便',
-        value: item.product.price,
-        location: 'A-01',
-        productImages: item.product.imageUrl ? [item.product.imageUrl] : [],
+    // デモモード：ピッキングAPI連携用のモック出荷データを生成
+    console.log('🎯 デモモード: 出荷管理データ生成開始');
+    
+    // ピッキング済み（workstation）商品のモックデータ
+    const mockShippingItems = [
+      {
+        id: 'DEMO-SHIP-001',
+        productName: 'Canon EOS 5D Mark IV ボディ',
+        productSku: 'SKU-CAN-5D4-001',
+        orderNumber: 'ORD-20240101-001',
+        customer: '田中太郎',
+        shippingAddress: '東京都渋谷区代官山1-2-3',
+        status: 'workstation' as const, // ピッキング済み→梱包待ち
+        dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        shippingMethod: 'FedEx International',
+        value: 350000,
+        location: 'STD-A-01',
+        productImages: ['/images/products/canon-5d4.jpg'],
         inspectionImages: [],
-        inspectionNotes: '動作確認済み、外観良好'
-      }))
-    );
+        inspectionNotes: 'ピッキング完了：外観良好、付属品確認済み'
+      },
+      {
+        id: 'DEMO-SHIP-002', 
+        productName: 'Nikon D850 ボディ',
+        productSku: 'SKU-NIK-D850-002',
+        orderNumber: 'ORD-20240101-002',
+        customer: '佐藤花子',
+        shippingAddress: '大阪府大阪市北区梅田2-4-5',
+        status: 'workstation' as const,
+        dueDate: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString().split('T')[0],
+        shippingMethod: 'DHL Express',
+        value: 320000,
+        location: 'STD-A-02',
+        productImages: ['/images/products/nikon-d850.jpg'],
+        inspectionImages: [],
+        inspectionNotes: 'ピッキング完了：動作確認済み'
+      },
+      {
+        id: 'DEMO-SHIP-003',
+        productName: 'Rolex Submariner Date 116610LN',
+        productSku: 'SKU-ROL-SUB-003',
+        orderNumber: 'ORD-20240102-001',
+        customer: '山田次郎',
+        shippingAddress: '神奈川県横浜市中区元町3-6-7',
+        status: 'packed' as const, // 梱包済み
+        dueDate: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString().split('T')[0],
+        shippingMethod: 'ヤマト宅急便',
+        value: 1200000,
+        location: 'VAULT-01',
+        productImages: ['/images/products/rolex-submariner.jpg'],
+        inspectionImages: [],
+        inspectionNotes: '梱包完了：高級梱包材使用、保険付き'
+      },
+      {
+        id: 'DEMO-SHIP-004',
+        productName: 'Sony α7R V ボディ',
+        productSku: 'SKU-SON-A7R5-004',
+        orderNumber: 'ORD-20240102-002',
+        customer: '鈴木一郎',
+        shippingAddress: '愛知県名古屋市中区錦1-8-9',
+        status: 'ready_for_pickup' as const, // 集荷準備完了
+        dueDate: new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString().split('T')[0],
+        shippingMethod: 'FedX Priority',
+        value: 450000,
+        location: 'PACK',
+        productImages: ['/images/products/sony-a7r5.jpg'],
+        inspectionImages: [],
+        inspectionNotes: '出荷準備完了：追跡番号 FX123456789JP'
+      }
+    ];
 
-    console.log(`✅ 配送データ取得完了: ${shippingItems.length}件 (SQLite注文データベース基準)`);
-    return NextResponse.json({ items: shippingItems });
+    console.log(`✅ デモ出荷データ生成完了: ${mockShippingItems.length}件`);
+    return NextResponse.json({ items: mockShippingItems });
   } catch (error) {
     console.error('Shipping items fetch error:', error);
     return NextResponse.json(

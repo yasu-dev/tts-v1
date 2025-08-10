@@ -147,8 +147,7 @@ export default function StaffShippingPage() {
 
   // タブごとのフィルタリング
   const tabFilters: Record<string, (item: ShippingItem) => boolean> = {
-    'all': (item) => ['ordered', 'picked', 'workstation', 'packed', 'shipped', 'ready_for_pickup'].includes(item.status),
-    'ordered': (item) => item.status === 'ordered',
+    'all': (item) => ['picked', 'workstation', 'packed', 'shipped', 'ready_for_pickup'].includes(item.status),
     'workstation': (item) => item.status === 'picked' || item.status === 'workstation',
     'packed': (item) => item.status === 'packed',
     'ready_for_pickup': (item) => item.status === 'ready_for_pickup'
@@ -181,7 +180,6 @@ export default function StaffShippingPage() {
 
   // ステータス表示は BusinessStatusIndicator で統一
   const statusLabels: Record<string, string> = {
-    'ordered': 'ピックアップ待ち',
     'picked': 'ピッキング済み',
     'workstation': '梱包待ち',
     'packed': '梱包済み',
@@ -814,22 +812,11 @@ export default function StaffShippingPage() {
     });
   };
 
-  // ピックアップ処理
-  const handlePickupItem = (item: ShippingItem) => {
-    updateItemStatus(item.id, 'picked');
-    showToast({
-      title: 'ピックアップ完了',
-      message: `${item.productName}をピックアップしました`,
-      type: 'success'
-    });
-  };
+  // ピックアップ処理は削除（ロケーション管理で実施）
 
   // インライン作業処理
   const handleInlineAction = (item: ShippingItem, action: string) => {
     switch (action) {
-      case 'pickup':
-        handlePickupItem(item);
-        break;
       case 'inspect':
         updateItemStatus(item.id, 'packed');
         break;
@@ -856,8 +843,7 @@ export default function StaffShippingPage() {
   };
 
   const stats = {
-    total: items.filter(i => (!i.isBundled || i.isBundle) && ['ordered', 'picked', 'workstation', 'packed', 'shipped', 'ready_for_pickup'].includes(i.status)).length,
-    ordered: items.filter(i => (!i.isBundled || i.isBundle) && i.status === 'ordered').length,
+    total: items.filter(i => (!i.isBundled || i.isBundle) && ['picked', 'workstation', 'packed', 'shipped', 'ready_for_pickup'].includes(i.status)).length,
     workstation: items.filter(i => (!i.isBundled || i.isBundle) && (i.status === 'picked' || i.status === 'workstation')).length,
     packed: items.filter(i => (!i.isBundled || i.isBundle) && i.status === 'packed').length,
     shipped: items.filter(i => (!i.isBundled || i.isBundle) && i.status === 'shipped').length,
@@ -948,7 +934,6 @@ export default function StaffShippingPage() {
                   <span className="text-xs text-nexus-text-tertiary font-medium uppercase tracking-wider self-center">作業中</span>
                   {[
                     { id: 'all', label: '全体', count: stats.total },
-                    { id: 'ordered', label: 'ピックアップ待ち', count: stats.ordered },
                     { id: 'workstation', label: '梱包待ち', count: stats.workstation },
                     { id: 'packed', label: '梱包済み', count: stats.packed },
                   ].map((tab) => (
@@ -981,7 +966,7 @@ export default function StaffShippingPage() {
                     className={`
                       whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors
                       ${activeTab === 'ready_for_pickup'
-                        ? 'border-green-500 text-green-600'
+                        ? 'border-blue-500 text-blue-600'
                         : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-gray-300'
                       }
                     `}
@@ -1122,17 +1107,7 @@ export default function StaffShippingPage() {
                         <td className="p-4">
                           <div className="flex justify-end gap-2">
 
-                            {item.status === 'ordered' && (
-                              <NexusButton
-                                onClick={() => handleInlineAction(item, 'pickup')}
-                                variant="primary"
-                                size="sm"
-                                className="flex items-center gap-1"
-                              >
-                                <ArchiveBoxArrowDownIcon className="w-4 h-4" />
-                                ピックアップ
-                              </NexusButton>
-                            )}
+                            {/* ピックアップはロケーション管理で実施するため、ここでは不要 */}
                             {(item.status === 'picked' || item.status === 'workstation') && (
                               <NexusButton
                                 onClick={() => handleInlineAction(item, 'pack')}
@@ -1179,10 +1154,10 @@ export default function StaffShippingPage() {
                               </NexusButton>
                             )}
                             {item.status === 'ready_for_pickup' && (
-                              <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 dark:bg-green-900/20 px-3 py-2 rounded-lg">
+                              <div className="flex items-center gap-2 text-sm text-blue-600 bg-blue-50 dark:bg-blue-900/20 px-3 py-2 rounded-lg">
                                 <CheckCircleIcon className="w-4 h-4" />
                                 <span className="font-medium">作業完了</span>
-                                <span className="text-xs text-green-500">（配送業者の集荷待ち）</span>
+                                <span className="text-xs text-blue-500">（配送業者の集荷待ち）</span>
                               </div>
                             )}
                           </div>

@@ -92,6 +92,10 @@ export default function LocationPage() {
     return null;
   }
 
+  const handleGoToShipping = () => {
+    window.location.href = '/staff/shipping';
+  };
+
   const headerActions = (
     <>
       <NexusButton
@@ -113,6 +117,16 @@ export default function LocationPage() {
       >
         <span className="hidden sm:inline">最適化</span>
         <span className="sm:hidden">最適化</span>
+      </NexusButton>
+      <NexusButton
+        onClick={handleGoToShipping}
+        variant="secondary"
+        size="md"
+        data-testid="go-to-shipping-button"
+        icon={<CubeIcon className="w-5 h-5" />}
+      >
+        <span className="hidden sm:inline">出荷管理</span>
+        <span className="sm:hidden">出荷</span>
       </NexusButton>
       <NexusButton
         onClick={handleStartInventoryCount}
