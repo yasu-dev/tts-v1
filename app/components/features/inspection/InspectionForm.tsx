@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
 import InspectionChecklist from './InspectionChecklist';
@@ -90,6 +90,7 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
   const [videoId, setVideoId] = useState<string | null>(null);
   const [existingChecklist, setExistingChecklist] = useState<ExistingInspectionChecklist | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const stepIndicatorRef = useRef<HTMLDivElement>(null);
   const [inspectionData, setInspectionData] = useState<InspectionData>({
     productId,
     checklist: {
@@ -304,8 +305,10 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
         const stepNum = parseInt(stepParam, 10);
         if ([1,2,3,4].includes(stepNum)) {
           setCurrentStep(stepNum);
-          // step指定で来た場合はUI初期化が落ち着くまで軽く待ってからフォーカスさせる
-          // 実フォーカスは各ステップ側のuseEffectで対応（棚保管ステップで実装済み）
+          // step指定で来た場合はUI初期化が落ち着くまで待ってからタブ部分にスクロール
+          setTimeout(() => {
+            scrollToTabs();
+          }, 500);
         }
       }
     } catch (e) {
@@ -322,6 +325,25 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
       case 4: return '棚保管';
       default: return '不明';
     }
+  };
+
+  // タブ部分にスクロールする関数
+  const scrollToTabs = () => {
+    if (stepIndicatorRef.current) {
+      stepIndicatorRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  };
+
+  // ステップ変更時の処理
+  const handleStepChange = (stepId: number) => {
+    setCurrentStep(stepId);
+    // 少し遅延してからスクロール（状態更新後にスクロール）
+    setTimeout(() => {
+      scrollToTabs();
+    }, 100);
   };
 
   const updateChecklist = (category: string, item: string, value: boolean) => {
@@ -607,11 +629,11 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
       </NexusCard>
 
       {/* ステップインジケーター（タブレット最適化） */}
-      <div className="flex justify-between items-center bg-white rounded-lg p-4 shadow-sm">
+      <div ref={stepIndicatorRef} className="flex justify-between items-center bg-white rounded-lg p-4 shadow-sm">
         {steps.map((step, index) => (
           <button
             key={step.id}
-            onClick={() => setCurrentStep(step.id)}
+            onClick={() => handleStepChange(step.id)}
             className={`flex-1 flex flex-col items-center p-3 rounded-lg transition-all ${
               currentStep === step.id
                 ? 'bg-blue-50 text-blue-600'
@@ -752,7 +774,7 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
                 保存して後で続ける
               </NexusButton>
               <NexusButton
-                onClick={() => setCurrentStep(2)}
+                onClick={() => handleStepChange(2)}
                 variant="primary"
                 size="lg"
               >
@@ -767,8 +789,8 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
             productId={productId}
             photos={inspectionData.photos}
             onUpdate={updatePhotos}
-            onNext={() => setCurrentStep(3)}
-            onPrev={() => setCurrentStep(1)}
+            onNext={() => handleStepChange(3)}
+            onPrev={() => handleStepChange(1)}
             onSaveAndReturn={() => saveProgress(2)}
             category={product.category}
             loading={loading}
@@ -779,8 +801,8 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
           <PackagingAndLabelStep
             productId={productId}
             product={product}
-            onNext={() => setCurrentStep(4)}
-            onPrev={() => setCurrentStep(2)}
+            onNext={() => handleStepChange(4)}
+            onPrev={() => handleStepChange(2)}
             onSaveAndReturn={() => saveProgress(3)}
             loading={loading}
           />
@@ -791,7 +813,7 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
             productId={productId}
             product={product}
             onComplete={(locationId) => submitInspection(false, locationId)}
-            onPrev={() => setCurrentStep(3)}
+            onPrev={() => handleStepChange(3)}
             onSaveAndReturn={() => saveProgress(4)}
             loading={loading}
           />

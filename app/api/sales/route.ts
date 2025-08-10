@@ -11,8 +11,26 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type');
     
+    // ページネーションパラメータ
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '20');
+    const status = searchParams.get('status');
+    const skip = (page - 1) * limit;
+    
+    // フィルター条件
+    const whereCondition: any = {};
+    if (status && status !== 'all') {
+      whereCondition.status = status;
+    }
+    
+    // 総件数を取得
+    const totalCount = await prisma.order.count({
+      where: whereCondition
+    });
+    
     // Prismaを使用して売上データを取得
     const orders = await prisma.order.findMany({
+      where: whereCondition,
       include: {
         customer: {
           select: {
@@ -35,7 +53,8 @@ export async function GET(request: Request) {
         },
       },
       orderBy: { orderDate: 'desc' },
-      take: 50, // 最新50件を取得
+      skip: skip,
+      take: limit,
     });
 
     // 統計データを計算
@@ -92,15 +111,29 @@ export async function GET(request: Request) {
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 5);
 
+    // ページネーション情報を計算
+    const totalPages = Math.ceil(totalCount / limit);
+    const hasNextPage = page < totalPages;
+    const hasPrevPage = page > 1;
+    
     // 売上データ構造
     const salesData = {
       totalSales,
-      totalOrders,
+      totalOrders: totalCount, // 全体の注文数
       averageOrderValue,
       conversionRate: totalOrders > 0 ? ((completedOrders / totalOrders) * 100).toFixed(1) : '0.0',
       topProducts,
       recentOrders,
-      salesTrend: generateSalesTrend(orders)
+      salesTrend: generateSalesTrend(orders),
+      // ページネーション情報
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalCount,
+        limit,
+        hasNextPage,
+        hasPrevPage
+      }
     };
 
     return NextResponse.json(salesData);

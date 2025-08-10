@@ -8,10 +8,10 @@ type StatusType = 'optimal' | 'warning' | 'critical';
 type BusinessStatusType = 
   | 'inbound' | 'inspection' | 'storage' | 'listing' | 'sold' | 'maintenance'
   | 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'confirmed'
-  | 'processing' | 'delivered'
+  | 'processing' | 'delivered' | 'returned'
   | 'packed' | 'shipped' | 'ready_for_pickup'
   | 'approved' | 'rejected' | 'refunded'
-  | 'ordered' | 'shipping' | 'returned';
+  | 'ordered' | 'shipping';
 
 interface StatusIndicatorProps {
   status: StatusType;
@@ -41,18 +41,21 @@ const businessStatusConfig = {
   shipping: { label: '出荷中', color: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200' }, // 配送中
   returned: { label: '返品', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' }, // 返品された商品
   
+  // 注文ステータス
+  pending: { label: '未確定', color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200' },
+  confirmed: { label: '受注確定', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
+  processing: { label: '出荷準備中', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' },
+  shipped: { label: '出荷済み', color: 'bg-nexus-blue/20 text-nexus-blue dark:bg-nexus-blue/30 dark:text-nexus-blue' },
+  delivered: { label: '配達完了', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
+  cancelled: { label: 'キャンセル', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' },
+  returned: { label: '返品', color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' },
+  
   // タスクステータス
-  pending: { label: '未開始', color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200' },
   in_progress: { label: '進行中', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
   completed: { label: '完了', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
-  cancelled: { label: 'キャンセル', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' },
-  confirmed: { label: '確定', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
-  processing: { label: '出荷準備中', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' },
   
   // 配送ステータス
   packed: { label: '梱包済み', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
-  shipped: { label: '出荷済み', color: 'bg-nexus-blue/20 text-nexus-blue dark:bg-nexus-blue/30 dark:text-nexus-blue' },
-  delivered: { label: '配達完了', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
   ready_for_pickup: { label: '集荷準備中', color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' },
   
   // 返品ステータス

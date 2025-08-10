@@ -36,6 +36,12 @@ export default function SalesPage() {
   const [isFedexModalOpen, setIsFedexModalOpen] = useState(false);
   const [selectedCarrier, setSelectedCarrier] = useState<string>('');
   const [selectedFedexService, setSelectedFedexService] = useState<string>('');
+  
+  // ページネーションとフィルター用の状態
+  const [currentPage, setCurrentPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [pageSize, setPageSize] = useState(20);
+  
   const router = useRouter();
 
   // 配送業者のリスト  
@@ -48,18 +54,34 @@ export default function SalesPage() {
     { value: 'ups', label: 'UPS (出荷作成)', apiEnabled: false, url: 'https://www.ups.com/jp/ja/Home.page' }
   ];
 
-  useEffect(() => {
-    fetch('/api/sales')
-      .then((res) => res.json())
-      .then((data) => {
-        setSalesData(data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error('Error fetching sales data:', error);
-        setLoading(false);
+  // データを取得する関数
+  const fetchSalesData = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: pageSize.toString(),
+        status: statusFilter
       });
-  }, []);
+      
+      const response = await fetch(`/api/sales?${params}`);
+      const data = await response.json();
+      setSalesData(data);
+    } catch (error) {
+      console.error('Error fetching sales data:', error);
+      showToast({
+        title: 'エラー',
+        message: '注文データの取得に失敗しました',
+        type: 'error'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSalesData();
+  }, [currentPage, statusFilter, pageSize]);
 
   const handleGenerateLabel = (order: any) => {
     setSelectedOrder(order);
@@ -227,12 +249,64 @@ export default function SalesPage() {
         {/* メイン注文リスト */}
         <div className="bg-white dark:bg-nexus-bg-card rounded-lg border border-nexus-border shadow-sm">
           <div className="p-6 border-b border-nexus-border">
-            <h2 className="text-lg font-semibold text-nexus-text-primary">
-              注文管理
-            </h2>
-            <p className="text-sm text-nexus-text-secondary mt-1">
-              すべての受注・配送状況を管理
-            </p>
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h2 className="text-lg font-semibold text-nexus-text-primary">
+                  注文管理
+                </h2>
+                <p className="text-sm text-nexus-text-secondary mt-1">
+                  すべての受注・配送状況を管理
+                </p>
+              </div>
+              
+              {/* ページネーション情報 */}
+              {salesData?.pagination && (
+                <div className="text-sm text-nexus-text-secondary">
+                  {salesData.pagination.totalCount}件中 {((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, salesData.pagination.totalCount)}件を表示
+                </div>
+              )}
+            </div>
+            
+            {/* フィルターとページサイズ選択 */}
+            <div className="flex gap-4 items-center">
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-nexus-text-primary">ステータス:</label>
+                <NexusSelect
+                  value={statusFilter}
+                  onChange={(e) => {
+                    setStatusFilter(e.target.value);
+                    setCurrentPage(1); // フィルター変更時は1ページ目に戻る
+                  }}
+                  className="w-40"
+                >
+                  <option value="all">すべて</option>
+                  <option value="pending">未確定</option>
+                  <option value="confirmed">受注確定</option>
+                  <option value="processing">出荷準備中</option>
+                  <option value="shipped">出荷済み</option>
+                  <option value="delivered">配達完了</option>
+                  <option value="cancelled">キャンセル</option>
+                  <option value="returned">返品</option>
+                </NexusSelect>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-nexus-text-primary">表示件数:</label>
+                <NexusSelect
+                  value={pageSize.toString()}
+                  onChange={(e) => {
+                    setPageSize(parseInt(e.target.value));
+                    setCurrentPage(1); // ページサイズ変更時は1ページ目に戻る
+                  }}
+                  className="w-20"
+                >
+                  <option value="10">10</option>
+                  <option value="20">20</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </NexusSelect>
+              </div>
+            </div>
           </div>
 
           <div className="p-6">
@@ -332,6 +406,52 @@ export default function SalesPage() {
                 }}
                 emptyMessage="注文データがありません"
               />
+            )}
+            
+            {/* ページネーション */}
+            {salesData?.pagination && salesData.pagination.totalPages > 1 && (
+              <div className="mt-6 flex justify-between items-center">
+                <div className="text-sm text-nexus-text-secondary">
+                  全{salesData.pagination.totalCount}件 ({salesData.pagination.totalPages}ページ中{currentPage}ページ目)
+                </div>
+                <div className="flex gap-2">
+                  <NexusButton
+                    onClick={() => setCurrentPage(1)}
+                    variant="secondary"
+                    size="sm"
+                    disabled={currentPage === 1}
+                  >
+                    最初
+                  </NexusButton>
+                  <NexusButton
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                    variant="secondary"
+                    size="sm"
+                    disabled={!salesData.pagination.hasPrevPage}
+                  >
+                    前へ
+                  </NexusButton>
+                  <span className="px-3 py-2 text-sm text-nexus-text-primary">
+                    {currentPage} / {salesData.pagination.totalPages}
+                  </span>
+                  <NexusButton
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    variant="secondary"
+                    size="sm"
+                    disabled={!salesData.pagination.hasNextPage}
+                  >
+                    次へ
+                  </NexusButton>
+                  <NexusButton
+                    onClick={() => setCurrentPage(salesData.pagination.totalPages)}
+                    variant="secondary"
+                    size="sm"
+                    disabled={currentPage === salesData.pagination.totalPages}
+                  >
+                    最後
+                  </NexusButton>
+                </div>
+              </div>
             )}
           </div>
         </div>
