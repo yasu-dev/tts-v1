@@ -459,28 +459,39 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
       }
       
       // 検品結果を判定
-      const allChecks = Object.values(inspectionData.checklist).flatMap(category =>
-        Object.values(category || {})
-      );
-      const passedChecks = allChecks.filter(check => check).length;
-      const totalChecks = allChecks.length;
-      
       let result: 'passed' | 'failed' | 'conditional' = 'passed';
-      if (passedChecks < totalChecks * 0.6) {
-        result = 'failed';
-      } else if (passedChecks < totalChecks * 0.9) {
-        result = 'conditional';
+      
+      if (inspectionData.checklist && Object.keys(inspectionData.checklist).length > 0) {
+        const allChecks = Object.values(inspectionData.checklist).flatMap(category =>
+          Object.values(category || {})
+        );
+        const passedChecks = allChecks.filter(check => check).length;
+        const totalChecks = allChecks.length;
+        
+        if (totalChecks > 0) {
+          if (passedChecks < totalChecks * 0.6) {
+            result = 'failed';
+          } else if (passedChecks < totalChecks * 0.9) {
+            result = 'conditional';
+          }
+        }
+      } else {
+        // チェックリストがない場合はデフォルトで合格とする
+        console.log('[INFO] No checklist data available, defaulting to passed');
       }
 
       const finalData = {
         productId,
-        inspectionNotes: inspectionData.notes,
+        inspectionNotes: inspectionData.notes || '',
         condition: result === 'passed' ? 'excellent' : result === 'conditional' ? 'good' : 'poor',
         status: 'inspection',
         locationId: locationId, // 保管場所IDを追加
         skipPhotography: inspectionOnly,
         photographyDate: inspectionOnly ? null : new Date().toISOString(),
       };
+
+      console.log('[DEBUG] Sending inspection data:', finalData);
+      console.log('[DEBUG] Inspection data state:', inspectionData);
 
       // 本番用APIコール
       const response = await fetch(`/api/products/inspection`, {

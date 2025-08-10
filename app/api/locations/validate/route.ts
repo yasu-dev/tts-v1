@@ -96,10 +96,14 @@ export async function POST(request: NextRequest) {
     const locationDetails = getLocationDetails(normalizedCode);
 
     return NextResponse.json({
+      id: locationDetails.id,
+      code: normalizedCode,
+      name: locationDetails.name,
+      zone: locationDetails.zone,
+      capacity: locationDetails.capacity,
+      currentCount: locationDetails.currentCount,
       success: true,
       valid: true,
-      locationCode: normalizedCode,
-      details: locationDetails,
       message: '有効な棚番号です'
     });
 
@@ -165,12 +169,14 @@ function getLocationDetails(locationCode: string) {
   }
 
   return {
+    id: `location-${locationCode.toLowerCase().replace(/[^a-z0-9]/g, '-')}`, // 一意のIDを生成
     code: locationCode,
     name,
     type,
+    zone: locationCode.charAt(0), // 最初の文字をゾーンとして使用
     capacity,
+    currentCount: Math.floor(Math.random() * capacity * 0.7), // デモ用のランダム値
     environment,
-    currentOccupancy: Math.floor(Math.random() * capacity * 0.7), // デモ用のランダム値
     available: true
   };
 }

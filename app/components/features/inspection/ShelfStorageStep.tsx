@@ -65,10 +65,16 @@ export default function ShelfStorageStep({
 
   // 棚番号の手動入力
   const handleLocationInput = (locationCode: string) => {
-    // 入力中は検証しない（スキャナの逐次入力でエラーが出ないようにする）
     setScannedLocation(locationCode);
     if (!locationCode.trim()) {
       setLocationData(null);
+    }
+  };
+
+  // Enterキーでの保管完了
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && scannedLocation.trim().length > 0 && !loading) {
+      handleStorageComplete();
     }
   };
 
@@ -88,10 +94,11 @@ export default function ShelfStorageStep({
       }
 
       const location = await response.json();
+      console.log('✅ ロケーション検証成功:', location);
       setLocationData(location);
       
       // 容量チェック
-      if (location.currentCount >= location.capacity) {
+      if (location.capacity && location.currentCount >= location.capacity) {
         showToast({
           type: 'warning',
           title: '棚容量不足',
@@ -104,7 +111,7 @@ export default function ShelfStorageStep({
       showToast({
         type: 'success',
         title: '棚番号確認',
-        message: `棚 ${location.name} (${location.zone}ゾーン) を確認しました。`,
+        message: `棚 ${location.name} (${location.zone}ゾーン) を確認しました。保管完了ボタンを押してください。`,
         duration: 3000
       });
       return location;
@@ -123,40 +130,78 @@ export default function ShelfStorageStep({
     }
   };
 
-  // 保管完了処理
+  // 保管完了処理 - ワンクリックで完了
   const handleStorageComplete = async () => {
-    // 未検証の場合はここで検証を実施
-    if (!locationData) {
-      const code = scannedLocation.trim();
-      if (!code) {
-        showToast({
-          type: 'warning',
-          title: '保管場所未入力',
-          message: '棚番号をスキャンまたは入力してください。',
-          duration: 3000
-        });
-        return;
-      }
-      const validated = await validateLocation(code);
-      if (!validated) {
-        return;
-      }
-    }
-
-    if (!locationData) {
-      // 検証失敗時
+    const code = scannedLocation.trim();
+    
+    if (!code) {
+      showToast({
+        type: 'warning',
+        title: '保管場所未入力',
+        message: '棚番号をスキャンまたは入力してください。',
+        duration: 3000
+      });
       return;
     }
 
-    // 保管完了の即座のフィードバック
-    showToast({
-      type: 'success',
-      title: '保管完了',
-      message: `${product.name} を ${locationData.name} に保管しました。検品一覧に戻ります...`,
-      duration: 1500
-    });
+    // 常に最新の検証を実施
+    const validatedLocation = await validateLocation(code);
+    if (!validatedLocation) {
+      return; // 検証失敗時は処理を中断
+    }
 
-    onComplete(locationData.id);
+    try {
+      // 保管処理を実行
+      console.log('🚀 保管完了リクエスト送信:', {
+        productId: productId,
+        locationId: validatedLocation.id,
+        locationCode: validatedLocation.code
+      });
+
+      const response = await fetch('/api/products/storage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: productId,
+          locationId: validatedLocation.id,
+          locationCode: validatedLocation.code
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: '不明なエラー' }));
+        console.error('❌ 保管完了APIエラー:', {
+          status: response.status,
+          error: errorData,
+          sentData: {
+            productId: productId,
+            locationId: validatedLocation.id,
+            locationCode: validatedLocation.code
+          }
+        });
+        throw new Error(errorData.error || `保管処理に失敗しました (${response.status})`);
+      }
+
+      // 成功時の即座フィードバック
+      showToast({
+        type: 'success',
+        title: '保管完了',
+        message: `${product.name} を ${validatedLocation.name} に保管しました。検品一覧に戻ります...`,
+        duration: 1500
+      });
+
+      // 完了処理を呼び出し
+      onComplete(validatedLocation.id);
+      
+    } catch (error) {
+      console.error('Storage completion error:', error);
+      showToast({
+        type: 'error',
+        title: '保管エラー',
+        message: error instanceof Error ? error.message : '保管処理中にエラーが発生しました',
+        duration: 4000
+      });
+    }
   };
 
   // 入力フィールドにフォーカス（モーダル/画面表示時）
@@ -187,9 +232,10 @@ export default function ShelfStorageStep({
               ref={locationInputRef}
               value={scannedLocation}
               onChange={(e) => handleLocationInput(e.target.value)}
+              onKeyDown={handleKeyDown}
               placeholder="棚番号をスキャンまたは入力してください（例: A-01-001）"
               autoFocus
-              disabled={isValidatingLocation}
+              disabled={isValidatingLocation || loading}
             />
             {isValidatingLocation && (
               <p className="text-sm text-blue-600 mt-2">棚番号を確認中...</p>
@@ -199,12 +245,15 @@ export default function ShelfStorageStep({
           {/* 棚情報表示 */}
           {locationData && (
             <NexusCard className="p-4 bg-green-50 border-green-200">
-              <h5 className="text-sm font-medium text-green-900 mb-2">選択された棚</h5>
+              <h5 className="text-sm font-medium text-green-900 mb-2">✓ 保管先確認済み</h5>
               <div className="text-sm space-y-1 text-green-800">
                 <div><strong>棚番号:</strong> {locationData.code}</div>
                 <div><strong>棚名:</strong> {locationData.name}</div>
                 <div><strong>ゾーン:</strong> {locationData.zone}</div>
                 <div><strong>容量:</strong> {locationData.currentCount + 1}/{locationData.capacity}</div>
+              </div>
+              <div className="mt-3 text-sm text-green-700 bg-green-100 p-2 rounded">
+                <strong>準備完了:</strong> 「保管完了」ボタンで即座に保管処理が実行されます
               </div>
             </NexusCard>
           )}
@@ -220,8 +269,8 @@ export default function ShelfStorageStep({
           <div>
             <h4 className="text-sm font-medium text-yellow-900 mb-1">重要</h4>
             <p className="text-sm text-yellow-800">
-              保管場所を入力すると検品チェックリストの作業が完了します。
-              複数商品を同時に進行している場合は、保存して一覧に戻り、他の商品の作業を続けることができます。
+              「保管完了」ボタンを押すと即座に保管処理が実行され、検品作業が完了します。
+              複数商品を同時に進行している場合は、「保存して一覧に戻る」で他の商品の作業を続けることができます。
             </p>
           </div>
         </div>
