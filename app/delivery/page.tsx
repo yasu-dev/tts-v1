@@ -25,7 +25,7 @@ import NexusButton from '@/app/components/ui/NexusButton';
 import NexusInput from '@/app/components/ui/NexusInput';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import NexusSelect from '@/app/components/ui/NexusSelect';
-import BusinessStatusIndicator from '@/app/components/ui/StatusIndicator';
+import { BusinessStatusIndicator } from '@/app/components/ui/StatusIndicator';
 import Pagination from '@/app/components/ui/Pagination';
 import BaseModal from '@/app/components/ui/BaseModal';
 
@@ -641,14 +641,20 @@ export default function DeliveryPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <BusinessStatusIndicator 
                           status={(() => {
-                            const mappedStatus = plan.status === 'draft' ? 'pending' : 
+                            // ステータスマッピング
+                            const mappedStatus = plan.status === '下書き' ? 'pending' : 
+                                                plan.status === '発送待ち' ? 'processing' :
+                                                plan.status === '発送済' ? 'shipped' :
+                                                plan.status === '配達完了' ? 'delivered' :
+                                                plan.status === '承認済み' ? 'confirmed' :
+                                                plan.status === '完了' ? 'completed' :
+                                                plan.status === 'draft' ? 'pending' : 
                                                 plan.status === 'submitted' ? 'processing' :
                                                 plan.status === 'in_transit' ? 'shipping' :
                                                 plan.status === 'delivered' ? 'delivered' :
                                                 plan.status === 'approved' ? 'confirmed' :
                                                 plan.status === 'completed' ? 'completed' :
                                                 'pending';
-                            console.log(`[DEBUG] Plan ${plan.id} status: ${plan.status} -> ${mappedStatus}`);
                             return mappedStatus;
                           })()} 
                           size="sm" 

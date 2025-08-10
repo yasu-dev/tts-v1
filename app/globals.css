@@ -1422,27 +1422,27 @@
 }
 
 .status-badge.success {
-  background: rgba(134, 184, 23, 0.1);
-  color: #86B817;
-  border: 1px solid rgba(134, 184, 23, 0.2);
+  background: #166534;
+  color: white;
+  border: 1px solid #166534;
 }
 
 .status-badge.warning {
-  background: rgba(255, 206, 0, 0.1);
-  color: #D4A000;
-  border: 1px solid rgba(255, 206, 0, 0.2);
+  background: #A16207;
+  color: white;
+  border: 1px solid #A16207;
 }
 
 .status-badge.error {
-  background: rgba(229, 50, 56, 0.1);
-  color: #E53238;
-  border: 1px solid rgba(229, 50, 56, 0.2);
+  background: #991B1B;
+  color: white;
+  border: 1px solid #991B1B;
 }
 
 .status-badge.info {
-  background: rgba(0, 188, 212, 0.1);
-  color: #00ACC1;
-  border: 1px solid rgba(0, 188, 212, 0.2);
+  background: #155E63;
+  color: white;
+  border: 1px solid #155E63;
 }
 
 /* Cert Badge - 認証バッジ */
@@ -1457,18 +1457,21 @@
 }
 
 .cert-nano.cert-elite {
-  background: linear-gradient(135deg, #FFD700, #FFA000);
-  color: #4A3000;
+  background: #6B21A8;
+  color: white;
+  border: 1px solid #6B21A8;
 }
 
 .cert-nano.cert-premium {
-  background: linear-gradient(135deg, #C0C0C0, #808080);
-  color: #333333;
+  background: #A16207;
+  color: white;
+  border: 1px solid #A16207;
 }
 
 .cert-nano.cert-global {
-  background: linear-gradient(135deg, #0078FF, #00BCD4);
+  background: #155E63;
   color: white;
+  border: 1px solid #155E63;
 }
 
 /* Status Orb - ステータスインジケーター */
@@ -1557,23 +1560,7 @@
   gap: 0.5rem;
 }
 
-.cert-nano.cert-elite {
-  background: linear-gradient(135deg, rgba(123, 31, 162, 0.2), rgba(123, 31, 162, 0.1));
-  border-color: rgba(123, 31, 162, 0.4);
-  color: #7B1FA2;
-}
 
-.cert-nano.cert-premium {
-  background: linear-gradient(135deg, rgba(0, 100, 210, 0.2), rgba(0, 100, 210, 0.1));
-  border-color: rgba(0, 100, 210, 0.4);
-  color: #0064D2;
-}
-
-.cert-nano.cert-global {
-  background: linear-gradient(135deg, rgba(0, 188, 212, 0.2), rgba(0, 188, 212, 0.1));
-  border-color: rgba(0, 188, 212, 0.4);
-  color: #00BCD4;
-}
 
 /* Value Display */
 .value-display {

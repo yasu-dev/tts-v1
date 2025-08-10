@@ -31,38 +31,177 @@ interface BusinessStatusIndicatorProps {
 // 業務ステータス設定
 const businessStatusConfig = {
   // 在庫ステータス
-  inbound: { label: '入荷待ち', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' }, // セラーが発送した商品がスタッフに受け取られる前の状態
-  inspection: { label: '検品中', color: 'bg-orange-600 text-white dark:bg-orange-700 dark:text-white' }, // スタッフが品質検査を実施中
-  storage: { label: '保管中', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' }, // 検品完了後、出品準備中
-  listing: { label: '出品中', color: 'bg-nexus-blue/20 text-nexus-blue dark:bg-nexus-blue/30 dark:text-nexus-blue' }, // 各プラットフォームで販売中
-  sold: { label: '売約済み', color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200' }, // 取引完了
-  maintenance: { label: 'メンテナンス', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' }, // 修理・クリーニング中
-  ordered: { label: '受注済み', color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' }, // 注文を受けた状態
-  shipping: { label: '出荷中', color: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200' }, // 配送中
-  returned: { label: '返品', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' }, // 返品された商品
+  inbound: { 
+    label: '入荷待ち', 
+    bg: 'bg-blue-800 dark:bg-blue-800',
+    text: 'text-white dark:text-white',
+    border: 'border-blue-800 dark:border-blue-800'
+  },
+  inspection: { 
+    label: '検品中', 
+    bg: 'bg-orange-800 dark:bg-orange-800',
+    text: 'text-white dark:text-white',
+    border: 'border-orange-800 dark:border-orange-800'
+  },
+  storage: { 
+    label: '保管中', 
+    bg: 'bg-green-800 dark:bg-green-800',
+    text: 'text-white dark:text-white',
+    border: 'border-green-800 dark:border-green-800'
+  },
+  listing: { 
+    label: '出品中', 
+    bg: 'bg-blue-800 dark:bg-blue-800',
+    text: 'text-white dark:text-white',
+    border: 'border-blue-800 dark:border-blue-800'
+  },
+  sold: { 
+    label: '売約済み', 
+    bg: 'bg-gray-800 dark:bg-gray-800',
+    text: 'text-white dark:text-white',
+    border: 'border-gray-800 dark:border-gray-800'
+  },
+  maintenance: { 
+    label: 'メンテナンス', 
+    bg: 'bg-red-800 dark:bg-red-800',
+    text: 'text-white dark:text-white',
+    border: 'border-red-800 dark:border-red-800'
+  },
+  ordered: { 
+    label: '受注済み', 
+    bg: 'bg-purple-800 dark:bg-purple-800',
+    text: 'text-white dark:text-white',
+    border: 'border-purple-800 dark:border-purple-800'
+  },
+  shipping: { 
+    label: '出荷中', 
+    bg: 'bg-purple-800 dark:bg-purple-800',
+    text: 'text-white dark:text-white',
+    border: 'border-purple-800 dark:border-purple-800'
+  },
+  returned: { 
+    label: '返品', 
+    bg: 'bg-orange-800 dark:bg-orange-800',
+    text: 'text-white dark:text-white',
+    border: 'border-orange-800 dark:border-orange-800'
+  },
   
   // 注文ステータス
-  pending: { label: '未確定', color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200' },
-  confirmed: { label: '受注確定', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
-  processing: { label: '出荷準備中', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' },
-  shipped: { label: '出荷済み', color: 'bg-nexus-blue/20 text-nexus-blue dark:bg-nexus-blue/30 dark:text-nexus-blue' },
-  delivered: { label: '配達完了', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
-  cancelled: { label: 'キャンセル', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' },
-  returned: { label: '返品', color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' },
+  pending: {
+    label: '未確定',
+    bg: 'bg-blue-800 dark:bg-blue-800',
+    text: 'text-white dark:text-white',
+    border: 'border-blue-800 dark:border-blue-800'
+  },
+  confirmed: { 
+    label: '受注確定', 
+    bg: 'bg-green-800 dark:bg-green-800',
+    text: 'text-white dark:text-white',
+    border: 'border-green-800 dark:border-green-800'
+  },
+  processing: { 
+    label: '出荷準備中', 
+    bg: 'bg-yellow-700 dark:bg-yellow-700',
+    text: 'text-white dark:text-white',
+    border: 'border-yellow-700 dark:border-yellow-700'
+  },
+  shipped: { 
+    label: '出荷済み', 
+    bg: 'bg-indigo-800 dark:bg-indigo-800',
+    text: 'text-white dark:text-white',
+    border: 'border-indigo-800 dark:border-indigo-800'
+  },
+  delivered: { 
+    label: '配達完了', 
+    bg: 'bg-green-800 dark:bg-green-800',
+    text: 'text-white dark:text-white',
+    border: 'border-green-800 dark:border-green-800'
+  },
+  cancelled: { 
+    label: 'キャンセル', 
+    bg: 'bg-red-800 dark:bg-red-800',
+    text: 'text-white dark:text-white',
+    border: 'border-red-800 dark:border-red-800'
+  },
   
   // タスクステータス
-  in_progress: { label: '進行中', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
-  completed: { label: '完了', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
+  in_progress: { 
+    label: '進行中', 
+    bg: 'bg-blue-800 dark:bg-blue-800',
+    text: 'text-white dark:text-white',
+    border: 'border-blue-800 dark:border-blue-800'
+  },
+  completed: { 
+    label: '完了', 
+    bg: 'bg-green-800 dark:bg-green-800',
+    text: 'text-white dark:text-white',
+    border: 'border-green-800 dark:border-green-800'
+  },
   
   // 配送ステータス
-  packed: { label: '梱包済み', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
-  ready_for_pickup: { label: '集荷準備中', color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' },
+  packed: { 
+    label: '梱包済み', 
+    bg: 'bg-cyan-800 dark:bg-cyan-800',
+    text: 'text-white dark:text-white',
+    border: 'border-cyan-800 dark:border-cyan-800'
+  },
+  ready_for_pickup: { 
+    label: '集荷準備中', 
+    bg: 'bg-orange-800 dark:bg-orange-800',
+    text: 'text-white dark:text-white',
+    border: 'border-orange-800 dark:border-orange-800'
+  },
   
   // 返品ステータス
-  approved: { label: '承認済み', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
-  rejected: { label: '不合格', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' },
-  refunded: { label: '返金済み', color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200' }
+  approved: { 
+    label: '承認済み', 
+    bg: 'bg-emerald-800 dark:bg-emerald-800',
+    text: 'text-white dark:text-white',
+    border: 'border-emerald-800 dark:border-emerald-800'
+  },
+  rejected: { 
+    label: '不合格', 
+    bg: 'bg-red-800 dark:bg-red-800',
+    text: 'text-white dark:text-white',
+    border: 'border-red-800 dark:border-red-800'
+  },
+  refunded: { 
+    label: '返金済み', 
+    bg: 'bg-gray-800 dark:bg-gray-800',
+    text: 'text-white dark:text-white',
+    border: 'border-gray-800 dark:border-gray-800'
+  }
 };
+
+// インジケーター色を取得するヘルパー関数
+function getIndicatorColor(status: BusinessStatusType): string {
+  const colorMap: Record<BusinessStatusType, string> = {
+    inbound: 'bg-blue-300',
+    inspection: 'bg-orange-300',
+    storage: 'bg-green-300',
+    listing: 'bg-blue-300',
+    sold: 'bg-gray-300',
+    maintenance: 'bg-red-300',
+    ordered: 'bg-purple-300',
+    shipping: 'bg-purple-300',
+    returned: 'bg-orange-300',
+    pending: 'bg-blue-300',
+    confirmed: 'bg-green-300',
+    processing: 'bg-yellow-300',
+    shipped: 'bg-indigo-300',
+    delivered: 'bg-green-300',
+    cancelled: 'bg-red-300',
+    in_progress: 'bg-blue-300',
+    completed: 'bg-green-300',
+    packed: 'bg-cyan-300',
+    ready_for_pickup: 'bg-orange-300',
+    approved: 'bg-emerald-300',
+    rejected: 'bg-red-300',
+    refunded: 'bg-gray-300'
+  };
+  
+  return colorMap[status] || 'bg-gray-300';
+}
 
 export default function StatusIndicator({
   status,
@@ -179,7 +318,9 @@ export function BusinessStatusIndicator({
 }: BusinessStatusIndicatorProps) {
   const config = businessStatusConfig[status] || {
     label: status || '不明',
-    color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+    bg: 'bg-gray-800 dark:bg-gray-800',
+    text: 'text-white dark:text-white',
+    border: 'border-gray-800 dark:border-gray-800'
   };
   
   if (!status) {
@@ -188,20 +329,39 @@ export function BusinessStatusIndicator({
   }
 
   const sizeConfig = {
-    sm: 'px-2 py-1 text-xs',
-    md: 'px-2 py-1 text-xs',
-    lg: 'px-3 py-1 text-sm'
+    sm: { padding: 'px-2 py-1', text: 'text-xs', indicator: 'w-1.5 h-1.5' },
+    md: { padding: 'px-3 py-1.5', text: 'text-xs', indicator: 'w-2 h-2' },
+    lg: { padding: 'px-4 py-2', text: 'text-sm', indicator: 'w-2.5 h-2.5' }
   };
+
+  const sizing = sizeConfig[size];
 
   return (
     <span className={`
-      inline-flex items-center
-      ${sizeConfig[size]}
-      font-medium rounded-full
+      inline-flex items-center gap-2
+      ${sizing.padding}
+      ${sizing.text}
+      font-black font-display
+      rounded-lg
+      border-2
+      uppercase
+      tracking-widest
+      transition-all duration-300
       whitespace-nowrap
-      ${config.color}
+      hover:scale-105
+      ${config.bg}
+      ${config.text}
+      ${config.border}
       ${className}
     `}>
+      {/* ステータスインジケーター */}
+      <div className={`
+        ${sizing.indicator}
+        rounded-full
+        flex-shrink-0
+        ${getIndicatorColor(status)}
+      `} />
+      
       {showLabel ? config.label : ''}
     </span>
   );
