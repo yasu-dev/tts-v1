@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AuthService } from '@/lib/auth';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,29 +25,50 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // 実際の実装では、データベースからラベル情報を取得
-    // ここではモック実装
-    
-    // モックデータ: セラーがアップロードしたラベルの情報
-    const mockLabelData = {
-      orderId,
-      url: `/api/shipping/label/download/shipping-label-${orderId}-mock.pdf`,
-      fileName: `shipping-label-${orderId}.pdf`,
-      provider: 'seller' as const,
-      uploadedAt: new Date().toISOString(),
-      trackingNumber: `TRACK-${Date.now()}`,
-      carrier: 'fedex'
-    };
+    // データベースから注文情報とラベル情報を取得
+    const order = await prisma.order.findFirst({
+      where: {
+        OR: [
+          { id: orderId },
+          { orderNumber: orderId }
+        ]
+      },
+      select: {
+        id: true,
+        orderNumber: true,
+        trackingNumber: true,
+        shippingLabelUrl: true,
+        shippingLabelFileName: true,
+        createdAt: true,
+        updatedAt: true
+      }
+    });
 
-    // ランダムでラベルが存在しない場合をシミュレート（20%の確率）
-    if (Math.random() < 0.2) {
+    if (!order) {
       return NextResponse.json(
-        { error: 'ラベルが見つかりません' },
+        { error: '注文が見つかりません' },
         { status: 404 }
       );
     }
 
-    return NextResponse.json(mockLabelData);
+    if (!order.shippingLabelUrl || !order.shippingLabelFileName) {
+      return NextResponse.json(
+        { error: 'ラベルが生成されていません。セラーによるラベル準備をお待ちください。' },
+        { status: 404 }
+      );
+    }
+
+    const labelData = {
+      orderId: order.orderNumber,
+      url: order.shippingLabelUrl,
+      fileName: order.shippingLabelFileName,
+      provider: 'fedx' as const,
+      uploadedAt: order.updatedAt.toISOString(),
+      trackingNumber: order.trackingNumber,
+      carrier: 'fedx'
+    };
+
+    return NextResponse.json(labelData);
 
   } catch (error) {
     console.error('Get shipping label error:', error);

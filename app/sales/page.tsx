@@ -164,17 +164,10 @@ export default function SalesPage() {
       if (!response.ok) throw new Error('FedXラベル生成に失敗しました');
 
       const result = await response.json();
-      
-      const link = document.createElement('a');
-      link.href = `data:application/pdf;base64,${result.labelData}`;
-      link.download = `fedx_label_${selectedOrder.orderId}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
 
       showToast({
         title: 'FedXラベルが正常に生成されました',
-        message: `追跡番号: ${result.trackingNumber}`,
+        message: `追跡番号: ${result.trackingNumber}。スタッフが梱包完了後にラベルを出力いたします。`,
         type: 'success'
       });
 

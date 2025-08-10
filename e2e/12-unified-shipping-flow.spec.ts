@@ -4,17 +4,17 @@ test.describe('統一配送フロー', () => {
   test.beforeEach(async ({ page }) => {
     // ログイン
     await page.goto('/login');
-    await page.fill('input[name="username"]', 'seller1');
+    await page.fill('input[name="email"]', 'seller@example.com');
     await page.fill('input[name="password"]', 'password123');
     await page.click('button[type="submit"]');
     await page.waitForURL('/dashboard');
+    await page.goto('/sales');
+    await page.waitForSelector('.holo-table');
   });
 
   test('Fedx配送フロー: ラベル生成→ピッキング→出荷', async ({ page }) => {
     // ステップ1: セラーがFedxラベル生成
     console.log('ステップ1: Fedxラベル生成');
-    await page.goto('/sales');
-    await page.waitForSelector('[data-testid="sales-table"]');
     
     // 注文のラベル生成ボタンをクリック
     const labelButton = page.locator('button:has-text("ラベル生成")').first();
@@ -22,13 +22,11 @@ test.describe('統一配送フロー', () => {
     await labelButton.click();
 
     // 配送業者選択モーダルでFedxを選択
-    await page.waitForSelector('[data-testid="carrier-selection-modal"]');
-    const fedxOption = page.locator('button:has-text("FedX")');
-    await expect(fedxOption).toBeVisible();
-    await fedxOption.click();
+    await page.waitForSelector('text=配送ラベル生成');
+    await page.selectOption('select.w-full', { value: 'fedx' });
 
     // FedXサービス選択モーダル
-    await page.waitForSelector('[data-testid="fedx-service-modal"]');
+    await page.waitForSelector('text=FedXサービス選択');
     const standardService = page.locator('button:has-text("Standard")');
     await expect(standardService).toBeVisible();
     await standardService.click();
@@ -36,17 +34,13 @@ test.describe('統一配送フロー', () => {
     // ラベル生成完了を確認
     await expect(page.locator('.toast-success')).toContainText('FedX配送ラベルが生成され、ピッキング開始可能になりました');
     
-    // ダウンロードが実行されることを確認
-    const downloadPromise = page.waitForEvent('download');
-    await downloadPromise;
-
     // ステップ2: スタッフがロケーション管理でピッキング対象確認
     console.log('ステップ2: ロケーション管理でピッキング対象確認');
     
     // スタッフ権限でログイン
     await page.goto('/login');
-    await page.fill('input[name="username"]', 'staff1');
-    await page.fill('input[name="password"]', 'staffpass123');
+    await page.fill('input[name="email"]', 'staff@example.com');
+    await page.fill('input[name="password"]', 'password123');
     await page.click('button[type="submit"]');
     await page.waitForURL('/staff/dashboard');
 
@@ -115,8 +109,6 @@ test.describe('統一配送フロー', () => {
   test('外部配送業者フロー: ラベルアップロード→ピッキング→出荷', async ({ page }) => {
     // ステップ1: セラーが外部配送業者選択
     console.log('ステップ1: 外部配送業者選択');
-    await page.goto('/sales');
-    await page.waitForSelector('[data-testid="sales-table"]');
     
     // 注文のラベル生成ボタンをクリック
     const labelButton = page.locator('button:has-text("ラベル生成")').first();
@@ -157,8 +149,8 @@ test.describe('統一配送フロー', () => {
     
     // スタッフ権限でログイン
     await page.goto('/login');
-    await page.fill('input[name="username"]', 'staff1');
-    await page.fill('input[name="password"]', 'staffpass123');
+    await page.fill('input[name="email"]', 'staff@example.com');
+    await page.fill('input[name="password"]', 'password123');
     await page.click('button[type="submit"]');
     await page.waitForURL('/staff/dashboard');
 
@@ -214,8 +206,8 @@ test.describe('統一配送フロー', () => {
     
     // スタッフ権限でログイン
     await page.goto('/login');
-    await page.fill('input[name="username"]', 'staff1');
-    await page.fill('input[name="password"]', 'staffpass123');
+    await page.fill('input[name="email"]', 'staff@example.com');
+    await page.fill('input[name="password"]', 'password123');
     await page.click('button[type="submit"]');
     await page.waitForURL('/staff/dashboard');
 
@@ -254,8 +246,8 @@ test.describe('統一配送フロー', () => {
     
     // スタッフ権限でログイン
     await page.goto('/login');
-    await page.fill('input[name="username"]', 'staff1');
-    await page.fill('input[name="password"]', 'staffpass123');
+    await page.fill('input[name="email"]', 'staff@example.com');
+    await page.fill('input[name="password"]', 'password123');
     await page.click('button[type="submit"]');
     await page.waitForURL('/staff/dashboard');
 
@@ -281,6 +273,9 @@ test.describe('統一配送フロー', () => {
     console.log('エラーハンドリング確認完了');
   });
 });
+
+
+
 
 
 

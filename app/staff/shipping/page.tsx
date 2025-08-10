@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import {
   TruckIcon,
   ArchiveBoxIcon,
+  ArchiveBoxArrowDownIcon,
   InformationCircleIcon,
   CheckCircleIcon,
   ClipboardDocumentCheckIcon,
@@ -40,7 +41,7 @@ interface ShippingItem {
   orderNumber: string;
   customer: string;
   shippingAddress: string;
-  status: 'storage' | 'picked' | 'workstation' | 'packed' | 'shipped' | 'ready_for_pickup';
+  status: 'storage' | 'ordered' | 'picked' | 'workstation' | 'packed' | 'shipped' | 'ready_for_pickup';
 
   dueDate: string;
   inspectionNotes?: string;
@@ -146,7 +147,8 @@ export default function StaffShippingPage() {
 
   // タブごとのフィルタリング
   const tabFilters: Record<string, (item: ShippingItem) => boolean> = {
-    'all': (item) => ['picked', 'workstation', 'packed', 'shipped', 'ready_for_pickup'].includes(item.status),
+    'all': (item) => ['ordered', 'picked', 'workstation', 'packed', 'shipped', 'ready_for_pickup'].includes(item.status),
+    'ordered': (item) => item.status === 'ordered',
     'workstation': (item) => item.status === 'picked' || item.status === 'workstation',
     'packed': (item) => item.status === 'packed',
     'ready_for_pickup': (item) => item.status === 'ready_for_pickup'
@@ -179,6 +181,7 @@ export default function StaffShippingPage() {
 
   // ステータス表示は BusinessStatusIndicator で統一
   const statusLabels: Record<string, string> = {
+    'ordered': 'ピックアップ待ち',
     'picked': 'ピッキング済み',
     'workstation': '梱包待ち',
     'packed': '梱包済み',
@@ -244,29 +247,22 @@ export default function StaffShippingPage() {
 
         const labelInfo = await response.json();
         
-        // ラベルファイルをダウンロード
-        const labelResponse = await fetch(labelInfo.url);
-        if (!labelResponse.ok) {
-          throw new Error('ラベルファイルのダウンロードに失敗しました');
+        // ラベルを新しいタブで表示（印刷可能）
+        const newWindow = window.open(labelInfo.url, '_blank');
+        if (newWindow) {
+          newWindow.focus();
+          showToast({
+            title: 'ラベル表示',
+            message: `${item.productName}の配送ラベルを新しいタブで表示しました。印刷してご利用ください。`,
+            type: 'success'
+          });
+        } else {
+          showToast({
+            title: 'エラー',
+            message: 'ポップアップがブロックされました。ブラウザの設定をご確認ください。',
+            type: 'error'
+          });
         }
-
-        const blob = await labelResponse.blob();
-        
-        // ダウンロード実行
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = labelInfo.fileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-
-        showToast({
-          title: 'ダウンロード完了',
-          message: `${item.productName}の配送ラベルをダウンロードしました`,
-          type: 'success'
-        });
       } catch (error) {
         console.error('ラベルダウンロードエラー:', error);
         showToast({
@@ -277,8 +273,8 @@ export default function StaffShippingPage() {
       }
     } else {
       showToast({
-        title: '一括ダウンロード開始',
-        message: '一括配送ラベルダウンロードを開始します',
+        title: '一括ラベル表示開始',
+        message: '一括配送ラベル表示を開始します',
         type: 'info'
       });
 
@@ -298,25 +294,16 @@ export default function StaffShippingPage() {
         let successCount = 0;
         let errorCount = 0;
 
-        // 各アイテムのラベルを順次ダウンロード
+        // 各アイテムのラベルを順次新しいタブで表示
         for (const item of packedItems) {
           try {
             const response = await fetch(`/api/shipping/label/get?orderId=${item.orderNumber}`);
             
             if (response.ok) {
               const labelInfo = await response.json();
-              const labelResponse = await fetch(labelInfo.url);
-              
-              if (labelResponse.ok) {
-                const blob = await labelResponse.blob();
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = labelInfo.fileName;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
+              // 新しいタブでラベルを表示
+              const newWindow = window.open(labelInfo.url, '_blank');
+              if (newWindow) {
                 successCount++;
               } else {
                 errorCount++;
@@ -325,21 +312,26 @@ export default function StaffShippingPage() {
               errorCount++;
             }
           } catch (error) {
-            console.error(`ラベルダウンロードエラー (${item.orderNumber}):`, error);
+            console.error(`ラベル表示エラー (${item.orderNumber}):`, error);
             errorCount++;
+          }
+          
+          // タブを開く間隔を少し空ける（ブラウザ制限回避）
+          if (packedItems.indexOf(item) < packedItems.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 500));
           }
         }
 
         if (successCount > 0) {
           showToast({
-            title: '一括ダウンロード完了',
-            message: `${successCount}件の配送ラベルをダウンロードしました${errorCount > 0 ? ` (${errorCount}件エラー)` : ''}`,
+            title: '一括ラベル表示完了',
+            message: `${successCount}件の配送ラベルを新しいタブで表示しました。印刷してご利用ください。${errorCount > 0 ? ` (${errorCount}件エラー)` : ''}`,
             type: successCount === packedItems.length ? 'success' : 'warning'
           });
         } else {
           showToast({
-            title: 'ダウンロード失敗',
-            message: 'すべての配送ラベルのダウンロードに失敗しました',
+            title: 'ラベル表示失敗',
+            message: 'すべての配送ラベルの表示に失敗しました',
             type: 'error'
           });
         }
@@ -822,9 +814,22 @@ export default function StaffShippingPage() {
     });
   };
 
+  // ピックアップ処理
+  const handlePickupItem = (item: ShippingItem) => {
+    updateItemStatus(item.id, 'picked');
+    showToast({
+      title: 'ピックアップ完了',
+      message: `${item.productName}をピックアップしました`,
+      type: 'success'
+    });
+  };
+
   // インライン作業処理
   const handleInlineAction = (item: ShippingItem, action: string) => {
     switch (action) {
+      case 'pickup':
+        handlePickupItem(item);
+        break;
       case 'inspect':
         updateItemStatus(item.id, 'packed');
         break;
@@ -851,7 +856,8 @@ export default function StaffShippingPage() {
   };
 
   const stats = {
-    total: items.filter(i => (!i.isBundled || i.isBundle) && ['picked', 'workstation', 'packed', 'shipped', 'ready_for_pickup'].includes(i.status)).length,
+    total: items.filter(i => (!i.isBundled || i.isBundle) && ['ordered', 'picked', 'workstation', 'packed', 'shipped', 'ready_for_pickup'].includes(i.status)).length,
+    ordered: items.filter(i => (!i.isBundled || i.isBundle) && i.status === 'ordered').length,
     workstation: items.filter(i => (!i.isBundled || i.isBundle) && (i.status === 'picked' || i.status === 'workstation')).length,
     packed: items.filter(i => (!i.isBundled || i.isBundle) && i.status === 'packed').length,
     shipped: items.filter(i => (!i.isBundled || i.isBundle) && i.status === 'shipped').length,
@@ -942,6 +948,7 @@ export default function StaffShippingPage() {
                   <span className="text-xs text-nexus-text-tertiary font-medium uppercase tracking-wider self-center">作業中</span>
                   {[
                     { id: 'all', label: '全体', count: stats.total },
+                    { id: 'ordered', label: 'ピックアップ待ち', count: stats.ordered },
                     { id: 'workstation', label: '梱包待ち', count: stats.workstation },
                     { id: 'packed', label: '梱包済み', count: stats.packed },
                   ].map((tab) => (
@@ -1115,6 +1122,17 @@ export default function StaffShippingPage() {
                         <td className="p-4">
                           <div className="flex justify-end gap-2">
 
+                            {item.status === 'ordered' && (
+                              <NexusButton
+                                onClick={() => handleInlineAction(item, 'pickup')}
+                                variant="primary"
+                                size="sm"
+                                className="flex items-center gap-1"
+                              >
+                                <ArchiveBoxArrowDownIcon className="w-4 h-4" />
+                                ピックアップ
+                              </NexusButton>
+                            )}
                             {(item.status === 'picked' || item.status === 'workstation') && (
                               <NexusButton
                                 onClick={() => handleInlineAction(item, 'pack')}
