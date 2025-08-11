@@ -1039,30 +1039,29 @@ export default function InspectionPage() {
                                     </div>
                                   );
                                 })}
-                                          </div>
                               </div>
                             </div>
-
-                                      {/* 最終更新時刻 - 統一デザイン */}
-                                      {lastUpdated && (
-                                        <div className="bg-nexus-bg-primary border border-nexus-border/30 rounded-lg p-3">
-                                          <div className="flex items-center gap-2 text-xs text-nexus-text-tertiary">
-                                            <ClockIcon className="w-4 h-4" />
-                                            <span>最終更新:</span>
-                                            <time className="font-mono text-nexus-text-secondary">
-                                              {new Date(lastUpdated).toLocaleString('ja-JP')}
-                                            </time>
-                                            <div className="ml-auto flex items-center gap-1">
-                                              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                                              <span>同期済み</span>
-                                            </div>
-                                          </div>
-                                        </div>
-                                  )}
+                              
+                              {/* 最終更新時刻 - 統一デザイン */}
+                              {lastUpdated && (
+                                <div className="bg-nexus-bg-primary border border-nexus-border/30 rounded-lg p-3">
+                                  <div className="flex items-center gap-2 text-xs text-nexus-text-tertiary">
+                                    <ClockIcon className="w-4 h-4" />
+                                    <span>最終更新:</span>
+                                    <time className="font-mono text-nexus-text-secondary">
+                                      {new Date(lastUpdated).toLocaleString('ja-JP')}
+                                    </time>
+                                    <div className="ml-auto flex items-center gap-1">
+                                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                      <span>同期済み</span>
+                                    </div>
+                                  </div>
                                 </div>
-                                  );
-                                })()}
-                              </div>
+                              )}
+                            </div>
+                          );
+                        })()}
+                      </div>
                               
                             {/* 商品詳細情報 - リッチデザイン */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
