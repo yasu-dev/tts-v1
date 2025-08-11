@@ -17,13 +17,18 @@ export const metadata: Metadata = {
   title: "THE WORLD DOOR - フルフィルメントサービス",
   description: "世界最先端のAI駆動型在庫管理・輸出支援システム。",
   icons: {
-    icon: '/icon.svg',
-    shortcut: '/icon.svg',
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon.svg', type: 'image/svg+xml' }
+    ],
+    shortcut: '/favicon.ico',
     apple: '/icon.svg',
-    other: {
-      rel: 'icon',
-      url: '/icon.svg',
-    },
+    other: [
+      {
+        rel: 'icon',
+        url: '/icon.svg',
+      },
+    ],
   },
 };
 

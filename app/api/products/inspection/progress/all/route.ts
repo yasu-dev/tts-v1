@@ -8,13 +8,10 @@ export async function GET(request: NextRequest) {
   try {
     const user = await AuthService.requireRole(request, ['staff', 'admin']);
 
-    // 進行中の検品作業を取得
+    // 進行中の検品作業を取得（すべての進捗記録）
     const progressRecords = await prisma.inspectionProgress.findMany({
-      where: {
-        status: 'inspecting'
-      },
       orderBy: {
-        lastUpdated: 'desc'
+        updatedAt: 'desc'
       },
       take: 50 // 最大50件まで
     });
@@ -36,7 +33,7 @@ export async function GET(request: NextRequest) {
         return {
           productId: progress.productId,
           currentStep: progress.currentStep,
-          lastUpdated: progress.lastUpdated,
+          lastUpdated: progress.updatedAt.toISOString(),
           product
         };
       })

@@ -995,10 +995,10 @@ export default function DeliveryPage() {
 
                       {/* 検品チェックリスト詳細 */}
                       {(() => {
-                        console.log(`[DEBUG] 納品プラン詳細: 商品${product.name}の検品チェックリスト:`, {
+                        console.log(`[DEBUG] 納品プラン詳細: 商品${product.name}の検品チェックリスト:`, JSON.stringify({
                           hasInspectionChecklist: product.hasInspectionChecklist,
                           inspectionChecklistData: product.inspectionChecklistData
-                        });
+                        }, null, 2));
                         
                         return product.hasInspectionChecklist && product.inspectionChecklistData ? (
                         <div className="mt-3 pt-3 border-t border-nexus-border">

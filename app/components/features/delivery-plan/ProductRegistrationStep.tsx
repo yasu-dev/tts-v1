@@ -115,11 +115,14 @@ export default function ProductRegistrationStep({
           stabilization: false,
         },
         notes: '',
-      }
+      },
     };
     const updatedProducts = [...products, newProduct];
     setProducts(updatedProducts);
-    onUpdate({ products: updatedProducts });
+    onUpdate({ ...data, products: updatedProducts });
+    
+    // 追加のフィードバック
+    showToast('商品を追加しました', 'success');
   };
 
   const updateProduct = (index: number, field: string, value: any) => {
@@ -137,6 +140,7 @@ export default function ProductRegistrationStep({
     setProducts(updatedProducts);
     onUpdate({ products: updatedProducts });
   };
+
 
   // 画像アップロード関連の関数
   const handleImageUpload = async (index: number, files: File[]) => {

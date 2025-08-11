@@ -25,6 +25,15 @@ interface Product {
   status: string;
   imageUrl?: string;
   metadata?: string;
+  // 納品プラン関連情報（metadataから取得）
+  deliveryPlanInfo?: {
+    condition: string;
+    purchasePrice: number;
+    purchaseDate: string;
+    supplier: string;
+    supplierDetails: string;
+    images: Array<{url: string, filename: string, category: string}>;
+  };
 }
 
 interface ExistingInspectionChecklist {
@@ -208,13 +217,58 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
 
         if (productResponse.ok) {
           const productData = await productResponse.json();
-          setProduct(productData);
           
-          // メタデータから検品チェックリストの有無を確認
+          // メタデータから納品プラン情報を抽出
+          let enrichedProduct = { ...productData };
           if (productData.metadata) {
-            const metadata = JSON.parse(productData.metadata);
-            console.log('[INFO] Product metadata:', metadata);
+            try {
+              let metadata;
+              
+              // metadataが既にオブジェクトの場合と文字列の場合に対応
+              if (typeof productData.metadata === 'string') {
+                metadata = JSON.parse(productData.metadata);
+              } else if (typeof productData.metadata === 'object' && productData.metadata !== null) {
+                metadata = productData.metadata;
+              } else {
+                throw new Error('metadata is not a valid string or object');
+              }
+              
+              console.log('[INFO] Product metadata:', metadata);
+              
+              // 納品プラン関連情報を抽出して構造化（型安全処理）
+              enrichedProduct.deliveryPlanInfo = {
+                condition: typeof metadata.condition === 'string' ? metadata.condition : '',
+                purchasePrice: typeof metadata.purchasePrice === 'number' ? metadata.purchasePrice : 0,
+                purchaseDate: typeof metadata.purchaseDate === 'string' ? metadata.purchaseDate : '',
+                supplier: typeof metadata.supplier === 'string' ? metadata.supplier : '',
+                supplierDetails: typeof metadata.supplierDetails === 'string' ? metadata.supplierDetails : '',
+                images: Array.isArray(metadata.images) ? metadata.images : []
+              };
+              
+              console.log('[INFO] 納品プラン情報を抽出:', enrichedProduct.deliveryPlanInfo);
+            } catch (error) {
+              console.warn('[WARN] metadata解析エラー:', error);
+              enrichedProduct.deliveryPlanInfo = {
+                condition: '',
+                purchasePrice: 0,
+                purchaseDate: '',
+                supplier: '',
+                supplierDetails: '',
+                images: []
+              };
+            }
+          } else {
+            enrichedProduct.deliveryPlanInfo = {
+              condition: '',
+              purchasePrice: 0,
+              purchaseDate: '',
+              supplier: '',
+              supplierDetails: '',
+              images: []
+            };
           }
+          
+          setProduct(enrichedProduct);
         } else {
           // デモ用フォールバック
           setProduct({
@@ -226,6 +280,14 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
             model: 'EOS R5',
             status: 'pending_inspection',
             imageUrl: '/api/placeholder/400/300',
+            deliveryPlanInfo: {
+              condition: 'excellent',
+              purchasePrice: 350000,
+              purchaseDate: '2024-01-15',
+              supplier: 'デモ仕入先',
+              supplierDetails: 'デモ用の商品データです。実際の納品プランから取得される情報が表示されます。',
+              images: []
+            }
           });
           console.log('[DEBUG] デモ用商品データを設定 - カテゴリー: camera_body');
         }
@@ -605,17 +667,51 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
     <div className="space-y-6">
       {/* 商品情報カード */}
       <NexusCard className="p-6">
-        <div className="flex flex-col md:flex-row gap-6">
-          <div className="md:w-1/3">
-            <img
-              src={product.imageUrl || '/api/placeholder/400/300'}
-              alt={product.name}
-              className="w-full rounded-lg"
-            />
+        <div className="flex flex-col lg:flex-row gap-6">
+          <div className="lg:w-1/3">
+            {/* 納品プラン画像を優先表示 */}
+            {product.deliveryPlanInfo?.images && Array.isArray(product.deliveryPlanInfo.images) && product.deliveryPlanInfo.images.length > 0 ? (
+              <div className="space-y-2">
+                <img
+                  src={product.deliveryPlanInfo.images[0]?.url || '/api/placeholder/400/300'}
+                  alt={product.name}
+                  className="w-full rounded-lg border shadow-sm"
+                />
+                {product.deliveryPlanInfo.images.length > 1 && (
+                  <div className="grid grid-cols-3 gap-2">
+                    {product.deliveryPlanInfo.images.slice(1, 4).map((image, idx) => (
+                      <img
+                        key={idx}
+                        src={image?.url || '/api/placeholder/100/100'}
+                        alt={`${product.name} ${idx + 2}`}
+                        className="w-full h-16 object-cover rounded border"
+                      />
+                    ))}
+                  </div>
+                )}
+                {product.deliveryPlanInfo.images.length > 4 && (
+                  <p className="text-xs text-gray-500 text-center">
+                    +{product.deliveryPlanInfo.images.length - 4}枚の画像
+                  </p>
+                )}
+                <p className="text-xs text-blue-600 text-center">📦 納品プラン登録画像</p>
+              </div>
+            ) : (
+              <div className="text-center">
+                <img
+                  src={product.imageUrl || '/api/placeholder/400/300'}
+                  alt={product.name}
+                  className="w-full rounded-lg border"
+                />
+                <p className="text-xs text-gray-500 mt-2">プレースホルダー画像</p>
+              </div>
+            )}
           </div>
-          <div className="md:w-2/3 space-y-2">
+          <div className="lg:w-2/3 space-y-4">
             <h2 className="text-xl font-bold text-gray-900">{product.name}</h2>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            
+            {/* 基本商品情報 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-gray-600">SKU:</span>
                 <span className="ml-2 font-medium">{product.sku}</span>
@@ -635,6 +731,64 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
                 </span>
               </div>
             </div>
+ 
+            {/* 納品プラン詳細情報 */}
+            {product.deliveryPlanInfo && (
+              <div className="border-t pt-4 space-y-2">
+                <h3 className="text-sm font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                  📦 納品プラン情報
+                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">セラー入力</span>
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  {product.deliveryPlanInfo.condition && (
+                    <div>
+                      <span className="text-gray-600">申告コンディション:</span>
+                      <span className="ml-2 font-medium">{product.deliveryPlanInfo.condition}</span>
+                    </div>
+                  )}
+                  {product.deliveryPlanInfo.purchasePrice > 0 && (
+                    <div>
+                      <span className="text-gray-600">購入価格:</span>
+                      <span className="ml-2 font-medium">¥{Number(product.deliveryPlanInfo.purchasePrice || 0).toLocaleString()}</span>
+                    </div>
+                  )}
+                  {product.deliveryPlanInfo.purchaseDate && (
+                    <div>
+                      <span className="text-gray-600">仕入日:</span>
+                      <span className="ml-2 font-medium">
+                        {(() => {
+                          try {
+                            const date = new Date(product.deliveryPlanInfo.purchaseDate);
+                            return !isNaN(date.getTime()) ? date.toLocaleDateString('ja-JP') : product.deliveryPlanInfo.purchaseDate;
+                          } catch {
+                            return product.deliveryPlanInfo.purchaseDate;
+                          }
+                        })()}
+                      </span>
+                    </div>
+                  )}
+                  {product.deliveryPlanInfo.supplier && (
+                    <div>
+                      <span className="text-gray-600">仕入先:</span>
+                      <span className="ml-2 font-medium">{product.deliveryPlanInfo.supplier}</span>
+                    </div>
+                  )}
+                </div>
+                {product.deliveryPlanInfo.supplierDetails && (
+                  <div className="mt-2">
+                    <span className="text-gray-600">仕入詳細:</span>
+                    <p className="ml-2 text-sm text-gray-700 bg-gray-50 p-2 rounded mt-1">
+                      {product.deliveryPlanInfo.supplierDetails}
+                    </p>
+                  </div>
+                )}
+                {product.deliveryPlanInfo.images && product.deliveryPlanInfo.images.length > 0 && (
+                  <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded inline-block">
+                    ✓ 商品画像 {product.deliveryPlanInfo.images.length}枚登録済み
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </NexusCard>
