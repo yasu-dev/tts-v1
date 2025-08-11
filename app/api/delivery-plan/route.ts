@@ -112,38 +112,121 @@ export async function POST(request: NextRequest) {
             }
           });
 
+          // 商品画像を保存（別テーブル）
+          if (product.images && product.images.length > 0) {
+            console.log('[DEBUG] 商品画像保存開始:', product.images.length, '件');
+            for (let imgIndex = 0; imgIndex < product.images.length; imgIndex++) {
+              const image = product.images[imgIndex];
+              try {
+                await tx.deliveryPlanProductImage.create({
+                  data: {
+                    deliveryPlanProductId: deliveryPlanProduct.id,
+                    url: image.url,
+                    thumbnailUrl: image.thumbnailUrl || null,
+                    filename: image.filename || `image-${imgIndex + 1}`,
+                    size: image.size || 0,
+                    mimeType: image.mimeType || 'image/jpeg',
+                    category: image.category || 'その他',
+                    description: image.description || null,
+                    sortOrder: imgIndex
+                  }
+                });
+                console.log('[INFO] 商品画像保存成功:', image.filename);
+              } catch (imageError) {
+                console.error('[ERROR] 商品画像保存エラー:', imageError);
+                // 画像保存失敗でも処理は継続
+              }
+            }
+          }
+
           // 検品チェックリストがある場合は保存
           if (product.inspectionChecklist) {
             console.log('[DEBUG] 検品チェックリストデータ:', JSON.stringify(product.inspectionChecklist, null, 2));
             
             try {
-              // 検品チェックリストの構造を確認
-              const exterior = product.inspectionChecklist.exterior || {};
-              const functionality = product.inspectionChecklist.functionality || {};
-              const optical = product.inspectionChecklist.optical || {};
+              // 検品チェックリストの構造を確認（複数のパターンに対応）
+              let checklistData = product.inspectionChecklist;
+              
+              // Reactイベントオブジェクトからboolean値を安全に抽出するヘルパー関数
+              const extractBooleanValue = (value: any): boolean => {
+                // Reactイベントオブジェクトの場合
+                if (value && typeof value === 'object' && value.target && typeof value.target.checked === 'boolean') {
+                  return value.target.checked;
+                }
+                // 通常のboolean値の場合
+                return Boolean(value);
+              };
+
+              // 既に構造化されている場合とフラットな場合の両方に対応
+              let exterior, functionality, optical;
+              
+              if (checklistData.exterior && checklistData.functionality) {
+                // 構造化されたデータの場合
+                exterior = {
+                  scratches: extractBooleanValue(checklistData.exterior.scratches),
+                  dents: extractBooleanValue(checklistData.exterior.dents),
+                  discoloration: extractBooleanValue(checklistData.exterior.discoloration),
+                  dust: extractBooleanValue(checklistData.exterior.dust)
+                };
+                functionality = {
+                  powerOn: extractBooleanValue(checklistData.functionality.powerOn),
+                  allButtonsWork: extractBooleanValue(checklistData.functionality.allButtonsWork),
+                  screenDisplay: extractBooleanValue(checklistData.functionality.screenDisplay),
+                  connectivity: extractBooleanValue(checklistData.functionality.connectivity)
+                };
+                optical = checklistData.optical ? {
+                  lensClarity: extractBooleanValue(checklistData.optical.lensClarity),
+                  aperture: extractBooleanValue(checklistData.optical.aperture),
+                  focusAccuracy: extractBooleanValue(checklistData.optical.focusAccuracy),
+                  stabilization: extractBooleanValue(checklistData.optical.stabilization)
+                } : {};
+              } else {
+                // フラットなデータの場合（直接的に各項目がある）
+                exterior = {
+                  scratches: extractBooleanValue(checklistData.hasScratches || checklistData.scratches),
+                  dents: extractBooleanValue(checklistData.hasDents || checklistData.dents),
+                  discoloration: extractBooleanValue(checklistData.hasDiscoloration || checklistData.discoloration),
+                  dust: extractBooleanValue(checklistData.hasDust || checklistData.dust)
+                };
+                functionality = {
+                  powerOn: extractBooleanValue(checklistData.powerOn),
+                  allButtonsWork: extractBooleanValue(checklistData.allButtonsWork),
+                  screenDisplay: extractBooleanValue(checklistData.screenDisplay),
+                  connectivity: extractBooleanValue(checklistData.connectivity)
+                };
+                optical = {
+                  lensClarity: extractBooleanValue(checklistData.lensClarity),
+                  aperture: extractBooleanValue(checklistData.aperture),
+                  focusAccuracy: extractBooleanValue(checklistData.focusAccuracy),
+                  stabilization: extractBooleanValue(checklistData.stabilization)
+                };
+              }
+              
+              console.log('[DEBUG] 解析された検品データ(正規化後):', { exterior, functionality, optical });
               
               await tx.inspectionChecklist.create({
                 data: {
                   deliveryPlanProductId: deliveryPlanProduct.id,
-                  hasScratches: Boolean(exterior.scratches),
-                  hasDents: Boolean(exterior.dents),
-                  hasDiscoloration: Boolean(exterior.discoloration),
-                  hasDust: Boolean(exterior.dust),
-                  powerOn: Boolean(functionality.powerOn),
-                  allButtonsWork: Boolean(functionality.allButtonsWork),
-                  screenDisplay: Boolean(functionality.screenDisplay),
-                  connectivity: Boolean(functionality.connectivity),
-                  lensClarity: Boolean(optical.lensClarity),
-                  aperture: Boolean(optical.aperture),
-                  focusAccuracy: Boolean(optical.focusAccuracy),
-                  stabilization: Boolean(optical.stabilization),
-                  notes: product.inspectionChecklist.notes || null,
+                  hasScratches: exterior.scratches,
+                  hasDents: exterior.dents,
+                  hasDiscoloration: exterior.discoloration,
+                  hasDust: exterior.dust,
+                  powerOn: functionality.powerOn,
+                  allButtonsWork: functionality.allButtonsWork,
+                  screenDisplay: functionality.screenDisplay,
+                  connectivity: functionality.connectivity,
+                  lensClarity: optical?.lensClarity || false,
+                  aperture: optical?.aperture || false,
+                  focusAccuracy: optical?.focusAccuracy || false,
+                  stabilization: optical?.stabilization || false,
+                  notes: checklistData.notes || null,
                   createdBy: user.username || user.email,
                 }
               });
               console.log('[INFO] 検品チェックリスト保存成功');
             } catch (checklistError) {
               console.error('[ERROR] 検品チェックリスト保存エラー:', checklistError);
+              console.error('[ERROR] checklistError詳細:', JSON.stringify(checklistError, null, 2));
               // エラーが発生しても処理を継続（検品チェックリストは任意）
             }
           }
@@ -153,56 +236,157 @@ export async function POST(request: NextRequest) {
       );
 
       // 3. スタッフの在庫管理画面用にProductテーブルに「入荷待ち」商品を生成
+      console.log('[DEBUG] 商品(Product)作成開始:', validProducts.length, '件');
       const createdProducts = [];
       
-      for (let index = 0; index < planData.products.length; index++) {
-        const product = planData.products[index];
+      for (let index = 0; index < validProducts.length; index++) {
+        const product = validProducts[index];
         const correspondingPlanProduct = planProducts[index];
+        
+        if (!correspondingPlanProduct) {
+          console.error(`[ERROR] planProduct not found for index ${index}`);
+          continue;
+        }
         
         const sku = `${planId}-${Math.random().toString(36).substr(2, 6)}`.toUpperCase();
         
-        const createdProduct = await tx.product.create({
-          data: {
+        try {
+          console.log(`[DEBUG] Product作成中 ${index + 1}/${validProducts.length}:`, {
             name: product.name,
-            sku: sku,
-            category: product.category || 'general',
-            status: 'inbound', // 入荷待ちステータス
-            price: product.purchasePrice || 0,
-            condition: product.condition,
-            description: `納品プラン ${planId} からの入庫予定商品。${product.supplierDetails || ''}`,
-            sellerId: user.id,
-            metadata: JSON.stringify({
-              deliveryPlanId: planId,
-              deliveryPlanProductId: correspondingPlanProduct.id,
-              purchaseDate: product.purchaseDate,
-              supplier: product.supplier,
-              supplierDetails: product.supplierDetails,
-              hasInspectionChecklist: !!product.inspectionChecklist
-            })
-          }
-        });
+            category: product.category,
+            status: 'inbound',
+            sku,
+            sellerId: user.id
+          });
+          
+          const createdProduct = await tx.product.create({
+            data: {
+              name: product.name,
+              sku: sku,
+              category: product.category || 'general',
+              status: 'inbound', // 入荷待ちステータス
+              price: product.purchasePrice || 0,
+              condition: product.condition || 'good',
+              description: `納品プラン ${planId} からの入庫予定商品。${product.supplierDetails || ''}`,
+              sellerId: user.id,
+              entryDate: new Date(),
+                          metadata: (() => {
+                // 先ほど保存したDeliveryPlanProductImageから画像データを取得してmetadataに含める
+                // （この処理は非同期だが、トランザクション内なので確実にデータが存在する）
+                const imageData = product.images || [];
+                
+                // 検品チェックリストの構造化されたデータを準備（Reactイベントオブジェクト対応）
+                let structuredChecklistData = null;
+                if (product.inspectionChecklist) {
+                  console.log(`[DEBUG] Product作成: 受信した検品チェックリスト生データ (${product.name}):`, JSON.stringify(product.inspectionChecklist, null, 2));
+                  
+                  // Reactイベントオブジェクトからboolean値を安全に抽出するヘルパー関数
+                  const extractBooleanValue = (value: any): boolean => {
+                    // Reactイベントオブジェクトの場合
+                    if (value && typeof value === 'object' && value.target && typeof value.target.checked === 'boolean') {
+                      return value.target.checked;
+                    }
+                    // 通常のboolean値の場合
+                    return Boolean(value);
+                  };
 
-        // 検品チェックリストがある場合は、ProductのIDも関連付け
-        if (product.inspectionChecklist && correspondingPlanProduct) {
-          try {
-            const existingChecklist = await tx.inspectionChecklist.findUnique({
-              where: { deliveryPlanProductId: correspondingPlanProduct.id }
-            });
-            
-            if (existingChecklist) {
-              await tx.inspectionChecklist.update({
-                where: { deliveryPlanProductId: correspondingPlanProduct.id },
-                data: { productId: createdProduct.id }
-              });
+                  // 既に構造化されているかフラットかに関わらず、統一された形式で保存
+                  structuredChecklistData = {
+                    exterior: {
+                      scratches: extractBooleanValue(product.inspectionChecklist.exterior?.scratches || product.inspectionChecklist.hasScratches || product.inspectionChecklist.scratches),
+                      dents: extractBooleanValue(product.inspectionChecklist.exterior?.dents || product.inspectionChecklist.hasDents || product.inspectionChecklist.dents),
+                      discoloration: extractBooleanValue(product.inspectionChecklist.exterior?.discoloration || product.inspectionChecklist.hasDiscoloration || product.inspectionChecklist.discoloration),
+                      dust: extractBooleanValue(product.inspectionChecklist.exterior?.dust || product.inspectionChecklist.hasDust || product.inspectionChecklist.dust)
+                    },
+                    functionality: {
+                      powerOn: extractBooleanValue(product.inspectionChecklist.functionality?.powerOn || product.inspectionChecklist.powerOn),
+                      allButtonsWork: extractBooleanValue(product.inspectionChecklist.functionality?.allButtonsWork || product.inspectionChecklist.allButtonsWork),
+                      screenDisplay: extractBooleanValue(product.inspectionChecklist.functionality?.screenDisplay || product.inspectionChecklist.screenDisplay),
+                      connectivity: extractBooleanValue(product.inspectionChecklist.functionality?.connectivity || product.inspectionChecklist.connectivity)
+                    },
+                    optical: (product.category === 'camera' || product.category === 'camera_body' || product.category === 'lens') ? {
+                      lensClarity: extractBooleanValue(product.inspectionChecklist.optical?.lensClarity || product.inspectionChecklist.lensClarity),
+                      aperture: extractBooleanValue(product.inspectionChecklist.optical?.aperture || product.inspectionChecklist.aperture),
+                      focusAccuracy: extractBooleanValue(product.inspectionChecklist.optical?.focusAccuracy || product.inspectionChecklist.focusAccuracy),
+                      stabilization: extractBooleanValue(product.inspectionChecklist.optical?.stabilization || product.inspectionChecklist.stabilization)
+                    } : null,
+                    notes: product.inspectionChecklist.notes || null
+                  };
+                  
+                  console.log(`[DEBUG] Product作成: 正規化後の検品チェックリストデータ (${product.name}):`, JSON.stringify(structuredChecklistData, null, 2));
+                }
+                
+                const metadataObj = {
+                  deliveryPlanId: planId,
+                  deliveryPlanProductId: correspondingPlanProduct.id,
+                  purchaseDate: product.purchaseDate,
+                  supplier: product.supplier,
+                  supplierDetails: product.supplierDetails,
+                  brand: product.brand,
+                  model: product.model,
+                  serialNumber: product.serialNumber,
+                  hasInspectionChecklist: !!product.inspectionChecklist,
+                  // 検品チェックリストの詳細データ（構造化済み）
+                  inspectionChecklistData: structuredChecklistData,
+                  // 商品画像データ（元の形式を保持）
+                  images: imageData
+                };
+                
+                console.log(`[DEBUG] Product作成: metadata保存内容 (${product.name}):`, {
+                  deliveryPlanId: metadataObj.deliveryPlanId,
+                  supplier: metadataObj.supplier,
+                  supplierDetails: metadataObj.supplierDetails,
+                  hasInspectionChecklistData: !!metadataObj.inspectionChecklistData,
+                  imagesCount: metadataObj.images?.length || 0,
+                  checklistStructure: structuredChecklistData ? {
+                    exterior: structuredChecklistData.exterior,
+                    functionality: structuredChecklistData.functionality,
+                    optical: structuredChecklistData.optical,
+                    notes: !!structuredChecklistData.notes
+                  } : null
+                });
+                
+                return JSON.stringify(metadataObj);
+              })()
             }
-          } catch (updateError) {
-            console.error('[WARN] 検品チェックリストのProduct関連付けに失敗:', updateError);
-            // エラーでも処理は継続
-          }
-        }
+          });
 
-        createdProducts.push(createdProduct);
+          console.log(`[INFO] Product作成成功:`, {
+            id: createdProduct.id,
+            name: createdProduct.name,
+            status: createdProduct.status,
+            sku: createdProduct.sku
+          });
+
+          // 検品チェックリストがある場合は、ProductのIDも関連付け
+          if (product.inspectionChecklist && correspondingPlanProduct) {
+            try {
+              const existingChecklist = await tx.inspectionChecklist.findUnique({
+                where: { deliveryPlanProductId: correspondingPlanProduct.id }
+              });
+              
+              if (existingChecklist) {
+                await tx.inspectionChecklist.update({
+                  where: { deliveryPlanProductId: correspondingPlanProduct.id },
+                  data: { productId: createdProduct.id }
+                });
+                console.log('[INFO] 検品チェックリストとProduct関連付け完了');
+              }
+            } catch (updateError) {
+              console.error('[WARN] 検品チェックリストのProduct関連付けに失敗:', updateError);
+              // エラーでも処理は継続
+            }
+          }
+
+          createdProducts.push(createdProduct);
+          
+        } catch (productCreateError) {
+          console.error(`[ERROR] Product作成失敗 ${index + 1}:`, productCreateError);
+          // 個別商品の作成失敗でも処理を継続
+        }
       }
+      
+      console.log('[INFO] 商品(Product)作成完了:', createdProducts.length, '件')
 
       return {
         ...savedPlan,
@@ -323,7 +507,12 @@ export async function GET(request: NextRequest) {
       prisma.deliveryPlan.findMany({
         where,
         include: {
-          products: true,
+          products: {
+            include: {
+              inspectionChecklist: true,
+              images: true
+            }
+          },
           seller: {
             select: {
               id: true,
@@ -341,31 +530,132 @@ export async function GET(request: NextRequest) {
       prisma.deliveryPlan.count({ where })
     ]);
 
-    // フロントエンドで期待される形式に変換
-    const formattedPlans = deliveryPlans.map(plan => ({
-      id: plan.id,
-      deliveryId: plan.planNumber,
-      date: plan.createdAt.toISOString().split('T')[0],
-      status: plan.status,
-      items: plan.totalItems,
-      value: plan.totalValue,
-      sellerName: plan.sellerName,
-      sellerId: plan.sellerId,
-      deliveryAddress: plan.deliveryAddress,
-      contactEmail: plan.contactEmail,
-      phoneNumber: plan.phoneNumber,
-      notes: plan.notes,
-      products: plan.products.map(product => ({
-        name: product.name,
-        category: product.category,
-        estimatedValue: product.estimatedValue,
-        description: product.description
-      }))
-    }));
+    // 関連するProductテーブルのデータも取得
+    const formattedPlansWithDetails = await Promise.all(
+      deliveryPlans.map(async (plan) => {
+        // 各プランに関連するProductテーブルのデータを取得
+        const relatedProducts = await prisma.product.findMany({
+          where: {
+            metadata: {
+              contains: plan.id // deliveryPlanIdがmetadataに含まれているProduct
+            }
+          },
+          select: {
+            id: true,
+            name: true,
+            sku: true,
+            category: true,
+            price: true,
+            condition: true,
+            imageUrl: true,
+            metadata: true
+          }
+        });
+
+        return {
+          id: plan.id,
+          deliveryId: plan.planNumber,
+          date: plan.createdAt.toISOString().split('T')[0],
+          status: plan.status,
+          items: plan.totalItems,
+          value: plan.totalValue,
+          sellerName: plan.sellerName,
+          sellerId: plan.sellerId,
+          deliveryAddress: plan.deliveryAddress,
+          contactEmail: plan.contactEmail,
+          phoneNumber: plan.phoneNumber,
+          notes: plan.notes,
+          // 配送・追跡情報
+          shippedAt: plan.shippedAt,
+          shippingTrackingNumber: plan.shippingTrackingNumber,
+          // タイムスタンプ
+          createdAt: plan.createdAt.toISOString(),
+          updatedAt: plan.updatedAt.toISOString(),
+          // 詳細な商品情報（DeliveryPlanProductとProduct両方の情報を統合）
+          products: plan.products.map(planProduct => {
+            // 対応するProduct情報を検索
+            const relatedProduct = relatedProducts.find(p => {
+              try {
+                const metadata = p.metadata ? JSON.parse(p.metadata) : {};
+                return metadata.deliveryPlanProductId === planProduct.id;
+              } catch (e) {
+                return false;
+              }
+            });
+
+            // メタデータを安全に解析
+            let productMetadata = {};
+            try {
+              if (relatedProduct?.metadata) {
+                productMetadata = JSON.parse(relatedProduct.metadata);
+              }
+            } catch (e) {
+              console.warn('Product metadata parse error:', e);
+            }
+
+            return {
+              id: planProduct.id,
+              name: planProduct.name,
+              category: planProduct.category,
+              estimatedValue: planProduct.estimatedValue,
+              description: planProduct.description,
+              // 実際のProduct情報
+              sku: relatedProduct?.sku,
+              purchasePrice: relatedProduct?.price,
+              condition: relatedProduct?.condition,
+              imageUrl: relatedProduct?.imageUrl,
+              // メタデータから詳細情報を取得
+              purchaseDate: productMetadata.purchaseDate,
+              supplier: productMetadata.supplier,
+              supplierDetails: productMetadata.supplierDetails,
+              brand: productMetadata.brand,
+              model: productMetadata.model,
+              serialNumber: productMetadata.serialNumber,
+              // 検品チェックリスト
+              hasInspectionChecklist: !!planProduct.inspectionChecklist,
+              inspectionChecklistData: planProduct.inspectionChecklist ? {
+                // フロントエンド期待の構造化データ形式に変換
+                exterior: {
+                  scratches: planProduct.inspectionChecklist.hasScratches,
+                  dents: planProduct.inspectionChecklist.hasDents,
+                  discoloration: planProduct.inspectionChecklist.hasDiscoloration,
+                  dust: planProduct.inspectionChecklist.hasDust
+                },
+                functionality: {
+                  powerOn: planProduct.inspectionChecklist.powerOn,
+                  allButtonsWork: planProduct.inspectionChecklist.allButtonsWork,
+                  screenDisplay: planProduct.inspectionChecklist.screenDisplay,
+                  connectivity: planProduct.inspectionChecklist.connectivity
+                },
+                optical: {
+                  lensClarity: planProduct.inspectionChecklist.lensClarity,
+                  aperture: planProduct.inspectionChecklist.aperture,
+                  focusAccuracy: planProduct.inspectionChecklist.focusAccuracy,
+                  stabilization: planProduct.inspectionChecklist.stabilization
+                },
+                notes: planProduct.inspectionChecklist.notes,
+                createdBy: planProduct.inspectionChecklist.createdBy,
+                createdAt: planProduct.inspectionChecklist.createdAt?.toISOString()
+              } : null,
+              // 商品画像
+              images: planProduct.images ? planProduct.images.map((img: any) => ({
+                id: img.id,
+                url: img.url,
+                filename: img.filename,
+                uploadedAt: img.createdAt.toISOString()
+              })) : [],
+              // 作成・更新日時
+              createdAt: planProduct.createdAt.toISOString(),
+              updatedAt: planProduct.updatedAt.toISOString()
+            };
+          })
+        };
+      })
+    );
 
     return NextResponse.json({
       success: true,
-      deliveryPlans: formattedPlans,
+      deliveryPlans: formattedPlansWithDetails,
       pagination: {
         total: totalCount,
         limit,

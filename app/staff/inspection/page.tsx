@@ -88,93 +88,7 @@ type SortField = 'name' | 'sku' | 'category' | 'receivedDate' | 'status';
 type SortDirection = 'asc' | 'desc';
 type BusinessStatus = 'inbound' | 'inspection' | 'completed' | 'rejected' | 'pending' | 'processing';
 
-// モックデータ（実際はAPIから取得）
-const mockProducts: Product[] = [
-  {
-    id: '001',
-    name: 'Canon EOS R5 ボディ',
-    sku: 'TWD-2024-001',
-    category: 'camera',
-    brand: 'Canon',
-    model: 'EOS R5',
-    status: 'pending_inspection',
-    receivedDate: '2024-01-20',
-
-    imageUrl: '/api/placeholder/150/150',
-  },
-  {
-    id: '002',
-    name: 'Sony FE 24-70mm F2.8 GM',
-    sku: 'TWD-2024-002',
-    category: 'camera',
-    brand: 'Sony',
-    model: 'SEL2470GM',
-    status: 'inspecting',
-    receivedDate: '2024-01-19',
-
-    imageUrl: '/api/placeholder/150/150',
-  },
-  {
-    id: '003',
-    name: 'Nikon D850 ボディ',
-    sku: 'TWD-2024-003',
-    category: 'camera',
-    brand: 'Nikon',
-    model: 'D850',
-    status: 'completed',
-    receivedDate: '2024-01-18',
-
-    imageUrl: '/api/placeholder/150/150',
-  },
-  {
-    id: '004',
-    name: 'Canon EF 70-200mm F2.8L IS III',
-    sku: 'TWD-2024-004',
-    category: 'camera',
-    brand: 'Canon',
-    model: 'EF70-200mm',
-    status: 'failed',
-    receivedDate: '2024-01-17',
-
-    imageUrl: '/api/placeholder/150/150',
-  },
-  {
-    id: '005',
-    name: 'Rolex Submariner Date',
-    sku: 'TWD-2024-005',
-    category: 'watch',
-    brand: 'Rolex',
-    model: 'Submariner',
-    status: 'pending_inspection',
-    receivedDate: '2024-01-21',
-
-    imageUrl: '/api/placeholder/150/150',
-  },
-  {
-    id: '006',
-    name: 'Omega Seamaster Planet Ocean',
-    sku: 'TWD-2024-006',
-    category: 'watch',
-    brand: 'Omega',
-    model: 'Seamaster',
-    status: 'inspecting',
-    receivedDate: '2024-01-16',
-
-    imageUrl: '/api/placeholder/150/150',
-  },
-  {
-    id: '007',
-    name: 'カメラストラップ',
-    sku: 'TWD-2024-007',
-    category: 'other',
-    brand: 'Generic',
-    model: 'Strap-001',
-    status: 'pending_inspection',
-    receivedDate: '2024-01-15',
-
-    imageUrl: '/api/placeholder/150/150',
-  },
-];
+// *** モックデータを完全に削除 - SQLiteデータベースのみ使用 ***
 
 const categoryLabels = {
   camera: 'カメラ',
@@ -185,14 +99,14 @@ const categoryLabels = {
 // ステータス変換関数（BusinessStatusIndicatorに合わせる）
 const convertStatusToBusinessStatus = (status: string): BusinessStatus => {
   switch (status) {
-    case 'pending_inspection':
-      return 'inbound';  // 検品待ち → 入荷待ち
-    case 'inspecting':
+    case 'inbound':
+      return 'inbound';  // 入荷待ち
+    case 'inspection':
       return 'inspection';  // 検品中
-    case 'completed':
+    case 'storage':
       return 'completed';  // 完了
-    case 'failed':
-      return 'rejected';  // 不合格 → 拒否
+    case 'rejected':
+      return 'rejected';  // 拒否
     default:
       return 'inbound';
   }
@@ -200,18 +114,10 @@ const convertStatusToBusinessStatus = (status: string): BusinessStatus => {
 
 export default function InspectionPage() {
   const { showToast } = useToast();
-  const [products, setProducts] = useState<Product[]>(mockProducts);
-  const [loading, setLoading] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [progressData, setProgressData] = useState<{[key: string]: {currentStep: number, lastUpdated: string}}>({
-    '001': { currentStep: 1, lastUpdated: '2024-01-20T10:00:00Z' }, // 検品項目
-    '002': { currentStep: 2, lastUpdated: '2024-01-19T14:30:00Z' }, // 写真撮影
-    '003': { currentStep: 4, lastUpdated: '2024-01-18T16:00:00Z' }, // 完了
-    '004': { currentStep: 3, lastUpdated: '2024-01-17T11:00:00Z' }, // 梱包・ラベル
-    '005': { currentStep: 1, lastUpdated: '2024-01-21T09:00:00Z' }, // 検品項目
-    '006': { currentStep: 2, lastUpdated: '2024-01-16T13:00:00Z' }, // 写真撮影
-    '007': { currentStep: 1, lastUpdated: '2024-01-15T15:00:00Z' }, // 検品項目
-  });
+  const [progressData, setProgressData] = useState<{[key: string]: {currentStep: number, lastUpdated: string}}>({});
   const [expandedRows, setExpandedRows] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string>('all');
 
@@ -228,24 +134,7 @@ export default function InspectionPage() {
     }
   };
 
-  // モックデータのステータス更新機能
-  const updateProductStatus = (productId: string, newStatus: string) => {
-    setProducts(prevProducts => 
-      prevProducts.map(product => 
-        product.id === productId 
-          ? { ...product, status: newStatus }
-          : product
-      )
-    );
-    
-    // sessionStorageにも保存（ページリロード時の状態維持用）
-    const updatedProducts = products.map(product => 
-      product.id === productId 
-        ? { ...product, status: newStatus }
-        : product
-    );
-    sessionStorage.setItem('mockProductsStatus', JSON.stringify(updatedProducts));
-  };
+  // *** モックデータのステータス更新機能を削除 - SQLiteデータベース更新のみ ***
 
   // フィルター・ソート・ページング状態
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
@@ -261,12 +150,7 @@ export default function InspectionPage() {
   // 保存された状態を復元する関数
   const restoreSavedState = () => {
     try {
-      // モックデータのステータス状態を復元
-      const savedProductsStatus = sessionStorage.getItem('mockProductsStatus');
-      if (savedProductsStatus) {
-        const parsedProducts = JSON.parse(savedProductsStatus);
-        setProducts(parsedProducts);
-      }
+      // *** モックデータ復元処理を削除 - SQLiteからの取得のみ ***
 
       const savedState = sessionStorage.getItem('inspectionListState');
       if (savedState) {
@@ -301,6 +185,53 @@ export default function InspectionPage() {
     }
   };
 
+  // SQLiteデータベースから商品データを取得する関数
+  const fetchProductsFromDatabase = async () => {
+    try {
+      console.log('[DEBUG] 検品ページ: SQLiteから商品データを取得開始');
+      setLoading(true);
+      
+      const response = await fetch('/api/inventory?limit=100');
+      if (response.ok) {
+        const result = await response.json();
+        const inventoryData = result.data || [];
+        
+        console.log(`[DEBUG] 検品ページ: SQLiteから${inventoryData.length}件の商品データを取得`);
+        
+        // 在庫データを検品用データに変換
+        const inspectionProducts: Product[] = inventoryData.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          sku: item.sku,
+          category: item.category,
+          brand: item.metadata?.brand || 'Unknown',
+          model: item.metadata?.model || 'Unknown', 
+          status: convertInventoryStatusToInspectionStatus(item.status),
+          receivedDate: item.entryDate,
+          imageUrl: item.imageUrl || '/api/placeholder/150/150',
+          metadata: item.metadata
+        }));
+        
+        console.log(`[DEBUG] 検品ページ: ${inspectionProducts.length}件の商品データを設定完了`);
+        setProducts(inspectionProducts);
+      } else {
+        console.error('[ERROR] 検品ページ: 商品データ取得失敗', response.status);
+        setProducts([]);
+      }
+    } catch (error) {
+      console.error('[ERROR] 検品ページ: 商品データ取得エラー', error);
+      setProducts([]);
+      showToast({
+        type: 'error',
+        title: 'データ読み込みエラー',
+        message: '商品データの取得に失敗しました',
+        duration: 5000
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // 進捗データを読み込む関数
   const loadProgressData = async () => {
     try {
@@ -324,6 +255,20 @@ export default function InspectionPage() {
     }
   };
 
+  // InventoryのstatusをInspectionのstatusに変換する関数
+  const convertInventoryStatusToInspectionStatus = (inventoryStatus: string): 'pending_inspection' | 'inspecting' | 'completed' | 'failed' => {
+    switch (inventoryStatus) {
+      case 'inbound':
+        return 'pending_inspection';
+      case 'inspection':
+        return 'inspecting';
+      case 'storage':
+        return 'completed';
+      default:
+        return 'pending_inspection';
+    }
+  };
+
   // コンポーネント初期化時に状態復元と進捗データ読み込み
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -338,24 +283,10 @@ export default function InspectionPage() {
     // 進捗データを読み込み
     loadProgressData();
 
-    // 検品完了イベントリスナーを追加
-    const handleInspectionComplete = (event: CustomEvent) => {
-      const { productId, newStatus } = event.detail;
-      updateProductStatus(productId, newStatus);
-      
-      showToast({
-        type: 'success',
-        title: 'ステータス更新',
-        message: `商品のステータスが更新されました`,
-        duration: 3000
-      });
-    };
-
-    window.addEventListener('inspectionComplete', handleInspectionComplete as EventListener);
+    // *** 検品完了時のモックデータ更新を削除 - SQLite更新のみに変更 ***
     
-    return () => {
-      window.removeEventListener('inspectionComplete', handleInspectionComplete as EventListener);
-    };
+    // SQLiteデータベースから商品データを取得
+    fetchProductsFromDatabase();
   }, []); // 初回のみ実行
 
   // 統計データ計算

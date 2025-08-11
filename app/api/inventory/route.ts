@@ -60,17 +60,32 @@ export async function GET(request: NextRequest) {
     }
     // スタッフ・管理者は全商品表示（フィルタなし）
     
+    console.log(`[DEBUG] 在庫API呼び出し - ユーザー: ${user.role}, ステータスフィルター: ${status}`);
+    
     if (status) {
-      where.status = status.replace('入庫', 'inbound')
-                          .replace('検品', 'inspection')
-                          .replace('保管', 'storage')
-                          .replace('出品', 'listing')
-                          .replace('メンテナンス', 'maintenance')
-                          .replace('受注', 'ordered')
-                          .replace('出荷', 'shipping')
-                          .replace('配送', 'delivery')
-                          .replace('売約済み', 'sold')
-                          .replace('返品', 'returned');
+      // 日本語ステータスを英語に変換
+      const statusMap: { [key: string]: string } = {
+        '入庫': 'inbound',
+        '入荷待ち': 'inbound',
+        '検品': 'inspection', 
+        '検品中': 'inspection',
+        '保管': 'storage',
+        '保管中': 'storage', 
+        '出品': 'listing',
+        '出品中': 'listing',
+        'メンテナンス': 'maintenance',
+        '受注': 'ordered',
+        '受注済み': 'ordered',
+        '出荷': 'shipping',
+        '出荷中': 'shipping',
+        '配送': 'delivery',
+        '売約済み': 'sold',
+        '返品': 'returned'
+      };
+      
+      const englishStatus = statusMap[status] || status;
+      where.status = englishStatus;
+      console.log(`[DEBUG] ステータスフィルター設定: ${status} -> ${englishStatus}`);
     }
     
     if (category) {
@@ -87,6 +102,8 @@ export async function GET(request: NextRequest) {
       ];
     }
 
+    console.log(`[DEBUG] データベース検索条件:`, where);
+    
     // Get products with pagination
     const [products, totalCount] = await Promise.all([
       prisma.product.findMany({
@@ -104,25 +121,82 @@ export async function GET(request: NextRequest) {
       prisma.product.count({ where })
     ]);
 
+    console.log(`[DEBUG] データベースから取得した商品数: ${products.length}, 総件数: ${totalCount}`);
+    
+    if (products.length > 0) {
+      console.log(`[DEBUG] 取得された商品サンプル:`, products.slice(0, 3).map(p => ({
+        id: p.id,
+        name: p.name,
+        status: p.status,
+        category: p.category,
+        sellerId: p.sellerId,
+        createdAt: p.createdAt.toISOString().split('T')[0]
+      })));
+    }
+
     // Transform to match UI expectations - データベース値をそのまま返す（フロントエンドで変換）
-    const inventoryData = products.map(product => ({
-      id: product.id,
-      name: product.name,
-      sku: product.sku,
-      category: product.category, // 英語のまま返す
-      status: product.status, // 英語のまま返す
-      location: product.currentLocation?.code || '未設定',
-      price: product.price,
-      condition: product.condition, // 英語のまま返す
-      entryDate: product.entryDate.toISOString().split('T')[0],
-      imageUrl: product.imageUrl,
-      seller: product.seller,
-      description: product.description,
-      inspectedAt: product.inspectedAt,
-      metadata: product.metadata ? JSON.parse(product.metadata) : null,
-      createdAt: product.createdAt.toISOString(),
-      updatedAt: product.updatedAt.toISOString(),
-    }));
+    const inventoryData = products.map((product, index) => {
+      // メタデータを安全に解析
+      let parsedMetadata = null;
+      try {
+        parsedMetadata = product.metadata ? JSON.parse(product.metadata) : null;
+        
+        // 納品プラン由来の商品の場合のデバッグログ
+        if (parsedMetadata?.deliveryPlanId) {
+          console.log(`[DEBUG] 在庫API: 納品プラン由来商品 ${index + 1}/${products.length}:`, {
+            id: product.id,
+            name: product.name,
+            sku: product.sku,
+            hasSupplier: !!parsedMetadata.supplier,
+            hasSupplierDetails: !!parsedMetadata.supplierDetails,
+            hasImages: parsedMetadata.images?.length || 0,
+            hasInspectionChecklistData: !!parsedMetadata.inspectionChecklistData,
+            deliveryPlanId: parsedMetadata.deliveryPlanId
+          });
+          
+          // 検品チェックリストの詳細構造もログ
+          if (parsedMetadata.inspectionChecklistData) {
+            console.log('[DEBUG] 検品チェックリスト詳細:', {
+              exterior: parsedMetadata.inspectionChecklistData.exterior,
+              functionality: parsedMetadata.inspectionChecklistData.functionality,
+              optical: parsedMetadata.inspectionChecklistData.optical,
+              notes: parsedMetadata.inspectionChecklistData.notes
+            });
+          }
+          
+          // 画像データの詳細構造もログ
+          if (parsedMetadata.images?.length > 0) {
+            console.log('[DEBUG] 画像データ詳細:', parsedMetadata.images.map(img => ({
+              url: img.url,
+              category: img.category,
+              filename: img.filename
+            })));
+          }
+        }
+      } catch (metadataError) {
+        console.error(`[ERROR] 在庫API: metadata解析エラー (商品ID: ${product.id}):`, metadataError);
+        parsedMetadata = null;
+      }
+      
+      return {
+        id: product.id,
+        name: product.name,
+        sku: product.sku,
+        category: product.category, // 英語のまま返す
+        status: product.status, // 英語のまま返す
+        location: product.currentLocation?.code || '未設定',
+        price: product.price,
+        condition: product.condition, // 英語のまま返す
+        entryDate: product.entryDate ? product.entryDate.toISOString().split('T')[0] : product.createdAt.toISOString().split('T')[0],
+        imageUrl: product.imageUrl,
+        seller: product.seller,
+        description: product.description,
+        inspectedAt: product.inspectedAt,
+        metadata: parsedMetadata, // 解析済みのデータを返す
+        createdAt: product.createdAt.toISOString(),
+        updatedAt: product.updatedAt.toISOString(),
+      };
+    });
 
     console.log(`✅ 在庫データ取得完了: ${inventoryData.length}件 (ユーザー: ${user.role}${user.role === 'seller' ? ' - 自分の商品のみ' : ' - 全商品'})`);
 

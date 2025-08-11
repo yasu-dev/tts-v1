@@ -23,6 +23,7 @@ import NexusSelect from '@/app/components/ui/NexusSelect';
 import NexusInput from '@/app/components/ui/NexusInput';
 import BaseModal from '@/app/components/ui/BaseModal';
 import BarcodePrintButton from '@/app/components/features/BarcodePrintButton';
+import { useModal } from '@/app/components/ui/ModalContext';
 import ListingFormModal from '@/app/components/modals/ListingFormModal';
 import { checkListingEligibility, filterListableItems } from '@/lib/utils/listing-eligibility';
 
@@ -53,6 +54,7 @@ interface InventoryItem {
 export default function StaffInventoryPage() {
   const barcodeScannerRef = useRef<HTMLDivElement>(null);
   const { showToast } = useToast();
+  const { setIsAnyModalOpen } = useModal();
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<InventoryItem[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
@@ -372,6 +374,7 @@ export default function StaffInventoryPage() {
       if (foundItem) {
         setSelectedItem(foundItem);
         setIsDetailModalOpen(true);
+        setIsAnyModalOpen(true); // 業務フロー制御
         setIsBarcodeScannerOpen(false);
         showToast({
           title: '商品発見',

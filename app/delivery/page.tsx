@@ -28,6 +28,7 @@ import NexusSelect from '@/app/components/ui/NexusSelect';
 import { BusinessStatusIndicator } from '@/app/components/ui/StatusIndicator';
 import Pagination from '@/app/components/ui/Pagination';
 import BaseModal from '@/app/components/ui/BaseModal';
+import { useModal } from '@/app/components/ui/ModalContext';
 
 type SortField = 'date' | 'status' | 'items' | 'value';
 type SortDirection = 'asc' | 'desc';
@@ -35,6 +36,7 @@ type SortDirection = 'asc' | 'desc';
 export default function DeliveryPage() {
   const router = useRouter();
   const { showToast } = useToast();
+  const { setIsAnyModalOpen } = useModal();
   const [user, setUser] = useState<any>(null);
   const [allDeliveryPlans, setAllDeliveryPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -263,6 +265,7 @@ export default function DeliveryPage() {
   const handleViewDetails = (plan: any) => {
     setSelectedPlan(plan);
     setIsDetailModalOpen(true);
+    setIsAnyModalOpen(true); // 業務フロー制御
   };
 
   const handlePlanAction = (planId: number, action: string) => {
@@ -314,6 +317,7 @@ export default function DeliveryPage() {
       });
 
       setIsShippingModalOpen(false);
+      setIsAnyModalOpen(false); // 業務フロー制御
       setShippingTrackingNumber('');
       
     } catch (error) {
@@ -331,6 +335,7 @@ export default function DeliveryPage() {
     setSelectedPlan(plan);
     setShippingTrackingNumber('');
     setIsShippingModalOpen(true);
+    setIsAnyModalOpen(true); // 業務フロー制御
   };
 
   const generateBarcodePDF = async (planId: number) => {
@@ -577,6 +582,9 @@ export default function DeliveryPage() {
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">
+                    商品概要
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">
                     納品先
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">
@@ -587,7 +595,7 @@ export default function DeliveryPage() {
               <tbody className="holo-body">
                 {loading ? (
                   <tr>
-                    <td colSpan={user?.role === 'staff' ? 7 : 6} className="px-6 py-12 text-center text-nexus-text-secondary">
+                    <td colSpan={user?.role === 'staff' ? 8 : 7} className="px-6 py-12 text-center text-nexus-text-secondary">
                       <div className="flex flex-col items-center">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-nexus-primary mb-4"></div>
                         <p className="text-lg font-medium mb-2">データを読み込み中...</p>
@@ -597,7 +605,7 @@ export default function DeliveryPage() {
                   </tr>
                 ) : error ? (
                   <tr>
-                    <td colSpan={user?.role === 'staff' ? 7 : 6} className="px-6 py-12 text-center text-nexus-text-secondary">
+                    <td colSpan={user?.role === 'staff' ? 8 : 7} className="px-6 py-12 text-center text-nexus-text-secondary">
                       <div className="flex flex-col items-center">
                         <XCircleIcon className="h-12 w-12 text-red-500 mb-4" />
                         <p className="text-lg font-medium mb-2 text-red-600">データ取得エラー</p>
@@ -616,7 +624,7 @@ export default function DeliveryPage() {
                   </tr>
                 ) : paginatedPlans.length === 0 ? (
                   <tr>
-                    <td colSpan={user?.role === 'staff' ? 7 : 6} className="px-6 py-12 text-center text-nexus-text-secondary">
+                    <td colSpan={user?.role === 'staff' ? 8 : 7} className="px-6 py-12 text-center text-nexus-text-secondary">
                       <div className="flex flex-col items-center">
                         <DocumentTextIcon className="h-12 w-12 text-nexus-text-tertiary mb-4" />
                         <p className="text-lg font-medium mb-2">納品プランが見つかりません</p>
@@ -671,6 +679,27 @@ export default function DeliveryPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-nexus-text-primary">
                         ¥{plan.value.toLocaleString()}
                       </td>
+                      <td className="px-6 py-4 text-sm text-nexus-text-primary max-w-xs">
+                        {plan.products && plan.products.length > 0 ? (
+                          <div className="space-y-1">
+                            {plan.products.slice(0, 2).map((product: any, index: number) => (
+                              <div key={index} className="text-xs text-nexus-text-secondary bg-nexus-bg-secondary px-2 py-1 rounded">
+                                {product.name}
+                                {product.category && (
+                                  <span className="text-nexus-text-tertiary ml-1">({product.category})</span>
+                                )}
+                              </div>
+                            ))}
+                            {plan.products.length > 2 && (
+                              <div className="text-xs text-nexus-text-tertiary">
+                                +{plan.products.length - 2}件
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-nexus-text-tertiary">商品詳細なし</span>
+                        )}
+                      </td>
                       <td className="px-6 py-4 text-sm text-nexus-text-primary max-w-xs truncate">
                         {plan.deliveryAddress}
                       </td>
@@ -724,31 +753,81 @@ export default function DeliveryPage() {
       {/* 詳細モーダル */}
       <BaseModal
         isOpen={isDetailModalOpen}
-        onClose={() => setIsDetailModalOpen(false)}
+        onClose={() => {
+          setIsDetailModalOpen(false);
+          setIsAnyModalOpen(false); // 業務フロー制御
+        }}
         title="納品プラン詳細"
+        size="xl"
       >
         {selectedPlan && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* 基本・配送情報 */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div>
-                <h4 className="text-sm font-medium text-nexus-text-secondary mb-2">基本情報</h4>
+                <h4 className="text-sm font-medium text-nexus-text-secondary mb-3">基本情報</h4>
                 <div className="space-y-2 text-sm">
-                  <div><span className="font-medium">プランID:</span> {selectedPlan.id}</div>
+                  <div><span className="font-medium">プランID:</span> <span className="font-mono text-xs">{selectedPlan.id}</span></div>
                   <div><span className="font-medium">作成日:</span> {selectedPlan.date}</div>
-                  <div><span className="font-medium">ステータス:</span> {selectedPlan.status}</div>
+                  <div>
+                    <span className="font-medium">ステータス:</span> 
+                    <span className="ml-2">
+                      <BusinessStatusIndicator 
+                        status={(() => {
+                          const mappedStatus = selectedPlan.status === '下書き' ? 'pending' : 
+                                            selectedPlan.status === '発送待ち' ? 'processing' :
+                                            selectedPlan.status === '発送済' ? 'shipped' :
+                                            selectedPlan.status === '配達完了' ? 'delivered' :
+                                            selectedPlan.status === '完了' ? 'completed' : 'pending';
+                          return mappedStatus;
+                        })()} 
+                        size="sm" 
+                      />
+                    </span>
+                  </div>
                   {user?.role === 'staff' && (
                     <div><span className="font-medium">セラー名:</span> {selectedPlan.sellerName}</div>
                   )}
                   <div><span className="font-medium">商品数:</span> {selectedPlan.items}点</div>
-                  <div><span className="font-medium">予想価格:</span> ¥{selectedPlan.value.toLocaleString()}</div>
+                  <div><span className="font-medium">総予想価格:</span> ¥{selectedPlan.value.toLocaleString()}</div>
                 </div>
               </div>
+              
               <div>
-                <h4 className="text-sm font-medium text-nexus-text-secondary mb-2">配送情報</h4>
+                <h4 className="text-sm font-medium text-nexus-text-secondary mb-3">配送・倉庫情報</h4>
                 <div className="space-y-2 text-sm">
-                  <div><span className="font-medium">納品先:</span> {selectedPlan.deliveryAddress}</div>
-                  <div><span className="font-medium">連絡先:</span> {selectedPlan.contactEmail}</div>
-                  <div><span className="font-medium">電話番号:</span> {selectedPlan.phoneNumber}</div>
+                  {selectedPlan.warehouseName && (
+                    <div><span className="font-medium">配送先倉庫:</span> {selectedPlan.warehouseName}</div>
+                  )}
+                  <div><span className="font-medium">納品先住所:</span> 
+                    <div className="ml-0 mt-1 text-nexus-text-primary bg-nexus-bg-tertiary p-2 rounded text-xs">
+                      {selectedPlan.deliveryAddress}
+                    </div>
+                  </div>
+                  <div><span className="font-medium">連絡先メール:</span> {selectedPlan.contactEmail}</div>
+                  {selectedPlan.phoneNumber && (
+                    <div><span className="font-medium">電話番号:</span> {selectedPlan.phoneNumber}</div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-medium text-nexus-text-secondary mb-3">配送状況</h4>
+                <div className="space-y-2 text-sm">
+                  {selectedPlan.shippedAt && (
+                    <div><span className="font-medium">発送日:</span> {new Date(selectedPlan.shippedAt).toLocaleDateString()}</div>
+                  )}
+                  {selectedPlan.shippingTrackingNumber && (
+                    <div>
+                      <span className="font-medium">追跡番号:</span> 
+                      <span className="ml-2 font-mono text-xs bg-nexus-bg-tertiary px-2 py-1 rounded">
+                        {selectedPlan.shippingTrackingNumber}
+                      </span>
+                    </div>
+                  )}
+                  {!selectedPlan.shippedAt && selectedPlan.status === '発送待ち' && (
+                    <div className="text-nexus-text-tertiary">発送準備中...</div>
+                  )}
                 </div>
               </div>
             </div>
@@ -764,35 +843,264 @@ export default function DeliveryPage() {
 
             {selectedPlan.products && selectedPlan.products.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium text-nexus-text-secondary mb-2">商品詳細</h4>
-                <div className="space-y-2">
+                <h4 className="text-sm font-medium text-nexus-text-secondary mb-4 flex items-center gap-2">
+                  <span>📦</span>
+                  商品詳細 ({selectedPlan.products.length}点)
+                </h4>
+                <div className="space-y-4">
                   {selectedPlan.products.map((product: any, index: number) => (
-                    <div key={index} className="bg-nexus-bg-secondary p-3 rounded">
-                      <div className="flex justify-between items-start">
+                    <div key={index} className="bg-nexus-bg-secondary p-4 rounded-lg border border-nexus-border">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        {/* 商品基本情報 */}
                         <div>
-                          <h5 className="font-medium text-nexus-text-primary">{product.name}</h5>
-                          <p className="text-sm text-nexus-text-secondary">
-                            {product.brand} - {product.model}
-                          </p>
-                          {product.serialNumber && (
-                            <p className="text-xs text-nexus-text-secondary">
-                              S/N: {product.serialNumber}
-                            </p>
-                          )}
+                          <div className="flex items-start gap-3 mb-3">
+                            {product.imageUrl && (
+                              <img 
+                                src={product.imageUrl}
+                                alt={product.name}
+                                className="w-16 h-16 object-cover rounded-lg border border-nexus-border"
+                              />
+                            )}
+                            <div className="flex-1">
+                              <h5 className="font-medium text-nexus-text-primary text-base">{product.name}</h5>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                  {product.category}
+                                </span>
+                                {product.condition && (
+                                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
+                                    {product.condition}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2 text-sm">
+                            <div>
+                              <span className="font-medium text-nexus-text-secondary">推定価格:</span>
+                              <span className="ml-2 font-semibold text-nexus-text-primary">
+                                ¥{product.estimatedValue.toLocaleString()}
+                              </span>
+                            </div>
+                            {product.purchasePrice !== undefined && product.purchasePrice > 0 && (
+                              <div>
+                                <span className="font-medium text-nexus-text-secondary">購入価格:</span>
+                                <span className="ml-2 text-nexus-text-primary">¥{product.purchasePrice.toLocaleString()}</span>
+                              </div>
+                            )}
+                            {product.serialNumber && (
+                              <div>
+                                <span className="font-medium text-nexus-text-secondary">シリアル番号:</span>
+                                <span className="ml-2 font-mono text-xs text-nexus-text-primary">{product.serialNumber}</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <p className="font-medium text-nexus-text-primary">
-                            ¥{product.estimatedValue.toLocaleString()}
-                          </p>
-                          <p className="text-xs text-nexus-text-secondary">
-                            {product.category}
-                          </p>
+
+                        {/* 仕入・詳細情報 */}
+                        <div>
+                          <h6 className="font-medium text-nexus-text-primary mb-2 text-sm">仕入情報</h6>
+                          <div className="space-y-2 text-sm">
+                            {product.purchaseDate && (
+                              <div>
+                                <span className="font-medium text-nexus-text-secondary">仕入日:</span>
+                                <span className="ml-2 text-nexus-text-primary">{product.purchaseDate}</span>
+                              </div>
+                            )}
+                            {product.supplier && (
+                              <div>
+                                <span className="font-medium text-nexus-text-secondary">仕入先:</span>
+                                <span className="ml-2 text-nexus-text-primary">{product.supplier}</span>
+                              </div>
+                            )}
+                            {product.supplierDetails && (
+                              <div>
+                                <span className="font-medium text-nexus-text-secondary">仕入詳細:</span>
+                                <div className="ml-0 mt-1 text-nexus-text-primary bg-nexus-bg-tertiary p-2 rounded text-xs">
+                                  {product.supplierDetails}
+                                </div>
+                              </div>
+                            )}
+                            {product.brand && (
+                              <div>
+                                <span className="font-medium text-nexus-text-secondary">ブランド:</span>
+                                <span className="ml-2 text-nexus-text-primary">{product.brand}</span>
+                              </div>
+                            )}
+                            {product.model && (
+                              <div>
+                                <span className="font-medium text-nexus-text-secondary">モデル:</span>
+                                <span className="ml-2 text-nexus-text-primary">{product.model}</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
+
+                      {/* 商品詳細説明 */}
                       {product.description && (
-                        <p className="text-sm text-nexus-text-secondary mt-2">
-                          {product.description}
-                        </p>
+                        <div className="mt-3 pt-3 border-t border-nexus-border">
+                          <span className="font-medium text-nexus-text-secondary text-sm">商品詳細:</span>
+                          <p className="text-sm text-nexus-text-primary mt-1 bg-nexus-bg-tertiary p-2 rounded">
+                            {product.description}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* 商品画像（完全版） */}
+                      {product.images && product.images.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-nexus-border">
+                          <span className="font-medium text-nexus-text-secondary text-sm mb-3 block">
+                            商品画像 ({product.images.length}枚)
+                          </span>
+                          <div className="space-y-3">
+                            {/* 画像をカテゴリー別にグループ化 */}
+                            {(() => {
+                              const groupedImages = product.images.reduce((groups: any, image: any, index: number) => {
+                                const category = image.category || 'その他';
+                                if (!groups[category]) groups[category] = [];
+                                groups[category].push({ ...image, originalIndex: index });
+                                return groups;
+                              }, {});
+
+                              return Object.entries(groupedImages).map(([category, images]: [string, any]) => (
+                                <div key={category} className="space-y-2">
+                                  <h6 className="text-xs font-medium text-nexus-text-primary bg-nexus-bg-tertiary px-2 py-1 rounded">
+                                    {category} ({images.length}枚)
+                                  </h6>
+                                  <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                                    {images.map((image: any, imgIndex: number) => (
+                                      <div key={imgIndex} className="relative group">
+                                        <img
+                                          src={image.url || image}
+                                          alt={`${product.name} ${category} 画像 ${imgIndex + 1}`}
+                                          className="w-full h-16 object-cover rounded border border-nexus-border cursor-pointer hover:opacity-80 transition-opacity"
+                                          onClick={() => window.open(image.url || image, '_blank')}
+                                        />
+                                        {image.filename && (
+                                          <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-xs px-1 py-0.5 truncate">
+                                            {image.filename}
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              ));
+                            })()}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 検品チェックリスト詳細 */}
+                      {(() => {
+                        console.log(`[DEBUG] 納品プラン詳細: 商品${product.name}の検品チェックリスト:`, {
+                          hasInspectionChecklist: product.hasInspectionChecklist,
+                          inspectionChecklistData: product.inspectionChecklistData
+                        });
+                        
+                        return product.hasInspectionChecklist && product.inspectionChecklistData ? (
+                        <div className="mt-3 pt-3 border-t border-nexus-border">
+                          <span className="font-medium text-nexus-text-secondary text-sm mb-3 block">
+                            検品チェックリスト詳細
+                          </span>
+                          <div className="bg-nexus-bg-tertiary p-3 rounded border">
+                            <div className="space-y-3">
+                              {/* 外装チェック */}
+                              <div>
+                                <h6 className="text-xs font-medium text-nexus-text-primary mb-2">外装チェック</h6>
+                                <div className="grid grid-cols-2 gap-2 text-xs">
+                                  <div className={`p-2 rounded ${product.inspectionChecklistData.exterior?.scratches ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                                    外装キズ: {product.inspectionChecklistData.exterior?.scratches ? '有り' : '無し'}
+                                  </div>
+                                  <div className={`p-2 rounded ${product.inspectionChecklistData.exterior?.dents ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                                    打痕・へこみ: {product.inspectionChecklistData.exterior?.dents ? '有り' : '無し'}
+                                  </div>
+                                  <div className={`p-2 rounded ${product.inspectionChecklistData.exterior?.discoloration ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                                    部品欠損: {product.inspectionChecklistData.exterior?.discoloration ? '有り' : '無し'}
+                                  </div>
+                                  <div className={`p-2 rounded ${product.inspectionChecklistData.exterior?.dust ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                                    汚れ・ホコリ: {product.inspectionChecklistData.exterior?.dust ? '有り' : '無し'}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* 機能チェック */}
+                              <div>
+                                <h6 className="text-xs font-medium text-nexus-text-primary mb-2">機能チェック</h6>
+                                <div className="grid grid-cols-2 gap-2 text-xs">
+                                  <div className={`p-2 rounded ${product.inspectionChecklistData.functionality?.powerOn ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                                    電源・動作: {product.inspectionChecklistData.functionality?.powerOn ? '異常' : '正常'}
+                                  </div>
+                                  <div className={`p-2 rounded ${product.inspectionChecklistData.functionality?.allButtonsWork ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                                    ボタン操作: {product.inspectionChecklistData.functionality?.allButtonsWork ? '異常' : '正常'}
+                                  </div>
+                                  <div className={`p-2 rounded ${product.inspectionChecklistData.functionality?.screenDisplay ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                                    画面表示: {product.inspectionChecklistData.functionality?.screenDisplay ? '異常' : '正常'}
+                                  </div>
+                                  <div className={`p-2 rounded ${product.inspectionChecklistData.functionality?.connectivity ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                                    接続機能: {product.inspectionChecklistData.functionality?.connectivity ? '異常' : '正常'}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* 光学系チェック（カメラ・レンズの場合） */}
+                              {(product.category === 'camera' || product.category === 'camera_body' || product.category === 'lens') && (
+                                <div>
+                                  <h6 className="text-xs font-medium text-nexus-text-primary mb-2">光学系チェック</h6>
+                                  <div className="grid grid-cols-2 gap-2 text-xs">
+                                    <div className={`p-2 rounded ${product.inspectionChecklistData.optical?.lensClarity ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                                      レンズ清浄度: {product.inspectionChecklistData.optical?.lensClarity ? '問題有' : '良好'}
+                                    </div>
+                                    <div className={`p-2 rounded ${product.inspectionChecklistData.optical?.aperture ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                                      絞り機構: {product.inspectionChecklistData.optical?.aperture ? '異常' : '正常'}
+                                    </div>
+                                    <div className={`p-2 rounded ${product.inspectionChecklistData.optical?.focusAccuracy ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                                      フォーカス精度: {product.inspectionChecklistData.optical?.focusAccuracy ? '異常' : '正常'}
+                                    </div>
+                                    <div className={`p-2 rounded ${product.inspectionChecklistData.optical?.stabilization ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                                      手ブレ補正: {product.inspectionChecklistData.optical?.stabilization ? '異常' : '正常'}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* 検品メモ */}
+                              {product.inspectionChecklistData.notes && (
+                                <div>
+                                  <h6 className="text-xs font-medium text-nexus-text-primary mb-2">検品メモ</h6>
+                                  <div className="bg-nexus-bg-secondary p-2 rounded text-xs text-nexus-text-primary">
+                                    {product.inspectionChecklistData.notes}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* 検品実施者・日時 */}
+                              <div className="pt-2 border-t border-nexus-border">
+                                <div className="flex items-center justify-between text-xs text-nexus-text-tertiary">
+                                  <span>作成者: {product.inspectionChecklistData.createdBy || 'システム'}</span>
+                                  <span>作成日: {new Date(product.createdAt).toLocaleDateString()}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        ) : null;
+                      })()}
+
+                      {/* 検品チェックリストが設定されている場合の簡易表示 */}
+                      {product.hasInspectionChecklist && !product.inspectionChecklistData && (
+                        <div className="mt-3 pt-3 border-t border-nexus-border">
+                          <div className="flex items-center gap-2">
+                            <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                              ✓ 検品チェックリスト設定済み
+                            </span>
+                            <span className="text-xs text-nexus-text-secondary">
+                              詳細な検品項目が設定されています（詳細データは別途確認）
+                            </span>
+                          </div>
+                        </div>
                       )}
                     </div>
                   ))}
@@ -803,7 +1111,10 @@ export default function DeliveryPage() {
             <div className="flex justify-end gap-2">
               <NexusButton
                 variant="secondary"
-                onClick={() => setIsDetailModalOpen(false)}
+                onClick={() => {
+                  setIsDetailModalOpen(false);
+                  setIsAnyModalOpen(false); // 業務フロー制御
+                }}
               >
                 閉じる
               </NexusButton>
@@ -823,7 +1134,10 @@ export default function DeliveryPage() {
       {/* 発送モーダル */}
       <BaseModal
         isOpen={isShippingModalOpen}
-        onClose={() => setIsShippingModalOpen(false)}
+        onClose={() => {
+          setIsShippingModalOpen(false);
+          setIsAnyModalOpen(false); // 業務フロー制御
+        }}
         title="発送処理"
       >
         {selectedPlan && (
@@ -855,7 +1169,10 @@ export default function DeliveryPage() {
               <div className="flex justify-end gap-2">
                 <NexusButton
                   variant="secondary"
-                  onClick={() => setIsShippingModalOpen(false)}
+                  onClick={() => {
+                    setIsShippingModalOpen(false);
+                    setIsAnyModalOpen(false); // 業務フロー制御
+                  }}
                 >
                   キャンセル
                 </NexusButton>
