@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import BaseModal from '@/app/components/ui/BaseModal';
 import NexusButton from '@/app/components/ui/NexusButton';
+import NexusCheckbox from '@/app/components/ui/NexusCheckbox';
 import { useRouter } from 'next/navigation';
 
 interface Location {
@@ -801,8 +802,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                             {/* 商品選択チェックボックス */}
                             {item.status === 'ピッキング待ち' && (
                               <div className="mt-1">
-                                <input
-                                  type="checkbox"
+                                <NexusCheckbox
                                   checked={selectedProductIds.includes(item.id)}
                                   onChange={(e) => {
                                     if (e.target.checked) {
@@ -811,7 +811,8 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                                       setSelectedProductIds(prev => prev.filter(id => id !== item.id));
                                     }
                                   }}
-                                  className="w-4 h-4 text-nexus-yellow bg-nexus-bg-primary border-nexus-border rounded focus:ring-nexus-yellow focus:ring-2"
+                                  variant="nexus"
+                                  size="md"
                                 />
                               </div>
                             )}

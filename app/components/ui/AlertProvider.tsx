@@ -51,7 +51,7 @@ export default function AlertProvider({ children }: AlertProviderProps) {
   return (
     <AlertContext.Provider value={{ showAlert, hideAlert }}>
       {children}
-      {alert && (
+      {alert && alert.title && alert.message && (
         <NexusAlertBox
           isOpen={true}
           onClose={hideAlert}

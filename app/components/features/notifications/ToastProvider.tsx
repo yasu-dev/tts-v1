@@ -39,6 +39,12 @@ export function ToastProvider({ children }: ToastProviderProps) {
   const [toasts, setToasts] = useState<(Toast & { timeoutId?: NodeJS.Timeout })[]>([]);
 
   const showToast = useCallback((toast: Omit<Toast, 'id'>) => {
+    // 無効なトーストデータをフィルタリング
+    if (!toast.title || toast.title.trim() === '') {
+      console.warn('Toast warning: Empty or invalid title provided');
+      return;
+    }
+    
     const id = Math.random().toString(36).substring(2, 9);
     const duration = toast.duration || 5000;
     

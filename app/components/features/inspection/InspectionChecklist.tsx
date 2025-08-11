@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
+import NexusCheckbox from '@/app/components/ui/NexusCheckbox';
 
 export interface InspectionChecklistProps {
   category: string;
@@ -108,21 +109,19 @@ export default function InspectionChecklist({
         </div>
         <div className="grid grid-cols-2 gap-1">
           {items.map(item => (
-            <label
+            <div
               key={item.key}
-              className="flex items-center p-2 rounded-md border border-gray-200 hover:border-blue-300 cursor-pointer transition-all bg-white text-xs"
+              className="p-2 rounded-md border border-gray-200 hover:border-blue-300 transition-all bg-white text-xs"
             >
-              <input
-                type="checkbox"
+              <NexusCheckbox
                 checked={sectionData[item.key as keyof typeof sectionData] || false}
                 onChange={(e) => onUpdate(sectionKey, item.key, e.target.checked)}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 flex-shrink-0"
+                label={item.label}
+                description={item.description}
+                variant="nexus"
+                size="md"
               />
-              <div className="ml-2 flex-1 min-w-0">
-                <div className="font-medium text-gray-900">{item.label}</div>
-                <div className="text-gray-600 hidden lg:block text-xs">{item.description}</div>
-              </div>
-            </label>
+            </div>
           ))}
         </div>
       </NexusCard>

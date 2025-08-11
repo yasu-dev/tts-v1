@@ -80,7 +80,7 @@ export default function NexusAlertBox({
     }
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !title || !message) return null;
 
   const getIcon = () => {
     switch (type) {

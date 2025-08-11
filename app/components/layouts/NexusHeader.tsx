@@ -197,13 +197,15 @@ export default function NexusHeader({
         </button>
       </div>
       
-      {/* 通知パネル */}
-      <EnhancedNotificationPanel
-        isOpen={isNotificationOpen}
-        onClose={() => setIsNotificationOpen(false)}
-        userType={userType}
-        anchorRef={notificationRef}
-      />
+      {/* 通知パネル - 条件付きで表示 */}
+      {isNotificationOpen && notificationRef.current && (
+        <EnhancedNotificationPanel
+          isOpen={isNotificationOpen}
+          onClose={() => setIsNotificationOpen(false)}
+          userType={userType}
+          anchorRef={notificationRef}
+        />
+      )}
       
       {/* プロフィールメニュー */}
       <ProfileMenu
