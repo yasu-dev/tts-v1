@@ -63,11 +63,36 @@ export async function POST(request: NextRequest) {
     console.log('[DEBUG] Updating main product status based on progress step:', progressData.currentStep);
     
     let newStatus = 'inspection';  // デフォルト
-    if (progressData.currentStep >= 4) {
-      newStatus = 'storage';  // ステップ4完了で保管可能
-    } else if (progressData.currentStep >= 1) {
-      newStatus = 'inspection';  // ステップ1以上で検品中
+    let statusDescription = '';
+    
+    // ステップ別の詳細なステータス管理
+    switch (progressData.currentStep) {
+      case 1:
+        newStatus = 'inspection';
+        statusDescription = '検品項目チェック中';
+        break;
+      case 2:
+        newStatus = 'inspection';
+        statusDescription = '撮影作業中';
+        break;
+      case 3:
+        newStatus = 'inspection';
+        statusDescription = '梱包・ラベル作業中';
+        break;
+      case 4:
+        newStatus = 'storage';
+        statusDescription = '棚保管完了';
+        break;
+      default:
+        newStatus = 'inspection';
+        statusDescription = '検品作業中';
     }
+    
+    console.log('[DEBUG] Status decision:', { 
+      currentStep: progressData.currentStep, 
+      newStatus, 
+      statusDescription 
+    });
 
     // 商品ステータスの更新（進捗と同期）
     try {
@@ -89,14 +114,17 @@ export async function POST(request: NextRequest) {
           updatedMetadata = {};
         }
 
-        // ステップ4完了時はメタデータも更新
-        if (progressData.currentStep >= 4) {
-          updatedMetadata = {
-            ...updatedMetadata,
+        // 進捗ステップと詳細ステータスをメタデータに保存
+        updatedMetadata = {
+          ...updatedMetadata,
+          currentStep: progressData.currentStep,
+          statusDescription: statusDescription,
+          lastStepUpdate: new Date().toISOString(),
+          ...(progressData.currentStep >= 4 && {
             inspectionCompleted: true,
             inspectionCompletedAt: new Date().toISOString()
-          };
-        }
+          })
+        };
 
         await prisma.product.update({
           where: { id: progressData.productId },

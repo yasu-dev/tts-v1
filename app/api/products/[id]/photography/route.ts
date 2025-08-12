@@ -126,17 +126,13 @@ export async function POST(
       photos: photos || [], // 撮影画像データを保存
     };
 
-    // 撮影完了時に商品ステータスも更新
-    const shouldUpdateStatus = photos && photos.length > 0;
-    console.log('[DEBUG] Photography status update decision:', { shouldUpdateStatus, photosCount: photos?.length });
-    
-    // Update product with photography data
+    // Update product with photography data (ステータスは検品進捗APIで管理)
     const updatedProduct = await prisma.product.update({
       where: { id: productId },
       data: {
         metadata: JSON.stringify(updatedMetadata),
-        // 撮影完了時に商品ステータスを更新（写真がある場合のみ）
-        status: shouldUpdateStatus ? 'storage' : product.status,  // 撮影完了 = 保管可能状態
+        // 撮影完了時はステータス変更せず、検品進捗で管理
+        // status: productのステータスは検品進捗APIで自動更新
         // Add photography-related fields if needed
         ...(notes && { 
           inspectionNotes: (product.inspectionNotes || '') + 
@@ -144,6 +140,8 @@ export async function POST(
         }),
       },
     });
+
+    console.log('[DEBUG] Photography data saved successfully - progress update handled by frontend');
     
     console.log('[DEBUG] Product updated successfully:', { 
       id: updatedProduct.id, 

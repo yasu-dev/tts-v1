@@ -293,12 +293,16 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    console.log(`[DEBUG] データベース更新開始: 商品ID=${product.id}, 元ステータス=${product.status}, 新ステータス=${mappedStatus}`);
+    
     const updatedProduct = await prisma.product.update({
       where: { id: product.id },
       data: {
         status: mappedStatus,
       },
     });
+    
+    console.log(`[DEBUG] データベース更新完了: 商品ID=${updatedProduct.id}, 最終ステータス=${updatedProduct.status}`);
 
     // Log activity
     await prisma.activity.create({

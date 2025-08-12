@@ -400,7 +400,82 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
   };
 
   // ステップ変更時の処理
-  const handleStepChange = (stepId: number) => {
+  const handleStepChange = async (stepId: number) => {
+    // ステップ2（撮影）からステップ3（梱包）への移行時は撮影データを保存
+    if (currentStep === 2 && stepId === 3) {
+      console.log('[DEBUG] ステップ2→3: 撮影データ保存開始');
+      setLoading(true);
+      
+      try {
+        // 撮影データを保存
+        const photographyData = {
+          photos: inspectionData.photos,
+          notes: inspectionData.notes || ''
+        };
+
+        console.log('[DEBUG] 撮影データ送信:', { productId, photographyData });
+
+        const response = await fetch(`/api/products/${productId}/photography`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(photographyData),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('[ERROR] 撮影API失敗:', response.status, errorText);
+          throw new Error(`撮影データ保存に失敗: ${response.status}`);
+        }
+
+        const savedData = await response.json();
+        console.log('[DEBUG] 撮影データ保存完了:', savedData);
+
+        // 検品進捗を更新（ステップ3に進行）
+        console.log('[DEBUG] 検品進捗更新開始: ステップ3へ');
+        const progressResponse = await fetch('/api/products/inspection/progress', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            productId,
+            currentStep: 3,  // ステップ3: 梱包・ラベル
+            checklist: inspectionData.checklist,
+            photos: inspectionData.photos,
+            notes: inspectionData.notes,
+            status: 'inspection'  // 検品継続中
+          })
+        });
+
+        if (!progressResponse.ok) {
+          const progressError = await progressResponse.text();
+          console.error('[ERROR] 検品進捗更新失敗:', progressResponse.status, progressError);
+          throw new Error(`検品進捗更新に失敗: ${progressResponse.status}`);
+        }
+
+        const progressData = await progressResponse.json();
+        console.log('[DEBUG] 検品進捗更新完了:', progressData);
+
+        showToast({
+          type: 'success',
+          title: '撮影完了',
+          message: '撮影データを保存しました。梱包・ラベル工程に進みます。',
+          duration: 3000
+        });
+
+      } catch (error) {
+        console.error('[ERROR] 撮影データ保存エラー:', error);
+        showToast({
+          type: 'error',
+          title: '撮影保存エラー',
+          message: error instanceof Error ? error.message : '撮影データの保存に失敗しました',
+          duration: 5000
+        });
+        setLoading(false);
+        return; // エラー時は進行を停止
+      } finally {
+        setLoading(false);
+      }
+    }
+
     setCurrentStep(stepId);
     // 少し遅延してからスクロール（状態更新後にスクロール）
     setTimeout(() => {
@@ -433,6 +508,42 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
     try {
       setLoading(true);
       
+      // ステップ2（撮影）を保存する場合は、撮影データも一緒に保存
+      if (step === 2 && inspectionData.photos && inspectionData.photos.length > 0) {
+        console.log('[DEBUG] ステップ2保存: 撮影データも一緒に保存');
+        
+        const photographyData = {
+          photos: inspectionData.photos,
+          notes: inspectionData.notes || ''
+        };
+
+        console.log('[DEBUG] 撮影データ保存（部分保存）:', { productId, photographyData });
+
+        try {
+          const response = await fetch(`/api/products/${productId}/photography`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(photographyData),
+          });
+
+          if (response.ok) {
+            const savedData = await response.json();
+            console.log('[DEBUG] 撮影データ保存完了（部分保存）:', savedData);
+            
+            showToast({
+              type: 'success',
+              title: '撮影データ保存完了',
+              message: '撮影した画像を保存しました',
+              duration: 3000
+            });
+          } else {
+            console.warn('[WARN] 撮影データ保存失敗（部分保存）:', response.status);
+          }
+        } catch (photographyError) {
+          console.error('[ERROR] 撮影データ保存エラー（部分保存）:', photographyError);
+        }
+      }
+      
       const progressData = {
         productId,
         currentStep: step,
@@ -441,7 +552,7 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
         notes: inspectionData.notes,
         videoId: videoId,
         lastUpdated: new Date().toISOString(),
-        status: 'inspecting', // 進行中ステータス
+        status: step === 2 && inspectionData.photos?.length > 0 ? 'inspection' : 'inspecting', // 撮影完了なら inspection
       };
 
       // 進捗保存API（新規作成）

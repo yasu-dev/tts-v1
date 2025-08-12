@@ -98,8 +98,6 @@ interface Product {
   name: string;
   sku: string;
   category: string;
-  brand: string;
-  model: string;
   status: 'pending_inspection' | 'inspecting' | 'completed' | 'failed';
   receivedDate: string;
 
@@ -124,8 +122,12 @@ const convertStatusToBusinessStatus = (status: string): BusinessStatus => {
   switch (status) {
     case 'inbound':
       return 'inbound';  // 入荷待ち
+    case 'pending_inspection':
+      return 'inbound';  // 検品待ち
     case 'inspection':
       return 'inspection';  // 検品中
+    case 'inspecting':
+      return 'inspection';  // 検品中（DB実際の値）
     case 'storage':
       return 'completed';  // 完了
     case 'completed':
@@ -135,6 +137,7 @@ const convertStatusToBusinessStatus = (status: string): BusinessStatus => {
     case 'failed':
       return 'rejected';  // 不合格
     default:
+      console.warn(`[WARN] 未定義ステータス: ${status} → inboundにフォールバック`);
       return 'inbound';
   }
 };
@@ -231,8 +234,6 @@ export default function InspectionPage() {
           name: item.name,
           sku: item.sku,
           category: item.category,
-          brand: item.metadata?.brand || 'Unknown',
-          model: item.metadata?.model || 'Unknown', 
           status: convertInventoryStatusToInspectionStatus(item.status),
           receivedDate: item.entryDate,
           imageUrl: item.imageUrl || '/api/placeholder/150/150',
@@ -542,11 +543,20 @@ export default function InspectionPage() {
         console.log(`[DEBUG] ステータス更新成功:`, result);
         
         // 商品リストのステータスを更新
-        setProducts(prev => prev.map(product => 
-          product.id === productId 
-            ? { ...product, status: newStatus as any }
-            : product
-        ));
+        setProducts(prev => {
+          console.log(`[DEBUG] setProducts実行前: 対象商品のステータス=`, prev.find(p => p.id === productId)?.status);
+          
+          const updated = prev.map(product => 
+            product.id === productId 
+              ? { ...product, status: newStatus as any }
+              : product
+          );
+          
+          console.log(`[DEBUG] setProducts実行後: 対象商品のステータス=`, updated.find(p => p.id === productId)?.status);
+          console.log(`[DEBUG] 変換後のBusinessStatus=`, convertStatusToBusinessStatus(newStatus));
+          
+          return updated;
+        });
 
         showToast({
           type: 'success',
@@ -588,12 +598,17 @@ export default function InspectionPage() {
 
   // 検品完了処理
   const handleCompleteInspection = async (product: Product) => {
+    console.log(`[DEBUG] 検品完了ボタン押下: 商品ID=${product.id}, 現在のステータス=${product.status}`);
+    
     const confirmed = window.confirm(
-      `検品を完了しますか？\n\n商品: ${product.name}\nSKU: ${product.sku}`
+      `検品を完了しますか？\n\n商品: ${product.name}\nSKU: ${product.sku}\n\n現在のステータス: ${product.status}`
     );
 
     if (confirmed) {
+      console.log(`[DEBUG] 検品完了確認OK: ステータス更新を実行します`);
       await updateInspectionStatus(product.id, 'completed');
+    } else {
+      console.log(`[DEBUG] 検品完了キャンセル`);
     }
   };
 
@@ -824,11 +839,39 @@ export default function InspectionPage() {
                       </td>
                       <td className="py-3 px-2 sm:px-4">
                         <div className="space-y-2">
-                          <div className="flex justify-center">
-                            <BusinessStatusIndicator 
-                              status={convertStatusToBusinessStatus(product.status) as any}
-                              size="sm"
-                            />
+                          <div className="flex flex-col items-center space-y-1">
+                            {(() => {
+                              const convertedStatus = convertStatusToBusinessStatus(product.status);
+                              
+                              // メタデータから詳細ステータス説明を取得
+                              let statusDescription = '';
+                              try {
+                                if (product.metadata) {
+                                  const metadata = typeof product.metadata === 'string' 
+                                    ? JSON.parse(product.metadata) 
+                                    : product.metadata;
+                                  statusDescription = metadata.statusDescription || '';
+                                }
+                              } catch (e) {
+                                console.warn('Failed to parse metadata for status description');
+                              }
+                              
+                              console.log(`[DEBUG] UI表示: 商品=${product.name}, 元ステータス=${product.status}, 変換後=${convertedStatus}, 詳細=${statusDescription}`);
+                              
+                              return (
+                                <>
+                                  <BusinessStatusIndicator 
+                                    status={convertedStatus as any}
+                                    size="sm"
+                                  />
+                                  {statusDescription && (
+                                    <div className="text-xs text-gray-600 text-center px-2 py-1 bg-gray-50 rounded">
+                                      {statusDescription}
+                                    </div>
+                                  )}
+                                </>
+                              );
+                            })()}
                           </div>
                           <button
                             onClick={() => toggleRowExpansion(product.id)}
@@ -1063,12 +1106,55 @@ export default function InspectionPage() {
                             <div className="flex items-center justify-between">
                               <div className="text-sm text-nexus-text-secondary">
                                 <div>ID: {product.id}</div>
-                                <div>
-                                  状態: <BusinessStatusIndicator 
-                                    status={convertStatusToBusinessStatus(product.status) as any}
-                                    size="sm"
-                                    showLabel={true}
-                                  />
+                                <div className="flex flex-col space-y-1">
+                                  <div>
+                                    状態: {(() => {
+                                      const convertedStatus = convertStatusToBusinessStatus(product.status);
+                                      
+                                      // メタデータから詳細ステータス説明を取得
+                                      let statusDescription = '';
+                                      try {
+                                        if (product.metadata) {
+                                          const metadata = typeof product.metadata === 'string' 
+                                            ? JSON.parse(product.metadata) 
+                                            : product.metadata;
+                                          statusDescription = metadata.statusDescription || '';
+                                        }
+                                      } catch (e) {
+                                        console.warn('Failed to parse metadata for status description');
+                                      }
+                                      
+                                      console.log(`[DEBUG] モバイルUI表示: 商品=${product.name}, 元ステータス=${product.status}, 変換後=${convertedStatus}, 詳細=${statusDescription}`);
+                                      
+                                      return (
+                                        <BusinessStatusIndicator 
+                                          status={convertedStatus as any}
+                                          size="sm"
+                                          showLabel={true}
+                                        />
+                                      );
+                                    })()}
+                                  </div>
+                                  {(() => {
+                                    // メタデータから詳細ステータス説明を取得
+                                    let statusDescription = '';
+                                    try {
+                                      if (product.metadata) {
+                                        const metadata = typeof product.metadata === 'string' 
+                                          ? JSON.parse(product.metadata) 
+                                          : product.metadata;
+                                        statusDescription = metadata.statusDescription || '';
+                                      }
+                                    } catch (e) {
+                                      // エラーは無視
+                                    }
+                                    
+                                    return statusDescription ? (
+                                      <div className="text-xs text-gray-600 px-2 py-1 bg-gray-50 rounded">
+                                        {statusDescription}
+                                      </div>
+                                    ) : null;
+                                  })()}
                                 </div>
                               </div>
                             </div>
