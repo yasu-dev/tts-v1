@@ -25,7 +25,58 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // データベースから注文情報とラベル情報を取得
+    // デモ環境用のモック配送ラベルデータ
+    const mockLabelData: Record<string, any> = {
+      'DEMO-SHIP-001': {
+        orderId: 'DEMO-SHIP-001',
+        url: '/api/shipping/label/demo/DEMO-SHIP-001.pdf',
+        fileName: 'fedex-label-DEMO-SHIP-001.pdf',
+        provider: 'fedex',
+        trackingNumber: 'FX123456789JP',
+        carrier: 'fedex',
+        uploadedAt: new Date().toISOString()
+      },
+      'DEMO-SHIP-002': {
+        orderId: 'DEMO-SHIP-002',
+        url: '/api/shipping/label/demo/DEMO-SHIP-002.pdf',
+        fileName: 'dhl-label-DEMO-SHIP-002.pdf',
+        provider: 'dhl',
+        trackingNumber: 'DHL987654321JP',
+        carrier: 'dhl',
+        uploadedAt: new Date().toISOString()
+      },
+      'DEMO-SHIP-003': {
+        orderId: 'DEMO-SHIP-003',
+        url: '/api/shipping/label/demo/DEMO-SHIP-003.pdf',
+        fileName: 'yamato-label-DEMO-SHIP-003.pdf',
+        provider: 'yamato',
+        trackingNumber: 'YMT456789012JP',
+        carrier: 'yamato',
+        uploadedAt: new Date().toISOString()
+      },
+      'DEMO-SHIP-004': {
+        orderId: 'DEMO-SHIP-004',
+        url: '/api/shipping/label/demo/DEMO-SHIP-004.pdf',
+        fileName: 'fedex-label-DEMO-SHIP-004.pdf',
+        provider: 'fedex',
+        trackingNumber: 'FX789123456JP',
+        carrier: 'fedex',
+        uploadedAt: new Date().toISOString()
+      }
+    };
+
+    // デモ環境の場合、モックデータを優先
+    if (orderId.startsWith('DEMO-SHIP-') && mockLabelData[orderId]) {
+      console.log(`📦 デモ環境: ${orderId}の配送ラベルデータを生成`);
+      const labelData = mockLabelData[orderId];
+      
+      // デモ配送ラベルの場合、PDF生成APIのURLに変更
+      labelData.url = `/api/shipping/label/demo/${orderId}`;
+      
+      return NextResponse.json(labelData);
+    }
+
+    // 通常環境：データベースから注文情報とラベル情報を取得
     const order = await prisma.order.findFirst({
       where: {
         OR: [

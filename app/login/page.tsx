@@ -8,8 +8,8 @@ import { useToast } from '@/app/components/features/notifications/ToastProvider'
 import NexusCheckbox from '@/app/components/ui/NexusCheckbox';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('seller@example.com'); // デフォルトでテスト用メール
-  const [password, setPassword] = useState('password123'); // デフォルトでテスト用パスワード
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -126,14 +126,7 @@ export default function LoginPage() {
           <div className="intelligence-card global shadow-xl">
             <div className="p-8">
               <form className="space-y-6" onSubmit={handleSubmit} method="post">
-                {/* テスト用認証情報表示 */}
-                <div className="p-3 bg-blue-50 border border-blue-200 rounded-md text-sm">
-                  <div className="font-medium text-blue-800 mb-1">🧪 テスト用認証情報</div>
-                  <div className="text-blue-600">
-                    <div>メール: seller@example.com</div>
-                    <div>パスワード: password123</div>
-                  </div>
-                </div>
+
 
                 {error && (
                   <div className="bg-nexus-red/8 border-2 border-nexus-red/20 text-nexus-red p-4 rounded-lg text-sm font-medium flex items-center">
@@ -239,61 +232,7 @@ export default function LoginPage() {
                 </div>
               </form>
 
-              {/* Demo Credentials */}
-              <div className="mt-8 p-4 bg-primary-blue/10 rounded-xl border-2 border-primary-blue/25">
-                <p className="text-sm text-primary-blue mb-3 font-bold flex items-center">
-                  <svg className="w-4 h-4 mr-2 text-primary-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  テスト用ログイン情報
-                </p>
-                <div className="space-y-2 text-xs">
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/70 border border-primary-blue/20">
-                    <span className="text-primary-blue font-medium">セラー:</span>
-                    <NexusButton
-                      type="button"
-                      data-testid="seller-login"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setEmail('seller@example.com');
-                        setPassword('password123');
-                        // 値が設定されることを確実にするため少し待つ
-                        setTimeout(() => {
-                          console.log('セラーログイン情報設定完了');
-                        }, 100);
-                      }}
-                      variant="secondary"
-                      size="sm"
-                      className="font-mono text-xs text-primary-blue hover:text-primary-blue-light"
-                    >
-                      seller@example.com / password123
-                    </NexusButton>
-                  </div>
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/70 border border-primary-blue/20">
-                    <span className="text-primary-blue font-medium">スタッフ:</span>
-                    <NexusButton
-                      type="button"
-                      data-testid="staff-login"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setEmail('staff@example.com');
-                        setPassword('password123');
-                        // 値が設定されることを確実にするため少し待つ
-                        setTimeout(() => {
-                          console.log('スタッフログイン情報設定完了');
-                        }, 100);
-                      }}
-                      variant="secondary"
-                      size="sm"
-                      className="font-mono text-xs text-primary-blue hover:text-primary-blue-light"
-                    >
-                      staff@example.com / password123
-                    </NexusButton>
-                  </div>
-                </div>
-              </div>
+
             </div>
           </div>
 

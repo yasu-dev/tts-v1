@@ -928,61 +928,32 @@ export default function StaffShippingPage() {
           <div className="p-8">
             {/* タブヘッダー */}
             <div className="border-b border-nexus-border mb-6">
-              <nav className="-mb-px flex items-center" aria-label="Tabs">
-                {/* 作業があるタブグループ */}
-                <div className="flex space-x-6 border-r border-nexus-border pr-6 mr-6">
-                  <span className="text-xs text-nexus-text-tertiary font-medium uppercase tracking-wider self-center">作業中</span>
-                  {[
-                    { id: 'all', label: '全体', count: stats.total },
-                    { id: 'workstation', label: '梱包待ち', count: stats.workstation },
-                    { id: 'packed', label: '梱包済み', count: stats.packed },
-                  ].map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`
-                        whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors
-                        ${activeTab === tab.id
-                          ? 'border-nexus-blue text-nexus-blue'
-                          : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-gray-300'
-                        }
-                      `}
-                    >
-                      {tab.label}
-                      <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        activeTab === tab.id ? 'bg-nexus-blue text-white' : 'bg-nexus-bg-secondary text-nexus-text-secondary'
-                      }`}>
-                        {tab.count}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-                
-                {/* 作業がないタブグループ */}
-                <div className="flex items-center space-x-6">
-                  <span className="text-xs text-nexus-text-tertiary font-medium uppercase tracking-wider">作業完了</span>
+              <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+                {[
+                  { id: 'all', label: '全体', count: stats.total },
+                  { id: 'workstation', label: '梱包待ち', count: stats.workstation },
+                  { id: 'packed', label: '梱包済み', count: stats.packed },
+                  { id: 'ready_for_pickup', label: '集荷準備完了', count: stats.ready_for_pickup },
+                ].map((tab) => (
                   <button
-                    onClick={() => setActiveTab('ready_for_pickup')}
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
                     className={`
                       whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors
-                      ${activeTab === 'ready_for_pickup'
-                        ? 'border-blue-500 text-blue-600'
+                      ${activeTab === tab.id
+                        ? 'border-nexus-blue text-nexus-blue'
                         : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-gray-300'
                       }
                     `}
                   >
-                    集荷準備完了
-                    <BusinessStatusIndicator 
-                      status={activeTab === 'ready_for_pickup' ? 'completed' : 'pending'} 
-                      size="sm" 
-                      showLabel={false}
-                      className="ml-2"
-                    />
-                    <span className="ml-1 text-sm">
-                      {stats.ready_for_pickup}
+                    {tab.label}
+                    <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      activeTab === tab.id ? 'bg-nexus-blue text-white' : 'bg-nexus-bg-secondary text-nexus-text-secondary'
+                    }`}>
+                      {tab.count}
                     </span>
                   </button>
-                </div>
+                ))}
               </nav>
             </div>
 
