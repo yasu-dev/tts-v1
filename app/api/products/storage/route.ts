@@ -1,23 +1,51 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/database';
 import { AuthService } from '@/lib/auth';
-
-const prisma = new PrismaClient();
 
 // 商品保管完了API
 export async function POST(request: NextRequest) {
   try {
     console.log('🔧 保管完了API呼び出し開始');
+    console.log('🔧 Prisma client status:', !!prisma);
+    
+    // データベース接続テスト
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      console.log('✅ データベース接続OK');
+    } catch (dbError) {
+      console.error('❌ データベース接続エラー:', dbError);
+      throw new Error('データベースに接続できません');
+    }
     
     let user;
     try {
       user = await AuthService.requireRole(request, ['staff', 'admin']);
     } catch (authError) {
       console.log('🔧 認証エラー - デモ環境として続行:', authError);
-      user = { 
-        id: 'demo-user', 
-        username: 'デモスタッフ',
-        role: 'staff'
+      
+      // デモユーザーをデータベースで確認・作成
+      let demoUser = await prisma.user.findUnique({
+        where: { id: 'demo-user' }
+      });
+      
+      if (!demoUser) {
+        console.log('🔧 デモユーザー作成中...');
+        demoUser = await prisma.user.create({
+          data: {
+            id: 'demo-user',
+            email: 'demo@example.com',
+            username: 'デモスタッフ',
+            password: 'demo-password-hash',
+            role: 'staff'
+          }
+        });
+        console.log('✅ デモユーザー作成完了');
+      }
+      
+      user = {
+        id: demoUser.id,
+        username: demoUser.username,
+        role: demoUser.role
       };
     }
 
@@ -228,11 +256,45 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Storage completion error:', error);
+    console.error('🚨 Storage completion error:', error);
+    console.error('🚨 Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    
+    // より詳細なエラー情報をログ出力
+    if (error instanceof Error) {
+      console.error('🚨 Error name:', error.name);
+      console.error('🚨 Error message:', error.message);
+    }
+    
+    // エラーの型別処理
+    let errorMessage = '保管処理中にエラーが発生しました';
+    let errorDetails = error instanceof Error ? error.message : '不明なエラー';
+    
+    // Prismaエラーの場合
+    if (error && typeof error === 'object' && 'code' in error) {
+      console.error('🚨 Prisma error code:', (error as any).code);
+      console.error('🚨 Prisma error meta:', (error as any).meta);
+      
+      switch ((error as any).code) {
+        case 'P2002':
+          errorMessage = 'データの一意制約違反が発生しました';
+          break;
+        case 'P2025':
+          errorMessage = '指定されたデータが見つかりません';
+          break;
+        case 'P1001':
+          errorMessage = 'データベースサーバーに接続できません';
+          break;
+        default:
+          errorMessage = `データベースエラー (${(error as any).code})`;
+      }
+    }
+    
     return NextResponse.json(
       { 
-        error: '保管処理中にエラーが発生しました',
-        details: error instanceof Error ? error.message : '不明なエラー'
+        error: errorMessage,
+        details: errorDetails,
+        code: error && typeof error === 'object' && 'code' in error ? (error as any).code : undefined,
+        stack: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : null) : undefined
       },
       { status: 500 }
     );

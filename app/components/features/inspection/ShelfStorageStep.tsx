@@ -172,6 +172,7 @@ export default function ShelfStorageStep({
         const errorData = await response.json().catch(() => ({ error: '不明なエラー' }));
         console.error('❌ 保管完了APIエラー:', {
           status: response.status,
+          statusText: response.statusText,
           error: errorData,
           sentData: {
             productId: productId,
@@ -179,6 +180,18 @@ export default function ShelfStorageStep({
             locationCode: validatedLocation.code
           }
         });
+        
+        // 詳細なエラー情報があれば表示
+        if (errorData.details) {
+          console.error('📋 エラー詳細:', errorData.details);
+        }
+        if (errorData.code) {
+          console.error('🔧 エラーコード:', errorData.code);
+        }
+        if (errorData.stack) {
+          console.error('📚 スタックトレース:', errorData.stack);
+        }
+        
         throw new Error(errorData.error || `保管処理に失敗しました (${response.status})`);
       }
 

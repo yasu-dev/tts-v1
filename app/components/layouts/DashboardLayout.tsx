@@ -262,24 +262,11 @@ export default function DashboardLayout({
           const scrollDelta = currentScrollY - currentLastScrollY;
           const isScrollingDown = scrollDelta > 0;
           const isScrollingUp = scrollDelta < 0;
-          const scrollThreshold = 5; // 【修正】スムーススクロール対応のため25px → 5pxに下げる
+          const scrollThreshold = 3;
           const topThreshold = 15;
           
-          // スクロール検知ログは削除（業務フロー制御のみ出力）
-          
-          // 最上部付近では常に展開
-          // 【修正】最上部でも自動展開しない - 右上ボタンのみで開く
-          /* 
-          if (currentScrollY < topThreshold) {
-            console.log('最上部: フロー展開');
-            setIsFlowCollapsed(false);
-          }
-          */
           // 十分な下スクロールで折りたたみ
-          // 【テスト調整】60px -> 250px に変更（感覚調整のため、ロールバック可能性高）
-          if (isScrollingDown && Math.abs(scrollDelta) > scrollThreshold && currentScrollY > 250) {
-              // 業務フローを閉じる時のみログ出力
-              console.log('🟡 業務フローを自動的に閉じます（スクロール検出）');
+          if (isScrollingDown && Math.abs(scrollDelta) > scrollThreshold && currentScrollY > 250 && !isFlowCollapsed) {
               setIsFlowCollapsed(true);
           } 
           // 条件未満時のログは削除（不要なログを制限）
