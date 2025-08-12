@@ -10,7 +10,7 @@ import {
   FunnelIcon,
 } from '@heroicons/react/24/outline';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
-import HoloTable from '@/app/components/ui/HoloTable';
+
 import NexusButton from '@/app/components/ui/NexusButton';
 import BaseModal from '@/app/components/ui/BaseModal';
 import { NexusLoadingSpinner, NexusSelect, NexusInput, NexusCheckbox, NexusTextarea } from '@/app/components/ui';
@@ -311,102 +311,98 @@ export default function SalesPage() {
           </div>
 
           <div className="p-6">
-            {salesData?.recentOrders && (
-              <HoloTable
-                data={salesData.recentOrders}
-                columns={[
-                  {
-                    key: 'orderNumber',
-                    header: '注文番号',
-                    width: '120px'
-                  },
-                  {
-                    key: 'product',
-                    header: '商品名',
-                    width: '200px'
-                  },
-                  {
-                    key: 'customer',
-                    header: '顧客',
-                    width: '120px'
-                  },
-                  {
-                    key: 'amount',
-                    header: '金額',
-                    width: '100px'
-                  },
-                  {
-                    key: 'status',
-                    header: 'ステータス',
-                    width: '120px'
-                  },
-                  {
-                    key: 'labelStatus',
-                    header: 'ラベル',
-                    width: '100px'
-                  },
-                  {
-                    key: 'date',
-                    header: '注文日',
-                    width: '100px'
-                  },
-                  {
-                    key: 'actions',
-                    header: 'アクション',
-                    width: '120px'
-                  }
-                ]}
-                renderCell={(value, column, row) => {
-                  if (column.key === 'amount') {
-                    return `¥${Number(row.totalAmount || value || 0).toLocaleString()}`;
-                  }
-                  
-                  if (column.key === 'status') {
-                    return <BusinessStatusIndicator status={row.status} size="md" showLabel={true} />;
-                  }
-
-                  if (column.key === 'labelStatus') {
-                    if (row.labelGenerated) {
-                      return (
-                        <span className="status-badge success">
-                          生成済み
-                        </span>
-                      );
-                    }
-                    return (
-                      <span className="status-badge info">
-                        未生成
-                      </span>
-                    );
-                  }
-                  
-                  if (column.key === 'actions') {
-                    if (['confirmed', 'processing'].includes(row.status) && !row.labelGenerated) {
-                      return (
-                        <NexusButton
-                          size="sm"
-                          variant="primary"
-                          onClick={() => handleGenerateLabel(row)}
-                          icon={<DocumentArrowUpIcon className="w-4 h-4" />}
-                        >
-                          ラベル生成
-                        </NexusButton>
-                      );
-                    } else if (row.labelGenerated) {
-                      return (
-                        <span className="text-xs text-nexus-text-secondary">
-                          {row.trackingNumber ? `追跡: ${row.trackingNumber.slice(-8)}` : 'アップロード済み'}
-                        </span>
-                      );
-                    } else {
-                      return <span className="text-xs text-nexus-text-secondary">-</span>;
-                    }
-                  }
-                  
-                  return value;
-                }}
-                emptyMessage="注文データがありません"
-              />
+            {salesData?.recentOrders ? (
+              <div className="overflow-x-auto">
+                <div className="holo-table">
+                  <table className="w-full">
+                    <thead className="holo-header">
+                      <tr>
+                        <th className="text-left p-4 font-medium text-nexus-text-secondary">注文番号</th>
+                        <th className="text-left p-4 font-medium text-nexus-text-secondary">商品名</th>
+                        <th className="text-left p-4 font-medium text-nexus-text-secondary">顧客</th>
+                        <th className="text-right p-4 font-medium text-nexus-text-secondary">金額</th>
+                        <th className="text-center p-4 font-medium text-nexus-text-secondary">ステータス</th>
+                        <th className="text-center p-4 font-medium text-nexus-text-secondary">ラベル</th>
+                        <th className="text-left p-4 font-medium text-nexus-text-secondary">注文日</th>
+                        <th className="text-center p-4 font-medium text-nexus-text-secondary">アクション</th>
+                      </tr>
+                    </thead>
+                    <tbody className="holo-body">
+                      {salesData.recentOrders.length === 0 ? (
+                        <tr>
+                          <td colSpan={8} className="p-8 text-center text-nexus-text-secondary">
+                            注文データがありません
+                          </td>
+                        </tr>
+                      ) : (
+                        salesData.recentOrders.map((row, index) => (
+                          <tr key={row.id || index} className="holo-row">
+                            <td className="p-4">
+                              <span className="font-mono text-sm text-nexus-text-primary">{row.orderNumber || row.orderId}</span>
+                            </td>
+                            <td className="p-4">
+                              <span className="text-nexus-text-primary">{row.product}</span>
+                            </td>
+                            <td className="p-4">
+                              <span className="text-nexus-text-primary">{row.customer}</span>
+                            </td>
+                            <td className="p-4 text-right">
+                              <span className="font-bold text-nexus-text-primary">
+                                ¥{Number(row.totalAmount || row.amount || 0).toLocaleString()}
+                              </span>
+                            </td>
+                            <td className="p-4">
+                              <div className="flex justify-center">
+                                <BusinessStatusIndicator status={row.status} size="md" showLabel={true} />
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              <div className="flex justify-center">
+                                {row.labelGenerated ? (
+                                  <span className="status-badge success">
+                                    生成済み
+                                  </span>
+                                ) : (
+                                  <span className="status-badge info">
+                                    未生成
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              <span className="text-sm text-nexus-text-primary">{row.date}</span>
+                            </td>
+                            <td className="p-4">
+                              <div className="flex justify-center">
+                                {['confirmed', 'processing'].includes(row.status) && !row.labelGenerated ? (
+                                  <NexusButton
+                                    size="sm"
+                                    variant="primary"
+                                    onClick={() => handleGenerateLabel(row)}
+                                    icon={<DocumentArrowUpIcon className="w-4 h-4" />}
+                                  >
+                                    ラベル生成
+                                  </NexusButton>
+                                ) : row.labelGenerated ? (
+                                  <span className="text-xs text-nexus-text-secondary">
+                                    {row.trackingNumber ? `追跡: ${row.trackingNumber.slice(-8)}` : 'アップロード済み'}
+                                  </span>
+                                ) : (
+                                  <span className="text-xs text-nexus-text-secondary">-</span>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : (
+              <div className="p-8 text-center text-nexus-text-secondary">
+                データを読み込み中...
+              </div>
             )}
             
             {/* ページネーション */}

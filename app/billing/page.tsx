@@ -9,7 +9,7 @@ import {
   CreditCardIcon,
 } from '@heroicons/react/24/outline';
 import NexusButton from '@/app/components/ui/NexusButton';
-import HoloTable from '@/app/components/ui/HoloTable';
+
 import BaseModal from '@/app/components/ui/BaseModal';
 import { BusinessStatusIndicator } from '@/app/components/ui';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';

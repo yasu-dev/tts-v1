@@ -12,7 +12,7 @@ import {
   ExclamationCircleIcon,
 } from '@heroicons/react/24/outline';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
-import HoloTable from '@/app/components/ui/HoloTable';
+
 import NexusButton from '@/app/components/ui/NexusButton';
 import NexusSelect from '@/app/components/ui/NexusSelect';
 import NexusInput from '@/app/components/ui/NexusInput';
