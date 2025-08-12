@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
         shippingAddress: '愛知県名古屋市中区錦1-8-9',
         status: 'ready_for_pickup' as const, // 集荷準備完了
         dueDate: new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString().split('T')[0],
-        shippingMethod: 'FedX Priority',
+        shippingMethod: 'FedEx Priority',
         value: 450000,
         location: 'PACK',
         productImages: ['/images/products/sony-a7r5.jpg'],

@@ -12,27 +12,27 @@ test.describe('統一配送フロー', () => {
     await page.waitForSelector('.holo-table');
   });
 
-  test('Fedx配送フロー: ラベル生成→ピッキング→出荷', async ({ page }) => {
-    // ステップ1: セラーがFedxラベル生成
-    console.log('ステップ1: Fedxラベル生成');
+  test('FedEx配送フロー: ラベル生成→ピッキング→出荷', async ({ page }) => {
+    // ステップ1: セラーがFedExラベル生成
+    console.log('ステップ1: FedExラベル生成');
     
     // 注文のラベル生成ボタンをクリック
     const labelButton = page.locator('button:has-text("ラベル生成")').first();
     await expect(labelButton).toBeVisible();
     await labelButton.click();
 
-    // 配送業者選択モーダルでFedxを選択
+    // 配送業者選択モーダルでFedExを選択
     await page.waitForSelector('text=配送ラベル生成');
-    await page.selectOption('select.w-full', { value: 'fedx' });
+    await page.selectOption('select.w-full', { value: 'fedex' });
 
-    // FedXサービス選択モーダル
-    await page.waitForSelector('text=FedXサービス選択');
+    // FedExサービス選択モーダル
+    await page.waitForSelector('text=FedExサービス選択');
     const standardService = page.locator('button:has-text("Standard")');
     await expect(standardService).toBeVisible();
     await standardService.click();
 
     // ラベル生成完了を確認
-    await expect(page.locator('.toast-success')).toContainText('FedX配送ラベルが生成され、ピッキング開始可能になりました');
+    await expect(page.locator('.toast-success')).toContainText('FedEx配送ラベルが生成され、ピッキング開始可能になりました');
     
     // ステップ2: スタッフがロケーション管理でピッキング対象確認
     console.log('ステップ2: ロケーション管理でピッキング対象確認');
@@ -103,7 +103,7 @@ test.describe('統一配送フロー', () => {
       await expect(page.locator('.toast-success')).toContainText('ダウンロード完了');
     }
 
-    console.log('Fedx配送フロー完了');
+    console.log('FedEx配送フロー完了');
   });
 
   test('外部配送業者フロー: ラベルアップロード→ピッキング→出荷', async ({ page }) => {

@@ -137,9 +137,9 @@ class FedXServerAdapter {
 
       const shippingAddress = this.parseAddress(item.shippingAddress);
       
-      const shipmentRequest: FedXShipmentRequest = {
+      const shipmentRequest: FedExShipmentRequest = {
         accountNumber: this.config.accountNumber,
-        serviceType: serviceTypeMap[service] || 'FEDX_GROUND',
+        serviceType: serviceTypeMap[service] || 'FEDEX_GROUND',
         packagingType: 'YOUR_PACKAGING',
         shipper: {
           contact: {

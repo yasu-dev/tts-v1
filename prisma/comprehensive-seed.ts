@@ -493,7 +493,7 @@ async function main() {
   // 配送データを作成
   console.log('🚚 配送データを作成中...');
   
-  const carriers = ['fedx', 'yamato', 'sagawa', 'japan-post'];
+  const carriers = ['fedex', 'yamato', 'sagawa', 'japan-post'];
   const methods = ['standard', 'express', 'overnight'];
   const shipmentStatuses = ['pending', 'picked', 'packed', 'shipped', 'delivered'];
   const shipments = [];

@@ -47,7 +47,7 @@ export default function SalesPage() {
 
   // 配送業者のリスト  
   const carriers = [
-    { value: 'fedx', label: 'FedX', apiEnabled: true },
+    { value: 'fedex', label: 'FedEx', apiEnabled: true },
     { value: 'yamato', label: 'ヤマト運輸 (ビジネスメンバーズ)', apiEnabled: false, url: 'https://business.kuronekoyamato.co.jp/' },
     { value: 'sagawa', label: '佐川急便 (e-飛伝)', apiEnabled: false, url: 'https://www.e-service.sagawa-exp.co.jp/portal/do/login/show' },
     { value: 'japan-post', label: '日本郵便 (Webゆうパック)', apiEnabled: false, url: 'https://www.post.japanpost.jp/service/yu_pack/index.html' },
@@ -103,8 +103,8 @@ export default function SalesPage() {
     const carrier = carriers.find(c => c.value === selectedCarrier);
     if (!carrier) return;
 
-    if (carrier.apiEnabled && carrier.value === 'fedx') {
-      // FedX専用モーダルを開く
+    if (carrier.apiEnabled && carrier.value === 'fedex') {
+      // FedEx専用モーダルを開く
       setIsLabelModalOpen(false);
       setTimeout(() => {
         setIsFedexModalOpen(true);
@@ -135,17 +135,17 @@ export default function SalesPage() {
     setSelectedFedexService('');
   };
 
-  const handleFedxServiceSelect = async (serviceId: string) => {
+  const handleFedexServiceSelect = async (serviceId: string) => {
     if (!selectedOrder) return;
 
     try {
       showToast({
         title: 'ラベル生成中',
-        message: 'FedXの配送ラベルを生成しています...',
+        message: 'FedExの配送ラベルを生成しています...',
         type: 'info'
       });
 
-      const response = await fetch('/api/shipping/fedx', {
+      const response = await fetch('/api/shipping/fedex', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -161,12 +161,12 @@ export default function SalesPage() {
         })
       });
 
-      if (!response.ok) throw new Error('FedXラベル生成に失敗しました');
+      if (!response.ok) throw new Error('FedExラベル生成に失敗しました');
 
       const result = await response.json();
 
       showToast({
-        title: 'FedXラベルが正常に生成されました',
+        title: 'FedExラベルが正常に生成されました',
         message: `追跡番号: ${result.trackingNumber}。スタッフが梱包完了後にラベルを出力いたします。`,
         type: 'success'
       });
@@ -181,10 +181,10 @@ export default function SalesPage() {
       }));
 
     } catch (error) {
-      console.error('FedX label generation error:', error);
+      console.error('FedEx label generation error:', error);
       showToast({
         title: 'エラー',
-        message: 'FedXラベルの生成に失敗しました',
+        message: 'FedExラベルの生成に失敗しました',
         type: 'error'
       });
     }
@@ -484,12 +484,12 @@ export default function SalesPage() {
                 ]}
                 required
               />
-              {selectedCarrier === 'fedx' && (
+              {selectedCarrier === 'fedex' && (
                 <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                   <div className="flex items-center gap-2 text-blue-800">
                     <TruckIcon className="w-5 h-5" />
                     <p className="text-sm font-medium">
-                      FedXサービス詳細選択へ進みます
+                      FedExサービス詳細選択へ進みます
                     </p>
                   </div>
                   <p className="text-xs text-blue-600 mt-1">
@@ -497,7 +497,7 @@ export default function SalesPage() {
                   </p>
                 </div>
               )}
-              {selectedCarrier && selectedCarrier !== '' && selectedCarrier !== 'fedx' && (
+              {selectedCarrier && selectedCarrier !== '' && selectedCarrier !== 'fedex' && (
                 <p className="mt-2 text-sm text-yellow-600 flex items-start gap-1">
                   <ExclamationTriangleIcon className="w-4 h-4 mt-0.5 flex-shrink-0" />
                   外部サイトでラベルを生成後、アップロードしてください
@@ -523,7 +523,7 @@ export default function SalesPage() {
                 disabled={!selectedCarrier || selectedCarrier === ''}
                 icon={<DocumentArrowUpIcon className="w-5 h-5" />}
               >
-                {selectedCarrier === 'fedx' ? '詳細選択へ進む' : selectedCarrier ? '外部サービスを開く' : '配送業者を選択'}
+                {selectedCarrier === 'fedex' ? '詳細選択へ進む' : selectedCarrier ? '外部サービスを開く' : '配送業者を選択'}
               </NexusButton>
             </div>
           </div>
@@ -542,7 +542,7 @@ export default function SalesPage() {
           />
         )}
 
-        {/* FedX専用サービス選択モーダル */}
+        {/* FedEx専用サービス選択モーダル */}
         {selectedOrder && (
           <FedExServiceModal
             isOpen={isFedexModalOpen}
@@ -550,7 +550,7 @@ export default function SalesPage() {
               setIsFedexModalOpen(false);
               setSelectedOrder(null);
             }}
-            onServiceSelect={handleFedxServiceSelect}
+            onServiceSelect={handleFedexServiceSelect}
             orderDetails={{
               orderId: selectedOrder.orderId || selectedOrder.orderNumber,
               product: selectedOrder.product,

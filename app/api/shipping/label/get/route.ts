@@ -62,10 +62,10 @@ export async function GET(request: NextRequest) {
       orderId: order.orderNumber,
       url: order.shippingLabelUrl,
       fileName: order.shippingLabelFileName,
-      provider: 'fedx' as const,
+      provider: 'fedex' as const,
       uploadedAt: order.updatedAt.toISOString(),
       trackingNumber: order.trackingNumber,
-      carrier: 'fedx'
+      carrier: 'fedex'
     };
 
     return NextResponse.json(labelData);

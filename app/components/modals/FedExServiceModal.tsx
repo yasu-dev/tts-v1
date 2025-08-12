@@ -121,7 +121,7 @@ export default function FedExServiceModal({
   const handleConfirm = () => {
     onServiceSelect(selectedService);
     showToast({
-      title: 'FedXサービス選択完了',
+      title: 'FedExサービス選択完了',
       message: `${selectedServiceData?.name}を選択しました`,
       type: 'success'
     });
@@ -145,7 +145,7 @@ export default function FedExServiceModal({
     <BaseModal
       isOpen={isOpen}
       onClose={handleBack}
-      title={isConfirming ? 'サービス選択の確認' : 'FedX配送サービス選択'}
+      title={isConfirming ? 'サービス選択の確認' : 'FedEx配送サービス選択'}
       size="lg"
     >
       <div className="space-y-6">
@@ -268,7 +268,7 @@ export default function FedExServiceModal({
               <CheckCircleIcon className="w-16 h-16 text-green-500 mx-auto mb-4" />
               <h2 className="text-xl font-bold text-nexus-text-primary mb-2">サービス選択の確認</h2>
               <p className="text-nexus-text-secondary">
-                以下の内容でFedXラベルを生成します
+                以下の内容でFedExラベルを生成します
               </p>
             </div>
 
@@ -316,7 +316,7 @@ export default function FedExServiceModal({
                 <InformationCircleIcon className="w-5 h-5 text-blue-600 mt-0.5" />
                 <div className="text-sm text-blue-800">
                   <p className="font-medium mb-1">最終確認</p>
-                  <p>「ラベル生成を開始」をクリックすると、FedXラベルの生成処理が開始されます。生成後の変更はできませんのでご注意ください。</p>
+                  <p>「ラベル生成を開始」をクリックすると、FedExラベルの生成処理が開始されます。生成後の変更はできませんのでご注意ください。</p>
                 </div>
               </div>
             </div>

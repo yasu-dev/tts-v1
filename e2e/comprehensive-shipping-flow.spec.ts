@@ -45,18 +45,18 @@ test.describe('配送ラベル生成の包括的フロー検証', () => {
     // モーダルが表示される
     await expect(page.locator('text="配送ラベル生成"')).toBeVisible();
     
-    // FedXを選択
+    // FedExを選択
     await page.selectOption('select', 'fedex');
     await page.waitForTimeout(1000);
     
     // FedXサービス選択UIが表示される
     await expect(page.locator('label').filter({ hasText: 'FedEx サービス' })).toBeVisible();
     
-    // FedXサービス選択肢を確認
+    // FedExサービス選択肢を確認
     const fedexServiceSelect = page.locator('select').nth(1);
     const options = await fedexServiceSelect.locator('option').allTextContents();
     
-    console.log('FedX サービス選択肢:', options);
+    console.log('FedEx サービス選択肢:', options);
     
     // 期待するサービス選択肢が含まれているか確認
     const expectedServices = [
@@ -73,7 +73,7 @@ test.describe('配送ラベル生成の包括的フロー検証', () => {
       expect(options).toContain(expectedService);
     });
     
-    console.log('✅ FedX サービス選択肢が正しく表示されています');
+    console.log('✅ FedEx サービス選択肢が正しく表示されています');
     
     // モーダルを閉じる
     await page.locator('button:has-text("キャンセル")').click();
@@ -112,7 +112,7 @@ test.describe('配送ラベル生成の包括的フロー検証', () => {
     await page.waitForTimeout(500);
   });
 
-  test('4. FedX ラベル生成フローの完全テスト', async ({ page }) => {
+  test('4. FedEx ラベル生成フローの完全テスト', async ({ page }) => {
     // ラベル生成ボタンをクリック
     const labelButton = page.locator('button:has-text("ラベル生成")').first();
     await labelButton.click();
@@ -122,16 +122,16 @@ test.describe('配送ラベル生成の包括的フロー検証', () => {
     await expect(submitButton).toHaveText('配送業者を選択');
     await expect(submitButton).toBeDisabled();
     
-    // FedXを選択
+    // FedExを選択
     await page.selectOption('select', 'fedex');
     await page.waitForTimeout(1000);
     
-    // FedXサービス選択後の状態: サービス未選択でボタン無効
+    // FedExサービス選択後の状態: サービス未選択でボタン無効
     submitButton = page.locator('[role="dialog"]').locator('button').last();
     await expect(submitButton).toHaveText('ラベル生成');
     await expect(submitButton).toBeDisabled();
     
-    // FedXサービスを選択
+    // FedExサービスを選択
     const fedexServiceSelect = page.locator('select').nth(1);
     await fedexServiceSelect.selectOption('ground');
     await page.waitForTimeout(500);
@@ -144,9 +144,9 @@ test.describe('配送ラベル生成の包括的フロー検証', () => {
     await submitButton.click();
     
     // 生成完了のトーストメッセージを待つ
-    await expect(page.locator('text="FedXラベルが正常に生成されました"')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text="FedExラベルが正常に生成されました"')).toBeVisible({ timeout: 10000 });
     
-    console.log('✅ FedX ラベル生成フローが正常に動作しています');
+    console.log('✅ FedEx ラベル生成フローが正常に動作しています');
   });
 
   test('5. 外部サービスから配送伝票アップロードフローの完全テスト', async ({ page }) => {
@@ -204,7 +204,7 @@ test.describe('配送ラベル生成の包括的フロー検証', () => {
       await page.waitForTimeout(500);
       
       if (carrier.needsService) {
-        // FedXの場合はサービス選択が必要
+        // FedExの場合はサービス選択が必要
         const serviceSelect = page.locator('select').nth(1);
         await serviceSelect.selectOption('ground');
         await page.waitForTimeout(500);

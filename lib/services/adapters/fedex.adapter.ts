@@ -459,7 +459,7 @@ export class FedExAdapter {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`FedX配送ラベル生成エラー: ${response.status} - ${errorText}`);
+        throw new Error(`FedEx配送ラベル生成エラー: ${response.status} - ${errorText}`);
       }
 
       const result: FedExShipmentResponse = await response.json();
@@ -595,7 +595,7 @@ export class FedExAdapter {
 
       return await response.json();
     } catch (error) {
-      console.error('FedX追跡エラー:', error);
+      console.error('FedEx追跡エラー:', error);
       throw error;
     }
   }
