@@ -44,8 +44,8 @@ export async function POST(
         id: productId,
         sku: body.sku || `DEMO-${productId}`,
         name: body.name || `デモ商品 ${productId}`,
-        brand: body.brand || 'デモブランド',
-        model: body.model || `モデル${productId}`,
+        brand: 'デモブランド',
+        model: `モデル${productId}`,
         category: 'camera',
         price: 100000
       };
@@ -59,8 +59,8 @@ export async function POST(
       productId: product.id,
       sku: product.sku,
       name: product.name,
-      brand: product.brand,
-      model: product.model,
+      brand: 'Unknown',
+      model: 'Unknown',
       price: typeof product.price === 'number' ? product.price : undefined,
       generatedBy: user.username,
     };

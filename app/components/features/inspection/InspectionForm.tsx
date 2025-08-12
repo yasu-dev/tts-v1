@@ -542,11 +542,21 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
         console.log('[INFO] No checklist data available, defaulting to passed');
       }
 
+      // 検品結果に基づくステータス決定
+      let inspectionStatus = 'inspection'; // デフォルト
+      if (result === 'passed') {
+        inspectionStatus = inspectionOnly ? 'inspection' : 'storage';  // 撮影も完了なら保管可能
+      } else if (result === 'failed') {
+        inspectionStatus = 'failed';  // 不合格
+      } else {
+        inspectionStatus = 'inspection';  // 要確認は検品継続
+      }
+
       const finalData = {
         productId,
         inspectionNotes: inspectionData.notes || '',
         condition: result === 'passed' ? 'excellent' : result === 'conditional' ? 'good' : 'poor',
-        status: 'inspection',
+        status: inspectionStatus,
         locationId: locationId, // 保管場所IDを追加
         skipPhotography: inspectionOnly,
         photographyDate: inspectionOnly ? null : new Date().toISOString(),
@@ -569,14 +579,23 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
 
       const savedData = await response.json();
 
-      // 検品完了時は進捗データをクリア
+      // 検品完了時は進捗データを完了ステータスで更新
       try {
-        await fetch(`/api/products/inspection/progress/${productId}`, {
-          method: 'DELETE',
+        const progressStep = inspectionOnly ? 2 : 4;  // 検品のみなら2、撮影も含むなら4
+        await fetch('/api/products/inspection/progress', {
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            productId,
+            currentStep: progressStep,
+            checklist: inspectionData.checklist,
+            photos: inspectionData.photos,
+            notes: inspectionData.notes,
+            status: inspectionStatus
+          })
         });
       } catch (error) {
-        console.error('[WARN] Failed to clear progress data:', error);
+        console.error('[WARN] Failed to update progress data:', error);
         // エラーでも処理は継続
       }
 

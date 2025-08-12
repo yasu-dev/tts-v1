@@ -50,12 +50,14 @@ export default function PhotographyOnlyForm({ productId }: PhotographyOnlyFormPr
   }, [productId]);
 
   const handlePhotosUpdate = (newPhotos: string[]) => {
+    console.log('写真データ更新:', newPhotos);
     setPhotos(newPhotos);
   };
 
   const handleSubmitPhotography = async () => {
     try {
       setSubmitting(true);
+      console.log('撮影完了処理開始 - 写真数:', photos.length);
 
       // 改善：撮影専用モードでは写真0枚でも完了可能
       // 写真がない場合は確認メッセージを表示するが、処理は続行
@@ -68,11 +70,9 @@ export default function PhotographyOnlyForm({ productId }: PhotographyOnlyFormPr
         photographyDate: new Date().toISOString(),
       };
 
-      // デモ用：API呼び出しをモック処理に変更
-      console.log('撮影データ送信（モック）:', photographyData);
+      console.log('撮影データ送信:', photographyData);
 
-      // 本番用APIコード（現在コメントアウト）
-      /*
+      // 撮影データをAPIに送信
       const response = await fetch(`/api/products/${productId}/photography`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -80,21 +80,40 @@ export default function PhotographyOnlyForm({ productId }: PhotographyOnlyFormPr
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorText = await response.text();
+        console.error('撮影API エラーレスポンス:', response.status, errorText);
+        const errorData = errorText ? JSON.parse(errorText) : {};
         throw new Error(errorData.message || `撮影データの保存に失敗しました: ${response.status}`);
       }
 
       const savedData = await response.json();
-      */
+      console.log('撮影データ保存完了:', savedData);
 
-      // モック処理：成功レスポンスをシミュレート
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // 検品進捗を最終ステップに更新（撮影APIでもステータス更新済み）
+      const progressPayload = {
+        productId,
+        currentStep: 4,  // 撮影完了で最終ステップ
+        checklist: {},
+        photos: photos,
+        notes: notes,
+        status: 'completed'
+      };
+      console.log('進捗更新データ:', progressPayload);
 
-      // モックデータ用：ステータス更新イベントを発火
-      const inspectionCompleteEvent = new CustomEvent('inspectionComplete', {
-        detail: { productId, newStatus: 'completed' }
+      const progressResponse = await fetch('/api/products/inspection/progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(progressPayload)
       });
-      window.dispatchEvent(inspectionCompleteEvent);
+
+      if (progressResponse.ok) {
+        const progressResult = await progressResponse.json();
+        console.log('撮影完了後の進捗更新完了:', progressResult);
+      } else {
+        const progressError = await progressResponse.text();
+        console.warn('進捗更新エラー:', progressResponse.status, progressError);
+        console.warn('進捗更新は失敗しましたが、撮影データ保存は成功しました');
+      }
 
       showToast({
         type: 'success',
@@ -220,9 +239,13 @@ export default function PhotographyOnlyForm({ productId }: PhotographyOnlyFormPr
         productId={productId}
         photos={photos}
         onUpdate={handlePhotosUpdate}
-        onNext={() => {}} // 撮影専用モードでは使用しない
-        onPrev={() => {}} // 撮影専用モードでは使用しない
+        onNext={handleSubmitPhotography} // 次へボタンで撮影完了処理
+        onPrev={handleGoBack} // 戻るボタンで一覧に戻る
+        onSaveAndReturn={handleSubmitPhotography} // 保存して一覧に戻る
         category={product.category}
+        loading={submitting}
+        nextButtonText="撮影完了"
+        mode="photography"
       />
 
       {/* 撮影メモ */}
@@ -237,35 +260,7 @@ export default function PhotographyOnlyForm({ productId }: PhotographyOnlyFormPr
         />
       </NexusCard>
 
-      {/* アクションボタン */}
-      <div className="flex justify-between items-center pt-4">
-        <NexusButton
-          onClick={handleGoBack}
-          variant="secondary"
-          size="lg"
-          icon={<ArrowLeftIcon className="w-5 h-5" />}
-          disabled={submitting}
-        >
-          戻る
-        </NexusButton>
-        <NexusButton
-          onClick={handleSubmitPhotography}
-          variant="primary"
-          size="lg"
-          icon={<CheckIcon className="w-5 h-5" />}
-          disabled={submitting}
-          className="px-8"
-        >
-          {submitting ? (
-            <span className="flex items-center">
-              <span className="animate-spin h-4 w-4 mr-2 border-b-2 border-white rounded-full"></span>
-              送信中...
-            </span>
-          ) : (
-            '撮影完了'
-          )}
-        </NexusButton>
-      </div>
+      {/* PhotoUploaderがナビゲーションボタンを提供するため、独自ボタンは削除 */}
     </div>
   );
 }

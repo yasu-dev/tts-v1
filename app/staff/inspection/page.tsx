@@ -48,6 +48,8 @@ import { useToast } from '@/app/components/features/notifications/ToastProvider'
 import BaseModal from '@/app/components/ui/BaseModal';
 import NexusTextarea from '@/app/components/ui/NexusTextarea';
 import { parseProductMetadata, getInspectionPhotographyStatus } from '@/lib/utils/product-status';
+import { getInspectionWorkflowProgress, getInspectionNextAction, InspectionStatus } from '@/lib/utils/workflow';
+import WorkflowProgress from '@/app/components/ui/WorkflowProgress';
 
 interface ChecklistItem {
   id: string;
@@ -126,8 +128,12 @@ const convertStatusToBusinessStatus = (status: string): BusinessStatus => {
       return 'inspection';  // 検品中
     case 'storage':
       return 'completed';  // 完了
+    case 'completed':
+      return 'completed';  // 完了
     case 'rejected':
       return 'rejected';  // 拒否
+    case 'failed':
+      return 'rejected';  // 不合格
     default:
       return 'inbound';
   }
@@ -342,6 +348,10 @@ export default function InspectionPage() {
         return 'inspecting';
       case 'storage':
         return 'completed';
+      case 'completed':
+        return 'completed';
+      case 'failed':
+        return 'failed';
       default:
         return 'pending_inspection';
     }
@@ -511,6 +521,55 @@ export default function InspectionPage() {
     sessionStorage.setItem('inspectionListState', JSON.stringify(currentState));
   };
 
+  // 検品ステータス更新関数
+  const updateInspectionStatus = async (productId: string, newStatus: string) => {
+    try {
+      console.log(`[DEBUG] ステータス更新開始: ${productId} → ${newStatus}`);
+      
+      const response = await fetch('/api/products/inspection', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          productId, 
+          status: newStatus 
+        })
+      });
+
+      console.log(`[DEBUG] ステータス更新レスポンス: ${response.status}`);
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log(`[DEBUG] ステータス更新成功:`, result);
+        
+        // 商品リストのステータスを更新
+        setProducts(prev => prev.map(product => 
+          product.id === productId 
+            ? { ...product, status: newStatus as any }
+            : product
+        ));
+
+        showToast({
+          type: 'success',
+          title: 'ステータス更新',
+          message: `商品のステータスを「${newStatus}」に更新しました`,
+          duration: 3000
+        });
+      } else {
+        const errorData = await response.text();
+        console.error(`[ERROR] ステータス更新失敗: ${response.status} - ${errorData}`);
+        throw new Error(`ステータス更新に失敗しました (${response.status})`);
+      }
+    } catch (error) {
+      console.error('Status update error:', error);
+      showToast({
+        type: 'error',
+        title: 'エラー',
+        message: error instanceof Error ? error.message : 'ステータス更新中にエラーが発生しました',
+        duration: 4000
+      });
+    }
+  };
+
   // 検品開始（ページ遷移に統一）
   const handleStartInspection = (product: Product) => {
     saveCurrentState();
@@ -525,6 +584,28 @@ export default function InspectionPage() {
     const shouldJumpToStorage = progress && progress.currentStep === 3;
     const stepQuery = shouldJumpToStorage ? '?step=4' : '';
     window.location.href = `/staff/inspection/${product.id}${stepQuery}`;
+  };
+
+  // 検品完了処理
+  const handleCompleteInspection = async (product: Product) => {
+    const confirmed = window.confirm(
+      `検品を完了しますか？\n\n商品: ${product.name}\nSKU: ${product.sku}`
+    );
+
+    if (confirmed) {
+      await updateInspectionStatus(product.id, 'completed');
+    }
+  };
+
+  // 検品不合格処理
+  const handleRejectInspection = async (product: Product) => {
+    const confirmed = window.confirm(
+      `この商品を不合格にしますか？\n\n商品: ${product.name}\nSKU: ${product.sku}\n\n※不合格の場合は返却処理が必要になります。`
+    );
+
+    if (confirmed) {
+      await updateInspectionStatus(product.id, 'failed');
+    }
   };
 
   // 商品詳細表示（統一化により不使用）
@@ -784,19 +865,6 @@ export default function InspectionPage() {
                               );
                             }
 
-                            if (product.status === 'inspecting') {
-                              return (
-                                <NexusButton 
-                                  size="sm" 
-                                  variant="primary"
-                                  onClick={() => handleContinueInspection(product)}
-                                >
-                                  <span className="hidden sm:inline">続ける</span>
-                                  <span className="sm:hidden">続行</span>
-                                </NexusButton>
-                              );
-                            }
-
                             if (inspectionPhotoStatus?.canStartPhotography) {
                               return (
                                 <NexusButton 
@@ -811,6 +879,38 @@ export default function InspectionPage() {
                                   <span className="hidden sm:inline">撮影</span>
                                   <span className="sm:hidden">撮影</span>
                                 </NexusButton>
+                              );
+                            }
+
+                            if (product.status === 'inspecting') {
+                              // 検品中の場合は、完了・不合格ボタンも表示
+                              return (
+                                <div className="flex gap-1">
+                                  <NexusButton 
+                                    size="sm" 
+                                    variant="primary"
+                                    onClick={() => handleContinueInspection(product)}
+                                  >
+                                    <span className="hidden sm:inline">続ける</span>
+                                    <span className="sm:hidden">続行</span>
+                                  </NexusButton>
+                                  <NexusButton 
+                                    size="sm" 
+                                    variant="success"
+                                    onClick={() => handleCompleteInspection(product)}
+                                    title="検品完了"
+                                  >
+                                    <CheckIcon className="w-4 h-4" />
+                                  </NexusButton>
+                                  <NexusButton 
+                                    size="sm" 
+                                    variant="danger"
+                                    onClick={() => handleRejectInspection(product)}
+                                    title="検品不合格"
+                                  >
+                                    <XMarkIcon className="w-4 h-4" />
+                                  </NexusButton>
+                                </div>
                               );
                             }
 
@@ -834,434 +934,142 @@ export default function InspectionPage() {
                       </td>
                     </tr>
                     
-                    {/* 詳細展開行 */}
+                    {/* 詳細展開行 - 出荷管理と統一されたデザイン */}
                     {expandedRows.includes(product.id) && (
                       <tr className="bg-nexus-bg-secondary">
                         <td colSpan={6} className="p-6">
                           <div className="space-y-4">
-                            {/* 検品進捗表示 - リッチデザイン */}
-                            <div className="bg-gradient-to-br from-nexus-bg-primary to-nexus-bg-secondary rounded-xl p-5 border border-nexus-border shadow-sm">
-                                <div className="flex items-center justify-between mb-4">
-                                  <div className="flex items-center gap-2">
-                                    <div className="p-2 bg-nexus-blue/10 rounded-lg">
-                                      <ClipboardDocumentListIcon className="w-5 h-5 text-nexus-blue" />
-                                    </div>
-                                    <h4 className="text-base font-semibold text-nexus-text-primary">検品進捗</h4>
-                                  </div>
-                                  <div className="text-xs text-nexus-text-secondary bg-nexus-bg-tertiary px-2 py-1 rounded-full">
-                                    ID: {product.id.slice(-6)}
-                                  </div>
-                                </div>
-
-                                {(() => {
-                                  const progress = progressData[product.id];
-                                  const currentStep = progress?.currentStep || 0;
-                                  const lastUpdated = progress?.lastUpdated;
-                                  
-                                  return (
-                                    <div className="space-y-4">
-                                      {/* 統一されたプログレスバー */}
-                                      <div className="relative">
-                                        <div className="w-full bg-nexus-bg-tertiary rounded-full h-3 overflow-hidden border">
-                                          <div 
-                                            className={`h-3 rounded-full transition-all duration-700 ease-out relative overflow-hidden ${
-                                              currentStep === 0 ? 'bg-gray-300' :
-                                              currentStep >= 4 ? 'bg-gradient-to-r from-green-500 to-green-600' :
-                                              'bg-gradient-to-r from-nexus-blue to-blue-600'
-                                            }`}
-                                            style={{ 
-                                              width: `${Math.max(8, (currentStep / 4) * 100)}%`
-                                            }}
-                                          >
-                                            {currentStep > 0 && currentStep < 4 && (
-                                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse" />
-                                            )}
-                                      </div>
-                                        </div>
-                                        
-                                        {/* プログレス数値 */}
-                                        <div className="absolute -top-8 right-0 text-xs font-mono text-nexus-text-secondary bg-nexus-bg-primary px-2 py-1 rounded border">
-                                          {Math.min(currentStep, 4)}/4
-                                        </div>
-                                      </div>
-                                      
-                                      {/* 現在のステータス表示 - 統一デザイン */}
-                                      <div className="bg-nexus-bg-primary rounded-lg p-3 border border-nexus-border/50">
-                                        <div className="flex items-center justify-between">
-                                          <div className="flex items-center gap-3">
-                                            {currentStep === 0 && (
-                                              <>
-                                                <div className="p-2 bg-gray-100 rounded-full">
-                                                  <Clock4 className="w-4 h-4 text-gray-600" />
-                                                </div>
-                                                <div>
-                                                  <span className="text-sm font-medium text-gray-700">検品待機中</span>
-                                                  <p className="text-xs text-gray-500">開始準備完了</p>
-                                                </div>
-                                              </>
-                                            )}
-                                            {currentStep === 1 && (
-                                              <>
-                                                <div className="p-2 bg-nexus-blue/10 rounded-full animate-pulse">
-                                                  <Package className="w-4 h-4 text-nexus-blue" />
-                                                </div>
-                                                <div>
-                                                  <span className="text-sm font-medium text-nexus-blue">検品項目確認中</span>
-                                                  <p className="text-xs text-nexus-blue/70">チェックリスト作業中</p>
-                                                </div>
-                                              </>
-                                            )}
-                                            {currentStep === 2 && (
-                                              <>
-                                                <div className="p-2 bg-purple-100 rounded-full animate-pulse">
-                                                  <Camera className="w-4 h-4 text-purple-600" />
-                                                </div>
-                                                <div>
-                                                  <span className="text-sm font-medium text-purple-600">写真撮影中</span>
-                                                  <p className="text-xs text-purple-600/70">商品画像記録中</p>
-                                                </div>
-                                              </>
-                                            )}
-                                            {currentStep === 3 && (
-                                              <>
-                                                <div className="p-2 bg-orange-100 rounded-full animate-pulse">
-                                                  <Archive className="w-4 h-4 text-orange-600" />
-                                                </div>
-                                                <div>
-                                                  <span className="text-sm font-medium text-orange-600">梱包・ラベル作業中</span>
-                                                  <p className="text-xs text-orange-600/70">保管準備中</p>
-                                                </div>
-                                              </>
-                                            )}
-                                            {currentStep >= 4 && (
-                                              <>
-                                                <div className="p-2 bg-green-100 rounded-full relative">
-                                                  <Store className="w-4 h-4 text-green-600" />
-                                                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-ping opacity-75"></div>
-                                                </div>
-                                                <div>
-                                                  <span className="text-sm font-medium text-green-600">検品完了</span>
-                                                  <p className="text-xs text-green-600/70">出品準備完了</p>
-                                                </div>
-                                              </>
-                                            )}
-                                          </div>
-                                          
-                                          <div className="text-right">
-                                            <div className="text-xs font-mono text-nexus-text-secondary bg-nexus-bg-tertiary px-2 py-1 rounded">
-                                              {Math.min(currentStep, 4)}/4
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                        
-                                        {/* ステップフローチャート - 統一デザイン */}
-                                        <div className="bg-nexus-bg-secondary rounded-lg p-4 border border-nexus-border/30">
-                                          <div className="flex items-center justify-between relative">
-                                            {[
-                                              { id: 1, name: '検品', icon: Package, color: 'nexus-blue' },
-                                              { id: 2, name: '撮影', icon: Camera, color: 'purple-600' },
-                                              { id: 3, name: '梱包', icon: Archive, color: 'orange-600' },
-                                              { id: 4, name: '保管', icon: Store, color: 'green-600' }
-                                            ].map((step, index) => {
-                                              const StepIcon = step.icon;
-                                              const isCompleted = currentStep >= step.id;
-                                              const isCurrent = currentStep === step.id;
-                                              const isPending = currentStep < step.id;
-                                              
-                                              return (
-                                                <div key={step.id} className="flex flex-col items-center relative">
-                                                  {/* ステップアイコン */}
-                                                  <div className={`
-                                                    relative p-3 rounded-xl border-2 transition-all duration-300 shadow-sm
-                                                    ${isCompleted 
-                                                      ? 'bg-green-500 border-green-500 shadow-green-500/20' 
-                                                      : isCurrent && step.id === 1
-                                                        ? 'bg-nexus-blue/10 border-nexus-blue shadow-lg animate-pulse'
-                                                        : isCurrent && step.id === 2
-                                                        ? 'bg-purple-100 border-purple-600 shadow-lg animate-pulse'
-                                                        : isCurrent && step.id === 3
-                                                        ? 'bg-orange-100 border-orange-600 shadow-lg animate-pulse'
-                                                        : isCurrent && step.id === 4
-                                                        ? 'bg-green-100 border-green-600 shadow-lg animate-pulse'
-                                                        : 'bg-nexus-bg-primary border-nexus-border/50'
-                                                    }
-                                                  `}>
-                                                    {isCompleted ? (
-                                                      <CheckCircle2 className="w-5 h-5 text-white" />
-                                                    ) : (
-                                                      <StepIcon className={`w-5 h-5 ${
-                                                        isCurrent && step.id === 1
-                                                          ? 'text-nexus-blue'
-                                                          : isCurrent && step.id === 2
-                                                          ? 'text-purple-600'
-                                                          : isCurrent && step.id === 3
-                                                          ? 'text-orange-600'
-                                                          : isCurrent && step.id === 4
-                                                          ? 'text-green-600'
-                                                          : isPending 
-                                                            ? 'text-nexus-text-tertiary' 
-                                                            : 'text-nexus-text-secondary'
-                                                      }`} />
-                                                    )}
-                                                    
-                                                    {/* 現在進行中のパルスエフェクト */}
-                                                    {isCurrent && (
-                                                      <div className="absolute -inset-1 bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-xl animate-pulse" />
-                                                    )}
-                                                  </div>
-                                                  
-                                                  {/* ステップ名 */}
-                                                  <span className={`mt-2 text-xs font-medium text-center ${
-                                                    isCompleted 
-                                                      ? 'text-green-600' 
-                                                      : isCurrent && step.id === 1
-                                                        ? 'text-nexus-blue'
-                                                        : isCurrent && step.id === 2
-                                                        ? 'text-purple-600'
-                                                        : isCurrent && step.id === 3
-                                                        ? 'text-orange-600'
-                                                        : isCurrent && step.id === 4
-                                                        ? 'text-green-600'
-                                                        : 'text-nexus-text-tertiary'
-                                                  }`}>
-                                                    {step.name}
-                                      </span>
-                                                  
-                                                  {/* 接続線 */}
-                                      {index < 3 && (
-                                                    <div className={`absolute top-6 left-full w-12 h-0.5 -translate-y-1/2 transition-colors duration-300 ${
-                                                      currentStep > step.id 
-                                                        ? 'bg-green-500' 
-                                                        : 'bg-nexus-border'
-                                                    }`} style={{ transform: 'translateX(50%) translateY(-50%)' }} />
-                                      )}
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                              
-                              {/* 最終更新時刻 - 統一デザイン */}
-                              {lastUpdated && (
-                                <div className="bg-nexus-bg-primary border border-nexus-border/30 rounded-lg p-3">
-                                  <div className="flex items-center gap-2 text-xs text-nexus-text-tertiary">
-                                    <ClockIcon className="w-4 h-4" />
-                                    <span>最終更新:</span>
-                                    <time className="font-mono text-nexus-text-secondary">
-                                      {new Date(lastUpdated).toLocaleString('ja-JP')}
-                                    </time>
-                                    <div className="ml-auto flex items-center gap-1">
-                                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                                      <span>同期済み</span>
-                                    </div>
-                                  </div>
-                                </div>
+                            {/* ワークフロー進捗表示 - 統一コンポーネント使用 */}
+                            <WorkflowProgress 
+                              steps={getInspectionWorkflowProgress(
+                                product.status as InspectionStatus, 
+                                progressData[product.id]
                               )}
-                            </div>
-                          );
-                        })()}
-                      </div>
-                              
-                            {/* 商品詳細情報 - リッチデザイン */}
+                              className="mb-6"
+                            />
+                            
+                            {/* 商品詳細情報と次のアクション - 出荷管理と統一デザイン */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                              <div className="bg-gradient-to-br from-nexus-bg-primary to-nexus-bg-secondary rounded-xl p-5 border border-nexus-border shadow-sm">
-                                <div className="flex items-center justify-between mb-4">
-                                  <div className="flex items-center gap-2">
-                                    <div className="p-2 bg-nexus-blue/10 rounded-lg">
-                                      <InformationCircleIcon className="w-5 h-5 text-nexus-blue" />
-                                </div>
-                                    <h4 className="text-base font-semibold text-nexus-text-primary">商品情報</h4>
-                                  </div>
-                                  <div className={`px-3 py-1 rounded-full text-xs font-medium border ${
-                                    product.status === 'completed' ? 'bg-green-50 text-green-700 border-green-200' :
-                                    product.status === 'inspecting' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                                    product.status === 'failed' ? 'bg-red-50 text-red-700 border-red-200' :
-                                    'bg-gray-50 text-gray-700 border-gray-200'
-                                  }`}>
-                                    {product.status === 'pending_inspection' ? '検品待ち' :
-                                     product.status === 'inspecting' ? '検品中' :
-                                     product.status === 'completed' ? '完了' :
-                                     product.status === 'failed' ? '不合格' : product.status}
-                                  </div>
-                                </div>
-                                
-                                <div className="space-y-3">
-                                  <div className="bg-nexus-bg-primary rounded-lg p-3 border border-nexus-border/30">
-                                    <div className="grid grid-cols-1 gap-2 text-sm">
-                                      <div className="flex items-center justify-between py-1">
-                                        <span className="text-nexus-text-tertiary font-medium">SKU</span>
-                                        <code className="bg-nexus-bg-tertiary px-2 py-1 rounded text-xs font-mono text-nexus-text-primary">
+                              {/* 商品詳細情報 */}
+                              <div className="bg-nexus-bg-primary rounded-lg p-4 border border-nexus-border">
+                                <h4 className="text-sm font-medium text-nexus-text-primary mb-3 flex items-center gap-2">
+                                  <InformationCircleIcon className="w-4 h-4" />
+                                  商品情報
+                                </h4>
+                                <div className="space-y-2">
+                                  <div className="flex items-center justify-between text-sm">
+                                    <span className="text-nexus-text-secondary">SKU</span>
+                                    <code className="bg-nexus-bg-tertiary px-2 py-1 rounded text-xs font-mono">
                                           {product.sku}
                                         </code>
                                       </div>
-                                      <div className="flex items-center justify-between py-1">
-                                        <span className="text-nexus-text-tertiary font-medium">受領日</span>
-                                        <span className="text-nexus-text-secondary">{product.receivedDate}</span>
+                                  <div className="flex items-center justify-between text-sm">
+                                    <span className="text-nexus-text-secondary">受領日</span>
+                                    <span className="text-nexus-text-primary">{product.receivedDate}</span>
                                       </div>
-                                      <div className="flex items-center justify-between py-1">
-                                        <span className="text-nexus-text-tertiary font-medium">ブランド</span>
-                                        <span className="text-nexus-text-secondary font-medium">{product.brand}</span>
+                                  <div className="flex items-center justify-between text-sm">
+                                    <span className="text-nexus-text-secondary">ブランド</span>
+                                    <span className="text-nexus-text-primary">{product.brand}</span>
                                       </div>
-                                      <div className="flex items-center justify-between py-1">
-                                        <span className="text-nexus-text-tertiary font-medium">モデル</span>
-                                        <span className="text-nexus-text-secondary">{product.model}</span>
+                                  <div className="flex items-center justify-between text-sm">
+                                    <span className="text-nexus-text-secondary">モデル</span>
+                                    <span className="text-nexus-text-primary">{product.model}</span>
                                       </div>
-                                      <div className="flex items-center justify-between py-1">
-                                        <span className="text-nexus-text-tertiary font-medium">カテゴリ</span>
-                                        <div className="flex items-center gap-2">
-                                          <div className="w-3 h-3 bg-nexus-blue/20 rounded-full"></div>
-                                          <span className="text-nexus-text-secondary">
+                                  <div className="flex items-center justify-between text-sm">
+                                    <span className="text-nexus-text-secondary">カテゴリ</span>
+                                    <span className="text-nexus-text-primary">
                                             {categoryLabels[product.category as keyof typeof categoryLabels]}
                                           </span>
                                         </div>
+                                  {/* 進捗情報があれば表示 */}
+                                  {progressData[product.id]?.lastUpdated && (
+                                    <div className="mt-3 pt-3 border-t border-nexus-border">
+                                      <div className="flex items-center gap-2 text-xs text-nexus-text-secondary">
+                                        <ClockIcon className="w-3 h-3" />
+                                        <span>前回更新: {new Date(progressData[product.id].lastUpdated).toLocaleString('ja-JP')}</span>
                                       </div>
                                     </div>
-                                  </div>
-                                  
-                                  {product.metadata && (() => {
-                                    const metadata = parseProductMetadata(product.metadata);
-                                    return Object.keys(metadata).length > 0 ? (
-                                      <div className="mt-3 pt-3 border-t border-gray-200">
-                                        <strong className="block mb-2">追加情報</strong>
-                                        <div className="grid grid-cols-1 gap-1 text-xs">
-                                          {metadata.deliveryPlanId && (
-                                            <div><span className="text-gray-600 w-20 inline-block">納品プラン:</span> <span className="font-mono">{metadata.deliveryPlanId}</span></div>
-                                          )}
-                                          {metadata.supplier && (
-                                            <div><span className="text-gray-600 w-20 inline-block">仕入先:</span> {metadata.supplier}</div>
-                                          )}
-                                          {metadata.condition && (
-                                            <div><span className="text-gray-600 w-20 inline-block">コンディション:</span> {metadata.condition}</div>
-                                          )}
-                                          {metadata.hasInspectionChecklist && (
-                                            <div className="text-blue-600 font-medium">✓ セラー検品データ入力済み</div>
-                                          )}
-                                        </div>
-                                      </div>
-                                    ) : null;
-                                  })()}
+                                  )}
                                 </div>
                               </div>
                               
-                              <div className="bg-gradient-to-br from-nexus-bg-primary to-nexus-bg-secondary rounded-xl p-5 border border-nexus-border shadow-sm">
-                                <div className="flex items-center gap-2 mb-4">
-                                  <div className="p-2 bg-amber-100 rounded-lg">
-                                    <SparklesIcon className="w-5 h-5 text-amber-600" />
-                                  </div>
-                                  <h4 className="text-base font-semibold text-nexus-text-primary">次のアクション</h4>
-                                </div>
+                              {/* 次のアクション */}
+                              <div className="bg-nexus-bg-primary rounded-lg p-4 border border-nexus-border">
+                                <h4 className="text-sm font-medium text-nexus-text-primary mb-3">次のアクション</h4>
+                                <p className="text-sm text-nexus-text-secondary mb-3">
+                                  {getInspectionNextAction(product.status as InspectionStatus, progressData[product.id])}
+                                </p>
                                 
-                                {(() => {
-                                  const progress = progressData[product.id];
-                                  const metadata = parseProductMetadata(product.metadata);
-                                  const inspectionPhotoStatus = getInspectionPhotographyStatus ? getInspectionPhotographyStatus(metadata) : null;
-                                  
-                                  return (
-                                    <div className="space-y-3">
-                                      {product.status === 'pending_inspection' && (
-                                        <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                                          <div className="flex items-start gap-3">
-                                            <div className="p-2 bg-blue-500 rounded-full">
-                                              <Play className="w-4 h-4 text-white" />
-                                            </div>
-                                            <div className="flex-1">
-                                              <h5 className="text-sm font-semibold text-blue-900 mb-1">検品開始準備完了</h5>
-                                              <p className="text-xs text-blue-700 leading-relaxed">
-                                                「検品開始」ボタンをクリックして、商品の検品チェックリストを開始してください。
-                                                品質確認、写真撮影、梱包までの工程を順次進めていきます。
-                                              </p>
-                                            </div>
+                                                                {/* アクションボタン */}
+                                <div className="flex gap-2 flex-wrap">
+                                  {product.status === 'pending_inspection' && (
+                                    <NexusButton
+                                      size="sm"
+                                      variant="primary"
+                                      onClick={() => handleStartInspection(product)}
+                                      className="flex items-center gap-1"
+                                    >
+                                      <Play className="w-3 h-3" />
+                                      検品開始
+                                    </NexusButton>
+                                  )}
+                                  {product.status === 'inspecting' && (
+                                    <>
+                                      <NexusButton
+                                        size="sm"
+                                        variant="primary"
+                                        onClick={() => handleContinueInspection(product)}
+                                        className="flex items-center gap-1"
+                                      >
+                                        <ArrowPathIcon className="w-3 h-3" />
+                                        続ける
+                                      </NexusButton>
+                                      <NexusButton
+                                        size="sm"
+                                        variant="success"
+                                        onClick={() => handleCompleteInspection(product)}
+                                        className="flex items-center gap-1"
+                                      >
+                                        <CheckCircleIcon className="w-3 h-3" />
+                                        完了
+                                      </NexusButton>
+                                      <NexusButton
+                                        size="sm"
+                                        variant="danger"
+                                        onClick={() => handleRejectInspection(product)}
+                                        className="flex items-center gap-1"
+                                      >
+                                        <ExclamationTriangleIcon className="w-3 h-3" />
+                                        不合格
+                                      </NexusButton>
+                                    </>
+                                  )}
+                                  {(product.status === 'completed' || product.status === 'failed') && (
+                                    <NexusButton
+                                      size="sm"
+                                      variant="default"
+                                      onClick={() => handleViewProduct(product)}
+                                      className="flex items-center gap-1"
+                                    >
+                                      <EyeIcon className="w-3 h-3" />
+                                      詳細確認
+                                    </NexusButton>
+                                  )}
+                                </div>
                                           </div>
                                         </div>
-                                      )}
-                                      
-                                      {product.status === 'inspecting' && (
-                                        <div className="bg-nexus-blue/5 rounded-lg p-4 border border-nexus-blue/20">
-                                          <div className="flex items-start gap-3">
-                                            <div className="p-2 bg-nexus-blue rounded-full animate-pulse">
-                                              <ArrowPathIcon className="w-4 h-4 text-white" />
-                                            </div>
-                                            <div className="flex-1">
-                                              <h5 className="text-sm font-semibold text-nexus-blue mb-2">
-                                                {progress && progress.currentStep === 1 && '検品項目の確認中'}
-                                                {progress && progress.currentStep === 2 && '商品写真の撮影中'}
-                                                {progress && progress.currentStep === 3 && '梱包・ラベル作業中'}
-                                                {progress && progress.currentStep === 4 && '棚への保管作業中'}
-                                                {!progress && '作業継続可能'}
-                                              </h5>
-                                              <p className="text-xs text-nexus-blue/80 leading-relaxed">
-                                                {progress && progress.currentStep === 1 && 'チェックリスト項目を確認し、商品の状態を詳細にチェックしてください。外観、機能、付属品の確認を行います。'}
-                                                {progress && progress.currentStep === 2 && '商品の全体、細部、付属品の写真を複数角度から撮影してください。品質記録として保存されます。'}
-                                                {progress && progress.currentStep === 3 && '適切な梱包材を選択し、商品ラベルを正確に貼付してください。保管準備を完了させます。'}
-                                                {progress && progress.currentStep === 4 && '指定された棚位置に商品を保管してください。在庫管理システムに反映されます。'}
-                                                {!progress && '前回の中断した作業から再開できます。「続ける」ボタンで作業を継続してください。'}
-                                              </p>
-                                              {progress?.lastUpdated && (
-                                                <div className="mt-2 flex items-center gap-2 text-xs text-nexus-blue/60 bg-white/50 px-3 py-2 rounded border">
-                                                  <ClockIcon className="w-3 h-3" />
-                                                  <span>前回作業: {new Date(progress.lastUpdated).toLocaleString('ja-JP')}</span>
-                                                </div>
-                                              )}
-                                            </div>
-                                          </div>
-                                        </div>
-                                      )}
-                                      
-                                      {product.status === 'completed' && (
-                                        <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                                          <div className="flex items-start gap-3">
-                                            <div className="p-2 bg-green-500 rounded-full relative">
-                                              <CheckCircle2 className="w-4 h-4 text-white" />
-                                              <div className="absolute -inset-1 bg-green-500 rounded-full animate-ping opacity-20"></div>
-                                            </div>
-                                            <div className="flex-1">
-                                              <h5 className="text-sm font-semibold text-green-900 mb-1">検品完了</h5>
-                                              <p className="text-xs text-green-700 leading-relaxed">
-                                                すべての検品工程が正常に完了しました。品質基準をクリアし、商品は出品準備が整っています。
-                                                出品管理画面で商品情報を確認し、販売を開始できます。
-                                              </p>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      )}
-                                      
-                                      {product.status === 'failed' && (
-                                        <div className="bg-red-50 rounded-lg p-4 border border-red-200">
-                                          <div className="flex items-start gap-3">
-                                            <div className="p-2 bg-red-500 rounded-full animate-pulse">
-                                              <AlertTriangle className="w-4 h-4 text-white" />
-                                            </div>
-                                            <div className="flex-1">
-                                              <h5 className="text-sm font-semibold text-red-900 mb-1">検品不合格</h5>
-                                              <p className="text-xs text-red-700 leading-relaxed">
-                                                検品の結果、品質基準を満たしていません。商品の状態を再確認し、
-                                                修理・クリーニングまたは返却処理を検討してください。管理者に報告が必要です。
-                                              </p>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      )}
-                                      
-                                      {inspectionPhotoStatus?.canStartPhotography && (
-                                        <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
-                                          <div className="flex items-start gap-3">
-                                            <div className="p-2 bg-purple-500 rounded-full animate-pulse">
-                                              <PhotoIcon className="w-4 h-4 text-white" />
-                                            </div>
-                                            <div className="flex-1">
-                                              <h5 className="text-sm font-semibold text-purple-900 mb-1">撮影準備完了</h5>
-                                              <p className="text-xs text-purple-700 leading-relaxed">
-                                                検品が完了しており、商品写真の撮影が可能です。「撮影」ボタンから
-                                                高品質な商品画像の撮影を開始し、出品用の写真を準備してください。
-                                              </p>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      )}
-                                    </div>
-                                  );
-                                })()}
+                            
+                            {/* 検品ステータス別の詳細情報表示 */}
+                            <div className="flex items-center justify-between">
+                              <div className="text-sm text-nexus-text-secondary">
+                                <div>ID: {product.id}</div>
+                                <div>
+                                  状態: <BusinessStatusIndicator 
+                                    status={convertStatusToBusinessStatus(product.status) as any}
+                                    size="sm"
+                                    showLabel={true}
+                                  />
+                                </div>
                               </div>
                             </div>
                           </div>

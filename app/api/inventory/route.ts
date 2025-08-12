@@ -139,43 +139,47 @@ export async function GET(request: NextRequest) {
       // メタデータを安全に解析
       let parsedMetadata = null;
       try {
-        parsedMetadata = product.metadata ? JSON.parse(product.metadata) : null;
-        
-        // 納品プラン由来の商品の場合のデバッグログ
-        if (parsedMetadata?.deliveryPlanId) {
-          console.log(`[DEBUG] 在庫API: 納品プラン由来商品 ${index + 1}/${products.length}:`, {
-            id: product.id,
-            name: product.name,
-            sku: product.sku,
-            hasSupplier: !!parsedMetadata.supplier,
-            hasSupplierDetails: !!parsedMetadata.supplierDetails,
-            hasImages: parsedMetadata.images?.length || 0,
-            hasInspectionChecklistData: !!parsedMetadata.inspectionChecklistData,
-            deliveryPlanId: parsedMetadata.deliveryPlanId
-          });
-          
-          // 検品チェックリストの詳細構造もログ
-          if (parsedMetadata.inspectionChecklistData) {
-            console.log('[DEBUG] 検品チェックリスト詳細:', {
-              exterior: parsedMetadata.inspectionChecklistData.exterior,
-              functionality: parsedMetadata.inspectionChecklistData.functionality,
-              optical: parsedMetadata.inspectionChecklistData.optical,
-              notes: parsedMetadata.inspectionChecklistData.notes
-            });
-          }
-          
-          // 画像データの詳細構造もログ
-          if (parsedMetadata.images?.length > 0) {
-            console.log('[DEBUG] 画像データ詳細:', parsedMetadata.images.map(img => ({
-              url: img.url,
-              category: img.category,
-              filename: img.filename
-            })));
-          }
+        if (product.metadata) {
+          parsedMetadata = typeof product.metadata === 'string' 
+            ? JSON.parse(product.metadata) 
+            : product.metadata;
         }
-      } catch (metadataError) {
-        console.error(`[ERROR] 在庫API: metadata解析エラー (商品ID: ${product.id}):`, metadataError);
+      } catch (e) {
+        console.warn(`[WARN] Failed to parse metadata for product ${product.id}:`, e);
         parsedMetadata = null;
+      }
+      
+      // 納品プラン由来の商品の場合のデバッグログ
+      if (parsedMetadata?.deliveryPlanId) {
+        console.log(`[DEBUG] 在庫API: 納品プラン由来商品 ${index + 1}/${products.length}:`, {
+          id: product.id,
+          name: product.name,
+          sku: product.sku,
+          hasSupplier: !!parsedMetadata.supplier,
+          hasSupplierDetails: !!parsedMetadata.supplierDetails,
+          hasImages: parsedMetadata.images?.length || 0,
+          hasInspectionChecklistData: !!parsedMetadata.inspectionChecklistData,
+          deliveryPlanId: parsedMetadata.deliveryPlanId
+        });
+        
+        // 検品チェックリストの詳細構造もログ
+        if (parsedMetadata.inspectionChecklistData) {
+          console.log('[DEBUG] 検品チェックリスト詳細:', {
+            exterior: parsedMetadata.inspectionChecklistData.exterior,
+            functionality: parsedMetadata.inspectionChecklistData.functionality,
+            optical: parsedMetadata.inspectionChecklistData.optical,
+            notes: parsedMetadata.inspectionChecklistData.notes
+          });
+        }
+        
+        // 画像データの詳細構造もログ
+        if (parsedMetadata.images?.length > 0) {
+          console.log('[DEBUG] 画像データ詳細:', parsedMetadata.images.map(img => ({
+            url: img.url,
+            category: img.category,
+            filename: img.filename
+          })));
+        }
       }
       
       return {

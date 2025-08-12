@@ -2,15 +2,26 @@ import { ProductMetadata } from '@/types/api';
 
 // 商品のメタデータを解析して検品・撮影状況を判定するユーティリティ
 
-export function parseProductMetadata(metadataJson?: string): ProductMetadata {
+export function parseProductMetadata(metadataJson?: string | any): ProductMetadata {
   if (!metadataJson) return {};
   
-  try {
-    return JSON.parse(metadataJson) as ProductMetadata;
-  } catch (error) {
-    console.error('Failed to parse product metadata:', error);
-    return {};
+  // すでにオブジェクトの場合はそのまま返す
+  if (typeof metadataJson === 'object') {
+    return metadataJson as ProductMetadata;
   }
+  
+  // 文字列の場合はJSONパースを試行
+  if (typeof metadataJson === 'string') {
+    try {
+      return JSON.parse(metadataJson) as ProductMetadata;
+    } catch (error) {
+      console.error('Failed to parse product metadata:', error);
+      return {};
+    }
+  }
+  
+  console.warn('Invalid metadata format:', typeof metadataJson, metadataJson);
+  return {};
 }
 
 export function isInspectionCompleted(metadata: ProductMetadata): boolean {

@@ -16,6 +16,8 @@ export interface PhotoUploaderProps {
   onSaveAndReturn?: () => void;
   category?: string; // AI判定用のカテゴリ
   loading?: boolean;
+  nextButtonText?: string; // 次へボタンのテキストをカスタマイズ
+  mode?: 'inspection' | 'photography'; // モードによってUIを調整
 }
 
 interface PhotoSlot {
@@ -35,10 +37,17 @@ export default function PhotoUploader({
   onSaveAndReturn,
   category = 'accessory',
   loading: externalLoading = false,
+  nextButtonText = '次へ（確認画面）',
+  mode = 'inspection',
 }: PhotoUploaderProps) {
   const beforeAfterModalRef = useRef<HTMLDivElement>(null);
   const { showToast } = useToast();
   const [uploadedPhotos, setUploadedPhotos] = useState<string[]>(photos || []);
+
+  // propsが変更された時に内部状態を更新
+  useEffect(() => {
+    setUploadedPhotos(photos || []);
+  }, [photos]);
   const [loading, setLoading] = useState(false);
   const [aiAnalyzing, setAiAnalyzing] = useState(false);
   const [aiResult, setAiResult] = useState<any>(null);
@@ -341,7 +350,8 @@ export default function PhotoUploader({
     });
   };
 
-  const canProceed = uploadedPhotos.length >= 1; // 最低1枚必要
+  // 撮影専用モードでは0枚でも進行可能、検品モードでは最低1枚必要
+  const canProceed = mode === 'photography' ? true : uploadedPhotos.length >= 1;
 
   // ビフォアアフターモーダルのスクロール位置リセット
   useEffect(() => {
@@ -836,8 +846,8 @@ export default function PhotoUploader({
           size="md"
           disabled={!canProceed || externalLoading}
         >
-          次へ（確認画面）
-          {!canProceed && (
+          {externalLoading ? '保存中...' : nextButtonText}
+          {!canProceed && mode === 'inspection' && (
             <span className="ml-2 text-sm">
               （最低1枚必要）
             </span>

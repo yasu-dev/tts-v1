@@ -78,3 +78,113 @@ export function getNextAction(currentStatus: ShippingStatus): string {
       return '次の作業を確認してください';
   }
 }
+
+// 検品ワークフローのステップ定義
+export const INSPECTION_WORKFLOW_STEPS = [
+  {
+    id: 'pending_inspection',
+    label: '検品待ち',
+    icon: 'inspection',
+    order: 1
+  },
+  {
+    id: 'inspecting',
+    label: '検品中',
+    icon: 'inspection',
+    order: 2
+  },
+  {
+    id: 'photography',
+    label: '撮影',
+    icon: 'camera',
+    order: 3
+  },
+  {
+    id: 'completed',
+    label: '完了',
+    icon: 'completed',
+    order: 4
+  }
+];
+
+export type InspectionStatus = 'pending_inspection' | 'inspecting' | 'photography' | 'completed' | 'failed';
+
+/**
+ * 商品のステータスに基づいて検品ワークフローのプログレス情報を生成
+ */
+export function getInspectionWorkflowProgress(currentStatus: InspectionStatus, progressData?: { currentStep: number }) {
+  // progressDataがある場合はステップベースで判定
+  if (progressData && progressData.currentStep > 0) {
+    return INSPECTION_WORKFLOW_STEPS.map(step => ({
+      id: step.id,
+      label: step.label,
+      icon: step.icon,
+      status: step.order < progressData.currentStep + 1
+        ? 'completed' as const
+        : step.order === progressData.currentStep + 1
+        ? 'active' as const
+        : 'pending' as const
+    }));
+  }
+
+  // ステータスベースでの判定（フォールバック）
+  const currentStep = INSPECTION_WORKFLOW_STEPS.find(step => step.id === currentStatus);
+  const currentOrder = currentStep?.order || 1;
+
+  return INSPECTION_WORKFLOW_STEPS.map(step => ({
+    id: step.id,
+    label: step.label,
+    icon: step.icon,
+    status: step.order < currentOrder 
+      ? 'completed' as const
+      : step.order === currentOrder 
+      ? 'active' as const
+      : 'pending' as const
+  }));
+}
+
+/**
+ * 検品ステータスラベルのマッピング
+ */
+export const INSPECTION_STATUS_LABELS: Record<InspectionStatus, string> = {
+  'pending_inspection': '検品待ち',
+  'inspecting': '検品中',
+  'photography': '撮影中',
+  'completed': '完了',
+  'failed': '不合格'
+};
+
+/**
+ * 検品の次のアクションを取得
+ */
+export function getInspectionNextAction(currentStatus: InspectionStatus, progressData?: { currentStep: number }): string {
+  if (progressData && progressData.currentStep > 0) {
+    switch (progressData.currentStep) {
+      case 1:
+        return '検品チェックリストを完了してください';
+      case 2:
+        return '商品写真の撮影を行ってください';
+      case 3:
+        return '梱包・ラベル作業を完了してください';
+      case 4:
+        return '棚への保管作業を行ってください';
+      default:
+        return '次の作業を確認してください';
+    }
+  }
+
+  switch (currentStatus) {
+    case 'pending_inspection':
+      return '検品を開始してください';
+    case 'inspecting':
+      return '検品作業を続行してください';
+    case 'photography':
+      return '撮影作業を完了してください';
+    case 'completed':
+      return '検品完了。出品準備を行えます';
+    case 'failed':
+      return '品質基準を満たしていません。再検品または返却処理が必要です';
+    default:
+      return '次の作業を確認してください';
+  }
+}

@@ -83,7 +83,11 @@ export async function POST(request: NextRequest) {
     console.log('[DEBUG] Product metadata before parsing:', product.metadata);
     let currentMetadata = {};
     try {
-      currentMetadata = product.metadata ? JSON.parse(product.metadata) : {};
+      if (product.metadata) {
+        currentMetadata = typeof product.metadata === 'string' 
+          ? JSON.parse(product.metadata) 
+          : product.metadata;
+      }
     } catch (e) {
       console.warn(`[WARN] Failed to parse product metadata for product ${product.id}:`, e);
       currentMetadata = {}; // Fallback to empty object if parsing fails
@@ -240,10 +244,17 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const validStatuses = ['inspection', 'storage', 'listing'];
-    const mappedStatus = status.replace('検品', 'inspection')
-                              .replace('保管', 'storage')
-                              .replace('出品', 'listing');
+    const validStatuses = ['inspection', 'storage', 'listing', 'completed', 'failed'];
+    let mappedStatus = status;
+    
+    // まず、文字列をそのまま使用（completed, failedなど）
+    // 必要に応じて日本語からの変換も実行
+    if (status === '検品') mappedStatus = 'inspection';
+    else if (status === '保管') mappedStatus = 'storage';
+    else if (status === '出品') mappedStatus = 'listing';
+    else if (status === '完了') mappedStatus = 'completed';
+    else if (status === '不合格') mappedStatus = 'failed';
+    // その他はそのまま使用（completed, failed, inspecting, etc.）
 
     if (!validStatuses.includes(mappedStatus)) {
       return NextResponse.json(

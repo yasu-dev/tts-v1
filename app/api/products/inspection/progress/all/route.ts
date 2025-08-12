@@ -25,8 +25,7 @@ export async function GET(request: NextRequest) {
             id: true,
             name: true,
             sku: true,
-            brand: true,
-            model: true
+            category: true
           }
         });
 
@@ -55,8 +54,7 @@ export async function GET(request: NextRequest) {
             id: '002',
             name: 'Sony FE 24-70mm F2.8 GM',
             sku: 'TWD-2024-002',
-            brand: 'Sony',
-            model: 'SEL2470GM'
+            category: 'camera'
           }
         },
         {
@@ -67,8 +65,7 @@ export async function GET(request: NextRequest) {
             id: '006',
             name: 'Omega Seamaster Planet Ocean',
             sku: 'TWD-2024-006',
-            brand: 'Omega',
-            model: 'Seamaster'
+            category: 'watch'
           }
         }
       ];
