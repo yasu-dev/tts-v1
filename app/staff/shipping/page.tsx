@@ -32,6 +32,8 @@ import { NexusLoadingSpinner } from '@/app/components/ui';
 
 import { getWorkflowProgress, getNextAction, ShippingStatus } from '@/lib/utils/workflow';
 import { BusinessStatusIndicator } from '@/app/components/ui/StatusIndicator';
+import TrackingNumberDisplay from '@/app/components/ui/TrackingNumberDisplay';
+import { generateTrackingUrl } from '@/lib/utils/tracking';
 import React from 'react'; // Added missing import for React
 
 interface ShippingItem {
@@ -824,7 +826,7 @@ export default function StaffShippingPage() {
         handlePackingInstruction(item);
         break;
       case 'print':
-        // セラーがアップロードしたラベルを印刷
+        // セラーが生成したラベルを印刷
         handlePrintLabelForItem(item);
         break;
       case 'ship':
@@ -1099,7 +1101,7 @@ export default function StaffShippingPage() {
                                   className="flex items-center gap-1"
                                 >
                                   <PrinterIcon className="w-4 h-4" />
-                                  ラベル
+                                  ラベル印刷
                                 </NexusButton>
                                 <NexusButton
                                   onClick={() => handleInlineAction(item, 'ship')}
@@ -1184,7 +1186,37 @@ export default function StaffShippingPage() {
                                   <p>配送先: {item.shippingAddress}</p>
                                   <p>配送方法: {item.shippingMethod}</p>
                                   {item.trackingNumber && (
-                                    <p>追跡番号: <span className="font-medium">{item.trackingNumber}</span></p>
+                                    <div className="mt-2 space-y-2">
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-sm">追跡番号:</span>
+                                        <span 
+                                          className="font-mono text-xs bg-nexus-bg-tertiary px-2 py-1 rounded border cursor-pointer hover:bg-nexus-bg-secondary transition-colors"
+                                          onClick={() => navigator.clipboard.writeText(item.trackingNumber!)}
+                                          title="クリックでコピー"
+                                        >
+                                          {item.trackingNumber}
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <button
+                                          onClick={() => {
+                                            const carrier = item.shippingMethod?.toLowerCase().includes('yamato') ? 'yamato' : 
+                                                          item.shippingMethod?.toLowerCase().includes('sagawa') ? 'sagawa' : 
+                                                          item.shippingMethod?.toLowerCase().includes('fedex') ? 'fedex' :
+                                                          item.shippingMethod?.toLowerCase().includes('fedx') ? 'fedx' :
+                                                          item.shippingMethod?.toLowerCase().includes('yupack') ? 'yupack' : 'other';
+                                            const url = generateTrackingUrl(carrier, item.trackingNumber!);
+                                            window.open(url, '_blank', 'noopener,noreferrer');
+                                          }}
+                                          className="px-3 py-1 bg-nexus-primary text-white text-xs rounded hover:bg-nexus-primary-dark transition-colors"
+                                        >
+                                          配送状況を確認
+                                        </button>
+                                        <span className="text-xs bg-nexus-success text-white px-2 py-1 rounded">
+                                          eBay通知済み
+                                        </span>
+                                      </div>
+                                    </div>
                                   )}
                                 </div>
                                 <div className="bg-nexus-bg-primary rounded-lg p-3">

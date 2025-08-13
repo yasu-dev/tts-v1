@@ -6,6 +6,7 @@ import { useToast } from '../features/notifications/ToastProvider';
 import ShippingLabelUploadModal from './ShippingLabelUploadModal';
 import PackingVideoModal from './PackingVideoModal';
 import CarrierSelectionModal from './CarrierSelectionModal';
+import { AdvancedTrackingDisplay } from '../ui/TrackingNumberDisplay';
 
 import { 
   TruckIcon, 
@@ -180,7 +181,7 @@ export default function ShippingDetailModal({
     setIsPackingVideoModalOpen(true);
   };
 
-  const handleLabelUploadComplete = (labelUrl: string, provider: 'seller' | 'worlddoor') => {
+  const handleLabelUploadComplete = (labelUrl: string, provider: 'seller' | 'worlddoor', trackingNumber?: string) => {
     setShippingLabelUrl(labelUrl);
     setShippingLabelProvider(provider);
     setIsLabelUploadModalOpen(false);
@@ -349,12 +350,19 @@ export default function ShippingDetailModal({
                     </div>
                     {item.trackingNumber && (
                       <div>
-                        <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
-                          追跡番号
+                        <label className="block text-sm font-medium text-nexus-text-secondary mb-3">
+                          配送追跡
                         </label>
-                        <p className="text-nexus-text-primary">
-                          <span className="cert-nano cert-mint">{item.trackingNumber}</span>
-                        </p>
+                        <AdvancedTrackingDisplay
+                          trackingNumber={item.trackingNumber}
+                          carrier={item.shippingMethod?.toLowerCase().includes('yamato') ? 'yamato' : 
+                                  item.shippingMethod?.toLowerCase().includes('sagawa') ? 'sagawa' : 
+                                  item.shippingMethod?.toLowerCase().includes('fedex') ? 'fedex' :
+                                  item.shippingMethod?.toLowerCase().includes('fedx') ? 'fedx' :
+                                  item.shippingMethod?.toLowerCase().includes('yupack') ? 'yupack' : 'other'}
+                          orderStatus={item.status}
+                          showCarrierName={true}
+                        />
                       </div>
                     )}
                     {item.inspectionNotes && (
@@ -566,6 +574,10 @@ export default function ShippingDetailModal({
       isOpen={isLabelUploadModalOpen}
       onClose={() => setIsLabelUploadModalOpen(false)}
       itemId={item.id}
+      carrier={item.shippingMethod?.toLowerCase().includes('yamato') ? 'yamato' : 
+               item.shippingMethod?.toLowerCase().includes('sagawa') ? 'sagawa' : 
+               item.shippingMethod?.toLowerCase().includes('fedex') ? 'fedex' :
+               item.shippingMethod?.toLowerCase().includes('yupack') ? 'yupack' : 'other'}
       onUploadComplete={handleLabelUploadComplete}
     />
     {/* 梱包動画記録モーダル */}

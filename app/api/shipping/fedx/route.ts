@@ -502,6 +502,7 @@ export async function POST(request: NextRequest) {
           orderId: order.id,
           metadata: JSON.stringify({
             carrier: 'fedx',
+            carrierName: 'FedX',
             service,
             trackingNumber: labelResult.trackingNumber,
             fileName,
@@ -517,13 +518,42 @@ export async function POST(request: NextRequest) {
         productsUpdated: productIds.length
       });
 
+      // eBayに購入者へ追跡番号を自動通知
+      try {
+        console.log('eBayへの追跡番号通知を開始...');
+        const ebayNotificationResponse = await fetch(`${request.nextUrl.origin}/api/ebay/notification/tracking`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': request.headers.get('authorization') || ''
+          },
+          body: JSON.stringify({
+            orderId: order.id,
+            orderNumber: order.orderNumber,
+            trackingNumber: labelResult.trackingNumber,
+            carrier: 'fedx',
+            shippingMethod: 'FedX International Shipping',
+            estimatedDelivery: labelResult.estimatedDelivery
+          })
+        });
+
+        if (ebayNotificationResponse.ok) {
+          const ebayResult = await ebayNotificationResponse.json();
+          console.log('eBay通知成功:', ebayResult);
+        } else {
+          console.warn('eBay通知に失敗しましたが、ラベル生成は成功しました');
+        }
+      } catch (ebayError) {
+        console.warn('eBay通知でエラーが発生しましたが、ラベル生成は成功しました:', ebayError);
+      }
+
       return NextResponse.json({
         ...labelResult,
         fileName,
         fileUrl,
         orderId: order.id,
         productsUpdated: productIds.length,
-        message: 'FedX配送ラベルが生成され、ピッキング開始可能になりました'
+        message: 'FedX配送ラベルが生成され、購入者にも追跡番号が通知されました'
       });
 
     } catch (dbError) {

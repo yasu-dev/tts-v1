@@ -154,7 +154,7 @@ export async function GET() {
           itemCount: 1,
           orderDate: '2024-01-15',
           labelGenerated: true,
-          items: [{ productName: 'Canon EOS R5 ボディ', category: 'camera_body', quantity: 1, price: 450000 }]
+          items: [{ productName: 'Canon EOS R5 ボディ', category: 'camera_body', quantity: 1, price: 450000, productImage: '/api/placeholder/150/150' }]
         },
         {
           id: 'ORD-2024-COMP-0007',

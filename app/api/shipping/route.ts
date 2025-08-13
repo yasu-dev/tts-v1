@@ -16,6 +16,11 @@ export async function GET(request: NextRequest) {
         createdAt: {
           gte: todayStart,
           lte: todayEnd
+        },
+        // スタッフ画面には追跡番号付きの商品のみ表示（セラーがラベル生成済み）
+        trackingNumber: {
+          not: null,
+          notIn: ['', ' ']
         }
       },
       orderBy: { createdAt: 'desc' },
@@ -60,6 +65,11 @@ export async function GET(request: NextRequest) {
         createdAt: {
           gte: todayStart,
           lte: todayEnd
+        },
+        // 統計にも追跡番号付きの商品のみ含める
+        trackingNumber: {
+          not: null,
+          notIn: ['', ' ']
         }
       }
     });
@@ -83,7 +93,7 @@ export async function GET(request: NextRequest) {
         priority: shipment.priority,
         deadline: shipment.deadline?.toTimeString().substring(0, 5) || '',
         status: shipment.status,
-        trackingNumber: shipment.trackingNumber || '',
+        trackingNumber: shipment.trackingNumber, // 必ず有効な追跡番号が存在
         value: shipment.value,
         locationCode: 'STD-A-01', // デフォルト値
         locationName: '標準棚A-01' // デフォルト値

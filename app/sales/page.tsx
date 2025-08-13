@@ -16,13 +16,19 @@ import BaseModal from '@/app/components/ui/BaseModal';
 import { NexusLoadingSpinner, NexusSelect, NexusInput, NexusCheckbox, NexusTextarea } from '@/app/components/ui';
 import { BusinessStatusIndicator } from '@/app/components/ui/StatusIndicator';
 import ShippingLabelUploadModal from '@/app/components/modals/ShippingLabelUploadModal';
+import TrackingNumberDisplay from '@/app/components/ui/TrackingNumberDisplay';
+import { generateTrackingUrl } from '@/lib/utils/tracking';
 import FedExServiceModal from '@/app/components/modals/FedExServiceModal';
+import OrderDetailModal from '@/app/components/modals/OrderDetailModal';
 import { 
   TruckIcon,
   DocumentArrowUpIcon,
   CheckCircleIcon,
   ClockIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  CameraIcon,
+  EyeIcon,
+  ClipboardDocumentCheckIcon
 } from '@heroicons/react/24/outline';
 
 export default function SalesPage() {
@@ -36,6 +42,8 @@ export default function SalesPage() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isFedexModalOpen, setIsFedexModalOpen] = useState(false);
   const [selectedCarrier, setSelectedCarrier] = useState<string>('');
+  const [isOrderDetailModalOpen, setIsOrderDetailModalOpen] = useState(false);
+  const [selectedOrderForDetail, setSelectedOrderForDetail] = useState<any>(null);
   const [selectedFedexService, setSelectedFedexService] = useState<string>('');
   
   // ページネーションとフィルター用の状態
@@ -55,6 +63,26 @@ export default function SalesPage() {
     { value: 'ups', label: 'UPS (出荷作成)', apiEnabled: false, url: 'https://www.ups.com/jp/ja/Home.page' }
   ];
 
+  // eBayデータを取得する関数
+  const fetchEbayData = async (itemId: string) => {
+    try {
+      // 実際のeBayAPIからデータを取得する処理
+      // 現在はモックデータで対応
+      const response = await fetch(`/api/ebay/item/${itemId}`);
+      if (response.ok) {
+        const data = await response.json();
+        return {
+          ebayTitle: data.title,
+          ebayImage: data.mainImage,
+          ebayCategory: data.category
+        };
+      }
+    } catch (error) {
+      console.error('eBayデータ取得エラー:', error);
+    }
+    return null;
+  };
+
   // データを取得する関数
   const fetchSalesData = async () => {
     setLoading(true);
@@ -67,6 +95,21 @@ export default function SalesPage() {
       
       const response = await fetch(`/api/sales?${params}`);
       const data = await response.json();
+      
+      // 各注文についてeBayデータを取得
+      if (data.recentOrders) {
+        const ordersWithEbayData = await Promise.all(
+          data.recentOrders.map(async (order: any) => {
+            const ebayData = await fetchEbayData(order.ebayItemId || order.id);
+            return {
+              ...order,
+              ...ebayData
+            };
+          })
+        );
+        data.recentOrders = ordersWithEbayData;
+      }
+      
       setSalesData(data);
     } catch (error) {
       console.error('Error fetching sales data:', error);
@@ -190,7 +233,17 @@ export default function SalesPage() {
     }
   };
 
-  const handleLabelUploadComplete = (labelUrl: string, provider: 'seller' | 'worlddoor') => {
+  const handleShowDetails = (order: any) => {
+    setSelectedOrderForDetail(order);
+    setIsOrderDetailModalOpen(true);
+  };
+
+  const handleViewStaffProgress = (order: any) => {
+    // スタッフ画面をモーダルまたは新しいタブで開く
+    window.open(`/staff/shipping?orderId=${order.id}`, '_blank');
+  };
+
+  const handleLabelUploadComplete = (labelUrl: string, provider: 'seller' | 'worlddoor', trackingNumber?: string) => {
     if (!selectedOrder) return;
 
     setSalesData((prev: any) => ({
@@ -318,8 +371,7 @@ export default function SalesPage() {
                     <thead className="holo-header">
                       <tr>
                         <th className="text-left p-4 font-medium text-nexus-text-secondary">注文番号</th>
-                        <th className="text-left p-4 font-medium text-nexus-text-secondary">商品名</th>
-                        <th className="text-left p-4 font-medium text-nexus-text-secondary">顧客</th>
+                        <th className="text-left p-4 font-medium text-nexus-text-secondary">商品</th>
                         <th className="text-right p-4 font-medium text-nexus-text-secondary">金額</th>
                         <th className="text-center p-4 font-medium text-nexus-text-secondary">ステータス</th>
                         <th className="text-center p-4 font-medium text-nexus-text-secondary">ラベル</th>
@@ -330,7 +382,7 @@ export default function SalesPage() {
                     <tbody className="holo-body">
                       {salesData.recentOrders.length === 0 ? (
                         <tr>
-                          <td colSpan={8} className="p-8 text-center text-nexus-text-secondary">
+                          <td colSpan={7} className="p-8 text-center text-nexus-text-secondary">
                             注文データがありません
                           </td>
                         </tr>
@@ -341,10 +393,34 @@ export default function SalesPage() {
                               <span className="font-mono text-sm text-nexus-text-primary">{row.orderNumber || row.orderId}</span>
                             </td>
                             <td className="p-4">
-                              <span className="text-nexus-text-primary">{row.product}</span>
-                            </td>
-                            <td className="p-4">
-                              <span className="text-nexus-text-primary">{row.customer}</span>
+                              <div className="flex items-center gap-3">
+                                <div className="w-16 h-16 rounded border border-nexus-border overflow-hidden bg-nexus-bg-secondary">
+                                  {row.ebayImage || row.items?.[0]?.productImage ? (
+                                    <img 
+                                      src={row.ebayImage || row.items[0].productImage} 
+                                      alt={row.ebayTitle || row.product}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-nexus-text-tertiary">
+                                      <CameraIcon className="w-5 h-5" />
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="flex-1">
+                                  <div className="text-nexus-text-primary font-medium max-w-xs overflow-hidden text-ellipsis whitespace-nowrap" title={row.ebayTitle || row.product}>
+                                    {row.ebayTitle || row.product}
+                                  </div>
+                                  <div className="text-xs text-nexus-text-secondary mt-1">
+                                    注文: {row.orderNumber || row.orderId}
+                                  </div>
+                                  {row.itemCount && (
+                                    <div className="text-xs text-nexus-text-secondary">
+                                      数量: {row.itemCount}点
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
                             </td>
                             <td className="p-4 text-right">
                               <span className="font-bold text-nexus-text-primary">
@@ -370,25 +446,39 @@ export default function SalesPage() {
                               </div>
                             </td>
                             <td className="p-4">
-                              <span className="text-sm text-nexus-text-primary">{row.date}</span>
+                              <span className="text-sm text-nexus-text-primary">
+                                {new Date(row.orderDate || row.date).toLocaleDateString('ja-JP')}
+                              </span>
                             </td>
-                            <td className="p-4">
-                              <div className="flex justify-center">
+                            <td className="p-4 text-center">
+                              <div className="flex justify-center gap-2">
                                 {['confirmed', 'processing'].includes(row.status) && !row.labelGenerated ? (
                                   <NexusButton
+                                    onClick={() => handleGenerateLabel(row)}
                                     size="sm"
                                     variant="primary"
-                                    onClick={() => handleGenerateLabel(row)}
                                     icon={<DocumentArrowUpIcon className="w-4 h-4" />}
                                   >
                                     ラベル生成
                                   </NexusButton>
-                                ) : row.labelGenerated ? (
-                                  <span className="text-xs text-nexus-text-secondary">
-                                    {row.trackingNumber ? `追跡: ${row.trackingNumber.slice(-8)}` : 'アップロード済み'}
-                                  </span>
-                                ) : (
-                                  <span className="text-xs text-nexus-text-secondary">-</span>
+                                ) : null}
+                                <NexusButton
+                                  onClick={() => handleShowDetails(row)}
+                                  size="sm"
+                                  variant="secondary"
+                                  icon={<EyeIcon className="w-4 h-4" />}
+                                >
+                                  詳細
+                                </NexusButton>
+                                {row.trackingNumber && (
+                                  <NexusButton
+                                    onClick={() => handleViewStaffProgress(row)}
+                                    size="sm"
+                                    variant="default"
+                                    icon={<ClipboardDocumentCheckIcon className="w-4 h-4" />}
+                                  >
+                                    進捗確認
+                                  </NexusButton>
                                 )}
                               </div>
                             </td>
@@ -555,6 +645,13 @@ export default function SalesPage() {
             }}
           />
         )}
+
+        {/* 注文詳細モーダル */}
+        <OrderDetailModal
+          isOpen={isOrderDetailModalOpen}
+          onClose={() => setIsOrderDetailModalOpen(false)}
+          order={selectedOrderForDetail}
+        />
       </div>
     </DashboardLayout>
   );

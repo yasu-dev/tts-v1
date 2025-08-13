@@ -7,20 +7,24 @@ import {
   DocumentArrowUpIcon,
   CloudArrowUpIcon,
   DocumentTextIcon,
-  CheckCircleIcon
+  CheckCircleIcon,
+  TruckIcon
 } from '@heroicons/react/24/outline';
+import { NexusInput } from '../ui';
 
 interface ShippingLabelUploadModalProps {
   isOpen: boolean;
   onClose: () => void;
   itemId: string;
-  onUploadComplete?: (labelUrl: string, provider: 'seller' | 'worlddoor') => void;
+  carrier?: string;
+  onUploadComplete?: (labelUrl: string, provider: 'seller' | 'worlddoor', trackingNumber?: string) => void;
 }
 
 export default function ShippingLabelUploadModal({
   isOpen,
   onClose,
   itemId,
+  carrier = 'other',
   onUploadComplete
 }: ShippingLabelUploadModalProps) {
   const { showToast } = useToast();
@@ -29,6 +33,7 @@ export default function ShippingLabelUploadModal({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
+  const [trackingNumber, setTrackingNumber] = useState<string>('');
 
 
 
@@ -78,6 +83,9 @@ export default function ShippingLabelUploadModal({
       formData.append('itemId', itemId);
       formData.append('provider', provider);
       formData.append('type', 'shipping_label');
+      if (trackingNumber.trim()) {
+        formData.append('trackingNumber', trackingNumber.trim());
+      }
 
       // アップロードAPI呼び出し
       const response = await fetch('/api/shipping/label/upload', {
@@ -92,15 +100,54 @@ export default function ShippingLabelUploadModal({
       const data = await response.json();
       setUploadedUrl(data.fileUrl);
 
-      showToast({
-        title: '伝票アップロード完了',
-        message: '配送伝票が正常にアップロードされました',
-        type: 'success'
-      });
+      // 追跡番号が入力されている場合、eBayに通知
+      if (trackingNumber.trim()) {
+        try {
+          const ebayNotificationResponse = await fetch('/api/ebay/notification/tracking', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              orderId: itemId,
+              trackingNumber: trackingNumber.trim(),
+              carrier: carrier || 'other',
+              shippingMethod: `${carrier || 'Other'} Shipping`
+            })
+          });
+
+          if (ebayNotificationResponse.ok) {
+            showToast({
+              title: '伝票アップロード・通知完了',
+              message: '配送伝票がアップロードされ、購入者に追跡番号が通知されました',
+              type: 'success'
+            });
+          } else {
+            showToast({
+              title: '伝票アップロード完了',
+              message: '配送伝票はアップロードされましたが、eBay通知に失敗しました',
+              type: 'warning'
+            });
+          }
+        } catch (ebayError) {
+          console.warn('eBay通知エラー:', ebayError);
+          showToast({
+            title: '伝票アップロード完了',
+            message: '配送伝票はアップロードされましたが、eBay通知に失敗しました',
+            type: 'warning'
+          });
+        }
+      } else {
+        showToast({
+          title: '伝票アップロード完了',
+          message: '配送伝票が正常にアップロードされました',
+          type: 'success'
+        });
+      }
 
       // 親コンポーネントに通知
       if (onUploadComplete) {
-        onUploadComplete(data.fileUrl, provider);
+        onUploadComplete(data.fileUrl, provider, trackingNumber.trim() || undefined);
       }
 
       // 少し待ってからモーダルを閉じる
@@ -125,6 +172,7 @@ export default function ShippingLabelUploadModal({
     if (!isOpen) {
       setSelectedFile(null);
       setUploadedUrl(null);
+      setTrackingNumber('');
     }
   }, [isOpen]);
 
@@ -136,6 +184,34 @@ export default function ShippingLabelUploadModal({
       size="md"
     >
       <div className="space-y-6">
+        {/* 配送業者情報 */}
+        {carrier && carrier !== 'other' && (
+          <div className="bg-nexus-bg-secondary p-4 rounded-lg border border-nexus-border mb-4">
+            <div className="flex items-center gap-2">
+              <TruckIcon className="w-5 h-5 text-nexus-primary" />
+              <span className="font-medium text-nexus-text-primary">
+                配送業者: {carrier === 'yamato' ? 'ヤマト運輸' : 
+                         carrier === 'sagawa' ? '佐川急便' : 
+                         carrier === 'yupack' ? 'ゆうパック' : carrier}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* 追跡番号入力 */}
+        <div className="mb-6">
+          <NexusInput
+            label="追跡番号"
+            value={trackingNumber}
+            onChange={(e) => setTrackingNumber(e.target.value)}
+            placeholder="例: 123-4567-8901"
+            variant="nexus"
+          />
+          <p className="text-sm text-nexus-text-secondary mt-1">
+            追跡番号を入力すると、購入者にeBayで自動通知されます
+          </p>
+        </div>
+
         {/* ファイル選択エリア */}
         <div>
           <h3 className="text-lg font-semibold text-nexus-text-primary mb-4">
@@ -213,7 +289,7 @@ export default function ShippingLabelUploadModal({
             loading={uploading}
             icon={<DocumentArrowUpIcon className="w-5 h-5" />}
           >
-            {uploading ? 'アップロード中...' : 'アップロード'}
+            {uploading ? 'アップロード中...' : (trackingNumber.trim() ? 'アップロード・通知' : 'アップロード')}
           </NexusButton>
         </div>
       </div>

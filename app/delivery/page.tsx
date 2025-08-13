@@ -818,11 +818,31 @@ export default function DeliveryPage() {
                     <div><span className="font-medium">発送日:</span> {new Date(selectedPlan.shippedAt).toLocaleDateString()}</div>
                   )}
                   {selectedPlan.shippingTrackingNumber && (
-                    <div>
-                      <span className="font-medium">追跡番号:</span> 
-                      <span className="ml-2 font-mono text-xs bg-nexus-bg-tertiary px-2 py-1 rounded">
-                        {selectedPlan.shippingTrackingNumber}
-                      </span>
+                    <div className="space-y-2">
+                      <div>
+                        <span className="font-medium">追跡番号:</span> 
+                        <span 
+                          className="ml-2 font-mono text-xs bg-nexus-bg-tertiary px-2 py-1 rounded border cursor-pointer hover:bg-nexus-bg-secondary transition-colors"
+                          onClick={() => navigator.clipboard.writeText(selectedPlan.shippingTrackingNumber!)}
+                          title="クリックでコピー"
+                        >
+                          {selectedPlan.shippingTrackingNumber}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            const url = generateTrackingUrl('other', selectedPlan.shippingTrackingNumber!);
+                            window.open(url, '_blank', 'noopener,noreferrer');
+                          }}
+                          className="px-3 py-1 bg-nexus-primary text-white text-sm rounded hover:bg-nexus-primary-dark transition-colors"
+                        >
+                          配送状況を確認
+                        </button>
+                        <span className="text-xs bg-nexus-success text-white px-2 py-1 rounded">
+                          発送済み
+                        </span>
+                      </div>
                     </div>
                   )}
                   {!selectedPlan.shippedAt && selectedPlan.status === '発送待ち' && (
