@@ -5,6 +5,8 @@ const prisma = new PrismaClient();
 
 export async function GET() {
   try {
+    console.log('🚀 Sales API: Prismaクエリ開始');
+    
     // 売上データをPrismaから取得
     const [
       totalSales,
@@ -76,6 +78,9 @@ export async function GET() {
       })
     ]);
 
+    console.log('✅ Sales API: Prisma基本クエリ完了');
+    console.log(`注文データ取得件数: ${recentOrders.length}`);
+    
     // 人気商品の詳細情報を取得
     const productIds = topProducts.map(item => item.productId);
     const productDetails = await prisma.product.findMany({
@@ -83,8 +88,11 @@ export async function GET() {
       select: { id: true, name: true, category: true, imageUrl: true }
     });
 
+    console.log(`商品詳細取得件数: ${productDetails.length}`);
+
     // 売上データを構築
     const salesData = {
+      _dataSource: 'prisma', // データソースを明示
       overview: {
         totalSales: totalSales._sum.totalAmount || 0,
         monthlySales: monthlySales._sum.totalAmount || 0,
@@ -94,21 +102,26 @@ export async function GET() {
           ? Math.round((totalSales._sum.totalAmount || 0) / recentOrders.length)
           : 0
       },
-      recentOrders: recentOrders.map(order => ({
-        id: order.id,
-        orderNumber: order.orderNumber,
-        customer: order.customer.username,
-        totalAmount: order.totalAmount,
-        status: order.status,
-        itemCount: order.items.length,
-        orderDate: order.orderDate.toISOString(),
-        items: order.items.map(item => ({
-          productName: item.product.name,
-          category: item.product.category,
-          quantity: item.quantity,
-          price: item.price
-        }))
-      })),
+      recentOrders: recentOrders.map(order => {
+        const orderData = {
+          id: order.id,
+          orderNumber: order.orderNumber,
+          customer: order.customer.username,
+          product: order.items[0]?.product.name || '商品なし', // 商品名を追加
+          totalAmount: order.totalAmount,
+          status: order.status,
+          itemCount: order.items.length,
+          orderDate: order.orderDate.toISOString(),
+          items: order.items.map(item => ({
+            productName: item.product.name,
+            category: item.product.category,
+            quantity: item.quantity,
+            price: item.price
+          }))
+        };
+        console.log(`注文 ${orderData.orderNumber}: 商品「${orderData.product}」`);
+        return orderData;
+      }),
       topProducts: topProducts.map(item => {
         const product = productDetails.find(p => p.id === item.productId);
         return {
@@ -130,12 +143,15 @@ export async function GET() {
       categoryBreakdown: await getCategoryBreakdown()
     };
 
+    console.log('🎉 Sales API: Prismaデータ正常取得完了！');
     return NextResponse.json(salesData);
   } catch (error) {
-    console.error('Sales API error:', error);
+    console.error('Sales API error - Prismaでのデータ取得に失敗:', error);
+    console.error('エラーの詳細:', JSON.stringify(error, null, 2));
     
-    // フォールバック用のモックデータを返す
+    // フォールバック用のモックデータを返す（Prismaでデータ取得できない場合）
     const mockSalesData = {
+      _dataSource: 'mock', // データソースを明示
       overview: {
         totalSales: 15750000,
         monthlySales: 3200000,
@@ -148,97 +164,97 @@ export async function GET() {
           id: 'ORD-2024-COMP-0008',
           orderNumber: 'ORD-2024-COMP-0008',
           customer: '田中太郎',
-          product: 'Canon EOS R5 ボディ',
+          product: 'Canon EOS R5 Full Frame Mirrorless Camera Body - Excellent Condition',
           totalAmount: 450000,
           status: 'delivered',
           itemCount: 1,
           orderDate: '2024-01-15',
           labelGenerated: true,
-          items: [{ productName: 'Canon EOS R5 ボディ', category: 'camera_body', quantity: 1, price: 450000, productImage: '/api/placeholder/150/150' }]
+          items: [{ productName: 'Canon EOS R5 Full Frame Mirrorless Camera Body - Excellent Condition', category: 'camera_body', quantity: 1, price: 450000, productImage: 'https://images.unsplash.com/photo-1606983340126-99ab4feaa64a?w=300&h=300&fit=crop' }]
         },
         {
           id: 'ORD-2024-COMP-0007',
           orderNumber: 'ORD-2024-COMP-0007',
           customer: '佐藤花子',
-          product: 'Sony α7R V ボディ',
+          product: 'Sony Alpha a7R IV Mirrorless Camera - 61MP Full Frame',
           totalAmount: 398000,
           status: 'shipped',
           itemCount: 1,
           orderDate: '2024-01-14',
           labelGenerated: true,
-          items: [{ productName: 'Sony α7R V ボディ', category: 'camera_body', quantity: 1, price: 398000 }]
+          items: [{ productName: 'Sony Alpha a7R IV Mirrorless Camera - 61MP Full Frame', category: 'camera_body', quantity: 1, price: 398000, productImage: 'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=300&h=300&fit=crop' }]
         },
         {
           id: 'ORD-2024-COMP-0006',
           orderNumber: 'ORD-2024-COMP-0006',
           customer: '鈴木一郎',
-          product: 'Rolex Submariner',
+          product: 'Rolex Submariner Date 41mm Stainless Steel - Mint Condition',
           totalAmount: 1200000,
           status: 'cancelled',
           itemCount: 1,
           orderDate: '2024-01-13',
           labelGenerated: false,
-          items: [{ productName: 'Rolex Submariner', category: 'watch', quantity: 1, price: 1200000 }]
+          items: [{ productName: 'Rolex Submariner Date 41mm Stainless Steel - Mint Condition', category: 'watch', quantity: 1, price: 1200000, productImage: 'https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=300&h=300&fit=crop' }]
         },
         {
           id: 'ORD-2024-COMP-0005',
           orderNumber: 'ORD-2024-COMP-0005',
           customer: '山田次郎',
-          product: 'Canon RF 24-70mm F2.8L IS USM',
+          product: 'Nikon D850 DSLR Camera with 24-120mm Lens Kit - Professional Grade',
           totalAmount: 280000,
           status: 'processing',
           itemCount: 1,
           orderDate: '2024-01-13',
           labelGenerated: false,
-          items: [{ productName: 'Canon RF 24-70mm F2.8L IS USM', category: 'lens', quantity: 1, price: 280000 }]
+          items: [{ productName: 'Nikon D850 DSLR Camera with 24-120mm Lens Kit - Professional Grade', category: 'lens', quantity: 1, price: 280000, productImage: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=300&h=300&fit=crop' }]
         },
         {
           id: 'ORD-2024-COMP-0004',
           orderNumber: 'ORD-2024-COMP-0004',
           customer: '高橋美咲',
-          product: 'TAG Heuer Carrera',
+          product: 'TAG Heuer Carrera Calibre 16 Chronograph - Steel & Rose Gold',
           totalAmount: 350000,
           status: 'processing',
           itemCount: 1,
           orderDate: '2024-01-12',
           labelGenerated: false,
-          items: [{ productName: 'TAG Heuer Carrera', category: 'watch', quantity: 1, price: 350000 }]
+          items: [{ productName: 'TAG Heuer Carrera Calibre 16 Chronograph - Steel & Rose Gold', category: 'watch', quantity: 1, price: 350000, productImage: 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=300&h=300&fit=crop' }]
         },
         {
           id: 'ORD-2024-COMP-0003',
           orderNumber: 'ORD-2024-COMP-0003',
           customer: '伊藤健太',
-          product: 'IWC Portugieser',
+          product: 'IWC Portugieser Automatic 40mm Stainless Steel - Blue Dial',
           totalAmount: 680000,
           status: 'processing',
           itemCount: 1,
           orderDate: '2024-01-11',
           labelGenerated: false,
-          items: [{ productName: 'IWC Portugieser', category: 'watch', quantity: 1, price: 680000 }]
+          items: [{ productName: 'IWC Portugieser Automatic 40mm Stainless Steel - Blue Dial', category: 'watch', quantity: 1, price: 680000, productImage: 'https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=300&h=300&fit=crop' }]
         },
         {
           id: 'ORD-2024-COMP-0002',
           orderNumber: 'ORD-2024-COMP-0002',
           customer: '渡辺雄二',
-          product: 'Longines Master Collection',
+          product: 'Fujifilm X-T4 Mirrorless Camera with 18-55mm Lens - Black',
           totalAmount: 220000,
           status: 'processing',
           itemCount: 1,
           orderDate: '2024-01-10',
           labelGenerated: false,
-          items: [{ productName: 'Longines Master Collection', category: 'watch', quantity: 1, price: 220000 }]
+          items: [{ productName: 'Fujifilm X-T4 Mirrorless Camera with 18-55mm Lens - Black', category: 'camera', quantity: 1, price: 220000, productImage: 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=300&h=300&fit=crop' }]
         },
         {
           id: 'ORD-2024-COMP-0001',
           orderNumber: 'ORD-2024-COMP-0001',
           customer: '中村麗子',
-          product: 'Nikon Z9',
+          product: 'Panasonic Lumix GH5 4K Video Camera - Content Creator Special',
           totalAmount: 598000,
           status: 'delivered',
           itemCount: 1,
           orderDate: '2024-01-09',
           labelGenerated: true,
-          items: [{ productName: 'Nikon Z9', category: 'camera_body', quantity: 1, price: 598000 }]
+          items: [{ productName: 'Panasonic Lumix GH5 4K Video Camera - Content Creator Special', category: 'camera_body', quantity: 1, price: 598000, productImage: 'https://images.unsplash.com/photo-1514016810987-c59c4e3d6d29?w=300&h=300&fit=crop' }]
         }
       ],
       topProducts: [],

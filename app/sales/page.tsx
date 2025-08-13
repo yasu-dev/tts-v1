@@ -63,24 +63,60 @@ export default function SalesPage() {
     { value: 'ups', label: 'UPS (出荷作成)', apiEnabled: false, url: 'https://www.ups.com/jp/ja/Home.page' }
   ];
 
-  // eBayデータを取得する関数
-  const fetchEbayData = async (itemId: string) => {
-    try {
-      // 実際のeBayAPIからデータを取得する処理
-      // 現在はモックデータで対応
-      const response = await fetch(`/api/ebay/item/${itemId}`);
-      if (response.ok) {
-        const data = await response.json();
-        return {
-          ebayTitle: data.title,
-          ebayImage: data.mainImage,
-          ebayCategory: data.category
-        };
-      }
-    } catch (error) {
-      console.error('eBayデータ取得エラー:', error);
+  // eBayデータを取得する関数（開発環境用デモデータ）
+  const fetchEbayData = async (itemId: string, productName: string) => {
+    // 開発環境用: SQLiteに保存されたデモデータを使用
+    // 実際のeBay API呼び出しは無効化
+    
+    // デモ用のeBayタイトルと画像を生成
+    const demoTitles = [
+      'Canon EOS R5 Full Frame Mirrorless Camera Body - Excellent Condition',
+      'Nikon D850 DSLR Camera with 24-120mm Lens Kit - Professional Grade',
+      'Sony Alpha a7R IV Mirrorless Camera - 61MP Full Frame',
+      'Fujifilm X-T4 Mirrorless Camera with 18-55mm Lens - Black',
+      'Panasonic Lumix GH5 4K Video Camera - Content Creator Special',
+      'Olympus OM-D E-M1 Mark III Camera Body - Weather Sealed',
+      'Leica Q2 Full Frame Compact Camera - Luxury Edition',
+      'Seiko Prospex Diver Watch - Automatic Movement',
+      'Casio G-Shock Solar Watch - Military Style',
+      'Citizen Eco-Drive Chronograph - Titanium Case'
+    ];
+    
+    const demoImages = [
+      'https://images.unsplash.com/photo-1606983340126-99ab4feaa64a?w=300&h=300&fit=crop',
+      'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=300&h=300&fit=crop',
+      'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=300&h=300&fit=crop',
+      'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=300&h=300&fit=crop',
+      'https://images.unsplash.com/photo-1514016810987-c59c4e3d6d29?w=300&h=300&fit=crop',
+      'https://images.unsplash.com/photo-1523170335258-f5e06fda235b?w=300&h=300&fit=crop',
+      'https://images.unsplash.com/photo-1543680947-d8618014ce9f?w=300&h=300&fit=crop',
+      'https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=300&h=300&fit=crop',
+      'https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=300&h=300&fit=crop',
+      'https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=300&h=300&fit=crop'
+    ];
+    
+    // アイテムIDやプロダクト名に基づいてデモデータを選択
+    const seed = itemId || productName || Math.random().toString();
+    const index = Math.abs(getHashCode(seed)) % demoTitles.length;
+    
+    
+    return {
+      ebayTitle: demoTitles[index],
+      ebayImage: demoImages[index],
+      ebayCategory: productName?.toLowerCase().includes('camera') ? 'Cameras & Photo' : 'Jewelry & Watches'
+    };
+  };
+
+  // Helper function to generate hash code
+  const getHashCode = (str: string) => {
+    let hash = 0;
+    if (str.length === 0) return hash;
+    for (let i = 0; i < str.length; i++) {
+      const chr = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + chr;
+      hash |= 0; // Convert to 32bit integer
     }
-    return null;
+    return hash;
   };
 
   // データを取得する関数
@@ -96,15 +132,30 @@ export default function SalesPage() {
       const response = await fetch(`/api/sales?${params}`);
       const data = await response.json();
       
-      // 各注文についてeBayデータを取得
+      
+      // 各注文について、APIのproductデータが既にeBayスタイルかチェックし、必要に応じてデモデータで補完
       if (data.recentOrders) {
         const ordersWithEbayData = await Promise.all(
           data.recentOrders.map(async (order: any) => {
-            const ebayData = await fetchEbayData(order.ebayItemId || order.id);
-            return {
+            // APIから既に良いタイトルが来ている場合はそれを優先
+            let ebayTitle = order.product;
+            let ebayImage = order.items?.[0]?.productImage;
+            
+            // APIのタイトルが「注文 ORD-」形式の場合のみデモデータで補完
+            if (!ebayTitle || ebayTitle.startsWith('注文 ORD-')) {
+              const ebayData = await fetchEbayData(order.ebayItemId || order.id, order.product || '');
+              ebayTitle = ebayData.ebayTitle;
+              ebayImage = ebayData.ebayImage;
+            }
+            
+            const enhancedOrder = {
               ...order,
-              ...ebayData
+              ebayTitle,
+              ebayImage,
+              product: ebayTitle  // productプロパティも更新
             };
+            
+            return enhancedOrder;
           })
         );
         data.recentOrders = ordersWithEbayData;
@@ -370,7 +421,6 @@ export default function SalesPage() {
                   <table className="w-full">
                     <thead className="holo-header">
                       <tr>
-                        <th className="text-left p-4 font-medium text-nexus-text-secondary">注文番号</th>
                         <th className="text-left p-4 font-medium text-nexus-text-secondary">商品</th>
                         <th className="text-right p-4 font-medium text-nexus-text-secondary">金額</th>
                         <th className="text-center p-4 font-medium text-nexus-text-secondary">ステータス</th>
@@ -382,7 +432,7 @@ export default function SalesPage() {
                     <tbody className="holo-body">
                       {salesData.recentOrders.length === 0 ? (
                         <tr>
-                          <td colSpan={7} className="p-8 text-center text-nexus-text-secondary">
+                          <td colSpan={6} className="p-8 text-center text-nexus-text-secondary">
                             注文データがありません
                           </td>
                         </tr>
@@ -390,15 +440,12 @@ export default function SalesPage() {
                         salesData.recentOrders.map((row, index) => (
                           <tr key={row.id || index} className="holo-row">
                             <td className="p-4">
-                              <span className="font-mono text-sm text-nexus-text-primary">{row.orderNumber || row.orderId}</span>
-                            </td>
-                            <td className="p-4">
                               <div className="flex items-center gap-3">
                                 <div className="w-16 h-16 rounded border border-nexus-border overflow-hidden bg-nexus-bg-secondary">
                                   {row.ebayImage || row.items?.[0]?.productImage ? (
                                     <img 
                                       src={row.ebayImage || row.items[0].productImage} 
-                                      alt={row.ebayTitle || row.product}
+                                      alt={row.product}
                                       className="w-full h-full object-cover"
                                     />
                                   ) : (
@@ -408,17 +455,9 @@ export default function SalesPage() {
                                   )}
                                 </div>
                                 <div className="flex-1">
-                                  <div className="text-nexus-text-primary font-medium max-w-xs overflow-hidden text-ellipsis whitespace-nowrap" title={row.ebayTitle || row.product}>
-                                    {row.ebayTitle || row.product}
+                                  <div className="text-nexus-text-primary font-medium max-w-xs overflow-hidden text-ellipsis whitespace-nowrap" title={row.product}>
+                                    {row.product}
                                   </div>
-                                  <div className="text-xs text-nexus-text-secondary mt-1">
-                                    注文: {row.orderNumber || row.orderId}
-                                  </div>
-                                  {row.itemCount && (
-                                    <div className="text-xs text-nexus-text-secondary">
-                                      数量: {row.itemCount}点
-                                    </div>
-                                  )}
                                 </div>
                               </div>
                             </td>
