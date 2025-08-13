@@ -49,6 +49,7 @@ interface InventoryItem {
   images?: string[];
   inspectedAt?: string; // 検品日時を追加
   photographyDate?: string; // 撮影日時を追加
+  seller?: { id: string; username: string; email: string }; // セラー情報を追加
 }
 
 export default function StaffInventoryPage() {
@@ -61,6 +62,7 @@ export default function StaffInventoryPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
   const [selectedStaff, setSelectedStaff] = useState<string>('all');
+  const [selectedSeller, setSelectedSeller] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'card' | 'table'>('table');
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
@@ -193,6 +195,11 @@ export default function StaffInventoryPage() {
                                   .replace('unknown', '状態不明'),
           entryDate: item.entryDate || item.createdAt?.split('T')[0] || '2024-01-01',
           assignedStaff: item.seller?.username || '担当者未設定',
+          seller: item.seller ? {
+            id: item.seller.id,
+            username: item.seller.username,
+            email: item.seller.email
+          } : undefined,
           lastModified: item.updatedAt || new Date().toISOString(),
           qrCode: `QR-${item.sku}`,
           notes: item.description || '',
@@ -259,6 +266,9 @@ export default function StaffInventoryPage() {
     if (selectedStaff !== 'all') {
       filtered = filtered.filter(item => item.assignedStaff === selectedStaff);
     }
+    if (selectedSeller !== 'all') {
+      filtered = filtered.filter(item => item.seller?.id === selectedSeller);
+    }
     if (searchQuery) {
       filtered = filtered.filter(item => 
         item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -269,7 +279,7 @@ export default function StaffInventoryPage() {
 
     setFilteredItems(filtered);
     setCurrentPage(1); // フィルタ変更時はページを1に戻す
-  }, [items, selectedStatus, selectedCategory, selectedLocation, selectedStaff, searchQuery]);
+  }, [items, selectedStatus, selectedCategory, selectedLocation, selectedStaff, selectedSeller, searchQuery]);
 
   // 動的カテゴリーオプション生成
   const categoryOptions = useMemo(() => {
@@ -290,6 +300,25 @@ export default function StaffInventoryPage() {
       ...rawCategories.map(category => ({
         value: category,
         label: categoryMap[category as keyof typeof categoryMap] || category
+      }))
+    ];
+  }, [items]);
+
+  // 動的セラーオプション生成
+  const sellerOptions = useMemo(() => {
+    // 実際に存在するセラーを取得（重複排除）
+    const sellers = Array.from(new Set(
+      items
+        .map(item => item.seller)
+        .filter(Boolean) // seller情報が存在するもののみ
+        .map(seller => JSON.stringify({ id: seller!.id, username: seller!.username })) // 重複排除のため文字列化
+    )).map(str => JSON.parse(str)); // 文字列から元に戻す
+    
+    return [
+      { value: 'all', label: 'すべてのセラー' },
+      ...sellers.map(seller => ({
+        value: seller.id,
+        label: seller.username
       }))
     ];
   }, [items]);
@@ -539,6 +568,15 @@ export default function StaffInventoryPage() {
         <div className="intelligence-card global">
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div>
+                <NexusSelect
+                  label="セラー"
+                  value={selectedSeller}
+                  onChange={(e) => setSelectedSeller(e.target.value)}
+                  options={sellerOptions}
+                />
+              </div>
+
               <div>
                 <NexusSelect
                   label="ステータス"
