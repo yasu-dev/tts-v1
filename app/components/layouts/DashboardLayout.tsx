@@ -527,20 +527,8 @@ export default function DashboardLayout({
                       {item.icon}
                     </div>
                     {!isSidebarCollapsed && (
-                      <>
-                        <span className="font-medium text-sm flex-1 overflow-hidden text-ellipsis">
-                          {item.label}
-                        </span>
-                        {(item as any).badge && (
-                          <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0">
-                            {(item as any).badge}
-                          </span>
-                        )}
-                      </>
-                    )}
-                    {isSidebarCollapsed && (item as any).badge && (
-                      <span className="absolute top-1 right-1 w-3 h-3 bg-red-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
-                        {(item as any).badge > 9 ? '9+' : (item as any).badge}
+                      <span className="font-medium text-sm flex-1 overflow-hidden text-ellipsis">
+                        {item.label}
                       </span>
                     )}
                   </Link>

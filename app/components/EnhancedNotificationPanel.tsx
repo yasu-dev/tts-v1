@@ -97,7 +97,155 @@ export default function EnhancedNotificationPanel({
   }, [isOpen, onClose, anchorRef]);
 
   const handleNotificationClick = async (notification: Notification) => {
-    onClose();
+    try {
+      // 1. 通知を既読にマーク
+      if (!notification.read) {
+        await fetch('/api/notifications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            action: 'mark-read', 
+            notificationId: notification.id,
+            role: userType 
+          })
+        });
+        
+        // 本地の状態を更新
+        setNotifications(prev => 
+          prev.map(notif => 
+            notif.id === notification.id 
+              ? { ...notif, read: true }
+              : notif
+          )
+        );
+      }
+      
+      // 2. パネルを閉じる
+      onClose();
+      
+      // 3. 通知タイプに応じた画面に遷移
+      const navigationPath = getNavigationPath(notification);
+      
+      if (navigationPath) {
+        console.log(`📱 通知クリック: ${notification.title} -> ${navigationPath}`);
+        
+        // 少し遅延を入れてパネルが完全に閉じてから遷移
+        setTimeout(() => {
+          router.push(navigationPath);
+        }, 100);
+      } else {
+        console.log(`📱 通知クリック: ${notification.title} (遷移先なし)`);
+      }
+      
+    } catch (error) {
+      console.error('通知クリック処理エラー:', error);
+      // エラーがあってもパネルは閉じる
+      onClose();
+    }
+  };
+
+  /**
+   * 通知タイプに応じた遷移先を取得
+   */
+  const getNavigationPath = (notification: Notification): string | null => {
+    const { action, notificationType } = notification as any;
+    
+    // 1. actionフィールドがある場合はそれを優先
+    if (action) {
+      switch (action) {
+        case 'sales':
+          return '/sales';
+        case 'inventory':
+          return '/inventory';
+        case 'returns':
+          return '/returns';
+        case 'billing':
+          return '/billing';
+        case 'shipping':
+          return userType === 'staff' ? '/staff/shipping' : '/delivery';
+        case 'tasks':
+          return userType === 'staff' ? '/staff/tasks' : '/dashboard';
+        case 'inspection':
+          return userType === 'staff' ? '/staff/inspection' : '/inventory';
+        case 'system':
+          return '/settings';
+        default:
+          break;
+      }
+    }
+    
+    // 2. notificationTypeに基づく遷移先
+    if (notificationType) {
+      switch (notificationType) {
+        // 商品関連
+        case 'product_sold':
+          return '/sales';
+          
+        case 'product_issue':
+          return '/inventory'; // 商品管理は在庫画面で統合
+          
+        // 在庫関連
+        case 'inventory_alert':
+          return '/inventory';
+          
+        // 返品関連
+        case 'return_request':
+          return '/returns';
+          
+        // 支払い関連
+        case 'payment_issue':
+        case 'payment_received':
+          return '/billing';
+          
+        // 配送関連
+        case 'shipping_issue':
+          return userType === 'staff' ? '/staff/shipping' : '/delivery';
+          
+        // 検品関連
+        case 'inspection_complete':
+          return userType === 'staff' ? '/staff/inspection' : '/inventory';
+          
+        // レポート関連
+        case 'report_ready':
+        case 'monthly_summary':
+          return '/reports';
+          
+        // システム関連
+        case 'system_update':
+          return '/settings';
+          
+        // プロモーション
+        case 'promotion_available':
+          return '/dashboard'; // プロモーション専用画面がないためダッシュボードに
+          
+        default:
+          break;
+      }
+    }
+    
+    // 3. 通知タイトルに基づく推測（フォールバック）
+    const title = notification.title.toLowerCase();
+    
+    if (title.includes('売れ') || title.includes('販売') || title.includes('注文')) {
+      return '/sales';
+    } else if (title.includes('在庫') || title.includes('アラート')) {
+      return '/inventory';
+    } else if (title.includes('返品')) {
+      return '/returns';
+    } else if (title.includes('支払い') || title.includes('入金') || title.includes('決済')) {
+      return '/billing';
+    } else if (title.includes('配送') || title.includes('発送')) {
+      return userType === 'staff' ? '/staff/shipping' : '/delivery';
+    } else if (title.includes('検品')) {
+      return userType === 'staff' ? '/staff/inspection' : '/inventory';
+    } else if (title.includes('タスク') || title.includes('作業')) {
+      return userType === 'staff' ? '/staff/tasks' : '/dashboard';
+    } else if (title.includes('レポート') || title.includes('サマリー')) {
+      return '/reports';
+    }
+    
+    // 4. デフォルトはダッシュボード
+    return userType === 'staff' ? '/staff/dashboard' : '/dashboard';
   };
 
   const markAllAsRead = async () => {

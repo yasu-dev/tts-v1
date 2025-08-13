@@ -17,6 +17,7 @@ model User {
   fullName         String?
   phoneNumber      String?
   address          String?
+  notificationSettings String?         // JSON形式で通知設定を保存
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   activities       Activity[]

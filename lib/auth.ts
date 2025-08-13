@@ -181,9 +181,9 @@ export class AuthService {
     if (token.startsWith('fixed-auth-token-')) {
       const tokenMap = {
         'fixed-auth-token-seller-1': {
-          id: 'seller-1',
+          id: 'cme5ew5p300003j7w124ifkpy',
           email: 'seller@example.com',
-          username: 'seller',
+          username: 'テストセラー',
           role: 'seller',
           fullName: 'テストセラー',
           phoneNumber: '090-1234-5678',

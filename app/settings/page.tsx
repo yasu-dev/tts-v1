@@ -6,10 +6,6 @@ import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import UnifiedPageHeader from '@/app/components/ui/UnifiedPageHeader';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import { NexusSelect, NexusButton, NexusCard, NexusLoadingSpinner } from '@/app/components/ui';
-import ContentCard from '../components/ui/ContentCard';
-import BaseModal from '@/app/components/ui/BaseModal';
-import WarehouseManagement from '@/app/components/features/WarehouseManagement';
-import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 interface AppSettings {
   language: string;
@@ -34,13 +30,25 @@ export default function SettingsPage() {
   const router = useRouter();
   const { showToast } = useToast();
   const [settings, setSettings] = useState<AppSettings | null>(null);
-  const [userType, setUserType] = useState<'staff' | 'seller'>('staff');
-  const [isDataExporting, setIsDataExporting] = useState(false);
-  const [isAccountDeleting, setIsAccountDeleting] = useState(false);
-  const [isDeleteConfirmModalOpen, setIsDeleteConfirmModalOpen] = useState(false);
-  const [isSecondConfirmModalOpen, setIsSecondConfirmModalOpen] = useState(false);
-  const [isExportConfirmModalOpen, setIsExportConfirmModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'settings' | 'warehouse' | 'account'>('settings');
+  const [userType, setUserType] = useState<'staff' | 'seller'>('seller');
+  const [activeTab, setActiveTab] = useState<'settings' | 'notifications' | 'warehouse' | 'account'>('notifications');
+  
+  // 通知設定の状態管理
+  const [notificationSettings, setNotificationSettings] = useState<any>({
+    product_sold: true,
+    inventory_alert: true,
+    return_request: true,
+    payment_issue: true,
+    product_issue: true,
+    shipping_issue: true,
+    inspection_complete: false,
+    payment_received: false,
+    report_ready: false,
+    system_update: false,
+    promotion_available: false,
+    monthly_summary: false
+  });
+  const [loadingNotifications, setLoadingNotifications] = useState(false);
 
   useEffect(() => {
     // 実際の実装はAPIから取得
@@ -63,169 +71,78 @@ export default function SettingsPage() {
       },
     };
     setSettings(mockSettings);
+
+    // 通知設定を取得
+    fetchNotificationSettings();
   }, []);
 
-  const handleSettingChange = (category: keyof AppSettings, field: string, value: any) => {
-    if (settings) {
-      const currentCategory = settings[category];
-      if (typeof currentCategory === 'object' && currentCategory !== null) {
-        setSettings({
-          ...settings,
-          [category]: {
-            ...currentCategory,
-            [field]: value,
-          },
+  const fetchNotificationSettings = async () => {
+    try {
+      console.log('🔍 通知設定取得開始');
+      setLoadingNotifications(true);
+      
+      const response = await fetch('/api/user/notification-settings', {
+        headers: {
+          'Authorization': 'Bearer fixed-auth-token-seller-1',
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log('🔍 通知設定API応答:', response.status, response.statusText);
+      const data = await response.json();
+      console.log('🔍 通知設定データ:', data);
+      
+      if (response.ok) {
+        setNotificationSettings(data.settings);
+        setUserType(data.userRole === 'seller' ? 'seller' : 'staff');
+        console.log('✅ 通知設定取得成功:', data.settings);
+      } else {
+        console.error('❌ 通知設定取得エラー:', data.error);
+      }
+    } catch (error) {
+      console.error('❌ 通知設定取得エラー:', error);
+    } finally {
+      setLoadingNotifications(false);
+      console.log('🔍 通知設定取得処理完了');
+    }
+  };
+
+  const handleNotificationChange = (key: string, value: boolean) => {
+    setNotificationSettings((prev: any) => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  const saveNotificationSettings = async () => {
+    try {
+      const response = await fetch('/api/user/notification-settings', {
+        method: 'PUT',
+        headers: { 
+          'Authorization': 'Bearer fixed-auth-token-seller-1',
+          'Content-Type': 'application/json' 
+        },
+        body: JSON.stringify({ settings: notificationSettings }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        showToast({
+          title: '設定保存完了',
+          message: '通知設定を保存しました',
+          type: 'success'
         });
       } else {
-        setSettings({
-          ...settings,
-          [category]: value,
-        });
+        throw new Error(data.error || '保存に失敗しました');
       }
-    }
-  };
-
-  const handleSave = async (settingName: string) => {
-    try {
-      // 実際の設定保存処理を実装
-      const payload = {
-        settings: settings,
-        timestamp: new Date().toISOString(),
-        userType: userType
-      };
-      
-      // APIシミュレーション（実際のAPI呼び出しと同等の処理）
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // ローカルストレージにも保存（永続化）
-      localStorage.setItem('userSettings', JSON.stringify(payload));
-      
-      showToast({
-        title: '設定保存完了',
-        message: `${settingName}の設定を正常に保存しました`,
-        type: 'success'
-      });
-      
-      // 設定が反映されたことを示す
-      // 設定保存ログを記録
-      const settingsLog = {
-        ...payload,
-        savedAt: new Date().toISOString(),
-        user: 'current_user'
-      };
-      const logs = JSON.parse(localStorage.getItem('settingsLogs') || '[]');
-      logs.push(settingsLog);
-      localStorage.setItem('settingsLogs', JSON.stringify(logs));
-      
     } catch (error) {
+      console.error('通知設定保存エラー:', error);
       showToast({
-        title: '保存エラー',
-        message: '設定の保存に失敗しました。もう一度お試しください。',
+        title: '保存失敗',
+        message: '通知設定の保存に失敗しました',
         type: 'error'
       });
-    }
-  };
-
-  const handleDataExport = async () => {
-    setIsExportConfirmModalOpen(true);
-  };
-
-  const confirmDataExport = async () => {
-    setIsDataExporting(true);
-    setIsExportConfirmModalOpen(false);
-
-    try {
-      // データエクスポート処理のシミュレーション
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // ダミーデータの生成
-      const userData = {
-        account: {
-          id: 'USER-001',
-          email: 'user@example.com',
-          name: 'ユーザー名',
-          created_at: '2024-01-01T00:00:00Z',
-          last_login: new Date().toISOString()
-        },
-        settings: {
-          notifications: true,
-          language: 'ja',
-          timezone: 'Asia/Tokyo'
-        },
-        export_date: new Date().toISOString(),
-        export_type: 'full_account_data'
-      };
-
-      // JSONファイルとしてダウンロード
-      const dataStr = JSON.stringify(userData, null, 2);
-      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-      
-      const exportFileDefaultName = `account_data_${new Date().toISOString().split('T')[0]}.json`;
-      
-      const linkElement = document.createElement('a');
-      linkElement.setAttribute('href', dataUri);
-      linkElement.setAttribute('download', exportFileDefaultName);
-      linkElement.click();
-
-      showToast({
-        type: 'success',
-        title: 'データエクスポート完了',
-        message: 'アカウントデータのエクスポートが完了しました。',
-        duration: 5000
-      });
-
-    } catch (error) {
-      console.error('データエクスポート中にエラーが発生しました:', error);
-      showToast({
-        type: 'error',
-        title: 'エクスポートエラー',
-        message: 'データのエクスポートに失敗しました。もう一度お試しください。',
-        duration: 5000
-      });
-    } finally {
-      setIsDataExporting(false);
-    }
-  };
-
-  const handleAccountDelete = () => {
-    setIsDeleteConfirmModalOpen(true);
-  };
-
-  const handleFirstConfirm = () => {
-    setIsDeleteConfirmModalOpen(false);
-    setIsSecondConfirmModalOpen(true);
-  };
-
-  const handleFinalDelete = async () => {
-    setIsAccountDeleting(true);
-    setIsSecondConfirmModalOpen(false);
-
-    try {
-      // アカウント削除処理のシミュレーション
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      showToast({
-        type: 'success',
-        title: 'アカウント削除完了',
-        message: 'アカウントが正常に削除されました。ご利用ありがとうございました。',
-        duration: 5000
-      });
-
-      // 削除後、ログインページにリダイレクト
-      setTimeout(() => {
-        window.location.href = '/login';
-      }, 2000);
-
-    } catch (error) {
-      console.error('アカウント削除中にエラーが発生しました:', error);
-      showToast({
-        type: 'error',
-        title: '削除エラー',
-        message: 'アカウントの削除に失敗しました。サポートにお問い合わせください。',
-        duration: 5000
-      });
-    } finally {
-      setIsAccountDeleting(false);
     }
   };
 
@@ -261,6 +178,16 @@ export default function SettingsPage() {
             >
               一般設定
             </button>
+            <button
+              onClick={() => setActiveTab('notifications')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'notifications'
+                  ? 'border-primary-blue text-primary-blue'
+                  : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-nexus-border'
+              }`}
+            >
+              通知設定
+            </button>
             {userType === 'staff' && (
               <button
                 onClick={() => setActiveTab('warehouse')}
@@ -286,350 +213,242 @@ export default function SettingsPage() {
           </nav>
         </div>
 
-        {/* 一般設定タブ */}
-        {activeTab === 'settings' && (
-          <>
-            {/* Delivery & Shipping Settings */}
-            <div className="intelligence-card global">
-              <div className="p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-display font-bold text-nexus-text-primary">
-                    配送・発送設定
-                  </h2>
-                </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <NexusButton
-                  onClick={() => {
-                    showToast({
-                      type: 'success',
-                      title: '配送業者設定',
-                      message: '配送業者設定画面を開きました',
-                      duration: 3000
-                    });
-                  }}
-                  variant="default"
-                  className="w-full justify-start h-auto p-4"
-                >
-                  <div className="text-left">
-                    <div className="font-semibold">配送業者設定</div>
-                    <div className="text-sm text-nexus-text-secondary">
-                      配送業者の管理と設定
-                    </div>
-                  </div>
-                </NexusButton>
-              </div>
-              
-              <div>
-                <NexusButton
-                  onClick={() => {
-                    showToast({
-                      type: 'success',
-                      title: '梱包材設定',
-                      message: '梱包材設定画面を開きました',
-                      duration: 3000
-                    });
-                  }}
-                  variant="default"
-                  className="w-full justify-start h-auto p-4"
-                >
-                  <div className="text-left">
-                    <div className="font-semibold">梱包材設定</div>
-                    <div className="text-sm text-nexus-text-secondary">
-                      梱包材料の管理と設定
-                    </div>
-                  </div>
-                </NexusButton>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Account Management */}
-        <div className="intelligence-card global">
-          <div className="p-8">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-display font-bold text-nexus-text-primary">
-                アカウント管理
-              </h2>
-            </div>
-            
-            <div className="space-y-4">
-              {/* データエクスポート */}
-              <div className="p-4 border border-nexus-border rounded-lg">
-                <h3 className="font-semibold text-nexus-text-primary mb-2">
-                  データエクスポート
-                </h3>
-                <p className="text-sm text-nexus-text-secondary mb-4">
-                  アカウントデータをJSONファイルとしてエクスポートできます。
-                </p>
-                <NexusButton
-                  onClick={handleDataExport}
-                  variant="default"
-                >
-                  エクスポート
-                </NexusButton>
-              </div>
-
-              {/* 設定保存 */}
-              <div className="p-4 border border-nexus-border rounded-lg">
-                <h3 className="font-semibold text-nexus-text-primary mb-2">
-                  設定保存
-                </h3>
-                <p className="text-sm text-nexus-text-secondary mb-4">
-                  現在の設定を保存します
-                </p>
-                <NexusButton
-                  onClick={() => handleSave('全体設定')}
-                  variant="primary"
-                >
-                  保存
-                </NexusButton>
-              </div>
-
-              {/* 設定更新 */}
-              <div className="p-4 border border-nexus-border rounded-lg">
-                <h3 className="font-semibold text-nexus-text-primary mb-2">
-                  設定更新
-                </h3>
-                <p className="text-sm text-nexus-text-secondary mb-4">
-                  最新の設定に更新します
-                </p>
-                <NexusButton
-                  onClick={() => {
-                    showToast({
-                      type: 'success',
-                      title: '設定更新',
-                      message: '設定を最新の状態に更新しました',
-                      duration: 3000
-                    });
-                  }}
-                  variant="primary"
-                >
-                  更新
-                </NexusButton>
-              </div>
-
-              {/* アカウント削除 */}
-              <div className="p-4 border border-red-200 rounded-lg bg-red-50 dark:bg-red-900/20">
-                <h3 className="font-semibold text-red-800 dark:text-red-200 mb-2">
-                  アカウント削除
-                </h3>
-                <p className="text-sm text-red-600 dark:text-red-300 mb-4">
-                  この操作は取り消すことができません。すべてのデータが永続的に削除されます。
-                </p>
-                <NexusButton
-                  onClick={handleAccountDelete}
-                  variant="danger"
-                >
-                  アカウントを削除
-                </NexusButton>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 重要な注意事項 */}
-        <div className="intelligence-card global">
-          <div className="p-8">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-display font-bold text-nexus-text-primary">
-                重要な注意事項
-              </h2>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="flex items-start space-x-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mt-0.5">
-                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <h4 className="font-medium text-nexus-text-primary">データの保護について</h4>
-                  <p className="text-sm text-nexus-text-secondary">
-                    エクスポートされたデータは適切な場所に保存し、第三者に共有しないでください。
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mt-0.5">
-                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <h4 className="font-medium text-nexus-text-primary">アカウント削除の影響</h4>
-                  <p className="text-sm text-nexus-text-secondary">
-                    アカウントを削除すると、すべてのデータ、設定、履歴が完全に削除されます。この操作は取り消すことができません。
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* First Confirmation Modal */}
-        <BaseModal
-          isOpen={isDeleteConfirmModalOpen}
-          onClose={() => setIsDeleteConfirmModalOpen(false)}
-          title="アカウント削除の確認"
-          size="md"
-        >
-          <div className="space-y-6">
-            <div className="flex items-center justify-center mb-4">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-                <ExclamationTriangleIcon className="w-6 h-6 text-red-600" />
-              </div>
-            </div>
-            
-            <div className="text-center space-y-3">
-              <h3 className="text-lg font-medium text-nexus-text-primary">
-                この操作は完全に元に戻すことができません
-              </h3>
-              <p className="text-nexus-text-secondary">
-                すべてのデータが永久に削除されます。
-              </p>
-              <p className="text-nexus-text-secondary font-medium">
-                本当に続行しますか？
-              </p>
-            </div>
-            
-            <div className="flex gap-4 justify-end">
-              <NexusButton
-                onClick={() => setIsDeleteConfirmModalOpen(false)}
-                variant="default"
-              >
-                キャンセル
-              </NexusButton>
-              <NexusButton
-                onClick={handleFirstConfirm}
-                variant="danger"
-                icon={<ExclamationTriangleIcon className="w-5 h-5" />}
-              >
-                続行
-              </NexusButton>
-            </div>
-          </div>
-        </BaseModal>
-
-        {/* Second Confirmation Modal */}
-        <BaseModal
-          isOpen={isSecondConfirmModalOpen}
-          onClose={() => setIsSecondConfirmModalOpen(false)}
-          title="最終確認"
-          size="md"
-        >
-          <div className="space-y-6">
-            <div className="flex items-center justify-center mb-4">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-                <ExclamationTriangleIcon className="w-6 h-6 text-red-600" />
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-nexus-text-primary text-center">
-                最終確認
-              </h3>
-              
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <p className="text-sm text-red-800 font-medium mb-2">
-                  この操作により以下が完全に削除されます：
-                </p>
-                <ul className="text-sm text-red-700 space-y-1">
-                  <li>• アカウント情報</li>
-                  <li>• 在庫データ</li>
-                  <li>• 取引履歴</li>
-                  <li>• 設定情報</li>
-                </ul>
-              </div>
-              
-              <p className="text-center text-nexus-text-secondary font-medium">
-                本当に削除しますか？
-              </p>
-            </div>
-            
-            <div className="flex gap-4 justify-end">
-              <NexusButton
-                onClick={() => setIsSecondConfirmModalOpen(false)}
-                variant="default"
-              >
-                キャンセル
-              </NexusButton>
-              <NexusButton
-                onClick={handleFinalDelete}
-                variant="danger"
-                disabled={isAccountDeleting}
-                icon={
-                  isAccountDeleting ? (
-                    <div className="animate-spin h-5 w-5 border-b-2 border-current rounded-full"></div>
-                  ) : (
-                    <ExclamationTriangleIcon className="w-5 h-5" />
-                  )
-                }
-              >
-                {isAccountDeleting ? '削除中...' : '完全に削除'}
-              </NexusButton>
-            </div>
-          </div>
-        </BaseModal>
-
-        {/* Export Confirmation Modal */}
-        <BaseModal
-          isOpen={isExportConfirmModalOpen}
-          onClose={() => setIsExportConfirmModalOpen(false)}
-          title="データエクスポートの確認"
-          size="md"
-        >
-          <div className="space-y-6">
-                         <div className="flex items-center justify-center mb-4">
-               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                 <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                 </svg>
-               </div>
-             </div>
-            
-            <div className="text-center space-y-3">
-              <h3 className="text-lg font-medium text-nexus-text-primary">
-                データエクスポートを実行しますか？
-              </h3>
-              <p className="text-nexus-text-secondary">
-                この操作により、アカウントデータがJSONファイルとしてダウンロードされます。
-              </p>
-            </div>
-            
-            <div className="flex gap-4 justify-end">
-              <NexusButton
-                onClick={() => setIsExportConfirmModalOpen(false)}
-                variant="default"
-              >
-                キャンセル
-              </NexusButton>
-              <NexusButton
-                onClick={confirmDataExport}
-                variant="primary"
-              >
-                実行
-              </NexusButton>
-            </div>
-          </div>
-        </BaseModal>
-
-        {/* 倉庫管理タブ */}
-        {activeTab === 'warehouse' && userType === 'staff' && (
-          <div className="intelligence-card global">
+        {/* 通知設定タブ */}
+        {activeTab === 'notifications' && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
             <div className="p-8">
-              <WarehouseManagement />
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    通知設定
+                  </h2>
+                  <p className="text-gray-600 mt-1">
+                    受信したい通知のタイプを選択してください
+                  </p>
+                </div>
+                <button
+                  onClick={saveNotificationSettings}
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                >
+                  設定保存
+                </button>
+              </div>
+
+              {loadingNotifications ? (
+                <div className="flex justify-center py-8">
+                  <div className="text-gray-500">読み込み中...</div>
+                </div>
+              ) : (
+                <div className="space-y-8">
+                  {/* 緊急度の高い通知 */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                      <span className="w-5 h-5 text-red-500">⚠️</span>
+                      緊急通知（推奨：ON）
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      セラーが早急にアクションを起こす必要がある重要な通知です
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div>
+                          <h4 className="font-medium text-gray-900">商品購入通知</h4>
+                          <p className="text-sm text-gray-600">商品が売れた時の通知</p>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={notificationSettings?.product_sold || false}
+                          onChange={(e) => handleNotificationChange('product_sold', e.target.checked)}
+                          className="w-5 h-5 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div>
+                          <h4 className="font-medium text-gray-900">在庫アラート</h4>
+                          <p className="text-sm text-gray-600">在庫滞留や在庫切れアラート</p>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={notificationSettings?.inventory_alert || false}
+                          onChange={(e) => handleNotificationChange('inventory_alert', e.target.checked)}
+                          className="w-5 h-5 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div>
+                          <h4 className="font-medium text-gray-900">返品処理</h4>
+                          <p className="text-sm text-gray-600">返品要求やクレーム</p>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={notificationSettings?.return_request || false}
+                          onChange={(e) => handleNotificationChange('return_request', e.target.checked)}
+                          className="w-5 h-5 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div>
+                          <h4 className="font-medium text-gray-900">支払い問題</h4>
+                          <p className="text-sm text-gray-600">支払いエラーや未払い</p>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={notificationSettings?.payment_issue || false}
+                          onChange={(e) => handleNotificationChange('payment_issue', e.target.checked)}
+                          className="w-5 h-5 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div>
+                          <h4 className="font-medium text-gray-900">商品問題</h4>
+                          <p className="text-sm text-gray-600">商品に関する問題やクレーム</p>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={notificationSettings?.product_issue || false}
+                          onChange={(e) => handleNotificationChange('product_issue', e.target.checked)}
+                          className="w-5 h-5 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div>
+                          <h4 className="font-medium text-gray-900">配送問題</h4>
+                          <p className="text-sm text-gray-600">配送遅延やトラブル</p>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={notificationSettings?.shipping_issue || false}
+                          onChange={(e) => handleNotificationChange('shipping_issue', e.target.checked)}
+                          className="w-5 h-5 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 情報通知 */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                      <span className="w-5 h-5 text-blue-500">ℹ️</span>
+                      情報通知（推奨：お好みで）
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      定期的な確認で十分な情報のみの通知です
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div>
+                          <h4 className="font-medium text-gray-900">検品完了</h4>
+                          <p className="text-sm text-gray-600">検品完了通知</p>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={notificationSettings?.inspection_complete || false}
+                          onChange={(e) => handleNotificationChange('inspection_complete', e.target.checked)}
+                          className="w-5 h-5 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div>
+                          <h4 className="font-medium text-gray-900">入金確認</h4>
+                          <p className="text-sm text-gray-600">売上金入金通知</p>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={notificationSettings?.payment_received || false}
+                          onChange={(e) => handleNotificationChange('payment_received', e.target.checked)}
+                          className="w-5 h-5 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div>
+                          <h4 className="font-medium text-gray-900">レポート準備</h4>
+                          <p className="text-sm text-gray-600">月次レポート等の準備完了</p>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={notificationSettings?.report_ready || false}
+                          onChange={(e) => handleNotificationChange('report_ready', e.target.checked)}
+                          className="w-5 h-5 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div>
+                          <h4 className="font-medium text-gray-900">システム更新</h4>
+                          <p className="text-sm text-gray-600">システムアップデートやメンテナンス</p>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={notificationSettings?.system_update || false}
+                          onChange={(e) => handleNotificationChange('system_update', e.target.checked)}
+                          className="w-5 h-5 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div>
+                          <h4 className="font-medium text-gray-900">プロモーション情報</h4>
+                          <p className="text-sm text-gray-600">キャンペーンやプロモーション</p>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={notificationSettings?.promotion_available || false}
+                          onChange={(e) => handleNotificationChange('promotion_available', e.target.checked)}
+                          className="w-5 h-5 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div>
+                          <h4 className="font-medium text-gray-900">月次サマリー</h4>
+                          <p className="text-sm text-gray-600">月次売上サマリー</p>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={notificationSettings?.monthly_summary || false}
+                          onChange={(e) => handleNotificationChange('monthly_summary', e.target.checked)}
+                          className="w-5 h-5 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        </>
+        {/* 一般設定タブ */}
+        {activeTab === 'settings' && (
+          <div style={{backgroundColor: 'blue', padding: '20px', color: 'white', fontSize: '18px'}}>
+            <h2>一般設定タブ</h2>
+            <p>基本設定がここに表示されます</p>
+          </div>
+        )}
+
+        {/* アカウント管理タブ */}
+        {activeTab === 'account' && (
+          <div style={{backgroundColor: 'green', padding: '20px', color: 'white', fontSize: '18px'}}>
+            <h2>アカウント管理タブ</h2>
+            <p>アカウント管理がここに表示されます</p>
+          </div>
+        )}
+
+        {/* 倉庫管理タブ */}
+        {activeTab === 'warehouse' && userType === 'staff' && (
+          <div style={{backgroundColor: 'purple', padding: '20px', color: 'white', fontSize: '18px'}}>
+            <h2>倉庫管理タブ</h2>
+            <p>倉庫管理がここに表示されます</p>
+          </div>
         )}
       </div>
     </DashboardLayout>
   );
-} 
+}

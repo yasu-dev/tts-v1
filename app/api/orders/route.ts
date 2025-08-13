@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { AuthService } from '@/lib/auth';
+import { notificationService } from '@/lib/services/notification.service';
 
 const prisma = new PrismaClient();
 
@@ -145,6 +146,39 @@ export async function POST(request: NextRequest) {
         metadata: JSON.stringify({ totalAmount, itemCount: items.length })
       }
     });
+
+    // セラーに商品購入通知を送信
+    try {
+      const uniqueSellerIds = [...new Set(order.items.map(item => item.product.sellerId))];
+      
+      for (const sellerId of uniqueSellerIds) {
+        const sellerItems = order.items.filter(item => item.product.sellerId === sellerId);
+        const sellerItemNames = sellerItems.map(item => item.product.name).join(', ');
+        const sellerTotal = sellerItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        
+        await notificationService.sendNotification({
+          type: 'product_sold',
+          title: '🎉 商品が売れました！',
+          message: `商品「${sellerItemNames}」が売れました。合計金額: ¥${sellerTotal.toLocaleString()}`,
+          userId: sellerId,
+          metadata: {
+            orderNumber,
+            orderId: order.id,
+            totalAmount: sellerTotal,
+            items: sellerItems.map(item => ({
+              productName: item.product.name,
+              quantity: item.quantity,
+              price: item.price
+            }))
+          }
+        });
+      }
+      
+      console.log(`📧 商品購入通知送信完了: ${uniqueSellerIds.length}名のセラーに送信`);
+    } catch (notificationError) {
+      console.error('商品購入通知送信エラー:', notificationError);
+      // 通知エラーは注文作成成功には影響させない
+    }
 
     return NextResponse.json(order, { status: 201 });
   } catch (error) {

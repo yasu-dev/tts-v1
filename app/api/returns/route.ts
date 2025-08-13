@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { AuthService } from '@/lib/auth';
+import { notificationService } from '@/lib/services/notification.service';
 
 const prisma = new PrismaClient();
 
@@ -104,8 +105,49 @@ export async function POST(request: NextRequest) {
         customerNote: customerNote || '',
         refundAmount: refundAmount || 0,
         status: 'pending',
+      },
+      include: {
+        // 商品とセラー情報を含めて取得
+        product: {
+          include: {
+            seller: {
+              select: {
+                id: true,
+                email: true,
+                fullName: true
+              }
+            }
+          }
+        }
       }
     });
+
+    // セラーに返品要求通知を送信
+    try {
+      if (newReturn.product?.seller) {
+        await notificationService.sendNotification({
+          type: 'return_request',
+          title: '🔄 返品要求が届きました',
+          message: `商品「${newReturn.product.name}」の返品要求が届きました。理由: ${reason}`,
+          userId: newReturn.product.seller.id,
+          metadata: {
+            returnId: newReturn.id,
+            orderId: newReturn.orderId,
+            productId: newReturn.productId,
+            productName: newReturn.product.name,
+            reason: reason,
+            condition: condition,
+            customerNote: customerNote,
+            refundAmount: refundAmount || 0
+          }
+        });
+        
+        console.log(`📧 返品要求通知送信完了: ${newReturn.product.name} -> ${newReturn.product.seller.email}`);
+      }
+    } catch (notificationError) {
+      console.error('返品要求通知送信エラー:', notificationError);
+      // 通知エラーは返品要求作成成功には影響させない
+    }
 
     return NextResponse.json(newReturn, { status: 201 });
   } catch (error) {
