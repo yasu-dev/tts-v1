@@ -478,7 +478,8 @@ export async function POST(request: NextRequest) {
         where: { id: order.id },
         data: {
           status: 'processing',
-          trackingNumber: labelResult.trackingNumber
+          trackingNumber: labelResult.trackingNumber,
+          carrier: 'fedex'
         }
       });
 

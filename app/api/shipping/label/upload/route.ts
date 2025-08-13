@@ -21,6 +21,18 @@ export async function POST(request: NextRequest) {
     const itemId = formData.get('itemId') as string;
     const provider = formData.get('provider') as 'seller' | 'worlddoor';
     const type = formData.get('type') as string;
+    const trackingNumber = formData.get('trackingNumber') as string;
+    const carrier = formData.get('carrier') as string;
+
+    console.log('🚛 配送伝票アップロード - 受信パラメータ:', {
+      itemId,
+      provider,
+      type,
+      trackingNumber: trackingNumber ? `${trackingNumber.slice(0, 4)}***` : 'なし',
+      carrier,
+      fileName: file?.name,
+      fileSize: file?.size
+    });
 
     if (!file || !itemId || !provider) {
       return NextResponse.json(
@@ -75,12 +87,22 @@ export async function POST(request: NextRequest) {
         throw new Error('対象の注文が見つかりません');
       }
 
-      // 注文ステータスを processing に更新
+      // 注文ステータス、追跡番号、キャリア情報を更新
+      const updateData: any = {
+        status: 'processing'
+      };
+      
+      if (trackingNumber && trackingNumber.trim()) {
+        updateData.trackingNumber = trackingNumber.trim();
+      }
+      
+      if (carrier && carrier.trim()) {
+        updateData.carrier = carrier.trim();
+      }
+      
       await prisma.order.update({
         where: { id: order.id },
-        data: {
-          status: 'processing'
-        }
+        data: updateData
       });
 
       // 関連商品のステータスを ordered に更新
@@ -95,17 +117,23 @@ export async function POST(request: NextRequest) {
       });
 
       // アクティビティログを記録
+      const logDescription = trackingNumber && trackingNumber.trim()
+        ? `外部配送業者のラベルがアップロードされました（追跡番号: ${trackingNumber.trim()}）`
+        : `外部配送業者のラベルがアップロードされました`;
+        
       await prisma.activity.create({
         data: {
           type: 'label_uploaded',
-          description: `外部配送業者のラベルがアップロードされました`,
+          description: logDescription,
           userId: user.id,
           orderId: order.id,
           metadata: JSON.stringify({
             fileName,
             provider,
             fileSize: file.size,
-            fileType: file.type
+            fileType: file.type,
+            trackingNumber: trackingNumber?.trim() || null,
+            carrier: carrier?.trim() || null
           })
         }
       });
@@ -117,7 +145,9 @@ export async function POST(request: NextRequest) {
         provider,
         uploadedBy: user.username,
         fileSize: file.size,
-        productsUpdated: productIds.length
+        productsUpdated: productIds.length,
+        trackingNumber: trackingNumber?.trim() || null,
+        carrier: carrier?.trim() || null
       });
 
       return NextResponse.json({

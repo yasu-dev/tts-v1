@@ -22,6 +22,15 @@ interface OrderDetailModalProps {
 }
 
 export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetailModalProps) {
+  console.log('🔍 OrderDetailModal: 受信した注文データ', {
+    order,
+    trackingNumber: order?.trackingNumber,
+    carrier: order?.carrier,
+    id: order?.id,
+    orderNumber: order?.orderNumber,
+    isTrackingNumberTruthy: !!order?.trackingNumber
+  });
+
   if (!order) return null;
 
   const handleTrackingClick = () => {

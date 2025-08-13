@@ -62,7 +62,9 @@ export async function GET(request: NextRequest) {
         orderDate: order.orderDate.toISOString(),
         shippedAt: order.shippedAt?.toISOString(),
         deliveredAt: order.deliveredAt?.toISOString(),
-        notes: order.notes
+        notes: order.notes,
+        trackingNumber: order.trackingNumber,
+        carrier: order.carrier
       })),
       pagination: {
         currentPage: page,

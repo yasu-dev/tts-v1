@@ -112,6 +112,9 @@ export async function GET() {
           status: order.status,
           itemCount: order.items.length,
           orderDate: order.orderDate.toISOString(),
+          trackingNumber: order.trackingNumber, // 追跡番号を追加
+          carrier: order.carrier, // 配送業者を追加
+          shippingAddress: order.shippingAddress, // 配送先住所を追加
           items: order.items.map(item => ({
             productName: item.product.name,
             category: item.product.category,
@@ -119,7 +122,7 @@ export async function GET() {
             price: item.price
           }))
         };
-        console.log(`注文 ${orderData.orderNumber}: 商品「${orderData.product}」`);
+        console.log(`注文 ${orderData.orderNumber}: 商品「${orderData.product}」追跡番号「${orderData.trackingNumber}」`);
         return orderData;
       }),
       topProducts: topProducts.map(item => {

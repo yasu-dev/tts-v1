@@ -129,8 +129,17 @@ export default function SalesPage() {
         status: statusFilter
       });
       
+      console.log('🔍 Sales画面: /api/sales呼び出し開始', `/api/sales?${params}`);
       const response = await fetch(`/api/sales?${params}`);
       const data = await response.json();
+      console.log('🔍 Sales画面: /api/salesレスポンス', {
+        recentOrdersCount: data.recentOrders?.length,
+        firstOrder: data.recentOrders?.[0],
+        firstOrderTrackingInfo: {
+          trackingNumber: data.recentOrders?.[0]?.trackingNumber,
+          carrier: data.recentOrders?.[0]?.carrier
+        }
+      });
       
       
       // 各注文について、APIのproductデータが既にeBayスタイルかチェックし、必要に応じてデモデータで補完
@@ -161,6 +170,16 @@ export default function SalesPage() {
         data.recentOrders = ordersWithEbayData;
       }
       
+      console.log('🔍 Sales画面: 最終的にsetSalesDataに渡すデータ', {
+        recentOrdersCount: data.recentOrders?.length,
+        firstOrderFinal: data.recentOrders?.[0],
+        firstOrderTrackingFinal: {
+          trackingNumber: data.recentOrders?.[0]?.trackingNumber,
+          carrier: data.recentOrders?.[0]?.carrier,
+          id: data.recentOrders?.[0]?.id,
+          orderNumber: data.recentOrders?.[0]?.orderNumber
+        }
+      });
       setSalesData(data);
     } catch (error) {
       console.error('Error fetching sales data:', error);
@@ -285,6 +304,13 @@ export default function SalesPage() {
   };
 
   const handleShowDetails = (order: any) => {
+    console.log('🔍 Sales画面: OrderDetailModalに渡す注文データ', {
+      order,
+      trackingNumber: order.trackingNumber,
+      carrier: order.carrier,
+      id: order.id,
+      orderNumber: order.orderNumber
+    });
     setSelectedOrderForDetail(order);
     setIsOrderDetailModalOpen(true);
   };

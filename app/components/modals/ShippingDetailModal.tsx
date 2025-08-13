@@ -80,6 +80,19 @@ export default function ShippingDetailModal({
 
   if (!isOpen || !item) return null;
 
+  // デバッグ：配送方法とキャリア推定をログ出力
+  const inferredCarrier = item.shippingMethod?.toLowerCase().includes('yamato') ? 'yamato' : 
+                         item.shippingMethod?.toLowerCase().includes('sagawa') ? 'sagawa' : 
+                         item.shippingMethod?.toLowerCase().includes('fedex') ? 'fedex' :
+                         item.shippingMethod?.toLowerCase().includes('yupack') ? 'yupack' : 'other';
+  
+  console.log('🚛 ShippingDetailModal - 配送情報デバッグ:', {
+    itemId: item.id,
+    shippingMethod: item.shippingMethod,
+    inferredCarrier,
+    trackingNumber: item.trackingNumber
+  });
+
   const statusLabels: Record<string, string> = {
     'storage': '保管中',
     'packed': '梱包済み',

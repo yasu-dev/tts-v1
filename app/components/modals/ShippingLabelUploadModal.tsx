@@ -74,6 +74,13 @@ export default function ShippingLabelUploadModal({
       return;
     }
 
+    console.log('🚛 ShippingLabelUploadModal - アップロード開始:', {
+      itemId,
+      carrier,
+      trackingNumber: trackingNumber ? `${trackingNumber.slice(0, 4)}***` : 'なし',
+      provider
+    });
+
     setUploading(true);
 
     try {
@@ -85,6 +92,9 @@ export default function ShippingLabelUploadModal({
       formData.append('type', 'shipping_label');
       if (trackingNumber.trim()) {
         formData.append('trackingNumber', trackingNumber.trim());
+      }
+      if (carrier && carrier.trim()) {
+        formData.append('carrier', carrier.trim());
       }
 
       // アップロードAPI呼び出し
