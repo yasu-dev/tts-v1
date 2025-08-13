@@ -31,9 +31,7 @@ export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetail
     }
   };
 
-  const handleViewStaffProgress = () => {
-    window.open(`/staff/shipping?orderId=${order.id}`, '_blank');
-  };
+
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
@@ -214,14 +212,7 @@ export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetail
                     >
                       追跡サイト
                     </NexusButton>
-                    <NexusButton
-                      onClick={handleViewStaffProgress}
-                      size="sm"
-                      variant="secondary"
-                      icon={<ClipboardDocumentCheckIcon className="w-4 h-4" />}
-                    >
-                      スタッフ画面
-                    </NexusButton>
+
                   </div>
                 </div>
                 {order.carrier && (
@@ -259,15 +250,7 @@ export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetail
         >
           閉じる
         </NexusButton>
-        {order.trackingNumber && (
-          <NexusButton
-            onClick={handleViewStaffProgress}
-            variant="primary"
-            icon={<ClipboardDocumentCheckIcon className="w-4 h-4" />}
-          >
-            スタッフ画面で確認
-          </NexusButton>
-        )}
+
       </div>
     </BaseModal>
   );

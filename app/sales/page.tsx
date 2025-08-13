@@ -289,10 +289,7 @@ export default function SalesPage() {
     setIsOrderDetailModalOpen(true);
   };
 
-  const handleViewStaffProgress = (order: any) => {
-    // スタッフ画面をモーダルまたは新しいタブで開く
-    window.open(`/staff/shipping?orderId=${order.id}`, '_blank');
-  };
+
 
   const handleLabelUploadComplete = (labelUrl: string, provider: 'seller' | 'worlddoor', trackingNumber?: string) => {
     if (!selectedOrder) return;
@@ -509,16 +506,7 @@ export default function SalesPage() {
                                 >
                                   詳細
                                 </NexusButton>
-                                {row.trackingNumber && (
-                                  <NexusButton
-                                    onClick={() => handleViewStaffProgress(row)}
-                                    size="sm"
-                                    variant="default"
-                                    icon={<ClipboardDocumentCheckIcon className="w-4 h-4" />}
-                                  >
-                                    進捗確認
-                                  </NexusButton>
-                                )}
+
                               </div>
                             </td>
                           </tr>
