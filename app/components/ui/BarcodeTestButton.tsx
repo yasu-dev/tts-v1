@@ -11,6 +11,7 @@ interface BarcodeTestButtonProps {
 
 export default function BarcodeTestButton({ className = '' }: BarcodeTestButtonProps) {
   const [isSimulating, setIsSimulating] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const { showToast } = useToast();
 
   // バーコードスキャンをシミュレートする関数
@@ -66,15 +67,46 @@ export default function BarcodeTestButton({ className = '' }: BarcodeTestButtonP
     { label: 'Fujifilm XT5', code: 'CAM-FUJIFILM-XT5-005' },
   ];
 
+  // 最小化時の表示
+  if (!isExpanded) {
+    return (
+      <div className={`fixed bottom-4 right-4 z-50 ${className}`}>
+        <button
+          onClick={() => setIsExpanded(true)}
+          className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition-all duration-200 border-2 border-blue-500 hover:scale-105"
+          title="バーコードテスターを展開"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 6h-1m-6 6v1m-6-6h1m6-6l-3 3m0 6l3-3m-6-3l3 3m6 0l-3-3" />
+          </svg>
+        </button>
+      </div>
+    );
+  }
+
+  // 展開時の表示
   return (
-    <div className={`fixed bottom-4 right-4 z-50 bg-white shadow-lg rounded-lg p-4 border-2 border-dashed border-blue-300 ${className}`}>
-      <div className="mb-2">
-        <div className="flex items-center gap-2 mb-1">
+    <div className={`fixed bottom-4 right-4 z-50 bg-white shadow-xl rounded-lg border-2 border-dashed border-blue-300 transition-all duration-300 transform ${className}`}>
+      {/* ヘッダー部分（折り畳みボタン付き） */}
+      <div className="bg-blue-50 p-3 rounded-t-lg border-b border-blue-200 flex items-center justify-between">
+        <div className="flex items-center gap-2">
           <WrenchScrewdriverIcon className="w-4 h-4 text-blue-600" />
           <h3 className="text-sm font-bold text-blue-800">バーコードテスター</h3>
         </div>
-        <p className="text-xs text-gray-600">バーコードリーダーの代替ツール</p>
+        <button
+          onClick={() => setIsExpanded(false)}
+          className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 p-1 rounded transition-colors"
+          title="最小化"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
       </div>
+      
+      {/* コンテンツ部分 */}
+      <div className="p-4">
+        <p className="text-xs text-gray-600 mb-3">バーコードリーダーの代替ツール</p>
       
       <div className="space-y-2">
         {testBarcodes.map((item, index) => (
@@ -106,12 +138,13 @@ export default function BarcodeTestButton({ className = '' }: BarcodeTestButtonP
         </div>
       </div>
       
-      {isSimulating && (
-        <div className="mt-2 text-xs text-blue-600 flex items-center">
-          <div className="animate-spin h-3 w-3 border border-blue-600 rounded-full border-t-transparent mr-2"></div>
-          スキャン中...
-        </div>
-      )}
+              {isSimulating && (
+          <div className="mt-3 text-xs text-blue-600 flex items-center justify-center bg-blue-50 p-2 rounded">
+            <div className="animate-spin h-3 w-3 border border-blue-600 rounded-full border-t-transparent mr-2"></div>
+            スキャン中...
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -511,7 +511,7 @@ export default function DeliveryPage() {
 
         {/* 納品プラン一覧テーブル */}
         <div className="intelligence-card oceania">
-          <div className="p-6 border-b border-nexus-border">
+          <div className="p-6 border-b border-gray-300">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-medium text-nexus-text-primary">納品プラン一覧</h3>
               <div className="flex items-center gap-2">
@@ -519,7 +519,7 @@ export default function DeliveryPage() {
                 <select
                   value={itemsPerPage}
                   onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                  className="border border-nexus-border rounded px-2 py-1 text-sm"
+                  className="border border-gray-300 rounded px-2 py-1 text-sm"
                 >
                   {itemsPerPageOptions.map(option => (
                     <option key={option.value} value={option.value}>
@@ -536,7 +536,7 @@ export default function DeliveryPage() {
               <thead className="holo-header">
                 <tr>
                   <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer hover:bg-nexus-bg-tertiary"
+                    className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('date')}
                   >
                     <div className="flex items-center gap-1">
@@ -549,7 +549,7 @@ export default function DeliveryPage() {
                     </div>
                   </th>
                   <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer hover:bg-nexus-bg-tertiary"
+                    className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('status')}
                   >
                     <div className="flex items-center gap-1">
@@ -567,7 +567,7 @@ export default function DeliveryPage() {
                     </th>
                   )}
                   <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer hover:bg-nexus-bg-tertiary"
+                    className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('items')}
                   >
                     <div className="flex items-center gap-1">
@@ -580,7 +580,7 @@ export default function DeliveryPage() {
                     </div>
                   </th>
                   <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer hover:bg-nexus-bg-tertiary"
+                    className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('value')}
                   >
                     <div className="flex items-center gap-1">
@@ -626,7 +626,7 @@ export default function DeliveryPage() {
                             setError(null);
                             fetchDeliveryPlans();
                           }}
-                          className="px-4 py-2 bg-nexus-primary text-white rounded-md hover:bg-nexus-primary-dark transition-colors"
+                          className="px-4 py-2 bg-nexus-primary text-white rounded-md cursor-pointer"
                         >
                           再試行
                         </button>
@@ -748,7 +748,7 @@ export default function DeliveryPage() {
 
           {/* ページング */}
           {totalPages > 1 && (
-            <div className="p-6 border-t border-nexus-border">
+            <div className="p-6 border-t border-gray-300">
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
@@ -833,7 +833,7 @@ export default function DeliveryPage() {
                       <div>
                         <span className="font-medium">追跡番号:</span> 
                         <span 
-                          className="ml-2 font-mono text-xs bg-nexus-bg-tertiary px-2 py-1 rounded border cursor-pointer hover:bg-nexus-bg-secondary transition-colors"
+                          className="ml-2 font-mono text-xs bg-nexus-bg-tertiary px-2 py-1 rounded border cursor-pointer"
                           onClick={() => navigator.clipboard.writeText(selectedPlan.shippingTrackingNumber!)}
                           title="クリックでコピー"
                         >
@@ -846,7 +846,7 @@ export default function DeliveryPage() {
                             const url = generateTrackingUrl('other', selectedPlan.shippingTrackingNumber!);
                             window.open(url, '_blank', 'noopener,noreferrer');
                           }}
-                          className="px-3 py-1 bg-nexus-primary text-white text-sm rounded hover:bg-nexus-primary-dark transition-colors"
+                          className="px-3 py-1 bg-nexus-primary text-white text-sm rounded cursor-pointer"
                         >
                           配送状況を確認
                         </button>
@@ -880,7 +880,7 @@ export default function DeliveryPage() {
                 </h4>
                 <div className="space-y-4">
                   {selectedPlan.products.map((product: any, index: number) => (
-                    <div key={index} className="bg-nexus-bg-secondary p-4 rounded-lg border border-nexus-border">
+                    <div key={index} className="bg-nexus-bg-secondary p-4 rounded-lg border border-gray-300">
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         {/* 商品基本情報 */}
                         <div>
@@ -889,7 +889,7 @@ export default function DeliveryPage() {
                               <img 
                                 src={product.imageUrl}
                                 alt={product.name}
-                                className="w-16 h-16 object-cover rounded-lg border border-nexus-border"
+                                className="w-16 h-16 object-cover rounded-lg border border-gray-300"
                               />
                             )}
                             <div className="flex-1">
@@ -971,7 +971,7 @@ export default function DeliveryPage() {
 
                       {/* 商品詳細説明 */}
                       {product.description && (
-                        <div className="mt-3 pt-3 border-t border-nexus-border">
+                        <div className="mt-3 pt-3 border-t border-gray-300">
                           <span className="font-medium text-nexus-text-secondary text-sm">商品詳細:</span>
                           <p className="text-sm text-nexus-text-primary mt-1 bg-nexus-bg-tertiary p-2 rounded">
                             {product.description}
@@ -981,7 +981,7 @@ export default function DeliveryPage() {
 
                       {/* 商品画像（完全版） */}
                       {product.images && product.images.length > 0 && (
-                        <div className="mt-3 pt-3 border-t border-nexus-border">
+                        <div className="mt-3 pt-3 border-t border-gray-300">
                           <span className="font-medium text-nexus-text-secondary text-sm mb-3 block">
                             商品画像 ({product.images.length}枚)
                           </span>
@@ -1006,7 +1006,7 @@ export default function DeliveryPage() {
                                         <img
                                           src={image.url || image}
                                           alt={`${product.name} ${category} 画像 ${imgIndex + 1}`}
-                                          className="w-full h-16 object-cover rounded border border-nexus-border cursor-pointer hover:opacity-80 transition-opacity"
+                                          className="w-full h-16 object-cover rounded border border-gray-300 cursor-pointer hover:opacity-80 transition-opacity"
                                           onClick={() => window.open(image.url || image, '_blank')}
                                         />
                                         {image.filename && (
@@ -1032,7 +1032,7 @@ export default function DeliveryPage() {
                         }, null, 2));
                         
                         return product.hasInspectionChecklist && product.inspectionChecklistData ? (
-                        <div className="mt-3 pt-3 border-t border-nexus-border">
+                        <div className="mt-3 pt-3 border-t border-gray-300">
                           <span className="font-medium text-nexus-text-secondary text-sm mb-3 block">
                             検品チェックリスト詳細
                           </span>
@@ -1108,7 +1108,7 @@ export default function DeliveryPage() {
                               )}
 
                               {/* 検品実施者・日時 */}
-                              <div className="pt-2 border-t border-nexus-border">
+                              <div className="pt-2 border-t border-gray-300">
                                 <div className="flex items-center justify-between text-xs text-nexus-text-tertiary">
                                   <span>作成者: {product.inspectionChecklistData.createdBy || 'システム'}</span>
                                   <span>作成日: {new Date(product.createdAt).toLocaleDateString()}</span>
@@ -1122,7 +1122,7 @@ export default function DeliveryPage() {
 
                       {/* 検品チェックリストが設定されている場合の簡易表示 */}
                       {product.hasInspectionChecklist && !product.inspectionChecklistData && (
-                        <div className="mt-3 pt-3 border-t border-nexus-border">
+                        <div className="mt-3 pt-3 border-t border-gray-300">
                           <div className="flex items-center gap-2">
                             <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800">
                               ✓ 検品チェックリスト設定済み

@@ -72,7 +72,7 @@ export default function Pagination({
             <select
               value={itemsPerPage}
               onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-              className="px-2 py-1 text-sm border border-nexus-border rounded-md bg-nexus-bg-primary text-nexus-text-primary focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent"
+              className="px-2 py-1 text-sm border border-gray-300 rounded-md bg-white text-nexus-text-primary focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent"
             >
               {itemsPerPageOptions.map(option => (
                 <option key={option} value={option}>
@@ -91,10 +91,10 @@ export default function Pagination({
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
           className={`
-            p-2 rounded-md transition-colors
+            p-2 rounded-md
             ${currentPage === 1 
               ? 'text-nexus-text-disabled cursor-not-allowed' 
-              : 'text-nexus-text-primary hover:bg-nexus-bg-secondary'
+              : 'text-nexus-text-primary cursor-pointer'
             }
           `}
           aria-label="前のページ"
@@ -111,10 +111,10 @@ export default function Pagination({
               <button
                 onClick={() => onPageChange(page as number)}
                 className={`
-                  px-3 py-2 rounded-md text-sm font-medium transition-colors
+                  px-3 py-2 rounded-md text-sm font-medium
                   ${page === currentPage
                     ? 'bg-primary-blue text-white'
-                    : 'text-nexus-text-primary hover:bg-nexus-bg-secondary'
+                    : 'text-nexus-text-primary cursor-pointer'
                   }
                 `}
               >
@@ -129,10 +129,10 @@ export default function Pagination({
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
           className={`
-            p-2 rounded-md transition-colors
+            p-2 rounded-md
             ${currentPage === totalPages 
               ? 'text-nexus-text-disabled cursor-not-allowed' 
-              : 'text-nexus-text-primary hover:bg-nexus-bg-secondary'
+              : 'text-nexus-text-primary cursor-pointer'
             }
           `}
           aria-label="次のページ"
