@@ -18,6 +18,7 @@ import {
   UserGroupIcon,
 } from '@heroicons/react/24/outline';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
+import { useSystemSetting, useTaskCategories } from '@/lib/hooks/useMasterData';
 
 interface Task {
   id: string;
@@ -37,6 +38,10 @@ interface Task {
 export default function StaffTasksPage() {
   const { showToast } = useToast();
   const [tasks, setTasks] = useState<Task[]>([]);
+  
+  // マスタデータの取得
+  const { setting: taskStatuses } = useSystemSetting('task_statuses');
+  const { categories: taskCategories, loading: categoriesLoading } = useTaskCategories();
   const [filter, setFilter] = useState<'all' | 'pending' | 'in_progress' | 'completed'>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [assigneeFilter, setAssigneeFilter] = useState<string>('all');
@@ -599,9 +604,13 @@ export default function StaffTasksPage() {
                   className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg text-sm text-nexus-text-primary"
                 >
                   <option value="all">すべて</option>
-                  <option value="pending">待機中</option>
-                  <option value="in_progress">作業中</option>
-                  <option value="completed">完了</option>
+                  {(taskStatuses?.parsedValue ? taskStatuses.parsedValue : [
+                    { key: 'pending', nameJa: '待機中' },
+                    { key: 'in_progress', nameJa: '作業中' },
+                    { key: 'completed', nameJa: '完了' }
+                  ]).map((status: any) => (
+                    <option key={status.key} value={status.key}>{status.nameJa}</option>
+                  ))}
                 </select>
               </div>
 
@@ -615,11 +624,15 @@ export default function StaffTasksPage() {
                   className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg text-sm text-nexus-text-primary"
                 >
                   <option value="all">すべて</option>
-                  <option value="inspection">検品</option>
-                  <option value="photography">撮影</option>
-                  <option value="listing">出品</option>
-                  <option value="shipping">出荷</option>
-                  <option value="returns">返品</option>
+                  {(!categoriesLoading && taskCategories.length > 0 ? taskCategories : [
+                    { key: 'inspection', nameJa: '検品' },
+                    { key: 'photography', nameJa: '撮影' },
+                    { key: 'listing', nameJa: '出品' },
+                    { key: 'shipping', nameJa: '出荷' },
+                    { key: 'returns', nameJa: '返品' }
+                  ]).map((category: any) => (
+                    <option key={category.key} value={category.key}>{category.nameJa}</option>
+                  ))}
                 </select>
               </div>
 

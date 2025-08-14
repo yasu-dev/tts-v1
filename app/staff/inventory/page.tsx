@@ -310,6 +310,24 @@ export default function StaffInventoryPage() {
     ];
   }, [items]);
 
+  // 動的担当者オプション生成（実際に商品に割り当てられている担当者）
+  const staffOptions = useMemo(() => {
+    // 実際に存在する担当者を取得（重複排除）
+    const staffMembers = Array.from(new Set(
+      items
+        .map(item => item.assignedStaff)
+        .filter(Boolean) // 担当者が存在するもののみ
+    ));
+    
+    return [
+      { value: 'all', label: 'すべての担当者' },
+      ...staffMembers.map(staff => ({
+        value: staff,
+        label: staff
+      }))
+    ];
+  }, [items]);
+
   // ページネーション
   useEffect(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -610,10 +628,7 @@ export default function StaffInventoryPage() {
                   label="担当者"
                   value={selectedStaff}
                   onChange={(e) => setSelectedStaff(e.target.value)}
-                  options={[
-                    { value: 'all', label: 'すべて' },
-                    { value: '山本 達也', label: '山本 達也' }
-                  ]}
+                  options={staffOptions}
                 />
               </div>
 

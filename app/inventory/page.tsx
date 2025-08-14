@@ -16,6 +16,7 @@ import {
 import { NexusInput, NexusButton, NexusLoadingSpinner, NexusSelect, BusinessStatusIndicator } from '@/app/components/ui';
 import BaseModal from '../components/ui/BaseModal';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
+import { useCategories, useProductStatuses, createSelectOptions, getNameByKey } from '@/lib/hooks/useMasterData';
 
 type SortField = 'name' | 'sku' | 'status' | 'price';
 type SortDirection = 'asc' | 'desc';
@@ -26,6 +27,10 @@ export default function InventoryPage() {
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  
+  // マスタデータの取得
+  const { categories, loading: categoriesLoading } = useCategories();
+  const { statuses: productStatuses, loading: statusesLoading } = useProductStatuses();
   
   // フィルター・ソート状態
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
@@ -71,13 +76,27 @@ export default function InventoryPage() {
     fetchData();
   }, []);
 
-  // カテゴリーオプション
-  const categoryOptions = [
-    { value: 'all', label: 'すべてのカテゴリー' },
-    { value: 'camera', label: 'カメラ' },
-    { value: 'watch', label: '腕時計' },
-    { value: 'other', label: 'その他' }
-  ];
+  // カテゴリーオプション（APIから動的取得）
+  const categoryOptions = useMemo(() => {
+    if (categoriesLoading || !categories.length) {
+      return [{ value: 'all', label: 'すべてのカテゴリー' }];
+    }
+    return [
+      { value: 'all', label: 'すべてのカテゴリー' },
+      ...createSelectOptions(categories)
+    ];
+  }, [categories, categoriesLoading]);
+
+  // ステータスオプション（APIから動的取得）
+  const statusOptions = useMemo(() => {
+    if (statusesLoading || !productStatuses.length) {
+      return [{ value: 'all', label: 'すべてのステータス' }];
+    }
+    return [
+      { value: 'all', label: 'すべてのステータス' },
+      ...createSelectOptions(productStatuses)
+    ];
+  }, [productStatuses, statusesLoading]);
 
   // フィルタリング
   const filteredInventory = useMemo(() => {
@@ -242,17 +261,7 @@ export default function InventoryPage() {
               label="ステータス"
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              options={[
-                { value: 'all', label: 'すべてのステータス' },
-                { value: 'inbound', label: '入荷待ち' },
-                { value: 'inspection', label: '検品中' },
-                { value: 'storage', label: '保管中' },
-                { value: 'listing', label: '出品中' },
-                { value: 'ordered', label: '受注済み' },
-                { value: 'shipping', label: '出荷中' },
-                { value: 'sold', label: '売約済み' },
-                { value: 'returned', label: '返品' }
-              ]}
+              options={statusOptions}
             />
 
             <NexusSelect

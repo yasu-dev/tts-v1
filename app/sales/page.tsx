@@ -10,6 +10,7 @@ import {
   FunnelIcon,
 } from '@heroicons/react/24/outline';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
+import { useSystemSetting, useCarriers } from '@/lib/hooks/useMasterData';
 
 import NexusButton from '@/app/components/ui/NexusButton';
 import BaseModal from '@/app/components/ui/BaseModal';
@@ -51,16 +52,36 @@ export default function SalesPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [pageSize, setPageSize] = useState(20);
   
+  // マスタデータの取得
+  const { setting: orderStatuses } = useSystemSetting('order_statuses');
+  const { carriers: carrierData, loading: carriersLoading } = useCarriers();
+  
   const router = useRouter();
 
-  // 配送業者のリスト  
-  const carriers = [
-    { value: 'fedex', label: 'FedEx', apiEnabled: true },
-    { value: 'yamato', label: 'ヤマト運輸 (ビジネスメンバーズ)', apiEnabled: false, url: 'https://business.kuronekoyamato.co.jp/' },
-    { value: 'sagawa', label: '佐川急便 (e-飛伝)', apiEnabled: false, url: 'https://www.e-service.sagawa-exp.co.jp/portal/do/login/show' },
-    { value: 'japan-post', label: '日本郵便 (Webゆうパック)', apiEnabled: false, url: 'https://www.post.japanpost.jp/service/yu_pack/index.html' },
-    { value: 'dhl', label: 'DHL (MyDHL+)', apiEnabled: false, url: 'https://mydhl.express.dhl/jp/ja/home.html#/createNewShipmentTab' },
-    { value: 'ups', label: 'UPS (出荷作成)', apiEnabled: false, url: 'https://www.ups.com/jp/ja/Home.page' }
+  // 配送業者のリスト（APIから動的取得）
+  const carriers = carriersLoading ? [] : (carrierData || []).map(carrier => ({
+    value: carrier.key,
+    label: carrier.nameJa || carrier.name,
+    apiEnabled: carrier.key === 'fedex', // FedXのみAPI連携対応
+    url: carrier.trackingUrl
+  }));
+  
+  // 注文ステータスオプション（APIから動的取得）
+  const orderStatusOptions = orderStatuses?.parsedValue ? [
+    { value: 'all', label: 'すべて' },
+    ...orderStatuses.parsedValue.map((status: any) => ({
+      value: status.key,
+      label: status.nameJa
+    }))
+  ] : [
+    { value: 'all', label: 'すべて' },
+    { value: 'pending', label: '未確定' },
+    { value: 'confirmed', label: '受注確定' },
+    { value: 'processing', label: '出荷準備中' },
+    { value: 'shipped', label: '出荷済み' },
+    { value: 'delivered', label: '配達完了' },
+    { value: 'cancelled', label: 'キャンセル' },
+    { value: 'returned', label: '返品' }
   ];
 
   // eBayデータを取得する関数（開発環境用デモデータ）
@@ -383,16 +404,7 @@ export default function SalesPage() {
                 setStatusFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              options={[
-                { value: 'all', label: 'すべて' },
-                { value: 'pending', label: '未確定' },
-                { value: 'confirmed', label: '受注確定' },
-                { value: 'processing', label: '出荷準備中' },
-                { value: 'shipped', label: '出荷済み' },
-                { value: 'delivered', label: '配達完了' },
-                { value: 'cancelled', label: 'キャンセル' },
-                { value: 'returned', label: '返品' }
-              ]}
+              options={orderStatusOptions}
             />
             
             <NexusSelect

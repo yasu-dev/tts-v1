@@ -29,6 +29,7 @@ import { BusinessStatusIndicator } from '@/app/components/ui/StatusIndicator';
 import Pagination from '@/app/components/ui/Pagination';
 import BaseModal from '@/app/components/ui/BaseModal';
 import { useModal } from '@/app/components/ui/ModalContext';
+import { useSystemSetting } from '@/lib/hooks/useMasterData';
 
 type SortField = 'date' | 'status' | 'items' | 'value';
 type SortDirection = 'asc' | 'desc';
@@ -57,6 +58,9 @@ export default function DeliveryPage() {
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [isShippingModalOpen, setIsShippingModalOpen] = useState(false);
   const [shippingTrackingNumber, setShippingTrackingNumber] = useState('');
+  
+  // マスタデータの取得
+  const { setting: deliveryStatuses } = useSystemSetting('delivery_statuses');
 
   // 納品プランデータを取得
   const fetchDeliveryPlans = async () => {
@@ -419,9 +423,15 @@ export default function DeliveryPage() {
     }
   };
 
-  const statusOptions = [
+  // ステータスオプション（APIから動的取得）
+  const statusOptions = deliveryStatuses?.parsedValue ? [
     { value: 'all', label: '全てのステータス' },
-
+    ...deliveryStatuses.parsedValue.map((status: any) => ({
+      value: status.key,
+      label: status.nameJa
+    }))
+  ] : [
+    { value: 'all', label: '全てのステータス' },
     { value: '発送待ち', label: '発送待ち' },
     { value: '発送済', label: '発送済' }
   ];

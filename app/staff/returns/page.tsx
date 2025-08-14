@@ -12,6 +12,7 @@ import { ArchiveBoxIcon, ClockIcon, ArrowTrendingUpIcon, ExclamationCircleIcon, 
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import BaseModal from '@/app/components/ui/BaseModal';
 import NexusButton from '@/app/components/ui/NexusButton';
+import { useSystemSetting } from '@/lib/hooks/useMasterData';
 
 interface ReturnItem {
   id: string;
@@ -71,12 +72,15 @@ export default function ReturnsPage() {
   const router = useRouter();
   const { showToast } = useToast();
   const [returnsData, setReturnsData] = useState<ReturnsData | null>(null);
+  
+  // マスタデータの取得
+  const { setting: returnStatuses } = useSystemSetting('return_statuses');
   const [selectedReturn, setSelectedReturn] = useState<ReturnItem | null>(null);
   const [inspectionPhotos, setInspectionPhotos] = useState<File[]>([]);
   const [inspectionNote, setInspectionNote] = useState('');
   const [finalDecision, setFinalDecision] = useState<'resell' | 'repair' | 'dispose' | ''>('');
   const [viewMode, setViewMode] = useState<'list' | 'inspection' | 'history'>('list');
-  const [filter, setFilter] = useState<'all' | 'pending' | 'inspecting' | 'completed'>('all');
+  const [filter, setFilter] = useState<string>('all');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isUnsellableModalOpen, setIsUnsellableModalOpen] = useState(false);
@@ -445,36 +449,23 @@ export default function ReturnsPage() {
                         >
                           すべて
                         </button>
-                        <button
-                          onClick={() => setFilter('pending')}
-                          className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                            filter === 'pending' 
-                              ? 'bg-nexus-bg-primary text-nexus-yellow shadow-sm' 
-                              : 'text-nexus-text-secondary hover:text-nexus-text-primary'
-                          }`}
-                        >
-                          検品待ち
-                        </button>
-                        <button
-                          onClick={() => setFilter('inspecting')}
-                          className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                            filter === 'inspecting' 
-                              ? 'bg-nexus-bg-primary text-nexus-yellow shadow-sm' 
-                              : 'text-nexus-text-secondary hover:text-nexus-text-primary'
-                          }`}
-                        >
-                          検品中
-                        </button>
-                        <button
-                          onClick={() => setFilter('completed')}
-                          className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                            filter === 'completed' 
-                              ? 'bg-nexus-bg-primary text-nexus-yellow shadow-sm' 
-                              : 'text-nexus-text-secondary hover:text-nexus-text-primary'
-                          }`}
-                        >
-                          完了
-                        </button>
+                        {(returnStatuses?.parsedValue ? returnStatuses.parsedValue : [
+                          { key: 'pending', nameJa: '検品待ち' },
+                          { key: 'inspecting', nameJa: '検品中' },
+                          { key: 'completed', nameJa: '完了' }
+                        ]).map((status: any) => (
+                          <button
+                            key={status.key}
+                            onClick={() => setFilter(status.key)}
+                            className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                              filter === status.key 
+                                ? 'bg-nexus-bg-primary text-nexus-yellow shadow-sm' 
+                                : 'text-nexus-text-secondary hover:text-nexus-text-primary'
+                            }`}
+                          >
+                            {status.nameJa}
+                          </button>
+                        ))}
                       </div>
                       
                       <div className="holo-table">

@@ -18,11 +18,15 @@ import BaseModal from '@/app/components/ui/BaseModal';
 import { NexusCard } from '@/app/components/ui';
 import ReturnDetailModal from '@/app/components/modals/ReturnDetailModal';
 import { BusinessStatusIndicator } from '@/app/components/ui/StatusIndicator';
+import { useSystemSetting } from '@/lib/hooks/useMasterData';
 
 export default function ReturnsPage() {
   const router = useRouter();
   const { showToast } = useToast();
   const [isReturnFormModalOpen, setIsReturnFormModalOpen] = useState(false);
+  
+  // マスタデータの取得
+  const { setting: returnReasons } = useSystemSetting('return_reasons');
   const [isReturnDetailModalOpen, setIsReturnDetailModalOpen] = useState(false);
   const [selectedReturnItem, setSelectedReturnItem] = useState<any>(null);
   const [returnForm, setReturnForm] = useState({
@@ -284,7 +288,7 @@ export default function ReturnsPage() {
             <div>
               <label className="block text-sm font-medium text-nexus-text-secondary mb-3">返品理由 *</label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {['商品不良', 'イメージ違い', '破損', 'サイズ違い', '遅延配送', '重複注文', '間違い注文', 'その他'].map((reason) => (
+                {(returnReasons?.parsedValue ? returnReasons.parsedValue.map((r: any) => r.nameJa) : ['商品不良', 'イメージ違い', '破損', 'サイズ違い', '遅延配送', '重複注文', '間違い注文', 'その他']).map((reason: string) => (
                   <label key={reason} className="flex items-center cursor-pointer">
                     <input 
                       type="radio" 

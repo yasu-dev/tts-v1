@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { BaseModal, NexusButton } from '../ui';
 import { useToast } from '../features/notifications/ToastProvider';
+import { useSystemSetting } from '@/lib/hooks/useMasterData';
 import { 
   TruckIcon,
   ClockIcon,
@@ -99,8 +100,12 @@ export default function FedExServiceModal({
   const { showToast } = useToast();
   const [selectedService, setSelectedService] = useState<string>('');
   const [isConfirming, setIsConfirming] = useState(false);
+  
+  // API\u304b\u3089FedX\u30b5\u30fc\u30d3\u30b9\u30aa\u30d7\u30b7\u30e7\u30f3\u3092\u53d6\u5f97\n  const { setting: fedexServices } = useSystemSetting('fedex_services');
+  
+  // \u30b7\u30b9\u30c6\u30e0\u8a2d\u5b9a\u304b\u3089FedX\u30b5\u30fc\u30d3\u30b9\u3092\u53d6\u5f97\u3001\u30d5\u30a9\u30fc\u30eb\u30d0\u30c3\u30af\u3042\u308a\nconst dynamicFedexServices: FedExService[] = fedexServices?.parsedValue ? \n  fedexServices.parsedValue.map((service: any) => ({\n    id: service.key,\n    name: service.name,\n    description: service.name + '\u30b5\u30fc\u30d3\u30b9',\n    deliveryTime: '1-5\u55b6\u696d\u65e5',\n    estimatedCost: service.priceRange,\n    features: ['\u8ffd\u8de1\u30b5\u30fc\u30d3\u30b9\u4ed8\u304d'],\n    icon: <TruckIcon className=\"w-8 h-8\" />\n  })) : FEDEX_SERVICES;
 
-  const selectedServiceData = FEDEX_SERVICES.find(s => s.id === selectedService);
+  const selectedServiceData = dynamicFedexServices.find(s => s.id === selectedService);
 
   const handleServiceSelect = (serviceId: string) => {
     setSelectedService(serviceId);
@@ -175,7 +180,7 @@ export default function FedExServiceModal({
             </div>
 
             <div className="space-y-4 max-h-96 overflow-y-auto">
-              {FEDEX_SERVICES.map((service) => (
+              {dynamicFedexServices.map((service) => (
                 <div
                   key={service.id}
                   onClick={() => handleServiceSelect(service.id)}
