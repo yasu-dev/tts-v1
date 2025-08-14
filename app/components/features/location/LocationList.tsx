@@ -6,6 +6,7 @@ import BaseModal from '@/app/components/ui/BaseModal';
 import NexusButton from '@/app/components/ui/NexusButton';
 import NexusCheckbox from '@/app/components/ui/NexusCheckbox';
 import { useRouter } from 'next/navigation';
+import { ClipboardDocumentListIcon } from '@heroicons/react/24/outline';
 
 interface Location {
   code: string;
@@ -1144,7 +1145,10 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
 
           {/* 次のステップの説明 */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <h4 className="font-semibold text-blue-900 mb-2">📋 作業フロー</h4>
+            <div className="flex items-center gap-2 mb-2">
+              <ClipboardDocumentListIcon className="w-4 h-4 text-blue-900" />
+              <h4 className="font-semibold text-blue-900">作業フロー</h4>
+            </div>
             <ol className="list-decimal list-inside space-y-2 text-sm text-blue-800">
               <li>商品ステータスを「ピッキング作業中」に更新</li>
               <li>出荷管理画面に作業対象として追加</li>

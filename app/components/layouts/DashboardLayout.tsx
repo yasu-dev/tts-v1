@@ -5,9 +5,10 @@ import NexusHeader from './NexusHeader';
 import SearchModal from '../SearchModal';
 import UnifiedProductFlow from '../features/flow-nav/UnifiedProductFlow';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import { useModal } from '../ui/ModalContext';
+import BarcodeTestButton from '../ui/BarcodeTestButton';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -123,8 +124,12 @@ export default function DashboardLayout({
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isFlowCollapsed, setIsFlowCollapsed] = useState(false);
   const [isInitialStabilizing, setIsInitialStabilizing] = useState(true);
+  const [barcodeBuffer, setBarcodeBuffer] = useState('');
+  const [isProcessingBarcode, setIsProcessingBarcode] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const barcodeTimerRef = useRef<NodeJS.Timeout>();
   const pathname = usePathname();
+  const router = useRouter();
   const { showToast } = useToast();
   const { isBusinessFlowCollapsed, setIsBusinessFlowCollapsed, isAnyModalOpen } = useModal();
 
@@ -151,6 +156,151 @@ export default function DashboardLayout({
     
     return () => clearInterval(interval);
   }, []);
+
+  // グローバルバーコードリスナー
+  useEffect(() => {
+    const handleKeyPress = async (e: KeyboardEvent) => {
+      // ログイン画面では無効化
+      if (pathname?.includes('/login')) {
+        return;
+      }
+
+      // 入力フィールドにフォーカスがある場合は無効化
+      const activeElement = document.activeElement as HTMLElement;
+      if (activeElement && 
+          (activeElement.tagName === 'INPUT' || 
+           activeElement.tagName === 'TEXTAREA' || 
+           activeElement.tagName === 'SELECT' ||
+           activeElement.contentEditable === 'true')) {
+        return;
+      }
+
+      // エンターキーの処理
+      if (e.key === 'Enter' && barcodeBuffer.length > 0) {
+        e.preventDefault();
+        const scannedCode = barcodeBuffer;
+        setBarcodeBuffer('');
+        
+        // バーコードの最小長チェック（商品コードは通常8文字以上）
+        if (scannedCode.length < 8) {
+          return;
+        }
+
+        // 処理中の場合はスキップ
+        if (isProcessingBarcode) {
+          return;
+        }
+
+        setIsProcessingBarcode(true);
+        console.log('[グローバルバーコード] スキャン検知:', scannedCode);
+
+        try {
+          // バーコードから商品情報を取得
+          const response = await fetch(`/api/products/barcode/${encodeURIComponent(scannedCode)}`);
+          
+          if (!response.ok) {
+            const error = await response.json();
+            showToast({
+              type: 'error',
+              title: '商品が見つかりません',
+              message: `バーコード: ${scannedCode}`,
+              duration: 3000
+            });
+            return;
+          }
+
+          const product = await response.json();
+          console.log('[グローバルバーコード] 商品発見:', product);
+
+          // デモ商品の場合は通知
+          if (product.isDemo) {
+            showToast({
+              type: 'info',
+              title: 'デモ商品',
+              message: product.message,
+              duration: 3000
+            });
+          }
+
+          // 商品検品チェックリストの棚保管タブへ遷移
+          showToast({
+            type: 'success',
+            title: '商品スキャン成功',
+            message: `${product.name} の棚保管画面へ移動します`,
+            duration: 2000
+          });
+
+          // 棚保管タブ（step=4）へ遷移
+          setTimeout(() => {
+            router.push(`/staff/inspection/${product.id}?step=4`);
+            
+            // 遷移後に棚番号入力フィールドにフォーカス設定
+            setTimeout(() => {
+              const focusShelfInput = () => {
+                const shelfInput = document.querySelector('input[placeholder*="棚番号"]') as HTMLInputElement;
+                if (shelfInput) {
+                  console.log('[グローバルバーコード] 棚番号入力フィールドにフォーカス設定成功');
+                  shelfInput.focus();
+                  shelfInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  return true;
+                }
+                return false;
+              };
+              
+              // 複数回試行して確実にフォーカス設定
+              let attempts = 0;
+              const tryFocus = () => {
+                attempts++;
+                if (focusShelfInput() || attempts >= 10) {
+                  return; // 成功または最大試行回数に達したら終了
+                }
+                setTimeout(tryFocus, 300); // 300ms間隔で再試行
+              };
+              
+              tryFocus();
+            }, 1000);
+          }, 500);
+
+        } catch (error) {
+          console.error('[グローバルバーコード] エラー:', error);
+          showToast({
+            type: 'error',
+            title: 'エラー',
+            message: 'バーコード処理中にエラーが発生しました',
+            duration: 3000
+          });
+        } finally {
+          setIsProcessingBarcode(false);
+        }
+        return;
+      }
+
+      // 印字可能な文字の場合はバッファに追加
+      if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+        setBarcodeBuffer(prev => prev + e.key);
+        
+        // タイマーをリセット（高速入力を検知）
+        if (barcodeTimerRef.current) {
+          clearTimeout(barcodeTimerRef.current);
+        }
+        
+        // 100ms以内に次の入力がない場合はバッファをクリア
+        barcodeTimerRef.current = setTimeout(() => {
+          setBarcodeBuffer('');
+        }, 100);
+      }
+    };
+
+    // キーボードイベントリスナーを追加
+    window.addEventListener('keypress', handleKeyPress);
+
+    return () => {
+      window.removeEventListener('keypress', handleKeyPress);
+      if (barcodeTimerRef.current) {
+        clearTimeout(barcodeTimerRef.current);
+      }
+    };
+  }, [barcodeBuffer, isProcessingBarcode, pathname, router, showToast]);
 
   // モーダル表示時の業務フロー制御
   useEffect(() => {
@@ -601,6 +751,11 @@ export default function DashboardLayout({
         onClose={() => setIsSearchOpen(false)}
         query={searchQuery}
       />
+      
+      {/* バーコードテスター（開発中のみ） */}
+      {process.env.NODE_ENV === 'development' && (
+        <BarcodeTestButton />
+      )}
     </div>
   );
 }

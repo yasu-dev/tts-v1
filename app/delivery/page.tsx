@@ -20,6 +20,7 @@ import {
   FunnelIcon,
   ChevronUpIcon,
   ChevronDownIcon,
+  ArchiveBoxIcon,
 } from '@heroicons/react/24/outline';
 import NexusButton from '@/app/components/ui/NexusButton';
 import NexusInput from '@/app/components/ui/NexusInput';
@@ -874,7 +875,7 @@ export default function DeliveryPage() {
             {selectedPlan.products && selectedPlan.products.length > 0 && (
               <div>
                 <h4 className="text-sm font-medium text-nexus-text-secondary mb-4 flex items-center gap-2">
-                  <span>📦</span>
+                  <ArchiveBoxIcon className="w-4 h-4 text-gray-600" />
                   商品詳細 ({selectedPlan.products.length}点)
                 </h4>
                 <div className="space-y-4">

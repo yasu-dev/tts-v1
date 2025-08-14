@@ -6,6 +6,7 @@ import TaskDetailModal from '../../components/TaskDetailModal';
 import EditModal from '../../components/EditModal';
 import TaskCreationModal from '../../components/modals/TaskCreationModal';
 import { BaseModal, BusinessStatusIndicator, Pagination, NexusCheckbox, NexusLoadingSpinner } from '@/app/components/ui';
+import { CalendarIcon, PauseCircleIcon, EyeIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import NexusInput from '@/app/components/ui/NexusInput';
 import NexusSelect from '@/app/components/ui/NexusSelect';
 import NexusTextarea from '@/app/components/ui/NexusTextarea';
@@ -369,10 +370,10 @@ export default function StaffTasksPage() {
 
   const taskCategories = [
 
-    { id: 'today', name: '本日完了', icon: '📅', color: 'europe' },
-    { id: 'pending', name: '保留中', icon: '⏸️', color: 'asia' },
-    { id: 'review', name: 'レビュー待ち', icon: '👀', color: 'africa' },
-    { id: 'completed', name: '完了済み', icon: '✅', color: 'americas' }
+    { id: 'today', name: '本日完了', icon: CalendarIcon, color: 'europe' },
+    { id: 'pending', name: '保留中', icon: PauseCircleIcon, color: 'asia' },
+    { id: 'review', name: 'レビュー待ち', icon: EyeIcon, color: 'africa' },
+    { id: 'completed', name: '完了済み', icon: CheckCircleIcon, color: 'americas' }
   ];
 
   const handleTaskComplete = (taskId: string) => {

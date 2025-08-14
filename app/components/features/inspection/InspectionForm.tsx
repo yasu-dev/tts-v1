@@ -10,6 +10,7 @@ import InspectionResult from './InspectionResult';
 import PackagingAndLabelStep from './PackagingAndLabelStep';
 import ShelfStorageStep from './ShelfStorageStep';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
+import { ArchiveBoxIcon } from '@heroicons/react/24/outline';
 
 export interface InspectionFormProps {
   productId: string;
@@ -371,6 +372,29 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
           setTimeout(() => {
             scrollToTabs();
           }, 500);
+          
+          // step=4（棚保管）の場合は追加で棚番号入力フィールドにフォーカス
+          if (stepNum === 4) {
+            console.log('[InspectionForm] Step 4検知: 棚番号入力フィールドフォーカス設定');
+            
+            // 複数のタイミングでフォーカス設定を試行
+            const setShelfFocus = () => {
+              const shelfInput = document.querySelector('input[placeholder*="棚番号"]') as HTMLInputElement;
+              if (shelfInput) {
+                console.log('[InspectionForm] 棚番号入力フィールドにフォーカス設定成功');
+                shelfInput.focus();
+                return true;
+              }
+              console.log('[InspectionForm] 棚番号入力フィールドが見つかりません');
+              return false;
+            };
+            
+            // 段階的にフォーカス設定を試行
+            setTimeout(() => setShelfFocus(), 600);
+            setTimeout(() => setShelfFocus(), 1000);
+            setTimeout(() => setShelfFocus(), 1500);
+            setTimeout(() => setShelfFocus(), 2000);
+          }
         }
       }
     } catch (e) {
@@ -824,7 +848,10 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
                     +{product.deliveryPlanInfo.images.length - 4}枚の画像
                   </p>
                 )}
-                <p className="text-xs text-blue-600 text-center">📦 納品プラン登録画像</p>
+                <div className="flex items-center justify-center gap-1 text-xs text-blue-600">
+                  <ArchiveBoxIcon className="w-3 h-3" />
+                  <span>納品プラン登録画像</span>
+                </div>
               </div>
             ) : (
               <div className="text-center">
@@ -866,7 +893,10 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
             {product.deliveryPlanInfo && (
               <div className="border-t pt-4 space-y-2">
                 <h3 className="text-sm font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                  📦 納品プラン情報
+                  <div className="flex items-center gap-2">
+                    <ArchiveBoxIcon className="w-4 h-4 text-gray-600" />
+                    <span>納品プラン情報</span>
+                  </div>
                   <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">セラー入力</span>
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
 import NexusInput from '@/app/components/ui/NexusInput';
+import BaseModal from '@/app/components/ui/BaseModal';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 interface ShelfStorageStepProps {
@@ -42,22 +43,44 @@ export default function ShelfStorageStep({
   const [scannedLocation, setScannedLocation] = useState<string>('');
   const [locationData, setLocationData] = useState<StorageLocation | null>(null);
   const [isValidatingLocation, setIsValidatingLocation] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingLocationData, setPendingLocationData] = useState<StorageLocation | null>(null);
   const locationInputRef = useRef<HTMLInputElement>(null);
 
   // ステップ表示時に棚番号入力へ自動フォーカス
   useEffect(() => {
-    if (locationInputRef.current) {
-      locationInputRef.current.focus();
-      // 既存値があれば選択して上書きしやすくする
-      try {
-        const inputEl = locationInputRef.current as HTMLInputElement;
-        if (inputEl.value) {
-          inputEl.select();
+    // DOM準備完了を待ってからフォーカス設定
+    const setFocus = () => {
+      if (locationInputRef.current) {
+        console.log('[棚保管] 棚番号入力フィールドにフォーカス設定');
+        locationInputRef.current.focus();
+        
+        // 既存値があれば選択して上書きしやすくする
+        try {
+          const inputEl = locationInputRef.current as HTMLInputElement;
+          if (inputEl.value) {
+            inputEl.select();
+          }
+        } catch (_) {
+          // no-op
         }
-      } catch (_) {
-        // no-op
+      } else {
+        console.warn('[棚保管] 棚番号入力フィールドが見つかりません');
       }
-    }
+    };
+
+    // 少し遅延してからフォーカスを設定（DOM準備完了を待つ）
+    const timer = setTimeout(setFocus, 100);
+    
+    // さらに確実にするため、複数回試行
+    const timer2 = setTimeout(setFocus, 300);
+    const timer3 = setTimeout(setFocus, 500);
+
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+    };
   }, []);
 
   // バーコードスキャナは入力欄に直接入力する前提のため、
@@ -71,10 +94,10 @@ export default function ShelfStorageStep({
     }
   };
 
-  // Enterキーでの保管完了
+  // Enterキーでの確認ダイアログ表示
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && scannedLocation.trim().length > 0 && !loading) {
-      handleStorageComplete();
+      handleLocationScanned();
     }
   };
 
@@ -130,8 +153,8 @@ export default function ShelfStorageStep({
     }
   };
 
-  // 保管完了処理 - ワンクリックで完了
-  const handleStorageComplete = async () => {
+  // 棚番号スキャン後の処理
+  const handleLocationScanned = async () => {
     const code = scannedLocation.trim();
     
     if (!code) {
@@ -144,18 +167,26 @@ export default function ShelfStorageStep({
       return;
     }
 
-    // 常に最新の検証を実施
+    // 棚番号の検証
     const validatedLocation = await validateLocation(code);
     if (!validatedLocation) {
       return; // 検証失敗時は処理を中断
     }
 
+    // 確認ダイアログ用にデータを保存
+    setPendingLocationData(validatedLocation);
+    setShowConfirmDialog(true);
+  };
+
+  // 実際の保管処理
+  const executeStorage = async (location: StorageLocation) => {
+
     try {
       // 保管処理を実行
       console.log('🚀 保管完了リクエスト送信:', {
         productId: productId,
-        locationId: validatedLocation.id,
-        locationCode: validatedLocation.code
+        locationId: location.id,
+        locationCode: location.code
       });
 
       const response = await fetch('/api/products/storage', {
@@ -163,8 +194,8 @@ export default function ShelfStorageStep({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           productId: productId,
-          locationId: validatedLocation.id,
-          locationCode: validatedLocation.code
+          locationId: location.id,
+          locationCode: location.code
         })
       });
 
@@ -176,8 +207,8 @@ export default function ShelfStorageStep({
           error: errorData,
           sentData: {
             productId: productId,
-            locationId: validatedLocation.id,
-            locationCode: validatedLocation.code
+            locationId: location.id,
+            locationCode: location.code
           }
         });
         
@@ -199,12 +230,12 @@ export default function ShelfStorageStep({
       showToast({
         type: 'success',
         title: '保管完了',
-        message: `${product.name} を ${validatedLocation.name} に保管しました。検品一覧に戻ります...`,
+        message: `${product.name} を ${location.name} に保管しました。検品一覧に戻ります...`,
         duration: 1500
       });
 
       // 完了処理を呼び出し
-      onComplete(validatedLocation.id);
+      onComplete(location.id);
       
     } catch (error) {
       console.error('Storage completion error:', error);
@@ -217,11 +248,54 @@ export default function ShelfStorageStep({
     }
   };
 
+  // 確認ダイアログでの選択処理
+  const handleConfirmChoice = async (choice: 'confirm' | 'retry' | 'cancel') => {
+    if (choice === 'confirm') {
+      // 「はい、保管しました」を選択
+      if (pendingLocationData) {
+        setShowConfirmDialog(false);
+        await executeStorage(pendingLocationData);
+      }
+    } else if (choice === 'retry') {
+      // 「スキャンのやり直し」を選択
+      setShowConfirmDialog(false);
+      setPendingLocationData(null);
+      setScannedLocation('');
+      setLocationData(null);
+      
+      // 入力フィールドに再フォーカス
+      setTimeout(() => {
+        if (locationInputRef.current) {
+          locationInputRef.current.focus();
+        }
+      }, 100);
+      
+      showToast({
+        type: 'info',
+        title: 'スキャンをやり直してください',
+        message: '棚番号を再度スキャンまたは入力してください',
+        duration: 3000
+      });
+    } else {
+      // 「処理を中止」を選択
+      setShowConfirmDialog(false);
+      setPendingLocationData(null);
+      
+      showToast({
+        type: 'warning',
+        title: '保管処理を中止しました',
+        message: '商品の保管がキャンセルされました',
+        duration: 3000
+      });
+    }
+  };
+
   // 入力フィールドにフォーカス（モーダル/画面表示時）
   // スキャナはフォーカスされた入力欄へ自動で文字列を入力する前提
 
   return (
-    <div className="space-y-6">
+    <>
+      <div className="space-y-6">
       <NexusCard className="p-6">
         <h3 className="text-lg font-semibold mb-4">棚保管</h3>
         <p className="text-sm text-gray-600 mb-6">
@@ -241,15 +315,38 @@ export default function ShelfStorageStep({
         {/* 単一の入力欄（スキャン／直接入力の双方に対応） */}
         <div className="space-y-4">
           <div>
-            <NexusInput
-              ref={locationInputRef}
-              value={scannedLocation}
-              onChange={(e) => handleLocationInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="棚番号をスキャンまたは入力してください（例: A-01-001）"
-              autoFocus
-              disabled={isValidatingLocation || loading}
-            />
+            <div className="flex gap-2">
+              <NexusInput
+                ref={locationInputRef}
+                value={scannedLocation}
+                onChange={(e) => handleLocationInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="棚番号をスキャンまたは入力してください（例: A-01-001）"
+                autoFocus
+                disabled={isValidatingLocation || loading}
+                className="flex-1"
+              />
+              <NexusButton
+                onClick={() => {
+                  console.log('[棚保管] 手動フォーカス設定');
+                  if (locationInputRef.current) {
+                    locationInputRef.current.focus();
+                    showToast({
+                      type: 'info',
+                      title: 'フォーカス設定',
+                      message: '棚番号入力フィールドにフォーカスしました',
+                      duration: 2000
+                    });
+                  }
+                }}
+                variant="outline"
+                size="sm"
+                className="whitespace-nowrap"
+                title="入力フィールドにフォーカス"
+              >
+                📍 フォーカス
+              </NexusButton>
+            </div>
             {isValidatingLocation && (
               <p className="text-sm text-blue-600 mt-2">棚番号を確認中...</p>
             )}
@@ -310,14 +407,117 @@ export default function ShelfStorageStep({
           </NexusButton>
         </div>
         <NexusButton
-          onClick={handleStorageComplete}
+          onClick={handleLocationScanned}
           variant="primary"
           size="lg"
           disabled={!(scannedLocation.trim().length > 0) || loading}
         >
-          {loading ? '保管中...' : '保管完了'}
+          {loading ? '確認中...' : '保管場所を確認'}
         </NexusButton>
       </div>
-    </div>
+
+      {/* 確認ダイアログ */}
+      <BaseModal
+        isOpen={showConfirmDialog}
+        onClose={() => handleConfirmChoice('cancel')}
+        title="保管確認"
+        size="lg"
+      >
+        <div className="space-y-6">
+          {/* 警告アイコンと重要メッセージ */}
+          <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <svg className="w-8 h-8 text-yellow-600 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-yellow-900 mb-2">
+                  重要：商品を確実に保管してください
+                </h3>
+                <p className="text-yellow-800 font-medium">
+                  実際に商品を棚に配置しましたか？
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* 商品と棚の情報 */}
+          <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+            <div className="border-b pb-3">
+              <h4 className="text-sm font-semibold text-gray-700 mb-2">商品情報</h4>
+              <div className="space-y-1 text-sm">
+                <div><span className="text-gray-600">SKU:</span> <span className="font-medium">{product.sku}</span></div>
+                <div><span className="text-gray-600">商品名:</span> <span className="font-medium">{product.name}</span></div>
+              </div>
+            </div>
+            
+            {pendingLocationData && (
+              <div>
+                <h4 className="text-sm font-semibold text-gray-700 mb-2">保管先情報</h4>
+                <div className="space-y-1 text-sm">
+                  <div><span className="text-gray-600">棚番号:</span> <span className="font-bold text-blue-600">{pendingLocationData.code}</span></div>
+                  <div><span className="text-gray-600">棚名:</span> <span className="font-medium">{pendingLocationData.name}</span></div>
+                  <div><span className="text-gray-600">ゾーン:</span> <span className="font-medium">{pendingLocationData.zone}</span></div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 警告メッセージ */}
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex items-start gap-2">
+              <svg className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div className="text-sm text-red-800">
+                <p className="font-semibold mb-1">注意事項</p>
+                <p>間違った棚に保管すると、1万点以上の在庫から商品を探し出すことが極めて困難になります。</p>
+                <p className="mt-1">必ず<span className="font-bold">物理的に商品を棚に配置してから</span>「はい、保管しました」を選択してください。</p>
+              </div>
+            </div>
+          </div>
+
+          {/* 3択ボタン */}
+          <div className="flex flex-col gap-3">
+            <NexusButton
+              onClick={() => handleConfirmChoice('confirm')}
+              variant="primary"
+              size="lg"
+              className="w-full bg-green-600 hover:bg-green-700 text-white"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              はい、保管しました
+            </NexusButton>
+            
+            <NexusButton
+              onClick={() => handleConfirmChoice('retry')}
+              variant="secondary"
+              size="lg"
+              className="w-full"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              スキャンをやり直す
+            </NexusButton>
+            
+            <NexusButton
+              onClick={() => handleConfirmChoice('cancel')}
+              variant="outline"
+              size="lg"
+              className="w-full text-red-600 border-red-300 hover:bg-red-50"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              処理を中止する
+            </NexusButton>
+          </div>
+        </div>
+      </BaseModal>
+      </div>
+    </>
   );
 }
