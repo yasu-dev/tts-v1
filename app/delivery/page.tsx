@@ -205,8 +205,9 @@ export default function DeliveryPage() {
       
       switch (sortField) {
         case 'date':
-          aValue = new Date(a.date);
-          bValue = new Date(b.date);
+          // createdAtの完全なタイムスタンプを使用してソート（時刻も含む）
+          aValue = new Date(a.createdAt);
+          bValue = new Date(b.createdAt);
           break;
         case 'status':
           aValue = a.status;
@@ -221,8 +222,9 @@ export default function DeliveryPage() {
           bValue = b.value;
           break;
         default:
-          aValue = a.date;
-          bValue = b.date;
+          // デフォルトもcreatedAtを使用
+          aValue = new Date(a.createdAt);
+          bValue = new Date(b.createdAt);
       }
       
       if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
@@ -460,16 +462,6 @@ export default function DeliveryPage() {
           subtitle="納品プランの作成・管理・追跡"
           userType="seller"
           iconType="delivery"
-          actions={
-            <NexusButton 
-              variant="primary" 
-              onClick={handleCreatePlan}
-              className="flex items-center gap-2"
-            >
-              <PlusIcon className="h-4 w-4" />
-              新規作成
-            </NexusButton>
-          }
         />
 
 
@@ -514,19 +506,29 @@ export default function DeliveryPage() {
           <div className="p-6 border-b border-gray-300">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-medium text-nexus-text-primary">納品プラン一覧</h3>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-nexus-text-secondary">表示件数:</span>
-                <select
-                  value={itemsPerPage}
-                  onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                  className="border border-gray-300 rounded px-2 py-1 text-sm"
+              <div className="flex items-center gap-4">
+                <NexusButton 
+                  variant="primary" 
+                  onClick={handleCreatePlan}
+                  className="flex items-center gap-2"
                 >
-                  {itemsPerPageOptions.map(option => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                  <PlusIcon className="h-4 w-4" />
+                  新規作成
+                </NexusButton>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-nexus-text-secondary">表示件数:</span>
+                  <select
+                    value={itemsPerPage}
+                    onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                    className="border border-gray-300 rounded px-2 py-1 text-sm"
+                  >
+                    {itemsPerPageOptions.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
           </div>
