@@ -112,6 +112,9 @@ export async function GET(request: NextRequest) {
           currentLocation: true,
           seller: {
             select: { id: true, username: true, email: true }
+          },
+          images: {
+            orderBy: { sortOrder: 'asc' }
           }
         },
         orderBy: { createdAt: 'desc' },
@@ -193,6 +196,8 @@ export async function GET(request: NextRequest) {
         condition: product.condition, // 英語のまま返す
         entryDate: product.entryDate ? product.entryDate.toISOString().split('T')[0] : product.createdAt.toISOString().split('T')[0],
         imageUrl: product.imageUrl,
+        images: product.images || [], // 商品画像リレーションを追加
+        currentLocation: product.currentLocation, // ロケーション情報も追加
         seller: product.seller,
         description: product.description,
         inspectedAt: product.inspectedAt,

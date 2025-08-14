@@ -376,9 +376,15 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
   const mapLocationTypeFromApi = (zone: string) => {
     switch (zone?.toLowerCase()) {
       case 'h': return 'controlled'; // 防湿庫
+      case 't': return 'controlled'; // 温度管理庫
       case 'v': return 'secure'; // 金庫室
       case 'p': return 'processing'; // 作業エリア
-      default: return 'standard'; // 標準棚
+      case 's': return 'processing'; // 一時保管エリア
+      case 'r': return 'processing'; // 返品処理エリア
+      case 'a': return 'standard'; // Zone A
+      case 'b': return 'standard'; // Zone B
+      case 'c': return 'standard'; // Zone C
+      default: return 'standard'; // その他標準棚
     }
   };
 

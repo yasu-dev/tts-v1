@@ -38,11 +38,11 @@ export default function LocationPage() {
   const [quickSearch, setQuickSearch] = useState('');
   const { setIsAnyModalOpen } = useModal();
   const [stats, setStats] = useState<LocationStats>({
-    totalLocations: 24,
-    occupiedLocations: 18,
-    totalCapacity: 580,
-    usedCapacity: 342,
-    criticalLocations: 3
+    totalLocations: 0,
+    occupiedLocations: 0,
+    totalCapacity: 0,
+    usedCapacity: 0,
+    criticalLocations: 0
   });
 
   // 独自実装モーダルの業務フロー制御
@@ -57,7 +57,37 @@ export default function LocationPage() {
 
   useEffect(() => {
     setMounted(true);
+    fetchLocationStats();
   }, []);
+
+  const fetchLocationStats = async () => {
+    try {
+      const response = await fetch('/api/locations');
+      if (response.ok) {
+        const locations = await response.json();
+        
+        const totalLocations = locations.length;
+        const occupiedLocations = locations.filter((loc: any) => loc._count?.products > 0).length;
+        const totalCapacity = locations.reduce((sum: number, loc: any) => sum + (loc.capacity || 0), 0);
+        const usedCapacity = locations.reduce((sum: number, loc: any) => sum + (loc._count?.products || 0), 0);
+        const criticalLocations = locations.filter((loc: any) => {
+          const usage = loc._count?.products || 0;
+          const capacity = loc.capacity || 1;
+          return (usage / capacity) >= 0.9;
+        }).length;
+
+        setStats({
+          totalLocations,
+          occupiedLocations,
+          totalCapacity,
+          usedCapacity,
+          criticalLocations
+        });
+      }
+    } catch (error) {
+      console.error('Failed to fetch location stats:', error);
+    }
+  };
 
   // スキャナーモーダルのスクロール位置リセット
   useEffect(() => {

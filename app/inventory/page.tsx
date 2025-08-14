@@ -17,7 +17,7 @@ import { NexusInput, NexusButton, NexusLoadingSpinner, NexusSelect, BusinessStat
 import BaseModal from '../components/ui/BaseModal';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
-type SortField = 'name' | 'sku' | 'status' | 'value';
+type SortField = 'name' | 'sku' | 'status' | 'price';
 type SortDirection = 'asc' | 'desc';
 
 export default function InventoryPage() {
@@ -34,79 +34,30 @@ export default function InventoryPage() {
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
-  // モックデータ（実際のAPIデータと置き換え）
-  const mockInventory = [
-    {
-      id: 1,
-      name: 'Sony α7 IV ボディ',
-      sku: 'PRD-001',
-      category: 'カメラ本体',
-      status: 'storage',
-      value: 320000,
-      location: 'A-01',
-      condition: 'A',
-      updatedAt: '2024-01-15',
-      certifications: ['AUTHENTIC']
-    },
-    {
-      id: 2,
-      name: 'Sony FE 24-70mm F2.8 GM II',
-      sku: 'PRD-002',
-      category: 'レンズ',
-      status: 'listing',
-      value: 280000,
-      location: 'A-02',
-      condition: 'A',
-      updatedAt: '2024-01-14',
-      certifications: ['AUTHENTIC']
-    },
-    {
-      id: 3,
-      name: 'Rolex Submariner',
-      sku: 'PRD-003',
-      category: '腕時計',
-      status: 'storage',
-      value: 1200000,
-      location: 'B-01',
-      condition: 'S',
-      updatedAt: '2024-01-13',
-      certifications: ['AUTHENTIC', 'PREMIUM']
-    },
-    {
-      id: 4,
-      name: 'Canon EOS R5',
-      sku: 'PRD-004',
-      category: 'カメラ本体',
-      status: 'inspection',
-      value: 450000,
-      location: 'A-03',
-      condition: 'B',
-      updatedAt: '2024-01-12',
-      certifications: ['AUTHENTIC']
-    },
-    {
-      id: 5,
-      name: 'Leica Q3',
-      sku: 'PRD-005',
-      category: 'カメラ本体',
-      status: 'storage',
-      value: 820000,
-      location: 'A-04',
-      condition: 'A',
-      updatedAt: '2024-01-11',
-      certifications: ['AUTHENTIC', 'PREMIUM']
-    }
-  ];
-
   useEffect(() => {
-    // 実際の実装では、ここでAPIからデータを取得
+    // APIからデータを取得
     const fetchData = async () => {
       setLoading(true);
       try {
-        // 模擬的にAPIデータを設定
-        await new Promise(resolve => setTimeout(resolve, 500)); // Loading simulation
-        setInventory(mockInventory);
+        console.log('📡 在庫データ取得開始...');
+        const response = await fetch('/api/inventory');
+        console.log('📡 APIレスポンス:', response.status, response.statusText);
+        
+        if (!response.ok) {
+          throw new Error(`API エラー: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('📦 取得データ:', {
+          dataKeys: Object.keys(data),
+          productsCount: data.data?.length || 0,
+          firstProduct: data.data?.[0]?.name || 'なし'
+        });
+        
+        // data.products ではなく data.data を使用（APIレスポンス形式に合わせる）
+        setInventory(data.data || []);
       } catch (error) {
+        console.error('在庫データ取得エラー:', error);
         showToast({
           title: 'エラー',
           message: '在庫データの取得に失敗しました',
@@ -123,9 +74,9 @@ export default function InventoryPage() {
   // カテゴリーオプション
   const categoryOptions = [
     { value: 'all', label: 'すべてのカテゴリー' },
-    { value: 'カメラ本体', label: 'カメラ本体' },
-    { value: 'レンズ', label: 'レンズ' },
-    { value: '腕時計', label: '腕時計' }
+    { value: 'camera', label: 'カメラ' },
+    { value: 'watch', label: '腕時計' },
+    { value: 'other', label: 'その他' }
   ];
 
   // フィルタリング
@@ -174,9 +125,9 @@ export default function InventoryPage() {
           aValue = a.status;
           bValue = b.status;
           break;
-        case 'value':
-          aValue = a.value;
-          bValue = b.value;
+        case 'price':
+          aValue = a.price;
+          bValue = b.price;
           break;
         default:
           aValue = a.name;
@@ -214,21 +165,7 @@ export default function InventoryPage() {
     );
   };
 
-  const getConditionBadge = (condition: string) => {
-    const config = {
-      'S': { color: 'bg-blue-600', text: 'S' },
-      'A': { color: 'bg-blue-500', text: 'A' },
-      'B': { color: 'bg-blue-400', text: 'B' },
-      'C': { color: 'bg-slate-400', text: 'C' }
-    };
-    
-    const { color, text } = config[condition as keyof typeof config] || config['C'];
-    return (
-      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-white ${color}`}>
-        {text}
-      </span>
-    );
-  };
+
 
   const convertStatusToKey = (status: string) => {
     const statusMap: { [key: string]: string } = {
@@ -349,6 +286,7 @@ export default function InventoryPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-nexus-border">
+                  <th className="text-center p-4 font-medium text-nexus-text-secondary">画像</th>
                   <th 
                     className="text-left p-4 font-medium text-nexus-text-secondary cursor-pointer hover:bg-nexus-bg-tertiary"
                     onClick={() => handleSort('name')}
@@ -377,14 +315,13 @@ export default function InventoryPage() {
                       {getSortIcon('status')}
                     </div>
                   </th>
-                  <th className="text-center p-4 font-medium text-nexus-text-secondary">品質</th>
                   <th 
                     className="text-right p-4 font-medium text-nexus-text-secondary cursor-pointer hover:bg-nexus-bg-tertiary"
-                    onClick={() => handleSort('value')}
+                    onClick={() => handleSort('price')}
                   >
                     <div className="flex items-center justify-end gap-1">
                       価格
-                      {getSortIcon('value')}
+                      {getSortIcon('price')}
                     </div>
                   </th>
                   <th className="text-center p-4 font-medium text-nexus-text-secondary">更新日</th>
@@ -397,6 +334,19 @@ export default function InventoryPage() {
                     key={item.id}
                     className="border-b border-nexus-border hover:bg-nexus-bg-tertiary transition-colors"
                   >
+                    <td className="p-4 text-center">
+                      {item.images && item.images.length > 0 ? (
+                        <img 
+                          src={item.images[0].thumbnailUrl || item.images[0].url} 
+                          alt={item.name}
+                          className="w-12 h-12 object-cover rounded-lg mx-auto border border-nexus-border"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 bg-gray-100 rounded-lg mx-auto border border-nexus-border flex items-center justify-center">
+                          <span className="text-xs text-gray-400">画像なし</span>
+                        </div>
+                      )}
+                    </td>
                     <td className="p-4">
                       <div className="font-medium text-nexus-text-primary">
                         {item.name}
@@ -412,7 +362,7 @@ export default function InventoryPage() {
                     </td>
                     <td className="p-4 text-center">
                       <span className="text-sm text-nexus-text-secondary">
-                        {item.location}
+                        {item.currentLocation?.name || item.currentLocation?.code || 'N/A'}
                       </span>
                     </td>
                     <td className="p-4">
@@ -423,12 +373,9 @@ export default function InventoryPage() {
                         />
                       </div>
                     </td>
-                    <td className="p-4 text-center">
-                      {getConditionBadge(item.condition)}
-                    </td>
                     <td className="p-4 text-right">
                       <span className="font-bold text-nexus-text-primary">
-                        ¥{item.value.toLocaleString()}
+                        ¥{item.price.toLocaleString()}
                       </span>
                     </td>
                     <td className="p-4 text-center">
