@@ -95,15 +95,6 @@ export default function StaffShippingPage() {
   const { showToast } = useToast();
 
   useEffect(() => {
-    fetch('/api/shipping')
-      .then(res => res.json())
-      .then(data => {
-        setShippingData(data);
-        setLoading(false);
-      });
-  }, []);
-
-  useEffect(() => {
     // APIから配送データを取得
     const fetchShippingItems = async () => {
       try {
@@ -123,7 +114,6 @@ export default function StaffShippingPage() {
           customer: item.customer,
           shippingAddress: item.shippingAddress,
           status: item.status,
-
           dueDate: item.dueDate,
           shippingMethod: item.shippingMethod,
           value: item.value,
@@ -135,10 +125,21 @@ export default function StaffShippingPage() {
         
         setItems(shippingItems);
         console.log(`✅ 配送データ取得完了: ${shippingItems.length}件`);
+        
+        // 基本統計データも設定
+        setShippingData({
+          items: shippingItems,
+          stats: { 
+            totalShipments: shippingItems.length, 
+            pendingShipments: shippingItems.filter(item => item.status !== 'shipped').length 
+          }
+        });
+        
       } catch (error) {
         console.error('配送データ取得エラー:', error);
         // フォールバック: 空配列
         setItems([]);
+        setShippingData({ items: [], stats: { totalShipments: 0, pendingShipments: 0 } });
       } finally {
         setLoading(false);
       }
@@ -364,40 +365,75 @@ export default function StaffShippingPage() {
   const handlePrintLabelForItem = async (item: ShippingItem) => {
     // セラーがアップロードしたラベルを印刷
     try {
-      // 実際の実装では、APIを呼び出してアップロード済みラベルを取得
-      const response = await fetch(`/api/shipping/label/get?orderId=${item.id}`);
+      showToast({
+        title: 'ラベル取得中',
+        message: `${item.productName}の配送ラベルを取得しています...`,
+        type: 'info'
+      });
+
+      // 複数のIDパターンで試行（item.id, item.orderNumber）
+      const tryOrderIds = [item.orderNumber, item.id].filter(Boolean);
+      let labelData = null;
+      let response = null;
+
+      for (const orderId of tryOrderIds) {
+        try {
+          console.log(`📦 ラベル取得試行: ${orderId}`);
+          response = await fetch(`/api/shipping/label/get?orderId=${orderId}`);
+          
+          if (response.ok) {
+            labelData = await response.json();
+            console.log(`✅ ラベル取得成功: ${orderId}`, labelData);
+            break;
+          } else {
+            console.log(`❌ ラベル取得失敗: ${orderId} - ${response.status}`);
+          }
+        } catch (fetchError) {
+          console.log(`❌ ラベル取得エラー: ${orderId}`, fetchError);
+          continue;
+        }
+      }
       
-      if (!response.ok) {
+      if (!labelData) {
         showToast({
           title: 'ラベル未登録',
-          message: 'セラーによるラベルのアップロードが必要です',
+          message: 'セラーによるラベルのアップロードが必要です。この商品はまだピッキング作業を行えません。',
           type: 'warning'
         });
         return;
       }
 
-      const labelData = await response.json();
-      
-      // ラベルを印刷（ダウンロード）
-      const link = document.createElement('a');
-      link.href = labelData.url || '#';
-      link.download = `shipping_label_${item.orderNumber}.pdf`;
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // ラベルを新しいタブで開く（印刷可能）
+      const newWindow = window.open(labelData.url, '_blank');
+      if (newWindow) {
+        newWindow.focus();
+        showToast({
+          title: 'ラベル印刷準備完了',
+          message: `配送ラベルを新しいタブで表示しました（提供者: ${labelData.provider === 'seller' ? 'セラー' : 'ワールドドア'}）。印刷してご利用ください。`,
+          type: 'success'
+        });
+      } else {
+        // ポップアップがブロックされた場合のフォールバック
+        const link = document.createElement('a');
+        link.href = labelData.url;
+        link.download = `shipping_label_${item.orderNumber}.pdf`;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
 
-      showToast({
-        title: 'ラベル印刷完了',
-        message: `配送ラベルを印刷しました（提供者: ${labelData.provider === 'seller' ? 'セラー' : 'ワールドドア'}）`,
-        type: 'success'
-      });
+        showToast({
+          title: 'ラベル印刷完了',
+          message: `配送ラベルをダウンロードしました（提供者: ${labelData.provider === 'seller' ? 'セラー' : 'ワールドドア'}）`,
+          type: 'success'
+        });
+      }
 
     } catch (error) {
       console.error('ラベル印刷エラー:', error);
       showToast({
         title: 'エラー',
-        message: 'ラベルの印刷に失敗しました',
+        message: 'ラベルの印刷に失敗しました。ネットワーク接続を確認してください。',
         type: 'error'
       });
     }
