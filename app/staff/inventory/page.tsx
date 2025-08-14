@@ -26,6 +26,7 @@ import BarcodePrintButton from '@/app/components/features/BarcodePrintButton';
 import { useModal } from '@/app/components/ui/ModalContext';
 import ListingFormModal from '@/app/components/modals/ListingFormModal';
 import { checkListingEligibility, filterListableItems } from '@/lib/utils/listing-eligibility';
+import { useCategories, useProductStatuses, useProductConditions, useSystemSetting, getNameByKey, translateStatusToJapanese } from '@/lib/hooks/useMasterData';
 
 interface InventoryItem {
   id: string;
@@ -74,6 +75,12 @@ export default function StaffInventoryPage() {
   const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
   const [isBarcodeScannerOpen, setIsBarcodeScannerOpen] = useState(false);
   const [isListingModalOpen, setIsListingModalOpen] = useState(false);
+  
+  // マスタデータの取得
+  const { categories, loading: categoriesLoading } = useCategories();
+  const { statuses: productStatuses, loading: statusesLoading } = useProductStatuses();
+  const { conditions: productConditions, loading: conditionsLoading } = useProductConditions();
+  const { setting: locationZones } = useSystemSetting('default_location_zones');
   
   // ページネーション状態
   const [currentPage, setCurrentPage] = useState(1);
@@ -240,23 +247,11 @@ export default function StaffInventoryPage() {
         // 出品可能商品のフィルタリング
         filtered = filterListableItems(filtered);
       } else {
-        // 英語ステータスを日本語に変換してフィルタリング
-        const statusMapping: Record<string, string> = {
-          'inbound': '入荷待ち',
-          'inspection': '検品中',
-          'storage': '保管中',
-          'listing': '出品中',
-          'ordered': '受注済み',
-          'shipping': '出荷中',
-          'maintenance': 'メンテナンス',
-          'sold': '売約済み',
-          'returned': '返品'
-        };
-        // selectedStatusは英語のまま、itemのstatusも英語なので直接比較
+        // selectedStatusはマスタデータのkeyなので直接比較
         filtered = filtered.filter(item => item.status === selectedStatus);
       }
     }
-    // カテゴリーフィルター（元データの英語カテゴリーと比較）
+    // カテゴリーフィルター（マスタデータのkeyと比較）
     if (selectedCategory !== 'all') {
       filtered = filtered.filter(item => item.originalCategory === selectedCategory);
     }
@@ -281,28 +276,20 @@ export default function StaffInventoryPage() {
     setCurrentPage(1); // フィルタ変更時はページを1に戻す
   }, [items, selectedStatus, selectedCategory, selectedLocation, selectedStaff, selectedSeller, searchQuery]);
 
-  // 動的カテゴリーオプション生成
+  // 動的カテゴリーオプション生成（APIから取得）
   const categoryOptions = useMemo(() => {
-    // 英語カテゴリーを日本語ラベルでマッピング
-    const categoryMap = {
-      'camera_body': 'カメラ本体',
-      'lens': 'レンズ',
-      'watch': '腕時計',
-      'accessory': 'アクセサリ',
-      'camera': 'カメラ'
-    };
-    
-    // 実際に存在するカテゴリーを取得（元データから英語カテゴリーを取得）
-    const rawCategories = Array.from(new Set(items.map(item => item.originalCategory).filter(Boolean)));
+    if (!categories.length) {
+      return [{ value: 'all', label: 'すべてのカテゴリー' }];
+    }
     
     return [
       { value: 'all', label: 'すべてのカテゴリー' },
-      ...rawCategories.map(category => ({
-        value: category,
-        label: categoryMap[category as keyof typeof categoryMap] || category
+      ...categories.map(category => ({
+        value: category.key,
+        label: category.nameJa
       }))
     ];
-  }, [items]);
+  }, [categories]);
 
   // 動的セラーオプション生成
   const sellerOptions = useMemo(() => {
@@ -586,12 +573,10 @@ export default function StaffInventoryPage() {
                   options={[
                     { value: 'all', label: 'すべてのステータス' },
                     { value: 'listable', label: '出品可能' },
-                    { value: 'inbound', label: '入庫待ち' },
-                    { value: 'inspection', label: '検品中' },
-                    { value: 'storage', label: '保管中' },
-                    { value: 'listing', label: '出品中' },
-                    { value: 'sold', label: '売約済み' },
-                    { value: 'maintenance', label: 'メンテナンス' }
+                    ...productStatuses.map(status => ({
+                      value: status.key,
+                      label: status.nameJa
+                    }))
                   ]}
                 />
               </div>
@@ -612,10 +597,10 @@ export default function StaffInventoryPage() {
                   onChange={(e) => setSelectedLocation(e.target.value)}
                   options={[
                     { value: 'all', label: 'すべて' },
-                    { value: 'A区画', label: 'A区画' },
-                    { value: 'H区画', label: 'H区画' },
-                    { value: 'V区画', label: 'V区画' },
-                    { value: 'メンテナンス室', label: 'メンテナンス室' }
+                    ...(locationZones?.parsedValue || []).map((zone: string) => ({
+                      value: zone,
+                      label: zone
+                    }))
                   ]}
                 />
               </div>

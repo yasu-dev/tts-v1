@@ -501,3 +501,91 @@ model ProductImage {
 
   @@map("product_images")
 }
+
+// マスタデータテーブル群
+model Category {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  nameJa      String
+  nameEn      String
+  description String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("categories")
+}
+
+model ProductStatus {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  nameJa      String
+  nameEn      String
+  description String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("product_statuses")
+}
+
+model ProductCondition {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  nameJa      String
+  nameEn      String
+  description String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("product_conditions")
+}
+
+model Carrier {
+  id             String   @id @default(cuid())
+  key            String   @unique
+  name           String
+  nameJa         String?
+  defaultRate    Int      @default(0)
+  trackingUrl    String?
+  supportedServices String? // JSON形式でサービス配列を保存
+  isActive       Boolean  @default(true)
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("carriers")
+}
+
+model WorkflowStep {
+  id          String   @id @default(cuid())
+  workflowType String   // 'shipping', 'inspection' など
+  key         String
+  nameJa      String
+  nameEn      String
+  order       Int
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([workflowType, key])
+  @@map("workflow_steps")
+}
+
+model SystemSetting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  description String?
+  type        String   @default("string") // 'string', 'number', 'boolean', 'json'
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("system_settings")
+}

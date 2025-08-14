@@ -145,7 +145,7 @@ export default function CarrierSelectionModal({
     return Math.ceil(carrier.defaultRate * valueMultiplier);
   };
 
-  const selectedCarrier = carriers.find(c => c.id === selectedCarrierId);
+  const selectedCarrier = carriers.find(c => c.key === selectedCarrierId);
 
   if (!isOpen) return null;
 
