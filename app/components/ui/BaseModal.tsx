@@ -54,30 +54,49 @@ export default function BaseModal({
       // グローバル状態を更新（業務フローの状態は変更しない）
       setIsAnyModalOpen(true);
       
-      // ページ全体を最上部にスクロール - 正しいスクロールコンテナを対象
       const scrollContainer = document.querySelector('.page-scroll-container');
+      
       if (scrollContainer) {
-        scrollContainer.scrollTop = 0;
+        const currentScrollTop = scrollContainer.scrollTop;
+        
+        // ユーザーが最上部以外にスクロールしている場合は位置を維持
+        // 最上部にいる場合（scrollTop < 10）のみリセットを実行
+        if (currentScrollTop < 10) {
+          scrollContainer.scrollTop = 0;
+        }
+        // currentScrollTop >= 10 の場合は、スクロール位置をそのまま維持
+        
       } else {
         // フォールバック（ログインページなど、DashboardLayoutを使用していない場合）
-        window.scrollTo(0, 0);
+        // この場合も現在位置をチェック
+        if (window.pageYOffset < 10) {
+          window.scrollTo(0, 0);
+        }
       }
       
-      // モーダルが開いたときにコンテンツエリアのスクロール位置を最上部にリセット
+      // モーダルが開いたときにコンテンツエリアのスクロール位置制御
       if (contentRef.current) {
-        contentRef.current.scrollTop = 0;
+        const currentModalScrollTop = contentRef.current.scrollTop;
+        
+        // ユーザーがモーダル内で最上部以外にスクロールしている場合は位置を維持
+        // 最上部にいる場合（scrollTop < 10）のみリセットを実行
+        if (currentModalScrollTop < 10) {
+          contentRef.current.scrollTop = 0;
+        }
+        // currentModalScrollTop >= 10 の場合は、モーダル内スクロール位置をそのまま維持
       }
+      
+      // クリーンアップ関数
+      return () => {
+        document.removeEventListener('keydown', handleEscape);
+        document.body.style.overflow = '';
+        // モーダル閉時もグローバル状態をリセット
+        setIsAnyModalOpen(false);
+      };
     } else {
       // グローバル状態をリセット（業務フローの状態は変更しない）
       setIsAnyModalOpen(false);
     }
-
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
-      // クリーンアップ時もグローバル状態をリセット（業務フローの状態は変更しない）
-      setIsAnyModalOpen(false);
-    };
   }, [isOpen, onClose, setIsAnyModalOpen]);
 
   if (!isOpen) return null;

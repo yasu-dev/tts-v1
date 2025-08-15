@@ -66,12 +66,24 @@ export default function NexusAlertBox({
   // フォーカス管理とスクロール制御
   useEffect(() => {
     if (isOpen) {
-      // ページ全体を最上部にスクロール - 正しいスクロールコンテナを対象
       const scrollContainer = document.querySelector('.page-scroll-container');
+      
       if (scrollContainer) {
-        scrollContainer.scrollTop = 0;
+        const currentScrollTop = scrollContainer.scrollTop;
+        
+        // ユーザーが最上部以外にスクロールしている場合は位置を維持
+        // 最上部にいる場合（scrollTop < 10）のみリセットを実行
+        if (currentScrollTop < 10) {
+          scrollContainer.scrollTop = 0;
+        }
+        // currentScrollTop >= 10 の場合は、スクロール位置をそのまま維持
+        
       } else {
-        window.scrollTo(0, 0);
+        // DashboardLayoutを使用していない場合のフォールバック
+        // この場合も現在位置をチェック
+        if (window.pageYOffset < 10) {
+          window.scrollTo(0, 0);
+        }
       }
       
       if (alertRef.current) {
