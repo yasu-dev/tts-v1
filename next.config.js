@@ -33,16 +33,16 @@ const nextConfig = {
     JWT_SECRET: process.env.JWT_SECRET,
   },
   
-  // リダイレクト設定
-  async redirects() {
-    return [
-      {
-        source: '/',
-        destination: '/login',
-        permanent: false,
-      },
-    ];
-  },
+  // リダイレクト設定 - App Routerのpage.tsxでの制御に統一するため無効化
+  // async redirects() {
+  //   return [
+  //     {
+  //       source: '/',
+  //       destination: '/login',
+  //       permanent: false,
+  //     },
+  //   ];
+  // },
   
   // ヘッダー設定
   async headers() {
