@@ -3,13 +3,11 @@
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import UnifiedPageHeader from '@/app/components/ui/UnifiedPageHeader';
 import WorkflowProgress from '@/app/components/ui/WorkflowProgress';
-import BarcodeScanner from '@/app/components/features/BarcodeScanner';
+
 import PackingVideoModal from '@/app/components/modals/PackingVideoModal';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  TruckIcon,
-  ArchiveBoxIcon,
   ArchiveBoxArrowDownIcon,
   InformationCircleIcon,
   CheckCircleIcon,
@@ -18,10 +16,10 @@ import {
   PrinterIcon,
   ExclamationCircleIcon,
 } from '@heroicons/react/24/outline';
-import CarrierSettingsModal from '@/app/components/modals/CarrierSettingsModal';
+
 import CarrierSelectionModal from '@/app/components/modals/CarrierSelectionModal';
 
-import PackingMaterialsModal from '@/app/components/modals/PackingMaterialsModal';
+
 import ShippingDetailModal from '@/app/components/modals/ShippingDetailModal';
 import BundlePackingConfirmModal from '@/app/components/modals/BundlePackingConfirmModal';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
@@ -65,16 +63,14 @@ export default function StaffShippingPage() {
   const [items, setItems] = useState<ShippingItem[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
 
-  const [isBarcodeScannerOpen, setIsBarcodeScannerOpen] = useState(false);
-  const [scannedItems, setScannedItems] = useState<string[]>([]);
+
   const [selectedPackingItem, setSelectedPackingItem] = useState<ShippingItem | null>(null);
   const [shippingData, setShippingData] = useState<{
     items: ShippingItem[];
     stats: { totalShipments: number; pendingShipments: number; };
   } | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isMaterialsModalOpen, setIsMaterialsModalOpen] = useState(false);
-  const [isCarrierModalOpen, setIsCarrierModalOpen] = useState(false);
+
   const [deadlineFilter, setDeadlineFilter] = useState<string>('all');
 
   const [selectedDetailItem, setSelectedDetailItem] = useState<ShippingItem | null>(null);
@@ -206,26 +202,7 @@ export default function StaffShippingPage() {
     });
   };
 
-  const handleBarcodeScanned = (barcode: string) => {
-    setScannedItems(prev => [...prev, barcode]);
-    // バーコードに対応する商品を検索して処理
-    const matchedItem = items.find(item => 
-      item.productSku === barcode.split('-')[0] + '-' + barcode.split('-')[1]
-    );
-    if (matchedItem) {
-      showToast({
-        title: '商品発見',
-        message: `${matchedItem.productName} (SKU: ${matchedItem.productSku})`,
-        type: 'success'
-      });
-    } else {
-      showToast({
-        title: '商品未発見',
-        message: `バーコード ${barcode} に対応する商品が見つかりません`,
-        type: 'warning'
-      });
-    }
-  };
+
 
   const handleDownloadLabel = async (item?: ShippingItem) => {
     if (item) {
@@ -470,60 +447,9 @@ export default function StaffShippingPage() {
     }
   };
 
-  const handleCarrierSettings = () => {
-    setIsCarrierModalOpen(true);
-  };
 
-  const handleMaterialsCheck = () => {
-    setIsMaterialsModalOpen(true);
-  };
 
-  const handleCarrierSave = (settings: any) => {
-    fetch('/api/shipping', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'updateCarrierSettings', data: settings })
-    })
-    .then(res => res.json())
-    .then(data => {
-      showToast({
-        title: '設定保存完了',
-        message: '配送業者設定を保存しました',
-        type: 'success'
-      });
-    })
-    .catch(err => {
-      showToast({
-        title: 'エラー',
-        message: '設定の保存に失敗しました',
-        type: 'error'
-      });
-    });
-  };
 
-  const handleMaterialsOrder = (materials: any[]) => {
-    fetch('/api/shipping', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'checkMaterials', data: materials })
-    })
-    .then(res => res.json())
-    .then(data => {
-      const totalCost = materials.reduce((sum, item) => sum + (item.orderQuantity * item.price), 0);
-      showToast({
-        title: '発注完了',
-        message: `梱包資材を発注しました (合計: ¥${totalCost.toLocaleString()})`,
-        type: 'success'
-      });
-    })
-    .catch(err => {
-      showToast({
-        title: 'エラー',
-        message: '発注処理に失敗しました',
-        type: 'error'
-      });
-    });
-  };
 
   // 行の展開/折りたたみ
   const toggleRowExpansion = (itemId: string) => {
@@ -716,7 +642,7 @@ export default function StaffShippingPage() {
             onClick={() => handleBulkShip(packedItems)}
             className="flex items-center gap-1"
           >
-            <TruckIcon className="w-4 h-4" />
+            <CubeIcon className="w-4 h-4" />
             集荷エリアへ移動 ({packedCount}件)
           </NexusButton>
         </div>
@@ -896,42 +822,7 @@ export default function StaffShippingPage() {
     );
   }
 
-  const headerActions = (
-    <div className="grid grid-cols-2 gap-3 w-full max-w-md">
-      <NexusButton
-        onClick={() => setIsBarcodeScannerOpen(true)}
-        variant="default"
-        size="sm"
-        className="flex items-center justify-center gap-2"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V6a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1zm12 0h2a1 1 0 001-1V6a1 1 0 00-1-1h-2a1 1 0 00-1 1v1a1 1 0 001 1zM5 20h2a1 1 0 001-1v-1a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1z" />
-        </svg>
-        <span className="hidden sm:inline">バーコード</span>
-        <span className="sm:hidden">スキャン</span>
-      </NexusButton>
-      <NexusButton
-        onClick={handleCarrierSettings}
-        variant="default"
-        size="sm"
-        className="flex items-center justify-center gap-2"
-      >
-        <TruckIcon className="w-4 h-4" />
-        <span className="hidden sm:inline">配送設定</span>
-        <span className="sm:hidden">配送</span>
-      </NexusButton>
-      <NexusButton
-        onClick={handleMaterialsCheck}
-        variant="primary"
-        size="sm"
-        className="flex items-center justify-center gap-2 col-span-2"
-      >
-        <ArchiveBoxIcon className="w-4 h-4" />
-        <span className="hidden sm:inline">梱包資材確認</span>
-        <span className="sm:hidden">資材確認</span>
-      </NexusButton>
-    </div>
-  );
+
 
   return (
     <DashboardLayout userType="staff">
@@ -942,22 +833,9 @@ export default function StaffShippingPage() {
           subtitle="eBayからの出荷指示を一元管理・処理"
           userType="staff"
           iconType="shipping"
-          actions={headerActions}
         />
 
-        {/* Carrier Settings Modal */}
-        <CarrierSettingsModal
-          isOpen={isCarrierModalOpen}
-          onClose={() => setIsCarrierModalOpen(false)}
-          onSave={handleCarrierSave}
-        />
 
-        {/* Packing Materials Modal */}
-        <PackingMaterialsModal
-          isOpen={isMaterialsModalOpen}
-          onClose={() => setIsMaterialsModalOpen(false)}
-          onOrder={handleMaterialsOrder}
-        />
 
 
 
@@ -1145,7 +1023,7 @@ export default function StaffShippingPage() {
                                   size="sm"
                                   className="flex items-center gap-1"
                                 >
-                                  <TruckIcon className="w-4 h-4" />
+                                  <CubeIcon className="w-4 h-4" />
                                   集荷エリアへ移動
                                 </NexusButton>
                               </>
@@ -1300,27 +1178,7 @@ export default function StaffShippingPage() {
           </div>
         </div>
 
-        {/* Barcode Scanner Section */}
-        {isBarcodeScannerOpen && (
-          <div className="intelligence-card global">
-            <div className="p-8">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-nexus-text-primary">バーコードスキャナー</h3>
-                <NexusButton
-                  onClick={() => setIsBarcodeScannerOpen(false)}
-                  variant="default"
-                >
-                  閉じる
-                </NexusButton>
-              </div>
-              <BarcodeScanner
-                onScan={handleBarcodeScanned}
-                placeholder="商品バーコードをスキャンしてください"
-                scanType="product"
-              />
-            </div>
-          </div>
-        )}
+
 
         {/* Shipping Detail Modal */}
         <ShippingDetailModal
