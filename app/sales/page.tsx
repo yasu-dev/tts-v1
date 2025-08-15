@@ -265,8 +265,7 @@ export default function SalesPage() {
       }
     }
     
-    setSelectedCarrier('');
-    setSelectedFedexService('');
+    // selectedCarrierはモーダル終了時にリセットされる
   };
 
   const handleFedexServiceSelect = async (serviceId: string) => {
@@ -309,10 +308,15 @@ export default function SalesPage() {
         ...prev,
         recentOrders: prev.recentOrders.map((o: any) => 
           o.id === selectedOrder.id 
-            ? { ...o, labelGenerated: true, trackingNumber: result.trackingNumber }
+            ? { ...o, labelGenerated: true, trackingNumber: result.trackingNumber, carrier: result.carrier || 'fedex' }
             : o
         )
       }));
+
+      // FedXモーダルを閉じてstateをリセット
+      setIsFedexModalOpen(false);
+      setSelectedOrder(null);
+      setSelectedCarrier('');
 
     } catch (error) {
       console.error('FedEx label generation error:', error);
@@ -338,14 +342,21 @@ export default function SalesPage() {
 
 
 
-  const handleLabelUploadComplete = (labelUrl: string, provider: 'seller' | 'worlddoor', trackingNumber?: string) => {
+  const handleLabelUploadComplete = (labelUrl: string, provider: 'seller' | 'worlddoor', trackingNumber?: string, carrier?: string) => {
     if (!selectedOrder) return;
 
     setSalesData((prev: any) => ({
       ...prev,
       recentOrders: prev.recentOrders.map((o: any) => 
         o.id === selectedOrder.id 
-          ? { ...o, labelGenerated: true, labelUrl, provider }
+          ? { 
+              ...o, 
+              labelGenerated: true, 
+              labelUrl, 
+              provider,
+              ...(trackingNumber && { trackingNumber }),
+              ...(carrier && { carrier: carrier })
+            }
           : o
       )
     }));
@@ -687,8 +698,10 @@ export default function SalesPage() {
             onClose={() => {
               setIsUploadModalOpen(false);
               setSelectedOrder(null);
+              setSelectedCarrier('');
             }}
             itemId={selectedOrder.id}
+            carrier={selectedCarrier}
             onUploadComplete={handleLabelUploadComplete}
           />
         )}
@@ -700,6 +713,7 @@ export default function SalesPage() {
             onClose={() => {
               setIsFedexModalOpen(false);
               setSelectedOrder(null);
+              setSelectedCarrier('');
             }}
             onServiceSelect={handleFedexServiceSelect}
             orderDetails={{

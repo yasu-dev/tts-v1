@@ -11,12 +11,6 @@ export interface CarrierInfo {
 
 // 配送業者の追跡URL設定
 export const CARRIERS: Record<string, CarrierInfo> = {
-  fedx: {
-    id: 'fedx',
-    name: 'FedEx',
-    trackingUrl: 'https://www.fedex.com/apps/fedextrack/',
-    trackingUrlTemplate: 'https://www.fedex.com/apps/fedextrack/?tracknumbers={trackingNumber}'
-  },
   fedex: {
     id: 'fedex', 
     name: 'FedEx',
@@ -66,7 +60,7 @@ export function generateTrackingUrl(carrierId: string, trackingNumber: string): 
   if (!carrierInfo) {
     // 配送業者名に基づく推測
     if (normalizedCarrierId.includes('fedx') || normalizedCarrierId.includes('fedex')) {
-      carrierInfo = CARRIERS.fedx;
+      carrierInfo = CARRIERS.fedex;
     } else if (normalizedCarrierId.includes('yamato') || normalizedCarrierId.includes('クロネコ')) {
       carrierInfo = CARRIERS.yamato;
     } else if (normalizedCarrierId.includes('sagawa') || normalizedCarrierId.includes('佐川')) {
@@ -113,9 +107,8 @@ export function isValidTrackingNumber(trackingNumber: string, carrierId?: string
     const normalizedCarrierId = carrierId.toLowerCase();
     
     switch (normalizedCarrierId) {
-      case 'fedx':
       case 'fedex':
-        // FedXは通常10-14桁の英数字
+        // FedExは通常10-14桁の英数字
         return /^[0-9A-Z]{8,20}$/i.test(normalizedNumber);
       
       case 'yamato':

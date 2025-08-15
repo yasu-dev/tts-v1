@@ -772,18 +772,6 @@ export default function StaffInventoryPage() {
           isOpen={isDetailModalOpen}
           onClose={() => setIsDetailModalOpen(false)}
           item={selectedItem}
-          onEdit={(item) => {
-            setIsDetailModalOpen(false);
-            setIsEditModalOpen(true);
-          }}
-          onMove={(item) => {
-            setIsDetailModalOpen(false);
-            setIsMoveModalOpen(true);
-          }}
-          onGenerateQR={(item) => {
-            setIsDetailModalOpen(false);
-            setIsQRModalOpen(true);
-          }}
           onStartInspection={(item) => {
             setIsDetailModalOpen(false);
             // 状態を保存してから検品画面に遷移

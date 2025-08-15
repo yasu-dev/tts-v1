@@ -17,7 +17,7 @@ interface ShippingLabelUploadModalProps {
   onClose: () => void;
   itemId: string;
   carrier?: string;
-  onUploadComplete?: (labelUrl: string, provider: 'seller' | 'worlddoor', trackingNumber?: string) => void;
+  onUploadComplete?: (labelUrl: string, provider: 'seller' | 'worlddoor', trackingNumber?: string, carrier?: string) => void;
 }
 
 export default function ShippingLabelUploadModal({
@@ -157,7 +157,7 @@ export default function ShippingLabelUploadModal({
 
       // 親コンポーネントに通知
       if (onUploadComplete) {
-        onUploadComplete(data.fileUrl, provider, trackingNumber.trim() || undefined);
+        onUploadComplete(data.fileUrl, provider, trackingNumber.trim() || undefined, carrier);
       }
 
       // 少し待ってからモーダルを閉じる

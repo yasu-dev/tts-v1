@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { BaseModal, NexusButton } from '../ui';
 import { useToast } from '../features/notifications/ToastProvider';
 import { useSystemSetting } from '@/lib/hooks/useMasterData';
@@ -101,9 +101,22 @@ export default function FedExServiceModal({
   const [selectedService, setSelectedService] = useState<string>('');
   const [isConfirming, setIsConfirming] = useState(false);
   
-  // API\u304b\u3089FedX\u30b5\u30fc\u30d3\u30b9\u30aa\u30d7\u30b7\u30e7\u30f3\u3092\u53d6\u5f97\n  const { setting: fedexServices } = useSystemSetting('fedex_services');
+  // APIからFedXサービスオプションを取得
+  const { setting: fedexServices } = useSystemSetting('fedex_services');
   
-  // \u30b7\u30b9\u30c6\u30e0\u8a2d\u5b9a\u304b\u3089FedX\u30b5\u30fc\u30d3\u30b9\u3092\u53d6\u5f97\u3001\u30d5\u30a9\u30fc\u30eb\u30d0\u30c3\u30af\u3042\u308a\nconst dynamicFedexServices: FedExService[] = fedexServices?.parsedValue ? \n  fedexServices.parsedValue.map((service: any) => ({\n    id: service.key,\n    name: service.name,\n    description: service.name + '\u30b5\u30fc\u30d3\u30b9',\n    deliveryTime: '1-5\u55b6\u696d\u65e5',\n    estimatedCost: service.priceRange,\n    features: ['\u8ffd\u8de1\u30b5\u30fc\u30d3\u30b9\u4ed8\u304d'],\n    icon: <TruckIcon className=\"w-8 h-8\" />\n  })) : FEDEX_SERVICES;
+  // システム設定からFedXサービスを取得、フォールバックあり
+  const dynamicFedexServices: FedExService[] = useMemo(() => {
+    return fedexServices?.parsedValue ? 
+      fedexServices.parsedValue.map((service: any) => ({
+        id: service.key,
+        name: service.name,
+        description: service.name + 'サービス',
+        deliveryTime: '1-5営業日',
+        estimatedCost: service.priceRange,
+        features: ['追跡サービス付き'],
+        icon: <TruckIcon className="w-8 h-8" />
+      })) : FEDEX_SERVICES;
+  }, [fedexServices]);
 
   const selectedServiceData = dynamicFedexServices.find(s => s.id === selectedService);
 
@@ -347,10 +360,3 @@ export default function FedExServiceModal({
     </BaseModal>
   );
 }
-
-
-
-
-
-
-

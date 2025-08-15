@@ -129,6 +129,7 @@ export function ToastProvider({ children }: ToastProviderProps) {
               writingMode: 'horizontal-tb', // 各トーストアイテムも横書きを明示的に指定
               direction: 'ltr'
             }}
+            data-testid="toast"
           >
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0">

@@ -524,6 +524,7 @@ export async function POST(request: NextRequest) {
         fileUrl,
         orderId: order.id,
         productsUpdated: productIds.length,
+        carrier: 'fedex',
         message: 'FedEx配送ラベルが生成され、ピッキング開始可能になりました'
       });
 
@@ -532,6 +533,7 @@ export async function POST(request: NextRequest) {
       // ラベル生成は成功したが、DB更新に失敗した場合でもラベルは返す
       return NextResponse.json({
         ...labelResult,
+        carrier: 'fedex',
         warning: 'ラベルは生成されましたが、ステータス更新に失敗しました',
         dbError: dbError instanceof Error ? dbError.message : '不明なエラー'
       });

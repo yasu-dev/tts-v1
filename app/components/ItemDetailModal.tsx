@@ -4,12 +4,6 @@ import { useState, useRef, useEffect } from 'react';
 import { BaseModal, NexusButton, NexusCard, BusinessStatusIndicator } from './ui';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import { 
-  XMarkIcon, 
-  PencilIcon, 
-  ArrowPathIcon,
-  QrCodeIcon,
-  PrinterIcon,
-  DocumentDuplicateIcon,
   CheckIcon,
   CameraIcon,
   ShoppingCartIcon,
@@ -17,7 +11,6 @@ import {
   ArrowTopRightOnSquareIcon,
   TagIcon
 } from '@heroicons/react/24/outline';
-import BarcodePrintButton from '@/app/components/features/BarcodePrintButton';
 import { parseProductMetadata, getInspectionPhotographyStatus } from '@/lib/utils/product-status';
 import { checkListingEligibility } from '@/lib/utils/listing-eligibility';
 
@@ -69,9 +62,6 @@ interface ItemDetailModalProps {
     inspectedAt?: string; // 検品日時
     photographyDate?: string; // 撮影日時
   } | null;
-  onEdit?: (item: any) => void;
-  onMove?: (item: any) => void;
-  onGenerateQR?: (item: any) => void;
   onStartInspection?: (item: any) => void;
   onStartPhotography?: (item: any) => void; // 撮影開始ハンドラー追加
   onStartListing?: (item: any) => void; // 出品開始ハンドラー追加
@@ -81,9 +71,6 @@ export default function ItemDetailModal({
   isOpen, 
   onClose, 
   item, 
-  onEdit, 
-  onMove, 
-  onGenerateQR,
   onStartInspection,
   onStartPhotography,
   onStartListing
@@ -159,83 +146,7 @@ export default function ItemDetailModal({
     }
   };
 
-  const handlePrint = () => {
-    const printContent = `
-      商品詳細情報
-      
-      商品名: ${item.name}
-      SKU: ${item.sku}
-      カテゴリ: ${item.category}
-      ステータス: ${item.status}
-      保管場所: ${item.location}
-      価格: ¥${item.price.toLocaleString()}
-      状態: ${item.condition}
-      登録日: ${new Date(item.entryDate).toLocaleDateString('ja-JP')}
-      担当者: ${item.assignedStaff || 'なし'}
-      最終更新: ${new Date(item.lastModified).toLocaleDateString('ja-JP')}
-      備考: ${item.notes || 'なし'}
-      
-      ${ebayListingInfo?.hasEbayListing ? `
-      eBay出品情報:
-      eBayアイテムID: ${ebayListingInfo.ebayItemId}
-      出品URL: ${ebayListingInfo.listingUrl}
-      出品価格: ¥${ebayListingInfo.buyItNowPrice?.toLocaleString()}
-      出品日: ${ebayListingInfo.listedAt ? new Date(ebayListingInfo.listedAt).toLocaleDateString('ja-JP') : ''}
-      ` : ''}
-    `;
-    
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(`
-        <html>
-          <head><title>商品詳細 - ${item.name}</title></head>
-          <body style="font-family: Arial, sans-serif; padding: 20px;">
-            <pre style="white-space: pre-wrap;">${printContent}</pre>
-          </body>
-        </html>
-      `);
-      printWindow.document.close();
-      printWindow.print();
-    }
-  };
 
-  const handleDuplicate = () => {
-    const duplicateData = {
-      ...item,
-      id: `${item.id}-copy`,
-      sku: `${item.sku}-COPY`,
-      name: `${item.name} (コピー)`,
-      entryDate: new Date().toISOString(),
-      lastModified: new Date().toISOString()
-    };
-    
-    // APIに送信
-    fetch('/api/inventory', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(duplicateData)
-    })
-    .then(res => res.json())
-    .then(data => {
-      showToast({
-        type: 'success',
-        title: '商品複製',
-        message: `商品を複製しました: ${duplicateData.name}。本番環境では在庫リストが更新されます。`,
-        duration: 4000
-      });
-      onClose();
-      // 本番運用では親コンポーネントの状態を更新
-      // window.location.reload()は削除し、適切な状態管理を使用
-    })
-    .catch(err => {
-      console.error('商品複製エラー:', err);
-      showToast({
-        type: 'error',
-        title: 'エラー',
-        message: '商品の複製に失敗しました'
-      });
-    });
-  };
 
   return (
     <BaseModal
@@ -562,23 +473,7 @@ export default function ItemDetailModal({
         </div>
 
         {/* Footer */}
-        <div className="flex justify-between mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-          <div className="flex space-x-3">
-            <NexusButton
-              onClick={handlePrint}
-              variant="default"
-              icon={<PrinterIcon className="w-4 h-4" />}
-            >
-              印刷
-            </NexusButton>
-            <NexusButton
-              onClick={handleDuplicate}
-              variant="default"
-              icon={<DocumentDuplicateIcon className="w-4 h-4" />}
-            >
-              複製
-            </NexusButton>
-          </div>
+        <div className="flex justify-end mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
           <div className="flex space-x-3">
             <NexusButton
               onClick={onClose}
@@ -586,29 +481,6 @@ export default function ItemDetailModal({
             >
               閉じる
             </NexusButton>
-            <BarcodePrintButton
-              productIds={[item.id]}
-              variant="secondary"
-              size="md"
-            />
-            {onGenerateQR && (
-              <NexusButton
-                onClick={() => onGenerateQR(item)}
-                variant="secondary"
-                icon={<QrCodeIcon className="w-4 h-4" />}
-              >
-                QR生成
-              </NexusButton>
-            )}
-            {onMove && (
-              <NexusButton
-                onClick={() => onMove(item)}
-                variant="secondary"
-                icon={<ArrowPathIcon className="w-4 h-4" />}
-              >
-                移動
-              </NexusButton>
-            )}
             {onStartInspection && (item.status === 'inbound' || item.status === 'storage') && (
               <NexusButton
                 onClick={() => onStartInspection(item)}
@@ -634,15 +506,6 @@ export default function ItemDetailModal({
                 icon={<ShoppingCartIcon className="w-4 h-4" />}
               >
                 出品する
-              </NexusButton>
-            )}
-            {onEdit && (
-              <NexusButton
-                onClick={() => onEdit(item)}
-                variant="secondary"
-                icon={<PencilIcon className="w-4 h-4" />}
-              >
-                編集
               </NexusButton>
             )}
           </div>

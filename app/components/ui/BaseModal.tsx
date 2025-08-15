@@ -12,6 +12,7 @@ interface BaseModalProps {
   showCloseButton?: boolean;
   closeOnOverlayClick?: boolean;
   className?: string;
+  'data-testid'?: string;
 }
 
 // コンパクトで効率的なサイズ設定
@@ -32,7 +33,8 @@ export default function BaseModal({
   size = 'md',
   showCloseButton = true,
   closeOnOverlayClick = true,
-  className = ''
+  className = '',
+  'data-testid': dataTestId
 }: BaseModalProps) {
   const { setIsAnyModalOpen } = useModal();
   const contentRef = useRef<HTMLDivElement>(null);
@@ -109,6 +111,7 @@ export default function BaseModal({
           ${className}
         `}
         onClick={(e) => e.stopPropagation()}
+        data-testid={dataTestId}
       >
         {/* ヘッダー - paddingを削減 */}
         {(title || showCloseButton) && (

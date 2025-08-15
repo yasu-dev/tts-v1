@@ -1422,9 +1422,9 @@
 }
 
 .status-badge.success {
-  background: #166534;
+  background: #1D4ED8;
   color: white;
-  border: 1px solid #166534;
+  border: 1px solid #1D4ED8;
 }
 
 .status-badge.warning {
@@ -1440,9 +1440,9 @@
 }
 
 .status-badge.info {
-  background: #155E63;
+  background: #6B7280;
   color: white;
-  border: 1px solid #155E63;
+  border: 1px solid #6B7280;
 }
 
 /* Cert Badge - 認証バッジ */

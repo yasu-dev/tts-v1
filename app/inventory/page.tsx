@@ -15,6 +15,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { NexusInput, NexusButton, NexusLoadingSpinner, NexusSelect, BusinessStatusIndicator } from '@/app/components/ui';
 import BaseModal from '../components/ui/BaseModal';
+import ListingFormModal from '@/app/components/modals/ListingFormModal';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import { useCategories, useProductStatuses, createSelectOptions, getNameByKey } from '@/lib/hooks/useMasterData';
 
@@ -57,6 +58,8 @@ export default function InventoryPage() {
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isListingFormModalOpen, setIsListingFormModalOpen] = useState(false);
+  const [selectedListingProduct, setSelectedListingProduct] = useState<any>(null);
   
   // マスタデータの取得
   const { categories, loading: categoriesLoading } = useCategories();
@@ -93,18 +96,24 @@ export default function InventoryPage() {
         setInventory(data.data || []);
       } catch (error) {
         console.error('在庫データ取得エラー:', error);
-        showToast({
-          title: 'エラー',
-          message: '在庫データの取得に失敗しました',
-          type: 'error'
-        });
+        // Toast の表示を次のフレームまで遅延
+        setTimeout(() => {
+          showToast({
+            title: 'エラー',
+            message: '在庫データの取得に失敗しました',
+            type: 'error'
+          });
+        }, 0);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, []);
+    // 非同期関数を適切に処理
+    fetchData().catch(error => {
+      console.error('Fetch data error:', error);
+    });
+  }, [showToast]);
 
   // カテゴリーオプション（APIから動的取得）
   const categoryOptions = useMemo(() => {
@@ -235,6 +244,42 @@ export default function InventoryPage() {
     setIsDetailModalOpen(true);
   };
 
+  const handleOpenListingForm = (product: any) => {
+    if (!product) {
+      console.log('❌ handleOpenListingForm: product is null or undefined');
+      return;
+    }
+
+    console.log('🚀 eBayリスティングフォームを開く:', { productId: product.id, productName: product.name });
+    setSelectedListingProduct(product);
+    setIsListingFormModalOpen(true);
+    
+    // 詳細モーダルが開いている場合は閉じる
+    setIsDetailModalOpen(false);
+    setSelectedProduct(null);
+  };
+
+  const handleListingSuccess = () => {
+    console.log('✅ eBay出品成功');
+    showToast({
+      title: '出品完了',
+      message: 'eBayへの出品が完了しました',
+      type: 'success'
+    });
+    
+    // リスティングフォームを閉じる
+    setIsListingFormModalOpen(false);
+    setSelectedListingProduct(null);
+    
+    // インベントリを再読み込み（必要に応じて）
+    // 実際の出品処理後、商品ステータスが変更される可能性があるため
+  };
+
+  const handleListingFormClose = () => {
+    setIsListingFormModalOpen(false);
+    setSelectedListingProduct(null);
+  };
+
   const headerActions = (
     <>
       <NexusButton 
@@ -322,7 +367,7 @@ export default function InventoryPage() {
           
           {/* テーブル */}
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full" data-testid="inventory-table">
               <thead>
                 <tr className="border-b border-nexus-border">
                   <th className="text-center p-4 font-medium text-nexus-text-secondary">画像</th>
@@ -414,15 +459,15 @@ export default function InventoryPage() {
                     </td>
                     <td className="p-4 text-right">
                       <span className="font-bold text-nexus-text-primary">
-                        ¥{item.price.toLocaleString()}
+                        ¥{item.price ? item.price.toLocaleString() : '0'}
                       </span>
                     </td>
                     <td className="p-4 text-center">
                       <span className="text-sm text-nexus-text-secondary">
-                        {new Date(item.updatedAt).toLocaleDateString('ja-JP', { 
+                        {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString('ja-JP', { 
                           month: 'short', 
                           day: 'numeric' 
-                        })}
+                        }) : '未設定'}
                       </span>
                     </td>
                     <td className="p-4">
@@ -430,11 +475,21 @@ export default function InventoryPage() {
                         <NexusButton
                           onClick={() => handleViewProduct(item)}
                           size="sm"
-                          variant="primary"
+                          variant="secondary"
                           icon={<EyeIcon className="w-4 h-4" />}
                         >
                           詳細
                         </NexusButton>
+                        {item.status === 'storage' && (
+                          <NexusButton
+                            onClick={() => handleOpenListingForm(item)}
+                            size="sm"
+                            variant="primary"
+                            icon={<ShoppingCartIcon className="w-4 h-4" />}
+                          >
+                            出品
+                          </NexusButton>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -463,6 +518,7 @@ export default function InventoryPage() {
           }}
           title="商品詳細"
           size="lg"
+          data-testid="product-detail-modal"
         >
           {selectedProduct && (
             <div className="space-y-6">
@@ -473,19 +529,19 @@ export default function InventoryPage() {
                   <div className="space-y-3">
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                       <span className="font-medium text-nexus-text-secondary">商品名</span>
-                      <span className="font-bold text-nexus-text-primary">{selectedProduct.name}</span>
+                      <span className="font-bold text-nexus-text-primary">{selectedProduct.name || '未設定'}</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                       <span className="font-medium text-nexus-text-secondary">SKU</span>
-                      <span className="font-mono text-nexus-text-primary">{selectedProduct.sku}</span>
+                      <span className="font-mono text-nexus-text-primary">{selectedProduct.sku || '未設定'}</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                       <span className="font-medium text-nexus-text-secondary">カテゴリー</span>
-                      <span className="text-nexus-text-primary">{selectedProduct.category}</span>
+                      <span className="text-nexus-text-primary">{selectedProduct.category || '未設定'}</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                       <span className="font-medium text-nexus-text-secondary">保管場所</span>
-                      <span className="text-nexus-text-primary">{selectedProduct.location}</span>
+                      <span className="text-nexus-text-primary">{selectedProduct.location || '未設定'}</span>
                     </div>
                   </div>
                 </div>
@@ -505,12 +561,14 @@ export default function InventoryPage() {
                     </div>
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                       <span className="font-medium text-nexus-text-secondary">評価額</span>
-                      <span className="font-bold text-blue-600 text-lg">¥{selectedProduct.value.toLocaleString()}</span>
+                      <span className="font-bold text-blue-600 text-lg">
+                        ¥{selectedProduct.value ? selectedProduct.value.toLocaleString() : '0'}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                       <span className="font-medium text-nexus-text-secondary">更新日</span>
                       <span className="text-nexus-text-secondary">
-                        {new Date(selectedProduct.updatedAt).toLocaleDateString('ja-JP')}
+                        {selectedProduct.updatedAt ? new Date(selectedProduct.updatedAt).toLocaleDateString('ja-JP') : '未設定'}
                       </span>
                     </div>
                   </div>
@@ -521,11 +579,15 @@ export default function InventoryPage() {
               <div>
                 <h4 className="font-bold text-nexus-text-primary mb-2">認証情報</h4>
                 <div className="flex gap-2 flex-wrap">
-                  {selectedProduct.certifications.map((cert: string) => (
-                    <span key={cert} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-600 text-white">
-                      {cert}
-                    </span>
-                  ))}
+                  {selectedProduct.certifications && selectedProduct.certifications.length > 0 ? (
+                    selectedProduct.certifications.map((cert: string) => (
+                      <span key={cert} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-600 text-white">
+                        {cert}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-nexus-text-secondary text-sm">認証情報なし</span>
+                  )}
                 </div>
               </div>
               
@@ -534,6 +596,7 @@ export default function InventoryPage() {
                 <div className="pt-4 border-t border-gray-200">
                   <div className="flex justify-end">
                     <NexusButton
+                      onClick={() => handleOpenListingForm(selectedProduct)}
                       variant="primary"
                       icon={<ShoppingCartIcon className="w-4 h-4" />}
                     >
@@ -545,6 +608,14 @@ export default function InventoryPage() {
             </div>
           )}
         </BaseModal>
+
+        {/* eBayリスティングフォームモーダル */}
+        <ListingFormModal
+          isOpen={isListingFormModalOpen}
+          onClose={handleListingFormClose}
+          product={selectedListingProduct}
+          onSuccess={handleListingSuccess}
+        />
       </div>
     </DashboardLayout>
   );

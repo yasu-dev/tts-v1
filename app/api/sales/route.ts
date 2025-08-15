@@ -173,6 +173,8 @@ export async function GET() {
           itemCount: 1,
           orderDate: '2024-01-15',
           labelGenerated: true,
+          trackingNumber: '1Z9999W99999999999',
+          carrier: 'fedex',
           items: [{ productName: 'Canon EOS R5 Full Frame Mirrorless Camera Body - Excellent Condition', category: 'camera_body', quantity: 1, price: 450000, productImage: 'https://images.unsplash.com/photo-1606983340126-99ab4feaa64a?w=300&h=300&fit=crop' }]
         },
         {
@@ -185,6 +187,8 @@ export async function GET() {
           itemCount: 1,
           orderDate: '2024-01-14',
           labelGenerated: true,
+          trackingNumber: '9612020987654312345',
+          carrier: 'fedex',
           items: [{ productName: 'Sony Alpha a7R IV Mirrorless Camera - 61MP Full Frame', category: 'camera_body', quantity: 1, price: 398000, productImage: 'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=300&h=300&fit=crop' }]
         },
         {
@@ -208,7 +212,9 @@ export async function GET() {
           status: 'processing',
           itemCount: 1,
           orderDate: '2024-01-13',
-          labelGenerated: false,
+          labelGenerated: true,
+          trackingNumber: '3811-2345-6789',
+          carrier: 'yamato',
           items: [{ productName: 'Nikon D850 DSLR Camera with 24-120mm Lens Kit - Professional Grade', category: 'lens', quantity: 1, price: 280000, productImage: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=300&h=300&fit=crop' }]
         },
         {
@@ -221,6 +227,7 @@ export async function GET() {
           itemCount: 1,
           orderDate: '2024-01-12',
           labelGenerated: false,
+          carrier: 'sagawa',
           items: [{ productName: 'TAG Heuer Carrera Calibre 16 Chronograph - Steel & Rose Gold', category: 'watch', quantity: 1, price: 350000, productImage: 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=300&h=300&fit=crop' }]
         },
         {
@@ -232,7 +239,9 @@ export async function GET() {
           status: 'processing',
           itemCount: 1,
           orderDate: '2024-01-11',
-          labelGenerated: false,
+          labelGenerated: true,
+          trackingNumber: '1234567890123',
+          carrier: 'japanpost',
           items: [{ productName: 'IWC Portugieser Automatic 40mm Stainless Steel - Blue Dial', category: 'watch', quantity: 1, price: 680000, productImage: 'https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=300&h=300&fit=crop' }]
         },
         {

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { BaseModal, NexusButton } from '../ui';
-import { generateTrackingUrl } from '@/lib/utils/tracking';
+import { generateTrackingUrl, normalizeCarrierName } from '@/lib/utils/tracking';
 import { 
   TruckIcon, 
   UserIcon, 
@@ -37,6 +37,21 @@ export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetail
     if (order.trackingNumber && order.carrier) {
       const url = generateTrackingUrl(order.carrier, order.trackingNumber);
       window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const handleCopyTrackingNumber = async () => {
+    try {
+      await navigator.clipboard.writeText(order.trackingNumber);
+    } catch (error) {
+      console.warn('コピーに失敗しました:', error);
+      // フォールバック：古いブラウザ対応
+      const textArea = document.createElement('textarea');
+      textArea.value = order.trackingNumber;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
     }
   };
 
@@ -195,7 +210,7 @@ export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetail
         </div>
 
         {/* 配送情報 */}
-        {order.trackingNumber && (
+        {(order.trackingNumber || order.carrier) && (
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-nexus-text-secondary mb-3">
               <TruckIcon className="w-4 h-4" />
@@ -203,36 +218,56 @@ export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetail
             </label>
             <div className="p-4 bg-nexus-bg-secondary rounded-lg border border-nexus-border">
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-sm text-nexus-text-secondary">追跡番号</div>
-                    <div className="font-mono text-nexus-text-primary cursor-pointer"
-                         onClick={() => navigator.clipboard.writeText(order.trackingNumber)}
-                         title="クリックでコピー">
-                      {order.trackingNumber}
+                {order.trackingNumber && (
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm text-nexus-text-secondary">追跡番号</div>
+                      <div className="font-mono text-nexus-text-primary cursor-pointer"
+                           onClick={handleCopyTrackingNumber}
+                           title="クリックでコピー">
+                        {order.trackingNumber}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <NexusButton
+                        onClick={handleTrackingClick}
+                        size="sm"
+                        variant="primary"
+                        icon={<ArrowTopRightOnSquareIcon className="w-4 h-4" />}
+                      >
+                        追跡サイト
+                      </NexusButton>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <NexusButton
-                      onClick={handleTrackingClick}
-                      size="sm"
-                      variant="primary"
-                      icon={<ArrowTopRightOnSquareIcon className="w-4 h-4" />}
-                    >
-                      追跡サイト
-                    </NexusButton>
-
-                  </div>
-                </div>
+                )}
                 {order.carrier && (
                   <div>
                     <div className="text-sm text-nexus-text-secondary">配送業者</div>
-                    <div className="text-nexus-text-primary">{order.carrier}</div>
+                    <div className="text-nexus-text-primary">{normalizeCarrierName(order.carrier)}</div>
                   </div>
                 )}
-                <div className="text-xs bg-nexus-success text-white px-2 py-1 rounded w-fit">
-                  eBay通知済み
-                </div>
+                
+                {/* eBay通知状態 - 追跡番号がある場合のみ表示 */}
+                {order.trackingNumber && (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="text-xs bg-nexus-success text-white px-2 py-1 rounded w-fit">
+                        eBay通知済み
+                      </div>
+                      <NexusButton
+                        onClick={() => window.open(`https://www.ebay.com/mys/overview`, '_blank', 'noopener,noreferrer')}
+                        size="sm"
+                        variant="outline"
+                        className="text-xs"
+                      >
+                        eBayで確認
+                      </NexusButton>
+                    </div>
+                    <div className="text-xs text-nexus-text-secondary">
+                      購入者にメール通知が送信されました
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
