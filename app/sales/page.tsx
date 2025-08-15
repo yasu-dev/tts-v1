@@ -5,8 +5,6 @@ import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import UnifiedPageHeader from '@/app/components/ui/UnifiedPageHeader';
 import {
-  Cog6ToothIcon,
-  TicketIcon,
   FunnelIcon,
 } from '@heroicons/react/24/outline';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
@@ -36,8 +34,7 @@ export default function SalesPage() {
   const { showToast } = useToast();
   const [salesData, setSalesData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
-  const [isPromotionModalOpen, setIsPromotionModalOpen] = useState(false);
+
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [isLabelModalOpen, setIsLabelModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -223,13 +220,7 @@ export default function SalesPage() {
     setIsLabelModalOpen(true);
   };
 
-  const handleSettings = () => {
-    setIsSettingsModalOpen(true);
-  };
 
-  const handlePromotion = () => {
-    setIsPromotionModalOpen(true);
-  };
 
   const handleCarrierSelect = async () => {
     if (!selectedOrder || !selectedCarrier) return;
@@ -383,20 +374,6 @@ export default function SalesPage() {
         <UnifiedPageHeader
           title="販売管理"
           subtitle="売上・受注・配送を一元管理"
-          actions={[
-            {
-              label: 'キャンペーン設定',
-              onClick: handlePromotion,
-              icon: <TicketIcon className="w-4 h-4" />,
-              variant: 'secondary'
-            },
-            {
-              label: '設定',
-              onClick: handleSettings,
-              icon: <Cog6ToothIcon className="w-4 h-4" />,
-              variant: 'primary'
-            }
-          ]}
         />
 
         {/* フィルター・検索セクション */}

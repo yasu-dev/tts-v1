@@ -68,6 +68,28 @@ export default function RootLayout({
             </ToastProvider>
           </ModalProvider>
         </AlertProvider>
+        
+        {/* Chrome拡張機能エラーハンドリング */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (typeof window !== 'undefined') {
+                window.addEventListener('unhandledrejection', function(event) {
+                  if (event.reason instanceof Error) {
+                    const error = event.reason;
+                    if (error.message.includes('message port closed') || 
+                        error.message.includes('Extension context invalidated') ||
+                        (error.stack && error.stack.includes('content.js')) ||
+                        (error.stack && error.stack.includes('chrome-extension://'))) {
+                      event.preventDefault();
+                      return;
+                    }
+                  }
+                });
+              }
+            `
+          }}
+        />
       </body>
     </html>
   );

@@ -9,12 +9,8 @@ import ProductMoveModal from '../../components/ProductMoveModal';
 import BarcodeScanner from '../../components/features/BarcodeScanner';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import {
-  PencilIcon,
-  ArrowsRightLeftIcon,
-  ArrowDownTrayIcon,
   XMarkIcon,
-  CheckIcon,
-  QrCodeIcon
+  CheckIcon
 } from '@heroicons/react/24/outline';
 import { ContentCard, BusinessStatusIndicator, Pagination, NexusLoadingSpinner } from '@/app/components/ui';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
@@ -22,7 +18,7 @@ import NexusButton from '@/app/components/ui/NexusButton';
 import NexusSelect from '@/app/components/ui/NexusSelect';
 import NexusInput from '@/app/components/ui/NexusInput';
 import BaseModal from '@/app/components/ui/BaseModal';
-import BarcodePrintButton from '@/app/components/features/BarcodePrintButton';
+
 import { useModal } from '@/app/components/ui/ModalContext';
 import ListingFormModal from '@/app/components/modals/ListingFormModal';
 import { checkListingEligibility, filterListableItems } from '@/lib/utils/listing-eligibility';
@@ -475,79 +471,9 @@ export default function StaffInventoryPage() {
     setIsQRModalOpen(true);
   };
 
-  const handleExportCsv = () => {
-    const csvContent = [
-      ['ID', '商品名', 'SKU', 'ロケーション', '数量', 'ステータス', '担当者'],
-      ...items.map(item => [
-        item.id,
-        item.name,
-        item.sku,
-        item.location,
-        item.quantity,
-        item.status,
-        item.assignedStaff || ''
-      ])
-    ].map(row => row.join(',')).join('\n');
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `inventory_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
 
-    showToast({
-      title: 'エクスポート完了',
-      message: 'CSVファイルをダウンロードしました',
-      type: 'success'
-    });
-  };
 
-  const headerActions = (
-    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 w-full max-w-lg">
-      <NexusButton
-        onClick={() => setIsBarcodeScannerOpen(true)}
-        variant="primary"
-        icon={<QrCodeIcon className="w-5 h-5" />}
-        size="sm"
-      >
-        バーコードスキャン
-      </NexusButton>
-      <NexusButton
-        onClick={() => setIsEditModalOpen(true)}
-        disabled={selectedItems.length === 0}
-        icon={<PencilIcon className="w-5 h-5" />}
-        size="sm"
-      >
-        商品詳細を編集
-      </NexusButton>
-      <NexusButton
-        onClick={() => setIsMoveModalOpen(true)}
-        disabled={selectedItems.length === 0}
-        icon={<ArrowsRightLeftIcon className="w-5 h-5" />}
-        size="sm"
-      >
-        ロケーション移動
-      </NexusButton>
-      <BarcodePrintButton
-        productIds={selectedItems}
-        variant="secondary"
-        size="sm"
-      />
-      <NexusButton
-        onClick={handleExportCsv}
-        variant="primary"
-        icon={<ArrowDownTrayIcon className="w-5 h-5" />}
-        size="sm"
-        className="col-span-2 lg:col-span-1"
-      >
-        CSVエクスポート
-      </NexusButton>
-    </div>
-  );
 
   if (loading) {
     return (
@@ -566,7 +492,6 @@ export default function StaffInventoryPage() {
           subtitle="全セラーの商品を管理・操作"
           userType="staff"
           iconType="inventory"
-          actions={headerActions}
         />
 
         {/* Filters */}

@@ -4,9 +4,6 @@ import DashboardLayout from '../components/layouts/DashboardLayout';
 import UnifiedPageHeader from '../components/ui/UnifiedPageHeader';
 import { useState, useEffect, useMemo } from 'react';
 import {
-  PlusIcon,
-  ArrowUpTrayIcon,
-  ArrowDownTrayIcon,
   EyeIcon,
   FunnelIcon,
   ChevronUpIcon,
@@ -280,29 +277,7 @@ export default function InventoryPage() {
     setSelectedListingProduct(null);
   };
 
-  const headerActions = (
-    <>
-      <NexusButton 
-        variant="primary"
-        size="sm"
-        icon={<PlusIcon className="w-4 h-4 sm:w-5 sm:h-5" />}
-      >
-        <span className="hidden sm:inline">新規商品登録</span>
-      </NexusButton>
-      <NexusButton
-        size="sm"
-        icon={<ArrowUpTrayIcon className="w-4 h-4 sm:w-5 sm:h-5" />}
-      >
-        <span className="hidden sm:inline">CSVインポート</span>
-      </NexusButton>
-      <NexusButton
-        size="sm"
-        icon={<ArrowDownTrayIcon className="w-4 h-4 sm:w-5 sm:h-5" />}
-      >
-        <span className="hidden sm:inline">CSVエクスポート</span>
-      </NexusButton>
-    </>
-  );
+
 
   if (loading) {
     return (
@@ -321,7 +296,6 @@ export default function InventoryPage() {
           subtitle="あなたの商品の状況を確認できます"
           userType="seller"
           iconType="inventory"
-          actions={headerActions}
         />
 
         {/* フィルター・検索 - 他の画面と統一 */}

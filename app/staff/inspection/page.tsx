@@ -266,7 +266,7 @@ export default function InspectionPage() {
       const response = await fetch('/api/products/inspection/progress/all');
       if (response.ok) {
         const list = await response.json();
-        console.log('[DEBUG] 進捗データ取得結果:', JSON.stringify(list, null, 2));
+        console.log('[DEBUG] 進捗データ取得結果:', list ? JSON.stringify(list, null, 2) : 'データなし');
         
         // APIは配列を返すため、製品IDをキーにしたマップへ整形
         const mapped: { [key: string]: { currentStep: number; lastUpdated: string } } = {};
@@ -279,7 +279,7 @@ export default function InspectionPage() {
           }
         });
         
-        console.log('[DEBUG] 進捗データマッピング結果:', JSON.stringify(mapped, null, 2));
+        console.log('[DEBUG] 進捗データマッピング結果:', mapped ? JSON.stringify(mapped, null, 2) : 'データなし');
         setProgressData(mapped);
         
         // 商品ステータスから進捗を推定する機能を追加

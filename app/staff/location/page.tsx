@@ -1,24 +1,21 @@
 ﻿'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import UnifiedPageHeader from '@/app/components/ui/UnifiedPageHeader';
 import LocationList from '@/app/components/features/location/LocationList';
 import LocationRegistration from '@/app/components/features/location/LocationRegistration';
-import LocationScanner from '@/app/components/features/LocationScanner';
-import LocationOptimizationModal from '@/app/components/LocationOptimizationModal';
+
+
 import InventoryCountModal from '@/app/components/InventoryCountModal';
 import NexusButton from '@/app/components/ui/NexusButton';
-import { useModal } from '@/app/components/ui/ModalContext';
+
 import {
-  SparklesIcon,
   ClipboardDocumentListIcon,
   MagnifyingGlassIcon,
   ChartBarIcon,
-  QrCodeIcon,
   PlusIcon,
   ListBulletIcon,
-  CubeIcon,
 } from '@heroicons/react/24/outline';
 
 interface LocationStats {
@@ -30,13 +27,11 @@ interface LocationStats {
 }
 
 export default function LocationPage() {
-  const scannerModalRef = useRef<HTMLDivElement>(null);
+
   const [activeTab, setActiveTab] = useState<'overview' | 'register' | 'analytics'>('overview');
-  const [isOptimizationModalOpen, setIsOptimizationModalOpen] = useState(false);
   const [isCountModalOpen, setIsCountModalOpen] = useState(false);
-  const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [quickSearch, setQuickSearch] = useState('');
-  const { setIsAnyModalOpen } = useModal();
+
   const [stats, setStats] = useState<LocationStats>({
     totalLocations: 0,
     occupiedLocations: 0,
@@ -45,14 +40,7 @@ export default function LocationPage() {
     criticalLocations: 0
   });
 
-  // 独自実装モーダルの業務フロー制御
-  useEffect(() => {
-    if (isScannerOpen) {
-      setIsAnyModalOpen(true);
-    } else {
-      setIsAnyModalOpen(false);
-    }
-  }, [isScannerOpen, setIsAnyModalOpen]);
+
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -89,75 +77,18 @@ export default function LocationPage() {
     }
   };
 
-  // スキャナーモーダルのスクロール位置リセット
-  useEffect(() => {
-    if (isScannerOpen) {
-      // ページ全体を最上部にスクロール - 正しいスクロールコンテナを対象
-      const scrollContainer = document.querySelector('.page-scroll-container');
-      if (scrollContainer) {
-        scrollContainer.scrollTop = 0;
-      } else {
-        window.scrollTo(0, 0);
-      }
-      
-      if (scannerModalRef.current) {
-        scannerModalRef.current.scrollTop = 0;
-      }
-    }
-  }, [isScannerOpen]);
 
-  const handleOptimizeLocations = () => {
-    setIsOptimizationModalOpen(true);
-  };
-  
+
   const handleStartInventoryCount = () => {
     setIsCountModalOpen(true);
-  };
-
-  const handleQuickScan = () => {
-    setIsScannerOpen(!isScannerOpen);
   };
 
   if (!mounted) {
     return null;
   }
 
-  const handleGoToShipping = () => {
-    window.location.href = '/staff/shipping';
-  };
-
   const headerActions = (
     <>
-      <NexusButton
-        onClick={handleQuickScan}
-        variant="default"
-        size="md"
-        data-testid="location-scan-button"
-        icon={<QrCodeIcon className="w-5 h-5" />}
-      >
-        <span className="hidden sm:inline">スキャン</span>
-        <span className="sm:hidden">スキャン</span>
-      </NexusButton>
-      <NexusButton
-        onClick={handleOptimizeLocations}
-        variant="default"
-        size="md"
-        data-testid="location-optimize-button"
-        icon={<SparklesIcon className="w-5 h-5" />}
-      >
-        <span className="hidden sm:inline">最適化</span>
-        <span className="sm:hidden">最適化</span>
-      </NexusButton>
-      <NexusButton
-        onClick={handleGoToShipping}
-        variant="secondary"
-        size="md"
-        data-testid="go-to-shipping-button"
-        icon={<CubeIcon className="w-5 h-5" />}
-      >
-        <span className="hidden sm:inline">出荷管理</span>
-        <span className="sm:hidden">出荷</span>
-      </NexusButton>
       <NexusButton
         onClick={handleStartInventoryCount}
         variant="primary"
@@ -310,42 +241,9 @@ export default function LocationPage() {
           )}
         </div>
 
-        {/* Scanner Modal */}
-        {isScannerOpen && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start justify-center z-[10001] p-4 pt-8">
-            <div className="intelligence-card global max-w-[1600px] w-full max-h-[90vh] overflow-hidden">
-              <div className="p-5 overflow-y-auto max-h-full" ref={scannerModalRef}>
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-bold text-nexus-text-primary">バーコードスキャン</h3>
-                  <button
-                    onClick={() => setIsScannerOpen(false)}
-                    className="action-orb"
-                  >
-                    ✕
-                  </button>
-                </div>
-                <LocationScanner 
-                  onProductScanned={(barcode) => {
-                    setQuickSearch(barcode);
-                    setIsScannerOpen(false);
-                    setActiveTab('overview');
-                  }}
-                  onLocationScanned={(location) => {
-                    setQuickSearch(location);
-                    setIsScannerOpen(false);
-                    setActiveTab('overview');
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        )}
 
-        {/* Location Optimization Modal */}
-        <LocationOptimizationModal
-          isOpen={isOptimizationModalOpen}
-          onClose={() => setIsOptimizationModalOpen(false)}
-        />
+
+
 
         {/* Inventory Count Modal */}
         <InventoryCountModal

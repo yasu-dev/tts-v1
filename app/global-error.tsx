@@ -16,19 +16,29 @@ export default function GlobalError({
     
     // ページロード時にunhandled promise rejectionのリスナーを設定
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      console.error('[UNHANDLED PROMISE] Promise rejected:', event.reason);
-      event.preventDefault(); // デフォルトの処理（コンソールエラー出力）を防止
-      
-      // エラーの詳細をログ出力
+      // Chrome拡張機能関連のエラーを無視
       if (event.reason instanceof Error) {
+        const error = event.reason;
+        if (error.message.includes('message port closed') || 
+            error.message.includes('Extension context invalidated') ||
+            error.stack?.includes('content.js') ||
+            error.stack?.includes('chrome-extension://')) {
+          // Chrome拡張機能関連のエラーは無視
+          event.preventDefault();
+          return;
+        }
+        
         console.error('[UNHANDLED PROMISE] Error details:', {
-          message: event.reason.message,
-          stack: event.reason.stack,
-          name: event.reason.name
+          message: error.message,
+          stack: error.stack,
+          name: error.name
         });
       } else {
         console.error('[UNHANDLED PROMISE] Non-error rejection:', event.reason);
       }
+      
+      console.error('[UNHANDLED PROMISE] Promise rejected:', event.reason);
+      event.preventDefault(); // デフォルトの処理（コンソールエラー出力）を防止
     };
 
     const handleError = (event: ErrorEvent) => {
