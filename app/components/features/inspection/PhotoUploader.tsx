@@ -37,7 +37,7 @@ export default function PhotoUploader({
   onSaveAndReturn,
   category = 'accessory',
   loading: externalLoading = false,
-  nextButtonText = '次へ（確認画面）',
+  nextButtonText = '次へ（梱包・ラベル）',
   mode = 'inspection',
 }: PhotoUploaderProps) {
   const beforeAfterModalRef = useRef<HTMLDivElement>(null);

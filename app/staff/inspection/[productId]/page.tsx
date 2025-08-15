@@ -5,7 +5,7 @@ import PhotographyOnlyForm from '@/app/components/features/inspection/Photograph
 
 export const metadata: Metadata = {
   title: '商品検品 - THE WORLD DOOR',
-  description: '商品の検品チェックリスト',
+  description: '商品検品',
 };
 
 interface PageProps {
@@ -27,7 +27,7 @@ export default function InspectionPage({ params, searchParams }: PageProps) {
           {/* タブレット最適化：大きめのタイトル */}
           <div className="mb-6">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-              {isPhotographyMode ? '商品撮影' : '商品検品チェックリスト'}
+              {isPhotographyMode ? '商品撮影' : '商品検品'}
             </h1>
             <p className="text-gray-600 mt-2">
               商品ID: {params.productId}

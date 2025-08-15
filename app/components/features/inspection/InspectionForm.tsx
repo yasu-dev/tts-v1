@@ -155,7 +155,8 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
       title: '梱包・ラベル', 
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M9 21h6" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7H21L19 2H5L3 7ZM3 7L5 21H19L21 7" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12H15" />
         </svg>
       )
     },
@@ -1098,22 +1099,13 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
               >
                 保存して後で続ける
               </NexusButton>
-              <div className="flex gap-3">
-                <NexusButton
-                  onClick={() => submitInspection(true, null)}
-                  variant="outline"
-                  size="lg"
-                >
-                  検品のみ完了
-                </NexusButton>
-                <NexusButton
-                  onClick={() => handleStepChange(2)}
-                  variant="primary"
-                  size="lg"
-                >
-                  検品・撮影完了
-                </NexusButton>
-              </div>
+              <NexusButton
+                onClick={() => handleStepChange(2)}
+                variant="primary"
+                size="lg"
+              >
+                次へ（写真撮影）
+              </NexusButton>
             </div>
           </div>
         )}

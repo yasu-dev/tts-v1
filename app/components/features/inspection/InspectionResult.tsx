@@ -476,7 +476,7 @@ export default function InspectionResult({
           disabled={loading || !selectedLocation}
           className="min-w-[180px] text-center justify-center px-6"
         >
-          {loading ? '処理中...' : '検品・撮影完了'}
+          {loading ? '処理中...' : '次へ（検品完了）'}
         </NexusButton>
       </div>
     </div>

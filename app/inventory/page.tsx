@@ -21,6 +21,36 @@ import { useCategories, useProductStatuses, createSelectOptions, getNameByKey } 
 type SortField = 'name' | 'sku' | 'status' | 'price';
 type SortDirection = 'asc' | 'desc';
 
+// 品質ランクバッジを生成する関数
+const getConditionBadge = (condition: string) => {
+  const conditionConfig: Record<string, { bg: string; text: string; label: string }> = {
+    excellent: { bg: 'bg-green-800', text: 'text-white', label: '最高品質' },
+    good: { bg: 'bg-blue-800', text: 'text-white', label: '高品質' },
+    fair: { bg: 'bg-yellow-700', text: 'text-white', label: '標準品質' },
+    poor: { bg: 'bg-red-800', text: 'text-white', label: '要注意' }
+  };
+
+  const config = conditionConfig[condition] || conditionConfig.fair;
+  
+  return (
+    <span className={`
+      inline-flex items-center
+      px-3 py-1.5
+      rounded-lg
+      border-2
+      font-bold
+      text-xs
+      uppercase
+      tracking-wide
+      ${config.bg}
+      ${config.text}
+      border-current
+    `}>
+      {config.label}
+    </span>
+  );
+};
+
 export default function InventoryPage() {
   const { showToast } = useToast();
   const [inventory, setInventory] = useState<any[]>([]);

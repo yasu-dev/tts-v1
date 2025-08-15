@@ -244,7 +244,7 @@ export default function PhotographyOnlyForm({ productId }: PhotographyOnlyFormPr
         onSaveAndReturn={handleSubmitPhotography} // 保存して一覧に戻る
         category={product.category}
         loading={submitting}
-        nextButtonText="撮影完了"
+        nextButtonText="次へ（撮影完了）"
         mode="photography"
       />
 

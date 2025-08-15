@@ -188,7 +188,7 @@ export default function InspectionChecklist({
           disabled={loading}
           className="flex-1 sm:flex-none"
         >
-          次へ（動画記録）
+          次へ（写真撮影）
         </NexusButton>
       </div>
     </div>

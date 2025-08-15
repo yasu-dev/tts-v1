@@ -315,38 +315,16 @@ export default function ShelfStorageStep({
         {/* 単一の入力欄（スキャン／直接入力の双方に対応） */}
         <div className="space-y-4">
           <div>
-            <div className="flex gap-2">
-              <NexusInput
-                ref={locationInputRef}
-                value={scannedLocation}
-                onChange={(e) => handleLocationInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="棚番号をスキャンまたは入力してください（例: A-01-001）"
-                autoFocus
-                disabled={isValidatingLocation || loading}
-                className="flex-1"
-              />
-              <NexusButton
-                onClick={() => {
-                  console.log('[棚保管] 手動フォーカス設定');
-                  if (locationInputRef.current) {
-                    locationInputRef.current.focus();
-                    showToast({
-                      type: 'info',
-                      title: 'フォーカス設定',
-                      message: '棚番号入力フィールドにフォーカスしました',
-                      duration: 2000
-                    });
-                  }
-                }}
-                variant="outline"
-                size="sm"
-                className="whitespace-nowrap"
-                title="入力フィールドにフォーカス"
-              >
-                📍 フォーカス
-              </NexusButton>
-            </div>
+            <NexusInput
+              ref={locationInputRef}
+              value={scannedLocation}
+              onChange={(e) => handleLocationInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="棚番号をスキャンまたは入力してください（例: A-01-001）"
+              autoFocus
+              disabled={isValidatingLocation || loading}
+              className="w-full"
+            />
             {isValidatingLocation && (
               <p className="text-sm text-blue-600 mt-2">棚番号を確認中...</p>
             )}
@@ -441,23 +419,49 @@ export default function ShelfStorageStep({
             </div>
           </div>
 
-          {/* 商品と棚の情報 */}
-          <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-            <div className="border-b pb-3">
-              <h4 className="text-sm font-semibold text-gray-700 mb-2">商品情報</h4>
-              <div className="space-y-1 text-sm">
-                <div><span className="text-gray-600">SKU:</span> <span className="font-medium">{product.sku}</span></div>
-                <div><span className="text-gray-600">商品名:</span> <span className="font-medium">{product.name}</span></div>
+          {/* 商品と棚の情報 - 強調表示 */}
+          <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 space-y-4">
+            <div className="border-b-2 border-blue-200 pb-4">
+              <h4 className="text-lg font-bold text-blue-900 mb-3 flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M9 21h6" />
+                </svg>
+                商品情報
+              </h4>
+              <div className="space-y-2">
+                <div className="text-base">
+                  <span className="text-gray-700 font-medium">SKU:</span> 
+                  <span className="font-bold text-blue-800 text-lg ml-2">{product.sku}</span>
+                </div>
+                <div className="text-base">
+                  <span className="text-gray-700 font-medium">商品名:</span> 
+                  <span className="font-bold text-blue-800 text-lg ml-2">{product.name}</span>
+                </div>
               </div>
             </div>
             
             {pendingLocationData && (
               <div>
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">保管先情報</h4>
-                <div className="space-y-1 text-sm">
-                  <div><span className="text-gray-600">棚番号:</span> <span className="font-bold text-blue-600">{pendingLocationData.code}</span></div>
-                  <div><span className="text-gray-600">棚名:</span> <span className="font-medium">{pendingLocationData.name}</span></div>
-                  <div><span className="text-gray-600">ゾーン:</span> <span className="font-medium">{pendingLocationData.zone}</span></div>
+                <h4 className="text-lg font-bold text-green-900 mb-3 flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  保管先情報
+                </h4>
+                <div className="space-y-2">
+                  <div className="text-base">
+                    <span className="text-gray-700 font-medium">棚番号:</span> 
+                    <span className="font-bold text-green-800 text-xl ml-2 bg-green-100 px-2 py-1 rounded">{pendingLocationData.code}</span>
+                  </div>
+                  <div className="text-base">
+                    <span className="text-gray-700 font-medium">棚名:</span> 
+                    <span className="font-bold text-green-800 text-lg ml-2">{pendingLocationData.name}</span>
+                  </div>
+                  <div className="text-base">
+                    <span className="text-gray-700 font-medium">ゾーン:</span> 
+                    <span className="font-bold text-green-800 text-lg ml-2">{pendingLocationData.zone}</span>
+                  </div>
                 </div>
               </div>
             )}
@@ -471,7 +475,7 @@ export default function ShelfStorageStep({
               </svg>
               <div className="text-sm text-red-800">
                 <p className="font-semibold mb-1">注意事項</p>
-                <p>間違った棚に保管すると、1万点以上の在庫から商品を探し出すことが極めて困難になります。</p>
+                <p>間違った棚に保管すると、多数の在庫の中から商品を探し出すことが極めて困難になります。</p>
                 <p className="mt-1">必ず<span className="font-bold">物理的に商品を棚に配置してから</span>「はい、保管しました」を選択してください。</p>
               </div>
             </div>
