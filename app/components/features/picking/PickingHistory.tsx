@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import NexusSelect from '@/app/components/ui/NexusSelect';
 import { getUnifiedIcon } from '@/app/components/ui/icons';
 
@@ -18,7 +18,6 @@ interface PickingHistoryRecord {
 }
 
 export default function PickingHistory() {
-  const modalScrollRef = useRef<HTMLDivElement>(null);
   const [historyRecords, setHistoryRecords] = useState<PickingHistoryRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterPeriod, setFilterPeriod] = useState('today');
@@ -28,23 +27,6 @@ export default function PickingHistory() {
   useEffect(() => {
     fetchHistory();
   }, [filterPeriod, sortBy]);
-
-  // モーダルが開いたときにスクロール位置をリセット
-  useEffect(() => {
-    if (selectedRecord) {
-      // ページ全体を最上部にスクロール - 正しいスクロールコンテナを対象
-      const scrollContainer = document.querySelector('.page-scroll-container');
-      if (scrollContainer) {
-        scrollContainer.scrollTop = 0;
-      } else {
-        window.scrollTo(0, 0);
-      }
-      
-      if (modalScrollRef.current) {
-        modalScrollRef.current.scrollTop = 0;
-      }
-    }
-  }, [selectedRecord]);
 
   const fetchHistory = async () => {
     setLoading(true);
@@ -381,7 +363,7 @@ export default function PickingHistory() {
                 </div>
               </div>
 
-              <div className="p-8 overflow-y-auto max-h-[calc(90vh-120px)]" ref={modalScrollRef}>
+              <div className="p-8 overflow-y-auto max-h-[calc(90vh-120px)]">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>

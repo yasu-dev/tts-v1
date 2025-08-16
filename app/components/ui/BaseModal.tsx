@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useRef } from 'react';
+import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import { useModal } from './ModalContext';
 
@@ -38,6 +38,8 @@ export default function BaseModal({
 }: BaseModalProps) {
   const { setIsAnyModalOpen } = useModal();
   const contentRef = useRef<HTMLDivElement>(null);
+  // 初回モーダル表示かどうかを管理するフラグ
+  const [isFirstModalOpen, setIsFirstModalOpen] = useState(true);
 
   // ESCキーでモーダルを閉じる
   useEffect(() => {
@@ -59,17 +61,21 @@ export default function BaseModal({
       if (scrollContainer) {
         const currentScrollTop = scrollContainer.scrollTop;
         
-        // ユーザーが最上部以外にスクロールしている場合は位置を維持
-        // 最上部にいる場合（scrollTop < 10）のみリセットを実行
-        if (currentScrollTop < 10) {
+        // 初回モーダル表示時は強制的に最上部に移動
+        if (isFirstModalOpen) {
+          scrollContainer.scrollTop = 0;
+        } 
+        // 2回目以降で、ユーザーが最上部にいる場合（scrollTop < 10）のみリセット
+        else if (currentScrollTop < 10) {
           scrollContainer.scrollTop = 0;
         }
-        // currentScrollTop >= 10 の場合は、スクロール位置をそのまま維持
+        // それ以外の場合は、スクロール位置をそのまま維持
         
       } else {
         // フォールバック（ログインページなど、DashboardLayoutを使用していない場合）
-        // この場合も現在位置をチェック
-        if (window.pageYOffset < 10) {
+        if (isFirstModalOpen) {
+          window.scrollTo(0, 0);
+        } else if (window.pageYOffset < 10) {
           window.scrollTo(0, 0);
         }
       }
@@ -78,12 +84,15 @@ export default function BaseModal({
       if (contentRef.current) {
         const currentModalScrollTop = contentRef.current.scrollTop;
         
-        // ユーザーがモーダル内で最上部以外にスクロールしている場合は位置を維持
-        // 最上部にいる場合（scrollTop < 10）のみリセットを実行
-        if (currentModalScrollTop < 10) {
+        // 初回モーダル表示時は強制的に最上部に移動
+        if (isFirstModalOpen) {
           contentRef.current.scrollTop = 0;
         }
-        // currentModalScrollTop >= 10 の場合は、モーダル内スクロール位置をそのまま維持
+        // 2回目以降で、ユーザーがモーダル内で最上部にいる場合（scrollTop < 10）のみリセット
+        else if (currentModalScrollTop < 10) {
+          contentRef.current.scrollTop = 0;
+        }
+        // それ以外の場合は、モーダル内スクロール位置をそのまま維持
       }
       
       // クリーンアップ関数
@@ -96,6 +105,8 @@ export default function BaseModal({
     } else {
       // グローバル状態をリセット（業務フローの状態は変更しない）
       setIsAnyModalOpen(false);
+      // モーダルが閉じられた際に初回フラグをリセット
+      setIsFirstModalOpen(true);
     }
   }, [isOpen, onClose, setIsAnyModalOpen]);
 
@@ -104,6 +115,13 @@ export default function BaseModal({
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget && closeOnOverlayClick) {
       onClose();
+    }
+  };
+
+  // ユーザーがモーダル内でスクロールした際に初回フラグをfalseに設定
+  const handleModalScroll = () => {
+    if (isFirstModalOpen) {
+      setIsFirstModalOpen(false);
     }
   };
 
@@ -163,7 +181,7 @@ export default function BaseModal({
         )}
 
         {/* コンテンツ - paddingを削減 */}
-        <div className="flex-1 overflow-y-auto p-4" ref={contentRef}>
+        <div className="flex-1 overflow-y-auto p-4" ref={contentRef} onScroll={handleModalScroll}>
           {children}
         </div>
       </div>
