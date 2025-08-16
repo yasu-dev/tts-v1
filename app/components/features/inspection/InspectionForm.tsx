@@ -10,6 +10,7 @@ import InspectionResult from './InspectionResult';
 import PackagingAndLabelStep from './PackagingAndLabelStep';
 import ShelfStorageStep from './ShelfStorageStep';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
+import ConfirmationModal from '@/app/components/ui/ConfirmationModal';
 import { ArchiveBoxIcon } from '@heroicons/react/24/outline';
 
 export interface InspectionFormProps {
@@ -100,6 +101,7 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
   const [videoId, setVideoId] = useState<string | null>(null);
   const [existingChecklist, setExistingChecklist] = useState<ExistingInspectionChecklist | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const stepIndicatorRef = useRef<HTMLDivElement>(null);
   const [inspectionData, setInspectionData] = useState<InspectionData>({
     productId,
@@ -529,6 +531,23 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
   };
 
   // 部分保存機能（各ステップで作業を中断して保存）
+  // キャンセルして一覧に戻る（保存しない）
+  const handleCancelAndReturn = () => {
+    setShowCancelConfirm(true);
+  };
+
+  const confirmCancelAndReturn = () => {
+    // 適切な一覧画面に戻る（保存は行わない）
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('from') === 'inventory') {
+      // 在庫画面から来た場合は在庫画面に戻る（状態復元なし）
+      window.location.href = '/staff/inventory';
+    } else {
+      // その他の場合は検品一覧に戻る（状態復元なし）
+      window.location.href = '/staff/inspection';
+    }
+  };
+
   const saveProgress = async (step: number) => {
     try {
       setLoading(true);
@@ -1090,15 +1109,24 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
               </NexusCard>
             )}
 
-            {/* 次へボタン */}
+            {/* アクションボタン */}
             <div className="flex justify-between">
-              <NexusButton
-                onClick={() => saveProgress(1)}
-                variant="secondary"
-                size="lg"
-              >
-                保存して後で続ける
-              </NexusButton>
+              <div className="flex gap-3">
+                <NexusButton
+                  onClick={handleCancelAndReturn}
+                  variant="outline"
+                  size="lg"
+                >
+                  キャンセル（一覧に戻る）
+                </NexusButton>
+                <NexusButton
+                  onClick={() => saveProgress(1)}
+                  variant="secondary"
+                  size="lg"
+                >
+                  保存して後で続ける
+                </NexusButton>
+              </div>
               <NexusButton
                 onClick={() => handleStepChange(2)}
                 variant="primary"
@@ -1118,6 +1146,7 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
             onNext={() => handleStepChange(3)}
             onPrev={() => handleStepChange(1)}
             onSaveAndReturn={() => saveProgress(2)}
+            onCancel={handleCancelAndReturn}
             category={product.category}
             loading={loading}
           />
@@ -1130,6 +1159,7 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
             onNext={() => handleStepChange(4)}
             onPrev={() => handleStepChange(2)}
             onSaveAndReturn={() => saveProgress(3)}
+            onCancel={handleCancelAndReturn}
             loading={loading}
           />
         )}
@@ -1141,10 +1171,26 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
             onComplete={(locationId) => submitInspection(false, locationId)}
             onPrev={() => handleStepChange(3)}
             onSaveAndReturn={() => saveProgress(4)}
+            onCancel={handleCancelAndReturn}
             loading={loading}
           />
         )}
       </div>
+
+      {/* キャンセル確認モーダル */}
+      <ConfirmationModal
+        isOpen={showCancelConfirm}
+        onClose={() => setShowCancelConfirm(false)}
+        onConfirm={confirmCancelAndReturn}
+        title="作業のキャンセル"
+        message="現在の作業内容を保存せずに一覧に戻ります。
+
+※未保存のデータは失われますが、よろしいですか？"
+        confirmText="はい、戻ります"
+        cancelText="続ける"
+        confirmVariant="danger"
+        type="warning"
+      />
     </div>
   );
 } 

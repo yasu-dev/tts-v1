@@ -686,51 +686,52 @@ export default function InspectionPage() {
           iconType="inspection"
         />
 
-        {/* フィルター・検索セクション */}
+        {/* 検品管理 - 統合版 */}
         <div className="bg-white rounded-xl border border-nexus-border p-4 sm:p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <FunnelIcon className="w-5 h-5 text-nexus-text-secondary" />
-            <h3 className="text-lg font-medium text-nexus-text-primary">フィルター・検索</h3>
+          
+          {/* ヘッダー部分（新規追加） */}
+          <div className="pb-4 mb-6 border-b border-gray-300">
+            <h3 className="text-lg font-medium text-nexus-text-primary">検品タスク管理</h3>
+            <p className="text-nexus-text-secondary mt-1 text-sm">
+              {filteredProducts.length}件の商品を表示
+            </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            <NexusSelect
-              label="ステータス"
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              options={statusOptions}
-            />
+          {/* フィルター部分（完全保持） */}
+          <div className="mb-6 pb-6 border-b border-gray-300">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <NexusSelect
+                label="ステータス"
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                options={statusOptions}
+              />
 
-            <NexusSelect
-              label="検品・撮影状況"
-              value={selectedInspectionPhotoStatus}
-              onChange={(e) => setSelectedInspectionPhotoStatus(e.target.value)}
-              options={inspectionPhotoStatusOptions}
-            />
+              <NexusSelect
+                label="検品・撮影状況"
+                value={selectedInspectionPhotoStatus}
+                onChange={(e) => setSelectedInspectionPhotoStatus(e.target.value)}
+                options={inspectionPhotoStatusOptions}
+              />
 
-            <NexusSelect
-              label="カテゴリー"
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              options={categoryOptions}
-            />
+              <NexusSelect
+                label="カテゴリー"
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                options={categoryOptions}
+              />
 
-
-
-            <NexusInput
-              type="text"
-              label="検索"
-              placeholder="商品名・SKU・ブランドで検索"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+              <NexusInput
+                type="text"
+                label="検索"
+                placeholder="商品名・SKU・ブランドで検索"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
           </div>
-        </div>
-
-
-
-        {/* ステータス別タブビュー */}
-        <div className="bg-white rounded-xl border border-nexus-border p-4 sm:p-6">
+          
+          {/* タブビュー部分 */}
           {/* タブヘッダー */}
           <div className="border-b border-nexus-border mb-6">
             <nav className="-mb-px flex space-x-8" aria-label="Tabs">

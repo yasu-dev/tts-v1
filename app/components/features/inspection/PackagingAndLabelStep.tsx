@@ -17,6 +17,7 @@ interface PackagingAndLabelStepProps {
   onNext: () => void;
   onPrev: () => void;
   onSaveAndReturn: () => void;
+  onCancel?: () => void;
   loading: boolean;
 }
 
@@ -26,6 +27,7 @@ export default function PackagingAndLabelStep({
   onNext,
   onPrev,
   onSaveAndReturn,
+  onCancel,
   loading
 }: PackagingAndLabelStepProps) {
   const { showToast } = useToast();
@@ -236,6 +238,16 @@ export default function PackagingAndLabelStep({
       {/* ナビゲーションボタン */}
       <div className="flex justify-between">
         <div className="flex gap-3">
+          {onCancel && (
+            <NexusButton
+              onClick={onCancel}
+              variant="outline"
+              size="lg"
+              disabled={loading}
+            >
+              キャンセル（一覧に戻る）
+            </NexusButton>
+          )}
           <NexusButton
             onClick={onPrev}
             variant="secondary"

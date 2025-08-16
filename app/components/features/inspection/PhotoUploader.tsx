@@ -14,6 +14,7 @@ export interface PhotoUploaderProps {
   onNext: () => void;
   onPrev: () => void;
   onSaveAndReturn?: () => void;
+  onCancel?: () => void;
   category?: string; // AI判定用のカテゴリ
   loading?: boolean;
   nextButtonText?: string; // 次へボタンのテキストをカスタマイズ
@@ -35,6 +36,7 @@ export default function PhotoUploader({
   onNext,
   onPrev,
   onSaveAndReturn,
+  onCancel,
   category = 'accessory',
   loading: externalLoading = false,
   nextButtonText = '次へ（梱包・ラベル）',
@@ -826,6 +828,16 @@ export default function PhotoUploader({
       {/* ナビゲーションボタン */}
       <div className="flex justify-between pt-2">
         <div className="flex gap-3">
+          {onCancel && (
+            <NexusButton
+              onClick={onCancel}
+              variant="outline"
+              size="md"
+              disabled={externalLoading}
+            >
+              キャンセル（一覧に戻る）
+            </NexusButton>
+          )}
           <NexusButton
             onClick={onPrev}
             variant="secondary"
