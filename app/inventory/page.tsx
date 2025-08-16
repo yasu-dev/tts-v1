@@ -298,45 +298,42 @@ export default function InventoryPage() {
           iconType="inventory"
         />
 
-        {/* フィルター・検索 - 他の画面と統一 */}
+        {/* 商品一覧 - 統合版 */}
         <div className="bg-white rounded-xl border border-nexus-border p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <FunnelIcon className="w-5 h-5 text-nexus-text-secondary" />
-            <h3 className="text-lg font-medium text-nexus-text-primary">フィルター・検索</h3>
-          </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <NexusSelect
-              label="ステータス"
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              options={statusOptions}
-            />
-
-            <NexusSelect
-              label="カテゴリー"
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              options={categoryOptions}
-            />
-
-            <NexusInput
-              type="text"
-              label="検索"
-              placeholder="商品名・SKU・カテゴリーで検索"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-        </div>
-
-        {/* 商品一覧 - timelineページと統一されたテーブル構造 */}
-        <div className="bg-white rounded-xl border border-nexus-border p-6">
+          {/* ヘッダー部分（上に移動） */}
           <div className="mb-6">
             <h3 className="text-lg font-bold text-nexus-text-primary">商品一覧</h3>
             <p className="text-nexus-text-secondary mt-1 text-sm">
               {sortedInventory.length}件の商品を表示
             </p>
+          </div>
+          
+          {/* フィルター・検索部分（タイトル削除版） */}
+          <div className="mb-6 pb-6 border-b border-nexus-border">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <NexusSelect
+                label="ステータス"
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                options={statusOptions}
+              />
+
+              <NexusSelect
+                label="カテゴリー"
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                options={categoryOptions}
+              />
+
+              <NexusInput
+                type="text"
+                label="検索"
+                placeholder="商品名・SKU・カテゴリーで検索"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
           </div>
           
           {/* テーブル */}
