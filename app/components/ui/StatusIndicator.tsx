@@ -6,7 +6,7 @@ type StatusType = 'optimal' | 'warning' | 'critical';
 
 // 業務ステータス用の型定義
 type BusinessStatusType = 
-  | 'inbound' | 'inspection' | 'storage' | 'listing' | 'sold' | 'maintenance'
+  | 'inbound' | 'inspection' | 'storage' | 'listing' | 'sold'
   | 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'confirmed'
   | 'processing' | 'delivered' | 'returned'
   | 'packed' | 'shipped' | 'ready_for_pickup'
@@ -61,12 +61,7 @@ const businessStatusConfig = {
     text: 'text-white dark:text-white',
     border: 'border-gray-800 dark:border-gray-800'
   },
-  maintenance: { 
-    label: 'メンテナンス', 
-    bg: 'bg-red-800 dark:bg-red-800',
-    text: 'text-white dark:text-white',
-    border: 'border-red-800 dark:border-red-800'
-  },
+
   ordered: { 
     label: '受注済み', 
     bg: 'bg-purple-800 dark:bg-purple-800',
@@ -181,7 +176,7 @@ function getIndicatorColor(status: BusinessStatusType): string {
     storage: 'bg-green-300',
     listing: 'bg-blue-300',
     sold: 'bg-gray-300',
-    maintenance: 'bg-red-300',
+
     ordered: 'bg-purple-300',
     shipping: 'bg-purple-300',
     returned: 'bg-orange-300',

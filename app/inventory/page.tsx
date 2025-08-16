@@ -10,7 +10,7 @@ import {
   ChevronDownIcon,
   ShoppingCartIcon,
 } from '@heroicons/react/24/outline';
-import { NexusInput, NexusButton, NexusLoadingSpinner, NexusSelect, BusinessStatusIndicator } from '@/app/components/ui';
+import { NexusInput, NexusButton, NexusLoadingSpinner, NexusSelect, BusinessStatusIndicator, Pagination } from '@/app/components/ui';
 import BaseModal from '../components/ui/BaseModal';
 import ListingFormModal from '@/app/components/modals/ListingFormModal';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
@@ -68,14 +68,37 @@ export default function InventoryPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  
+  // ページネーション状態
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
     // APIからデータを取得
     const fetchData = async () => {
       setLoading(true);
       try {
-        console.log('📡 在庫データ取得開始...');
-        const response = await fetch('/api/inventory');
+        console.log('📡 セラー在庫データ取得開始...', { currentPage, itemsPerPage });
+        
+        // ページングパラメーターを含めてAPIリクエスト
+        const searchParams = new URLSearchParams({
+          page: currentPage.toString(),
+          limit: itemsPerPage.toString()
+        });
+        
+        if (selectedStatus !== 'all') {
+          searchParams.set('status', selectedStatus);
+        }
+        if (selectedCategory !== 'all') {
+          searchParams.set('category', selectedCategory);
+        }
+        if (searchQuery.trim()) {
+          searchParams.set('search', searchQuery);
+        }
+        
+        const response = await fetch(`/api/inventory?${searchParams.toString()}`);
         console.log('📡 APIレスポンス:', response.status, response.statusText);
         
         if (!response.ok) {
@@ -83,14 +106,23 @@ export default function InventoryPage() {
         }
         
         const data = await response.json();
+        
+        // APIレスポンスからページネーション情報を取得
+        const paginationInfo = data.pagination || {};
+        
         console.log('📦 取得データ:', {
           dataKeys: Object.keys(data),
           productsCount: data.data?.length || 0,
-          firstProduct: data.data?.[0]?.name || 'なし'
+          firstProduct: data.data?.[0]?.name || 'なし',
+          paginationInfo
         });
         
-        // data.products ではなく data.data を使用（APIレスポンス形式に合わせる）
+        // サーバーサイドページネーションのため、取得したデータをそのまま設定
         setInventory(data.data || []);
+        
+        // ページネーション情報を設定
+        setTotalItems(paginationInfo.total || (data.data?.length || 0));
+        setTotalPages(paginationInfo.pages || 1);
       } catch (error) {
         console.error('在庫データ取得エラー:', error);
         // Toast の表示を次のフレームまで遅延
@@ -110,7 +142,7 @@ export default function InventoryPage() {
     fetchData().catch(error => {
       console.error('Fetch data error:', error);
     });
-  }, [showToast]);
+  }, [currentPage, itemsPerPage, selectedStatus, selectedCategory, searchQuery]); // フィルター変更時も再取得
 
   // カテゴリーオプション（APIから動的取得）
   const categoryOptions = useMemo(() => {
@@ -134,32 +166,16 @@ export default function InventoryPage() {
     ];
   }, [productStatuses, statusesLoading]);
 
-  // フィルタリング
-  const filteredInventory = useMemo(() => {
-    let filtered = inventory;
-
-    // ステータスフィルター
-    if (selectedStatus !== 'all') {
-      filtered = filtered.filter(item => item.status === selectedStatus);
+  // フィルター変更時のページリセット
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
     }
+  }, [selectedStatus, selectedCategory, searchQuery]);
 
-    // カテゴリーフィルター
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(item => item.category === selectedCategory);
-    }
-
-    // 検索フィルター
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(item => 
-        item.name.toLowerCase().includes(query) ||
-        item.sku.toLowerCase().includes(query) ||
-        item.category.toLowerCase().includes(query)
-      );
-    }
-
-    return filtered;
-  }, [inventory, selectedStatus, selectedCategory, searchQuery]);
+  // サーバーサイドページネーション対応のため、フィルタリングはAPIで処理済み
+  // クライアント側では取得したデータをそのまま使用
+  const filteredInventory = inventory;
 
   // ソート
   const sortedInventory = useMemo(() => {
@@ -305,7 +321,7 @@ export default function InventoryPage() {
           <div className="mb-6">
             <h3 className="text-lg font-bold text-nexus-text-primary">商品一覧</h3>
             <p className="text-nexus-text-secondary mt-1 text-sm">
-              {sortedInventory.length}件の商品を表示
+              {totalItems}件中 {sortedInventory.length}件を表示
             </p>
           </div>
           
@@ -477,6 +493,20 @@ export default function InventoryPage() {
                 )}
               </tbody>
             </table>
+            
+            {/* ページネーション */}
+            {!loading && totalItems > 0 && (
+              <div className="mt-6 pt-4 border-t border-nexus-border">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={totalItems}
+                  itemsPerPage={itemsPerPage}
+                  onPageChange={setCurrentPage}
+                  onItemsPerPageChange={setItemsPerPage}
+                />
+              </div>
+            )}
           </div>
         </div>
 

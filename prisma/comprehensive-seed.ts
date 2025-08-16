@@ -147,7 +147,7 @@ async function main() {
   ];
 
   const allProducts = [...cameraProducts, ...watchProducts];
-  const statuses = ['inbound', 'inspection', 'storage', 'listing', 'sold', 'maintenance'];
+  const statuses = ['inbound', 'inspection', 'storage', 'listing', 'sold'];
   const products = [];
   const productMap = new Map();
 
@@ -533,7 +533,7 @@ async function main() {
   // タスクデータを作成
   console.log('📋 タスクデータを作成中...');
   
-  const taskCategories = ['inspection', 'photography', 'listing', 'shipping', 'maintenance'];
+  const taskCategories = ['inspection', 'photography', 'listing', 'shipping'];
   const tasks = [];
 
   for (let i = 0; i < 50; i++) {

@@ -413,7 +413,7 @@ export default function ItemDetailModal({
                    item.status === 'storage' ? '保管中です。必要に応じて検品や移動を行えます。' :
                    item.status === 'listing' ? '出品中です。販売が完了するまで待機してください。' :
                    item.status === 'sold' ? '売約済みです。出荷準備を行ってください。' :
-                   item.status === 'maintenance' ? 'メンテナンス中です。作業完了後、保管へ戻します。' :
+
                    '現在のステータスに応じた作業を実行してください。'}
                 </p>
               </div>

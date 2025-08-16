@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '100'); // デモ用に増加
+    const limit = parseInt(searchParams.get('limit') || '20'); // ページネーション対応
     const status = searchParams.get('status');
     const category = searchParams.get('category');
     const search = searchParams.get('search');
@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
         '保管中': 'storage', 
         '出品': 'listing',
         '出品中': 'listing',
-        'メンテナンス': 'maintenance',
+
         '受注': 'ordered',
         '受注済み': 'ordered',
         '出荷': 'shipping',

@@ -137,7 +137,7 @@ function getStatusDisplayName(status: string): string {
     'storage': '保管中',
     'listing': '出品中',
     'sold': '売約済み',
-    'maintenance': 'メンテナンス'
+
   };
   
   return statusMap[status] || status;

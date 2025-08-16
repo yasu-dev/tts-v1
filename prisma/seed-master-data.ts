@@ -38,10 +38,9 @@ async function seedMasterData() {
       { key: 'listing', nameJa: '出品中', nameEn: 'Listing', sortOrder: 4 },
       { key: 'ordered', nameJa: '受注済み', nameEn: 'Ordered', sortOrder: 5 },
       { key: 'shipping', nameJa: '出荷中', nameEn: 'Shipping', sortOrder: 6 },
-      { key: 'maintenance', nameJa: 'メンテナンス', nameEn: 'Maintenance', sortOrder: 7 },
-      { key: 'sold', nameJa: '売約済み', nameEn: 'Sold', sortOrder: 8 },
-      { key: 'returned', nameJa: '返品', nameEn: 'Returned', sortOrder: 9 },
-      { key: 'damaged', nameJa: '損傷', nameEn: 'Damaged', sortOrder: 10 },
+      { key: 'sold', nameJa: '売約済み', nameEn: 'Sold', sortOrder: 7 },
+      { key: 'returned', nameJa: '返品', nameEn: 'Returned', sortOrder: 8 },
+      { key: 'damaged', nameJa: '損傷', nameEn: 'Damaged', sortOrder: 9 },
     ];
 
     for (const status of productStatuses) {

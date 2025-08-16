@@ -30,7 +30,7 @@ interface InventoryItem {
   sku: string;
   category: string;
   originalCategory?: string; // 元の英語カテゴリーを保持用
-  status: 'inbound' | 'inspection' | 'storage' | 'listing' | 'sold' | 'maintenance';
+  status: 'inbound' | 'inspection' | 'storage' | 'listing' | 'sold';
   location: string;
   price: number;
   condition: string;
@@ -82,6 +82,8 @@ export default function StaffInventoryPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [paginatedItems, setPaginatedItems] = useState<InventoryItem[]>([]);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   // 状態を保存する関数
   const saveCurrentState = () => {
@@ -159,11 +161,31 @@ export default function StaffInventoryPage() {
     const fetchInventoryData = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/inventory');
+        
+        // ページングパラメーターを含めてAPIリクエスト
+        const searchParams = new URLSearchParams({
+          page: currentPage.toString(),
+          limit: itemsPerPage.toString()
+        });
+        
+        if (selectedStatus !== 'all' && selectedStatus !== 'listable') {
+          searchParams.set('status', selectedStatus);
+        }
+        if (selectedCategory !== 'all') {
+          searchParams.set('category', selectedCategory);
+        }
+        if (searchQuery.trim()) {
+          searchParams.set('search', searchQuery);
+        }
+        
+        const response = await fetch(`/api/inventory?${searchParams.toString()}`);
         if (!response.ok) {
           throw new Error('Failed to fetch inventory data');
         }
         const data = await response.json();
+        
+        // APIレスポンスからページネーション情報を取得
+        const paginationInfo = data.pagination || {};
         
         // APIレスポンスの形式に合わせてデータを変換（英語→日本語変換）
         const inventoryItems: InventoryItem[] = data.data.map((item: any) => ({
@@ -183,7 +205,7 @@ export default function StaffInventoryPage() {
                             .replace('listing', '出品中')
                             .replace('ordered', '受注済み')
                             .replace('shipping', '出荷中')
-                            .replace('maintenance', 'メンテナンス')
+
                             .replace('sold', '売約済み')
                             .replace('returned', '返品'),
           location: item.location || '未設定',
@@ -212,9 +234,17 @@ export default function StaffInventoryPage() {
           photographyDate: item.photographyDate || null,
         }));
         
+        // サーバーサイドページネーションのため、取得したデータをそのまま表示
         setItems(inventoryItems);
         setFilteredItems(inventoryItems);
-        console.log(`✅ スタッフ在庫データ取得完了: ${inventoryItems.length}件`);
+        setPaginatedItems(inventoryItems); // 取得したデータを直接設定
+        
+        // ページネーション情報を設定
+        setTotalItems(paginationInfo.total || inventoryItems.length);
+        setTotalPages(paginationInfo.pages || 1);
+        
+        console.log(`✅ スタッフ在庫データ取得完了: ${inventoryItems.length}件 (ページ: ${currentPage}/${paginationInfo.pages || 1})`);
+        console.log('📊 ページネーション情報:', paginationInfo);
         console.log('🔍 ステータス別分布:', inventoryItems.reduce((acc: any, item) => {
           acc[item.status] = (acc[item.status] || 0) + 1;
           return acc;
@@ -232,45 +262,43 @@ export default function StaffInventoryPage() {
     };
 
     fetchInventoryData();
-  }, []);
+  }, [currentPage, itemsPerPage, selectedStatus, selectedCategory, searchQuery]); // フィルター変更時も再取得
 
-  // フィルタリング
+  // クライアント側でのフィルタリング（出品可能など特別なフィルターのみ）
   useEffect(() => {
     let filtered = items;
 
-    if (selectedStatus !== 'all') {
-      if (selectedStatus === 'listable') {
-        // 出品可能商品のフィルタリング
-        filtered = filterListableItems(filtered);
-      } else {
-        // selectedStatusはマスタデータのkeyなので直接比較
-        filtered = filtered.filter(item => item.status === selectedStatus);
-      }
+    // 出品可能フィルターはクライアント側で処理
+    if (selectedStatus === 'listable') {
+      filtered = filterListableItems(filtered);
+      setFilteredItems(filtered);
+      setPaginatedItems(filtered);
+    } else if (selectedLocation !== 'all') {
+      // ロケーションフィルターもクライアント側で処理（サーバーに未実装のため）
+      filtered = items.filter(item => item.location.includes(selectedLocation));
+      setFilteredItems(filtered);
+      setPaginatedItems(filtered);
+    } else if (selectedStaff !== 'all') {
+      // 担当者フィルターもクライアント側で処理（サーバーに未実装のため）
+      filtered = items.filter(item => item.assignedStaff === selectedStaff);
+      setFilteredItems(filtered);
+      setPaginatedItems(filtered);
+    } else if (selectedSeller !== 'all') {
+      // セラーフィルターもクライアント側で処理（サーバーに未実装のため）
+      filtered = items.filter(item => item.seller?.id === selectedSeller);
+      setFilteredItems(filtered);
+      setPaginatedItems(filtered);
+    } else {
+      // その他のフィルターはサーバー側で処理済み
+      setFilteredItems(items);
+      setPaginatedItems(items);
     }
-    // カテゴリーフィルター（マスタデータのkeyと比較）
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(item => item.originalCategory === selectedCategory);
+    
+    // フィルタ変更時は最初のページに戻る（サーバーサイドページネーションの場合は再取得される）
+    if (currentPage !== 1) {
+      setCurrentPage(1);
     }
-    if (selectedLocation !== 'all') {
-      filtered = filtered.filter(item => item.location.includes(selectedLocation));
-    }
-    if (selectedStaff !== 'all') {
-      filtered = filtered.filter(item => item.assignedStaff === selectedStaff);
-    }
-    if (selectedSeller !== 'all') {
-      filtered = filtered.filter(item => item.seller?.id === selectedSeller);
-    }
-    if (searchQuery) {
-      filtered = filtered.filter(item => 
-        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.qrCode?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    setFilteredItems(filtered);
-    setCurrentPage(1); // フィルタ変更時はページを1に戻す
-  }, [items, selectedStatus, selectedCategory, selectedLocation, selectedStaff, selectedSeller, searchQuery]);
+  }, [items, selectedStatus, selectedLocation, selectedStaff, selectedSeller]);
 
   // 動的カテゴリーオプション生成（APIから取得）
   const categoryOptions = useMemo(() => {
@@ -324,12 +352,8 @@ export default function StaffInventoryPage() {
     ];
   }, [items]);
 
-  // ページネーション
-  useEffect(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    setPaginatedItems(filteredItems.slice(startIndex, endIndex));
-  }, [filteredItems, currentPage, itemsPerPage]);
+  // サーバーサイドページネーションのため、クライアント側ページング処理は不要
+  // paginatedItemsはAPI取得時に直接設定される
 
   // バーコードスキャナーモーダルのスクロール位置リセット
   useEffect(() => {
@@ -501,7 +525,7 @@ export default function StaffInventoryPage() {
           <div className="p-6 border-b border-gray-300">
             <h3 className="text-lg font-medium text-nexus-text-primary">商品管理</h3>
             <p className="text-nexus-text-secondary mt-1 text-sm">
-              {filteredItems.length}件の商品を表示
+              {totalItems}件中 {paginatedItems.length}件を表示
             </p>
           </div>
           
@@ -661,12 +685,14 @@ export default function StaffInventoryPage() {
             </table>
             
             {/* ページネーション */}
-            {filteredItems.length > 0 && (
+            {/* サーバーサイドページネーション対応 */}
+            {!loading && totalItems > 0 && (
               <div className="mt-6 pt-4 border-t border-nexus-border">
+
                 <Pagination
                   currentPage={currentPage}
-                  totalPages={Math.ceil(filteredItems.length / itemsPerPage)}
-                  totalItems={filteredItems.length}
+                  totalPages={totalPages}
+                  totalItems={totalItems}
                   itemsPerPage={itemsPerPage}
                   onPageChange={setCurrentPage}
                   onItemsPerPageChange={setItemsPerPage}

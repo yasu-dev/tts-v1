@@ -592,7 +592,7 @@ export default function ReturnsPage() {
                     <td className="py-3 px-4 text-sm text-nexus-text-secondary">配送中破損・修理不能</td>
                     <td className="py-3 px-4 text-sm text-nexus-text-secondary">2024-06-25</td>
                     <td className="py-3 px-4 text-sm">
-                      <BusinessStatusIndicator status="maintenance" />
+                      <BusinessStatusIndicator status="storage" />
                     </td>
                   </tr>
                   <tr className="border-b border-nexus-border">

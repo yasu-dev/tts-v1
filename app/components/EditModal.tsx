@@ -203,7 +203,7 @@ export default function EditModal({ isOpen, onClose, type, title, data }: EditMo
             { value: "inspection", label: "検品" },
             { value: "shipping", label: "出荷" },
             { value: "returns", label: "返品処理" },
-            { value: "maintenance", label: "メンテナンス" }
+
           ]}
         />
         <NexusSelect

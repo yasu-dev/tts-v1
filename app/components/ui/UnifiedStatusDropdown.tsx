@@ -5,7 +5,7 @@ import { BusinessStatusIndicator } from './StatusIndicator';
 
 // 業務ステータス用の型定義
 type BusinessStatusType = 
-  | 'inbound' | 'inspection' | 'storage' | 'listing' | 'sold' | 'maintenance'
+  | 'inbound' | 'inspection' | 'storage' | 'listing' | 'sold'
   | 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'confirmed'
   | 'packed' | 'shipped'
   | 'approved' | 'rejected' | 'refunded';

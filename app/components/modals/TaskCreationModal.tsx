@@ -161,7 +161,7 @@ export default function TaskCreationModal({ isOpen, onClose, onSubmit }: TaskCre
                   { value: "shipping", label: "出荷" },
                   { value: "inventory", label: "在庫管理" },
                   { value: "returns", label: "返品処理" },
-                  { value: "maintenance", label: "メンテナンス" },
+
                   { value: "other", label: "その他" }
                 ]}
               />

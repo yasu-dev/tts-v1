@@ -128,7 +128,7 @@ export default function ProductEditModal({
     { value: 'storage', label: '保管中' },
     { value: 'listing', label: '出品中' },
     { value: 'sold', label: '売約済み' },
-    { value: 'maintenance', label: 'メンテナンス' }
+
   ];
 
   const categoryOptions = [
