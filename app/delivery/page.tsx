@@ -466,43 +466,12 @@ export default function DeliveryPage() {
 
 
 
-        {/* フィルター・検索バー */}
-        {!isDetailModalOpen && (
-          <div className="intelligence-card global">
-            <div className="p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <FunnelIcon className="h-5 w-5 text-nexus-text-secondary" />
-                <h3 className="text-lg font-medium text-nexus-text-primary">フィルター・検索</h3>
-              </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <NexusSelect
-                label="ステータス"
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                options={statusOptions}
-                variant="nexus"
-              />
-              <NexusSelect
-                label="期間"
-                value={dateRange}
-                onChange={(e) => setDateRange(e.target.value)}
-                options={dateRangeOptions}
-                variant="nexus"
-              />
-              <NexusInput
-                label="検索"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="住所、メール、備考で検索..."
-                variant="nexus"
-              />
-            </div>
-            </div>
-          </div>
-        )}
+
 
         {/* 納品プラン一覧テーブル */}
         <div className="intelligence-card oceania">
+          
+          {/* ヘッダー部分（上に移動） */}
           <div className="p-6 border-b border-gray-300">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-medium text-nexus-text-primary">納品プラン一覧</h3>
@@ -532,6 +501,35 @@ export default function DeliveryPage() {
               </div>
             </div>
           </div>
+          
+          {/* フィルター・検索部分（タイトル削除版） */}
+          {!isDetailModalOpen && (
+            <div className="p-6 border-b border-gray-300">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <NexusSelect
+                  label="ステータス"
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  options={statusOptions}
+                  variant="nexus"
+                />
+                <NexusSelect
+                  label="期間"
+                  value={dateRange}
+                  onChange={(e) => setDateRange(e.target.value)}
+                  options={dateRangeOptions}
+                  variant="nexus"
+                />
+                <NexusInput
+                  label="検索"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="住所、メール、備考で検索..."
+                  variant="nexus"
+                />
+              </div>
+            </div>
+          )}
           
           <div className="overflow-x-auto">
             <table className="holo-table">
