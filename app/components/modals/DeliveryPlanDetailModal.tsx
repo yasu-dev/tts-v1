@@ -50,13 +50,8 @@ interface DeliveryPlanDetailModalProps {
 }
 
 const statusConfig = {
-  '下書き': { color: 'bg-gray-100 text-gray-800', icon: DocumentTextIcon, label: '下書き' },
-      '作成中': { color: 'bg-orange-600 text-white', icon: ClockIcon, label: '作成中' },
-  '作成完了': { color: 'bg-blue-100 text-blue-800', icon: CheckCircleIcon, label: '作成完了' },
-  '準備中': { color: 'bg-orange-100 text-orange-800', icon: ClockIcon, label: '準備中' },
-  '発送済': { color: 'bg-green-100 text-green-800', icon: TruckIcon, label: '発送済' },
-  '到着済': { color: 'bg-emerald-100 text-emerald-800', icon: CheckCircleIcon, label: '到着済' },
-  'キャンセル': { color: 'bg-red-100 text-red-800', icon: XCircleIcon, label: 'キャンセル' }
+  '出荷準備中': { color: 'bg-blue-100 text-blue-800', icon: ClockIcon, label: '出荷準備中' },
+  '出荷済み': { color: 'bg-green-100 text-green-800', icon: TruckIcon, label: '出荷済み' }
 };
 
 export default function DeliveryPlanDetailModal({ 
@@ -69,7 +64,7 @@ export default function DeliveryPlanDetailModal({
   const [isStatusEditMode, setIsStatusEditMode] = useState(false);
   const [tempStatus, setTempStatus] = useState(plan.status);
 
-  const statusInfo = statusConfig[plan.status as keyof typeof statusConfig] || statusConfig['準備中'];
+  const statusInfo = statusConfig[plan.status as keyof typeof statusConfig] || statusConfig['出荷準備中'];
   const StatusIcon = statusInfo.icon;
 
   const handleStatusUpdate = () => {

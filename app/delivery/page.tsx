@@ -279,7 +279,7 @@ export default function DeliveryPage() {
     setAllDeliveryPlans(prev => 
       prev.map((plan: any) => 
         plan.id === planId 
-          ? { ...plan, status: action === 'confirm' ? '発送済' : '発送待ち' }
+          ? { ...plan, status: action === 'confirm' ? '出荷済み' : '出荷準備中' }
           : plan
       )
     );
@@ -292,7 +292,7 @@ export default function DeliveryPage() {
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          status: '発送済',
+          status: '出荷済み',
           trackingNumber: shippingTrackingNumber.trim() || null
         }),
       });
@@ -308,7 +308,7 @@ export default function DeliveryPage() {
           plan.id === planId 
             ? { 
                 ...plan, 
-                status: '発送済',
+                status: '出荷済み',
                 shippingTrackingNumber: shippingTrackingNumber.trim() || null,
                 shippedAt: new Date().toISOString()
               }
@@ -318,8 +318,8 @@ export default function DeliveryPage() {
 
       showToast({
         type: 'success',
-        title: '発送完了',
-        message: '納品プランを発送済みに更新しました',
+        title: '出荷完了',
+        message: '納品プランを出荷済みに更新しました',
         duration: 3000
       });
 
@@ -331,8 +331,8 @@ export default function DeliveryPage() {
       console.error('Shipping update error:', error);
       showToast({
         type: 'error',
-        title: '発送更新エラー',
-        message: error instanceof Error ? error.message : '発送更新に失敗しました',
+        title: '出荷更新エラー',
+        message: error instanceof Error ? error.message : '出荷更新に失敗しました',
         duration: 5000
       });
     }
@@ -399,10 +399,9 @@ export default function DeliveryPage() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-
-      case '発送待ち':
+      case '出荷準備中':
         return <CheckCircleIcon className="h-5 w-5 text-blue-600" />;
-      case '発送済':
+      case '出荷済み':
         return <TruckIcon className="h-5 w-5 text-green-600" />;
       default:
         return <ClockIcon className="h-5 w-5 text-gray-600" />;
@@ -411,15 +410,9 @@ export default function DeliveryPage() {
 
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
-      case 'draft':
-        return 'status-badge info';
-      case 'submitted':
+      case '出荷準備中':
         return 'status-badge warning';
-      case 'delivered':
-        return 'status-badge success';
-      case '発送待ち':
-        return 'status-badge warning';
-      case '発送済':
+      case '出荷済み':
         return 'status-badge success';
       default:
         return 'status-badge info';
@@ -435,8 +428,8 @@ export default function DeliveryPage() {
     }))
   ] : [
     { value: 'all', label: '全てのステータス' },
-    { value: '発送待ち', label: '発送待ち' },
-    { value: '発送済', label: '発送済' }
+    { value: '出荷準備中', label: '出荷準備中' },
+    { value: '出荷済み', label: '出荷済み' }
   ];
 
   const dateRangeOptions = [
@@ -660,20 +653,10 @@ export default function DeliveryPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <BusinessStatusIndicator 
                           status={(() => {
-                            // ステータスマッピング
-                            const mappedStatus = plan.status === '下書き' ? 'pending' : 
-                                                plan.status === '発送待ち' ? 'processing' :
-                                                plan.status === '発送済' ? 'shipped' :
-                                                plan.status === '配達完了' ? 'delivered' :
-                                                plan.status === '承認済み' ? 'confirmed' :
-                                                plan.status === '完了' ? 'completed' :
-                                                plan.status === 'draft' ? 'pending' : 
-                                                plan.status === 'submitted' ? 'processing' :
-                                                plan.status === 'in_transit' ? 'shipping' :
-                                                plan.status === 'delivered' ? 'delivered' :
-                                                plan.status === 'approved' ? 'confirmed' :
-                                                plan.status === 'completed' ? 'completed' :
-                                                'pending';
+                            // ステータスマッピング（2つのステータスのみ）
+                            const mappedStatus = plan.status === '出荷準備中' ? 'processing' :
+                                                plan.status === '出荷済み' ? 'shipped' :
+                                                'processing';
                             return mappedStatus;
                           })()} 
                           size="sm" 
@@ -726,7 +709,7 @@ export default function DeliveryPage() {
                             <span className="ml-1">詳細</span>
                           </NexusButton>
 
-                          {plan.status === '発送待ち' && (
+                          {plan.status === '出荷準備中' && (
                             <NexusButton
                               variant="primary"
                               size="sm"
@@ -734,7 +717,7 @@ export default function DeliveryPage() {
                               className="flex items-center gap-1"
                             >
                               <TruckIcon className="h-4 w-4" />
-                              発送
+                              出荷
                             </NexusButton>
                           )}
                         </div>
@@ -785,11 +768,8 @@ export default function DeliveryPage() {
                     <span className="ml-2">
                       <BusinessStatusIndicator 
                         status={(() => {
-                          const mappedStatus = selectedPlan.status === '下書き' ? 'pending' : 
-                                            selectedPlan.status === '発送待ち' ? 'processing' :
-                                            selectedPlan.status === '発送済' ? 'shipped' :
-                                            selectedPlan.status === '配達完了' ? 'delivered' :
-                                            selectedPlan.status === '完了' ? 'completed' : 'pending';
+                          const mappedStatus = selectedPlan.status === '出荷準備中' ? 'processing' :
+                                            selectedPlan.status === '出荷済み' ? 'shipped' : 'processing';
                           return mappedStatus;
                         })()} 
                         size="sm" 
