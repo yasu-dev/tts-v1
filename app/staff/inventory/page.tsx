@@ -494,9 +494,19 @@ export default function StaffInventoryPage() {
           iconType="inventory"
         />
 
-        {/* Filters */}
+        {/* スタッフ在庫管理 - 統合版 */}
         <div className="intelligence-card global">
-          <div className="p-6">
+          
+          {/* ヘッダー部分（追加） */}
+          <div className="p-6 border-b border-gray-300">
+            <h3 className="text-lg font-medium text-nexus-text-primary">商品管理</h3>
+            <p className="text-nexus-text-secondary mt-1 text-sm">
+              {filteredItems.length}件の商品を表示
+            </p>
+          </div>
+          
+          {/* フィルター部分（完全保持） */}
+          <div className="p-6 border-b border-gray-300">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               <div>
                 <NexusSelect
@@ -568,10 +578,8 @@ export default function StaffInventoryPage() {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Content - Table View */}
-        <div className="intelligence-card global">
+          
+          {/* テーブル部分 */}
           <div className="p-8">
             <div className="holo-table">
               <table className="w-full">
