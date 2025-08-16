@@ -376,54 +376,10 @@ export default function SalesPage() {
           subtitle="売上・受注・配送を一元管理"
         />
 
-        {/* フィルター・検索セクション */}
-        <div className="intelligence-card global">
-          <div className="p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <FunnelIcon className="w-5 h-5 text-nexus-text-secondary" />
-              <h3 className="text-lg font-medium text-nexus-text-primary">フィルター・検索</h3>
-            </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <NexusSelect
-              label="ステータス"
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              options={orderStatusOptions}
-            />
-            
-            <NexusSelect
-              label="表示件数"
-              value={pageSize.toString()}
-              onChange={(e) => {
-                setPageSize(parseInt(e.target.value));
-                setCurrentPage(1);
-              }}
-              options={[
-                { value: '10', label: '10' },
-                { value: '20', label: '20' },
-                { value: '50', label: '50' },
-                { value: '100', label: '100' }
-              ]}
-            />
-            
-            {/* ページネーション情報 */}
-            {salesData?.pagination && (
-              <div className="flex items-end">
-                <div className="text-sm text-nexus-text-secondary">
-                  {salesData.pagination.totalCount}件中 {((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, salesData.pagination.totalCount)}件を表示
-                </div>
-              </div>
-            )}
-          </div>
-          </div>
-        </div>
-
-        {/* メイン注文リスト */}
+        {/* 注文管理 - 統合版 */}
         <div className="intelligence-card oceania">
+          
+          {/* ヘッダー部分（上に移動） */}
           <div className="p-6 border-b border-nexus-border">
             <div className="flex justify-between items-center">
               <div>
@@ -434,6 +390,45 @@ export default function SalesPage() {
                   すべての受注・配送状況を管理
                 </p>
               </div>
+            </div>
+          </div>
+          
+          {/* フィルター・検索部分（タイトル削除版） */}
+          <div className="p-6 border-b border-nexus-border">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <NexusSelect
+                label="ステータス"
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+                options={orderStatusOptions}
+              />
+              
+              <NexusSelect
+                label="表示件数"
+                value={pageSize.toString()}
+                onChange={(e) => {
+                  setPageSize(parseInt(e.target.value));
+                  setCurrentPage(1);
+                }}
+                options={[
+                  { value: '10', label: '10' },
+                  { value: '20', label: '20' },
+                  { value: '50', label: '50' },
+                  { value: '100', label: '100' }
+                ]}
+              />
+              
+              {/* ページネーション情報 */}
+              {salesData?.pagination && (
+                <div className="flex items-end">
+                  <div className="text-sm text-nexus-text-secondary">
+                    {salesData.pagination.totalCount}件中 {((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, salesData.pagination.totalCount)}件を表示
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
