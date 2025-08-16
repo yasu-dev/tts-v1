@@ -50,6 +50,8 @@ export default function DeliveryPage() {
   // フィルター・ソート・ページング状態
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [dateRange, setDateRange] = useState<string>('all');
+  const [customStartDate, setCustomStartDate] = useState<string>('');
+  const [customEndDate, setCustomEndDate] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -170,16 +172,47 @@ export default function DeliveryPage() {
         const planDateOnly = new Date(planDate.getFullYear(), planDate.getMonth(), planDate.getDate());
         
         switch (dateRange) {
-          case 'today':
-            return planDateOnly.getTime() === today.getTime();
-          case 'week':
-            const oneWeekAgo = new Date(today);
-            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-            return planDateOnly >= oneWeekAgo;
-          case 'month':
-            const oneMonthAgo = new Date(today);
-            oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-            return planDateOnly >= oneMonthAgo;
+          case 'last7days':
+            const sevenDaysAgo = new Date(today);
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            return planDateOnly >= sevenDaysAgo;
+
+          case 'last30days':
+            const thirtyDaysAgo = new Date(today);
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            return planDateOnly >= thirtyDaysAgo;
+
+          case 'last90days':
+            const ninetyDaysAgo = new Date(today);
+            ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+            return planDateOnly >= ninetyDaysAgo;
+
+          case 'thisMonth':
+            const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+            const thisMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            return planDateOnly >= thisMonthStart && planDateOnly <= thisMonthEnd;
+
+          case 'nextMonth':
+            const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+            const nextMonthEnd = new Date(now.getFullYear(), now.getMonth() + 2, 0);
+            return planDateOnly >= nextMonthStart && planDateOnly <= nextMonthEnd;
+
+          case 'thisQuarter':
+            const currentQuarter = Math.floor(now.getMonth() / 3);
+            const quarterStart = new Date(now.getFullYear(), currentQuarter * 3, 1);
+            const quarterEnd = new Date(now.getFullYear(), (currentQuarter + 1) * 3, 0);
+            return planDateOnly >= quarterStart && planDateOnly <= quarterEnd;
+
+          case 'custom':
+            if (customStartDate && customEndDate) {
+              const startDate = new Date(customStartDate);
+              const endDate = new Date(customEndDate);
+              const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+              const endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+              return planDateOnly >= startDateOnly && planDateOnly <= endDateOnly;
+            }
+            return true;
+
           default:
             return true;
         }
@@ -187,7 +220,7 @@ export default function DeliveryPage() {
     }
 
     return filtered;
-  }, [deliveryPlans, dateRange]);
+  }, [deliveryPlans, dateRange, customStartDate, customEndDate]);
 
   // 検索とステータスフィルタリングの変更時にデータを再取得
   useEffect(() => {
@@ -433,10 +466,14 @@ export default function DeliveryPage() {
   ];
 
   const dateRangeOptions = [
-    { value: 'all', label: '全期間' },
-    { value: 'today', label: '今日' },
-    { value: 'week', label: '過去1週間' },
-    { value: 'month', label: '過去1ヶ月' }
+    { value: 'all', label: 'すべて' },
+    { value: 'last7days', label: '直近7日間' },
+    { value: 'last30days', label: '直近30日間' },
+    { value: 'last90days', label: '直近90日間（四半期）' },
+    { value: 'thisMonth', label: '今月' },
+    { value: 'nextMonth', label: '来月' },
+    { value: 'thisQuarter', label: '今四半期' },
+    { value: 'custom', label: '期間指定' }
   ];
 
   const itemsPerPageOptions = [
@@ -509,10 +546,38 @@ export default function DeliveryPage() {
                 <NexusSelect
                   label="期間"
                   value={dateRange}
-                  onChange={(e) => setDateRange(e.target.value)}
+                  onChange={(e) => {
+                    setDateRange(e.target.value);
+                    // 期間指定以外を選んだ時はカスタム日付をクリア
+                    if (e.target.value !== 'custom') {
+                      setCustomStartDate('');
+                      setCustomEndDate('');
+                    }
+                  }}
                   options={dateRangeOptions}
                   variant="nexus"
                 />
+                
+                {/* 期間指定用の日付入力フィールド */}
+                {dateRange === 'custom' && (
+                  <>
+                    <NexusInput
+                      type="date"
+                      label="開始日"
+                      value={customStartDate}
+                      onChange={(e) => setCustomStartDate(e.target.value)}
+                      variant="nexus"
+                    />
+                    <NexusInput
+                      type="date"
+                      label="終了日"
+                      value={customEndDate}
+                      onChange={(e) => setCustomEndDate(e.target.value)}
+                      variant="nexus"
+                    />
+                  </>
+                )}
+                
                 <NexusInput
                   label="検索"
                   value={searchQuery}
