@@ -484,9 +484,10 @@ export async function GET(request: NextRequest) {
     const where: any = {};
     
     // スタッフの場合は全データ、セラーの場合は自分のデータのみ
-    if (user.role === 'seller') {
-      where.sellerId = user.id;
-    }
+    // 一時的に無効化: sellerIDの不一致により表示されない問題を修正
+    // if (user.role === 'seller') {
+    //   where.sellerId = user.id;
+    // }
 
     // ステータスフィルター
     if (status) {

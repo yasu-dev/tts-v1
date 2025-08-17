@@ -72,10 +72,11 @@ interface ReturnsData {
 export default function ReturnsPage() {
   const router = useRouter();
   const { showToast } = useToast();
-  const [returnsData, setReturnsData] = useState<ReturnsData | null>(null);
   
-  // マスタデータの取得
+  // マスタデータの取得（全てのuseStateより前に配置）
   const { setting: returnStatuses } = useSystemSetting('return_statuses');
+  
+  const [returnsData, setReturnsData] = useState<ReturnsData | null>(null);
   const [selectedReturn, setSelectedReturn] = useState<ReturnItem | null>(null);
   const [inspectionPhotos, setInspectionPhotos] = useState<File[]>([]);
   const [inspectionNote, setInspectionNote] = useState('');
@@ -165,6 +166,110 @@ export default function ReturnsPage() {
 
     fetchReturnsData();
   }, [mounted]);
+
+  // フィルタリングとページネーション計算（全てのHookを早期returnより前に配置）
+  const filteredReturns = useMemo(() => {
+    if (!returnsData) return [];
+    const allReturns: ReturnItem[] = returnsData ? [
+      ...returnsData.returns.map(item => ({
+        id: item.id,
+        orderId: item.orderId,
+        productId: item.productId,
+        productName: `商品 ${item.productId}`,
+        customer: `顧客 ${item.orderId}`,
+        returnReason: item.reason,
+        status: item.status as 'pending' | 'inspecting' | 'approved' | 'rejected' | 'refunded',
+        returnDate: new Date(item.createdAt).toLocaleDateString('ja-JP'),
+        originalCondition: 'A',
+        returnedCondition: 'B',
+        inspector: item.processedBy || '',
+        customerNote: item.customerNote || '',
+        refundAmount: `¥${item.refundAmount.toLocaleString()}`,
+        photos: []
+      })),
+      {
+        id: 'return-002',
+        orderId: 'ORD-2024-0628-002',
+        productId: 'CAN-5D4-002',
+        productName: 'Canon EOS 5D Mark IV (ボディ)',
+        customer: '田中 太郎',
+        returnReason: '商品不良',
+        returnDate: '2024-06-28',
+        originalCondition: 'A+',
+        returnedCondition: 'B',
+        status: 'pending',
+        inspector: '',
+        customerNote: 'シャッターが動作しません',
+        refundAmount: '¥298,000',
+        inspectionNote: '',
+        finalDecision: undefined
+      },
+      {
+        id: 'return-003',
+        orderId: 'ORD-2024-0629-003',
+        productId: 'SON-A7R4-003',
+        productName: 'Sony α7R IV (ボディ)',
+        customer: '佐藤 花子',
+        returnReason: '誤注文',
+        returnDate: '2024-06-29',
+        originalCondition: 'A+',
+        returnedCondition: 'A+',
+        status: 'approved',
+        inspector: '山田検査員',
+        customerNote: '他の機種を注文したかった',
+        refundAmount: '¥348,000',
+        inspectionNote: '未使用品。問題なし。',
+        finalDecision: 'resell'
+      },
+      {
+        id: 'return-004',
+        orderId: 'ORD-2024-0630-004',
+        productId: 'NIK-D850-004',
+        productName: 'Nikon D850 (ボディ)',
+        customer: '鈴木 一郎',
+        returnReason: 'サイズ不適合',
+        returnDate: '2024-06-30',
+        originalCondition: 'B+',
+        returnedCondition: 'B',
+        status: 'rejected',
+        inspector: '田中検査員',
+        customerNote: '想像より大きすぎました',
+        refundAmount: '¥0',
+        inspectionNote: '使用感あり。返品不可条件に該当。',
+        finalDecision: 'dispose'
+      },
+      {
+        id: 'return-005',
+        orderId: 'ORD-2024-0701-005',
+        productId: 'FUJ-XT4-005',
+        productName: 'Fujifilm X-T4 (ボディ)',
+        customer: '高橋 美咲',
+        returnReason: '配送破損',
+        returnDate: '2024-07-01',
+        originalCondition: 'A',
+        returnedCondition: 'C',
+        status: 'refunded',
+        inspector: '佐藤検査員',
+        customerNote: '箱が潰れていて、レンズに傷がありました',
+        refundAmount: '¥198,000',
+        inspectionNote: '配送中の破損確認。保険申請済み。',
+        finalDecision: 'repair'
+      }
+    ] : [];
+
+    return filter === 'all' ? allReturns : 
+      filter === 'completed' ? allReturns.filter(r => ['approved', 'rejected', 'refunded'].includes(r.status)) :
+      allReturns.filter(r => r.status === filter);
+  }, [filter, returnsData]);
+
+  const paginatedReturns = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredReturns.slice(startIndex, endIndex);
+  }, [filteredReturns, currentPage, itemsPerPage]);
+
+  const totalItems = filteredReturns.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   const handleStartInspection = (returnItem: ReturnItem) => {
     setSelectedRelistingItem(returnItem);
@@ -352,73 +457,74 @@ export default function ReturnsPage() {
     );
   }
 
-  // Mock additional returns for demonstration
-  const allReturns: ReturnItem[] = [
-    ...returnsData.returns.map(item => ({
-      id: item.id,
-      orderId: item.orderId,
-      productId: item.productId,
-      productName: `商品 ${item.productId}`,
-      customer: `顧客 ${item.orderId}`,
-      returnReason: item.reason,
-      status: item.status as 'pending' | 'approved' | 'rejected' | 'completed',
-      requestedDate: item.createdAt,
-      refundAmount: item.refundAmount,
-      inspector: item.processedBy || '',
-      photos: []
-    })),
-    {
-      id: 'return-002',
-      orderId: 'ORD-2024-0626-001',
-      productId: 'TWD-WAT-007',
-      productName: 'Rolex GMT Master',
-      customer: '佐藤花子',
-      returnReason: '商品説明相違',
-      returnDate: '2024-06-26',
-      originalCondition: 'A',
-      returnedCondition: 'A',
-      status: 'approved',
-      inspector: '田中次郎',
-      customerNote: '思っていた色と違いました',
-      refundAmount: '¥2,100,000',
-      inspectionNote: '商品に問題なし。顧客都合による返品。',
-      finalDecision: 'resell'
-    },
-    {
-      id: 'return-003',
-      orderId: 'ORD-2024-0625-002',
-      productId: 'TWD-LEN-005',
-      productName: 'Canon RF 24-70mm F2.8',
-      customer: '山田太郎',
-      returnReason: '配送時破損',
-      returnDate: '2024-06-25',
-      originalCondition: 'A',
-      returnedCondition: 'C',
-      status: 'refunded',
-      inspector: '佐藤花子',
-      customerNote: '箱が潰れていて、レンズに傷がありました',
-      refundAmount: '¥198,000',
-      inspectionNote: '配送中の破損確認。保険申請済み。',
-      finalDecision: 'repair'
-    }
-  ];
 
 
-  // フィルタリングとページネーション計算
-  const filteredReturns = useMemo(() => {
-    return filter === 'all' ? allReturns : 
-      filter === 'completed' ? allReturns.filter(r => ['approved', 'rejected', 'refunded'].includes(r.status)) :
-      allReturns.filter(r => r.status === filter);
-  }, [filter, allReturns]);
+  if (!mounted) {
+    return (
+      <DashboardLayout userType="staff">
+        <div className="space-y-6">
+          <UnifiedPageHeader
+            title="返品処理"
+            subtitle="返品商品の検品と再出品を管理します"
+            userType="staff"
+            iconType="returns"
+          />
+          <div className="flex items-center justify-center min-h-[400px]">
+            <NexusLoadingSpinner size="lg" />
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
-  const paginatedReturns = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredReturns.slice(startIndex, endIndex);
-  }, [filteredReturns, currentPage, itemsPerPage]);
+  if (isLoading) {
+    return (
+      <DashboardLayout userType="staff">
+        <div className="space-y-6">
+          <UnifiedPageHeader
+            title="返品処理"
+            subtitle="返品商品の検品と再出品を管理します"
+            userType="staff"
+            iconType="returns"
+          />
+          <div className="flex items-center justify-center min-h-[400px]">
+            <NexusLoadingSpinner size="lg" />
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
-  const totalItems = filteredReturns.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  if (error) {
+    return (
+      <DashboardLayout userType="staff">
+        <div className="space-y-6">
+          <UnifiedPageHeader
+            title="返品処理"
+            subtitle="返品商品の検品と再出品を管理します"
+            userType="staff"
+            iconType="returns"
+          />
+          <ContentCard>
+            <div className="text-center py-12">
+              <ExclamationCircleIcon className="mx-auto h-12 w-12 text-red-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">エラーが発生しました</h3>
+              <p className="mt-1 text-sm text-gray-500">{error}</p>
+              <div className="mt-6">
+                <button
+                  type="button"
+                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  onClick={() => window.location.reload()}
+                >
+                  再読み込み
+                </button>
+              </div>
+            </div>
+          </ContentCard>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout userType="staff">
