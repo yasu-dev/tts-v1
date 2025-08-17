@@ -87,3 +87,5 @@ Set-Content "app\components\ui\Pagination.tsx"
 
 修正が正常に動作することを確認してから実行してください。
 
+
+

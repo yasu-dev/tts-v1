@@ -628,7 +628,7 @@ export default function ListingPage() {
                         onClick={() => handleSort('name')}
                       >
                         <div className="flex items-center gap-1">
-                          商品名
+                          商品
                           {getSortIcon('name')}
                         </div>
                       </th>

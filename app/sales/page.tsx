@@ -444,7 +444,7 @@ export default function SalesPage() {
                         <th className="text-center p-4 font-medium text-nexus-text-secondary">ステータス</th>
                         <th className="text-center p-4 font-medium text-nexus-text-secondary">ラベル</th>
                         <th className="text-left p-4 font-medium text-nexus-text-secondary">注文日</th>
-                        <th className="text-center p-4 font-medium text-nexus-text-secondary">アクション</th>
+                        <th className="text-center p-4 font-medium text-nexus-text-secondary">操作</th>
                       </tr>
                     </thead>
                     <tbody className="holo-body">

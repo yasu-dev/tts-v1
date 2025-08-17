@@ -902,10 +902,10 @@ export default function StaffShippingPage() {
                         className="rounded border-nexus-border"
                       />
                     </th>
-                    <th className="text-left p-4 font-medium text-nexus-text-secondary">商品情報</th>
+                    <th className="text-left p-4 font-medium text-nexus-text-secondary">商品</th>
                     <th className="text-left p-4 font-medium text-nexus-text-secondary">注文情報</th>
                     <th className="text-left p-4 font-medium text-nexus-text-secondary">ステータス</th>
-                    <th className="text-right p-4 font-medium text-nexus-text-secondary">アクション</th>
+                    <th className="text-right p-4 font-medium text-nexus-text-secondary">操作</th>
                   </tr>
                 </thead>
                 <tbody className="holo-body">

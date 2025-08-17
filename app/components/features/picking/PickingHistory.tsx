@@ -280,7 +280,7 @@ export default function PickingHistory() {
                         <span>完了時刻</span>
                       </div>
                     </th>
-                    <th className="text-center py-3 px-4">アクション</th>
+                    <th className="text-center py-3 px-4">操作</th>
                   </tr>
                 </thead>
                 <tbody className="holo-body">

@@ -354,21 +354,21 @@ export default function InventoryPage() {
           
           {/* テーブル */}
           <div className="overflow-x-auto">
-            <table className="w-full" data-testid="inventory-table">
-              <thead>
-                <tr className="border-b border-nexus-border">
-                  <th className="text-center p-4 font-medium text-nexus-text-secondary">画像</th>
+            <table className="holo-table" data-testid="inventory-table">
+              <thead className="holo-header">
+                <tr>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">画像</th>
                   <th 
-                    className="text-left p-4 font-medium text-nexus-text-secondary cursor-pointer hover:bg-nexus-bg-tertiary"
+                    className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('name')}
                   >
                     <div className="flex items-center gap-1">
-                      商品名
+                      商品
                       {getSortIcon('name')}
                     </div>
                   </th>
                   <th 
-                    className="text-left p-4 font-medium text-nexus-text-secondary cursor-pointer hover:bg-nexus-bg-tertiary"
+                    className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('sku')}
                   >
                     <div className="flex items-center gap-1">
@@ -376,9 +376,9 @@ export default function InventoryPage() {
                       {getSortIcon('sku')}
                     </div>
                   </th>
-                  <th className="text-center p-4 font-medium text-nexus-text-secondary">保管場所</th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">保管場所</th>
                   <th 
-                    className="text-center p-4 font-medium text-nexus-text-secondary cursor-pointer hover:bg-nexus-bg-tertiary"
+                    className="px-6 py-3 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('status')}
                   >
                     <div className="flex items-center justify-center gap-1">
@@ -387,7 +387,7 @@ export default function InventoryPage() {
                     </div>
                   </th>
                   <th 
-                    className="text-right p-4 font-medium text-nexus-text-secondary cursor-pointer hover:bg-nexus-bg-tertiary"
+                    className="px-6 py-3 text-right text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('price')}
                   >
                     <div className="flex items-center justify-end gap-1">
@@ -395,8 +395,8 @@ export default function InventoryPage() {
                       {getSortIcon('price')}
                     </div>
                   </th>
-                  <th className="text-center p-4 font-medium text-nexus-text-secondary">更新日</th>
-                  <th className="text-center p-4 font-medium text-nexus-text-secondary">操作</th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">更新日</th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">操作</th>
                 </tr>
               </thead>
               <tbody>

@@ -476,12 +476,7 @@ export default function DeliveryPage() {
     { value: 'custom', label: '期間指定' }
   ];
 
-  const itemsPerPageOptions = [
-    { value: 10, label: '10件' },
-    { value: 20, label: '20件' },
-    { value: 50, label: '50件' },
-    { value: 100, label: '100件' }
-  ];
+
 
   return (
     <DashboardLayout userType="seller">
@@ -505,30 +500,14 @@ export default function DeliveryPage() {
           <div className="p-6 border-b border-gray-300">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-medium text-nexus-text-primary">納品プラン一覧</h3>
-              <div className="flex items-center gap-4">
-                <NexusButton 
-                  variant="primary" 
-                  onClick={handleCreatePlan}
-                  className="flex items-center gap-2"
-                >
-                  <PlusIcon className="h-4 w-4" />
-                  新規作成
-                </NexusButton>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-nexus-text-secondary">表示件数:</span>
-                  <select
-                    value={itemsPerPage}
-                    onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                    className="border border-gray-300 rounded px-2 py-1 text-sm"
-                  >
-                    {itemsPerPageOptions.map(option => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+              <NexusButton 
+                variant="primary" 
+                onClick={handleCreatePlan}
+                className="flex items-center gap-2"
+              >
+                <PlusIcon className="h-4 w-4" />
+                新規作成
+              </NexusButton>
             </div>
           </div>
           
@@ -795,14 +774,15 @@ export default function DeliveryPage() {
           </div>
 
           {/* ページング */}
-          {totalPages > 1 && (
-            <div className="p-6 border-t border-gray-300">
+          {totalCount > 0 && (
+            <div className="mt-6 pt-4 border-t border-nexus-border">
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={setCurrentPage}
-                totalItems={sortedPlans.length}
+                totalItems={totalCount}
                 itemsPerPage={itemsPerPage}
+                onItemsPerPageChange={setItemsPerPage}
               />
             </div>
           )}

@@ -774,12 +774,12 @@ export default function InspectionPage() {
           </div>
             
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-nexus-border">
-                  <th className="text-left py-3 px-2 sm:px-4 text-sm font-medium text-nexus-text-secondary">商品情報</th>
+            <table className="holo-table">
+              <thead className="holo-header">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">商品</th>
                   <th 
-                    className="text-left py-3 px-2 sm:px-4 text-sm font-medium text-nexus-text-secondary cursor-pointer hover:bg-nexus-bg-tertiary"
+                    className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('sku')}
                   >
                     <div className="flex items-center gap-1">
@@ -788,7 +788,7 @@ export default function InspectionPage() {
                     </div>
                   </th>
                   <th 
-                    className="text-left py-3 px-2 sm:px-4 text-sm font-medium text-nexus-text-secondary cursor-pointer hover:bg-nexus-bg-tertiary"
+                    className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('category')}
                   >
                     <div className="flex items-center gap-1">
@@ -797,7 +797,7 @@ export default function InspectionPage() {
                     </div>
                   </th>
                   <th 
-                    className="text-left py-3 px-2 sm:px-4 text-sm font-medium text-nexus-text-secondary cursor-pointer hover:bg-nexus-bg-tertiary"
+                    className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('receivedDate')}
                   >
                     <div className="flex items-center gap-1">
@@ -806,8 +806,8 @@ export default function InspectionPage() {
                     </div>
                   </th>
 
-                  <th className="text-center py-3 px-2 sm:px-4 text-sm font-medium text-nexus-text-secondary">ステータス</th>
-                  <th className="text-center py-3 px-2 sm:px-4 text-sm font-medium text-nexus-text-secondary">アクション</th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">ステータス</th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">操作</th>
                 </tr>
               </thead>
               <tbody>

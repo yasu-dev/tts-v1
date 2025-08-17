@@ -371,11 +371,11 @@ export default function ReturnsPage() {
                   <tr>
                     <th className="text-left">返品ID</th>
                     <th className="text-left">注文番号</th>
-                    <th className="text-left">商品名</th>
+                    <th className="text-left">商品</th>
                     <th className="text-left">返品理由</th>
                     <th className="text-center">ステータス</th>
                     <th className="text-left">申請日</th>
-                    <th className="text-center">アクション</th>
+                    <th className="text-center">操作</th>
                   </tr>
                 </thead>
                 <tbody className="holo-body">

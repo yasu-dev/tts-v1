@@ -473,12 +473,12 @@ export default function ReturnsPage() {
                           <thead className="holo-header">
                             <tr>
                               <th className="text-left py-3 px-4">注文ID</th>
-                              <th className="text-left py-3 px-4">商品名</th>
+                              <th className="text-left py-3 px-4">商品</th>
                               <th className="text-left py-3 px-4">返品日</th>
                               <th className="text-left py-3 px-4">理由</th>
                               <th className="text-left py-3 px-4">顧客</th>
                               <th className="text-center py-3 px-4">ステータス</th>
-                              <th className="text-center py-3 px-4">アクション</th>
+                              <th className="text-center py-3 px-4">操作</th>
                             </tr>
                           </thead>
                           <tbody className="holo-body">
