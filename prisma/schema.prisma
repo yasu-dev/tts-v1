@@ -68,8 +68,8 @@ model Product {
   listings            Listing[]
   orderItems          OrderItem[]
   images              ProductImage[]
-  currentLocation     Location?            @relation(fields: [currentLocationId], references: [id])
   seller              User                 @relation(fields: [sellerId], references: [id])
+  currentLocation     Location?            @relation(fields: [currentLocationId], references: [id])
   videoRecords        VideoRecord[]
 
   @@map("products")
@@ -89,8 +89,8 @@ model Location {
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
   barcodeScanners BarcodeScanner[]
-  movementsTo     InventoryMovement[] @relation("MovementTo")
   movementsFrom   InventoryMovement[] @relation("MovementFrom")
+  movementsTo     InventoryMovement[] @relation("MovementTo")
   products        Product[]
 
   @@map("locations")
@@ -104,9 +104,9 @@ model InventoryMovement {
   movedBy        String
   notes          String?
   createdAt      DateTime  @default(now())
-  toLocation     Location? @relation("MovementTo", fields: [toLocationId], references: [id])
-  fromLocation   Location? @relation("MovementFrom", fields: [fromLocationId], references: [id])
   product        Product   @relation(fields: [productId], references: [id])
+  fromLocation   Location? @relation("MovementFrom", fields: [fromLocationId], references: [id])
+  toLocation     Location? @relation("MovementTo", fields: [toLocationId], references: [id])
 
   @@map("inventory_movements")
 }
@@ -131,6 +131,7 @@ model Order {
   items           OrderItem[]
   customer        User          @relation(fields: [customerId], references: [id])
   videoRecords    VideoRecord[]
+  shipments       Shipment[]
 
   @@map("orders")
 }
@@ -141,8 +142,8 @@ model OrderItem {
   productId String
   quantity  Int     @default(1)
   price     Int
-  product   Product @relation(fields: [productId], references: [id])
   order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
 
   @@map("order_items")
 }
@@ -156,9 +157,9 @@ model Activity {
   orderId     String?
   metadata    String?
   createdAt   DateTime @default(now())
-  order       Order?   @relation(fields: [orderId], references: [id])
-  product     Product? @relation(fields: [productId], references: [id])
   user        User?    @relation(fields: [userId], references: [id])
+  product     Product? @relation(fields: [productId], references: [id])
+  order       Order?   @relation(fields: [orderId], references: [id])
 
   @@map("activities")
 }
@@ -174,9 +175,9 @@ model VideoRecord {
   staffId     String
   notes       String?
   createdAt   DateTime @default(now())
-  staff       User     @relation("VideoStaff", fields: [staffId], references: [id])
-  order       Order?   @relation(fields: [orderId], references: [id])
   product     Product? @relation(fields: [productId], references: [id])
+  order       Order?   @relation(fields: [orderId], references: [id])
+  staff       User     @relation("VideoStaff", fields: [staffId], references: [id])
 
   @@map("video_records")
 }
@@ -353,8 +354,8 @@ model InspectionChecklist {
   updatedBy             String?
   updatedAt             DateTime             @updatedAt
   notes                 String?
-  deliveryPlanProduct   DeliveryPlanProduct? @relation(fields: [deliveryPlanProductId], references: [id])
   product               Product?             @relation(fields: [productId], references: [id])
+  deliveryPlanProduct   DeliveryPlanProduct? @relation(fields: [deliveryPlanProductId], references: [id])
 
   @@map("inspection_checklists")
 }
@@ -428,6 +429,7 @@ model Shipment {
   deliveredAt    DateTime?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
+  order          Order     @relation(fields: [orderId], references: [id])
 
   @@map("shipments")
 }

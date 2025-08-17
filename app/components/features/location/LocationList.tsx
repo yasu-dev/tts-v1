@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import BaseModal from '@/app/components/ui/BaseModal';
 import NexusButton from '@/app/components/ui/NexusButton';
 import NexusCheckbox from '@/app/components/ui/NexusCheckbox';
+import Pagination from '@/app/components/ui/Pagination';
 import { useRouter } from 'next/navigation';
 import { ClipboardDocumentListIcon } from '@heroicons/react/24/outline';
 
@@ -59,6 +60,11 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
   const [selectedPickingItems, setSelectedPickingItems] = useState<any[]>([]);
   const [selectedLocationName, setSelectedLocationName] = useState<string>('');
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+
+  // ページネーション状態（リストビュー用）
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+
   const { showToast } = useToast();
   const router = useRouter();
 
@@ -86,6 +92,19 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
       setFilteredLocations(filtered);
     }
   }, [searchQuery, locations]);
+
+  // ページネーション計算（リストビュー用）
+  const paginatedLocations = useMemo(() => {
+    if (viewMode !== 'list') {
+      return filteredLocations;
+    }
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredLocations.slice(startIndex, endIndex);
+  }, [filteredLocations, currentPage, itemsPerPage, viewMode]);
+
+  const totalItems = viewMode === 'list' ? filteredLocations.length : 0;
+  const totalPages = viewMode === 'list' ? Math.ceil(totalItems / itemsPerPage) : 0;
 
   // モーダルが開いたときにスクロール位置をリセット
   useEffect(() => {
@@ -648,7 +667,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                   </tr>
                 </thead>
                 <tbody className="holo-body">
-                  {filteredLocations.map((location) => {
+                  {paginatedLocations.map((location) => {
                     const typeInfo = getLocationTypeLabel(location.type);
                     const occupancyStatus = getOccupancyStatus(location.used, location.capacity);
                     return (
@@ -696,6 +715,20 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                   })}
                 </tbody>
               </table>
+
+              {/* ページネーション（リストビュー用） */}
+              {totalItems > 0 && (
+                <div className="mt-6 pt-4 border-t border-nexus-border">
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                    totalItems={totalItems}
+                    itemsPerPage={itemsPerPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                  />
+                </div>
+              )}
             </div>
           )}
 

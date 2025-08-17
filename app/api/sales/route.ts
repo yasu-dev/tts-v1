@@ -1,11 +1,17 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     console.log('🚀 Sales API: Prismaクエリ開始');
+    
+    // ページネーションパラメータ
+    const searchParams = request.nextUrl.searchParams;
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '20');
+    const offset = (page - 1) * limit;
     
     // 売上データをPrismaから取得
     const [
@@ -15,7 +21,8 @@ export async function GET() {
       recentOrders,
       topProducts,
       salesByCategory,
-      salesByStatus
+      salesByStatus,
+      totalOrderCount
     ] = await Promise.all([
       // 総売上額
       prisma.order.aggregate({
@@ -48,7 +55,8 @@ export async function GET() {
       // 最近の注文
       prisma.order.findMany({
         orderBy: { createdAt: 'desc' },
-        take: 20,
+        take: limit,
+        skip: offset,
         include: {
           customer: { select: { username: true } },
           items: {
@@ -75,7 +83,10 @@ export async function GET() {
       prisma.order.groupBy({
         by: ['status'],
         _count: { status: true }
-      })
+      }),
+      
+      // 注文総数（ページネーション用）
+      prisma.order.count()
     ]);
 
     console.log('✅ Sales API: Prisma基本クエリ完了');
@@ -101,6 +112,12 @@ export async function GET() {
         averageOrderValue: totalSales._sum.totalAmount && recentOrders.length 
           ? Math.round((totalSales._sum.totalAmount || 0) / recentOrders.length)
           : 0
+      },
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(totalOrderCount / limit),
+        totalCount: totalOrderCount,
+        limit: limit
       },
       recentOrders: recentOrders.map(order => {
         const orderData = {

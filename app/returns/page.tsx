@@ -2,7 +2,7 @@
 
 import DashboardLayout from '../components/layouts/DashboardLayout';
 import UnifiedPageHeader from '../components/ui/UnifiedPageHeader';
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '../components/features/notifications/ToastProvider';
 import {
@@ -18,6 +18,7 @@ import BaseModal from '@/app/components/ui/BaseModal';
 import { NexusCard } from '@/app/components/ui';
 import ReturnDetailModal from '@/app/components/modals/ReturnDetailModal';
 import { BusinessStatusIndicator } from '@/app/components/ui/StatusIndicator';
+import Pagination from '@/app/components/ui/Pagination';
 import { useSystemSetting } from '@/lib/hooks/useMasterData';
 
 export default function ReturnsPage() {
@@ -37,7 +38,11 @@ export default function ReturnsPage() {
     photos: [] as File[]
   });
 
-  const [returns] = useState([
+  const [returns, setReturns] = useState([]); 
+  const [loading, setLoading] = useState(true);
+  
+  // 実際のAPIからデータを取得（一時的にダミーデータも残す）
+  const [oldReturns] = useState([
     { 
       id: 1, 
       orderId: 'ORD-000123', 
@@ -73,12 +78,66 @@ export default function ReturnsPage() {
     },
   ]);
 
+  // APIからデータ取得
+  useEffect(() => {
+    const fetchReturns = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/returns');
+        const data = await response.json();
+        
+        if (data.returns && data.returns.length > 0) {
+          // APIデータを画面に適合する形に変換
+          const formattedReturns = data.returns.map((item: any) => ({
+            id: item.id,
+            orderId: item.orderId,
+            product: `商品ID: ${item.productId}`,
+            reason: item.reason,
+            status: item.status,
+            date: new Date(item.createdAt).toISOString().split('T')[0],
+            customerName: '顧客',
+            amount: `¥${item.refundAmount?.toLocaleString()}`,
+            description: item.customerNote || '詳細情報なし'
+          }));
+          
+          setReturns(formattedReturns);
+          console.log('✅ 返品データ取得完了:', formattedReturns.length, '件');
+        } else {
+          console.log('📋 返品データなし - ダミーデータを使用');
+          setReturns(oldReturns);
+        }
+      } catch (error) {
+        console.error('❌ 返品データ取得エラー:', error);
+        // エラー時はダミーデータを使用
+        setReturns(oldReturns);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchReturns();
+  }, [oldReturns]);
+
   const [returnStats] = useState({
     totalReturns: 15,
     pending: 5,
     completed: 10,
     returnRate: 3.2,
   });
+
+  // ページネーション状態
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+
+  // ページネーション計算
+  const paginatedReturns = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return returns.slice(startIndex, endIndex);
+  }, [returns, currentPage, itemsPerPage]);
+
+  const totalItems = returns.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   // 返品申請ボタンの機能実装
   const handleReturnRequest = () => {
@@ -379,7 +438,7 @@ export default function ReturnsPage() {
                   </tr>
                 </thead>
                 <tbody className="holo-body">
-                  {returns.map((returnItem) => (
+                  {paginatedReturns.map((returnItem) => (
                     <tr key={returnItem.id} className="holo-row">
                       <td className="font-mono text-nexus-text-primary">RET-{String(returnItem.id).padStart(6, '0')}</td>
                       <td className="font-mono">{returnItem.orderId}</td>
@@ -439,6 +498,20 @@ export default function ReturnsPage() {
                 </tbody>
               </table>
             </div>
+
+            {/* ページネーション */}
+            {totalItems > 0 && (
+              <div className="mt-6 pt-4 border-t border-nexus-border">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  totalItems={totalItems}
+                  itemsPerPage={itemsPerPage}
+                  onItemsPerPageChange={setItemsPerPage}
+                />
+              </div>
+            )}
           </div>
         </div>
 

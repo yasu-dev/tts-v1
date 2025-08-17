@@ -86,41 +86,52 @@ export default function StaffShippingPage() {
   // ページング状態
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   const router = useRouter();
   const { showToast } = useToast();
 
   useEffect(() => {
     // APIから配送データを取得
-    const fetchShippingItems = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/orders/shipping');
-        if (!response.ok) {
-          throw new Error('Failed to fetch shipping data');
-        }
-        const data = await response.json();
-        
-        // APIレスポンスの形式に合わせてデータを変換
-        const shippingItems: ShippingItem[] = data.items ? data.items.map((item: any) => ({
-          id: item.id,
-          productName: item.productName,
-          productSku: item.productSku,
-          orderNumber: item.orderNumber,
-          customer: item.customer,
-          shippingAddress: item.shippingAddress,
-          status: item.status,
-          dueDate: item.dueDate,
-          shippingMethod: item.shippingMethod,
-          value: item.value,
-          location: item.location,
-          productImages: item.productImages || [],
-          inspectionImages: item.inspectionImages || [],
-          inspectionNotes: item.inspectionNotes,
-        })) : [];
-        
-        setItems(shippingItems);
-        console.log(`✅ 配送データ取得完了: ${shippingItems.length}件`);
+      const fetchShippingItems = async (page: number = 1, limit: number = itemsPerPage) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/orders/shipping?page=${page}&limit=${limit}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch shipping data');
+      }
+      const data = await response.json();
+      
+      console.log(`📦 出荷データAPI応答:`, data.pagination);
+      
+      // APIレスポンスの形式に合わせてデータを変換
+      const shippingItems: ShippingItem[] = data.items ? data.items.map((item: any) => ({
+        id: item.id,
+        productName: item.productName,
+        productSku: item.productSku,
+        orderNumber: item.orderNumber,
+        customer: item.customer,
+        shippingAddress: item.shippingAddress,
+        status: item.status,
+        dueDate: item.dueDate,
+        shippingMethod: item.shippingMethod,
+        value: item.value,
+        location: item.location,
+        productImages: item.productImages || [],
+        inspectionImages: item.inspectionImages || [],
+        inspectionNotes: item.inspectionNotes,
+      })) : [];
+      
+      setItems(shippingItems);
+      
+      // ページネーション情報を保存
+      if (data.pagination) {
+        setTotalItems(data.pagination.totalCount);
+        setTotalPages(data.pagination.totalPages);
+      }
+      
+      console.log(`✅ 配送データ取得完了: ${shippingItems.length}件 (ページ: ${page}/${data.pagination?.totalPages || 1})`);
         
         // 基本統計データも設定
         setShippingData({
@@ -141,8 +152,8 @@ export default function StaffShippingPage() {
       }
     };
 
-    fetchShippingItems();
-  }, []);
+    fetchShippingItems(currentPage, itemsPerPage);
+  }, [currentPage, itemsPerPage]);
 
   // タブごとのフィルタリング
   const tabFilters: Record<string, (item: ShippingItem) => boolean> = {
@@ -165,12 +176,10 @@ export default function StaffShippingPage() {
     });
   }, [items, activeTab]);
 
-  // ページネーション
+  // サーバーサイドページネーション: itemsは既にAPIでページネーションされているためフィルタリングのみ
   const paginatedItems = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredItems.slice(startIndex, endIndex);
-  }, [filteredItems, currentPage, itemsPerPage]);
+    return filteredItems; // サーバーサイドでページネーション済み
+  }, [filteredItems]);
 
   // フィルター変更時はページを1に戻す
   useEffect(() => {
@@ -1163,12 +1172,12 @@ export default function StaffShippingPage() {
             )}
 
             {/* ページネーション */}
-            {filteredItems.length > 0 && (
+            {totalItems > 0 && (
               <div className="mt-6 pt-4 border-t border-nexus-border">
                 <Pagination
                   currentPage={currentPage}
-                  totalPages={Math.ceil(filteredItems.length / itemsPerPage)}
-                  totalItems={filteredItems.length}
+                  totalPages={totalPages}
+                  totalItems={totalItems}
                   itemsPerPage={itemsPerPage}
                   onPageChange={setCurrentPage}
                   onItemsPerPageChange={setItemsPerPage}

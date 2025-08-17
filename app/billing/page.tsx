@@ -2,7 +2,7 @@
 
 import DashboardLayout from '../components/layouts/DashboardLayout';
 import UnifiedPageHeader from '../components/ui/UnifiedPageHeader';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ArrowDownTrayIcon,
@@ -12,12 +12,17 @@ import NexusButton from '@/app/components/ui/NexusButton';
 
 import BaseModal from '@/app/components/ui/BaseModal';
 import { BusinessStatusIndicator } from '@/app/components/ui';
+import Pagination from '@/app/components/ui/Pagination';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 export default function BillingPage() {
   const router = useRouter();
   const { showToast } = useToast();
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+
+  // ページネーション状態
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   const [billingData] = useState({
     currentBalance: 2456789,
@@ -33,6 +38,16 @@ export default function BillingPage() {
     { id: 4, date: '2024-01-12', type: '手数料', description: '撮影手数料', amount: -300, status: '確定' },
     { id: 5, date: '2024-01-10', type: '振込', description: '売上金振込', amount: -1200000, status: '完了' },
   ]);
+
+  // ページネーション計算
+  const paginatedTransactions = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return transactions.slice(startIndex, endIndex);
+  }, [transactions, currentPage, itemsPerPage]);
+
+  const totalItems = transactions.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   const [monthlyReport] = useState({
     totalSales: 12456789,
@@ -269,7 +284,7 @@ export default function BillingPage() {
                   </tr>
                 </thead>
                 <tbody className="holo-body">
-                  {transactions.map((transaction) => (
+                  {paginatedTransactions.map((transaction) => (
                     <tr key={transaction.id} className="holo-row">
                       <td className="text-sm text-nexus-text-primary">{transaction.date}</td>
                       <td>

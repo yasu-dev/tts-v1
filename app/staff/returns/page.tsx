@@ -1,11 +1,12 @@
 ﻿'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import UnifiedPageHeader from '@/app/components/ui/UnifiedPageHeader';
 import { ContentCard, NexusLoadingSpinner } from '@/app/components/ui';
 import { BusinessStatusIndicator } from '@/app/components/ui/StatusIndicator';
+import Pagination from '@/app/components/ui/Pagination';
 import { ReturnInspection } from '@/app/components/features/returns/ReturnInspection';
 import { ReturnRelistingFlow } from '@/app/components/features/returns/ReturnRelistingFlow';
 import { ArchiveBoxIcon, ClockIcon, ArrowTrendingUpIcon, ExclamationCircleIcon, ChevronLeftIcon } from '@heroicons/react/24/outline';
@@ -91,6 +92,12 @@ export default function ReturnsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+
+  // ページネーション状態
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+
+
 
   // マウント状態の管理
   useEffect(() => {
@@ -396,9 +403,22 @@ export default function ReturnsPage() {
     }
   ];
 
-  const filteredReturns = filter === 'all' ? allReturns : 
-    filter === 'completed' ? allReturns.filter(r => ['approved', 'rejected', 'refunded'].includes(r.status)) :
-    allReturns.filter(r => r.status === filter);
+
+  // フィルタリングとページネーション計算
+  const filteredReturns = useMemo(() => {
+    return filter === 'all' ? allReturns : 
+      filter === 'completed' ? allReturns.filter(r => ['approved', 'rejected', 'refunded'].includes(r.status)) :
+      allReturns.filter(r => r.status === filter);
+  }, [filter, allReturns]);
+
+  const paginatedReturns = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredReturns.slice(startIndex, endIndex);
+  }, [filteredReturns, currentPage, itemsPerPage]);
+
+  const totalItems = filteredReturns.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   return (
     <DashboardLayout userType="staff">
@@ -482,7 +502,7 @@ export default function ReturnsPage() {
                             </tr>
                           </thead>
                           <tbody className="holo-body">
-                            {filteredReturns.map((item) => (
+                            {paginatedReturns.map((item) => (
                               <tr key={item.id} className="holo-row">
                                 <td className="py-4 px-4 font-mono text-sm">{item.orderId}</td>
                                 <td className="py-4 px-4 font-medium">{item.productName}</td>
@@ -555,6 +575,20 @@ export default function ReturnsPage() {
                           </tbody>
                         </table>
                       </div>
+
+                      {/* ページネーション */}
+                      {totalItems > 0 && (
+                        <div className="mt-6 pt-4 border-t border-nexus-border">
+                          <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            onPageChange={setCurrentPage}
+                            totalItems={totalItems}
+                            itemsPerPage={itemsPerPage}
+                            onItemsPerPageChange={setItemsPerPage}
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

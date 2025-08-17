@@ -14,6 +14,7 @@ import NexusButton from '@/app/components/ui/NexusButton';
 import BaseModal from '@/app/components/ui/BaseModal';
 import { NexusLoadingSpinner, NexusSelect, NexusInput, NexusCheckbox, NexusTextarea } from '@/app/components/ui';
 import { BusinessStatusIndicator } from '@/app/components/ui/StatusIndicator';
+import Pagination from '@/app/components/ui/Pagination';
 import ShippingLabelUploadModal from '@/app/components/modals/ShippingLabelUploadModal';
 import TrackingNumberDisplay from '@/app/components/ui/TrackingNumberDisplay';
 import { generateTrackingUrl } from '@/lib/utils/tracking';
@@ -374,6 +375,7 @@ export default function SalesPage() {
         <UnifiedPageHeader
           title="販売管理"
           subtitle="売上・受注・配送を一元管理"
+          userType="seller"
         />
 
         {/* 注文管理 - 統合版 */}
@@ -395,7 +397,7 @@ export default function SalesPage() {
           
           {/* フィルター・検索部分（タイトル削除版） */}
           <div className="p-6 border-b border-nexus-border">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <NexusSelect
                 label="ステータス"
                 value={statusFilter}
@@ -406,29 +408,7 @@ export default function SalesPage() {
                 options={orderStatusOptions}
               />
               
-              <NexusSelect
-                label="表示件数"
-                value={pageSize.toString()}
-                onChange={(e) => {
-                  setPageSize(parseInt(e.target.value));
-                  setCurrentPage(1);
-                }}
-                options={[
-                  { value: '10', label: '10' },
-                  { value: '20', label: '20' },
-                  { value: '50', label: '50' },
-                  { value: '100', label: '100' }
-                ]}
-              />
-              
-              {/* ページネーション情報 */}
-              {salesData?.pagination && (
-                <div className="flex items-end">
-                  <div className="text-sm text-nexus-text-secondary">
-                    {salesData.pagination.totalCount}件中 {((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, salesData.pagination.totalCount)}件を表示
-                  </div>
-                </div>
-              )}
+
             </div>
           </div>
 
@@ -455,7 +435,7 @@ export default function SalesPage() {
                           </td>
                         </tr>
                       ) : (
-                        salesData.recentOrders.map((row, index) => (
+                        salesData.recentOrders.map((row: any, index: number) => (
                           <tr key={row.id || index} className="holo-row">
                             <td className="p-4">
                               <div className="flex items-center gap-3">
@@ -544,48 +524,16 @@ export default function SalesPage() {
             )}
             
             {/* ページネーション */}
-            {salesData?.pagination && salesData.pagination.totalPages > 1 && (
-              <div className="mt-6 flex justify-between items-center">
-                <div className="text-sm text-nexus-text-secondary">
-                  全{salesData.pagination.totalCount}件 ({salesData.pagination.totalPages}ページ中{currentPage}ページ目)
-                </div>
-                <div className="flex gap-2">
-                  <NexusButton
-                    onClick={() => setCurrentPage(1)}
-                    variant="secondary"
-                    size="sm"
-                    disabled={currentPage === 1}
-                  >
-                    最初
-                  </NexusButton>
-                  <NexusButton
-                    onClick={() => setCurrentPage(currentPage - 1)}
-                    variant="secondary"
-                    size="sm"
-                    disabled={!salesData.pagination.hasPrevPage}
-                  >
-                    前へ
-                  </NexusButton>
-                  <span className="px-3 py-2 text-sm text-nexus-text-primary">
-                    {currentPage} / {salesData.pagination.totalPages}
-                  </span>
-                  <NexusButton
-                    onClick={() => setCurrentPage(currentPage + 1)}
-                    variant="secondary"
-                    size="sm"
-                    disabled={!salesData.pagination.hasNextPage}
-                  >
-                    次へ
-                  </NexusButton>
-                  <NexusButton
-                    onClick={() => setCurrentPage(salesData.pagination.totalPages)}
-                    variant="secondary"
-                    size="sm"
-                    disabled={currentPage === salesData.pagination.totalPages}
-                  >
-                    最後
-                  </NexusButton>
-                </div>
+            {salesData?.pagination && salesData.pagination.totalCount > 0 && (
+              <div className="mt-6 pt-4 border-t border-nexus-border">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={salesData.pagination.totalPages}
+                  totalItems={salesData.pagination.totalCount}
+                  itemsPerPage={pageSize}
+                  onPageChange={setCurrentPage}
+                  onItemsPerPageChange={setPageSize}
+                />
               </div>
             )}
           </div>

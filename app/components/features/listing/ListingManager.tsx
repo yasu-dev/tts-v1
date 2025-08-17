@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
 import EbayListingForm from '../EbayListingForm';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import BaseModal from '@/app/components/ui/BaseModal';
+import Pagination from '@/app/components/ui/Pagination';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 interface Product {
@@ -31,6 +32,10 @@ export default function ListingManager() {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isBatchConfirmModalOpen, setIsBatchConfirmModalOpen] = useState(false);
+
+  // ページネーション状態
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   useEffect(() => {
     fetchProducts();
@@ -77,10 +82,10 @@ export default function ListingManager() {
   };
 
   const handleSelectAll = () => {
-    if (selectedProducts.length === filteredProducts.length) {
+    if (selectedProducts.length === paginatedProducts.length) {
       setSelectedProducts([]);
     } else {
-      setSelectedProducts(filteredProducts.map(p => p.id));
+      setSelectedProducts(paginatedProducts.map(p => p.id));
     }
   };
 
@@ -139,6 +144,16 @@ export default function ListingManager() {
       product.name.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesStatus && matchesSearch;
   });
+
+  // ページネーション計算
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredProducts.slice(startIndex, endIndex);
+  }, [filteredProducts, currentPage, itemsPerPage]);
+
+  const totalItems = filteredProducts.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   if (loading) {
     return (
@@ -214,7 +229,7 @@ export default function ListingManager() {
                 <th className="w-12 px-4 py-3">
                   <input
                     type="checkbox"
-                    checked={selectedProducts.length === filteredProducts.length && filteredProducts.length > 0}
+                    checked={selectedProducts.length === paginatedProducts.length && paginatedProducts.length > 0}
                     onChange={handleSelectAll}
                     className="w-4 h-4 text-nexus-blue rounded border-nexus-border focus:ring-nexus-blue"
                   />
@@ -228,7 +243,7 @@ export default function ListingManager() {
               </tr>
             </thead>
           <tbody className="holo-body">
-            {filteredProducts.map((product) => (
+            {paginatedProducts.map((product) => (
               <tr key={product.id} className="holo-row">
                 <td className="px-4 py-4">
                   <input
@@ -278,12 +293,26 @@ export default function ListingManager() {
                 </td>
               </tr>
                       ))}
-        </tbody>
+                </tbody>
       </table>
-        </div>
       </div>
 
-      {filteredProducts.length === 0 && (
+      {/* ページネーション */}
+      {totalItems > 0 && (
+        <div className="mt-6 pt-4 border-t border-nexus-border">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={setItemsPerPage}
+          />
+        </div>
+      )}
+      </div>
+
+      {paginatedProducts.length === 0 && filteredProducts.length === 0 && (
         <div className="text-center py-12">
           <p className="text-nexus-text-secondary">該当する商品が見つかりません</p>
         </div>
