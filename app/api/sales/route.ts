@@ -13,6 +13,121 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
     const offset = (page - 1) * limit;
     
+    // ユーザー種別を判定（セラーの場合はListingデータを返す）
+    const referer = request.headers.get('referer') || '';
+    const isSellerRequest = !referer.includes('/staff/');
+    
+    // セラーの場合はListingデータを返す
+    if (isSellerRequest) {
+      console.log('📊 Sales API: セラー用Listingデータを取得');
+      
+      // ステータスフィルタリング処理
+      const statusFilter = searchParams.get('status');
+      let listingStatusFilter = {};
+      
+      if (statusFilter && statusFilter !== 'all') {
+        // processing（出荷準備中）-> draft, inactive, expired, pending
+        // shipped（出荷済み）-> active, sold
+        if (statusFilter === 'processing') {
+          listingStatusFilter = {
+            status: { in: ['draft', 'inactive', 'expired', 'pending'] }
+          };
+        } else if (statusFilter === 'shipped') {
+          listingStatusFilter = {
+            status: { in: ['active', 'sold'] }
+          };
+        }
+      }
+      
+      const [listings, totalCount] = await Promise.all([
+        prisma.listing.findMany({
+          where: listingStatusFilter,
+          orderBy: { createdAt: 'desc' },
+          take: limit,
+          skip: offset,
+          include: {
+            product: {
+              include: {
+                images: true
+              }
+            }
+          }
+        }),
+        prisma.listing.count({ where: listingStatusFilter })
+      ]);
+      
+      // Listingデータを販売管理画面用に変換（ステータスマッピング適用）
+      const statusMapping = {
+        'draft': 'processing',        // 下書き → 出荷準備中
+        'active': 'shipped',          // 出品中 → 出荷済み
+        'inactive': 'processing',     // 非公開 → 出荷準備中  
+        'sold': 'shipped',            // 売却済み → 出荷済み
+        'expired': 'processing',      // 期限切れ → 出荷準備中
+        'pending': 'processing'       // 保留中 → 出荷準備中
+      };
+      
+      const recentOrders = listings.map(listing => ({
+        id: listing.id,
+        orderNumber: `LST-${listing.id.slice(-8).toUpperCase()}`,
+        customer: listing.platform,
+        product: listing.title,
+        ebayTitle: listing.title,
+        ebayImage: listing.product?.images?.[0]?.url || listing.imageUrl || 'https://via.placeholder.com/300',
+        totalAmount: listing.price,
+        status: statusMapping[listing.status as keyof typeof statusMapping] || 'processing',
+        itemCount: 1,
+        orderDate: listing.createdAt.toISOString(),
+        platform: listing.platform,
+        viewCount: listing.viewCount,
+        watchCount: listing.watchCount,
+        condition: listing.condition,
+        description: listing.description,
+        items: [{
+          productName: listing.product?.name || listing.title,
+          category: listing.product?.category || 'その他',
+          quantity: 1,
+          price: listing.price
+        }]
+      }));
+      
+      return NextResponse.json({
+        _dataSource: 'prisma-listing',
+        overview: {
+          totalSales: listings.reduce((sum, l) => sum + l.price, 0),
+          monthlySales: listings.filter(l => 
+            l.createdAt >= new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+          ).reduce((sum, l) => sum + l.price, 0),
+          dailySales: listings.filter(l =>
+            l.createdAt >= new Date(new Date().setHours(0, 0, 0, 0))
+          ).reduce((sum, l) => sum + l.price, 0),
+          totalOrders: totalCount,
+          averageOrderValue: totalCount > 0 ? Math.round(listings.reduce((sum, l) => sum + l.price, 0) / totalCount) : 0
+        },
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(totalCount / limit),
+          totalCount: totalCount,
+          limit: limit
+        },
+        recentOrders,
+        topProducts: [],
+        salesByCategory: [],
+        salesByStatus: recentOrders.reduce((acc, order) => {
+          const existing = acc.find(s => s.status === order.status);
+          if (existing) {
+            existing.count++;
+          } else {
+            acc.push({ status: order.status, count: 1 });
+          }
+          return acc;
+        }, [] as any[]),
+        chartData: {
+          monthly: [],
+          daily: []
+        }
+      });
+    }
+    
     // 売上データをPrismaから取得
     const [
       totalSales,

@@ -64,22 +64,11 @@ export default function SalesPage() {
     url: carrier.trackingUrl
   }));
   
-  // 注文ステータスオプション（APIから動的取得）
-  const orderStatusOptions = orderStatuses?.parsedValue ? [
+  // 注文ステータスオプション（出荷準備中と出荷済みのみ）
+  const orderStatusOptions = [
     { value: 'all', label: 'すべて' },
-    ...orderStatuses.parsedValue.map((status: any) => ({
-      value: status.key,
-      label: status.nameJa
-    }))
-  ] : [
-    { value: 'all', label: 'すべて' },
-    { value: 'pending', label: '未確定' },
-    { value: 'confirmed', label: '受注確定' },
     { value: 'processing', label: '出荷準備中' },
-    { value: 'shipped', label: '出荷済み' },
-    { value: 'delivered', label: '配達完了' },
-    { value: 'cancelled', label: 'キャンセル' },
-    { value: 'returned', label: '返品' }
+    { value: 'shipped', label: '出荷済み' }
   ];
 
   // eBayデータを取得する関数（開発環境用デモデータ）
