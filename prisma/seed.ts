@@ -634,18 +634,134 @@ async function main() {
     console.log(`✅ 商品を作成しました: ${product.name}`);
   }
 
-  // ロケーションデータを作成
-  const locations = [
-    { code: 'STD-A-01', name: '標準棚 A-01', zone: 'A', capacity: 50 },
-    { code: 'STD-A-02', name: '標準棚 A-02', zone: 'A', capacity: 50 },
-    { code: 'STD-B-01', name: '標準棚 B-01', zone: 'B', capacity: 30 },
-    { code: 'HUM-01', name: '防湿庫 01', zone: 'H', capacity: 20 },
-    { code: 'HUM-02', name: '防湿庫 02', zone: 'H', capacity: 20 },
-    { code: 'VAULT-01', name: '金庫室 01', zone: 'V', capacity: 10 },
-    { code: 'VAULT-02', name: '金庫室 02', zone: 'V', capacity: 15 },
-    { code: 'PROC-01', name: '検品エリア 01', zone: 'P', capacity: 100 },
-    { code: 'PROC-02', name: '撮影ブース 01', zone: 'P', capacity: 5 },
-  ];
+  // ロケーションデータを作成（ページネーション確認のため大量作成）
+  console.log('📍 大量のロケーションデータを作成中...');
+  const locations = [];
+  
+  // ゾーンA（標準棚）: 30ロケーション
+  for (let i = 1; i <= 30; i++) {
+    locations.push({
+      code: `STD-A-${String(i).padStart(2, '0')}`,
+      name: `標準棚 A-${String(i).padStart(2, '0')}`,
+      zone: 'A',
+      capacity: 50,
+      address: `1階 A区画 ${i}列`,
+      phone: `03-1234-${String(5000 + i).padStart(4, '0')}`,
+      email: `location-a${i}@warehouse.com`,
+      isActive: true
+    });
+  }
+  
+  // ゾーンB（標準棚）: 25ロケーション
+  for (let i = 1; i <= 25; i++) {
+    locations.push({
+      code: `STD-B-${String(i).padStart(2, '0')}`,
+      name: `標準棚 B-${String(i).padStart(2, '0')}`,
+      zone: 'B',
+      capacity: 30,
+      address: `1階 B区画 ${i}列`,
+      phone: `03-1234-${String(6000 + i).padStart(4, '0')}`,
+      email: `location-b${i}@warehouse.com`,
+      isActive: i <= 20 // 一部を非アクティブに
+    });
+  }
+  
+  // ゾーンC（大型商品エリア）: 20ロケーション
+  for (let i = 1; i <= 20; i++) {
+    locations.push({
+      code: `LRG-C-${String(i).padStart(2, '0')}`,
+      name: `大型商品棚 C-${String(i).padStart(2, '0')}`,
+      zone: 'C',
+      capacity: 20,
+      address: `2階 C区画 ${i}列`,
+      phone: `03-1234-${String(7000 + i).padStart(4, '0')}`,
+      email: `location-c${i}@warehouse.com`,
+      isActive: true
+    });
+  }
+  
+  // ゾーンH（防湿庫）: 15ロケーション
+  for (let i = 1; i <= 15; i++) {
+    locations.push({
+      code: `HUM-${String(i).padStart(2, '0')}`,
+      name: `防湿庫 ${String(i).padStart(2, '0')}`,
+      zone: 'H',
+      capacity: 20,
+      address: `特別保管エリア H-${i}`,
+      phone: `03-1234-${String(8000 + i).padStart(4, '0')}`,
+      notes: `温度: 20℃±2℃, 湿度: 40%±5%`,
+      isActive: true
+    });
+  }
+  
+  // ゾーンV（金庫室）: 10ロケーション
+  for (let i = 1; i <= 10; i++) {
+    locations.push({
+      code: `VAULT-${String(i).padStart(2, '0')}`,
+      name: `金庫室 ${String(i).padStart(2, '0')}`,
+      zone: 'V',
+      capacity: 10,
+      address: `セキュリティエリア V-${i}`,
+      phone: `03-1234-${String(9000 + i).padStart(4, '0')}`,
+      notes: `24時間監視カメラ、生体認証必須`,
+      isActive: true
+    });
+  }
+  
+  // ゾーンP（処理エリア）: 20ロケーション
+  for (let i = 1; i <= 10; i++) {
+    locations.push({
+      code: `PROC-${String(i).padStart(2, '0')}`,
+      name: `検品エリア ${String(i).padStart(2, '0')}`,
+      zone: 'P',
+      capacity: 100,
+      address: `作業エリア P-${i}`,
+      phone: `03-1234-${String(9500 + i).padStart(4, '0')}`,
+      isActive: true
+    });
+  }
+  
+  for (let i = 1; i <= 10; i++) {
+    locations.push({
+      code: `PHOTO-${String(i).padStart(2, '0')}`,
+      name: `撮影ブース ${String(i).padStart(2, '0')}`,
+      zone: 'P',
+      capacity: 5,
+      address: `撮影エリア P-${10 + i}`,
+      phone: `03-1234-${String(9600 + i).padStart(4, '0')}`,
+      notes: `照明設備完備、背景紙各色あり`,
+      isActive: true
+    });
+  }
+  
+  // ゾーンS（出荷エリア）: 10ロケーション
+  for (let i = 1; i <= 10; i++) {
+    locations.push({
+      code: `SHIP-${String(i).padStart(2, '0')}`,
+      name: `出荷ステージ ${String(i).padStart(2, '0')}`,
+      zone: 'S',
+      capacity: 200,
+      address: `出荷エリア S-${i}`,
+      phone: `03-1234-${String(9700 + i).padStart(4, '0')}`,
+      isActive: true
+    });
+  }
+  
+  // ゾーンR（返品処理エリア）: 10ロケーション
+  for (let i = 1; i <= 10; i++) {
+    locations.push({
+      code: `RET-${String(i).padStart(2, '0')}`,
+      name: `返品処理エリア ${String(i).padStart(2, '0')}`,
+      zone: 'R',
+      capacity: 50,
+      address: `返品エリア R-${i}`,
+      phone: `03-1234-${String(9800 + i).padStart(4, '0')}`,
+      notes: `返品検品・再梱包エリア`,
+      isActive: true
+    });
+  }
+  
+  console.log(`📍 合計 ${locations.length} 件のロケーションデータを準備しました`);
 
   const locationMap = new Map();
   for (const loc of locations) {
@@ -1259,8 +1375,8 @@ async function main() {
     }
   }
 
-  // Shipmentデータを作成
-  console.log('🚚 出荷データを作成中...');
+  // Shipmentデータを大量作成（ページネーション確認用）
+  console.log('🚚 大量の出荷データを作成中...');
   
   // 作成した注文データを取得
   const orders = await prisma.order.findMany({
@@ -1273,11 +1389,12 @@ async function main() {
     }
   });
 
-  const carriers = ['ヤマト運輸', '佐川急便', '日本郵便', 'FedEx', 'DHL'];
-  const methods = ['宅急便', '宅急便コンパクト', 'ネコポス', 'ゆうパック', 'レターパック'];
+  const carriers = ['ヤマト運輸', '佐川急便', '日本郵便', 'FedEx', 'DHL', 'UPS', 'EMS', '西濃運輸'];
+  const methods = ['宅急便', '宅急便コンパクト', 'ネコポス', 'ゆうパック', 'レターパック', '国際便', 'クール便', '代引き'];
   const shipmentStatuses = ['pending', 'picked', 'packed', 'shipped', 'delivered'];
   const shipmentPriorities = ['urgent', 'high', 'normal', 'low'];
 
+  // 既存の注文に対する出荷データ
   for (const order of orders) {
     // 各注文に対して1つ以上のShipmentを作成
     const numShipments = Math.floor(Math.random() * 2) + 1; // 1〜2個のShipment
@@ -1350,14 +1467,124 @@ async function main() {
     }
   }
   
+  // 追加の大量出荷データを作成（ページネーション確認用）
+  console.log('🚚 追加の出荷データを大量作成中...');
+  let shipmentCount = 0;
+  
+  for (let i = 0; i < 100; i++) {
+    const customer = customerUsers[Math.floor(Math.random() * customerUsers.length)];
+    const carrier = carriers[Math.floor(Math.random() * carriers.length)];
+    const method = methods[Math.floor(Math.random() * methods.length)];
+    const priority = shipmentPriorities[Math.floor(Math.random() * shipmentPriorities.length)];
+    const status = shipmentStatuses[Math.floor(Math.random() * shipmentStatuses.length)];
+    
+    const deadline = new Date(Date.now() + Math.floor(Math.random() * 14) * 24 * 60 * 60 * 1000);
+    const trackingNumber = ['shipped', 'delivered'].includes(status)
+      ? `${carrier.substring(0, 2).toUpperCase()}${Math.floor(Math.random() * 1000000000000).toString().padStart(12, '0')}`
+      : null;
+    
+    const shipment = await prisma.shipment.create({
+      data: {
+        orderId: orders[Math.floor(Math.random() * orders.length)].id,
+        trackingNumber,
+        carrier,
+        method,
+        status,
+        priority,
+        customerName: customer.username,
+        address: `${['東京都', '大阪府', '神奈川県', '愛知県', '福岡県'][Math.floor(Math.random() * 5)]} ${Math.floor(Math.random() * 999) + 1}番地`,
+        deadline,
+        value: Math.floor(Math.random() * 500000) + 10000,
+        notes: `追加出荷 #${i + 1} - ${priority}優先度`,
+        createdAt: new Date(Date.now() - Math.random() * 60 * 24 * 60 * 60 * 1000)
+      }
+    });
+    shipmentCount++;
+  }
+  console.log(`✅ 追加の出荷データを ${shipmentCount} 件作成しました`);
+  
+  // 返品データを大量作成（ページネーション確認用）
+  console.log('↩️ 返品データを大量作成中...');
+  const returnReasons = ['不良品', 'サイズ違い', '色違い', '思っていたものと違った', '必要なくなった', '間違って注文した', '配送中の破損'];
+  const returnConditions = ['未開封', '開封済み', '使用済み', '破損', '汚れあり'];
+  const returnStatuses = ['pending', 'approved', 'rejected', 'processing', 'completed', 'refunded'];
+  
+  let returnCount = 0;
+  for (let i = 0; i < 120; i++) {
+    const order = orders[Math.floor(Math.random() * orders.length)];
+    const product = order.items[0]?.product;
+    
+    if (product) {
+      const returnData = await prisma.return.create({
+        data: {
+          orderId: order.id,
+          productId: product.id,
+          reason: returnReasons[Math.floor(Math.random() * returnReasons.length)],
+          condition: returnConditions[Math.floor(Math.random() * returnConditions.length)],
+          customerNote: `返品理由の詳細 #${i + 1}`,
+          staffNote: Math.random() > 0.5 ? `スタッフメモ: 確認済み #${i + 1}` : null,
+          refundAmount: Math.floor(product.price * (0.5 + Math.random() * 0.5)),
+          status: returnStatuses[Math.floor(Math.random() * returnStatuses.length)],
+          processedBy: Math.random() > 0.3 ? staff.id : null,
+          processedAt: Math.random() > 0.3 ? new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000) : null,
+          createdAt: new Date(Date.now() - Math.random() * 60 * 24 * 60 * 60 * 1000)
+        }
+      });
+      returnCount++;
+    }
+  }
+  console.log(`✅ 返品データを ${returnCount} 件作成しました`);
+  
+  // リスティング（販売）データを大量作成
+  console.log('💰 販売リスティングデータを大量作成中...');
+  const platforms = ['Amazon', 'Yahoo!オークション', 'メルカリ', '楽天市場', 'eBay', 'Shopify', '自社EC'];
+  const listingStatuses = ['draft', 'active', 'inactive', 'sold', 'expired', 'pending'];
+  
+  let listingCount = 0;
+  const productsForListing = await prisma.product.findMany();
+  
+  for (const product of productsForListing) {
+    // 各商品に対して1〜3個のリスティングを作成
+    const numListings = Math.floor(Math.random() * 3) + 1;
+    
+    for (let j = 0; j < numListings; j++) {
+      const platform = platforms[Math.floor(Math.random() * platforms.length)];
+      const status = listingStatuses[Math.floor(Math.random() * listingStatuses.length)];
+      
+      const listing = await prisma.listing.create({
+        data: {
+          productId: product.id,
+          platform,
+          listingId: `${platform.substring(0, 3).toUpperCase()}-${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`,
+          title: `${product.name} - ${platform}出品`,
+          description: `${product.description || product.name}の${platform}での出品です。状態: ${product.condition}`,
+          price: Math.floor(product.price * (0.9 + Math.random() * 0.3)),
+          status,
+          listedAt: status !== 'draft' ? new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000) : null,
+          soldAt: status === 'sold' ? new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000) : null,
+          createdAt: new Date(Date.now() - Math.random() * 60 * 24 * 60 * 60 * 1000)
+        }
+      });
+      listingCount++;
+      
+      if (listingCount >= 150) break; // 150件で止める
+    }
+    if (listingCount >= 150) break;
+  }
+  console.log(`✅ 販売リスティングデータを ${listingCount} 件作成しました`);
+  
+  console.log('\n==================== 作成データサマリー ====================');
   console.log('📦 商品データ: 30件以上の商品を作成しました（カメラ・腕時計）');
-  console.log('📍 ロケーションデータ: 9件のロケーションを作成しました');
+  console.log(`📍 ロケーションデータ: ${locations.length} 件のロケーションを作成しました`);
   console.log('🛒 注文データ: 8件の注文を作成しました（様々なステータス）');
   console.log('📋 アクティビティデータ: 12件のアクティビティを作成しました');
   console.log('📝 納品プランデータ: 100件の納品プランを作成しました（全ステータス含む）');
   console.log('🎯 ピッキングタスクデータ: 50件のピッキングタスクを作成しました');
-  console.log('🚚 出荷データ: 注文に対応する出荷データを作成しました');
+  console.log(`🚚 出荷データ: 合計 ${shipmentCount + orders.length * 1.5} 件以上の出荷データを作成しました`);
+  console.log(`↩️ 返品データ: ${returnCount} 件の返品データを作成しました`);
+  console.log(`💰 販売リスティングデータ: ${listingCount} 件のリスティングを作成しました`);
   console.log('🔍 検品チェックリストデータ: 7件の検品データを作成しました');
+  console.log('===========================================================\n');
 }
 
 main()

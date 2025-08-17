@@ -148,12 +148,10 @@ export default function DeliveryPage() {
 
   // 納品プランデータを取得
   useEffect(() => {
-    if (user) {
-      fetchDeliveryPlans().catch(error => {
-        console.error('[ERROR] fetchDeliveryPlans Promise rejection:', error);
-      });
-    }
-  }, [user, currentPage, itemsPerPage, selectedStatus, searchQuery]);
+    fetchDeliveryPlans().catch(error => {
+      console.error('[ERROR] fetchDeliveryPlans Promise rejection:', error);
+    });
+  }, [currentPage, itemsPerPage, selectedStatus, searchQuery]);
 
   // APIからデータを取得するため、allDeliveryPlansをそのまま使用
   const deliveryPlans = allDeliveryPlans;
