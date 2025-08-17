@@ -1,0 +1,180 @@
+<mxfile host="Electron" modified="2025-01-17T00:00:00.000Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.6.4 Chrome/124.0.6367.60 Electron/30.0.1 Safari/537.36" etag="firebase-architecture-v1" version="24.6.4" type="device">
+  <diagram name="Firebase Architecture" id="firebase-arch-2025">
+    <mxGraphModel dx="1434" dy="844" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1080" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Title -->
+        <mxCell id="title-1" value="The World Door - Firebase Architecture" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="710" y="20" width="500" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- Client Layer -->
+        <mxCell id="client-group" value="" style="group" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="100" y="100" width="1720" height="200" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="client-bg" value="Client Layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=16;fontStyle=1;verticalAlign=top;" vertex="1" parent="client-group">
+          <mxGeometry width="1720" height="200" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="seller-ui" value="Seller UI&lt;br&gt;(Next.js)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="client-group">
+          <mxGeometry x="40" y="60" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="staff-ui" value="Staff UI&lt;br&gt;(Next.js)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="client-group">
+          <mxGeometry x="240" y="60" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="admin-ui" value="Admin UI&lt;br&gt;(Next.js)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="client-group">
+          <mxGeometry x="440" y="60" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="firebase-sdk" value="Firebase Client SDK&lt;br&gt;- Authentication&lt;br&gt;- Firestore&lt;br&gt;- Storage" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="client-group">
+          <mxGeometry x="900" y="50" width="200" height="100" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="realtime" value="Realtime Listeners&lt;br&gt;- Inventory Updates&lt;br&gt;- Notifications&lt;br&gt;- Order Status" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="client-group">
+          <mxGeometry x="1150" y="50" width="200" height="100" as="geometry" />
+        </mxCell>
+        
+        <!-- API Layer -->
+        <mxCell id="api-group" value="" style="group" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="100" y="340" width="1720" height="200" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="api-bg" value="API Layer (Next.js App Router)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=16;fontStyle=1;verticalAlign=top;" vertex="1" parent="api-group">
+          <mxGeometry width="1720" height="200" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="auth-api" value="/api/auth/*&lt;br&gt;Firebase Admin SDK" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="api-group">
+          <mxGeometry x="40" y="60" width="180" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="inventory-api" value="/api/inventory/*&lt;br&gt;Firestore Operations" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="api-group">
+          <mxGeometry x="260" y="60" width="180" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="orders-api" value="/api/orders/*&lt;br&gt;Transactions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="api-group">
+          <mxGeometry x="480" y="60" width="180" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="shipping-api" value="/api/shipping/*&lt;br&gt;External Services" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="api-group">
+          <mxGeometry x="700" y="60" width="180" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="firebase-admin" value="Firebase Admin SDK&lt;br&gt;- Auth Verification&lt;br&gt;- Firestore Admin&lt;br&gt;- Service Account" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="api-group">
+          <mxGeometry x="1300" y="50" width="200" height="100" as="geometry" />
+        </mxCell>
+        
+        <!-- Firebase Services Layer -->
+        <mxCell id="firebase-group" value="" style="group" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="100" y="580" width="1720" height="200" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="firebase-bg" value="Firebase Services" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=16;fontStyle=1;verticalAlign=top;" vertex="1" parent="firebase-group">
+          <mxGeometry width="1720" height="200" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="firebase-auth" value="Firebase Authentication&lt;br&gt;- Email/Password&lt;br&gt;- Session Management&lt;br&gt;- Role Claims" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcccc;strokeColor=#ff6666;" vertex="1" parent="firebase-group">
+          <mxGeometry x="40" y="50" width="200" height="100" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="firestore" value="Cloud Firestore&lt;br&gt;- NoSQL Database&lt;br&gt;- Collections&lt;br&gt;- Real-time Updates" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ccffcc;strokeColor=#66cc66;" vertex="1" parent="firebase-group">
+          <mxGeometry x="280" y="50" width="200" height="100" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="storage" value="Cloud Storage&lt;br&gt;- Product Images&lt;br&gt;- Videos&lt;br&gt;- Documents" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ccccff;strokeColor=#6666ff;" vertex="1" parent="firebase-group">
+          <mxGeometry x="520" y="50" width="200" height="100" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="functions" value="Cloud Functions&lt;br&gt;- Triggers&lt;br&gt;- Scheduled Tasks&lt;br&gt;- Webhooks" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffff99;strokeColor=#cccc00;" vertex="1" parent="firebase-group">
+          <mxGeometry x="760" y="50" width="200" height="100" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="emulator" value="Firebase Emulator Suite&lt;br&gt;(Development)&lt;br&gt;- Local Firestore&lt;br&gt;- Local Auth&lt;br&gt;- Data Persistence" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e6e6e6;strokeColor=#333333;strokeWidth=2;dashPattern=5 5;" vertex="1" parent="firebase-group">
+          <mxGeometry x="1240" y="40" width="220" height="120" as="geometry" />
+        </mxCell>
+        
+        <!-- Data Structure -->
+        <mxCell id="data-group" value="" style="group" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="100" y="820" width="1720" height="220" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="data-bg" value="Firestore Data Structure" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff5e6;strokeColor=#cc9900;fontSize=16;fontStyle=1;verticalAlign=top;" vertex="1" parent="data-group">
+          <mxGeometry width="1720" height="220" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="users-collection" value="users/&lt;br&gt;├ {userId}/&lt;br&gt;│ ├ profile&lt;br&gt;│ └ settings" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;align=left;spacingLeft=10;" vertex="1" parent="data-group">
+          <mxGeometry x="40" y="60" width="160" height="120" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="products-collection" value="products/&lt;br&gt;├ {productId}/&lt;br&gt;│ ├ data&lt;br&gt;│ ├ images/&lt;br&gt;│ └ movements/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;align=left;spacingLeft=10;" vertex="1" parent="data-group">
+          <mxGeometry x="240" y="60" width="160" height="120" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="orders-collection" value="orders/&lt;br&gt;├ {orderId}/&lt;br&gt;│ ├ data&lt;br&gt;│ └ items/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;align=left;spacingLeft=10;" vertex="1" parent="data-group">
+          <mxGeometry x="440" y="60" width="160" height="120" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="activities-collection" value="activities/&lt;br&gt;├ {activityId}/&lt;br&gt;│ └ timestamp index" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;align=left;spacingLeft=10;" vertex="1" parent="data-group">
+          <mxGeometry x="640" y="60" width="160" height="120" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="locations-collection" value="locations/&lt;br&gt;├ {locationId}/&lt;br&gt;│ └ warehouse data" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;align=left;spacingLeft=10;" vertex="1" parent="data-group">
+          <mxGeometry x="840" y="60" width="160" height="120" as="geometry" />
+        </mxCell>
+        
+        <!-- Arrows -->
+        <mxCell id="arrow1" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="client-bg" target="api-bg">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="850" y="450" as="sourcePoint" />
+            <mxPoint x="900" y="400" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="arrow2" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="api-bg" target="firebase-bg">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="850" y="690" as="sourcePoint" />
+            <mxPoint x="900" y="640" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="arrow3" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="firebase-bg" target="data-bg">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="850" y="930" as="sourcePoint" />
+            <mxPoint x="900" y="880" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Bidirectional Arrow for Realtime -->
+        <mxCell id="realtime-arrow" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;strokeColor=#FF0000;strokeWidth=2;" edge="1" parent="1" source="realtime" target="firestore">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="1200" y="450" as="sourcePoint" />
+            <mxPoint x="1250" y="400" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1250" y="320" />
+              <mxPoint x="1250" y="560" />
+              <mxPoint x="430" y="560" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="realtime-label" value="Realtime Sync" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#FF0000;" vertex="1" parent="1">
+          <mxGeometry x="1260" y="430" width="100" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Notes -->
+        <mxCell id="note1" value="Note: Firebase Emulator Suite provides local development environment with data persistence" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=2;" vertex="1" parent="1">
+          <mxGeometry x="1240" y="740" width="460" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="note2" value="Migration from SQLite: 33 tables → Firestore collections with subcollections" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=2;" vertex="1" parent="1">
+          <mxGeometry x="100" y="1050" width="460" height="30" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

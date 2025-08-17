@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
           deliveryAddress: planData.basicInfo.deliveryAddress,
           contactEmail: user.email,
           phoneNumber: planData.basicInfo.phoneNumber || null,
-          status: '発送待ち',
+          status: 'Pending', // '発送待ち'から'Pending'に変更
           totalItems: validProducts.length,
           totalValue: validProducts.reduce((sum: number, product: any) => 
             sum + (product.estimatedValue || 0), 0
@@ -481,7 +481,11 @@ export async function GET(request: NextRequest) {
     const search = url.searchParams.get('search');
 
     // Prismaを使用して納品プランデータを取得
-    const where: any = {};
+    const where: any = {
+      status: {
+        not: 'Draft'
+      }
+    };
     
     // スタッフの場合は全データ、セラーの場合は自分のデータのみ
     // 一時的に無効化: sellerIDの不一致により表示されない問題を修正
@@ -490,7 +494,7 @@ export async function GET(request: NextRequest) {
     // }
 
     // ステータスフィルター
-    if (status) {
+    if (status && status !== 'all') {
       where.status = status;
     }
 
@@ -556,7 +560,7 @@ export async function GET(request: NextRequest) {
         return {
           id: plan.id,
           deliveryId: plan.planNumber,
-          date: plan.createdAt.toISOString().split('T')[0],
+          date: plan.createdAt.toISOString(), // .split('T')[0]を削除
           status: plan.status,
           items: plan.totalItems,
           value: plan.totalValue,

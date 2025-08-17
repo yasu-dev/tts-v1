@@ -63,7 +63,7 @@ export default function DeliveryPage() {
   const [shippingTrackingNumber, setShippingTrackingNumber] = useState('');
   
   // マスタデータの取得
-  const { setting: deliveryStatuses } = useSystemSetting('delivery_statuses');
+  const { setting: deliveryStatuses, loading: masterDataLoading } = useSystemSetting('delivery_statuses');
 
   // 納品プランデータを取得
   const fetchDeliveryPlans = async () => {
@@ -312,7 +312,7 @@ export default function DeliveryPage() {
     setAllDeliveryPlans(prev => 
       prev.map((plan: any) => 
         plan.id === planId 
-          ? { ...plan, status: action === 'confirm' ? '出荷済み' : '出荷準備中' }
+          ? { ...plan, status: action === 'confirm' ? 'Shipped' : 'Pending' }
           : plan
       )
     );
@@ -325,7 +325,7 @@ export default function DeliveryPage() {
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          status: '出荷済み',
+          status: 'Shipped',
           trackingNumber: shippingTrackingNumber.trim() || null
         }),
       });
@@ -341,7 +341,7 @@ export default function DeliveryPage() {
           plan.id === planId 
             ? { 
                 ...plan, 
-                status: '出荷済み',
+                status: 'Shipped',
                 shippingTrackingNumber: shippingTrackingNumber.trim() || null,
                 shippedAt: new Date().toISOString()
               }
@@ -432,9 +432,9 @@ export default function DeliveryPage() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case '出荷準備中':
+      case 'Pending':
         return <CheckCircleIcon className="h-5 w-5 text-blue-600" />;
-      case '出荷済み':
+      case 'Shipped':
         return <TruckIcon className="h-5 w-5 text-green-600" />;
       default:
         return <ClockIcon className="h-5 w-5 text-gray-600" />;
@@ -443,9 +443,9 @@ export default function DeliveryPage() {
 
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
-      case '出荷準備中':
+      case 'Pending':
         return 'status-badge warning';
-      case '出荷済み':
+      case 'Shipped':
         return 'status-badge success';
       default:
         return 'status-badge info';
@@ -453,17 +453,25 @@ export default function DeliveryPage() {
   };
 
   // ステータスオプション（APIから動的取得）
-  const statusOptions = deliveryStatuses?.parsedValue ? [
-    { value: 'all', label: '全てのステータス' },
-    ...deliveryStatuses.parsedValue.map((status: any) => ({
-      value: status.key,
-      label: status.nameJa
-    }))
-  ] : [
-    { value: 'all', label: '全てのステータス' },
-    { value: '出荷準備中', label: '出荷準備中' },
-    { value: '出荷済み', label: '出荷済み' }
-  ];
+  const statusOptions = useMemo(() => {
+    if (masterDataLoading) return [{ value: 'all', label: '読み込み中...' }];
+    if (!deliveryStatuses?.parsedValue) {
+      return [
+        { value: 'all', label: '全てのステータス' },
+        { value: 'Pending', label: '出荷準備中' },
+        { value: 'Shipped', label: '出荷済み' },
+      ];
+    }
+    return [
+      { value: 'all', label: '全てのステータス' },
+      ...deliveryStatuses.parsedValue
+        .filter((status: any) => status.key !== 'Draft')
+        .map((status: any) => ({
+          value: status.key,
+          label: status.nameJa
+        }))
+    ];
+  }, [deliveryStatuses, masterDataLoading]);
 
   const dateRangeOptions = [
     { value: 'all', label: 'すべて' },
@@ -692,15 +700,15 @@ export default function DeliveryPage() {
                   paginatedPlans.map((plan: any) => (
                     <tr key={plan.id} className="holo-row">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-nexus-text-primary">
-                        {plan.date}
+                        {new Date(plan.date).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <BusinessStatusIndicator 
                           status={(() => {
-                            // ステータスマッピング（2つのステータスのみ）
-                            const mappedStatus = plan.status === '出荷準備中' ? 'processing' :
-                                                plan.status === '出荷済み' ? 'shipped' :
-                                                'processing';
+                            // ステータスマッピング
+                            const mappedStatus = plan.status === 'Pending' ? 'processing' :
+                                                plan.status === 'Shipped' ? 'shipped' :
+                                                'default';
                             return mappedStatus;
                           })()} 
                           size="sm" 
@@ -753,7 +761,7 @@ export default function DeliveryPage() {
                             <span className="ml-1">詳細</span>
                           </NexusButton>
 
-                          {plan.status === '出荷準備中' && (
+                          {plan.status === 'Pending' && (
                             <NexusButton
                               variant="primary"
                               size="sm"
@@ -813,8 +821,8 @@ export default function DeliveryPage() {
                     <span className="ml-2">
                       <BusinessStatusIndicator 
                         status={(() => {
-                          const mappedStatus = selectedPlan.status === '出荷準備中' ? 'processing' :
-                                            selectedPlan.status === '出荷済み' ? 'shipped' : 'processing';
+                          const mappedStatus = selectedPlan.status === 'Pending' ? 'processing' :
+                                            selectedPlan.status === 'Shipped' ? 'shipped' : 'default';
                           return mappedStatus;
                         })()} 
                         size="sm" 
@@ -881,7 +889,7 @@ export default function DeliveryPage() {
                       </div>
                     </div>
                   )}
-                  {!selectedPlan.shippedAt && selectedPlan.status === '発送待ち' && (
+                  {!selectedPlan.shippedAt && selectedPlan.status === 'Pending' && (
                     <div className="text-nexus-text-tertiary">発送準備中...</div>
                   )}
                 </div>

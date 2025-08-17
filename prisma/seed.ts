@@ -1111,7 +1111,7 @@ async function main() {
   // 納品プランデータを作成
   console.log('📝 納品プランデータを作成中...');
   
-  const deliveryStatuses = ['下書き', '発送待ち', '発送済'];
+  const deliveryStatuses = ['Pending', 'Shipped']; // Draftを削除
   const categories = ['カメラ本体', 'レンズ', '腕時計', 'アクセサリー'];
   const brands = ['Canon', 'Sony', 'Nikon', 'FUJIFILM', 'Panasonic', 'Olympus', 'Rolex', 'Omega', 'Casio'];
   const sellerNames = ['セラーA', 'セラーB', 'セラーC', 'セラーD', 'セラーE', 'セラーF', 'セラーG', 'セラーH'];
@@ -1147,6 +1147,11 @@ async function main() {
     // 商品数をランダムに設定（1〜8件）
     const productCount = Math.floor(Math.random() * 8) + 1;
     let totalValue = 0;
+
+    // Shippedの場合の追加データ
+    const isShipped = status === 'Shipped';
+    const shippingTrackingNumber = isShipped ? `JP${Math.floor(Math.random() * 1000000000000000).toString().padStart(15, '0')}` : null;
+    const shippedAt = isShipped ? new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000) : null; // 過去30日以内
     
     const deliveryPlan = await prisma.deliveryPlan.create({
       data: {
@@ -1157,11 +1162,12 @@ async function main() {
         deliveryAddress,
         contactEmail: `seller${sellerIndex + 1}_${i + 1}@example.com`,
         phoneNumber: `0${Math.floor(Math.random() * 9) + 1}0-${Math.floor(Math.random() * 9000) + 1000}-${Math.floor(Math.random() * 9000) + 1000}`,
-        notes: status === '発送済' ? `追跡番号: JP${Math.floor(Math.random() * 1000000000000000).toString().padStart(15, '0')}` : 
-               status === '下書き' ? '下書き保存中の納品プラン。内容を確認してから発送待ちに変更してください。' : 
+        notes: status === 'Shipped' ? `追跡番号: ${shippingTrackingNumber}` : 
                '通常の納品プランです。発送準備が完了次第、発送予定です。',
         totalItems: productCount,
         totalValue: 0, // 後で更新
+        shippingTrackingNumber,
+        shippedAt,
         createdAt: new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000) // 過去90日以内のランダム日付
       }
     });
@@ -1253,12 +1259,104 @@ async function main() {
     }
   }
 
+  // Shipmentデータを作成
+  console.log('🚚 出荷データを作成中...');
+  
+  // 作成した注文データを取得
+  const orders = await prisma.order.findMany({
+    include: {
+      items: {
+        include: {
+          product: true
+        }
+      }
+    }
+  });
+
+  const carriers = ['ヤマト運輸', '佐川急便', '日本郵便', 'FedEx', 'DHL'];
+  const methods = ['宅急便', '宅急便コンパクト', 'ネコポス', 'ゆうパック', 'レターパック'];
+  const shipmentStatuses = ['pending', 'picked', 'packed', 'shipped', 'delivered'];
+  const shipmentPriorities = ['urgent', 'high', 'normal', 'low'];
+
+  for (const order of orders) {
+    // 各注文に対して1つ以上のShipmentを作成
+    const numShipments = Math.floor(Math.random() * 2) + 1; // 1〜2個のShipment
+    
+    for (let i = 0; i < numShipments; i++) {
+      const carrier = carriers[Math.floor(Math.random() * carriers.length)];
+      const method = methods[Math.floor(Math.random() * methods.length)];
+      const priority = shipmentPriorities[Math.floor(Math.random() * shipmentPriorities.length)];
+      
+      // ステータスに応じて適切な設定
+      let status = shipmentStatuses[Math.floor(Math.random() * shipmentStatuses.length)];
+      
+      // 注文のステータスに合わせて調整
+      if (order.status === 'delivered') {
+        status = 'delivered';
+      } else if (order.status === 'shipped') {
+        status = Math.random() > 0.5 ? 'shipped' : 'delivered';
+      } else if (order.status === 'processing') {
+        status = shipmentStatuses[Math.floor(Math.random() * 3)]; // pending, picked, packed のいずれか
+      }
+      
+      const deadline = new Date(Date.now() + Math.floor(Math.random() * 7) * 24 * 60 * 60 * 1000); // 今から7日以内
+      const trackingNumber = status === 'shipped' || status === 'delivered' 
+        ? `${carrier.substring(0, 2).toUpperCase()}${Math.floor(Math.random() * 1000000000000).toString().padStart(12, '0')}`
+        : null;
+      
+      // 各ステータスに応じた日時設定
+      const now = new Date();
+      const pickedAt = ['picked', 'packed', 'shipped', 'delivered'].includes(status) 
+        ? new Date(now.getTime() - Math.random() * 24 * 60 * 60 * 1000) 
+        : null;
+      const packedAt = ['packed', 'shipped', 'delivered'].includes(status)
+        ? new Date(pickedAt ? pickedAt.getTime() + Math.random() * 4 * 60 * 60 * 1000 : now.getTime())
+        : null;
+      const shippedAt = ['shipped', 'delivered'].includes(status)
+        ? new Date(packedAt ? packedAt.getTime() + Math.random() * 2 * 60 * 60 * 1000 : now.getTime())
+        : null;
+      const deliveredAt = status === 'delivered'
+        ? new Date(shippedAt ? shippedAt.getTime() + Math.random() * 24 * 60 * 60 * 1000 : now.getTime())
+        : null;
+      
+      // 顧客名を取得
+      const customer = await prisma.user.findUnique({
+        where: { id: order.customerId }
+      });
+      
+      const shipment = await prisma.shipment.create({
+        data: {
+          orderId: order.id,
+          productId: order.items[0]?.productId || null,
+          trackingNumber,
+          carrier,
+          method,
+          status,
+          priority,
+          customerName: customer?.username || 'Unknown Customer',
+          address: order.shippingAddress || '住所未設定',
+          deadline,
+          value: Math.floor(order.totalAmount / numShipments),
+          notes: `${carrier}で${method}にて発送${status === 'shipped' || status === 'delivered' ? '済み' : '予定'}`,
+          pickedAt,
+          packedAt,
+          shippedAt,
+          deliveredAt,
+          createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000) // 過去30日以内
+        }
+      });
+      
+      console.log(`✅ 出荷データを作成しました: Order ${order.orderNumber} - Shipment ${i + 1} (${status})`);
+    }
+  }
+  
   console.log('📦 商品データ: 30件以上の商品を作成しました（カメラ・腕時計）');
   console.log('📍 ロケーションデータ: 9件のロケーションを作成しました');
   console.log('🛒 注文データ: 8件の注文を作成しました（様々なステータス）');
   console.log('📋 アクティビティデータ: 12件のアクティビティを作成しました');
   console.log('📝 納品プランデータ: 100件の納品プランを作成しました（全ステータス含む）');
   console.log('🎯 ピッキングタスクデータ: 50件のピッキングタスクを作成しました');
+  console.log('🚚 出荷データ: 注文に対応する出荷データを作成しました');
   console.log('🔍 検品チェックリストデータ: 7件の検品データを作成しました');
 }
 

@@ -20,6 +20,17 @@ export async function GET(request: NextRequest) {
     // 総数とページネーション対応データを並行取得
     const [shipments, totalCount] = await Promise.all([
       prisma.shipment.findMany({
+        include: {
+          order: {
+            include: {
+              items: {
+                include: {
+                  product: true
+                }
+              }
+            }
+          }
+        },
         orderBy: {
           createdAt: 'desc',
         },
@@ -47,23 +58,52 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // **デバッグ用：シンプルなデータ変換**
+    // Shipmentデータを適切な形式に変換
     const shippingItems = shipments.map((shipment) => {
+      // 商品情報を取得（注文の最初の商品を使用）
+      const firstProduct = shipment.order?.items?.[0]?.product;
+      const productName = firstProduct?.name || `商品 #${shipment.productId?.slice(-6) || 'N/A'}`;
+      const productSku = firstProduct?.sku || `SKU-${shipment.productId?.slice(-6) || 'UNKNOWN'}`;
+      
+      // ステータスをマッピング
+      let displayStatus: 'storage' | 'ordered' | 'picked' | 'workstation' | 'packed' | 'shipped' | 'ready_for_pickup' = 'workstation';
+      switch (shipment.status) {
+        case 'pending':
+          displayStatus = 'ordered';
+          break;
+        case 'picked':
+          displayStatus = 'picked';
+          break;
+        case 'packed':
+          displayStatus = 'packed';
+          break;
+        case 'shipped':
+          displayStatus = 'shipped';
+          break;
+        case 'delivered':
+          displayStatus = 'ready_for_pickup';
+          break;
+        default:
+          displayStatus = 'workstation';
+      }
+      
       return {
         id: shipment.id,
-        productName: '商品テスト',
-        productSku: 'SKU-TEST',
-        orderNumber: `ORDER-${shipment.id.slice(-6)}`,
+        productName: productName,
+        productSku: productSku,
+        orderNumber: shipment.order?.orderNumber || `ORD-${shipment.orderId.slice(-6)}`,
         customer: shipment.customerName,
         shippingAddress: shipment.address,
-        status: 'workstation' as const,
-        dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        shippingMethod: shipment.carrier,
+        status: displayStatus,
+        dueDate: shipment.deadline ? new Date(shipment.deadline).toISOString().split('T')[0] : 
+                 new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        shippingMethod: `${shipment.carrier} - ${shipment.method}`,
         value: shipment.value,
-        location: 'A1-01',
-        productImages: [],
+        location: firstProduct?.currentLocationId ? `LOC-${firstProduct.currentLocationId.slice(-4)}` : 'A1-01',
+        productImages: firstProduct?.imageUrl ? [firstProduct.imageUrl] : [],
         inspectionImages: [],
-        inspectionNotes: `出荷ID: ${shipment.id}, 配送業者: ${shipment.carrier}`,
+        inspectionNotes: shipment.notes || `優先度: ${shipment.priority}`,
+        trackingNumber: shipment.trackingNumber || undefined,
       };
     });
 

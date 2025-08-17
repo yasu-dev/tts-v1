@@ -29,16 +29,7 @@ interface ProductInLocation {
   registeredBy: string;
 }
 
-interface LocationMovement {
-  id: string;
-  productId: string;
-  productName: string;
-  fromLocation: string;
-  toLocation: string;
-  movedBy: string;
-  movedAt: string;
-  reason: string;
-}
+
 
 interface LocationListProps {
   searchQuery?: string;
@@ -47,10 +38,10 @@ interface LocationListProps {
 export default function LocationList({ searchQuery = '' }: LocationListProps) {
   const modalScrollRef = useRef<HTMLDivElement>(null);
   const [locations, setLocations] = useState<Location[]>([]);
-  const [movements, setMovements] = useState<LocationMovement[]>([]);
+
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'movement' | 'shipping'>('shipping');
+  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'shipping'>('shipping');
   const [filteredLocations, setFilteredLocations] = useState<Location[]>([]);
   const [shippingData, setShippingData] = useState<any[]>([]);
   const [mounted, setMounted] = useState(false);
@@ -71,7 +62,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
   useEffect(() => {
     setMounted(true);
     fetchLocations();
-    fetchMovements();
+
     fetchShippingData();
   }, []);
 
@@ -222,37 +213,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
     }
   };
 
-  const fetchMovements = async () => {
-    try {
-      // モックデータ（実際はAPIから取得）
-      const mockMovements: LocationMovement[] = [
-        {
-          id: 'MOV-001',
-          productId: 'TWD-2024-001',
-          productName: 'Canon EOS R5 ボディ',
-          fromLocation: 'INSP-A',
-          toLocation: 'STD-A-01',
-          movedBy: '田中太郎',
-          movedAt: '2024-01-20T10:00:00',
-          reason: '検品完了',
-        },
-        {
-          id: 'MOV-002',
-          productId: 'TWD-2024-002',
-          productName: 'Sony FE 24-70mm F2.8 GM',
-          fromLocation: 'INSP-B',
-          toLocation: 'HUM-01',
-          movedBy: '鈴木一郎',
-          movedAt: '2024-01-18T14:00:00',
-          reason: '検品完了',
-        },
-      ];
 
-      setMovements(mockMovements);
-    } catch (error) {
-      console.error('[ERROR] Fetch movements:', error);
-    }
-  };
 
   const fetchShippingData = async () => {
     try {
@@ -544,16 +505,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
               >
                 リスト
               </button>
-              <button
-                onClick={() => setViewMode('movement')}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                  viewMode === 'movement'
-                    ? 'bg-nexus-bg-primary text-nexus-yellow shadow-sm'
-                    : 'text-nexus-text-secondary hover:text-nexus-text-primary'
-                }`}
-              >
-                移動履歴
-              </button>
+
               <button
                 onClick={() => setViewMode('shipping')}
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
@@ -732,49 +684,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
             </div>
           )}
 
-          {/* 移動履歴ビュー */}
-          {viewMode === 'movement' && (
-            <div className="space-y-4">
-              {movements.filter(movement => 
-                !searchQuery || 
-                movement.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                movement.fromLocation.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                movement.toLocation.toLowerCase().includes(searchQuery.toLowerCase())
-              ).map((movement) => (
-                <div
-                  key={movement.id}
-                  className="holo-card p-6"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h4 className="font-medium text-nexus-text-primary">{movement.productName}</h4>
-                      <p className="text-sm text-nexus-text-secondary font-mono">ID: {movement.productId}</p>
-                      <div className="flex items-center gap-3 mt-3">
-                        <span className="text-sm font-medium">
-                          {movement.fromLocation} → {movement.toLocation}
-                        </span>
-                        <span className="status-badge info">
-                          {movement.reason}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium text-nexus-text-primary">{movement.movedBy}</p>
-                      <p className="text-sm text-nexus-text-secondary">
-                        {new Date(movement.movedAt).toLocaleDateString('ja-JP', {
-                          year: 'numeric',
-                          month: '2-digit',
-                          day: '2-digit',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+
 
           {/* 出荷リストビュー */}
           {viewMode === 'shipping' && (
