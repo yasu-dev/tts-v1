@@ -1,6 +1,7 @@
 'use client'
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import NexusLoadingSpinner from '@/app/components/ui/NexusLoadingSpinner';
 
 export default function Home() {
   const router = useRouter();
@@ -11,36 +12,22 @@ export default function Home() {
   }, [router]);
 
   return (
-    <div style={{ 
-      padding: '40px', 
-      fontFamily: 'Arial, sans-serif',
-      textAlign: 'center',
-      minHeight: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-      alignItems: 'center'
-    }}>
-      <h1>🚀 THE WORLD DOOR</h1>
-      <p>ログインページに移動中...</p>
-      <div style={{ margin: '20px 0' }}>
-        <a 
-          href="/login" 
-          style={{ 
-            backgroundColor: '#0070f3', 
-            color: 'white', 
-            padding: '12px 24px', 
-            textDecoration: 'none', 
-            borderRadius: '8px',
-            fontSize: '16px'
-          }}
-        >
-          手動でログインページに移動
-        </a>
-      </div>
-      <div style={{ marginTop: '20px', color: '#666', fontSize: '14px' }}>
-        <p>⚡ サーバー: http://localhost:3002</p>
-        <p>⏰ {new Date().toLocaleString('ja-JP')}</p>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-nexus-background via-blue-50 to-blue-100">
+      <div className="flex flex-col items-center justify-center text-center space-y-4">
+        
+        {/* メインスピナー */}
+        <NexusLoadingSpinner 
+          size="lg" 
+          variant="primary" 
+          text="ログインページに移動中..."
+          className="scale-150"
+        />
+        
+        {/* システム名表示 */}
+        <h1 className="text-2xl font-bold text-primary-blue mt-4">
+          THE WORLD DOOR
+        </h1>
+        
       </div>
     </div>
   );
