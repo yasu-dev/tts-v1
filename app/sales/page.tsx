@@ -64,6 +64,9 @@ export default function SalesPage() {
     url: carrier.trackingUrl
   }));
   
+  // デバッグ用ログ
+  console.log('🚛 配送業者デバッグ:', { carriersLoading, carrierDataCount: carrierData?.length, carriersCount: carriers.length });
+  
   // 注文ステータスオプション（出荷準備中と出荷済みのみ）
   const orderStatusOptions = [
     { value: 'all', label: 'すべて' },
