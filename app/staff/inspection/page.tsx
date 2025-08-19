@@ -823,7 +823,6 @@ export default function InspectionPage() {
                           />
                           <div className="min-w-0 flex-1">
                             <div className="font-medium text-nexus-text-primary text-sm truncate">{product.name}</div>
-                            <p className="text-xs sm:text-sm text-nexus-text-secondary truncate">{product.brand} | {product.model}</p>
                           </div>
                         </div>
                       </td>
