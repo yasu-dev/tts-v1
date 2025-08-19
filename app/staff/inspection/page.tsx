@@ -47,6 +47,7 @@ import {
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import BaseModal from '@/app/components/ui/BaseModal';
 import NexusTextarea from '@/app/components/ui/NexusTextarea';
+import InspectionDetailModal from '@/app/components/modals/InspectionDetailModal';
 import { parseProductMetadata, getInspectionPhotographyStatus } from '@/lib/utils/product-status';
 import { getInspectionWorkflowProgress, getInspectionNextAction, InspectionStatus } from '@/lib/utils/workflow';
 import WorkflowProgress from '@/app/components/ui/WorkflowProgress';
@@ -147,6 +148,8 @@ export default function InspectionPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isInspectionModalOpen, setIsInspectionModalOpen] = useState(false);
+  const [selectedInspectionProduct, setSelectedInspectionProduct] = useState<Product | null>(null);
   const [progressData, setProgressData] = useState<{[key: string]: {currentStep: number, lastUpdated: string}}>({});
   const [expandedRows, setExpandedRows] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string>('all');
@@ -596,31 +599,15 @@ export default function InspectionPage() {
     window.location.href = `/staff/inspection/${product.id}${stepQuery}`;
   };
 
-  // 検品完了処理
-  const handleCompleteInspection = async (product: Product) => {
-    console.log(`[DEBUG] 検品完了ボタン押下: 商品ID=${product.id}, 現在のステータス=${product.status}`);
-    
-    const confirmed = window.confirm(
-      `検品を完了しますか？\n\n商品: ${product.name}\nSKU: ${product.sku}\n\n現在のステータス: ${product.status}`
-    );
-
-    if (confirmed) {
-      console.log(`[DEBUG] 検品完了確認OK: ステータス更新を実行します`);
-      await updateInspectionStatus(product.id, 'completed');
-    } else {
-      console.log(`[DEBUG] 検品完了キャンセル`);
-    }
+  // 検品処理モーダルを開く
+  const handleOpenInspectionModal = (product: Product) => {
+    setSelectedInspectionProduct(product);
+    setIsInspectionModalOpen(true);
   };
 
-  // 検品不合格処理
-  const handleRejectInspection = async (product: Product) => {
-    const confirmed = window.confirm(
-      `この商品を不合格にしますか？\n\n商品: ${product.name}\nSKU: ${product.sku}\n\n※不合格の場合は返却処理が必要になります。`
-    );
-
-    if (confirmed) {
-      await updateInspectionStatus(product.id, 'failed');
-    }
+  // モーダル用のステータス更新関数（既存のupdateInspectionStatusをラップ）
+  const handleModalStatusUpdate = async (productId: string, newStatus: string) => {
+    await updateInspectionStatus(productId, newStatus);
   };
 
   // 商品詳細表示（統一化により不使用）
@@ -926,34 +913,17 @@ export default function InspectionPage() {
                             }
 
                             if (product.status === 'inspecting') {
-                              // 検品中の場合は、完了・不合格ボタンも表示
+                              // 検品中の場合は、検品処理モーダルを開く
                               return (
-                                <div className="flex gap-1">
-                                  <NexusButton 
-                                    size="sm" 
-                                    variant="primary"
-                                    onClick={() => handleContinueInspection(product)}
-                                  >
-                                    <span className="hidden sm:inline">続ける</span>
-                                    <span className="sm:hidden">続行</span>
-                                  </NexusButton>
-                                  <NexusButton 
-                                    size="sm" 
-                                    variant="success"
-                                    onClick={() => handleCompleteInspection(product)}
-                                    title="検品完了"
-                                  >
-                                    <CheckIcon className="w-4 h-4" />
-                                  </NexusButton>
-                                  <NexusButton 
-                                    size="sm" 
-                                    variant="danger"
-                                    onClick={() => handleRejectInspection(product)}
-                                    title="検品不合格"
-                                  >
-                                    <XMarkIcon className="w-4 h-4" />
-                                  </NexusButton>
-                                </div>
+                                <NexusButton 
+                                  size="sm" 
+                                  variant="primary"
+                                  onClick={() => handleOpenInspectionModal(product)}
+                                  title="検品処理"
+                                >
+                                  <ClipboardDocumentListIcon className="w-4 h-4" />
+                                  <span className="hidden sm:inline ml-1">検品する</span>
+                                </NexusButton>
                               );
                             }
 
@@ -1057,35 +1027,16 @@ export default function InspectionPage() {
                                     </NexusButton>
                                   )}
                                   {product.status === 'inspecting' && (
-                                    <>
-                                      <NexusButton
-                                        size="sm"
-                                        variant="primary"
-                                        onClick={() => handleContinueInspection(product)}
-                                        className="flex items-center gap-1"
-                                      >
-                                        <ArrowPathIcon className="w-3 h-3" />
-                                        続ける
-                                      </NexusButton>
-                                      <NexusButton
-                                        size="sm"
-                                        variant="success"
-                                        onClick={() => handleCompleteInspection(product)}
-                                        className="flex items-center gap-1"
-                                      >
-                                        <CheckCircleIcon className="w-3 h-3" />
-                                        完了
-                                      </NexusButton>
-                                      <NexusButton
-                                        size="sm"
-                                        variant="danger"
-                                        onClick={() => handleRejectInspection(product)}
-                                        className="flex items-center gap-1"
-                                      >
-                                        <ExclamationTriangleIcon className="w-3 h-3" />
-                                        不合格
-                                      </NexusButton>
-                                    </>
+                                    <NexusButton
+                                      size="sm"
+                                      variant="primary"
+                                      onClick={() => handleOpenInspectionModal(product)}
+                                      className="flex items-center gap-1"
+                                      title="検品処理"
+                                    >
+                                      <ClipboardDocumentListIcon className="w-3 h-3" />
+                                      検品する
+                                    </NexusButton>
                                   )}
                                   {(product.status === 'completed' || product.status === 'failed') && (
                                     <NexusButton
@@ -1195,21 +1146,17 @@ export default function InspectionPage() {
           )}
         </div>
 
-        {/* 検品モーダル - 使用停止（ページ遷移に統一） */}
-        {false && (
-          <BaseModal
-            isOpen={false}
-            onClose={() => {}}
-            title="商品検品"
-            size="lg"
-          >
-            <div>
-              <p className="text-center text-gray-500">
-                検品機能はページ遷移に統一されました
-              </p>
-            </div>
-          </BaseModal>
-        )}
+        {/* 検品詳細モーダル */}
+        <InspectionDetailModal
+          isOpen={isInspectionModalOpen}
+          onClose={() => {
+            setIsInspectionModalOpen(false);
+            setSelectedInspectionProduct(null);
+          }}
+          product={selectedInspectionProduct}
+          onStatusUpdate={handleModalStatusUpdate}
+          onContinueInspection={handleContinueInspection}
+        />
       </div>
     </DashboardLayout>
   );
