@@ -18,9 +18,10 @@ export async function GET(request: NextRequest) {
 
     const [
       pickingTasks,
-      taskStats
+      taskStats,
+      orderedProducts
     ] = await Promise.all([
-      // ピッキングタスク
+      // 既存のピッキングタスク
       prisma.pickingTask.findMany({
         where: whereCondition,
         orderBy: { dueDate: 'asc' },
@@ -33,15 +34,81 @@ export async function GET(request: NextRequest) {
       prisma.pickingTask.groupBy({
         by: ['status'],
         _count: { status: true }
+      }),
+      
+      // セラーがラベル生成完了した商品（ordered状態）を動的にピッキングタスクとして取得
+      prisma.product.findMany({
+        where: {
+          status: 'ordered'
+        },
+        include: {
+          seller: {
+            select: {
+              username: true,
+              fullName: true
+            }
+          },
+          currentLocation: {
+            select: {
+              code: true,
+              name: true
+            }
+          },
+          orders: {
+            where: {
+              status: 'processing' // ラベル生成済みの注文
+            },
+            select: {
+              id: true,
+              orderNumber: true,
+              customerName: true,
+              createdAt: true,
+              trackingNumber: true
+            },
+            take: 1
+          }
+        },
+        orderBy: { updatedAt: 'desc' }
       })
     ]);
 
-    // レスポンスデータ構築
-    const pickingData = {
-      tasks: pickingTasks.map(task => ({
+    // orderedProducts（ラベル生成済み商品）を動的にピッキングタスクに変換
+    const dynamicPickingTasks = orderedProducts.map(product => {
+      const order = product.orders?.[0]; // ラベル生成済みの注文
+      const customerName = order?.customerName || `注文: ${order?.orderNumber || 'N/A'}`;
+      const dueDate = new Date();
+      dueDate.setHours(dueDate.getHours() + 4); // 4時間後を期限とする
+
+      return {
+        id: `dynamic-${product.id}`,
+        orderId: order?.id || `order-${product.id}`,
+        customer: customerName,
+        customerName: customerName,
+        status: 'pending', // ピッキング待ち
+        priority: 'normal',
+        totalItems: 1,
+        pickedItems: 0,
+        progress: 0,
+        dueDate: dueDate.toISOString(),
+        items: [{
+          id: `item-${product.id}`,
+          productId: product.id,
+          productName: product.name,
+          sku: product.sku,
+          location: product.currentLocation?.code || 'UNKNOWN',
+          quantity: 1,
+          pickedQuantity: 0,
+          status: 'pending'
+        }]
+      };
+    });
+
+    // 既存のピッキングタスクと動的タスクを結合
+    const allTasks = [...pickingTasks.map(task => ({
         id: task.id,
         orderId: task.orderId,
         customer: task.customerName,
+        customerName: task.customerName,
         status: task.status,
         priority: task.priority,
         totalItems: task.totalItems,
@@ -56,16 +123,26 @@ export async function GET(request: NextRequest) {
           pickedQuantity: item.pickedQuantity,
           status: item.status
         }))
-      })),
+      })), ...dynamicPickingTasks];
+
+    // レスポンスデータ構築
+    const pickingData = {
+      tasks: allTasks,
       statistics: {
-        total: pickingTasks.length,
-        pending: taskStats.find(s => s.status === 'pending')?._count.status || 0,
+        total: allTasks.length, // 既存タスク + 動的タスクの合計
+        pending: (taskStats.find(s => s.status === 'pending')?._count.status || 0) + dynamicPickingTasks.length, // 動的タスクは全てpending
         inProgress: taskStats.find(s => s.status === 'in_progress')?._count.status || 0,
         completed: taskStats.find(s => s.status === 'completed')?._count.status || 0
       }
     };
 
-    return NextResponse.json(pickingData);
+    return NextResponse.json({
+      ...pickingData,
+      // 既存コンポーネントとの互換性のために追加
+      success: true,
+      stats: pickingData.statistics,
+      data: pickingData
+    });
   } catch (error) {
     console.error('[ERROR] Picking API:', error);
     
