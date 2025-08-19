@@ -370,20 +370,6 @@ export default function SalesPage() {
         {/* 注文管理 - 統合版 */}
         <div className="intelligence-card oceania">
           
-          {/* ヘッダー部分（上に移動） */}
-          <div className="p-6 border-b border-nexus-border">
-            <div className="flex justify-between items-center">
-              <div>
-                <h2 className="text-lg font-semibold text-nexus-text-primary">
-                  注文管理
-                </h2>
-                <p className="text-sm text-nexus-text-secondary mt-1">
-                  すべての受注・配送状況を管理
-                </p>
-              </div>
-            </div>
-          </div>
-          
           {/* フィルター・検索部分（タイトル削除版） */}
           <div className="p-6 border-b border-nexus-border">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -21,9 +21,7 @@ test.describe('セラー在庫管理UI修正テスト', () => {
     const unifiedCard = page.locator('div.bg-white.rounded-xl.border.border-nexus-border').nth(-1);
     await expect(unifiedCard).toBeVisible();
     
-    // 5. ヘッダー部分（上に移動）が存在することを確認
-    const listHeader = page.locator('h3:has-text("商品一覧")');
-    await expect(listHeader).toBeVisible();
+    // 一覧上部タイトル削除済み - タイトル部分のテストをスキップ
     
     // 6. 件数表示が存在することを確認
     const countText = page.locator('text=/\\d+件の商品を表示/');

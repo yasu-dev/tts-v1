@@ -168,7 +168,7 @@ export default function BillingPage() {
       <div className="space-y-8">
         {/* 統一ヘッダー */}
         <UnifiedPageHeader
-          title="請求管理"
+          title="請求・精算"
           subtitle="売上金の請求と精算状況を管理します"
           userType="seller"
           iconType="billing"

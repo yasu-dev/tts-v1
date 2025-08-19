@@ -556,7 +556,7 @@ export default function DashboardLayout({
       icon: icons.shipping
     },
     { 
-      label: '返品処理', 
+      label: '返品管理', 
       href: '/staff/returns',
       icon: icons.returns
     },

@@ -21,9 +21,7 @@ test.describe('UIの統一性検証', () => {
     const header = mainContainer.locator('div.p-6.border-b.border-gray-300').first();
     await expect(header).toBeVisible();
 
-    const title = header.locator('h3.text-lg.font-medium.text-nexus-text-primary');
-    await expect(title).toBeVisible();
-    await expect(title).toHaveText('納品プラン一覧');
+    // 一覧上部タイトル削除済み - タイトル部分のテストをスキップ
 
     const filterSection = mainContainer.locator('div.p-6.border-b.border-gray-300').nth(1);
     await expect(filterSection).toBeVisible();
@@ -42,9 +40,7 @@ test.describe('UIの統一性検証', () => {
     await expect(header).toBeVisible();
 
     // タイトルフォントの統一確認
-    const title = header.locator('h3.text-lg.font-medium.text-nexus-text-primary');
-    await expect(title).toBeVisible();
-    await expect(title).toHaveText('商品一覧');
+    // 一覧上部タイトル削除済み - タイトル部分のテストをスキップ
 
     // フィルター部分の統一確認
     const filterSection = mainContainer.locator('div.p-6.border-b.border-gray-300').nth(1);

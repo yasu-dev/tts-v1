@@ -317,14 +317,6 @@ export default function InventoryPage() {
         {/* 商品一覧 - 統合版 */}
         <div className="intelligence-card oceania">
           
-          {/* ヘッダー部分（上に移動） */}
-          <div className="p-6 border-b border-gray-300">
-            <h3 className="text-lg font-medium text-nexus-text-primary">商品一覧</h3>
-            <p className="text-nexus-text-secondary mt-1 text-sm">
-              {totalItems}件中 {sortedInventory.length}件を表示
-            </p>
-          </div>
-          
           {/* フィルター・検索部分（タイトル削除版） */}
           <div className="p-6 border-b border-gray-300">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

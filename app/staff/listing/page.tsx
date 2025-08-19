@@ -609,14 +609,7 @@ export default function ListingPage() {
 
             {/* 商品一覧テーブル */}
             <div className="bg-white rounded-xl border border-nexus-border p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h3 className="text-lg font-bold text-nexus-text-primary">商品一覧</h3>
-                  <p className="text-nexus-text-secondary mt-1 text-sm">
-                    {filteredProducts.length}件中 {Math.min(itemsPerPage, filteredProducts.length - (currentPage - 1) * itemsPerPage)}件を表示
-                  </p>
-                </div>
-              </div>
+
               
               <div className="overflow-x-auto">
                 <table className="w-full">

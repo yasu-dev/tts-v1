@@ -512,7 +512,7 @@ export default function StaffInventoryPage() {
       <div className="space-y-6 max-w-4xl mx-auto">
         {/* 統一ヘッダー */}
         <UnifiedPageHeader
-          title="スタッフ在庫管理"
+          title="在庫管理"
           subtitle="全セラーの商品を管理・操作"
           userType="staff"
           iconType="inventory"
@@ -521,13 +521,7 @@ export default function StaffInventoryPage() {
         {/* スタッフ在庫管理 - 統合版 */}
         <div className="intelligence-card oceania">
           
-          {/* ヘッダー部分（追加） */}
-          <div className="p-6 border-b border-gray-300">
-            <h3 className="text-lg font-medium text-nexus-text-primary">商品管理</h3>
-            <p className="text-nexus-text-secondary mt-1 text-sm">
-              {totalItems}件中 {paginatedItems.length}件を表示
-            </p>
-          </div>
+
           
           {/* フィルター部分（完全保持） */}
           <div className="p-6 border-b border-gray-300">

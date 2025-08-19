@@ -489,7 +489,7 @@ export default function DeliveryPage() {
       <div className="space-y-6">
         {/* ページヘッダー */}
         <UnifiedPageHeader 
-          title="納品プラン管理" 
+          title="納品管理" 
           subtitle="納品プランの作成・管理・追跡"
           userType="seller"
           iconType="delivery"
@@ -505,7 +505,6 @@ export default function DeliveryPage() {
           {/* ヘッダー部分（上に移動） */}
           <div className="p-6 border-b border-gray-300">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-medium text-nexus-text-primary">納品プラン一覧</h3>
               <NexusButton 
                 variant="primary" 
                 onClick={handleCreatePlan}

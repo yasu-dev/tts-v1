@@ -398,7 +398,7 @@ export default function ReturnsPage() {
       <DashboardLayout userType="staff">
         <div className="space-y-6">
           <UnifiedPageHeader
-            title="返品処理"
+            title="返品管理"
             subtitle="返品商品の検品と再出品を管理します"
             userType="staff"
             iconType="returns"
@@ -416,7 +416,7 @@ export default function ReturnsPage() {
       <DashboardLayout userType="staff">
         <div className="space-y-6">
           <UnifiedPageHeader
-            title="返品処理"
+            title="返品管理"
             subtitle="返品商品の検品と再出品を管理します"
             userType="staff"
           />
@@ -433,7 +433,7 @@ export default function ReturnsPage() {
       <DashboardLayout userType="staff">
         <div className="space-y-6">
           <UnifiedPageHeader
-            title="返品処理"
+            title="返品管理"
             subtitle="返品商品の検品と再出品を管理します"
             userType="staff"
           />
@@ -464,7 +464,7 @@ export default function ReturnsPage() {
       <DashboardLayout userType="staff">
         <div className="space-y-6">
           <UnifiedPageHeader
-            title="返品処理"
+            title="返品管理"
             subtitle="返品商品の検品と再出品を管理します"
             userType="staff"
             iconType="returns"
@@ -482,7 +482,7 @@ export default function ReturnsPage() {
       <DashboardLayout userType="staff">
         <div className="space-y-6">
           <UnifiedPageHeader
-            title="返品処理"
+            title="返品管理"
             subtitle="返品商品の検品と再出品を管理します"
             userType="staff"
             iconType="returns"
@@ -500,7 +500,7 @@ export default function ReturnsPage() {
       <DashboardLayout userType="staff">
         <div className="space-y-6">
           <UnifiedPageHeader
-            title="返品処理"
+            title="返品管理"
             subtitle="返品商品の検品と再出品を管理します"
             userType="staff"
             iconType="returns"
@@ -531,7 +531,7 @@ export default function ReturnsPage() {
       <div className="space-y-6">
         {/* 統一ヘッダー */}
         <UnifiedPageHeader
-          title="返品処理"
+          title="返品管理"
           subtitle="顧客からの返品リクエストを処理"
           userType="staff"
           iconType="returns"
@@ -560,9 +560,7 @@ export default function ReturnsPage() {
                 {/* 返品リスト */}
                 {!isUnsellableModalOpen && !isRelistingModalOpen && !isDetailModalOpen && (
                   <div className="intelligence-card oceania">
-                    <div className="p-6 border-b border-gray-300">
-                      <h3 className="text-lg font-medium text-nexus-text-primary">返品商品リスト</h3>
-                    </div>
+
                     <div className="p-6">
                       
                       {/* フィルター */}

@@ -676,13 +676,7 @@ export default function InspectionPage() {
         {/* 検品管理 - 統合版 */}
         <div className="intelligence-card oceania">
           
-          {/* ヘッダー部分（新規追加） */}
-          <div className="p-6 border-b border-gray-300">
-            <h3 className="text-lg font-medium text-nexus-text-primary">検品タスク管理</h3>
-            <p className="text-nexus-text-secondary mt-1 text-sm">
-              {filteredProducts.length}件の商品を表示
-            </p>
-          </div>
+
           
           {/* フィルター部分（完全保持） */}
           <div className="p-6 border-b border-gray-300">
@@ -751,14 +745,7 @@ export default function InspectionPage() {
             </nav>
           </div>
 
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-lg font-bold text-nexus-text-primary">検品リスト</h3>
-              <p className="text-nexus-text-secondary mt-1 text-sm">
-                {filteredProducts.length}件中 {Math.min(itemsPerPage, filteredProducts.length - (currentPage - 1) * itemsPerPage)}件を表示
-              </p>
-            </div>
-          </div>
+
             
           <div className="overflow-x-auto">
             <table className="holo-table">
