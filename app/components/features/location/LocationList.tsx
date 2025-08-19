@@ -72,12 +72,12 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
       setFilteredLocations(locations);
     } else {
       const filtered = locations.filter(location =>
-        location.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (location.code?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+        (location.name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
         location.products.some(product =>
-          product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          product.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          product.id.toLowerCase().includes(searchQuery.toLowerCase())
+          (product.name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+          (product.sku?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+          (product.id?.toLowerCase() || '').includes(searchQuery.toLowerCase())
         )
       );
       setFilteredLocations(filtered);
@@ -706,12 +706,12 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                   // 検索条件でフィルタリング
                   if (!searchQuery) return true;
                   
-                  return locationGroup.locationCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    locationGroup.locationName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  return (locationGroup.locationCode?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+                    (locationGroup.locationName?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
                     locationGroup.items.some((item: any) => 
-                      item.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      item.productId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      item.sku?.toLowerCase().includes(searchQuery.toLowerCase())
+                      (item.productName?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+                      (item.productId?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+                      (item.sku?.toLowerCase() || '').includes(searchQuery.toLowerCase())
                     );
                 }).map((locationGroup) => {
                   const activeItems = locationGroup.items.filter((item: any) => 
