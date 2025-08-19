@@ -35,6 +35,7 @@ export default function PackagingAndLabelStep({
   const [labelPrinted, setLabelPrinted] = useState(false);
   const [labelAttached, setLabelAttached] = useState(false);
   const [isGeneratingLabel, setIsGeneratingLabel] = useState(false);
+  const [notes, setNotes] = useState('');
 
   const handlePackagingComplete = () => {
     setPackagingCompleted(true);
@@ -59,7 +60,8 @@ export default function PackagingAndLabelStep({
           sku: product.sku,
           name: product.name,
           brand: product.brand,
-          model: product.model
+          model: product.model,
+          notes: notes
         })
       });
 
@@ -168,9 +170,27 @@ export default function PackagingAndLabelStep({
             <div className="bg-gray-50 p-3 rounded mb-4 text-sm">
               <div><strong>SKU:</strong> {product.sku}</div>
               <div><strong>商品名:</strong> {product.name}</div>
-              <div><strong>ブランド:</strong> {product.brand}</div>
-              <div><strong>モデル:</strong> {product.model}</div>
             </div>
+            
+            {/* 備考入力フィールド */}
+            <div className="mb-4">
+              <label htmlFor="label-notes" className="block text-sm font-medium text-gray-700 mb-2">
+                備考（任意）
+              </label>
+              <textarea
+                id="label-notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="ラベルに印刷する備考を入力してください（任意）"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows={2}
+                maxLength={100}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                最大100文字まで入力可能です
+              </p>
+            </div>
+            
             {packagingCompleted && !labelPrinted && (
               <NexusButton
                 onClick={handleLabelGeneration}

@@ -27,11 +27,15 @@ export async function POST(
     const productId = params.id;
     const body = await request.json();
 
-    // 商品情報を取得
+    // 商品情報を取得（seller、currentLocationも含む）
     let product = null;
     try {
       product = await prisma.product.findUnique({
-        where: { id: productId }
+        where: { id: productId },
+        include: {
+          seller: true,
+          currentLocation: true
+        }
       });
     } catch (prismaError) {
       console.log('Prisma error, using fallback:', prismaError);
@@ -47,7 +51,15 @@ export async function POST(
         brand: 'デモブランド',
         model: `モデル${productId}`,
         category: 'camera',
-        price: 100000
+        price: 100000,
+        entryDate: new Date(),
+        seller: {
+          fullName: 'デモ管理者',
+          username: 'demo-user'
+        },
+        currentLocation: {
+          name: 'デモ保管場所'
+        }
       };
       
       console.log(`🔄 デモモード: 商品ID ${productId} のフォールバックデータを使用`);
@@ -63,6 +75,11 @@ export async function POST(
       model: 'Unknown',
       price: typeof product.price === 'number' ? product.price : undefined,
       generatedBy: user.username,
+      sellerName: product.seller?.fullName || product.seller?.username || 'Unknown',
+      sellerUsername: product.seller?.username || 'Unknown',
+      locationName: product.currentLocation?.name || '未設定',
+      entryDate: product.entryDate ? new Date(product.entryDate).toLocaleDateString('ja-JP') : '',
+      notes: body.notes || '',
     };
 
     // 商品ラベルPDFを生成
@@ -74,6 +91,11 @@ export async function POST(
       model: labelData.model,
       price: labelData.price,
       generatedBy: labelData.generatedBy,
+      sellerName: labelData.sellerName,
+      sellerUsername: labelData.sellerUsername,
+      locationName: labelData.locationName,
+      entryDate: labelData.entryDate,
+      notes: labelData.notes,
     });
 
     // PDFをBase64にエンコード

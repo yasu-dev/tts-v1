@@ -1,6 +1,14 @@
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
+// jsPDFに日本語フォントを追加
+const addJapaneseFont = (pdf: any) => {
+  // 日本語対応のためのBase64フォントデータ（簡易版）
+  // 実際の本格運用では、適切な日本語フォントファイルを使用
+  pdf.addFont('NotoSansCJK-Regular.ttf', 'NotoSansCJK', 'normal');
+  pdf.setFont('NotoSansCJK');
+};
+
 // 型定義
 interface BarcodeLabel {
   sku: string;
@@ -11,12 +19,19 @@ interface BarcodeLabel {
 }
 
 interface ProductLabelData {
+  productId: string;
   sku: string;
   name: string;
   brand?: string;
   model?: string;
   price?: number;
   category?: string;
+  generatedBy?: string;
+  sellerName?: string;
+  sellerUsername?: string;
+  locationName?: string;
+  entryDate?: string;
+  notes?: string;
 }
 
 /**
@@ -693,137 +708,177 @@ export class PDFGenerator {
   }
 
   /**
-   * 商品ラベルPDF生成
+   * 商品ラベルPDF生成（表形式）
    */
   static async generateProductLabel(data: ProductLabelData): Promise<Blob> {
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
-      format: [100, 150] // 100mm x 150mm のラベルサイズ
+      format: [100, 150], // 100mm x 150mm のラベルサイズ
+      putOnlyUsedFonts: true,
+      compress: true
     });
+
+    // 日本語文字対応の設定
+    // シンプルにhelveticaフォントを使用し、文字を英数字とローマ字で表示
+    pdf.setFont('helvetica');
+    
+    // jsPDFの内部エンコーディング設定
+    pdf.internal.getCharWidthsArray = function() {
+      return [1]; // 固定幅を返す
+    };
 
     const labelWidth = 100;
     const labelHeight = 150;
     const margin = 5;
 
-    // ラベル枠線
+    // ラベル外枠
     pdf.setDrawColor(0);
     pdf.setLineWidth(0.5);
     pdf.rect(2, 2, labelWidth - 4, labelHeight - 4);
 
-    // 会社ロゴ・名称
-    pdf.setFontSize(16);
+    // タイトル
+    pdf.setFontSize(14);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('THE WORLD DOOR', labelWidth / 2, 15, { align: 'center' });
+    pdf.text('Product Label (Proposal)', labelWidth / 2, 12, { align: 'center' });
 
-    // 区切り線
+    // 説明文
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('Detailed product information to reduce identification errors', 
+             labelWidth / 2, 18, { align: 'center' });
+
+    // 表の開始位置
+    let currentY = 25;
+    const tableX = margin;
+    const tableWidth = labelWidth - (margin * 2);
+    const labelColWidth = 25;
+    const valueColWidth = tableWidth - labelColWidth;
+    const rowHeight = 12;
+
+    // 文字化けを避けるため、値部分を英数字に変換
+    const sanitizeText = (text: string) => {
+      if (!text) return 'N/A';
+      
+      // 日本語をローマ字に変換（基本的な変換）
+      const romajiMap: { [key: string]: string } = {
+        'デモ': 'Demo',
+        'カメラ': 'Camera', 
+        '時計': 'Watch',
+        '管理者': 'Manager',
+        'スタッフ': 'Staff',
+        'ユーザー': 'User',
+        '商品': 'Product',
+        '保管': 'Storage',
+        '場所': 'Location',
+        '未設定': 'Unset',
+        'テスト': 'Test'
+      };
+      
+      let result = text;
+      // 基本的な日本語をローマ字に変換
+      Object.keys(romajiMap).forEach(jp => {
+        result = result.replace(new RegExp(jp, 'g'), romajiMap[jp]);
+      });
+      
+      // まだ残っている日本語文字は削除
+      result = result.replace(/[^\x00-\x7F]/g, '').trim();
+      
+      return result || 'N/A';
+    };
+
+    // 表のデータ（ラベルをローマ字、値も英数字のみで表示）
+    const tableData = [
+      { label: 'Kanri-sha', value: sanitizeText(data.sellerName || 'Unknown') },
+      { label: 'User Ninii-bango', value: sanitizeText(data.sellerUsername || 'Unknown') },
+      { label: 'User Code', value: sanitizeText(data.sellerUsername || 'Unknown') },
+      { label: 'Shohin-mei', value: sanitizeText(data.name || '') },
+      { label: 'Hokan-basho', value: sanitizeText(data.locationName || 'Unset') },
+      { label: 'Nounyuu-nengetsu', value: data.entryDate || new Date().toLocaleDateString('en-US') },
+      { label: 'Bikou', value: sanitizeText(data.notes || '') }
+    ];
+
+    // 表の描画
+    pdf.setDrawColor(0);
     pdf.setLineWidth(0.3);
-    pdf.line(margin, 20, labelWidth - margin, 20);
-
-    // 商品情報
-    let yPos = 30;
-    
-    // SKU
-    pdf.setFontSize(12);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('SKU:', margin, yPos);
-    pdf.setFont('helvetica', 'normal');
-    pdf.text(data.sku, margin + 15, yPos);
-
-    yPos += 8;
-    
-    // 商品名（複数行対応）
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('商品名:', margin, yPos);
-    pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(10);
-    const nameLines = pdf.splitTextToSize(data.name, labelWidth - 20);
-    pdf.text(nameLines, margin, yPos + 6);
+
+    for (let i = 0; i < tableData.length; i++) {
+      const y = currentY + (i * rowHeight);
+      
+      // 行の背景（奇数行は薄いグレー）
+      if (i % 2 === 1) {
+        pdf.setFillColor(245, 245, 245);
+        pdf.rect(tableX, y, tableWidth, rowHeight, 'F');
+      }
+
+      // セルの枠線
+      pdf.rect(tableX, y, labelColWidth, rowHeight);
+      pdf.rect(tableX + labelColWidth, y, valueColWidth, rowHeight);
+
+      // ラベル列（太字）
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(tableData[i].label, tableX + 2, y + 8);
+
+      // 値列（通常）
+      pdf.setFont('helvetica', 'normal');
+      const valueText = tableData[i].value;
+      const valueLines = pdf.splitTextToSize(valueText, valueColWidth - 4);
+      
+      if (valueLines.length > 1) {
+        // 複数行の場合は小さいフォントで
+        pdf.setFontSize(8);
+        for (let j = 0; j < Math.min(valueLines.length, 2); j++) {
+          pdf.text(valueLines[j], tableX + labelColWidth + 2, y + 6 + (j * 4));
+        }
+        pdf.setFontSize(10);
+      } else {
+        pdf.text(valueText, tableX + labelColWidth + 2, y + 8);
+      }
+    }
+
+    // 商品コード（バーコード）セクション
+    currentY += tableData.length * rowHeight + 5;
     
-    yPos += 6 + (nameLines.length * 4);
+    // 商品コードセルの外枠
+    pdf.rect(tableX, currentY, labelColWidth, rowHeight);
+    pdf.rect(tableX + labelColWidth, currentY, valueColWidth, rowHeight * 2);
 
-    // ブランド・モデル
-    if (data.brand) {
-      yPos += 4;
-      pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(11);
-      pdf.text('ブランド:', margin, yPos);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text(data.brand, margin + 25, yPos);
-    }
+    // 商品コードラベル
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Product Code', tableX + 2, currentY + 8);
 
-    if (data.model) {
-      yPos += 6;
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('モデル:', margin, yPos);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text(data.model, margin + 20, yPos);
-    }
-
-    // バーコード生成エリア
-    yPos += 15;
-    const barcodeWidth = labelWidth - 20;
-    const barcodeHeight = 20;
-    const barcodeX = (labelWidth - barcodeWidth) / 2;
+    // バーコード生成
+    const barcodeX = tableX + labelColWidth + 2;
+    const barcodeY = currentY + 3;
+    const barcodeWidth = valueColWidth - 4;
+    const barcodeHeight = 15;
     
     // バーコード背景
     pdf.setFillColor(255, 255, 255);
-    pdf.rect(barcodeX - 2, yPos - 2, barcodeWidth + 4, barcodeHeight + 4, 'F');
+    pdf.rect(barcodeX, barcodeY, barcodeWidth, barcodeHeight, 'F');
     
-    // バーコード線（簡易実装）
+    // バーコード線
     pdf.setLineWidth(0.8);
     pdf.setDrawColor(0);
     
     const barcodeData = data.sku.replace(/[^A-Za-z0-9]/g, '');
-    const barCount = 50;
+    const barCount = Math.floor(barcodeWidth * 2);
     
     for (let i = 0; i < barCount; i++) {
       const x = barcodeX + (i * (barcodeWidth / barCount));
       const shouldDraw = PDFGenerator.getBarcodePattern(barcodeData, i);
       
       if (shouldDraw) {
-        pdf.setLineWidth(1);
-        pdf.line(x, yPos, x, yPos + barcodeHeight);
+        pdf.setLineWidth(0.5);
+        pdf.line(x, barcodeY, x, barcodeY + barcodeHeight);
       }
     }
     
     // バーコード番号
-    yPos += barcodeHeight + 8;
-    pdf.setFontSize(10);
-    pdf.setFont('helvetica', 'normal');
-    pdf.text(data.sku, labelWidth / 2, yPos, { align: 'center' });
-
-    // 価格（もしあれば）
-    if (data.price) {
-      yPos += 12;
-      pdf.setFontSize(14);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text(`¥${data.price.toLocaleString()}`, labelWidth / 2, yPos, { align: 'center' });
-    }
-
-    // 生成日時
-    yPos += 15;
     pdf.setFontSize(8);
     pdf.setFont('helvetica', 'normal');
-    pdf.text(`生成日: ${new Date().toLocaleDateString('ja-JP')}`, margin, yPos);
-    
-    yPos += 4;
-    pdf.text(`生成者: ${data.generatedBy || 'システム'}`, margin, yPos);
-
-    // QRコード風エリア（右下）
-    const qrSize = 25;
-    const qrX = labelWidth - qrSize - margin;
-    const qrY = labelHeight - qrSize - margin;
-    
-    pdf.setFillColor(0);
-    // 簡易QRコードパターン
-    for (let row = 0; row < 12; row++) {
-      for (let col = 0; col < 12; col++) {
-        if (PDFGenerator.getQRPattern(barcodeData, row, col)) {
-          pdf.rect(qrX + col * 2, qrY + row * 2, 2, 2, 'F');
-        }
-      }
-    }
+    pdf.text(data.sku, barcodeX + (barcodeWidth / 2), barcodeY + barcodeHeight + 8, { align: 'center' });
 
     return pdf.output('blob');
   }
