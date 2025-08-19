@@ -14,12 +14,33 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '50'); // デフォルト50件（ページネーション表示のため）
     const offset = (page - 1) * limit;
+    
+    // ステータスフィルタリングパラメータ
+    const statusFilter = searchParams.get('status') || 'all';
 
-    console.log(`📄 ページネーションパラメータ: page=${page}, limit=${limit}, offset=${offset}`);
+    console.log(`📄 ページネーションパラメータ: page=${page}, limit=${limit}, offset=${offset}, statusFilter=${statusFilter}`);
 
-    // 総数とページネーション対応データを並行取得
-    const [shipments, totalCount] = await Promise.all([
+    // ステータスフィルタリング条件を構築
+    const getStatusFilter = (filter: string) => {
+      switch (filter) {
+        case 'workstation':
+          return { status: { in: ['pending', 'picked'] } }; // pending→workstation, picked→picked
+        case 'packed':
+          return { status: 'packed' };
+        case 'ready_for_pickup':
+          return { status: 'delivered' }; // delivered→ready_for_pickup
+        case 'all':
+        default:
+          return { status: { in: ['pending', 'picked', 'packed', 'shipped', 'delivered'] } };
+      }
+    };
+
+    const whereClause = getStatusFilter(statusFilter);
+
+    // 全タブの統計情報を並行取得
+    const [shipments, totalCount, allCount, workstationCount, packedCount, readyForPickupCount] = await Promise.all([
       prisma.shipment.findMany({
+        where: whereClause,
         include: {
           order: {
             include: {
@@ -37,7 +58,25 @@ export async function GET(request: NextRequest) {
         take: limit,
         skip: offset,
       }),
-      prisma.shipment.count(),
+      prisma.shipment.count({
+        where: whereClause,
+      }),
+      // 全ステータス
+      prisma.shipment.count({
+        where: { status: { in: ['pending', 'picked', 'packed', 'shipped', 'delivered'] } }
+      }),
+      // 梱包待ち (pending + picked)
+      prisma.shipment.count({
+        where: { status: { in: ['pending', 'picked'] } }
+      }),
+      // 梱包済み
+      prisma.shipment.count({
+        where: { status: 'packed' }
+      }),
+      // 集荷準備完了 (delivered)
+      prisma.shipment.count({
+        where: { status: 'delivered' }
+      }),
     ]);
 
     console.log(`📦 Shipmentデータ取得: ${shipments.length}件 / 総数: ${totalCount}件`);
@@ -115,6 +154,12 @@ export async function GET(request: NextRequest) {
         totalPages: Math.ceil(totalCount / limit),
         totalCount: totalCount,
         limit: limit,
+      },
+      stats: {
+        total: allCount,
+        workstation: workstationCount,
+        packed: packedCount,
+        ready_for_pickup: readyForPickupCount,
       }
     });
   } catch (error) {

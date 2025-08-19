@@ -88,16 +88,24 @@ export default function StaffShippingPage() {
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  
+  // タブ統計情報
+  const [tabStats, setTabStats] = useState({
+    total: 0,
+    workstation: 0,
+    packed: 0,
+    ready_for_pickup: 0,
+  });
 
   const router = useRouter();
   const { showToast } = useToast();
 
   useEffect(() => {
     // APIから配送データを取得
-      const fetchShippingItems = async (page: number = 1, limit: number = itemsPerPage) => {
+      const fetchShippingItems = async (page: number = 1, limit: number = itemsPerPage, status: string = activeTab) => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/orders/shipping?page=${page}&limit=${limit}`);
+      const response = await fetch(`/api/orders/shipping?page=${page}&limit=${limit}&status=${status}`);
       if (!response.ok) {
         throw new Error('Failed to fetch shipping data');
       }
@@ -131,6 +139,11 @@ export default function StaffShippingPage() {
         setTotalPages(data.pagination.totalPages);
       }
       
+      // 統計情報を保存
+      if (data.stats) {
+        setTabStats(data.stats);
+      }
+      
       console.log(`✅ 配送データ取得完了: ${shippingItems.length}件 (ページ: ${page}/${data.pagination?.totalPages || 1})`);
         
         // 基本統計データも設定
@@ -152,34 +165,19 @@ export default function StaffShippingPage() {
       }
     };
 
-    fetchShippingItems(currentPage, itemsPerPage);
-  }, [currentPage, itemsPerPage]);
+    fetchShippingItems(currentPage, itemsPerPage, activeTab);
+  }, [currentPage, itemsPerPage, activeTab]);
 
-  // タブごとのフィルタリング
-  const tabFilters: Record<string, (item: ShippingItem) => boolean> = {
-    'all': (item) => ['picked', 'workstation', 'packed', 'shipped', 'ready_for_pickup'].includes(item.status),
-    'workstation': (item) => item.status === 'picked' || item.status === 'workstation',
-    'packed': (item) => item.status === 'packed',
-    'ready_for_pickup': (item) => item.status === 'ready_for_pickup'
-  };
-
-  // フィルタリング
-  const filteredItems = useMemo(() => {
+  // 表示用データ（同梱された個別商品のみ非表示）
+  const paginatedItems = useMemo(() => {
     return items.filter(item => {
-      // 同梱された個別商品は表示しない
+      // 同梱された個別商品は表示しない（同梱パッケージは表示）
       if (item.isBundled && !item.isBundle) {
         return false;
       }
-      
-      const tabMatch = tabFilters[activeTab] ? tabFilters[activeTab](item) : true;
-      return tabMatch;
+      return true;
     });
-  }, [items, activeTab]);
-
-  // サーバーサイドページネーション: itemsは既にAPIでページネーションされているためフィルタリングのみ
-  const paginatedItems = useMemo(() => {
-    return filteredItems; // サーバーサイドでページネーション済み
-  }, [filteredItems]);
+  }, [items]);
 
   // フィルター変更時はページを1に戻す
   useEffect(() => {
@@ -815,13 +813,7 @@ export default function StaffShippingPage() {
     setSelectedDetailItem(item);
   };
 
-  const stats = {
-    total: items.filter(i => (!i.isBundled || i.isBundle) && ['picked', 'workstation', 'packed', 'shipped', 'ready_for_pickup'].includes(i.status)).length,
-    workstation: items.filter(i => (!i.isBundled || i.isBundle) && (i.status === 'picked' || i.status === 'workstation')).length,
-    packed: items.filter(i => (!i.isBundled || i.isBundle) && i.status === 'packed').length,
-    shipped: items.filter(i => (!i.isBundled || i.isBundle) && i.status === 'shipped').length,
-    ready_for_pickup: items.filter(i => (!i.isBundled || i.isBundle) && i.status === 'ready_for_pickup').length
-  };
+  // 統計情報はAPIから取得したtabStatsを使用
 
   if (loading) {
     return (
@@ -855,10 +847,10 @@ export default function StaffShippingPage() {
             <div className="border-b border-nexus-border mb-6">
               <nav className="-mb-px flex space-x-8" aria-label="Tabs">
                 {[
-                  { id: 'all', label: '全体', count: stats.total },
-                  { id: 'workstation', label: '梱包待ち', count: stats.workstation },
-                  { id: 'packed', label: '梱包済み', count: stats.packed },
-                  { id: 'ready_for_pickup', label: '集荷準備完了', count: stats.ready_for_pickup },
+                  { id: 'all', label: '全体', count: tabStats.total },
+                  { id: 'workstation', label: '梱包待ち', count: tabStats.workstation },
+                  { id: 'packed', label: '梱包済み', count: tabStats.packed },
+                  { id: 'ready_for_pickup', label: '集荷準備完了', count: tabStats.ready_for_pickup },
                 ].map((tab) => (
                   <button
                     key={tab.id}
