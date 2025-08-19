@@ -581,13 +581,17 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                       <div className="flex gap-4 text-sm text-nexus-text-secondary">
                         {location.temperature && (
                           <span className="flex items-center gap-1">
-                            <div className="action-orb w-5 h-5">🌡️</div>
+                            <svg className="w-4 h-4 text-nexus-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 6v6l4.24 4.24a1 1 0 11-1.42 1.42L12 14h-1a5 5 0 110-10h1z" />
+                            </svg>
                             {location.temperature}
                           </span>
                         )}
                         {location.humidity && (
                           <span className="flex items-center gap-1">
-                            <div className="action-orb blue w-5 h-5">💧</div>
+                            <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                            </svg>
                             {location.humidity}
                           </span>
                         )}
@@ -658,9 +662,25 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                           {location.products.length}
                         </td>
                         <td className="px-4 py-4 text-sm">
-                          {location.temperature && `🌡️ ${location.temperature} `}
-                          {location.humidity && `💧 ${location.humidity}`}
-                          {!location.temperature && !location.humidity && '-'}
+                          <div className="flex items-center gap-2">
+                            {location.temperature && (
+                              <span className="flex items-center gap-1">
+                                <svg className="w-4 h-4 text-nexus-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 6v6l4.24 4.24a1 1 0 11-1.42 1.42L12 14h-1a5 5 0 110-10h1z" />
+                                </svg>
+                                {location.temperature}
+                              </span>
+                            )}
+                            {location.humidity && (
+                              <span className="flex items-center gap-1">
+                                <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                                </svg>
+                                {location.humidity}
+                              </span>
+                            )}
+                            {!location.temperature && !location.humidity && '-'}
+                          </div>
                         </td>
                       </tr>
                     );
@@ -693,9 +713,39 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                 <div className="text-center p-8 text-nexus-text-secondary">
                   ピッキング対象の商品はありません
                   <p className="text-sm mt-2">ラベル準備完了後、商品がここに表示されます</p>
+                  {searchQuery && (
+                    <div className="mt-4 flex items-center gap-2">
+                      <svg className="w-4 h-4 text-nexus-yellow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                      <p className="text-sm font-medium text-nexus-yellow">
+                        「{searchQuery}」の検索結果を表示するには、「グリッド」または「リスト」ビューに切り替えてください。
+                      </p>
+                    </div>
+                  )}
                 </div>
               ) : (
-                shippingData.filter(locationGroup => {
+                <>
+                  {/* 検索結果がある場合の注意メッセージ */}
+                  {searchQuery && filteredLocations.length > 0 && (
+                    <div className="holo-card p-4 border-l-4 border-nexus-yellow">
+                      <div className="flex items-start gap-3">
+                        <svg className="w-5 h-5 text-nexus-yellow flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        <div>
+                          <p className="font-medium text-nexus-text-primary">
+                            検索結果: 「{searchQuery}」で{filteredLocations.length}件のロケーションが見つかりました
+                          </p>
+                          <p className="text-sm text-nexus-text-secondary mt-1">
+                            詳細を確認するには「グリッド」または「リスト」ビューに切り替えてください。
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {shippingData.filter(locationGroup => {
                   // ピッキング待ちの商品があるロケーションのみ表示
                   const activeItems = locationGroup.items.filter((item: any) => 
                     item.status === 'ピッキング待ち'
@@ -885,6 +935,8 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                   </div>
                   );
                 })
+                }
+                </>
               )}
             </div>
           )}

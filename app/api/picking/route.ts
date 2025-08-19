@@ -288,9 +288,72 @@ export async function POST(request: NextRequest) {
       });
       console.log('[STEP 6 OK] ピッキングアイテム作成成功（デモモード）:', pickingItems.length, '件');
 
-      // 4. 商品のステータスを更新（デモモード - ログのみ）
-      console.log('[STEP 7] 商品ステータス更新開始（デモモード）');
+      // 4. 商品のステータスを更新
+      console.log('[STEP 7] 商品ステータス更新開始');
       const newStatus = action === 'create_picking_instruction' ? 'workstation' : 'ordered';
+      
+      // 実際に商品ステータスを更新
+      try {
+        await prisma.product.updateMany({
+          where: {
+            id: { in: productIds }
+          },
+          data: {
+            status: newStatus
+          }
+        });
+        console.log(`[STEP 7 OK] 商品ステータス更新完了: ${productIds.length}件 -> ${newStatus}`);
+      } catch (updateError) {
+        console.log('[STEP 7 WARNING] 商品ステータス更新失敗（デモモード継続）:', updateError);
+      }
+      
+      // Shipmentエントリを作成（出荷管理で表示するため）
+      if (action === 'create_picking_instruction') {
+        console.log('[STEP 8] Shipmentエントリ作成開始');
+        for (const product of products) {
+          try {
+            // 各商品の注文情報を取得
+            let orderInfo = null;
+            try {
+              const orderItem = await prisma.orderItem.findFirst({
+                where: { productId: product.id },
+                include: {
+                  order: {
+                    include: {
+                      customer: true
+                    }
+                  }
+                }
+              });
+              if (orderItem) {
+                orderInfo = orderItem.order;
+              }
+            } catch (e) {
+              console.log(`[STEP 8 WARNING] 注文情報取得失敗 (productId: ${product.id})`);
+            }
+            
+            await prisma.shipment.create({
+              data: {
+                orderId: orderInfo?.id || `temp-order-${product.id}`,
+                productId: product.id,
+                status: 'picked', // ピッキング完了状態
+                carrier: 'pending',
+                method: 'standard',
+                customerName: orderInfo?.customerName || `ロケーション: ${locationName}`,
+                address: orderInfo?.shippingAddress || '',
+                deadline: dueDate,
+                priority: 'normal',
+                value: product.price || 0,
+                notes: `ピッキング指示作成済み - ロケーション: ${locationName}`,
+              }
+            });
+            console.log(`[STEP 8 OK] Shipmentエントリ作成成功 (productId: ${product.id})`);
+          } catch (shipmentError) {
+            console.log(`[STEP 8 WARNING] Shipmentエントリ作成失敗 (productId: ${product.id}):`, shipmentError);
+          }
+        }
+      }
+      
       console.log('[STEP 7 OK] 商品ステータス更新成功（デモモード）:', newStatus);
 
       // 5. アクティビティログを記録（デモモード - ログのみ）

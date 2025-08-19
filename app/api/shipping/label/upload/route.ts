@@ -105,14 +105,71 @@ export async function POST(request: NextRequest) {
         data: updateData
       });
 
-      // 関連商品のステータスを ordered に更新
+      // 関連商品のステータスを ordered に更新し、ピッキング用ロケーションに紐付け
       const productIds = order.items.map(item => item.productId);
-      await prisma.product.updateMany({
+      console.log('対象商品ID:', productIds);
+      
+      // デフォルトのピッキング用ロケーションを取得または作成
+      console.log('PICK-01ロケーション確認中...');
+      let pickingLocation = await prisma.location.findFirst({
         where: {
-          id: { in: productIds }
-        },
+          code: 'PICK-01'
+        }
+      });
+      
+      if (!pickingLocation) {
+        console.log('PICK-01が存在しません。作成中...');
+        try {
+          pickingLocation = await prisma.location.create({
+            data: {
+              code: 'PICK-01',
+              name: 'ピッキングエリア 1',
+              zone: 'picking',
+              capacity: 1000,
+              isActive: true
+            }
+          });
+          console.log('✅ PICK-01ロケーション作成完了:', pickingLocation.id);
+        } catch (locationError) {
+          console.error('❌ PICK-01作成エラー:', locationError);
+          throw locationError;
+        }
+      } else {
+        console.log('✅ PICK-01ロケーション既存確認:', pickingLocation.id);
+      }
+      
+      console.log('商品ステータス更新中...');
+      try {
+        const updateResult = await prisma.product.updateMany({
+          where: {
+            id: { in: productIds }
+          },
+          data: {
+            status: 'ordered',
+            currentLocationId: pickingLocation.id
+          }
+        });
+        console.log('✅ 商品ステータス更新完了:', updateResult.count, '件更新');
+      } catch (updateError) {
+        console.error('❌ 商品ステータス更新エラー:', updateError);
+        throw updateError;
+      }
+
+      // Shipmentエントリを作成（出荷準備中として）
+      await prisma.shipment.create({
         data: {
-          status: 'ordered'
+          orderId: order.id,
+          productId: productIds[0], // 最初の商品IDを使用
+          status: 'pending', // 出荷準備中
+          carrier: carrier || 'other',
+          method: 'standard',
+          trackingNumber: trackingNumber || null,
+          customerName: order.customerName || 'Unknown Customer',
+          address: order.shippingAddress || '',
+          deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7日後をデフォルト期限とする
+          priority: 'normal',
+          value: order.totalAmount || 0,
+          notes: `外部配送業者のラベルアップロード済み`,
         }
       });
 
