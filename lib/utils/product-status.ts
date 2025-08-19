@@ -119,3 +119,77 @@ export function filterProductsByInspectionPhotographyStatus(
     }
   });
 }
+
+// ステップ名を取得するユーティリティ
+export function getStepName(step: number): string {
+  switch (step) {
+    case 1: return '検品項目';
+    case 2: return '写真撮影';
+    case 3: return '梱包・ラベル';
+    case 4: return '棚保管';
+    default: return '不明';
+  }
+}
+
+// バーコードスキャン時の遷移先自動判断
+export interface ScanDestination {
+  step: number;
+  tab: string;
+  message: string;
+  reason: string;
+}
+
+export function determineBarcodeDestination(product: any): ScanDestination {
+  const metadata = parseProductMetadata(product.metadata);
+  
+  console.log('[DEBUG] バーコードスキャン判定:', {
+    productId: product.id,
+    status: product.status,
+    metadata: metadata,
+    inspectionCompleted: metadata.inspectionCompleted,
+    currentStep: metadata.currentStep
+  });
+
+  // 1. 納品直後（検品未実施）→ 検品項目タブ
+  if (product.status === 'pending_inspection' || 
+      product.status === 'inbound' ||
+      (!metadata.inspectionCompleted && product.status === 'inspecting')) {
+    return {
+      step: 1,
+      tab: 'inspection',
+      message: `${product.name} の検品項目画面へ移動します`,
+      reason: '納品直後・検品未実施'
+    };
+  }
+  
+  // 2. 検品完了済み（棚保管が必要）→ 棚保管タブ  
+  if ((product.status === 'inspecting' && metadata.inspectionCompleted) ||
+      product.status === 'storage' ||
+      metadata.currentStep >= 4) {
+    return {
+      step: 4,
+      tab: 'storage',
+      message: `${product.name} の棚保管画面へ移動します`,
+      reason: '検品完了済み・棚保管処理'
+    };
+  }
+  
+  // 3. 検品中の場合、現在のステップに応じて判定
+  if (product.status === 'inspecting' && metadata.currentStep) {
+    const step = metadata.currentStep;
+    return {
+      step: step,
+      tab: step >= 4 ? 'storage' : 'inspection',
+      message: `${product.name} の${getStepName(step)}画面へ移動します`,
+      reason: `検品中・ステップ${step}継続`
+    };
+  }
+  
+  // 4. デフォルト：検品項目タブから開始
+  return {
+    step: 1,
+    tab: 'inspection',  
+    message: `${product.name} の検品項目画面へ移動します`,
+    reason: 'デフォルト判定・検品開始'
+  };
+}

@@ -61,6 +61,30 @@ export default function PhotoUploader({
   const [enhancedPhotos, setEnhancedPhotos] = useState<string[]>([]);
   const [approvedEnhancements, setApprovedEnhancements] = useState<boolean[]>([]);
   
+  // 画像ホバー拡大機能用のstate
+  const [hoveredImage, setHoveredImage] = useState<{type: 'before' | 'after', index: number} | null>(null);
+  const [mousePosition, setMousePosition] = useState<{x: number, y: number}>({x: 0, y: 0});
+  const [showZoom, setShowZoom] = useState(false);
+
+  // 画像ホバー拡大機能のイベントハンドラ
+  const handleImageMouseEnter = (type: 'before' | 'after', index: number) => {
+    setHoveredImage({type, index});
+    setShowZoom(true);
+  };
+
+  const handleImageMouseMove = (e: React.MouseEvent<HTMLImageElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setMousePosition({x, y});
+  };
+
+  const handleImageMouseLeave = () => {
+    setHoveredImage(null);
+    setShowZoom(false);
+    setMousePosition({x: 0, y: 0});
+  };
+  
   // 写真スロット定義（複数枚対応）
   const [photoSlots, setPhotoSlots] = useState<PhotoSlot[]>([
     { id: 'front', label: '正面', description: '正面全体', photos: [], required: true },
@@ -641,8 +665,8 @@ export default function PhotoUploader({
 
       {/* AI品質向上 ビフォア・アフター比較モーダル */}
       {showBeforeAfter && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-6xl max-h-[90vh] overflow-auto" ref={beforeAfterModalRef}>
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-2">
+          <div className="bg-white rounded-lg max-w-[95vw] max-h-[95vh] overflow-auto" ref={beforeAfterModalRef}>
             <div className="p-4 border-b">
               <h3 className="text-lg font-semibold">AI品質向上 - ビフォア・アフター比較</h3>
               <p className="text-sm text-gray-600 mt-1">
@@ -650,7 +674,7 @@ export default function PhotoUploader({
               </p>
             </div>
             
-            <div className="p-4 space-y-4 max-h-[60vh] overflow-y-auto">
+            <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
               {uploadedPhotos.map((originalPhoto, index) => (
                 <div key={index} className="border rounded-lg p-3">
                   <div className="flex items-center justify-between mb-3">
@@ -673,81 +697,189 @@ export default function PhotoUploader({
                     </label>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-8 relative">
                     {/* ビフォア */}
                     <div>
                       <h5 className="text-sm font-medium text-gray-700 mb-2 text-center">
-                        ビフォア（元画像）
+                        {showZoom && hoveredImage?.type === 'after' && hoveredImage?.index === index 
+                          ? 'アフター画像 (AI向上済み) - 8倍拡大表示' 
+                          : 'ビフォア（元画像）'
+                        }
                       </h5>
-                      <div className="border-2 border-gray-300 rounded-lg overflow-hidden">
-                        <img
-                          src={originalPhoto}
-                          alt={`元画像 ${index + 1}`}
-                          className="w-full h-48 object-cover cursor-zoom-in"
-                          onClick={() => {
-                            const modal = document.createElement('div');
-                            modal.className = 'fixed inset-0 bg-black bg-opacity-90 z-[60] flex items-center justify-center p-4';
-                            modal.innerHTML = `
-                              <div class="relative max-w-full max-h-full">
-                                <img src="${originalPhoto}" class="max-w-full max-h-full object-contain" />
-                                <button class="absolute top-4 right-4 bg-white rounded-full p-2 text-xl font-bold">&times;</button>
-                              </div>
-                            `;
-                            modal.onclick = () => document.body.removeChild(modal);
-                            document.body.appendChild(modal);
-                            // ページ全体を最上部にスクロール - 正しいスクロールコンテナを対象
-                            const scrollContainer = document.querySelector('.page-scroll-container');
-                            if (scrollContainer) {
-                              scrollContainer.scrollTop = 0;
-                            } else {
-                              window.scrollTo(0, 0);
-                            }
-                          }}
-                        />
+                      <div className={`relative border-2 ${showZoom && hoveredImage?.type === 'after' && hoveredImage?.index === index ? 'border-blue-400' : 'border-gray-300'} rounded-lg overflow-hidden`}>
+                        {showZoom && hoveredImage?.type === 'after' && hoveredImage?.index === index ? (
+                          <div 
+                            className="w-full h-72 cursor-pointer"
+                            style={{
+                              backgroundImage: `url(${enhancedPhotos[index]})`,
+                              backgroundSize: '800% 800%',
+                              backgroundPosition: `${mousePosition.x}% ${mousePosition.y}%`,
+                              backgroundRepeat: 'no-repeat',
+                              filter: 'brightness(1.05) contrast(1.08) saturate(1.1)'
+                            }}
+                            onClick={() => {
+                              const modal = document.createElement('div');
+                              modal.className = 'fixed inset-0 bg-black bg-opacity-90 z-[60] flex items-center justify-center p-4';
+                              modal.innerHTML = `
+                                <div class="relative max-w-full max-h-full">
+                                  <img src="${enhancedPhotos[index]}" class="max-w-full max-h-full object-contain" style="filter: brightness(1.05) contrast(1.08) saturate(1.1);" />
+                                  <button class="absolute top-4 right-4 bg-white rounded-full p-2 text-xl font-bold">&times;</button>
+                                </div>
+                              `;
+                              modal.onclick = () => document.body.removeChild(modal);
+                              document.body.appendChild(modal);
+                              // ページ全体を最上部にスクロール - 正しいスクロールコンテナを対象
+                              const scrollContainer = document.querySelector('.page-scroll-container');
+                              if (scrollContainer) {
+                                scrollContainer.scrollTop = 0;
+                              } else {
+                                window.scrollTo(0, 0);
+                              }
+                            }}
+                          />
+                        ) : (
+                          <img
+                            src={originalPhoto}
+                            alt={`元画像 ${index + 1}`}
+                            className="w-full h-72 object-cover cursor-zoom-in"
+                            onMouseEnter={() => handleImageMouseEnter('before', index)}
+                            onMouseMove={handleImageMouseMove}
+                            onMouseLeave={handleImageMouseLeave}
+                            onClick={() => {
+                              const modal = document.createElement('div');
+                              modal.className = 'fixed inset-0 bg-black bg-opacity-90 z-[60] flex items-center justify-center p-4';
+                              modal.innerHTML = `
+                                <div class="relative max-w-full max-h-full">
+                                  <img src="${originalPhoto}" class="max-w-full max-h-full object-contain" />
+                                  <button class="absolute top-4 right-4 bg-white rounded-full p-2 text-xl font-bold">&times;</button>
+                                </div>
+                              `;
+                              modal.onclick = () => document.body.removeChild(modal);
+                              document.body.appendChild(modal);
+                              // ページ全体を最上部にスクロール - 正しいスクロールコンテナを対象
+                              const scrollContainer = document.querySelector('.page-scroll-container');
+                              if (scrollContainer) {
+                                scrollContainer.scrollTop = 0;
+                              } else {
+                                window.scrollTo(0, 0);
+                              }
+                            }}
+                          />
+                        )}
+                        
+                        {/* ホバー位置インジケーター */}
+                        {showZoom && hoveredImage?.type === 'before' && hoveredImage?.index === index && (
+                          <div 
+                            className="absolute border-2 border-red-500 bg-red-500 bg-opacity-20 pointer-events-none z-10"
+                            style={{
+                              left: `${mousePosition.x}%`,
+                              top: `${mousePosition.y}%`,
+                              width: '12.5%', // 8倍拡大なので100/8 = 12.5%
+                              height: '12.5%',
+                              transform: 'translate(-50%, -50%)'
+                            }}
+                          />
+                        )}
                       </div>
                     </div>
                     
                     {/* アフター */}
                     <div>
                       <h5 className="text-sm font-medium text-blue-700 mb-2 text-center">
-                        アフター（品質向上済み）
+                        {showZoom && hoveredImage?.type === 'before' && hoveredImage?.index === index 
+                          ? 'ビフォア画像 - 8倍拡大表示' 
+                          : 'アフター（品質向上済み）'
+                        }
                       </h5>
-                      <div className="relative border-2 border-blue-400 rounded-lg overflow-hidden">
-                        <img
-                          src={enhancedPhotos[index]}
-                          alt={`品質向上済み ${index + 1}`}
-                          className="w-full h-48 object-cover cursor-zoom-in"
-                          style={{
-                            filter: 'brightness(1.05) contrast(1.08) saturate(1.1)',
-                            transform: 'scale(1.001)'
-                          }}
-                          onClick={() => {
-                            const modal = document.createElement('div');
-                            modal.className = 'fixed inset-0 bg-black bg-opacity-90 z-[60] flex items-center justify-center p-4';
-                            modal.innerHTML = `
-                              <div class="relative max-w-full max-h-full">
-                                <img src="${enhancedPhotos[index]}" class="max-w-full max-h-full object-contain" style="filter: brightness(1.05) contrast(1.08) saturate(1.1);" />
-                                <button class="absolute top-4 right-4 bg-white rounded-full p-2 text-xl font-bold">&times;</button>
-                              </div>
-                            `;
-                            modal.onclick = () => document.body.removeChild(modal);
-                            document.body.appendChild(modal);
-                            // ページ全体を最上部にスクロール - 正しいスクロールコンテナを対象
-                            const scrollContainer = document.querySelector('.page-scroll-container');
-                            if (scrollContainer) {
-                              scrollContainer.scrollTop = 0;
-                            } else {
-                              window.scrollTo(0, 0);
-                            }
-                          }}
-                        />
+                      <div className={`relative border-2 ${showZoom && hoveredImage?.type === 'before' && hoveredImage?.index === index ? 'border-red-400' : 'border-blue-400'} rounded-lg overflow-hidden`}>
+                        {showZoom && hoveredImage?.type === 'before' && hoveredImage?.index === index ? (
+                          <div 
+                            className="w-full h-72 cursor-pointer"
+                            style={{
+                              backgroundImage: `url(${originalPhoto})`,
+                              backgroundSize: '800% 800%',
+                              backgroundPosition: `${mousePosition.x}% ${mousePosition.y}%`,
+                              backgroundRepeat: 'no-repeat'
+                            }}
+                            onClick={() => {
+                              const modal = document.createElement('div');
+                              modal.className = 'fixed inset-0 bg-black bg-opacity-90 z-[60] flex items-center justify-center p-4';
+                              modal.innerHTML = `
+                                <div class="relative max-w-full max-h-full">
+                                  <img src="${originalPhoto}" class="max-w-full max-h-full object-contain" />
+                                  <button class="absolute top-4 right-4 bg-white rounded-full p-2 text-xl font-bold">&times;</button>
+                                </div>
+                              `;
+                              modal.onclick = () => document.body.removeChild(modal);
+                              document.body.appendChild(modal);
+                              // ページ全体を最上部にスクロール - 正しいスクロールコンテナを対象
+                              const scrollContainer = document.querySelector('.page-scroll-container');
+                              if (scrollContainer) {
+                                scrollContainer.scrollTop = 0;
+                              } else {
+                                window.scrollTo(0, 0);
+                              }
+                            }}
+                          />
+                        ) : (
+                          <img
+                            src={enhancedPhotos[index]}
+                            alt={`品質向上済み ${index + 1}`}
+                            className="w-full h-72 object-cover cursor-zoom-in"
+                            style={{
+                              filter: 'brightness(1.05) contrast(1.08) saturate(1.1)',
+                              transform: 'scale(1.001)'
+                            }}
+                            onMouseEnter={() => handleImageMouseEnter('after', index)}
+                            onMouseMove={handleImageMouseMove}
+                            onMouseLeave={handleImageMouseLeave}
+                            onClick={() => {
+                              const modal = document.createElement('div');
+                              modal.className = 'fixed inset-0 bg-black bg-opacity-90 z-[60] flex items-center justify-center p-4';
+                              modal.innerHTML = `
+                                <div class="relative max-w-full max-h-full">
+                                  <img src="${enhancedPhotos[index]}" class="max-w-full max-h-full object-contain" style="filter: brightness(1.05) contrast(1.08) saturate(1.1);" />
+                                  <button class="absolute top-4 right-4 bg-white rounded-full p-2 text-xl font-bold">&times;</button>
+                                </div>
+                              `;
+                              modal.onclick = () => document.body.removeChild(modal);
+                              document.body.appendChild(modal);
+                              // ページ全体を最上部にスクロール - 正しいスクロールコンテナを対象
+                              const scrollContainer = document.querySelector('.page-scroll-container');
+                              if (scrollContainer) {
+                                scrollContainer.scrollTop = 0;
+                              } else {
+                                window.scrollTo(0, 0);
+                              }
+                            }}
+                          />
+                        )}
+                        
+                        {/* ホバー位置インジケーター */}
+                        {showZoom && hoveredImage?.type === 'after' && hoveredImage?.index === index && (
+                          <div 
+                            className="absolute border-2 border-blue-500 bg-blue-500 bg-opacity-20 pointer-events-none z-10"
+                            style={{
+                              left: `${mousePosition.x}%`,
+                              top: `${mousePosition.y}%`,
+                              width: '12.5%', // 8倍拡大なので100/8 = 12.5%
+                              height: '12.5%',
+                              transform: 'translate(-50%, -50%)'
+                            }}
+                          />
+                        )}
+                        
                         {/* デモ用：品質向上済みを示すバッジ */}
-                        <div className="absolute top-1 left-1 bg-blue-600 text-white px-1 py-0.5 rounded text-xs font-medium">
-                          AI向上済み
-                        </div>
+                        {!(showZoom && hoveredImage?.type === 'before' && hoveredImage?.index === index) && (
+                          <div className="absolute top-1 left-1 bg-blue-600 text-white px-1 py-0.5 rounded text-xs font-medium">
+                            AI向上済み
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
+
+
                   
                   {/* 改善点の説明 */}
                   <div className="mt-3 p-2 bg-blue-50 rounded text-xs text-blue-800">
@@ -759,7 +891,7 @@ export default function PhotoUploader({
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                       </svg>
-                      <span>画像をクリックすると拡大表示されます</span>
+                      <span>左画像をホバーすると右側に8倍拡大表示、右画像をホバーすると左側に8倍拡大表示されます</span>
                     </div>
                   </div>
                 </div>

@@ -5,6 +5,12 @@ import NexusButton from './NexusButton';
 import { CameraIcon, WrenchScrewdriverIcon, BeakerIcon } from '@heroicons/react/24/outline';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
+interface BarcodeTestItem {
+  label: string;
+  code: string;
+  description?: string;
+}
+
 interface BarcodeTestButtonProps {
   className?: string;
 }
@@ -61,8 +67,20 @@ export default function BarcodeTestButton({ className = '' }: BarcodeTestButtonP
   };
 
   const testBarcodes = [
+    // === 自動判断テストケース ===
+    { 
+      label: '【テスト1】倉庫納品直後', 
+      code: 'CAM-NIKON-Z8-004',
+      description: '検品項目タブが開くはず (status: inbound)'
+    },
+    { 
+      label: '【テスト2】検品完了済み', 
+      code: 'CAM-CANON-R6M2-003',
+      description: '棚保管タブが開くはず (status: storage, 検品済み)'
+    },
+    
+    // === その他のテスト商品 ===
     { label: 'Sony A7II', code: 'CAM-SONY-A7II-002' },
-    { label: 'Canon R6M2', code: 'CAM-CANON-R6M2-003' },
     { label: 'Nikon ZF', code: 'CAM-NIKON-ZF-009' },
     { label: 'Fujifilm XT5', code: 'CAM-FUJIFILM-XT5-005' },
   ];
@@ -115,12 +133,29 @@ export default function BarcodeTestButton({ className = '' }: BarcodeTestButtonP
             onClick={() => simulateBarcodeScanner(item.code)}
             disabled={isSimulating}
             size="sm"
-            variant="outline"
-            className="w-full text-left justify-start text-xs"
+            variant={item.label.includes('【テスト') ? 'primary' : 'outline'}
+            className={`w-full text-left justify-start text-xs ${
+              item.label.includes('【テスト') ? 'bg-green-600 hover:bg-green-700 text-white' : ''
+            }`}
           >
-            <CameraIcon className="w-4 h-4 mr-2 text-gray-600" />
-            <span className="flex-1">{item.label}</span>
-            <span className="text-gray-400 text-xs ml-2">{item.code}</span>
+            <CameraIcon className={`w-4 h-4 mr-2 ${
+              item.label.includes('【テスト') ? 'text-white' : 'text-gray-600'
+            }`} />
+            <div className="flex-1 text-left">
+              <div>{item.label}</div>
+              {item.description && (
+                <div className={`text-xs ${
+                  item.label.includes('【テスト') ? 'text-green-200' : 'text-gray-400'
+                }`}>
+                  {item.description}
+                </div>
+              )}
+            </div>
+            <span className={`text-xs ml-2 ${
+              item.label.includes('【テスト') ? 'text-green-200' : 'text-gray-400'
+            }`}>
+              {item.code}
+            </span>
           </NexusButton>
         ))}
         

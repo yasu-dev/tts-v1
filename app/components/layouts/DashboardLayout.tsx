@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import { useModal } from '../ui/ModalContext';
+import { determineBarcodeDestination } from '@/lib/utils/product-status';
 import BarcodeTestButton from '../ui/BarcodeTestButton';
 
 interface DashboardLayoutProps {
@@ -222,17 +223,21 @@ export default function DashboardLayout({
             });
           }
 
-          // 商品検品チェックリストの棚保管タブへ遷移
+          // 商品の状態に基づいて遷移先を自動判断
+          const destination = determineBarcodeDestination(product);
+          
+          console.log('[バーコードスキャン] 自動判断結果:', destination);
+          
           showToast({
             type: 'success',
             title: '商品スキャン成功',
-            message: `${product.name} の棚保管画面へ移動します`,
+            message: destination.message,
             duration: 2000
           });
 
-          // 棚保管タブ（step=4）へ遷移
+          // 判定された遷移先へ移動
           setTimeout(() => {
-            router.push(`/staff/inspection/${product.id}?step=4`);
+            router.push(`/staff/inspection/${product.id}?step=${destination.step}`);
             
             // 遷移後に棚番号入力フィールドにフォーカス設定
             setTimeout(() => {
