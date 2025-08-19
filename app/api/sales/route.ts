@@ -48,7 +48,13 @@ export async function GET(request: NextRequest) {
           include: {
             product: {
               include: {
-                images: true
+                images: true,
+                orderItems: {
+                  include: {
+                    order: true
+                  },
+                  take: 1 // 最新の注文のみ取得
+                }
               }
             }
           }
@@ -66,29 +72,43 @@ export async function GET(request: NextRequest) {
         'pending': 'processing'       // 保留中 → 出荷準備中
       };
       
-      const recentOrders = listings.map(listing => ({
-        id: listing.id,
-        orderNumber: `LST-${listing.id.slice(-8).toUpperCase()}`,
-        customer: listing.platform,
-        product: listing.title,
-        ebayTitle: listing.title,
-        ebayImage: listing.product?.images?.[0]?.url || listing.imageUrl || 'https://via.placeholder.com/300',
-        totalAmount: listing.price,
-        status: statusMapping[listing.status as keyof typeof statusMapping] || 'processing',
-        itemCount: 1,
-        orderDate: listing.createdAt.toISOString(),
-        platform: listing.platform,
-        viewCount: listing.viewCount,
-        watchCount: listing.watchCount,
-        condition: listing.condition,
-        description: listing.description,
-        items: [{
-          productName: listing.product?.name || listing.title,
-          category: listing.product?.category || 'その他',
-          quantity: 1,
-          price: listing.price
-        }]
-      }));
+      const recentOrders = listings.map(listing => {
+        // 関連する注文データを取得
+        const relatedOrder = listing.product?.orderItems?.[0]?.order;
+        const isLabelGenerated = relatedOrder?.trackingNumber ? true : false;
+        
+        return {
+          id: relatedOrder?.id || listing.id, // 注文IDが優先、なければListing ID
+          listingId: listing.id, // 出品IDも保持
+          orderNumber: relatedOrder?.orderNumber || `LST-${listing.id.slice(-8).toUpperCase()}`,
+          customer: relatedOrder?.customerName || listing.platform,
+          product: listing.title,
+          ebayTitle: listing.title,
+          ebayImage: listing.product?.images?.[0]?.url || listing.imageUrl || 'https://via.placeholder.com/300',
+          totalAmount: relatedOrder?.totalAmount || listing.price,
+          status: isLabelGenerated ? 'shipped' : (statusMapping[listing.status as keyof typeof statusMapping] || 'processing'),
+          itemCount: relatedOrder?.items?.length || 1,
+          orderDate: relatedOrder?.orderDate?.toISOString() || listing.createdAt.toISOString(),
+          platform: listing.platform,
+          viewCount: listing.viewCount,
+          watchCount: listing.watchCount,
+          condition: listing.condition,
+          description: listing.description,
+          items: [{
+            productName: listing.product?.name || listing.title,
+            category: listing.product?.category || 'その他',
+            quantity: 1,
+            price: relatedOrder?.totalAmount || listing.price
+          }],
+          labelGenerated: isLabelGenerated,
+          trackingNumber: relatedOrder?.trackingNumber || null,
+          carrier: relatedOrder?.carrier || null,
+          // ラベル生成時に必要な情報を追加
+          orderId: relatedOrder?.id, // 注文ID
+          productId: listing.productId, // 商品ID
+          shippingAddress: relatedOrder?.shippingAddress || '住所未設定'
+        };
+      });
       
       return NextResponse.json({
         _dataSource: 'prisma-listing',

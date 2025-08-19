@@ -54,16 +54,28 @@ export async function GET(request: NextRequest) {
               name: true
             }
           },
-          orders: {
-            where: {
-              status: 'processing' // ラベル生成済みの注文
+          orderItems: {
+            include: {
+              order: {
+                select: {
+                  id: true,
+                  orderNumber: true,
+                  status: true,
+                  createdAt: true,
+                  trackingNumber: true,
+                  customer: {
+                    select: {
+                      fullName: true,
+                      username: true
+                    }
+                  }
+                }
+              }
             },
-            select: {
-              id: true,
-              orderNumber: true,
-              customerName: true,
-              createdAt: true,
-              trackingNumber: true
+            where: {
+              order: {
+                status: 'processing' // ラベル生成済みの注文のみ
+              }
             },
             take: 1
           }
@@ -74,8 +86,9 @@ export async function GET(request: NextRequest) {
 
     // orderedProducts（ラベル生成済み商品）を動的にピッキングタスクに変換
     const dynamicPickingTasks = orderedProducts.map(product => {
-      const order = product.orders?.[0]; // ラベル生成済みの注文
-      const customerName = order?.customerName || `注文: ${order?.orderNumber || 'N/A'}`;
+      const orderItem = product.orderItems?.[0];
+      const order = orderItem?.order;
+      const customerName = order?.customer?.fullName || order?.customer?.username || `注文: ${order?.orderNumber || 'N/A'}`;
       const dueDate = new Date();
       dueDate.setHours(dueDate.getHours() + 4); // 4時間後を期限とする
 
