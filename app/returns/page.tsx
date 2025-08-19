@@ -420,9 +420,11 @@ export default function ReturnsPage() {
 
 
         {/* Return Request Form - Intelligence Card Style */}
-        <div className="intelligence-card africa">
-          <div className="p-5">
-            <h3 className="text-2xl font-display font-bold text-nexus-text-primary mb-6">返品履歴</h3>
+        <div className="intelligence-card oceania">
+          <div className="p-6 border-b border-gray-300">
+            <h3 className="text-lg font-medium text-nexus-text-primary">返品履歴</h3>
+          </div>
+          <div className="p-6">
             
             <div className="holo-table">
               <table className="w-full">

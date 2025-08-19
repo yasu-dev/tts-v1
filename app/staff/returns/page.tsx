@@ -559,9 +559,11 @@ export default function ReturnsPage() {
 
                 {/* 返品リスト */}
                 {!isUnsellableModalOpen && !isRelistingModalOpen && !isDetailModalOpen && (
-                  <div className="intelligence-card global">
-                    <div className="p-5">
-                      <h2 className="text-xl font-display font-bold text-nexus-text-primary mb-6">返品商品リスト</h2>
+                  <div className="intelligence-card oceania">
+                    <div className="p-6 border-b border-gray-300">
+                      <h3 className="text-lg font-medium text-nexus-text-primary">返品商品リスト</h3>
+                    </div>
+                    <div className="p-6">
                       
                       {/* フィルター */}
                       <div className="flex gap-1 bg-nexus-bg-secondary p-1 rounded-lg mb-6">

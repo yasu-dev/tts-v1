@@ -519,7 +519,7 @@ export default function StaffInventoryPage() {
         />
 
         {/* スタッフ在庫管理 - 統合版 */}
-        <div className="intelligence-card global">
+        <div className="intelligence-card oceania">
           
           {/* ヘッダー部分（追加） */}
           <div className="p-6 border-b border-gray-300">
