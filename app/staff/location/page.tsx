@@ -137,7 +137,8 @@ export default function LocationPage() {
 
 
 
-        {/* Tab Navigation */}
+{/* Tab Navigation - 一時的に非表示 */}
+        {/*
         <div className="intelligence-card oceania">
           <div className="px-6 pt-6">
             <div className="flex space-x-1 bg-nexus-bg-secondary p-1 rounded-lg w-fit">
@@ -168,6 +169,7 @@ export default function LocationPage() {
             </div>
           </div>
         </div>
+        */}
 
         {/* Main Content Area */}
         <div className="min-h-[60vh]">
