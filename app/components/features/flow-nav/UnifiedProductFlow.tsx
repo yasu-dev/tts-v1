@@ -40,7 +40,6 @@ export default function UnifiedProductFlow({
   isCollapsed = false,
   onToggleCollapse
 }: UnifiedProductFlowProps) {
-  console.log('UnifiedProductFlow render:', { isCollapsed, compact });
   const router = useRouter();
   const [flowData, setFlowData] = useState<FlowStep[]>([]);
   const [loading, setLoading] = useState(true);

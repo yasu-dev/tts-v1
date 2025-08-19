@@ -46,8 +46,8 @@ export async function PUT(
       );
     }
 
-    // 発送待ちステータスからのみ発送済みに変更可能
-    if (existingPlan.status !== '発送待ち') {
+    // 発送待ちステータス（Pending）からのみ発送済みに変更可能
+    if (existingPlan.status !== 'Pending') {
       return NextResponse.json(
         { error: '発送待ちステータスのプランのみ発送処理が可能です。' },
         { status: 400 }
@@ -58,7 +58,7 @@ export async function PUT(
     const updatedPlan = await prisma.deliveryPlan.update({
       where: { id: planId },
       data: {
-        status: '発送済',
+        status: 'Shipped',
         shippingTrackingNumber: trackingNumber || null,
         shippedAt: new Date(),
         updatedAt: new Date()

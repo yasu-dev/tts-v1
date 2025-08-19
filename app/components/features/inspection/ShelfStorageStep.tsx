@@ -310,7 +310,6 @@ export default function ShelfStorageStep({
           <div className="text-sm space-y-1">
             <div><strong>SKU:</strong> {product.sku}</div>
             <div><strong>商品名:</strong> {product.name}</div>
-            <div><strong>ブランド:</strong> {product.brand} {product.model}</div>
           </div>
         </div>
 

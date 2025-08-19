@@ -29,6 +29,42 @@ export default function ConfirmationStep({
   const [user, setUser] = useState<any>(null);
   const [agreedToTerms, setAgreedToTerms] = useState(data.confirmation?.agreedToTerms || false);
 
+  // コンポーネント表示時にスクロール位置を最上部に設定 - 確実な実装
+  useEffect(() => {
+    console.log('[ConfirmationStep] 確認画面表示、スクロール最上部へ');
+    
+    const scrollToTop = () => {
+      // DashboardLayout内のスクロールコンテナを取得
+      const scrollContainer = document.querySelector('.page-scroll-container');
+      if (scrollContainer) {
+        console.log('[ConfirmationStep] スクロールコンテナ発見、最上部へ移動');
+        // 即座に最上部に移動（確認画面なので確実性最優先）
+        scrollContainer.scrollTop = 0;
+        
+        // 確実性のため追加でもう一度実行
+        setTimeout(() => {
+          scrollContainer.scrollTop = 0;
+        }, 50);
+      } else {
+        console.log('[ConfirmationStep] スクロールコンテナ未発見、windowスクロール使用');
+        // フォールバック
+        window.scrollTo(0, 0);
+      }
+    };
+
+    // 即座に実行
+    scrollToTop();
+    
+    // DOM準備完了後に再実行（確実性を最大化）
+    const timeoutId1 = setTimeout(scrollToTop, 100);
+    const timeoutId2 = setTimeout(scrollToTop, 200);
+    
+    return () => {
+      clearTimeout(timeoutId1);
+      clearTimeout(timeoutId2);
+    };
+  }, []);
+
   // ログイン中のユーザー情報を取得
   useEffect(() => {
     const fetchUserInfo = async () => {

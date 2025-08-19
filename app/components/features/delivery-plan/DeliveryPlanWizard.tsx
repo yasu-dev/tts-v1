@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import NexusButton from '@/app/components/ui/NexusButton';
 import NexusCard from '@/app/components/ui/NexusCard';
 import BasicInfoStep from './BasicInfoStep';
@@ -63,6 +63,34 @@ export default function DeliveryPlanWizard() {
     },
   });
 
+  // ステップ変更時にページトップにスクロール - 確実な実装
+  useEffect(() => {
+    console.log('[DeliveryPlanWizard] ステップ変更:', currentStep);
+    
+    // DOM準備完了まで待機してからスクロール
+    const scrollToTop = () => {
+      // DashboardLayout内のスクロールコンテナを取得
+      const scrollContainer = document.querySelector('.page-scroll-container');
+      if (scrollContainer) {
+        console.log('[DeliveryPlanWizard] スクロールコンテナ発見、最上部へ移動');
+        // 即座に最上部に移動（確認画面なので滑らかさより確実性を優先）
+        scrollContainer.scrollTop = 0;
+      } else {
+        console.log('[DeliveryPlanWizard] スクロールコンテナ未発見、windowスクロール使用');
+        // フォールバック
+        window.scrollTo(0, 0);
+      }
+    };
+
+    // 即座に実行
+    scrollToTop();
+    
+    // DOM準備のため少し遅延してもう一度実行
+    const timeoutId = setTimeout(scrollToTop, 100);
+    
+    return () => clearTimeout(timeoutId);
+  }, [currentStep]);
+
   const updatePlanData = (stepData: Partial<DeliveryPlanData>) => {
     setPlanData(prev => {
       const updated = { ...prev, ...stepData };
@@ -74,12 +102,30 @@ export default function DeliveryPlanWizard() {
     });
   };
 
+  const scrollToTop = () => {
+    console.log('[DeliveryPlanWizard] スクロール処理実行');
+    const scrollContainer = document.querySelector('.page-scroll-container');
+    if (scrollContainer) {
+      console.log('[DeliveryPlanWizard] .page-scroll-container発見、スクロール実行');
+      scrollContainer.scrollTop = 0;
+    } else {
+      console.log('[DeliveryPlanWizard] .page-scroll-container未発見、window使用');
+      window.scrollTo(0, 0);
+    }
+  };
+
   const nextStep = () => {
+    console.log('[DeliveryPlanWizard] nextStep実行');
     setCurrentStep(prev => Math.min(prev + 1, steps.length - 1));
+    // ステップ変更後に即座にスクロール
+    setTimeout(scrollToTop, 50);
   };
 
   const prevStep = () => {
+    console.log('[DeliveryPlanWizard] prevStep実行');
     setCurrentStep(prev => Math.max(prev - 1, 0));
+    // ステップ変更後に即座にスクロール
+    setTimeout(scrollToTop, 50);
   };
 
   const submitPlan = async () => {
