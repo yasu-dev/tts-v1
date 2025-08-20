@@ -48,6 +48,7 @@ export async function GET(
       currentStep: progressData.currentStep,
       checklist: progressData.checklist ? JSON.parse(progressData.checklist) : null,
       photos: progressData.photos ? JSON.parse(progressData.photos) : [],
+      photoSlots: progressData.photoSlots ? JSON.parse(progressData.photoSlots) : [],
       notes: progressData.notes || '',
       videoId: progressData.videoId,
       lastUpdated: progressData.updatedAt.toISOString(),

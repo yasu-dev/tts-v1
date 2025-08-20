@@ -323,6 +323,7 @@ model InspectionProgress {
   currentStep Int
   checklist   String?
   photos      String?
+  photoSlots  String?  // 写真の配置情報
   notes       String?
   videoId     String?
   createdAt   DateTime @default(now())

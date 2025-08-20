@@ -86,6 +86,7 @@ interface InspectionData {
     };
   };
   photos: string[];
+  photoSlots?: any[]; // 写真の配置情報
   notes: string;
   inspectionDate: string;
   inspectorId: string;
@@ -193,6 +194,7 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
             ...prev,
             checklist: progressData.checklist || prev.checklist,
             photos: progressData.photos || prev.photos,
+            photoSlots: progressData.photoSlots || prev.photoSlots,
             notes: progressData.notes || prev.notes,
           }));
           setVideoId(progressData.videoId || null);
@@ -523,10 +525,15 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
     }));
   };
 
-  const updatePhotos = (photos: string[]) => {
+  const updatePhotos = (photos: string[], photoSlots?: any[]) => {
+    console.log('[DEBUG] InspectionForm: updatePhotos呼び出し', {
+      photos: photos.length,
+      photoSlots: photoSlots?.map(slot => ({ id: slot.id, photos: slot.photos.length }))
+    });
     setInspectionData(prev => ({
       ...prev,
       photos,
+      photoSlots: photoSlots || prev.photoSlots,
     }));
   };
 
@@ -558,10 +565,15 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
         
         const photographyData = {
           photos: inspectionData.photos,
+          photoSlots: inspectionData.photoSlots || [],
           notes: inspectionData.notes || ''
         };
 
-        console.log('[DEBUG] 撮影データ保存（部分保存）:', { productId, photographyData });
+        console.log('[DEBUG] 撮影データ保存（部分保存）:', { 
+          productId, 
+          photos: photographyData.photos.length,
+          photoSlots: photographyData.photoSlots.map(slot => ({ id: slot.id, photos: slot.photos.length }))
+        });
 
         try {
           const response = await fetch(`/api/products/${productId}/photography`, {
@@ -593,6 +605,7 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
         currentStep: step,
         checklist: inspectionData.checklist,
         photos: inspectionData.photos,
+        photoSlots: inspectionData.photoSlots || [],
         notes: inspectionData.notes,
         videoId: videoId,
         lastUpdated: new Date().toISOString(),
@@ -1134,6 +1147,7 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
           <PhotoUploader
             productId={productId}
             photos={inspectionData.photos}
+            photoSlots={inspectionData.photoSlots}
             onUpdate={updatePhotos}
             onNext={() => handleStepChange(3)}
             onPrev={() => handleStepChange(1)}

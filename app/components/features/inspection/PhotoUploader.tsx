@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
 import AIQualityResult from '@/app/components/features/inspection/AIQualityResult';
@@ -10,7 +10,8 @@ import { useToast } from '@/app/components/features/notifications/ToastProvider'
 export interface PhotoUploaderProps {
   productId: string;
   photos: string[];
-  onUpdate: (photos: string[]) => void;
+  photoSlots?: PhotoSlot[]; // 進捗復元用の配置情報
+  onUpdate: (photos: string[], photoSlots?: PhotoSlot[]) => void;
   onNext: () => void;
   onPrev: () => void;
   onSaveAndReturn?: () => void;
@@ -32,6 +33,7 @@ interface PhotoSlot {
 export default function PhotoUploader({
   productId,
   photos,
+  photoSlots: initialPhotoSlots,
   onUpdate,
   onNext,
   onPrev,
@@ -50,6 +52,14 @@ export default function PhotoUploader({
   useEffect(() => {
     setUploadedPhotos(photos || []);
   }, [photos]);
+
+  // 進捗復元時にphotoSlotsを更新
+  useEffect(() => {
+    if (initialPhotoSlots && initialPhotoSlots.length > 0) {
+      setPhotoSlots(initialPhotoSlots);
+    }
+  }, [initialPhotoSlots]);
+
   const [loading, setLoading] = useState(false);
   const [aiAnalyzing, setAiAnalyzing] = useState(false);
   const [aiResult, setAiResult] = useState<any>(null);
@@ -86,14 +96,40 @@ export default function PhotoUploader({
   };
   
   // 写真スロット定義（複数枚対応）
-  const [photoSlots, setPhotoSlots] = useState<PhotoSlot[]>([
+  const defaultPhotoSlots: PhotoSlot[] = [
     { id: 'front', label: '正面', description: '正面全体', photos: [], required: true },
     { id: 'back', label: '背面', description: '背面全体', photos: [], required: false },
     { id: 'left', label: '左側面', description: '左側全体', photos: [], required: false },
     { id: 'right', label: '右側面', description: '右側全体', photos: [], required: false },
     { id: 'top', label: '上面', description: '上から見た写真', photos: [], required: false },
     { id: 'detail', label: '詳細', description: '傷・特徴部分', photos: [], required: false },
-  ]);
+  ];
+
+  const [photoSlots, setPhotoSlots] = useState<PhotoSlot[]>(
+    initialPhotoSlots || defaultPhotoSlots
+  );
+
+  // photoSlotsが変更された時に親コンポーネントに通知（初期化時は除外）
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  useEffect(() => {
+    if (isInitialized) {
+      console.log('[DEBUG] PhotoUploader: useEffectで親コンポーネントに通知', {
+        uploadedPhotos: uploadedPhotos.length,
+        photoSlots: photoSlots.map(slot => ({ id: slot.id, photos: slot.photos.length }))
+      });
+      onUpdate(uploadedPhotos, photoSlots);
+    } else {
+      setIsInitialized(true);
+    }
+  }, [photoSlots, uploadedPhotos, isInitialized]);
+
+  // 進捗復元時にphotoSlotsを更新
+  useEffect(() => {
+    if (initialPhotoSlots && initialPhotoSlots.length > 0) {
+      setPhotoSlots(initialPhotoSlots);
+    }
+  }, [initialPhotoSlots]);
 
   // 追加写真（スロットに配置されていない写真）
   const getUnassignedPhotos = () => {
@@ -153,6 +189,12 @@ export default function PhotoUploader({
         }
       }
       
+      // 親コンポーネントに通知（useEffectで自動的に呼ばれるため削除）
+      console.log('[DEBUG] PhotoUploader: ドロップ処理完了', {
+        uploadedPhotos: uploadedPhotos.length,
+        photoSlots: newSlots.map(slot => ({ id: slot.id, photos: slot.photos.length }))
+      });
+      
       return newSlots;
     });
 
@@ -171,11 +213,21 @@ export default function PhotoUploader({
   };
 
   const handleRemoveFromSlot = (slotId: string, photoToRemove: string) => {
-    setPhotoSlots(prev => prev.map(slot => 
-      slot.id === slotId 
-        ? { ...slot, photos: slot.photos.filter(photo => photo !== photoToRemove) }
-        : slot
-    ));
+    setPhotoSlots(prev => {
+      const newSlots = prev.map(slot => 
+        slot.id === slotId 
+          ? { ...slot, photos: slot.photos.filter(photo => photo !== photoToRemove) }
+          : slot
+      );
+      
+      // 親コンポーネントに通知（useEffectで自動的に呼ばれるため削除）
+      console.log('[DEBUG] PhotoUploader: 削除処理完了', {
+        uploadedPhotos: uploadedPhotos.length,
+        photoSlots: newSlots.map(slot => ({ id: slot.id, photos: slot.photos.length }))
+      });
+      
+      return newSlots;
+    });
   };
 
   const handleDeletePhoto = (photoToDelete: string) => {
@@ -188,7 +240,7 @@ export default function PhotoUploader({
     // アップロード済み写真から削除
     const updatedPhotos = uploadedPhotos.filter(photo => photo !== photoToDelete);
     setUploadedPhotos(updatedPhotos);
-    onUpdate(updatedPhotos);
+    onUpdate(updatedPhotos, photoSlots);
     
     // AI結果をクリア
     setAiResult(null);
@@ -253,7 +305,7 @@ export default function PhotoUploader({
       // 状態更新
       const updatedPhotos = [...uploadedPhotos, ...photosToAdd];
       setUploadedPhotos(updatedPhotos);
-      onUpdate(updatedPhotos);
+      onUpdate(updatedPhotos, photoSlots);
       
       showToast({
         title: `${photosToAdd.length}枚の写真をアップロードしました`,
@@ -351,7 +403,7 @@ export default function PhotoUploader({
     );
     
     setUploadedPhotos(finalPhotos);
-    onUpdate(finalPhotos);
+    onUpdate(finalPhotos, photoSlots);
     setShowBeforeAfter(false);
     
     // 適用した枚数 = チェックされていない（適用しない = false）枚数

@@ -8,6 +8,7 @@ interface ProgressData {
   currentStep: number;
   checklist: any;
   photos: string[];
+  photoSlots?: any[]; // 写真の配置情報
   notes: string;
   videoId?: string | null;
   lastUpdated: string;
@@ -45,6 +46,7 @@ export async function POST(request: NextRequest) {
         currentStep: progressData.currentStep,
         checklist: JSON.stringify(progressData.checklist),
         photos: JSON.stringify(progressData.photos),
+        photoSlots: JSON.stringify(progressData.photoSlots || []),
         notes: progressData.notes || '',
         videoId: progressData.videoId,
         updatedAt: new Date()
@@ -54,6 +56,7 @@ export async function POST(request: NextRequest) {
         currentStep: progressData.currentStep,
         checklist: JSON.stringify(progressData.checklist),
         photos: JSON.stringify(progressData.photos),
+        photoSlots: JSON.stringify(progressData.photoSlots || []),
         notes: progressData.notes || '',
         videoId: progressData.videoId
       }
@@ -72,8 +75,17 @@ export async function POST(request: NextRequest) {
         statusDescription = '検品項目チェック中';
         break;
       case 2:
-        newStatus = 'inspection';
-        statusDescription = '撮影作業中';
+        // ステップ2（撮影）で写真が配置されている場合は撮影完了とみなす
+        const hasPhotoSlots = progressData.photoSlots && progressData.photoSlots.length > 0;
+        const hasPhotos = progressData.photos && progressData.photos.length > 0;
+        
+        if (hasPhotoSlots || hasPhotos) {
+          newStatus = 'inspection';
+          statusDescription = '撮影完了';
+        } else {
+          newStatus = 'inspection';
+          statusDescription = '撮影作業中';
+        }
         break;
       case 3:
         newStatus = 'inspection';

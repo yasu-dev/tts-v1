@@ -49,9 +49,10 @@ export default function PhotographyOnlyForm({ productId }: PhotographyOnlyFormPr
     }, 500);
   }, [productId]);
 
-  const handlePhotosUpdate = (newPhotos: string[]) => {
-    console.log('写真データ更新:', newPhotos);
+  const handlePhotosUpdate = (newPhotos: string[], photoSlots?: any[]) => {
+    console.log('写真データ更新:', newPhotos, '配置情報:', photoSlots);
     setPhotos(newPhotos);
+    // 配置情報も保存（必要に応じて）
   };
 
   const handleSubmitPhotography = async () => {
@@ -66,6 +67,7 @@ export default function PhotographyOnlyForm({ productId }: PhotographyOnlyFormPr
       const photographyData = {
         productId,
         photos,
+        photoSlots: [], // 撮影専用モードでは配置情報は空
         notes,
         photographyDate: new Date().toISOString(),
       };
@@ -95,6 +97,7 @@ export default function PhotographyOnlyForm({ productId }: PhotographyOnlyFormPr
         currentStep: 4,  // 撮影完了で最終ステップ
         checklist: {},
         photos: photos,
+        photoSlots: [], // 撮影専用モードでは配置情報は空
         notes: notes,
         status: 'completed'
       };

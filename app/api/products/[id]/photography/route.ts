@@ -89,8 +89,8 @@ export async function POST(
     const productId = params.id;
 
     const body = await request.json();
-    const { photos, notes } = body;
-    console.log('[DEBUG] Photography request body:', { photos: photos?.length, notes, productId });
+    const { photos, notes, photoSlots } = body;
+    console.log('[DEBUG] Photography request body:', { photos: photos?.length, notes, photoSlots: photoSlots?.length, productId });
 
     if (!productId) {
       return NextResponse.json(
@@ -124,6 +124,7 @@ export async function POST(
       photographyDate: new Date().toISOString(),
       photographyBy: user.username,
       photos: photos || [], // 撮影画像データを保存
+      photoSlots: photoSlots || [], // 写真の配置情報を保存
     };
 
     // Update product with photography data (ステータスは検品進捗APIで管理)
