@@ -413,7 +413,7 @@ export default function DashboardLayout({
           const scrollDelta = currentScrollY - currentLastScrollY;
           const isScrollingDown = scrollDelta > 0;
           const isScrollingUp = scrollDelta < 0;
-          const scrollThreshold = 3;
+          const scrollThreshold = 1;
           const topThreshold = 15;
           
           // 十分な下スクロールで折りたたみ
