@@ -26,15 +26,31 @@ export async function GET(request: NextRequest) {
       let listingStatusFilter = {};
       
       if (statusFilter && statusFilter !== 'all') {
-        // processing（出荷準備中）-> draft, inactive, expired, pending
-        // shipped（出荷済み）-> active, sold
-        if (statusFilter === 'processing') {
+        // 販売管理用ステータスフィルタリング
+        if (statusFilter === 'listing') {
+          // 出品中: activeでラベル未生成
+          listingStatusFilter = {
+            status: { in: ['active'] }
+          };
+        } else if (statusFilter === 'sold') {
+          // 購入者決定: soldでラベル未生成
+          listingStatusFilter = {
+            status: { in: ['sold'] }
+          };
+        } else if (statusFilter === 'processing') {
+          // 出荷準備中: draft, inactive, expired, pending
           listingStatusFilter = {
             status: { in: ['draft', 'inactive', 'expired', 'pending'] }
           };
         } else if (statusFilter === 'shipped') {
+          // 出荷済み: activeでラベル生成済み
           listingStatusFilter = {
-            status: { in: ['active', 'sold'] }
+            status: { in: ['active'] }
+          };
+        } else if (statusFilter === 'delivered') {
+          // 到着済み: soldでラベル生成済み
+          listingStatusFilter = {
+            status: { in: ['sold'] }
           };
         }
       }
@@ -65,17 +81,29 @@ export async function GET(request: NextRequest) {
       // Listingデータを販売管理画面用に変換（ステータスマッピング適用）
       const statusMapping = {
         'draft': 'processing',        // 下書き → 出荷準備中
-        'active': 'shipped',          // 出品中 → 出荷済み
+        'active': 'listing',          // 出品中 → 出品中
         'inactive': 'processing',     // 非公開 → 出荷準備中  
-        'sold': 'shipped',            // 売却済み → 出荷済み
+        'sold': 'sold',               // 売却済み → 購入者決定
         'expired': 'processing',      // 期限切れ → 出荷準備中
         'pending': 'processing'       // 保留中 → 出荷準備中
       };
       
-      const recentOrders = listings.map(listing => {
+      let recentOrders = listings.map(listing => {
         // 関連する注文データを取得
         const relatedOrder = listing.product?.orderItems?.[0]?.order;
         const isLabelGenerated = relatedOrder?.trackingNumber ? true : false;
+        
+        // ステータス判定ロジック
+        let displayStatus = statusMapping[listing.status as keyof typeof statusMapping] || 'processing';
+        
+        // ラベル生成済みの場合は適切なステータスに変更
+        if (isLabelGenerated) {
+          if (listing.status === 'active') {
+            displayStatus = 'shipped';
+          } else if (listing.status === 'sold') {
+            displayStatus = 'delivered';
+          }
+        }
         
         return {
           id: relatedOrder?.id || listing.id, // 注文IDが優先、なければListing ID
@@ -86,7 +114,7 @@ export async function GET(request: NextRequest) {
           ebayTitle: listing.title,
           ebayImage: listing.product?.images?.[0]?.url || listing.imageUrl || 'https://via.placeholder.com/300',
           totalAmount: relatedOrder?.totalAmount || listing.price,
-          status: isLabelGenerated ? 'shipped' : (statusMapping[listing.status as keyof typeof statusMapping] || 'processing'),
+          status: displayStatus,
           itemCount: relatedOrder?.items?.length || 1,
           orderDate: relatedOrder?.orderDate?.toISOString() || listing.createdAt.toISOString(),
           platform: listing.platform,
@@ -109,6 +137,37 @@ export async function GET(request: NextRequest) {
           shippingAddress: relatedOrder?.shippingAddress || '住所未設定'
         };
       });
+      
+      // フィルターに応じてラベル生成状況で絞り込み
+      if (statusFilter === 'listing') {
+        // 出品中: activeでラベル未生成
+        recentOrders = recentOrders.filter(order => {
+          const listing = listings.find(l => l.id === order.listingId);
+          const relatedOrder = listing?.product?.orderItems?.[0]?.order;
+          return listing.status === 'active' && !relatedOrder?.trackingNumber;
+        });
+      } else if (statusFilter === 'sold') {
+        // 購入者決定: soldでラベル未生成
+        recentOrders = recentOrders.filter(order => {
+          const listing = listings.find(l => l.id === order.listingId);
+          const relatedOrder = listing?.product?.orderItems?.[0]?.order;
+          return listing.status === 'sold' && !relatedOrder?.trackingNumber;
+        });
+      } else if (statusFilter === 'shipped') {
+        // 出荷済み: activeでラベル生成済み
+        recentOrders = recentOrders.filter(order => {
+          const listing = listings.find(l => l.id === order.listingId);
+          const relatedOrder = listing?.product?.orderItems?.[0]?.order;
+          return listing.status === 'active' && relatedOrder?.trackingNumber;
+        });
+      } else if (statusFilter === 'delivered') {
+        // 到着済み: soldでラベル生成済み
+        recentOrders = recentOrders.filter(order => {
+          const listing = listings.find(l => l.id === order.listingId);
+          const relatedOrder = listing?.product?.orderItems?.[0]?.order;
+          return listing.status === 'sold' && relatedOrder?.trackingNumber;
+        });
+      }
       
       return NextResponse.json({
         _dataSource: 'prisma-listing',

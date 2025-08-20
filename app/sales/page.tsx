@@ -64,11 +64,14 @@ export default function SalesPage() {
     url: carrier.trackingUrl
   }));
   
-  // 注文ステータスオプション（出荷準備中と出荷済みのみ）
+  // 注文ステータスオプション（販売管理用）
   const orderStatusOptions = [
     { value: 'all', label: 'すべて' },
+    { value: 'listing', label: '出品中' },
+    { value: 'sold', label: '購入者決定' },
     { value: 'processing', label: '出荷準備中' },
-    { value: 'shipped', label: '出荷済み' }
+    { value: 'shipped', label: '出荷済み' },
+    { value: 'delivered', label: '到着済み' }
   ];
 
   // eBayデータを取得する関数（開発環境用デモデータ）
