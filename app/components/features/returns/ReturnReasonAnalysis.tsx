@@ -435,7 +435,7 @@ export function ReturnReasonAnalysis() {
               options={[
                 { value: 'all', label: 'すべて' },
                 { value: 'pending', label: '検品待ち' },
-                { value: 'inspecting', label: '検品中' },
+                { value: 'inspecting', label: '保管作業中' },
                 { value: 'completed', label: '完了' }
               ]}
             />

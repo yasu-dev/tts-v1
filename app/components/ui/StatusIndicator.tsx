@@ -11,7 +11,8 @@ type BusinessStatusType =
   | 'processing' | 'delivered' | 'returned'
   | 'packed' | 'shipped' | 'ready_for_pickup'
   | 'approved' | 'rejected' | 'refunded'
-  | 'ordered' | 'shipping';
+  | 'ordered' | 'shipping'
+  | 'on_hold';
 
 interface StatusIndicatorProps {
   status: StatusType;
@@ -32,13 +33,13 @@ interface BusinessStatusIndicatorProps {
 const businessStatusConfig = {
   // 在庫ステータス
   inbound: { 
-    label: '入荷待ち', 
+    label: '入庫待ち', 
     bg: 'bg-blue-800 dark:bg-blue-800',
     text: 'text-white dark:text-white',
     border: 'border-blue-800 dark:border-blue-800'
   },
   inspection: { 
-    label: '検品中', 
+    label: '保管作業中', 
     bg: 'bg-orange-800 dark:bg-orange-800',
     text: 'text-white dark:text-white',
     border: 'border-orange-800 dark:border-orange-800'
@@ -56,20 +57,20 @@ const businessStatusConfig = {
     border: 'border-blue-800 dark:border-blue-800'
   },
   sold: { 
-    label: '売約済み', 
+    label: '購入者決定', 
     bg: 'bg-gray-800 dark:bg-gray-800',
     text: 'text-white dark:text-white',
     border: 'border-gray-800 dark:border-gray-800'
   },
 
   ordered: { 
-    label: '受注済み', 
+    label: '出荷準備中', 
     bg: 'bg-purple-800 dark:bg-purple-800',
     text: 'text-white dark:text-white',
     border: 'border-purple-800 dark:border-purple-800'
   },
   shipping: { 
-    label: '出荷中', 
+    label: '出荷済み', 
     bg: 'bg-purple-800 dark:bg-purple-800',
     text: 'text-white dark:text-white',
     border: 'border-purple-800 dark:border-purple-800'
@@ -79,6 +80,12 @@ const businessStatusConfig = {
     bg: 'bg-orange-800 dark:bg-orange-800',
     text: 'text-white dark:text-white',
     border: 'border-orange-800 dark:border-orange-800'
+  },
+  on_hold: { 
+    label: '保留中', 
+    bg: 'bg-yellow-800 dark:bg-yellow-800',
+    text: 'text-white dark:text-white',
+    border: 'border-yellow-800 dark:border-yellow-800'
   },
   
   // 注文ステータス
@@ -107,7 +114,7 @@ const businessStatusConfig = {
     border: 'border-indigo-800 dark:border-indigo-800'
   },
   delivered: { 
-    label: '配達完了', 
+    label: '到着済み', 
     bg: 'bg-green-800 dark:bg-green-800',
     text: 'text-white dark:text-white',
     border: 'border-green-800 dark:border-green-800'
@@ -180,6 +187,7 @@ function getIndicatorColor(status: BusinessStatusType): string {
     ordered: 'bg-purple-300',
     shipping: 'bg-purple-300',
     returned: 'bg-orange-300',
+    on_hold: 'bg-yellow-300',
     pending: 'bg-blue-300',
     confirmed: 'bg-green-300',
     processing: 'bg-amber-300',

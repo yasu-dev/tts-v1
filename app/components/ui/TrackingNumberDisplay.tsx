@@ -210,7 +210,7 @@ export function AdvancedTrackingDisplay({
         {deliveredAt && (
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 bg-nexus-success rounded-full"></span>
-            <span>配達完了: {new Date(deliveredAt).toLocaleDateString('ja-JP')}</span>
+            <span>到着済み: {new Date(deliveredAt).toLocaleDateString('ja-JP')}</span>
           </div>
         )}
         {!deliveredAt && shippedAt && (

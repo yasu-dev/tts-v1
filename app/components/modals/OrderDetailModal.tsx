@@ -75,7 +75,7 @@ export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetail
       confirmed: '確認済み',
       processing: '処理中',
       shipped: '発送済み',
-      delivered: '配達完了',
+      delivered: '到着済み',
       cancelled: 'キャンセル'
     };
     return labels[status] || status;

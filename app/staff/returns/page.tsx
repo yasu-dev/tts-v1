@@ -327,7 +327,7 @@ export default function ReturnsPage() {
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'pending': return '検品待ち';
-      case 'inspecting': return '検品中';
+      case 'inspecting': return '保管作業中';
       case 'approved': return '承認済み';
       case 'rejected': return '拒否';
       case 'refunded': return '返金完了';
@@ -577,7 +577,7 @@ export default function ReturnsPage() {
                         </button>
                         {(returnStatuses?.parsedValue ? returnStatuses.parsedValue : [
                           { key: 'pending', nameJa: '検品待ち' },
-                          { key: 'inspecting', nameJa: '検品中' },
+                          { key: 'inspecting', nameJa: '保管作業中' },
                           { key: 'completed', nameJa: '完了' }
                         ]).map((status: any) => (
                           <button

@@ -33,14 +33,14 @@ async function seedMasterData() {
     console.log('商品ステータスをシード中...');
     const productStatuses = [
       { key: 'inbound', nameJa: '入庫待ち', nameEn: 'Inbound', sortOrder: 1 },
-      { key: 'inspection', nameJa: '検品中', nameEn: 'Inspection', sortOrder: 2 },
+      { key: 'inspection', nameJa: '保管作業中', nameEn: 'Inspection', sortOrder: 2 },
       { key: 'storage', nameJa: '保管中', nameEn: 'Storage', sortOrder: 3 },
       { key: 'listing', nameJa: '出品中', nameEn: 'Listing', sortOrder: 4 },
-      { key: 'ordered', nameJa: '受注済み', nameEn: 'Ordered', sortOrder: 5 },
-      { key: 'shipping', nameJa: '出荷中', nameEn: 'Shipping', sortOrder: 6 },
-      { key: 'sold', nameJa: '売約済み', nameEn: 'Sold', sortOrder: 7 },
+      { key: 'ordered', nameJa: '出荷準備中', nameEn: 'Ordered', sortOrder: 5 },
+      { key: 'shipping', nameJa: '出荷済み', nameEn: 'Shipping', sortOrder: 6 },
+      { key: 'sold', nameJa: '購入者決定', nameEn: 'Sold', sortOrder: 7 },
       { key: 'returned', nameJa: '返品', nameEn: 'Returned', sortOrder: 8 },
-      { key: 'damaged', nameJa: '損傷', nameEn: 'Damaged', sortOrder: 9 },
+      { key: 'on_hold', nameJa: '保留中', nameEn: 'On Hold', sortOrder: 9 },
     ];
 
     for (const status of productStatuses) {

@@ -122,13 +122,13 @@ const categoryLabels = {
 const convertStatusToBusinessStatus = (status: string): BusinessStatus => {
   switch (status) {
     case 'inbound':
-      return 'inbound';  // 入荷待ち
+      return 'inbound';  // 入庫待ち
     case 'pending_inspection':
       return 'inbound';  // 検品待ち
     case 'inspection':
-      return 'inspection';  // 検品中
+      return 'inspection';  // 保管作業中
     case 'inspecting':
-      return 'inspection';  // 検品中（DB実際の値）
+      return 'inspection';  // 保管作業中（DB実際の値）
     case 'storage':
       return 'completed';  // 完了
     case 'completed':
@@ -637,8 +637,8 @@ export default function InspectionPage() {
   // ステータス選択肢
   const statusOptions = [
     { value: 'all', label: 'すべてのステータス' },
-    { value: 'pending_inspection', label: '入荷待ち' },
-    { value: 'inspecting', label: '検品中' },
+          { value: 'pending_inspection', label: '入庫待ち' },
+      { value: 'inspecting', label: '保管作業中' },
     { value: 'completed', label: '完了' },
     { value: 'failed', label: '不合格' }
   ];
@@ -719,7 +719,7 @@ export default function InspectionPage() {
               {[
                 { id: 'all', label: '全体', count: inspectionStats.total },
                 { id: 'pending_inspection', label: '検品待ち', count: inspectionStats.pending },
-                { id: 'inspecting', label: '検品中', count: inspectionStats.inspecting },
+                { id: 'inspecting', label: '保管作業中', count: inspectionStats.inspecting },
                 { id: 'completed', label: '完了', count: inspectionStats.completed },
                 { id: 'failed', label: '不合格', count: inspectionStats.failed },
               ].map((tab) => (
@@ -900,7 +900,7 @@ export default function InspectionPage() {
                             }
 
                             if (product.status === 'inspecting') {
-                              // 検品中の場合は、検品処理モーダルを開く
+                              // 保管作業中の場合は、検品処理モーダルを開く
                               return (
                                 <NexusButton 
                                   size="sm" 

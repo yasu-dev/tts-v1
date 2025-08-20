@@ -129,7 +129,7 @@ export default function ItemDetailModal({
   });
 
   const demoHistory = [
-    { date: '2024-12-24 10:00', action: 'ステータス変更', details: '検品中 → 保管中', user: '田中太郎' },
+            { date: '2024-12-24 10:00', action: 'ステータス変更', details: '保管作業中 → 保管中', user: '田中太郎' },
     { date: '2024-12-23 14:30', action: 'ロケーション移動', details: 'A-1-001 → A-1-002', user: '田中太郎' },
     { date: '2024-12-22 09:15', action: '商品登録', details: '初回登録完了', user: '佐藤花子' },
   ];
@@ -412,7 +412,7 @@ export default function ItemDetailModal({
                    item.status === 'inspection' ? '検品作業中です。品質確認後、保管へ移行します。' :
                    item.status === 'storage' ? '保管中です。必要に応じて検品や移動を行えます。' :
                    item.status === 'listing' ? '出品中です。販売が完了するまで待機してください。' :
-                   item.status === 'sold' ? '売約済みです。出荷準備を行ってください。' :
+                   item.status === 'sold' ? '購入者決定です。出荷準備を行ってください。' :
 
                    '現在のステータスに応じた作業を実行してください。'}
                 </p>

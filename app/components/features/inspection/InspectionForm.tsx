@@ -715,7 +715,7 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
       if (result === 'passed') {
         inspectionStatus = inspectionOnly ? 'inspection' : 'storage';  // 撮影も完了なら保管可能
       } else if (result === 'failed') {
-        inspectionStatus = 'failed';  // 不合格
+        inspectionStatus = 'on_hold';  // 不合格は保留中
       } else {
         inspectionStatus = 'inspection';  // 要確認は検品継続
       }

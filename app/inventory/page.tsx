@@ -247,7 +247,8 @@ export default function InventoryPage() {
       'ordered': 'ordered',
       'shipping': 'shipping',
       'sold': 'sold',
-      'returned': 'returned'
+      'returned': 'returned',
+      'on_hold': 'on_hold'
     };
     return statusMap[status] || status;
   };

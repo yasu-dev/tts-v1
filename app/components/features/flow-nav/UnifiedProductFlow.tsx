@@ -216,7 +216,7 @@ export default function UnifiedProductFlow({
                 task.count = data.statusStats['配送'] || 0;
                 break;
               case 'calculation':
-                task.count = data.statusStats['売約済み'] || 0;
+                task.count = data.statusStats['購入者決定'] || 0;
                 break;
               case 'return-receive':
                 task.count = Math.floor((data.statusStats['返品'] || 0) * 0.4);
@@ -244,7 +244,7 @@ export default function UnifiedProductFlow({
         // 統計情報を計算
         const total = Object.values(data.statusStats).reduce((sum: number, count: any) => sum + (count || 0), 0);
         const inProgress = (data.statusStats['入庫'] || 0) + (data.statusStats['検品'] || 0) + (data.statusStats['出荷'] || 0);
-        const completed = data.statusStats['売約済み'] || 0;
+        const completed = data.statusStats['購入者決定'] || 0;
         const returns = data.statusStats['返品'] || 0;
         
         setTotalStats({ total, inProgress, completed, returns, userActiveTasks });

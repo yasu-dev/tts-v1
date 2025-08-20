@@ -244,7 +244,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const validStatuses = ['inspection', 'storage', 'listing', 'completed', 'failed'];
+    const validStatuses = ['inspection', 'storage', 'listing', 'completed', 'failed', 'on_hold'];
     let mappedStatus = status;
     
     // まず、文字列をそのまま使用（completed, failedなど）
@@ -253,7 +253,8 @@ export async function PUT(request: NextRequest) {
     else if (status === '保管') mappedStatus = 'storage';
     else if (status === '出品') mappedStatus = 'listing';
     else if (status === '完了') mappedStatus = 'completed';
-    else if (status === '不合格') mappedStatus = 'failed';
+    else if (status === '不合格') mappedStatus = 'on_hold';
+    else if (status === '保留中') mappedStatus = 'on_hold';
     // その他はそのまま使用（completed, failed, inspecting, etc.）
 
     if (!validStatuses.includes(mappedStatus)) {

@@ -123,11 +123,11 @@ export default function ProductEditModal({
   };
 
   const statusOptions = [
-    { value: 'inbound', label: '入荷待ち' },
-    { value: 'inspection', label: '検品中' },
-    { value: 'storage', label: '保管中' },
-    { value: 'listing', label: '出品中' },
-    { value: 'sold', label: '売約済み' },
+                    { value: 'inbound', label: '入庫待ち' },
+                { value: 'inspection', label: '保管作業中' },
+                { value: 'storage', label: '保管中' },
+                { value: 'listing', label: '出品中' },
+                { value: 'sold', label: '購入者決定' },
 
   ];
 

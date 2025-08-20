@@ -199,15 +199,16 @@ export default function StaffInventoryPage() {
                                  .replace('accessory', 'アクセサリ'),
           status: item.status, // 英語ステータスをそのまま保持（BusinessStatusIndicator用）
           statusOriginal: item.status,
-          statusDisplay: item.status.replace('inbound', '入荷待ち')
-                            .replace('inspection', '検品中')
+          statusDisplay: item.status.replace('inbound', '入庫待ち')
+                            .replace('inspection', '保管作業中')
                             .replace('storage', '保管中')
                             .replace('listing', '出品中')
-                            .replace('ordered', '受注済み')
-                            .replace('shipping', '出荷中')
+                            .replace('ordered', '出荷準備中')
+                            .replace('shipping', '出荷済み')
 
-                            .replace('sold', '売約済み')
-                            .replace('returned', '返品'),
+                            .replace('sold', '購入者決定')
+                            .replace('returned', '返品')
+                            .replace('on_hold', '保留中'),
           location: item.location || '未設定',
           price: item.price || 0,
           condition: item.condition.replace('new', '新品')
