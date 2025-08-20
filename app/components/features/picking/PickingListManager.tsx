@@ -74,7 +74,33 @@ export default function PickingListManager() {
       const result = await response.json();
       
       if (result.success) {
-        setProducts(result.data || []);
+        // APIは{tasks: [...], statistics: {...}}構造を返すため、tasksを取得し商品配列に変換
+        const tasks = result.data?.tasks || result.tasks || [];
+        const flatProducts = tasks.flatMap(task => 
+          (task.items || []).map(item => ({
+            id: item.id,
+            productName: item.productName || '',
+            sku: item.sku || '',
+            location: item.location || '',
+            quantity: item.quantity || 1,
+            pickedQuantity: item.pickedQuantity || 0,
+            status: item.status || 'pending',
+            // ピッキング管理に必要な追加情報
+            ebayOrderId: task.orderId || '',
+            ebayItemId: task.id || '',
+            buyerName: task.customerName || task.customer || '',
+            buyerUserId: task.customer || '',
+            purchaseDate: new Date(task.dueDate || Date.now()).toISOString().split('T')[0],
+            shippingAddress: {
+              name: task.customerName || task.customer || '',
+              address: '',
+              city: '',
+              postalCode: '',
+              country: '日本'
+            }
+          }))
+        );
+        setProducts(flatProducts);
         
         // APIから同梱グループを取得
         const groups = result.combineGroups || [];
@@ -169,10 +195,15 @@ export default function PickingListManager() {
   // フィルタリング
   const filteredProducts = useMemo(() => {
     return products.filter(product => {
+      // 防御的プログラミング: undefinedチェック
+      const productName = product?.productName || '';
+      const buyerName = product?.buyerName || '';
+      const ebayOrderId = product?.ebayOrderId || '';
+      
       const matchesSearch = 
-        product.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.buyerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.ebayOrderId.toLowerCase().includes(searchQuery.toLowerCase());
+        productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        buyerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        ebayOrderId.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesStatus = filterStatus === 'all' || product.status === filterStatus;
       return matchesSearch && matchesStatus;
     });

@@ -93,7 +93,7 @@ export default function UnifiedProductFlow({
       id: 'preparation',
       name: 'STEP 1: 準備フェーズ',
       shortName: '準備',
-      description: 'セラー商品仕入れ・納品プラン作成・ATW倉庫発送',
+      description: 'セラー商品仕入れ・納品プラン作成・倉庫発送',
       role: 'seller',
       color: '#0064D2', // 信頼性・安定性を表すプライマリーブルー（経済学：投資・準備段階）
       bgColor: '#e3f2fd',
@@ -101,7 +101,7 @@ export default function UnifiedProductFlow({
       tasks: [
         { id: 'sourcing', name: '商品仕入れ', count: 0, avgDays: 3, status: 'active',  },
         { id: 'plan', name: '納品プラン作成', count: 0, avgDays: 1, status: 'waiting',  },
-        { id: 'shipping', name: 'ATW倉庫発送', count: 0, avgDays: 2, status: 'waiting',  }
+        { id: 'shipping', name: '倉庫発送', count: 0, avgDays: 2, status: 'waiting',  }
       ]
     },
     {
@@ -129,7 +129,7 @@ export default function UnifiedProductFlow({
       bgColor: '#e8f5e8',
       icon: stepIcons.sales,
       tasks: [
-        { id: 'listing', name: 'eBay自動出品', count: 0, avgDays: 1, status: 'active',  },
+        { id: 'listing', name: 'eBay出品', count: 0, avgDays: 1, status: 'active',  },
         { id: 'order', name: '商品注文', count: 0, avgDays: 0, status: 'waiting',  },
         { id: 'process', name: '受注処理', count: 0, avgDays: 1, status: 'waiting',  }
       ]
@@ -364,8 +364,8 @@ export default function UnifiedProductFlow({
 
   return (
     <div className={isCollapsed ? "bg-white border-b border-gray-200" : "bg-white rounded-xl border border-nexus-border"} data-testid="unified-product-flow">
-      <div className={isCollapsed ? "p-4" : "p-6"}>
-        <div className="flex flex-col gap-4">
+      <div className={isCollapsed ? "p-3" : "p-4"}>
+        <div className="flex flex-col gap-2">
 
 
           {/* フローステップ */}
@@ -385,7 +385,7 @@ export default function UnifiedProductFlow({
                   key={step.id}
                   onClick={() => handleStepClick(step.id)}
                   className={`
-                    relative p-4 rounded-xl transition-all duration-300 text-left group
+                    relative p-3 rounded-xl transition-all duration-300 text-left group
                     hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500
                     ${isCurrentStep ? 'ring-2 ring-blue-400 shadow-lg scale-105' : ''}
                     ${hasUserTasks && totalStepTasks > 0 ? 'ring-2 ring-orange-300 bg-orange-50' : ''}
@@ -397,13 +397,13 @@ export default function UnifiedProductFlow({
                   }}
                 >
                   {/* ステップヘッダー */}
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
                       <div 
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-white"
+                        className="w-6 h-6 rounded-full flex items-center justify-center text-white"
                         style={{ backgroundColor: step.color }}
                       >
-                        <div className="w-4 h-4">
+                        <div className="w-3 h-3">
                           {step.icon}
                         </div>
                       </div>
@@ -411,11 +411,7 @@ export default function UnifiedProductFlow({
                         <div className="text-sm font-bold text-gray-900">
                           {step.shortName}
                         </div>
-                        <div className="text-xs text-gray-500">
-                          {step.role === 'seller' ? 'あなたの作業' : 
-                           step.role === 'staff' ? '倉庫作業' : 
-                           step.role === 'system' ? '自動処理' : '顧客対応'}
-                        </div>
+
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
@@ -430,11 +426,11 @@ export default function UnifiedProductFlow({
                   </div>
 
                   {/* タスクリスト */}
-                  <div className="space-y-2">
+                  <div className="space-y-1">
                     {step.tasks.slice(0, compact ? 2 : 3).map((task) => (
                       <div
                         key={task.id}
-                        className="w-full flex items-center justify-between text-xs group-hover:bg-white/50 p-2 rounded transition-colors hover:bg-white/70 cursor-pointer"
+                        className="w-full flex items-center justify-between text-xs group-hover:bg-white/50 p-1 rounded transition-colors hover:bg-white/70 cursor-pointer"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleStepClick(step.id, task.id);
@@ -466,37 +462,12 @@ export default function UnifiedProductFlow({
                             {task.count}
                           </span>
                         )}
-                        {showCounts && task.count === 0 && (
-                          <span className="text-gray-400 text-[10px]">
-                            完了
-                          </span>
-                        )}
+
                       </div>
                     ))}
                   </div>
 
-                  {/* 進捗インジケーター */}
-                  {!compact && (
-                    <div className="mt-3 pt-2 border-t border-gray-200">
-                      <div className="flex items-center justify-between text-[10px] text-gray-500">
-                        <span>平均処理時間</span>
-                        <span>{Math.max(...step.tasks.map(t => t.avgDays))}日</span>
-                      </div>
-                                              {totalStepTasks > 0 && (
-                        <div className="mt-1">
-                          <div className="w-full bg-gray-200 rounded-full h-1">
-                            <div 
-                              className="h-1 rounded-full transition-all duration-500"
-                              style={{ 
-                                backgroundColor: step.color,
-                                width: `${Math.min(100, (totalStepTasks / 50) * 100)}%`
-                              }}
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
+
 
                   {/* 接続線（デスクトップのみ） */}
                   {index < flowData.length - 1 && (
@@ -516,20 +487,7 @@ export default function UnifiedProductFlow({
           </div>
           )}
 
-          {/* クイックアクションヒント */}
-          {!compact && (
-            <div className="text-center border-t pt-3">
-              <span className="text-xs text-gray-500">
-                各ステップをクリックして対応する画面に移動 • 
-                <span className="font-medium text-blue-600"> リアルタイム更新中</span>
-                {totalStats.userActiveTasks > 0 && (
-                  <span className="ml-2 px-2 py-1 bg-orange-100 text-orange-700 rounded text-[10px] font-medium">
-                    あなたの作業: {totalStats.userActiveTasks}件待機中
-                  </span>
-                )}
-              </span>
-            </div>
-          )}
+
         </div>
       </div>
     </div>

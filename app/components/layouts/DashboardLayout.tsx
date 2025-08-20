@@ -728,7 +728,7 @@ export default function DashboardLayout({
               <UnifiedProductFlow 
                 currentStage={getCurrentStage()} 
                 userType={userType}
-                compact={true}
+                compact={false}
                 isCollapsed={isBusinessFlowCollapsed}
                 onToggleCollapse={() => setIsBusinessFlowCollapsed(!isBusinessFlowCollapsed)}
               />
