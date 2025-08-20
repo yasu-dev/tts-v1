@@ -894,14 +894,6 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
                 <span className="ml-2 font-medium">{product.sku}</span>
               </div>
               <div>
-                <span className="text-gray-600">ブランド:</span>
-                <span className="ml-2 font-medium">{product.brand}</span>
-              </div>
-              <div>
-                <span className="text-gray-600">モデル:</span>
-                <span className="ml-2 font-medium">{product.model}</span>
-              </div>
-              <div>
                 <span className="text-gray-600">カテゴリ:</span>
                 <span className="ml-2 font-medium">
                   {product.category === 'camera_body' ? 'カメラボディ' : product.category}
