@@ -1,0 +1,91 @@
+# Page snapshot
+
+```yaml
+- complementary:
+  - text: W
+  - heading "THE WORLD DOOR" [level=2]
+  - paragraph: フルフィルメントサービス
+  - paragraph: セラー管理
+  - button "サイドバーを折りたたむ":
+    - img
+  - navigation:
+    - link "ダッシュボード":
+      - /url: /dashboard
+      - img
+      - text: ダッシュボード
+    - link "納品管理":
+      - /url: /delivery
+      - img
+      - text: 納品管理
+    - link "在庫管理":
+      - /url: /inventory
+      - img
+      - text: 在庫管理
+    - link "販売管理":
+      - /url: /sales
+      - img
+      - text: 販売管理
+    - link "返品管理":
+      - /url: /returns
+      - img
+      - text: 返品管理
+    - link "請求・精算":
+      - /url: /billing
+      - img
+      - text: 請求・精算
+- banner:
+  - textbox "商品を検索..."
+  - button:
+    - img
+  - img
+  - text: 15:35 日本時間
+  - button "通知":
+    - img
+  - button "スタッフ":
+    - img
+    - text: スタッフ
+  - button "U セラー 管理者":
+    - text: U セラー 管理者
+    - img
+- heading "業務フロー" [level=3]
+- button "フローを折りたたむ":
+  - img
+- main:
+  - img
+  - heading "納品管理" [level=1]
+  - paragraph: 納品プランの作成・管理・追跡
+  - button "新規作成"
+  - text: ステータス
+  - combobox:
+    - option "読み込み中..." [selected]
+  - text: 期間
+  - combobox:
+    - option "すべて" [selected]
+    - option "直近7日間"
+    - option "直近30日間"
+    - option "直近90日間（四半期）"
+    - option "今月"
+    - option "来月"
+    - option "今四半期"
+    - option "期間指定"
+  - text: 検索
+  - textbox "住所、メール、備考で検索..."
+  - table:
+    - rowgroup:
+      - row "作成日 ステータス 商品数 予想価格 商品概要 納品先 操作":
+        - cell "作成日"
+        - cell "ステータス"
+        - cell "商品数"
+        - cell "予想価格"
+        - cell "商品概要"
+        - cell "納品先"
+        - cell "操作"
+    - rowgroup:
+      - row "データを読み込み中... しばらくお待ちください":
+        - cell "データを読み込み中... しばらくお待ちください":
+          - paragraph: データを読み込み中...
+          - paragraph: しばらくお待ちください
+- button "バーコードテスターを展開":
+  - img
+- alert
+```
