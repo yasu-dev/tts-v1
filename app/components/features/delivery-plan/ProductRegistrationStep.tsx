@@ -8,7 +8,7 @@ import NexusTextarea from '@/app/components/ui/NexusTextarea';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import InspectionChecklistInput, { InspectionChecklistData } from '@/app/components/features/inspection/InspectionChecklistInput';
 import EnhancedImageUploader from '@/app/components/features/EnhancedImageUploader';
-import { PlusIcon, TrashIcon, PhotoIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, TrashIcon, PhotoIcon, CameraIcon } from '@heroicons/react/24/outline';
 
 interface ProductImage {
   id: string;
@@ -16,6 +16,12 @@ interface ProductImage {
   filename: string;
   category: string; // 'product', 'package', 'accessory', 'document'
   description?: string;
+}
+
+interface PhotographyRequest {
+  specialPhotography: boolean; // 特別撮影要望の有無
+  specialPhotographyItems: string[]; // 選択された特別撮影項目
+  customRequests: string; // 任意の撮影要望（テキスト）
 }
 
 interface Product {
@@ -28,6 +34,7 @@ interface Product {
   category?: string;
   images?: ProductImage[]; // 商品画像
   inspectionChecklist?: InspectionChecklistData;
+  photographyRequest?: PhotographyRequest; // 撮影要望
 }
 
 interface ProductRegistrationStepProps {
@@ -59,6 +66,14 @@ const imageCategoryOptions = [
   { value: 'accessory', label: '付属品' },
   { value: 'document', label: '書類・保証書' },
   { value: 'other', label: 'その他' }
+];
+
+const specialPhotographyOptions = [
+  { value: 'diagonal_45', label: '45度斜め撮影' },
+  { value: 'closeup', label: 'クローズアップ撮影' },
+  { value: 'functional_details', label: '機能部分詳細撮影' },
+  { value: 'internal_structure', label: '内部構造撮影' },
+  { value: 'accessories_individual', label: '付属品個別撮影' }
 ];
 
 export default function ProductRegistrationStep({ 
@@ -116,6 +131,11 @@ export default function ProductRegistrationStep({
         },
         notes: '',
       },
+      photographyRequest: {
+        specialPhotography: false,
+        specialPhotographyItems: [],
+        customRequests: '',
+      },
     };
     const updatedProducts = [...products, newProduct];
     setProducts(updatedProducts);
@@ -136,6 +156,14 @@ export default function ProductRegistrationStep({
   const updateInspectionChecklist = (index: number, checklistData: InspectionChecklistData) => {
     const updatedProducts = products.map((product: any, i: number) => 
       i === index ? { ...product, inspectionChecklist: checklistData } : product
+    );
+    setProducts(updatedProducts);
+    onUpdate({ products: updatedProducts });
+  };
+
+  const updatePhotographyRequest = (index: number, photographyData: PhotographyRequest) => {
+    const updatedProducts = products.map((product: any, i: number) => 
+      i === index ? { ...product, photographyRequest: photographyData } : product
     );
     setProducts(updatedProducts);
     onUpdate({ products: updatedProducts });
@@ -457,6 +485,116 @@ export default function ProductRegistrationStep({
                   showOptical={product.category === 'camera_body' || product.category === 'lens'}
                   readOnly={false}
                 />
+              </div>
+
+              {/* 撮影要望セクション */}
+              <div className="mt-6 border-t pt-6">
+                <h4 className="text-lg font-medium text-nexus-text-primary mb-4 flex items-center gap-2">
+                  <CameraIcon className="h-5 w-5" />
+                  撮影要望（任意）
+                </h4>
+                <p className="text-sm text-nexus-text-secondary mb-4">
+                  基本撮影（正面・背面・側面等）はスタッフが標準で実施いたします。特別な撮影をご希望の場合はこちらでご指定ください。
+                </p>
+
+                {(() => {
+                  const currentRequest = product.photographyRequest || {
+                    specialPhotography: false,
+                    specialPhotographyItems: [],
+                    customRequests: '',
+                  };
+
+                  return (
+                    <div className="space-y-4">
+                      {/* 特別撮影の有無チェック */}
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id={`special-photography-${index}`}
+                          checked={currentRequest.specialPhotography}
+                          onChange={(e) => {
+                            const newRequest = {
+                              ...currentRequest,
+                              specialPhotography: e.target.checked,
+                              specialPhotographyItems: e.target.checked ? currentRequest.specialPhotographyItems : [],
+                            };
+                            updatePhotographyRequest(index, newRequest);
+                          }}
+                          className="w-4 h-4 text-nexus-primary bg-white border-nexus-border rounded focus:ring-nexus-primary focus:ring-2"
+                        />
+                        <label 
+                          htmlFor={`special-photography-${index}`}
+                          className="text-sm font-medium text-nexus-text-primary cursor-pointer"
+                        >
+                          特別撮影を依頼する
+                        </label>
+                      </div>
+
+                      {/* 特別撮影項目選択（特別撮影がチェックされている場合のみ表示） */}
+                      {currentRequest.specialPhotography && (
+                        <div className="ml-6 p-4 bg-nexus-bg-tertiary rounded-lg border border-nexus-border space-y-4">
+                          {/* 特別撮影項目選択 */}
+                          <div>
+                            <h5 className="text-sm font-medium text-nexus-text-primary mb-3">特別撮影項目（複数選択可）</h5>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              {specialPhotographyOptions.map((option) => (
+                                <div key={option.value} className="flex items-center gap-2">
+                                  <input
+                                    type="checkbox"
+                                    id={`photo-option-${index}-${option.value}`}
+                                    checked={currentRequest.specialPhotographyItems.includes(option.value)}
+                                    onChange={(e) => {
+                                      const newItems = e.target.checked
+                                        ? [...currentRequest.specialPhotographyItems, option.value]
+                                        : currentRequest.specialPhotographyItems.filter(item => item !== option.value);
+                                      
+                                      const newRequest = {
+                                        ...currentRequest,
+                                        specialPhotographyItems: newItems,
+                                      };
+                                      updatePhotographyRequest(index, newRequest);
+                                    }}
+                                    className="w-4 h-4 text-nexus-primary bg-white border-nexus-border rounded focus:ring-nexus-primary focus:ring-2"
+                                  />
+                                  <label 
+                                    htmlFor={`photo-option-${index}-${option.value}`}
+                                    className="text-sm text-nexus-text-primary cursor-pointer"
+                                  >
+                                    {option.label}
+                                  </label>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* 任意の撮影要望 */}
+                          <div>
+                            <label className="block text-sm font-medium text-nexus-text-primary mb-2">
+                              任意の撮影要望
+                            </label>
+                            <NexusTextarea
+                              value={currentRequest.customRequests}
+                              onChange={(e) => {
+                                const newRequest = {
+                                  ...currentRequest,
+                                  customRequests: e.target.value,
+                                };
+                                updatePhotographyRequest(index, newRequest);
+                              }}
+                              rows={3}
+                              placeholder="例：レンズのカビ状態を詳細に撮影してください、シャッター動作を動画で記録希望など"
+                              maxLength={500}
+                              variant="nexus"
+                            />
+                            <p className="text-xs text-nexus-text-tertiary mt-1">
+                              {currentRequest.customRequests.length}/500文字
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           ))}

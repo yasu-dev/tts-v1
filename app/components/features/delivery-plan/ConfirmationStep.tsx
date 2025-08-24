@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import NexusButton from '@/app/components/ui/NexusButton';
 import NexusCard from '@/app/components/ui/NexusCard';
+import PhotographyRequestDisplay from '@/app/components/features/photography/PhotographyRequestDisplay';
 
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import { ExternalLink } from 'lucide-react';
@@ -228,6 +229,14 @@ export default function ConfirmationStep({
                     </div>
                   </div>
                 )}
+
+                {/* 撮影要望表示 */}
+                <div className="mb-4">
+                  <PhotographyRequestDisplay
+                    photographyRequests={product.photographyRequest || null}
+                    className=""
+                  />
+                </div>
 
                 {/* 検品チェックリスト表示 */}
                 {product.inspectionChecklist && (

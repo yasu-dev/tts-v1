@@ -11,6 +11,7 @@ import PackagingAndLabelStep from './PackagingAndLabelStep';
 import ShelfStorageStep from './ShelfStorageStep';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import ConfirmationModal from '@/app/components/ui/ConfirmationModal';
+import PhotographyRequestDisplay from '@/app/components/features/photography/PhotographyRequestDisplay';
 import { ArchiveBoxIcon } from '@heroicons/react/24/outline';
 
 export interface InspectionFormProps {
@@ -35,6 +36,11 @@ interface Product {
     supplier: string;
     supplierDetails: string;
     images: Array<{url: string, filename: string, category: string}>;
+    photographyRequests?: {
+      specialPhotography: boolean;
+      specialPhotographyItems: string[];
+      customRequests: string;
+    };
   };
 }
 
@@ -240,6 +246,10 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
               }
               
               console.log('[INFO] Product metadata:', metadata);
+              console.log('[INFO] 撮影要望データチェック:', {
+                hasPhotographyRequests: !!metadata.photographyRequests,
+                photographyRequests: metadata.photographyRequests
+              });
               
               // 納品プラン関連情報を抽出して構造化（型安全処理）
               enrichedProduct.deliveryPlanInfo = {
@@ -248,7 +258,8 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
                 purchaseDate: typeof metadata.purchaseDate === 'string' ? metadata.purchaseDate : '',
                 supplier: typeof metadata.supplier === 'string' ? metadata.supplier : '',
                 supplierDetails: typeof metadata.supplierDetails === 'string' ? metadata.supplierDetails : '',
-                images: Array.isArray(metadata.images) ? metadata.images : []
+                images: Array.isArray(metadata.images) ? metadata.images : [],
+                photographyRequests: metadata.photographyRequests ? metadata.photographyRequests : null
               };
               
               console.log('[INFO] 納品プラン情報を抽出:', enrichedProduct.deliveryPlanInfo);
@@ -1144,18 +1155,36 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
         )}
 
         {currentStep === 2 && (
-          <PhotoUploader
-            productId={productId}
-            photos={inspectionData.photos}
-            photoSlots={inspectionData.photoSlots}
-            onUpdate={updatePhotos}
-            onNext={() => handleStepChange(3)}
-            onPrev={() => handleStepChange(1)}
-            onSaveAndReturn={() => saveProgress(2)}
-            onCancel={handleCancelAndReturn}
-            category={product.category}
-            loading={loading}
-          />
+          <div className="space-y-6">
+            {/* 撮影要望表示 */}
+            {(() => {
+              console.log('[DEBUG] PhotographyRequestDisplay レンダリング:', {
+                productId: product?.id,
+                hasDeliveryPlanInfo: !!product?.deliveryPlanInfo,
+                photographyRequests: product?.deliveryPlanInfo?.photographyRequests
+              });
+              
+              return (
+                <PhotographyRequestDisplay 
+                  photographyRequests={product.deliveryPlanInfo?.photographyRequests || null}
+                  className="mb-6"
+                />
+              );
+            })()}
+            
+            <PhotoUploader
+              productId={productId}
+              photos={inspectionData.photos}
+              photoSlots={inspectionData.photoSlots}
+              onUpdate={updatePhotos}
+              onNext={() => handleStepChange(3)}
+              onPrev={() => handleStepChange(1)}
+              onSaveAndReturn={() => saveProgress(2)}
+              onCancel={handleCancelAndReturn}
+              category={product.category}
+              loading={loading}
+            />
+          </div>
         )}
 
         {currentStep === 3 && (

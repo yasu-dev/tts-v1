@@ -134,6 +134,18 @@ export default function DeliveryPlanWizard() {
       setError(null);
 
       console.log('[DEBUG] 送信データ:', planData);
+      console.log('[DEBUG] basicInfo:', planData.basicInfo);
+      console.log('[DEBUG] products:', planData.products?.length, '件');
+      if (planData.products) {
+        planData.products.forEach((product: any, index: number) => {
+          console.log(`[DEBUG] 商品${index + 1}:`, {
+            name: product?.name,
+            condition: product?.condition,
+            purchasePrice: product?.purchasePrice,
+            photographyRequest: product?.photographyRequest
+          });
+        });
+      }
 
       const response = await fetch('/api/delivery-plan', {
         method: 'POST',
@@ -143,6 +155,8 @@ export default function DeliveryPlanWizard() {
 
       const result = await response.json();
       console.log('[DEBUG] API応答:', result);
+      console.log('[DEBUG] レスポンスステータス:', response.status);
+      console.log('[DEBUG] レスポンスOK:', response.ok);
       
       if (!response.ok) {
         // 具体的なエラーメッセージを表示

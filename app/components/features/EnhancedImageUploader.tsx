@@ -456,29 +456,7 @@ export default function EnhancedImageUploader({
         </div>
       )}
 
-      {/* Image Statistics */}
-      {images.length > 0 && (
-        <NexusCard className="p-4 bg-gray-50">
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
-              <p className="text-2xl font-bold text-blue-600">{images.length}</p>
-              <p className="text-sm text-gray-600">総枚数</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-green-600">
-                {images.filter(img => img.status === 'completed').length}
-              </p>
-              <p className="text-sm text-gray-600">完了</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-600">
-                {(images.reduce((sum, img) => sum + img.file.size, 0) / 1024 / 1024).toFixed(1)}MB
-              </p>
-              <p className="text-sm text-gray-600">合計サイズ</p>
-            </div>
-          </div>
-        </NexusCard>
-      )}
+
     </div>
   );
 } 

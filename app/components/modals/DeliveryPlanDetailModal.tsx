@@ -18,8 +18,10 @@ import {
   XCircleIcon,
   QrCodeIcon,
   PencilIcon,
-  EyeIcon
+  EyeIcon,
+  CameraIcon
 } from '@heroicons/react/24/outline';
+import PhotographyRequestDisplay from '@/app/components/features/photography/PhotographyRequestDisplay';
 
 interface DeliveryPlanDetailModalProps {
   isOpen: boolean;
@@ -44,6 +46,11 @@ interface DeliveryPlanDetailModalProps {
       serialNumber?: string;
       estimatedValue: number;
       description?: string;
+      photographyRequests?: {
+        specialPhotography: boolean;
+        specialPhotographyItems: string[];
+        customRequests: string;
+      } | null;
     }>;
   };
   onStatusChange?: (planId: number, newStatus: string) => void;
@@ -307,6 +314,14 @@ export default function DeliveryPlanDetailModal({
                         <p className="text-sm mt-1">{product.description}</p>
                       </div>
                     )}
+                    
+                    {/* 撮影要望表示 */}
+                    <div className="mt-4">
+                      <PhotographyRequestDisplay 
+                        photographyRequests={product.photographyRequests}
+                        className=""
+                      />
+                    </div>
                   </NexusCard>
                 ))
               ) : (

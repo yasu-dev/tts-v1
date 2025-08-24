@@ -28,6 +28,8 @@ export async function POST(request: NextRequest) {
 
     // 基本的なバリデーション（デモ環境対応）
     console.log('[DEBUG] 受信データ:', JSON.stringify(planData, null, 2));
+    console.log('[DEBUG] planData.basicInfo:', planData.basicInfo);
+    console.log('[DEBUG] planData.products:', planData.products?.length, '件');
     
     if (!planData.basicInfo?.deliveryAddress) {
       return NextResponse.json(
@@ -46,9 +48,21 @@ export async function POST(request: NextRequest) {
     }
 
     // 商品データのバリデーション（デモ環境対応）
+    console.log('[DEBUG] 商品データバリデーション開始');
+    planData.products.forEach((product: any, index: number) => {
+      console.log(`[DEBUG] 商品${index + 1}:`, {
+        name: product?.name,
+        condition: product?.condition,
+        purchasePrice: product?.purchasePrice,
+        hasPhotographyRequest: !!product?.photographyRequest
+      });
+    });
+
     const validProducts = planData.products.filter((product: any) => 
       product && typeof product === 'object' && product.name
     );
+    
+    console.log('[DEBUG] validProducts:', validProducts.length, '/', planData.products.length);
     
     if (validProducts.length === 0) {
       return NextResponse.json(
@@ -108,7 +122,8 @@ export async function POST(request: NextRequest) {
               name: product.name,
               category: product.category || 'camera',
               estimatedValue: product.purchasePrice || 0,
-              description: `コンディション: ${product.condition}${product.supplierDetails ? `\n仕入れ詳細: ${product.supplierDetails}` : ''}`
+              description: `コンディション: ${product.condition}${product.supplierDetails ? `\n仕入れ詳細: ${product.supplierDetails}` : ''}`,
+              photographyRequests: product.photographyRequest ? JSON.stringify(product.photographyRequest) : null
             }
           });
 
@@ -618,6 +633,15 @@ export async function GET(request: NextRequest) {
               brand: productMetadata.brand,
               model: productMetadata.model,
               serialNumber: productMetadata.serialNumber,
+              // 撮影要望データ
+              photographyRequests: (() => {
+                try {
+                  return planProduct.photographyRequests ? JSON.parse(planProduct.photographyRequests) : null;
+                } catch (e) {
+                  console.warn('Photography requests parse error:', e);
+                  return null;
+                }
+              })(),
               // 検品チェックリスト
               hasInspectionChecklist: !!planProduct.inspectionChecklist,
               inspectionChecklistData: planProduct.inspectionChecklist ? {

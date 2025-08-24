@@ -79,7 +79,55 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(product);
+    // 納品プラン由来の商品の場合、撮影要望データを取得
+    let photographyRequests = null;
+    
+    // metadataから納品プランIDを取得
+    let metadata = {};
+    try {
+      if (product.metadata) {
+        metadata = typeof product.metadata === 'string' 
+          ? JSON.parse(product.metadata) 
+          : product.metadata;
+      }
+    } catch (error) {
+      console.warn('Failed to parse product metadata:', error);
+    }
+    
+    // 納品プランIDがある場合、撮影要望を取得
+    if (metadata.deliveryPlanId) {
+      try {
+        const deliveryPlanProduct = await prisma.deliveryPlanProduct.findFirst({
+          where: {
+            deliveryPlanId: metadata.deliveryPlanId,
+            name: product.name // 商品名でマッチング
+          }
+        });
+        
+        if (deliveryPlanProduct?.photographyRequests) {
+          try {
+            photographyRequests = JSON.parse(deliveryPlanProduct.photographyRequests);
+          } catch (error) {
+            console.warn('Failed to parse photography requests:', error);
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to fetch photography requests:', error);
+      }
+    }
+    
+    // metadataに撮影要望を含める
+    const enrichedMetadata = {
+      ...metadata,
+      photographyRequests
+    };
+    
+    const responseProduct = {
+      ...product,
+      metadata: enrichedMetadata
+    };
+
+    return NextResponse.json(responseProduct);
   } catch (error) {
     console.error('Error fetching product:', error);
     return NextResponse.json(
