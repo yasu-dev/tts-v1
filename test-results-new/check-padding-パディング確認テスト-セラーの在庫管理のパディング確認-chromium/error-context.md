@@ -1,0 +1,356 @@
+# Page snapshot
+
+```yaml
+- complementary:
+  - text: W
+  - heading "THE WORLD DOOR" [level=2]
+  - paragraph: フルフィルメントサービス
+  - paragraph: セラー管理
+  - button "サイドバーを折りたたむ":
+    - img
+  - navigation:
+    - link "ダッシュボード":
+      - /url: /dashboard
+      - img
+      - text: ダッシュボード
+    - link "納品管理":
+      - /url: /delivery
+      - img
+      - text: 納品管理
+    - link "在庫管理":
+      - /url: /inventory
+      - img
+      - text: 在庫管理
+    - link "販売管理":
+      - /url: /sales
+      - img
+      - text: 販売管理
+    - link "返品管理":
+      - /url: /returns
+      - img
+      - text: 返品管理
+    - link "請求・精算":
+      - /url: /billing
+      - img
+      - text: 請求・精算
+- banner:
+  - textbox "商品を検索..."
+  - button:
+    - img
+  - img
+  - text: 15:35 日本時間
+  - button "通知":
+    - img
+  - button "スタッフ":
+    - img
+    - text: スタッフ
+  - button "U セラー 管理者":
+    - text: U セラー 管理者
+    - img
+- heading "業務フロー" [level=3]
+- button "フローを折りたたむ":
+  - img
+- button "準備 商品仕入れ - 0件の作業 納品プラン作成 - 0件の作業 倉庫発送 - 0件の作業":
+  - img
+  - text: 準備
+  - img
+  - button "商品仕入れ - 0件の作業": 商品仕入れ
+  - button "納品プラン作成 - 0件の作業": 納品プラン作成
+  - button "倉庫発送 - 0件の作業": 倉庫発送
+- button "入庫 商品受取 - 4件の作業 検品・撮影 - 10件の作業 在庫登録 - 20件の作業":
+  - img
+  - text: 入庫
+  - img
+  - button "商品受取 - 4件の作業": 商品受取 4
+  - button "検品・撮影 - 10件の作業": 検品・撮影 10
+  - button "在庫登録 - 20件の作業": 在庫登録 20
+- button "販売 eBay出品 - 16件の作業 商品注文 - 3件の作業 受注処理 - 0件の作業":
+  - img
+  - text: 販売
+  - img
+  - button "eBay出品 - 16件の作業": eBay出品 16
+  - button "商品注文 - 3件の作業": 商品注文 3
+  - button "受注処理 - 0件の作業": 受注処理
+- button "出荷 ピッキング - 0件の作業 梱包・発送 - 0件の作業 購入者受取 - 0件の作業":
+  - img
+  - text: 出荷
+  - img
+  - button "ピッキング - 0件の作業": ピッキング
+  - button "梱包・発送 - 0件の作業": 梱包・発送
+  - button "購入者受取 - 0件の作業": 購入者受取
+- button "完了 売上計算 - 0件の作業 精算確認 - 0件の作業 次回仕入れ - 0件の作業":
+  - img
+  - text: 完了
+  - img
+  - button "売上計算 - 0件の作業": 売上計算
+  - button "精算確認 - 0件の作業": 精算確認
+  - button "次回仕入れ - 0件の作業": 次回仕入れ
+- button "返品 返品受付 - 0件の作業 返品検品 - 0件の作業 再出品・廃棄 - 0件の作業":
+  - img
+  - text: 返品
+  - img
+  - button "返品受付 - 0件の作業": 返品受付
+  - button "返品検品 - 0件の作業": 返品検品
+  - button "再出品・廃棄 - 0件の作業": 再出品・廃棄
+- main:
+  - img
+  - heading "在庫管理" [level=1]
+  - paragraph: あなたの商品の状況を確認できます
+  - text: ステータス
+  - combobox:
+    - option "すべてのステータス" [selected]
+    - option "入庫待ち"
+    - option "保管作業中"
+    - option "保管中"
+    - option "出品中"
+    - option "購入者決定"
+    - option "出荷準備中"
+    - option "出荷済み"
+    - option "返品"
+    - option "保留中"
+  - text: カテゴリー
+  - combobox:
+    - option "すべてのカテゴリー" [selected]
+    - option "カメラ本体"
+    - option "レンズ"
+    - option "腕時計"
+    - option "アクセサリ"
+    - option "カメラ"
+    - option "電子機器"
+    - option "ファッション"
+    - option "バッグ"
+    - option "ジュエリー"
+    - option "コレクション"
+  - text: 検索
+  - textbox "商品名・SKU・カテゴリーで検索"
+  - table:
+    - rowgroup:
+      - row "画像 商品 SKU 保管場所 ステータス 価格 更新日 操作":
+        - cell "画像"
+        - cell "商品"
+        - cell "SKU"
+        - cell "保管場所"
+        - cell "ステータス"
+        - cell "価格"
+        - cell "更新日"
+        - cell "操作"
+    - rowgroup:
+      - row "画像なし AAAカメラ camera DP-1755675598923-SINQMV3FR-U81IJM 棚 A-01 出品中 ¥9,800 8月20日 詳細":
+        - cell "画像なし"
+        - cell "AAAカメラ camera"
+        - cell "DP-1755675598923-SINQMV3FR-U81IJM"
+        - cell "棚 A-01"
+        - cell "出品中"
+        - cell "¥9,800"
+        - cell "8月20日"
+        - cell "詳細":
+          - button "詳細"
+      - row "画像なし AAAカメラ camera DP-1755660439353-GXHKF02GW-A3XD0M N/A 保留中 ¥4,500 8月20日 詳細":
+        - cell "画像なし"
+        - cell "AAAカメラ camera"
+        - cell "DP-1755660439353-GXHKF02GW-A3XD0M"
+        - cell "N/A"
+        - cell "保留中"
+        - cell "¥4,500"
+        - cell "8月20日"
+        - cell "詳細":
+          - button "詳細"
+      - row "画像なし ABCカメラ camera DP-1755587004427-NPAGW85RO-7RZG3P 棚 A-01 出品中 ¥9,800 8月19日 詳細":
+        - cell "画像なし"
+        - cell "ABCカメラ camera"
+        - cell "DP-1755587004427-NPAGW85RO-7RZG3P"
+        - cell "棚 A-01"
+        - cell "出品中"
+        - cell "¥9,800"
+        - cell "8月19日"
+        - cell "詳細":
+          - button "詳細"
+      - row "画像なし Audemars Piguet Royal Oak watch WATCH-AUDEMARS-ROY-008 N/A 購入者決定 ¥8,900,000 8月17日 詳細":
+        - cell "画像なし"
+        - cell "Audemars Piguet Royal Oak watch"
+        - cell "WATCH-AUDEMARS-ROY-008"
+        - cell "N/A"
+        - cell "購入者決定"
+        - cell "¥8,900,000"
+        - cell "8月17日"
+        - cell "詳細":
+          - button "詳細"
+      - row "画像なし Breitling Navitimer watch WATCH-BREITLING-NAV-011 N/A 出品中 ¥680,000 8月19日 詳細":
+        - cell "画像なし"
+        - cell "Breitling Navitimer watch"
+        - cell "WATCH-BREITLING-NAV-011"
+        - cell "N/A"
+        - cell "出品中"
+        - cell "¥680,000"
+        - cell "8月19日"
+        - cell "詳細":
+          - button "詳細"
+      - row "画像なし Casio G-Shock MR-G watch WATCH-CASIO-GS-005 検品エリア 01 保管作業中 ¥98,000 8月20日 詳細":
+        - cell "画像なし"
+        - cell "Casio G-Shock MR-G watch"
+        - cell "WATCH-CASIO-GS-005"
+        - cell "検品エリア 01"
+        - cell "保管作業中"
+        - cell "¥98,000"
+        - cell "8月20日"
+        - cell "詳細":
+          - button "詳細"
+      - row "画像なし GGGカメラ camera DP-1755678454273-ILQJO6KFR-GCUOC8 棚 A-01 出品中 ¥12,800 8月20日 詳細":
+        - cell "画像なし"
+        - cell "GGGカメラ camera"
+        - cell "DP-1755678454273-ILQJO6KFR-GCUOC8"
+        - cell "棚 A-01"
+        - cell "出品中"
+        - cell "¥12,800"
+        - cell "8月20日"
+        - cell "詳細":
+          - button "詳細"
+      - row "画像なし IWC Pilot's Watch watch WATCH-IWC-PILOT-012 N/A 出品中 ¥520,000 8月17日 詳細":
+        - cell "画像なし"
+        - cell "IWC Pilot's Watch watch"
+        - cell "WATCH-IWC-PILOT-012"
+        - cell "N/A"
+        - cell "出品中"
+        - cell "¥520,000"
+        - cell "8月17日"
+        - cell "詳細":
+          - button "詳細"
+      - row "画像なし Longines Master Collection watch WATCH-LONGINES-MASTER-014 N/A 保管作業中 ¥180,000 8月17日 詳細":
+        - cell "画像なし"
+        - cell "Longines Master Collection watch"
+        - cell "WATCH-LONGINES-MASTER-014"
+        - cell "N/A"
+        - cell "保管作業中"
+        - cell "¥180,000"
+        - cell "8月17日"
+        - cell "詳細":
+          - button "詳細"
+      - row "画像なし Omega Planet Ocean watch WATCH-OMEGA-PLAN-009 N/A 保管中 ¥480,000 8月17日 詳細 出品":
+        - cell "画像なし"
+        - cell "Omega Planet Ocean watch"
+        - cell "WATCH-OMEGA-PLAN-009"
+        - cell "N/A"
+        - cell "保管中"
+        - cell "¥480,000"
+        - cell "8月17日"
+        - cell "詳細 出品":
+          - button "詳細"
+          - button "出品"
+      - row "画像なし Patek Philippe Nautilus watch WATCH-PATEK-NAU-007 N/A 出品中 ¥12,800,000 8月17日 詳細":
+        - cell "画像なし"
+        - cell "Patek Philippe Nautilus watch"
+        - cell "WATCH-PATEK-NAU-007"
+        - cell "N/A"
+        - cell "出品中"
+        - cell "¥12,800,000"
+        - cell "8月17日"
+        - cell "詳細":
+          - button "詳細"
+      - row "画像なし Rolex Day-Date 40 watch WATCH-ROLEX-DAY-006 N/A 保管中 ¥4,280,000 8月17日 詳細 出品":
+        - cell "画像なし"
+        - cell "Rolex Day-Date 40 watch"
+        - cell "WATCH-ROLEX-DAY-006"
+        - cell "N/A"
+        - cell "保管中"
+        - cell "¥4,280,000"
+        - cell "8月17日"
+        - cell "詳細 出品":
+          - button "詳細"
+          - button "出品"
+      - row "画像なし TAG Heuer Carrera watch WATCH-TAG-CAR-010 N/A 保管作業中 ¥350,000 8月17日 詳細":
+        - cell "画像なし"
+        - cell "TAG Heuer Carrera watch"
+        - cell "WATCH-TAG-CAR-010"
+        - cell "N/A"
+        - cell "保管作業中"
+        - cell "¥350,000"
+        - cell "8月17日"
+        - cell "詳細":
+          - button "詳細"
+      - row "画像なし Tudor Black Bay watch WATCH-TUDOR-BLACK-013 N/A 保管中 ¥280,000 8月17日 詳細 出品":
+        - cell "画像なし"
+        - cell "Tudor Black Bay watch"
+        - cell "WATCH-TUDOR-BLACK-013"
+        - cell "N/A"
+        - cell "保管中"
+        - cell "¥280,000"
+        - cell "8月17日"
+        - cell "詳細 出品":
+          - button "詳細"
+          - button "出品"
+      - row "画像なし VVVVカメラ camera DP-1755678864993-54RKZJ4WM-FED0QF N/A 保管作業中 ¥12,800 8月20日 詳細":
+        - cell "画像なし"
+        - cell "VVVVカメラ camera"
+        - cell "DP-1755678864993-54RKZJ4WM-FED0QF"
+        - cell "N/A"
+        - cell "保管作業中"
+        - cell "¥12,800"
+        - cell "8月20日"
+        - cell "詳細":
+          - button "詳細"
+      - row "画像なし XYZカメラ camera DP-1755610405186-QTIVFB8BL-XY5RQL N/A 入庫待ち ¥9,800 8月19日 詳細":
+        - cell "画像なし"
+        - cell "XYZカメラ camera"
+        - cell "DP-1755610405186-QTIVFB8BL-XY5RQL"
+        - cell "N/A"
+        - cell "入庫待ち"
+        - cell "¥9,800"
+        - cell "8月19日"
+        - cell "詳細":
+          - button "詳細"
+      - row "画像なし Zenith Chronomaster watch WATCH-ZENITH-CHRONO-015 N/A 保管中 ¥780,000 8月17日 詳細 出品":
+        - cell "画像なし"
+        - cell "Zenith Chronomaster watch"
+        - cell "WATCH-ZENITH-CHRONO-015"
+        - cell "N/A"
+        - cell "保管中"
+        - cell "¥780,000"
+        - cell "8月17日"
+        - cell "詳細 出品":
+          - button "詳細"
+          - button "出品"
+      - row "画像なし ZZZカメラ camera DP-1755656011150-QRHHB5WE2-FVUR1J N/A 保管作業中 ¥12,800 8月20日 詳細":
+        - cell "画像なし"
+        - cell "ZZZカメラ camera"
+        - cell "DP-1755656011150-QRHHB5WE2-FVUR1J"
+        - cell "N/A"
+        - cell "保管作業中"
+        - cell "¥12,800"
+        - cell "8月20日"
+        - cell "詳細":
+          - button "詳細"
+      - row "画像なし ZZZカメラ camera DP-1755610673318-WIC373M4S-VMPTL8 棚 A-01 出品中 ¥12,800 8月19日 詳細":
+        - cell "画像なし"
+        - cell "ZZZカメラ camera"
+        - cell "DP-1755610673318-WIC373M4S-VMPTL8"
+        - cell "棚 A-01"
+        - cell "出品中"
+        - cell "¥12,800"
+        - cell "8月19日"
+        - cell "詳細":
+          - button "詳細"
+      - row "画像なし テスト用カメラ Canon EOS R5 camera_body TEST-CANON-R5-001 テスト保管庫A-01 出荷準備中 ¥350,000 8月19日 詳細":
+        - cell "画像なし"
+        - cell "テスト用カメラ Canon EOS R5 camera_body"
+        - cell "TEST-CANON-R5-001"
+        - cell "テスト保管庫A-01"
+        - cell "出荷準備中"
+        - cell "¥350,000"
+        - cell "8月19日"
+        - cell "詳細":
+          - button "詳細"
+  - text: "1-20 / 59件 表示件数:"
+  - combobox:
+    - option "10"
+    - option "20" [selected]
+    - option "50"
+    - option "100"
+  - button "前のページ" [disabled]
+  - button "1"
+  - button "2"
+  - button "3"
+  - button "次のページ"
+- button "バーコードテスターを展開":
+  - img
+- alert
+```
