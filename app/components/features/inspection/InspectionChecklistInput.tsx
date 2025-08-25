@@ -138,23 +138,23 @@ export default function InspectionChecklistInput({
       category: '検品チェックリスト（該当項目のみチェック）',
       key: 'issues',
       items: [
-        // 外装項目（4項目）
-        { key: 'exteriorScratches', label: '外装キズ', description: '目立つ傷がある場合チェック', checked: data.exterior.scratches },
-        { key: 'dentsImpacts', label: '打痕・へこみ', description: '落下痕等がある場合チェック', checked: data.exterior.dents },
-        { key: 'missingParts', label: '部品欠損', description: '欠品がある場合チェック', checked: data.exterior.discoloration },
-        { key: 'dirtDust', label: '汚れ・ホコリ', description: '清掃が必要な場合チェック', checked: data.exterior.dust },
+        // カメラボディ外観項目（4項目）
+        { key: 'exteriorScratches', label: '傷', description: 'カメラボディの傷がある場合チェック', checked: data.exterior.scratches },
+        { key: 'dentsImpacts', label: '凹み', description: 'カメラボディの凹みがある場合チェック', checked: data.exterior.dents },
+        { key: 'missingParts', label: 'スレ', description: 'カメラボディのスレがある場合チェック', checked: data.exterior.discoloration },
+        { key: 'dirtDust', label: '汚れ', description: 'カメラボディの汚れがある場合チェック', checked: data.exterior.dust },
         
-        // 機能項目（4項目） - 新しいマッピングに合わせて修正
-        { key: 'functionalIssues', label: '動作不良', description: '基本機能に問題がある場合チェック', checked: data.functionality.powerOn },
-        { key: 'controlIssues', label: '操作系異常', description: 'ボタン・ダイヤル不良がある場合チェック', checked: data.functionality.allButtonsWork },
-        { key: 'displayIssues', label: '表示異常', description: '液晶・針に問題がある場合チェック', checked: data.functionality.screenDisplay },
-        { key: 'waterproofIssues', label: '防水性能劣化', description: '密閉性に問題がある場合チェック', checked: data.functionality.connectivity },
+        // 露出機能項目（2項目）+ ファインダー項目（2項目）
+        { key: 'functionalIssues', label: '作動', description: '露出機能が作動する場合チェック', checked: data.functionality.powerOn },
+        { key: 'controlIssues', label: '不動', description: '露出機能が不動の場合チェック', checked: data.functionality.allButtonsWork },
+        { key: 'displayIssues', label: 'クモリ', description: 'ファインダーのクモリがある場合チェック', checked: data.functionality.screenDisplay },
+        { key: 'waterproofIssues', label: 'カビ', description: 'ファインダーのカビがある場合チェック', checked: data.functionality.connectivity },
         
-        // 光学系・その他項目（4項目） - 新しいマッピングに合わせて修正
-        { key: 'coreComponentIssues', label: '光学系/ムーブメント異常', description: '核心部品に問題がある場合チェック', checked: data.optical?.lensClarity || false },
-        { key: 'agingDeterioration', label: '経年劣化', description: 'ラバー劣化等がある場合チェック', checked: data.optical?.aperture || false },
-        { key: 'accessoryDiscrepancy', label: '付属品相違', description: '申告と異なる場合チェック', checked: data.optical?.focusAccuracy || false },
-        { key: 'warrantyAuthenticity', label: '保証書・真贋問題', description: '疑義がある場合チェック', checked: data.optical?.stabilization || false },
+        // 光学系項目（2項目）+ 付属品項目（2項目）
+        { key: 'coreComponentIssues', label: 'チリホコリ', description: '光学系のチリホコリがある場合チェック', checked: data.optical?.lensClarity || false },
+        { key: 'agingDeterioration', label: 'キズ', description: '光学系のキズがある場合チェック', checked: data.optical?.aperture || false },
+        { key: 'accessoryDiscrepancy', label: 'バッテリー', description: 'バッテリーがある場合チェック', checked: data.optical?.focusAccuracy || false },
+        { key: 'warrantyAuthenticity', label: 'ケース', description: 'ケースがある場合チェック', checked: data.optical?.stabilization || false },
       ],
     },
   ];

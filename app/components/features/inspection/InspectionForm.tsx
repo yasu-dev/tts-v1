@@ -5,6 +5,8 @@ import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
 import InspectionChecklist from './InspectionChecklist';
 import InspectionChecklistInput, { InspectionChecklistData } from './InspectionChecklistInput';
+import HierarchicalInspectionChecklistInput from './HierarchicalInspectionChecklistInput';
+import { useIsHierarchicalChecklistEnabled } from '@/lib/hooks/useHierarchicalChecklistFeature';
 import PhotoUploader from './PhotoUploader';
 import InspectionResult from './InspectionResult';
 import PackagingAndLabelStep from './PackagingAndLabelStep';
@@ -102,7 +104,18 @@ interface InspectionData {
 
 export default function InspectionForm({ productId }: InspectionFormProps) {
   const { showToast } = useToast();
+  
+  // 🎛️ フィーチャーフラグ：階層型検品チェックリストの有効/無効
+  const isHierarchicalEnabled = useIsHierarchicalChecklistEnabled();
+  console.log(`[InspectionForm] 階層型検品チェックリスト: ${isHierarchicalEnabled ? '有効(新システム)' : '無効(既存システム)'}`);
+  
   const [product, setProduct] = useState<Product | null>(null);
+  
+  // 🆕 新システム：階層型検品データの状態管理
+  const [hierarchicalInspectionData, setHierarchicalInspectionData] = useState<any>({
+    responses: {},
+    notes: ''
+  });
   const [loading, setLoading] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
   const [videoId, setVideoId] = useState<string | null>(null);
@@ -1045,46 +1058,77 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
                   </NexusButton>
                 </div>
                 
-                <InspectionChecklistInput
-                  data={{
-                    exterior: {
-                      scratches: inspectionData.checklist.exterior.scratches,
-                      dents: inspectionData.checklist.exterior.dents,
-                      discoloration: inspectionData.checklist.exterior.discoloration,
-                      dust: inspectionData.checklist.exterior.dust,
-                    },
-                    functionality: {
-                      powerOn: inspectionData.checklist.functionality.powerOn,
-                      allButtonsWork: inspectionData.checklist.functionality.allButtonsWork,
-                      screenDisplay: inspectionData.checklist.functionality.screenDisplay,
-                      connectivity: inspectionData.checklist.functionality.connectivity,
-                    },
-                    optical: {
-                      lensClarity: inspectionData.checklist.optical?.lensClarity || false,
-                      aperture: inspectionData.checklist.optical?.aperture || false,
-                      focusAccuracy: inspectionData.checklist.optical?.focusAccuracy || false,
-                      stabilization: inspectionData.checklist.optical?.stabilization || false,
-                    },
-                    notes: inspectionData.notes,
-                  }}
-                  onChange={(checklistData) => {
-                    if (isEditMode) {
-                      setInspectionData(prev => ({
-                        ...prev,
-                        checklist: {
-                          exterior: checklistData.exterior,
-                          functionality: checklistData.functionality,
-                          optical: checklistData.optical || prev.checklist.optical,
+                {/* フィーチャーフラグによる条件分岐 */}
+                <div className="mb-4">
+                  <div className="flex items-center mb-4">
+                    <h4 className="text-lg font-semibold text-nexus-text-primary">検品チェックリスト</h4>
+                    <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
+                      isHierarchicalEnabled 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-blue-100 text-blue-800'
+                    }`}>
+                      {isHierarchicalEnabled ? '新システム' : '既存システム'}
+                    </span>
+                  </div>
+
+                  {isHierarchicalEnabled ? (
+                    /* ========== 新システム: 階層型検品チェックリスト ========== */
+                    <HierarchicalInspectionChecklistInput
+                      data={hierarchicalInspectionData}
+                      onChange={(hierarchicalData) => {
+                        console.log(`[InspectionForm] 新システムデータ更新:`, hierarchicalData);
+                        if (isEditMode) {
+                          setHierarchicalInspectionData(hierarchicalData);
+                        }
+                      }}
+                      readOnly={!isEditMode}
+                      verifiedBy={existingChecklist?.verifiedBy}
+                      verifiedAt={existingChecklist?.verifiedAt}
+                    />
+                  ) : (
+                    /* ========== 既存システム: 統一検品チェックリスト ========== */
+                    <InspectionChecklistInput
+                      data={{
+                        exterior: {
+                          scratches: inspectionData.checklist.exterior.scratches,
+                          dents: inspectionData.checklist.exterior.dents,
+                          discoloration: inspectionData.checklist.exterior.discoloration,
+                          dust: inspectionData.checklist.exterior.dust,
                         },
-                        notes: checklistData.notes || prev.notes,
-                      }));
-                    }
-                  }}
-                  showOptical={true}
-                  readOnly={!isEditMode}
-                  verifiedBy={existingChecklist.verifiedBy}
-                  verifiedAt={existingChecklist.verifiedAt}
-                />
+                        functionality: {
+                          powerOn: inspectionData.checklist.functionality.powerOn,
+                          allButtonsWork: inspectionData.checklist.functionality.allButtonsWork,
+                          screenDisplay: inspectionData.checklist.functionality.screenDisplay,
+                          connectivity: inspectionData.checklist.functionality.connectivity,
+                        },
+                        optical: {
+                          lensClarity: inspectionData.checklist.optical?.lensClarity || false,
+                          aperture: inspectionData.checklist.optical?.aperture || false,
+                          focusAccuracy: inspectionData.checklist.optical?.focusAccuracy || false,
+                          stabilization: inspectionData.checklist.optical?.stabilization || false,
+                        },
+                        notes: inspectionData.notes,
+                      }}
+                      onChange={(checklistData) => {
+                        if (isEditMode) {
+                          setInspectionData(prev => ({
+                            ...prev,
+                            checklist: {
+                              exterior: checklistData.exterior,
+                              functionality: checklistData.functionality,
+                              optical: checklistData.optical || prev.checklist.optical,
+                            },
+                            notes: checklistData.notes || prev.notes,
+                          }));
+                        }
+                      }}
+                      showOptical={true}
+                      readOnly={!isEditMode}
+                      verifiedBy={existingChecklist?.verifiedBy}
+                      verifiedAt={existingChecklist?.verifiedAt}
+                    />
+                  )}
+                </div>
               </NexusCard>
             )}
 

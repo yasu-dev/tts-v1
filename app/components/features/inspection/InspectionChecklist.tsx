@@ -52,18 +52,18 @@ export default function InspectionChecklist({
   // 検品項目の定義（12項目統一・任意チェック）
   const checkItems: { [key: string]: CheckItem[] } = {
     issues: [
-      { key: 'exteriorScratches', label: '外装キズ', description: '目立つ傷がある場合チェック' },
-      { key: 'dentsImpacts', label: '打痕・へこみ', description: '落下痕等がある場合チェック' },
-      { key: 'missingParts', label: '部品欠損', description: '欠品がある場合チェック' },
-      { key: 'dirtDust', label: '汚れ・ホコリ', description: '清掃が必要な場合チェック' },
-      { key: 'agingDeterioration', label: '経年劣化', description: 'ラバー劣化等がある場合チェック' },
-      { key: 'functionalIssues', label: '動作不良', description: '基本機能に問題がある場合チェック' },
-      { key: 'controlIssues', label: '操作系異常', description: 'ボタン・ダイヤル不良がある場合チェック' },
-      { key: 'displayIssues', label: '表示異常', description: '液晶・針に問題がある場合チェック' },
-      { key: 'coreComponentIssues', label: '光学系/ムーブメント異常', description: '核心部品に問題がある場合チェック' },
-      { key: 'waterproofIssues', label: '防水性能劣化', description: '密閉性に問題がある場合チェック' },
-      { key: 'accessoryDiscrepancy', label: '付属品相違', description: '申告と異なる場合チェック' },
-      { key: 'warrantyAuthenticity', label: '保証書・真贋問題', description: '疑義がある場合チェック' },
+      { key: 'exteriorScratches', label: '傷', description: 'カメラボディの傷がある場合チェック' },
+      { key: 'dentsImpacts', label: '凹み', description: 'カメラボディの凹みがある場合チェック' },
+      { key: 'missingParts', label: 'スレ', description: 'カメラボディのスレがある場合チェック' },
+      { key: 'dirtDust', label: '汚れ', description: 'カメラボディの汚れがある場合チェック' },
+      { key: 'agingDeterioration', label: 'キズ', description: '光学系のキズがある場合チェック' },
+      { key: 'functionalIssues', label: '作動', description: '露出機能が作動する場合チェック' },
+      { key: 'controlIssues', label: '不動', description: '露出機能が不動の場合チェック' },
+      { key: 'displayIssues', label: 'クモリ', description: 'ファインダーのクモリがある場合チェック' },
+      { key: 'coreComponentIssues', label: 'チリホコリ', description: '光学系のチリホコリがある場合チェック' },
+      { key: 'waterproofIssues', label: 'カビ', description: 'ファインダーのカビがある場合チェック' },
+      { key: 'accessoryDiscrepancy', label: 'バッテリー', description: 'バッテリーがある場合チェック' },
+      { key: 'warrantyAuthenticity', label: 'ケース', description: 'ケースがある場合チェック' },
     ],
   };
 

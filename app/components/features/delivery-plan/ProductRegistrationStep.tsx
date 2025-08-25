@@ -7,6 +7,8 @@ import NexusSelect from '@/app/components/ui/NexusSelect';
 import NexusTextarea from '@/app/components/ui/NexusTextarea';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import InspectionChecklistInput, { InspectionChecklistData } from '@/app/components/features/inspection/InspectionChecklistInput';
+import HierarchicalInspectionChecklistInput from '@/app/components/features/inspection/HierarchicalInspectionChecklistInput';
+import { useIsHierarchicalChecklistEnabled } from '@/lib/hooks/useHierarchicalChecklistFeature';
 import EnhancedImageUploader from '@/app/components/features/EnhancedImageUploader';
 import { PlusIcon, TrashIcon, PhotoIcon, CameraIcon } from '@heroicons/react/24/outline';
 
@@ -86,6 +88,10 @@ export default function ProductRegistrationStep({
 }: ProductRegistrationStepProps) {
   const { showToast } = useToast();
   
+  // 🎛️ フィーチャーフラグ：階層型検品チェックリストの有効/無効
+  const isHierarchicalEnabled = useIsHierarchicalChecklistEnabled();
+  console.log(`[ProductRegistration] 階層型検品チェックリスト: ${isHierarchicalEnabled ? '有効(新システム)' : '無効(既存システム)'}`);
+  
   const defaultProducts: Product[] = [];
 
   // productsの安全な初期化
@@ -159,6 +165,19 @@ export default function ProductRegistrationStep({
     );
     setProducts(updatedProducts);
     onUpdate({ products: updatedProducts });
+  };
+
+  // 🆕 階層型検品チェックリストデータの更新（新システム専用）
+  const updateHierarchicalInspectionData = (index: number, hierarchicalData: any) => {
+    console.log(`[ProductRegistration] 階層型データ更新 - 商品${index + 1}:`, hierarchicalData);
+    
+    const updatedProducts = products.map((product: any, i: number) => 
+      i === index ? { ...product, hierarchicalInspectionData: hierarchicalData } : product
+    );
+    setProducts(updatedProducts);
+    onUpdate({ products: updatedProducts });
+    
+    console.log(`[ProductRegistration] 階層型データ更新完了 - 全商品データ:`, updatedProducts);
   };
 
   const updatePhotographyRequest = (index: number, photographyData: PhotographyRequest) => {
@@ -457,34 +476,67 @@ export default function ProductRegistrationStep({
                 />
               </div>
 
-              {/* 検品チェックリスト入力 */}
+              {/* 検品チェックリスト入力 - フィーチャーフラグで新旧システム切り替え */}
               <div className="mt-6 border-t pt-6">
-                <InspectionChecklistInput
-                  data={product.inspectionChecklist || {
-                    exterior: {
-                      scratches: false,
-                      dents: false,
-                      discoloration: false,
-                      dust: false,
-                    },
-                    functionality: {
-                      powerOn: false,
-                      allButtonsWork: false,
-                      screenDisplay: false,
-                      connectivity: false,
-                    },
-                    optical: product.category === 'camera_body' || product.category === 'lens' ? {
-                      lensClarity: false,
-                      aperture: false,
-                      focusAccuracy: false,
-                      stabilization: false,
-                    } : undefined,
-                    notes: '',
-                  }}
-                  onChange={(checklistData) => updateInspectionChecklist(index, checklistData)}
-                  showOptical={product.category === 'camera_body' || product.category === 'lens'}
-                  readOnly={false}
-                />
+                {/* フィーチャーフラグによる条件分岐 */}
+                {isHierarchicalEnabled ? (
+                  /* ========== 新システム: 階層型検品チェックリスト ========== */
+                  <div>
+                    <div className="flex items-center mb-4">
+                      <h4 className="text-lg font-semibold text-nexus-text-primary">検品チェックリスト</h4>
+                      <span className="ml-2 px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
+                        新システム
+                      </span>
+                    </div>
+                    <HierarchicalInspectionChecklistInput
+                      data={product.hierarchicalInspectionData || {
+                        responses: {},
+                        notes: ''
+                      }}
+                      onChange={(hierarchicalData) => {
+                        console.log(`[ProductRegistration] 新システム保存データ:`, hierarchicalData);
+                        updateHierarchicalInspectionData(index, hierarchicalData);
+                      }}
+                      readOnly={false}
+                    />
+                  </div>
+                ) : (
+                  /* ========== 既存システム: 統一検品チェックリスト ========== */
+                  <div>
+                    <div className="flex items-center mb-4">
+                      <h4 className="text-lg font-semibold text-nexus-text-primary">検品チェックリスト</h4>
+                      <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                        既存システム
+                      </span>
+                    </div>
+                    <InspectionChecklistInput
+                      data={product.inspectionChecklist || {
+                        exterior: {
+                          scratches: false,
+                          dents: false,
+                          discoloration: false,
+                          dust: false,
+                        },
+                        functionality: {
+                          powerOn: false,
+                          allButtonsWork: false,
+                          screenDisplay: false,
+                          connectivity: false,
+                        },
+                        optical: product.category === 'camera_body' || product.category === 'lens' ? {
+                          lensClarity: false,
+                          aperture: false,
+                          focusAccuracy: false,
+                          stabilization: false,
+                        } : undefined,
+                        notes: '',
+                      }}
+                      onChange={(checklistData) => updateInspectionChecklist(index, checklistData)}
+                      showOptical={product.category === 'camera_body' || product.category === 'lens'}
+                      readOnly={false}
+                    />
+                  </div>
+                )}
               </div>
 
               {/* 撮影要望セクション */}

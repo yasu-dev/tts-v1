@@ -6,6 +6,7 @@ import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import UnifiedPageHeader from '@/app/components/ui/UnifiedPageHeader';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import { NexusSelect, NexusButton, NexusCard, NexusLoadingSpinner } from '@/app/components/ui';
+import HierarchicalChecklistFeatureToggle from '@/app/components/features/settings/HierarchicalChecklistFeatureToggle';
 
 interface AppSettings {
   language: string;
@@ -31,7 +32,7 @@ export default function SettingsPage() {
   const { showToast } = useToast();
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [userType, setUserType] = useState<'staff' | 'seller'>('seller');
-  const [activeTab, setActiveTab] = useState<'settings' | 'notifications' | 'warehouse' | 'account'>('notifications');
+  const [activeTab, setActiveTab] = useState<'settings' | 'notifications' | 'warehouse' | 'account' | 'features'>('notifications');
   
   // 通知設定の状態管理
   const [notificationSettings, setNotificationSettings] = useState<any>({
@@ -209,6 +210,16 @@ export default function SettingsPage() {
               }`}
             >
               アカウント管理
+            </button>
+            <button
+              onClick={() => setActiveTab('features')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'features'
+                  ? 'border-primary-blue text-primary-blue'
+                  : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-nexus-border'
+              }`}
+            >
+              機能管理
             </button>
           </nav>
         </div>
@@ -446,6 +457,19 @@ export default function SettingsPage() {
           <div style={{backgroundColor: 'purple', padding: '20px', color: 'white', fontSize: '18px'}}>
             <h2>倉庫管理タブ</h2>
             <p>倉庫管理がここに表示されます</p>
+          </div>
+        )}
+
+        {/* 機能管理タブ */}
+        {activeTab === 'features' && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-bold text-nexus-text-primary">機能管理</h2>
+              <p className="text-nexus-text-secondary mt-2">
+                新機能の有効/無効を管理できます。変更は即座に反映されます。
+              </p>
+            </div>
+            <HierarchicalChecklistFeatureToggle />
           </div>
         )}
       </div>

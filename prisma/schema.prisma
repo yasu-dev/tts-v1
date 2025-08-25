@@ -62,15 +62,16 @@ model Product {
   currentLocationId   String?
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
-  activities          Activity[]
-  inspectionChecklist InspectionChecklist?
-  movements           InventoryMovement[]
-  listings            Listing[]
-  orderItems          OrderItem[]
-  images              ProductImage[]
-  seller              User                 @relation(fields: [sellerId], references: [id])
-  currentLocation     Location?            @relation(fields: [currentLocationId], references: [id])
-  videoRecords        VideoRecord[]
+  activities                     Activity[]
+  inspectionChecklist            InspectionChecklist?
+  hierarchicalInspectionChecklist HierarchicalInspectionChecklist? @relation("ProductHierarchicalInspection")
+  movements                      InventoryMovement[]
+  listings                       Listing[]
+  orderItems                     OrderItem[]
+  images                         ProductImage[]
+  seller                         User                              @relation(fields: [sellerId], references: [id])
+  currentLocation                Location?                         @relation(fields: [currentLocationId], references: [id])
+  videoRecords                   VideoRecord[]
 
   @@map("products")
 }
@@ -293,9 +294,10 @@ model DeliveryPlanProduct {
   photographyRequests String?                    // 撮影要望データをJSONで保存
   createdAt           DateTime                   @default(now())
   updatedAt           DateTime                   @updatedAt
-  images              DeliveryPlanProductImage[]
-  deliveryPlan        DeliveryPlan               @relation(fields: [deliveryPlanId], references: [id], onDelete: Cascade)
-  inspectionChecklist InspectionChecklist?
+  images                          DeliveryPlanProductImage[]
+  deliveryPlan                    DeliveryPlan                       @relation(fields: [deliveryPlanId], references: [id], onDelete: Cascade)
+  inspectionChecklist             InspectionChecklist?
+  hierarchicalInspectionChecklist HierarchicalInspectionChecklist?   @relation("DeliveryPlanProductHierarchicalInspection")
 
   @@map("delivery_plan_products")
 }
@@ -591,4 +593,41 @@ model SystemSetting {
   updatedAt   DateTime @updatedAt
 
   @@map("system_settings")
+}
+
+// ===================================
+// 新しい階層型検品チェックリストシステム
+// (既存のInspectionChecklistとは完全に独立)
+// ===================================
+
+model HierarchicalInspectionChecklist {
+  id                    String                             @id @default(cuid())
+  productId             String?                            @unique
+  deliveryPlanProductId String?                            @unique
+  createdBy             String
+  createdAt             DateTime                           @default(now())
+  verifiedBy            String?
+  verifiedAt            DateTime?
+  updatedBy             String?
+  updatedAt             DateTime                           @updatedAt
+  notes                 String?
+  responses             HierarchicalInspectionResponse[]
+  product               Product?                           @relation("ProductHierarchicalInspection", fields: [productId], references: [id])
+  deliveryPlanProduct   DeliveryPlanProduct?               @relation("DeliveryPlanProductHierarchicalInspection", fields: [deliveryPlanProductId], references: [id])
+
+  @@map("hierarchical_inspection_checklists")
+}
+
+model HierarchicalInspectionResponse {
+  id           String                           @id @default(cuid())
+  checklistId  String
+  categoryId   String                           // e.g., "camera_body_exterior", "viewfinder"
+  itemId       String                           // e.g., "body_scratches", "vf_mold"
+  booleanValue Boolean?                         // チェックボックスの値
+  textValue    String?                          // 「その他」入力フォームの値
+  createdAt    DateTime                         @default(now())
+  checklist    HierarchicalInspectionChecklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+
+  @@unique([checklistId, categoryId, itemId])
+  @@map("hierarchical_inspection_responses")
 }

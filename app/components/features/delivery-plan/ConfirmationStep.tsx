@@ -5,8 +5,10 @@ import Link from 'next/link';
 import NexusButton from '@/app/components/ui/NexusButton';
 import NexusCard from '@/app/components/ui/NexusCard';
 import PhotographyRequestDisplay from '@/app/components/features/photography/PhotographyRequestDisplay';
+import HierarchicalChecklistDisplay from './HierarchicalChecklistDisplay';
 
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
+import { useIsHierarchicalChecklistEnabled } from '@/lib/hooks/useHierarchicalChecklistFeature';
 import { ExternalLink } from 'lucide-react';
 
 interface ConfirmationStepProps {
@@ -29,6 +31,10 @@ export default function ConfirmationStep({
   const { showToast } = useToast();
   const [user, setUser] = useState<any>(null);
   const [agreedToTerms, setAgreedToTerms] = useState(data.confirmation?.agreedToTerms || false);
+  
+  // 🎛️ フィーチャーフラグ：階層型検品チェックリストの有効/無効
+  const isHierarchicalEnabled = useIsHierarchicalChecklistEnabled();
+  console.log(`[ConfirmationStep] 階層型検品チェックリスト: ${isHierarchicalEnabled ? '有効(新システム)' : '無効(既存システム)'}`);
 
   // コンポーネント表示時にスクロール位置を最上部に設定 - 確実な実装
   useEffect(() => {
@@ -238,26 +244,54 @@ export default function ConfirmationStep({
                   />
                 </div>
 
-                {/* 検品チェックリスト表示 */}
-                {product.inspectionChecklist && (
-                  <div className="mb-4 border-t pt-4">
-                    <h5 className="text-sm font-medium text-nexus-text-primary mb-2">検品チェックリスト（該当項目のみチェック）</h5>
+                {/* 検品チェックリスト表示 - フィーチャーフラグで新旧システム切り替え */}
+                <div className="mb-4 border-t pt-4">
+                  <div className="flex items-center mb-2">
+                    <h5 className="text-sm font-medium text-nexus-text-primary">
+                      検品チェックリスト（該当項目のみ表示）
+                    </h5>
+                    <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
+                      isHierarchicalEnabled 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-blue-100 text-blue-800'
+                    }`}>
+                      {isHierarchicalEnabled ? '新システム' : '既存システム'}
+                    </span>
+                  </div>
+
+                  {/* フィーチャーフラグによる条件分岐 */}
+                  {isHierarchicalEnabled ? (
+                    /* ========== 新システム: 階層型検品チェックリスト表示 ========== */
+                    product.hierarchicalInspectionData ? (
+                      <HierarchicalChecklistDisplay 
+                        data={product.hierarchicalInspectionData} 
+                      />
+                    ) : (
+                      <div className="text-gray-500 text-sm py-4">
+                        階層型検品データが未入力です
+                      </div>
+                    )
+                  ) : (
+                    /* ========== 既存システム: 統一検品チェックリスト表示 ========== */
+                    product.inspectionChecklist ? (
+                      <>
+                        {/* 既存システムの表示をそのまま維持 */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                       {/* 外装項目 */}
                       <div>
                         <h6 className="text-xs font-medium text-nexus-text-secondary mb-2">外装項目</h6>
                         <div className="space-y-1 text-xs">
                           <div className={product.inspectionChecklist.exterior?.scratches ? 'text-red-600' : 'text-green-600'}>
-                            {product.inspectionChecklist.exterior?.scratches ? '✓ 外装キズ' : '○ 外装キズなし'}
+                            {product.inspectionChecklist.exterior?.scratches ? '✓ 傷' : '○ 傷なし'}
                           </div>
                           <div className={product.inspectionChecklist.exterior?.dents ? 'text-red-600' : 'text-green-600'}>
-                            {product.inspectionChecklist.exterior?.dents ? '✓ 打痕・へこみ' : '○ 打痕・へこみなし'}
+                            {product.inspectionChecklist.exterior?.dents ? '✓ 凹み' : '○ 凹みなし'}
                           </div>
                           <div className={product.inspectionChecklist.exterior?.discoloration ? 'text-red-600' : 'text-green-600'}>
-                            {product.inspectionChecklist.exterior?.discoloration ? '✓ 部品欠損' : '○ 部品欠損なし'}
+                            {product.inspectionChecklist.exterior?.discoloration ? '✓ スレ' : '○ スレなし'}
                           </div>
                           <div className={product.inspectionChecklist.exterior?.dust ? 'text-red-600' : 'text-green-600'}>
-                            {product.inspectionChecklist.exterior?.dust ? '✓ 汚れ・ホコリ' : '○ 汚れ・ホコリなし'}
+                            {product.inspectionChecklist.exterior?.dust ? '✓ 汚れ' : '○ 汚れなし'}
                           </div>
                         </div>
                       </div>
@@ -267,16 +301,16 @@ export default function ConfirmationStep({
                         <h6 className="text-xs font-medium text-nexus-text-secondary mb-2">機能項目</h6>
                         <div className="space-y-1 text-xs">
                           <div className={product.inspectionChecklist.functionality?.powerOn ? 'text-red-600' : 'text-green-600'}>
-                            {product.inspectionChecklist.functionality?.powerOn ? '✓ 動作不良' : '○ 動作不良なし'}
+                            {product.inspectionChecklist.functionality?.powerOn ? '✓ 作動' : '○ 作動なし'}
                           </div>
                           <div className={product.inspectionChecklist.functionality?.allButtonsWork ? 'text-red-600' : 'text-green-600'}>
-                            {product.inspectionChecklist.functionality?.allButtonsWork ? '✓ 操作系異常' : '○ 操作系異常なし'}
+                            {product.inspectionChecklist.functionality?.allButtonsWork ? '✓ 不動' : '○ 不動なし'}
                           </div>
                           <div className={product.inspectionChecklist.functionality?.screenDisplay ? 'text-red-600' : 'text-green-600'}>
-                            {product.inspectionChecklist.functionality?.screenDisplay ? '✓ 表示異常' : '○ 表示異常なし'}
+                            {product.inspectionChecklist.functionality?.screenDisplay ? '✓ クモリ' : '○ クモリなし'}
                           </div>
                           <div className={product.inspectionChecklist.functionality?.connectivity ? 'text-red-600' : 'text-green-600'}>
-                            {product.inspectionChecklist.functionality?.connectivity ? '✓ 防水性能劣化' : '○ 防水性能劣化なし'}
+                            {product.inspectionChecklist.functionality?.connectivity ? '✓ カビ' : '○ カビなし'}
                           </div>
                         </div>
                       </div>
@@ -286,16 +320,16 @@ export default function ConfirmationStep({
                         <h6 className="text-xs font-medium text-nexus-text-secondary mb-2">光学系・その他項目</h6>
                         <div className="space-y-1 text-xs">
                           <div className={product.inspectionChecklist.optical?.lensClarity ? 'text-red-600' : 'text-green-600'}>
-                            {product.inspectionChecklist.optical?.lensClarity ? '✓ 光学系/ムーブメント異常' : '○ 光学系/ムーブメント異常なし'}
+                            {product.inspectionChecklist.optical?.lensClarity ? '✓ チリホコリ' : '○ チリホコリなし'}
                           </div>
                           <div className={product.inspectionChecklist.optical?.aperture ? 'text-red-600' : 'text-green-600'}>
-                            {product.inspectionChecklist.optical?.aperture ? '✓ 経年劣化' : '○ 経年劣化なし'}
+                            {product.inspectionChecklist.optical?.aperture ? '✓ キズ' : '○ キズなし'}
                           </div>
                           <div className={product.inspectionChecklist.optical?.focusAccuracy ? 'text-red-600' : 'text-green-600'}>
-                            {product.inspectionChecklist.optical?.focusAccuracy ? '✓ 付属品相違' : '○ 付属品相違なし'}
+                            {product.inspectionChecklist.optical?.focusAccuracy ? '✓ バッテリー' : '○ バッテリーなし'}
                           </div>
                           <div className={product.inspectionChecklist.optical?.stabilization ? 'text-red-600' : 'text-green-600'}>
-                            {product.inspectionChecklist.optical?.stabilization ? '✓ 保証書・真贋問題' : '○ 保証書・真贋問題なし'}
+                            {product.inspectionChecklist.optical?.stabilization ? '✓ ケース' : '○ ケースなし'}
                           </div>
                         </div>
                       </div>
@@ -308,8 +342,14 @@ export default function ConfirmationStep({
                         <p className="text-xs text-yellow-700 mt-1">{product.inspectionChecklist.notes}</p>
                       </div>
                     )}
-                  </div>
-                )}
+                      </>
+                    ) : (
+                      <div className="text-gray-500 text-sm py-4">
+                        検品データが未入力です
+                      </div>
+                    )
+                  )}
+                </div>
 
                 {/* 仕入詳細 */}
                 {product.supplierDetails && (
