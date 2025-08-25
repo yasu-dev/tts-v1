@@ -230,9 +230,20 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
         if (productResponse.ok) {
           const productData = await productResponse.json();
           
-          // メタデータから納品プラン情報を抽出
+          console.log('[INFO] 商品データ受信確認:', {
+            hasDeliveryPlanInfo: !!productData.deliveryPlanInfo,
+            deliveryPlanInfoFromAPI: JSON.stringify(productData.deliveryPlanInfo, null, 2),
+            hasMetadata: !!productData.metadata,
+            productName: productData.name
+          });
+          
+          // メタデータから納品プラン情報を抽出（APIからdeliveryPlanInfoが取得されていない場合のみ）
           let enrichedProduct = { ...productData };
-          if (productData.metadata) {
+          
+          if (productData.deliveryPlanInfo) {
+            console.log('[INFO] API経由でdeliveryPlanInfo既に取得済み');
+          } else if (productData.metadata) {
+            console.log('[INFO] メタデータからdeliveryPlanInfo構築を開始');
             try {
               let metadata;
               
@@ -245,10 +256,11 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
                 throw new Error('metadata is not a valid string or object');
               }
               
-              console.log('[INFO] Product metadata:', metadata);
-              console.log('[INFO] 撮影要望データチェック:', {
+              console.log('[INFO] Product metadata詳細:', JSON.stringify(metadata, null, 2));
+              console.log('[INFO] 撮影要望データチェック詳細:', {
                 hasPhotographyRequests: !!metadata.photographyRequests,
-                photographyRequests: metadata.photographyRequests
+                photographyRequestsRaw: JSON.stringify(metadata.photographyRequests, null, 2),
+                photographyRequestsType: typeof metadata.photographyRequests
               });
               
               // 納品プラン関連情報を抽出して構造化（型安全処理）
@@ -262,7 +274,7 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
                 photographyRequests: metadata.photographyRequests ? metadata.photographyRequests : null
               };
               
-              console.log('[INFO] 納品プラン情報を抽出:', enrichedProduct.deliveryPlanInfo);
+              console.log('[INFO] 納品プラン情報を抽出詳細:', JSON.stringify(enrichedProduct.deliveryPlanInfo, null, 2));
             } catch (error) {
               console.warn('[WARN] metadata解析エラー:', error);
               enrichedProduct.deliveryPlanInfo = {
@@ -275,6 +287,7 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
               };
             }
           } else {
+            console.log('[INFO] メタデータもdeliveryPlanInfoも存在しない - デフォルト値で初期化');
             enrichedProduct.deliveryPlanInfo = {
               condition: '',
               purchasePrice: 0,
@@ -1158,10 +1171,12 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
           <div className="space-y-6">
             {/* 撮影要望表示 */}
             {(() => {
-              console.log('[DEBUG] PhotographyRequestDisplay レンダリング:', {
+              console.log('[DEBUG] PhotographyRequestDisplay レンダリング詳細:', {
                 productId: product?.id,
                 hasDeliveryPlanInfo: !!product?.deliveryPlanInfo,
-                photographyRequests: product?.deliveryPlanInfo?.photographyRequests
+                deliveryPlanInfo: JSON.stringify(product?.deliveryPlanInfo, null, 2),
+                photographyRequestsRaw: JSON.stringify(product?.deliveryPlanInfo?.photographyRequests, null, 2),
+                photographyRequestsType: typeof product?.deliveryPlanInfo?.photographyRequests
               });
               
               return (

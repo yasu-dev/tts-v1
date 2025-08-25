@@ -27,10 +27,15 @@ export default function PhotographyRequestDisplay({
   photographyRequests, 
   className = '' 
 }: PhotographyRequestDisplayProps) {
-  console.log('[DEBUG] PhotographyRequestDisplay props:', {
-    photographyRequests,
+  console.log('[DEBUG] PhotographyRequestDisplay props詳細:', {
+    photographyRequests: JSON.stringify(photographyRequests, null, 2),
+    photographyRequestsType: typeof photographyRequests,
+    isNull: photographyRequests === null,
+    isUndefined: photographyRequests === undefined,
     hasSpecialPhotography: photographyRequests?.specialPhotography,
     hasCustomRequests: !!photographyRequests?.customRequests,
+    specialPhotographyItems: photographyRequests?.specialPhotographyItems,
+    customRequests: photographyRequests?.customRequests,
     className
   });
   if (!photographyRequests || (!photographyRequests.specialPhotography && !photographyRequests.customRequests)) {

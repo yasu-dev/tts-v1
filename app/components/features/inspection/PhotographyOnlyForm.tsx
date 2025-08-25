@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
 import PhotoUploader from './PhotoUploader';
+import PhotographyRequestDisplay from '@/app/components/features/photography/PhotographyRequestDisplay';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import { ArrowLeftIcon, CheckIcon } from '@heroicons/react/24/outline';
 
@@ -21,6 +22,21 @@ interface Product {
   model: string;
   status: string;
   imageUrl?: string;
+  deliveryPlanInfo?: {
+    deliveryPlanId: string;
+    deliveryPlanProductId: string;
+    condition?: string;
+    purchasePrice?: number;
+    purchaseDate?: string;
+    supplier?: string;
+    supplierDetails?: string;
+    photographyRequests?: {
+      specialPhotography: boolean;
+      specialPhotographyItems: string[];
+      customRequests: string;
+    } | null;
+    images: any[];
+  };
 }
 
 export default function PhotographyOnlyForm({ productId }: PhotographyOnlyFormProps) {
@@ -33,21 +49,27 @@ export default function PhotographyOnlyForm({ productId }: PhotographyOnlyFormPr
   const [notes, setNotes] = useState('');
 
   useEffect(() => {
-    // 商品情報を取得（実際はAPIから）
-    setTimeout(() => {
-      setProduct({
-        id: productId,
-        name: 'Canon EOS R5 ボディ',
-        sku: `TWD-2024-${productId}`,
-        category: 'camera_body',
-        brand: 'Canon',
-        model: 'EOS R5',
-        status: 'inspection_completed',
-        imageUrl: '/api/placeholder/400/300',
-      });
-      setLoading(false);
-    }, 500);
-  }, [productId]);
+    // 商品情報を実際のAPIから取得
+    const fetchProduct = async () => {
+      try {
+        const response = await fetch(`/api/products/${productId}`);
+        if (response.ok) {
+          const productData = await response.json();
+          setProduct(productData);
+        } else {
+          console.error('Failed to fetch product data:', response.statusText);
+          showToast('商品データの取得に失敗しました', 'error');
+        }
+      } catch (error) {
+        console.error('Error fetching product:', error);
+        showToast('商品データの取得中にエラーが発生しました', 'error');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [productId, showToast]);
 
   const handlePhotosUpdate = (newPhotos: string[], photoSlots?: any[]) => {
     console.log('写真データ更新:', newPhotos, '配置情報:', photoSlots);
@@ -221,6 +243,12 @@ export default function PhotographyOnlyForm({ productId }: PhotographyOnlyFormPr
           </div>
         </div>
       </NexusCard>
+
+      {/* 撮影要望表示 */}
+      <PhotographyRequestDisplay 
+        photographyRequests={product.deliveryPlanInfo?.photographyRequests || null}
+        className="mb-6"
+      />
 
       {/* 撮影説明 */}
       <NexusCard className="p-6">

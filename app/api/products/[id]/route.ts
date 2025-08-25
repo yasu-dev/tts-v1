@@ -19,7 +19,7 @@ export async function GET(
 
     const productId = params.id;
 
-    // productIdまたはSKUで商品を検索
+    // productIdまたはSKUで商品を検索（deliveryPlanInfo含む）
     let product = await prisma.product.findUnique({
       where: { id: productId },
       include: {
@@ -79,7 +79,61 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(product);
+    // 商品のメタデータから納品プラン情報を取得
+    let enrichedProduct = { ...product };
+    
+    if (product.metadata) {
+      try {
+        const metadata = JSON.parse(product.metadata);
+        
+        // 納品プラン関連の情報がある場合
+        if (metadata.deliveryPlanId && metadata.deliveryPlanProductId) {
+          // DeliveryPlanProductから撮影要望データを取得
+          const deliveryPlanProduct = await prisma.deliveryPlanProduct.findUnique({
+            where: { id: metadata.deliveryPlanProductId },
+            include: {
+              images: true,
+            },
+          });
+
+          if (deliveryPlanProduct) {
+            // photographyRequestsをパースして追加
+            let photographyRequests = null;
+            console.log('[DEBUG] deliveryPlanProduct.photographyRequests raw:', deliveryPlanProduct.photographyRequests);
+            if (deliveryPlanProduct.photographyRequests) {
+              try {
+                photographyRequests = JSON.parse(deliveryPlanProduct.photographyRequests);
+                console.log('[DEBUG] Parsed photographyRequests:', JSON.stringify(photographyRequests, null, 2));
+              } catch (e) {
+                console.warn('Photography requests parse error:', e);
+              }
+            } else {
+              console.log('[DEBUG] No photographyRequests found in deliveryPlanProduct');
+            }
+
+            // deliveryPlanInfoを構築
+            enrichedProduct.deliveryPlanInfo = {
+              deliveryPlanId: metadata.deliveryPlanId,
+              deliveryPlanProductId: metadata.deliveryPlanProductId,
+              condition: metadata.condition || product.condition,
+              purchasePrice: metadata.purchasePrice || product.price,
+              purchaseDate: metadata.purchaseDate,
+              supplier: metadata.supplier,
+              supplierDetails: metadata.supplierDetails,
+              photographyRequests: photographyRequests,
+              images: deliveryPlanProduct.images || [],
+            };
+            
+            console.log('[DEBUG] Final enrichedProduct.deliveryPlanInfo:', JSON.stringify(enrichedProduct.deliveryPlanInfo, null, 2));
+          }
+        }
+      } catch (e) {
+        console.warn('Product metadata parse error:', e);
+        // メタデータのパースエラーは無視して続行
+      }
+    }
+
+    return NextResponse.json(enrichedProduct);
   } catch (error) {
     console.error('Error fetching product:', error);
     return NextResponse.json(
