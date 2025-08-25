@@ -341,4 +341,3 @@ test.describe('実際のUI確認レポート', () => {
     expect(report.summary.passedTests).toBeGreaterThan(0);
   });
 });
-

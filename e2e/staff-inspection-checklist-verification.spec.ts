@@ -255,4 +255,3 @@ test.describe('スタッフ検品チェックリスト項目の実際UI確認', 
     expect(foundLegacyTerms.length).toBeGreaterThanOrEqual(0); // 互換性システムの存在確認
   });
 });
-

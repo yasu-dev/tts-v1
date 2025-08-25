@@ -507,7 +507,7 @@ async function main() {
 
     const shipment = await prisma.shipment.create({
       data: {
-        orderId: `COMP-${order.orderNumber}`,
+        orderId: order.id,
         productId: products[i % products.length].id,
         trackingNumber: status !== 'pending' ? `TRK${Date.now()}${i}` : null,
         carrier: carrier,

@@ -65,75 +65,54 @@ export async function PUT(
     const productId = params.id;
     const body = await request.json();
 
-    // 既存の検品チェックリストを検索
-    let checklist = await prisma.inspectionChecklist.findUnique({
-      where: { productId },
+    // 商品の存在確認
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
     });
 
-    if (!checklist) {
-      // 商品のメタデータから納品プラン商品IDを取得
-      const product = await prisma.product.findUnique({
-        where: { id: productId },
-      });
-
-      if (product?.metadata) {
-        const metadata = JSON.parse(product.metadata);
-        if (metadata.deliveryPlanProductId) {
-          checklist = await prisma.inspectionChecklist.findUnique({
-            where: { deliveryPlanProductId: metadata.deliveryPlanProductId },
-          });
-        }
-      }
+    if (!product) {
+      return NextResponse.json(
+        { error: '商品が見つかりません' },
+        { status: 404 }
+      );
     }
 
-    if (!checklist) {
-      // 新規作成
-      const newChecklist = await prisma.inspectionChecklist.create({
-        data: {
-          productId,
-          hasScratches: body.hasScratches || false,
-          hasDents: body.hasDents || false,
-          hasDiscoloration: body.hasDiscoloration || false,
-          hasDust: body.hasDust || false,
-          powerOn: body.powerOn || false,
-          allButtonsWork: body.allButtonsWork || false,
-          screenDisplay: body.screenDisplay || false,
-          connectivity: body.connectivity || false,
-          lensClarity: body.lensClarity || false,
-          aperture: body.aperture || false,
-          focusAccuracy: body.focusAccuracy || false,
-          stabilization: body.stabilization || false,
-          notes: body.notes || null,
-          createdBy: user.username || user.email,
-          verifiedBy: user.username || user.email,
-          verifiedAt: new Date(),
-        },
-      });
-
-      return NextResponse.json({
-        success: true,
-        checklist: newChecklist,
-        message: '検品チェックリストを作成しました',
-      });
-    }
-
-    // 既存のチェックリストを更新
-    const updatedChecklist = await prisma.inspectionChecklist.update({
-      where: { id: checklist.id },
-      data: {
-        hasScratches: body.hasScratches ?? checklist.hasScratches,
-        hasDents: body.hasDents ?? checklist.hasDents,
-        hasDiscoloration: body.hasDiscoloration ?? checklist.hasDiscoloration,
-        hasDust: body.hasDust ?? checklist.hasDust,
-        powerOn: body.powerOn ?? checklist.powerOn,
-        allButtonsWork: body.allButtonsWork ?? checklist.allButtonsWork,
-        screenDisplay: body.screenDisplay ?? checklist.screenDisplay,
-        connectivity: body.connectivity ?? checklist.connectivity,
-        lensClarity: body.lensClarity ?? checklist.lensClarity,
-        aperture: body.aperture ?? checklist.aperture,
-        focusAccuracy: body.focusAccuracy ?? checklist.focusAccuracy,
-        stabilization: body.stabilization ?? checklist.stabilization,
-        notes: body.notes ?? checklist.notes,
+    // 検品チェックリストを作成または更新
+    const checklist = await prisma.inspectionChecklist.upsert({
+      where: { productId },
+      create: {
+        productId,
+        hasScratches: body.hasScratches || false,
+        hasDents: body.hasDents || false,
+        hasDiscoloration: body.hasDiscoloration || false,
+        hasDust: body.hasDust || false,
+        powerOn: body.powerOn || false,
+        allButtonsWork: body.allButtonsWork || false,
+        screenDisplay: body.screenDisplay || false,
+        connectivity: body.connectivity || false,
+        lensClarity: body.lensClarity || false,
+        aperture: body.aperture || false,
+        focusAccuracy: body.focusAccuracy || false,
+        stabilization: body.stabilization || false,
+        notes: body.notes || null,
+        createdBy: user.username || user.email,
+        verifiedBy: user.username || user.email,
+        verifiedAt: new Date(),
+      },
+      update: {
+        hasScratches: body.hasScratches,
+        hasDents: body.hasDents,
+        hasDiscoloration: body.hasDiscoloration,
+        hasDust: body.hasDust,
+        powerOn: body.powerOn,
+        allButtonsWork: body.allButtonsWork,
+        screenDisplay: body.screenDisplay,
+        connectivity: body.connectivity,
+        lensClarity: body.lensClarity,
+        aperture: body.aperture,
+        focusAccuracy: body.focusAccuracy,
+        stabilization: body.stabilization,
+        notes: body.notes,
         verifiedBy: user.username || user.email,
         verifiedAt: new Date(),
         updatedBy: user.username || user.email,
@@ -142,7 +121,7 @@ export async function PUT(
 
     return NextResponse.json({
       success: true,
-      checklist: updatedChecklist,
+      checklist,
       message: '検品チェックリストを更新しました',
     });
   } catch (error) {

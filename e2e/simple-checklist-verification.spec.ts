@@ -292,4 +292,3 @@ test.describe('検品チェックリスト実際UI検証', () => {
     expect(hasInspectionContent).toBeTruthy();
   });
 });
-
