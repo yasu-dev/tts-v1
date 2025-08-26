@@ -111,6 +111,17 @@ export async function GET(
               console.log('[DEBUG] No photographyRequests found in deliveryPlanProduct');
             }
 
+            // 🔍 既存システムの検品チェックリストデータを取得
+            let existingInspectionChecklist = null;
+            try {
+              existingInspectionChecklist = await prisma.inspectionChecklist.findUnique({
+                where: { deliveryPlanProductId: metadata.deliveryPlanProductId },
+              });
+              console.log('[DEBUG] 既存検品チェックリスト取得:', existingInspectionChecklist ? '見つかった' : '見つからない');
+            } catch (error) {
+              console.warn('[DEBUG] 既存検品チェックリスト取得エラー:', error);
+            }
+
             // deliveryPlanInfoを構築
             enrichedProduct.deliveryPlanInfo = {
               deliveryPlanId: metadata.deliveryPlanId,
@@ -122,6 +133,9 @@ export async function GET(
               supplierDetails: metadata.supplierDetails,
               photographyRequests: photographyRequests,
               images: deliveryPlanProduct.images || [],
+              
+              // 🆕 既存システムの検品チェックリストデータを追加
+              inspectionChecklist: existingInspectionChecklist,
             };
             
             console.log('[DEBUG] Final enrichedProduct.deliveryPlanInfo:', JSON.stringify(enrichedProduct.deliveryPlanInfo, null, 2));

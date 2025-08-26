@@ -31,6 +31,8 @@ import Pagination from '@/app/components/ui/Pagination';
 import BaseModal from '@/app/components/ui/BaseModal';
 import { useModal } from '@/app/components/ui/ModalContext';
 import { useSystemSetting } from '@/lib/hooks/useMasterData';
+import { useIsHierarchicalChecklistEnabled } from '@/lib/hooks/useHierarchicalChecklistFeature';
+import HierarchicalChecklistDisplay from '@/app/components/features/delivery-plan/HierarchicalChecklistDisplay';
 
 type SortField = 'date' | 'status' | 'items' | 'value';
 type SortDirection = 'asc' | 'desc';
@@ -38,6 +40,11 @@ type SortDirection = 'asc' | 'desc';
 export default function DeliveryPage() {
   const router = useRouter();
   const { showToast } = useToast();
+  
+  // 🎛️ フィーチャーフラグ：階層型検品チェックリストの有効/無効
+  const isHierarchicalEnabled = useIsHierarchicalChecklistEnabled();
+  console.log(`[DeliveryPage] 階層型検品チェックリスト: ${isHierarchicalEnabled ? '有効(新システム)' : '無効(既存システム)'}`);
+  
   const { setIsAnyModalOpen } = useModal();
   const [user, setUser] = useState<any>(null);
   const [allDeliveryPlans, setAllDeliveryPlans] = useState<any[]>([]);
@@ -1054,18 +1061,47 @@ export default function DeliveryPage() {
                         </div>
                       )}
 
-                      {/* 検品チェックリスト詳細 */}
+                      {/* 検品チェックリスト詳細 - フィーチャーフラグで新旧システム切り替え */}
                       {(() => {
                         console.log(`[DEBUG] 納品プラン詳細: 商品${product.name}の検品チェックリスト:`, JSON.stringify({
                           hasInspectionChecklist: product.hasInspectionChecklist,
-                          inspectionChecklistData: product.inspectionChecklistData
+                          inspectionChecklistData: product.inspectionChecklistData,
+                          hasHierarchicalInspectionData: product.hasHierarchicalInspectionData,
+                          hierarchicalInspectionData: product.hierarchicalInspectionData
                         }, null, 2));
                         
+                        // 🆕 新システム優先表示: フィーチャーフラグ有効かつ新システムデータ存在
+                        if (isHierarchicalEnabled && product.hasHierarchicalInspectionData && product.hierarchicalInspectionData) {
+                          return (
+                            <div className="mt-3 pt-3 border-t border-gray-300">
+                              <div className="flex items-center mb-3">
+                                <span className="font-medium text-nexus-text-secondary text-sm">
+                                  検品チェックリスト詳細
+                                </span>
+                                <span className="ml-2 px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
+                                  新システム
+                                </span>
+                              </div>
+                              <div className="bg-nexus-bg-tertiary p-3 rounded border">
+                                <HierarchicalChecklistDisplay 
+                                  data={product.hierarchicalInspectionData} 
+                                />
+                              </div>
+                            </div>
+                          );
+                        }
+                        
+                        // 🔄 既存システム表示: フィーチャーフラグ無効 or 既存データのみ存在
                         return product.hasInspectionChecklist && product.inspectionChecklistData ? (
                         <div className="mt-3 pt-3 border-t border-gray-300">
-                          <span className="font-medium text-nexus-text-secondary text-sm mb-3 block">
-                            検品チェックリスト詳細
-                          </span>
+                          <div className="flex items-center mb-3">
+                            <span className="font-medium text-nexus-text-secondary text-sm">
+                              検品チェックリスト詳細
+                            </span>
+                            <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                              既存システム
+                            </span>
+                          </div>
                           <div className="bg-nexus-bg-tertiary p-3 rounded border">
                             <div className="space-y-3">
                               {/* 外装チェック */}
