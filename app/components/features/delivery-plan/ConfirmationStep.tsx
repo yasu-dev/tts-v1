@@ -114,16 +114,7 @@ export default function ConfirmationStep({
     onSubmit();
   };
 
-  // 合計購入価格を計算する関数
-  const getTotalPurchasePrice = () => {
-    if (!Array.isArray(data.products)) {
-      return 0;
-    }
-    return data.products.reduce((total: number, product: any) => {
-      const price = typeof product?.purchasePrice === 'number' ? product.purchasePrice : 0;
-      return total + price;
-    }, 0);
-  };
+
 
   return (
     <div className="space-y-6">
@@ -250,13 +241,6 @@ export default function ConfirmationStep({
                     <h5 className="text-sm font-medium text-nexus-text-primary">
                       検品チェックリスト（該当項目のみ表示）
                     </h5>
-                    <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
-                      isHierarchicalEnabled 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-blue-100 text-blue-800'
-                    }`}>
-                      {isHierarchicalEnabled ? '新システム' : '既存システム'}
-                    </span>
                   </div>
 
                   {/* フィーチャーフラグによる条件分岐 */}
@@ -362,14 +346,11 @@ export default function ConfirmationStep({
             ))}
             <NexusCard className="p-4 border-2 border-primary-blue bg-nexus-bg-tertiary">
               <div className="flex justify-between items-center">
-                <span className="text-lg font-medium text-nexus-text-primary">合計購入価格:</span>
+                <span className="text-lg font-medium text-nexus-text-primary">登録商品数:</span>
                 <span className="text-xl font-bold text-primary-blue">
-                  ¥{getTotalPurchasePrice().toLocaleString()}
+                  {data.products.length}点
                 </span>
               </div>
-              <p className="text-sm text-nexus-text-secondary mt-1">
-                登録商品数: {data.products.length}点
-              </p>
             </NexusCard>
           </div>
         ) : (

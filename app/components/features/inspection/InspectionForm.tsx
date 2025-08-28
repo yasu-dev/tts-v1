@@ -973,7 +973,12 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
               <div>
                 <span className="text-gray-600">カテゴリ:</span>
                 <span className="ml-2 font-medium">
-                  {product.category === 'camera_body' ? 'カメラボディ' : product.category}
+                  {product.category === 'camera' ? 'カメラ' :
+                   product.category === 'camera_body' ? 'カメラボディ' :
+                   product.category === 'lens' ? 'レンズ' :
+                   product.category === 'watch' ? '腕時計' :
+                   product.category === 'accessory' ? 'アクセサリ' : 
+                   product.category === 'other' ? 'その他' : product.category}
                 </span>
               </div>
             </div>
@@ -992,7 +997,14 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
                   {product.deliveryPlanInfo.condition && (
                     <div>
                       <span className="text-gray-600">申告コンディション:</span>
-                      <span className="ml-2 font-medium">{product.deliveryPlanInfo.condition}</span>
+                      <span className="ml-2 font-medium">
+                        {product.deliveryPlanInfo.condition === 'excellent' ? '優良' :
+                         product.deliveryPlanInfo.condition === 'very_good' ? '美品' :
+                         product.deliveryPlanInfo.condition === 'good' ? '良好' :
+                         product.deliveryPlanInfo.condition === 'fair' ? '普通' :
+                         product.deliveryPlanInfo.condition === 'poor' ? '要修理' : 
+                         product.deliveryPlanInfo.condition}
+                      </span>
                     </div>
                   )}
                   {product.deliveryPlanInfo.purchasePrice > 0 && (
@@ -1089,13 +1101,7 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
                 <div className="mb-4">
                   <div className="flex items-center mb-4">
                     <h4 className="text-lg font-semibold text-nexus-text-primary">検品チェックリスト</h4>
-                    <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
-                      isHierarchicalEnabled 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-blue-100 text-blue-800'
-                    }`}>
-                      {isHierarchicalEnabled ? '新システム' : '既存システム'}
-                    </span>
+
                   </div>
 
                   {isHierarchicalEnabled ? (

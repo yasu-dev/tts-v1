@@ -387,8 +387,8 @@ export default function DeliveryPage() {
     try {
       showToast({
         type: 'info',
-        title: 'バーコードPDF生成中',
-        message: 'バーコードPDFを生成しています...',
+        title: 'バーコードラベル生成中',
+        message: 'バーコードラベルを生成しています...',
         duration: 2000
       });
 
@@ -401,7 +401,7 @@ export default function DeliveryPage() {
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'バーコードPDFの生成に失敗しました');
+        throw new Error(errorData.error || 'バーコードラベルの生成に失敗しました');
       }
 
       const result = await response.json();
@@ -420,16 +420,16 @@ export default function DeliveryPage() {
 
       showToast({
         type: 'success',
-        title: 'バーコードPDF生成完了',
-        message: 'バーコードPDFをダウンロードしました。',
+        title: 'バーコードラベル生成完了',
+        message: 'バーコードラベルをダウンロードしました。',
         duration: 3000
       });
     } catch (error) {
       console.error('PDF生成エラー:', error);
       showToast({
         type: 'error',
-        title: 'バーコードPDF生成エラー',
-        message: error instanceof Error ? error.message : 'バーコードPDFの生成に失敗しました。',
+        title: 'バーコードラベル生成エラー',
+        message: error instanceof Error ? error.message : 'バーコードラベルの生成に失敗しました。',
         duration: 5000
       });
     }
@@ -837,7 +837,6 @@ export default function DeliveryPage() {
                     <div><span className="font-medium">セラー名:</span> {selectedPlan.sellerName}</div>
                   )}
                   <div><span className="font-medium">商品数:</span> {selectedPlan.items}点</div>
-                  <div><span className="font-medium">総予想価格:</span> ¥{selectedPlan.value.toLocaleString()}</div>
                 </div>
               </div>
               
@@ -933,11 +932,18 @@ export default function DeliveryPage() {
                               <h5 className="font-medium text-nexus-text-primary text-base">{product.name}</h5>
                               <div className="flex items-center gap-2 mt-1">
                                 <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                                  {product.category}
+                                  {product.category === 'camera' || product.category === 'camera_body' ? 'カメラ' :
+                                   product.category === 'lens' ? 'レンズ' :
+                                   product.category === 'watch' ? '腕時計' :
+                                   product.category === 'accessory' ? 'アクセサリ' : product.category}
                                 </span>
                                 {product.condition && (
                                   <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
-                                    {product.condition}
+                                    {product.condition === 'excellent' ? '優良' :
+                                     product.condition === 'very_good' ? '美品' :
+                                     product.condition === 'good' ? '良好' :
+                                     product.condition === 'fair' ? '普通' :
+                                     product.condition === 'poor' ? '要修理' : product.condition}
                                   </span>
                                 )}
                               </div>
@@ -945,12 +951,7 @@ export default function DeliveryPage() {
                           </div>
 
                           <div className="space-y-2 text-sm">
-                            <div>
-                              <span className="font-medium text-nexus-text-secondary">推定価格:</span>
-                              <span className="ml-2 font-semibold text-nexus-text-primary">
-                                ¥{product.estimatedValue.toLocaleString()}
-                              </span>
-                            </div>
+
                             {product.purchasePrice !== undefined && product.purchasePrice > 0 && (
                               <div>
                                 <span className="font-medium text-nexus-text-secondary">購入価格:</span>
@@ -1006,15 +1007,7 @@ export default function DeliveryPage() {
                         </div>
                       </div>
 
-                      {/* 商品詳細説明 */}
-                      {product.description && (
-                        <div className="mt-3 pt-3 border-t border-gray-300">
-                          <span className="font-medium text-nexus-text-secondary text-sm">商品詳細:</span>
-                          <p className="text-sm text-nexus-text-primary mt-1 bg-nexus-bg-tertiary p-2 rounded">
-                            {product.description}
-                          </p>
-                        </div>
-                      )}
+
 
                       {/* 撮影要望 */}
                       {(() => {
@@ -1145,9 +1138,7 @@ export default function DeliveryPage() {
                                 <span className="font-medium text-nexus-text-secondary text-sm">
                                   検品チェックリスト詳細
                                 </span>
-                                <span className="ml-2 px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
-                                  新システム
-                                </span>
+
                               </div>
                               <div className="bg-nexus-bg-tertiary p-3 rounded border">
                                 <HierarchicalChecklistDisplay 
@@ -1288,7 +1279,7 @@ export default function DeliveryPage() {
                 onClick={() => generateBarcodePDF(selectedPlan.id)}
               >
                 <QrCodeIcon className="h-4 w-4 mr-2" />
-                バーコードPDF
+                バーコードラベル
               </NexusButton>
             </div>
           </div>
