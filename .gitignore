@@ -46,6 +46,9 @@ playwright-report/
 # Backup files
 *.backup
 *.bak
+*.backup.*
+*inspection.backup.*
+app/staff/inspection.backup.*
 
 # Development files
 *.dev.*
