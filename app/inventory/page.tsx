@@ -155,16 +155,24 @@ export default function InventoryPage() {
     ];
   }, [categories, categoriesLoading]);
 
-  // ステータスオプション（APIから動的取得）
+  // ステータスオプション（現在表示されているバッジのみ）
   const statusOptions = useMemo(() => {
-    if (statusesLoading || !productStatuses.length) {
-      return [{ value: 'all', label: 'すべてのステータス' }];
-    }
-    return [
+    // 現在表示されているバッジのステータスのみをフィルターオプションとして提供
+    const inventoryStatusOptions = [
       { value: 'all', label: 'すべてのステータス' },
-      ...createSelectOptions(productStatuses)
+      { value: 'inbound', label: '入庫待ち' },
+      { value: 'inspection', label: '保管作業中' },
+      { value: 'storage', label: '保管中' },
+      { value: 'listing', label: '出品中' },
+      { value: 'sold', label: '購入者決定' },
+      { value: 'ordered', label: '出荷準備中' },
+      { value: 'shipping', label: '出荷済み' },
+      { value: 'returned', label: '返品' },
+      { value: 'on_hold', label: '保留中' }
     ];
-  }, [productStatuses, statusesLoading]);
+    
+    return inventoryStatusOptions;
+  }, []); // 静的なリストなので依存関係は空
 
   // フィルター変更時のページリセット
   useEffect(() => {
