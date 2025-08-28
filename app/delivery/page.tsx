@@ -712,7 +712,9 @@ export default function DeliveryPage() {
                             // ステータスマッピング
                             const mappedStatus = plan.status === 'Pending' ? 'processing' :
                                                 plan.status === 'Shipped' ? 'shipped' :
-                                                'default';
+                                                plan.status === 'Completed' ? 'completed' :
+                                                plan.status === 'Cancelled' ? 'cancelled' :
+                                                'pending';
                             return mappedStatus;
                           })()} 
                           size="sm" 
@@ -826,7 +828,10 @@ export default function DeliveryPage() {
                       <BusinessStatusIndicator 
                         status={(() => {
                           const mappedStatus = selectedPlan.status === 'Pending' ? 'processing' :
-                                            selectedPlan.status === 'Shipped' ? 'shipped' : 'default';
+                                            selectedPlan.status === 'Shipped' ? 'shipped' : 
+                                            selectedPlan.status === 'Completed' ? 'completed' :
+                                            selectedPlan.status === 'Cancelled' ? 'cancelled' :
+                                            'pending';
                           return mappedStatus;
                         })()} 
                         size="sm" 
