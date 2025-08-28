@@ -557,10 +557,11 @@ export default function PhotoUploader({
       </div>
 
       {/* メイン作業エリア - 横並び最適化 */}
-      <div className="grid grid-cols-12 gap-2">
+      {console.log('[DEBUG] PhotoUploader メイン作業エリア表示:', { uploadedPhotos: uploadedPhotos.length, photoSlots: photoSlots.length })}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4" style={{display: 'grid !important', visibility: 'visible !important'}}>
         
         {/* 左側: 必須撮影箇所 (8列) */}
-        <div className="col-span-8">
+        <div className="col-span-1 lg:col-span-8">
           <NexusCard className="p-3">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-sm font-semibold">必須撮影箇所</h3>
@@ -652,7 +653,7 @@ export default function PhotoUploader({
         </div>
 
         {/* 右側: 未配置写真 - 大きなサムネイル (4列) */}
-        <div className="col-span-4">
+        <div className="col-span-1 lg:col-span-4">
           <NexusCard className="p-3 h-full">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-sm font-semibold">未配置の写真</h3>
