@@ -580,6 +580,8 @@ export default function DeliveryPage() {
         return <CheckCircleIcon className="h-5 w-5 text-blue-600" />;
       case 'Shipped':
         return <TruckIcon className="h-5 w-5 text-green-600" />;
+      case 'Cancelled':
+        return <XCircleIcon className="h-5 w-5 text-red-600" />;
       default:
         return <ClockIcon className="h-5 w-5 text-gray-600" />;
     }
@@ -591,6 +593,8 @@ export default function DeliveryPage() {
         return 'status-badge warning';
       case 'Shipped':
         return 'status-badge success';
+      case 'Cancelled':
+        return 'status-badge error';
       default:
         return 'status-badge info';
     }
@@ -604,6 +608,7 @@ export default function DeliveryPage() {
         { value: 'all', label: '全てのステータス' },
         { value: 'Pending', label: '出荷準備中' },
         { value: 'Shipped', label: '出荷済み' },
+        { value: 'Cancelled', label: 'キャンセル' },
       ];
     }
     return [

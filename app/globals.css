@@ -1422,21 +1422,21 @@
 }
 
 .status-badge.success {
+  background: #059669;
+  color: white;
+  border: 1px solid #059669;
+}
+
+.status-badge.warning {
   background: #1D4ED8;
   color: white;
   border: 1px solid #1D4ED8;
 }
 
-.status-badge.warning {
-  background: #A16207;
-  color: white;
-  border: 1px solid #A16207;
-}
-
 .status-badge.error {
-  background: #991B1B;
+  background: #DC2626;
   color: white;
-  border: 1px solid #991B1B;
+  border: 1px solid #DC2626;
 }
 
 .status-badge.info {

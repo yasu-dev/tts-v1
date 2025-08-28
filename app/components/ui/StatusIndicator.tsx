@@ -103,9 +103,9 @@ const businessStatusConfig = {
   },
   processing: { 
     label: '出荷準備中', 
-    bg: 'bg-amber-700 dark:bg-amber-700',
+    bg: 'bg-blue-600 dark:bg-blue-600',
     text: 'text-white dark:text-white',
-    border: 'border-amber-700 dark:border-amber-700'
+    border: 'border-blue-600 dark:border-blue-600'
   },
   shipped: { 
     label: '出荷済み', 
@@ -121,9 +121,9 @@ const businessStatusConfig = {
   },
   cancelled: { 
     label: 'キャンセル', 
-    bg: 'bg-red-800 dark:bg-red-800',
+    bg: 'bg-red-600 dark:bg-red-600',
     text: 'text-white dark:text-white',
-    border: 'border-red-800 dark:border-red-800'
+    border: 'border-red-600 dark:border-red-600'
   },
   
   // タスクステータス
@@ -190,10 +190,10 @@ function getIndicatorColor(status: BusinessStatusType): string {
     on_hold: 'bg-yellow-300',
     pending: 'bg-blue-300',
     confirmed: 'bg-green-300',
-    processing: 'bg-amber-300',
+    processing: 'bg-blue-300',
     shipped: 'bg-indigo-300',
     delivered: 'bg-green-300',
-    cancelled: 'bg-red-300',
+    cancelled: 'bg-red-400',
     in_progress: 'bg-yellow-300',
     completed: 'bg-blue-400',
     packed: 'bg-cyan-300',
