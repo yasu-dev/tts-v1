@@ -281,11 +281,11 @@ export default function InventoryPage() {
     setSelectedProduct(null);
   };
 
-  const handleListingSuccess = () => {
+  const handleListingSuccess = async () => {
     console.log('✅ eBay出品成功');
     showToast({
       title: '出品完了',
-      message: 'eBayへの出品が完了しました',
+      message: 'eBayへの出品が完了しました。在庫リストを更新しています...',
       type: 'success'
     });
     
@@ -293,8 +293,14 @@ export default function InventoryPage() {
     setIsListingFormModalOpen(false);
     setSelectedListingProduct(null);
     
-    // インベントリを再読み込み（必要に応じて）
-    // 実際の出品処理後、商品ステータスが変更される可能性があるため
+    // インベントリを再読み込み - 出品後のステータス変更を反映
+    console.log('🔄 在庫データ再読み込み中...');
+    try {
+      await fetchData(); // 既存のデータ取得関数を再実行
+      console.log('✅ 在庫データ再読み込み完了');
+    } catch (error) {
+      console.error('❌ 在庫データ再読み込みエラー:', error);
+    }
   };
 
   const handleListingFormClose = () => {

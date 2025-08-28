@@ -55,9 +55,10 @@ export async function GET(request: NextRequest) {
         }
       }
       
-      const [listings, totalCount] = await Promise.all([
+      const [listings, listingProducts, totalListingCount, totalProductCount] = await Promise.all([
+        // 既存のListingテーブルから出品データを取得
         prisma.listing.findMany({
-          where: listingStatusFilter,
+          where: Object.keys(listingStatusFilter).length > 0 ? listingStatusFilter : {},
           orderBy: { createdAt: 'desc' },
           take: limit,
           skip: offset,
@@ -75,8 +76,61 @@ export async function GET(request: NextRequest) {
             }
           }
         }),
-        prisma.listing.count({ where: listingStatusFilter })
+        // Productテーブルからstatus='listing'の商品を取得（Listingがない場合用）
+        prisma.product.findMany({
+          where: { 
+            status: 'listing',
+            listings: {
+              none: {} // Listingテーブルにレコードがない商品のみ
+            }
+          },
+          take: limit,
+          skip: offset,
+          include: {
+            images: true,
+            orderItems: {
+              include: {
+                order: true
+              },
+              take: 1
+            }
+          },
+          orderBy: { updatedAt: 'desc' }
+        }),
+        prisma.listing.count({ 
+          where: Object.keys(listingStatusFilter).length > 0 ? listingStatusFilter : {}
+        }),
+        prisma.product.count({
+          where: { 
+            status: 'listing',
+            listings: {
+              none: {}
+            }
+          }
+        })
       ]);
+
+      // Productテーブルから取得した商品を擬似Listingオブジェクトに変換
+      const pseudoListings = listingProducts.map(product => ({
+        id: `pseudo-${product.id}`, // 擬似ListingID
+        productId: product.id,
+        platform: 'ebay',
+        listingId: `PENDING-${product.id}`,
+        title: product.name,
+        description: product.description || '',
+        price: product.price,
+        status: 'active', // 擬似的に'active'として扱う
+        listedAt: product.updatedAt, // 商品更新日時を出品日時として使用
+        createdAt: product.updatedAt,
+        updatedAt: product.updatedAt,
+        soldAt: null,
+        templateId: null,
+        product: product
+      }));
+
+      // ListingとPseudo-Listingをマージ
+      const allListings = [...listings, ...pseudoListings];
+      const totalCount = totalListingCount + totalProductCount;
       
       // Listingデータを販売管理画面用に変換（ステータスマッピング適用）
       const statusMapping = {
@@ -88,7 +142,7 @@ export async function GET(request: NextRequest) {
         'pending': 'processing'       // 保留中 → 出荷準備中
       };
       
-      let recentOrders = listings.map(listing => {
+      let recentOrders = allListings.map(listing => {
         // 関連する注文データを取得
         const relatedOrder = listing.product?.orderItems?.[0]?.order;
         const isLabelGenerated = relatedOrder?.trackingNumber ? true : false;
@@ -140,30 +194,32 @@ export async function GET(request: NextRequest) {
       
       // フィルターに応じてラベル生成状況で絞り込み
       if (statusFilter === 'listing') {
-        // 出品中: activeでラベル未生成
+        // 出品中: Listing.status='active' または Product.status='listing' でラベル未生成
         recentOrders = recentOrders.filter(order => {
-          const listing = listings.find(l => l.id === order.listingId);
+          const listing = allListings.find(l => l.id === order.listingId);
           const relatedOrder = listing?.product?.orderItems?.[0]?.order;
-          return listing.status === 'active' && !relatedOrder?.trackingNumber;
+          const isListing = (listing?.status === 'active' || listing?.product?.status === 'listing');
+          const noTracking = !relatedOrder?.trackingNumber;
+          return isListing && noTracking;
         });
       } else if (statusFilter === 'sold') {
         // 購入者決定: soldでラベル未生成
         recentOrders = recentOrders.filter(order => {
-          const listing = listings.find(l => l.id === order.listingId);
+          const listing = allListings.find(l => l.id === order.listingId);
           const relatedOrder = listing?.product?.orderItems?.[0]?.order;
           return listing.status === 'sold' && !relatedOrder?.trackingNumber;
         });
       } else if (statusFilter === 'shipped') {
         // 出荷済み: activeでラベル生成済み
         recentOrders = recentOrders.filter(order => {
-          const listing = listings.find(l => l.id === order.listingId);
+          const listing = allListings.find(l => l.id === order.listingId);
           const relatedOrder = listing?.product?.orderItems?.[0]?.order;
           return listing.status === 'active' && relatedOrder?.trackingNumber;
         });
       } else if (statusFilter === 'delivered') {
         // 到着済み: soldでラベル生成済み
         recentOrders = recentOrders.filter(order => {
-          const listing = listings.find(l => l.id === order.listingId);
+          const listing = allListings.find(l => l.id === order.listingId);
           const relatedOrder = listing?.product?.orderItems?.[0]?.order;
           return listing.status === 'sold' && relatedOrder?.trackingNumber;
         });
@@ -172,15 +228,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         _dataSource: 'prisma-listing',
         overview: {
-          totalSales: listings.reduce((sum, l) => sum + l.price, 0),
-          monthlySales: listings.filter(l => 
+          totalSales: allListings.reduce((sum, l) => sum + l.price, 0),
+          monthlySales: allListings.filter(l => 
             l.createdAt >= new Date(new Date().getFullYear(), new Date().getMonth(), 1)
           ).reduce((sum, l) => sum + l.price, 0),
-          dailySales: listings.filter(l =>
+          dailySales: allListings.filter(l =>
             l.createdAt >= new Date(new Date().setHours(0, 0, 0, 0))
           ).reduce((sum, l) => sum + l.price, 0),
           totalOrders: totalCount,
-          averageOrderValue: totalCount > 0 ? Math.round(listings.reduce((sum, l) => sum + l.price, 0) / totalCount) : 0
+          averageOrderValue: totalCount > 0 ? Math.round(allListings.reduce((sum, l) => sum + l.price, 0) / totalCount) : 0
         },
         pagination: {
           currentPage: page,

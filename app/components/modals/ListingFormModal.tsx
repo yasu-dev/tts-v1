@@ -577,21 +577,39 @@ ${templateOpticsChecks.noProblem ? '<strong>No problem in the shooting.</strong>
       
       console.log('🎉 開発環境: モック出品完了', result);
       
-      // 商品ステータスを更新（開発環境用）
+      // 出品データをListingテーブルに作成し、商品ステータスを更新
       try {
-        const statusResponse = await fetch(`/api/products/${product.id}`, {
-          method: 'PUT',
+        const listingCreateResponse = await fetch(`/api/listing`, {
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: 'listing' })
+          body: JSON.stringify({
+            productId: product.id,
+            platform: 'ebay',
+            customSettings: {
+              title: listingData.title || product.name,
+              description: listingData.description,
+              price: listingData.price
+            }
+          })
         });
         
-        if (statusResponse.ok) {
-          console.log('✅ 商品ステータスを"出品中"に更新しました');
+        if (listingCreateResponse.ok) {
+          const listingResult = await listingCreateResponse.json();
+          console.log('✅ Listingテーブルにレコードを作成し、商品ステータスを"出品中"に更新しました', listingResult);
+          result.listingId = listingResult.data?.id;
+          result.success = true;
+          result.message = '出品処理が正常に完了しました';
         } else {
-          console.log('⚠️ ステータス更新に失敗しました:', statusResponse.status);
+          const errorResult = await listingCreateResponse.json();
+          console.error('❌ Listing作成に失敗しました:', listingCreateResponse.status, errorResult);
+          
+          // エラーの場合は例外を投げて、外側のcatchでハンドリング
+          throw new Error(errorResult.error || 'Listing作成に失敗しました');
         }
       } catch (error) {
-        console.log('⚠️ ステータス更新エラー:', error);
+        console.error('❌ Listing作成エラー:', error);
+        // エラーを再度投げて外側のcatchでハンドリング
+        throw error;
       }
 
       showToast({

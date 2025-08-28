@@ -106,7 +106,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { productId, platform, templateId, customSettings } = body;
+    const { productId, platform, templateId, customSettings, productUpdates } = body;
+
+    console.log('🚀 /api/listing POST: 出品処理開始', { productId, platform, customSettings, productUpdates });
 
     // 商品情報を取得
     const product = await prisma.product.findUnique({
@@ -114,54 +116,92 @@ export async function POST(request: NextRequest) {
     });
 
     if (!product) {
+      console.error('❌ 商品が見つかりません:', productId);
       return NextResponse.json(
         { error: 'Product not found' },
         { status: 404 }
       );
     }
 
-    // テンプレート情報を取得（指定されている場合）
-    let template = null;
-    if (templateId) {
-      template = await prisma.listingTemplate.findUnique({
-        where: { id: templateId }
-      });
-    }
-
-    // 新規出品を作成
-    const newListing = await prisma.listing.create({
-      data: {
-        productId,
-        templateId,
-        platform,
-        listingId: `${platform.toUpperCase()}-${Date.now()}`,
-        title: customSettings?.title || `${product.name} - ${product.condition}`,
-        description: customSettings?.description || product.description || '',
-        price: customSettings?.price || product.price,
-        status: 'active',
-        listedAt: new Date(),
+    // トランザクションで商品更新と出品作成を行う
+    const result = await prisma.$transaction(async (tx) => {
+      // 商品情報を更新（customSettingsまたはproductUpdatesから）
+      const updateData: any = { status: 'listing' };
+      
+      if (customSettings?.title) {
+        updateData.name = customSettings.title;
       }
-    });
+      if (customSettings?.description) {
+        updateData.description = customSettings.description;
+      }
+      if (customSettings?.price) {
+        updateData.price = customSettings.price;
+      }
+      
+      // 追加の商品更新データがある場合
+      if (productUpdates) {
+        Object.assign(updateData, productUpdates);
+      }
 
-    // 商品ステータスを更新
-    await prisma.product.update({
-      where: { id: productId },
-      data: { status: 'listing' }
-    });
+      console.log('🔄 商品テーブル更新データ:', updateData);
 
-    // テンプレートの使用回数を更新
-    if (template) {
-      await prisma.listingTemplate.update({
-        where: { id: templateId },
-        data: { appliedCount: { increment: 1 } }
+      const updatedProduct = await tx.product.update({
+        where: { id: productId },
+        data: updateData
       });
-    }
 
-    return NextResponse.json(newListing, { status: 201 });
+      console.log('✅ 商品テーブル更新完了');
+
+      // テンプレート情報を取得（指定されている場合）
+      let template = null;
+      if (templateId) {
+        template = await tx.listingTemplate.findUnique({
+          where: { id: templateId }
+        });
+      }
+
+      // 新規出品を作成
+      const newListing = await tx.listing.create({
+        data: {
+          productId,
+          templateId,
+          platform: platform || 'ebay',
+          listingId: `${(platform || 'ebay').toUpperCase()}-${Date.now()}`,
+          title: customSettings?.title || updatedProduct.name || `${product.name} - ${product.condition}`,
+          description: customSettings?.description || updatedProduct.description || product.description || '',
+          price: customSettings?.price || updatedProduct.price || product.price,
+          status: 'active',
+          listedAt: new Date(),
+        }
+      });
+
+      console.log('✅ Listing作成完了:', newListing.id);
+
+      // テンプレートの使用回数を更新
+      if (template) {
+        await tx.listingTemplate.update({
+          where: { id: templateId },
+          data: { appliedCount: { increment: 1 } }
+        });
+      }
+
+      return { listing: newListing, product: updatedProduct };
+    });
+
+    console.log('🎉 出品処理完了');
+    return NextResponse.json({ 
+      success: true, 
+      data: result.listing,
+      product: result.product 
+    }, { status: 201 });
   } catch (error) {
     console.error('[ERROR] POST /api/listing:', error);
     return NextResponse.json(
-      { error: 'Failed to create listing' },
+      { 
+        success: false,
+        error: 'Failed to create listing',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }
