@@ -746,9 +746,9 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                   )}
                   
                   {shippingData.filter(locationGroup => {
-                  // ピッキング待ちの商品があるロケーションのみ表示
+                  // ピッキング待ち・出荷準備中の商品があるロケーションのみ表示
                   const activeItems = locationGroup.items.filter((item: any) => 
-                    item.status === 'ピッキング待ち'
+                    item.status === 'ピッキング待ち' || item.status === 'ordered'
                   );
                   
                   if (activeItems.length === 0) return false;
@@ -765,9 +765,9 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                     );
                 }).map((locationGroup) => {
                   const activeItems = locationGroup.items.filter((item: any) => 
-                    item.status === 'ピッキング待ち'
+                    item.status === 'ピッキング待ち' || item.status === 'ordered'
                   );
-                  const completedItems = []; // orderedステータスの商品は全てピッキング待ち
+                  const completedItems = []; // ピッキング待ち・出荷準備中の商品を表示
                   
                   return (
                   <div key={locationGroup.locationCode} className="holo-card p-6">

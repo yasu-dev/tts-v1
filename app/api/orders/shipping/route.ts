@@ -108,10 +108,10 @@ export async function GET(request: NextRequest) {
       let displayStatus: 'storage' | 'ordered' | 'picked' | 'workstation' | 'packed' | 'shipped' | 'ready_for_pickup' = 'workstation';
       switch (shipment.status) {
         case 'pending':
-          displayStatus = 'ordered';
+          displayStatus = 'workstation';  // 梱包待ち状態
           break;
         case 'picked':
-          displayStatus = 'picked';
+          displayStatus = 'workstation';  // ピッキング済み→梱包待ち
           break;
         case 'packed':
           displayStatus = 'packed';
