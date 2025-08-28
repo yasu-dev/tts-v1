@@ -1016,6 +1016,73 @@ export default function DeliveryPage() {
                         </div>
                       )}
 
+                      {/* 撮影要望 */}
+                      {(() => {
+                        console.log(`[DEBUG] 撮影要望データ確認 (商品: ${product.name}):`, {
+                          hasPhotographyRequests: !!product.photographyRequests,
+                          photographyRequests: product.photographyRequests
+                        });
+                        return null;
+                      })()}
+                      {product.photographyRequests && (
+                        <div className="mt-3 pt-3 border-t border-gray-300">
+                          <span className="font-medium text-nexus-text-secondary text-sm mb-3 block">
+                            撮影要望
+                          </span>
+                          <div className="bg-nexus-bg-tertiary p-3 rounded">
+                            {product.photographyRequests.specialPhotography && (
+                              <div className="mb-3">
+                                <span className="inline-flex items-center px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                                  特別撮影要求あり
+                                </span>
+                              </div>
+                            )}
+                            
+                            {product.photographyRequests.specialPhotographyItems && 
+                             product.photographyRequests.specialPhotographyItems.length > 0 && (
+                              <div className="mb-3">
+                                <span className="font-medium text-nexus-text-secondary text-sm block mb-2">
+                                  特別撮影項目:
+                                </span>
+                                <div className="flex flex-wrap gap-2">
+                                  {product.photographyRequests.specialPhotographyItems.map((item: string, idx: number) => {
+                                    const itemLabels: Record<string, string> = {
+                                      'diagonal_45': '斜め45度撮影',
+                                      'functional_details': '機能詳細撮影',
+                                      'accessories_individual': '付属品個別撮影',
+                                      'closeup': 'クローズアップ撮影',
+                                      'internal_structure': '内部構造撮影',
+                                      'multiple_angles': '多角度撮影',
+                                      'lighting_variation': 'ライティング変更',
+                                      'macro_photography': 'マクロ撮影'
+                                    };
+                                    return (
+                                      <span 
+                                        key={idx}
+                                        className="inline-flex items-center px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded"
+                                      >
+                                        {itemLabels[item] || item}
+                                      </span>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {product.photographyRequests.customRequests && (
+                              <div>
+                                <span className="font-medium text-nexus-text-secondary text-sm block mb-2">
+                                  カスタム要望:
+                                </span>
+                                <p className="text-sm text-nexus-text-primary bg-white p-2 rounded border">
+                                  {product.photographyRequests.customRequests}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
                       {/* 商品画像（完全版） */}
                       {product.images && product.images.length > 0 && (
                         <div className="mt-3 pt-3 border-t border-gray-300">

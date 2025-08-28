@@ -18,13 +18,13 @@ export async function GET(request: NextRequest) {
       where: { key: 'hierarchical_inspection_checklist_enabled' }
     });
 
-    // フラグが存在しない場合は作成（デフォルト: false）
+    // フラグが存在しない場合は作成（デフォルト: true - 階層型システム有効）
     if (!flag) {
       console.log('[FEATURE FLAG] フィーチャーフラグが存在しないため作成します');
       flag = await prisma.systemSetting.create({
         data: {
           key: 'hierarchical_inspection_checklist_enabled',
-          value: 'false',
+          value: 'true',
           description: '階層型検品チェックリストシステムの有効/無効を制御（true=新システム, false=既存システム）',
           type: 'boolean',
           isActive: true

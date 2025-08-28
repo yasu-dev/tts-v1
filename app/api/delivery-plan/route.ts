@@ -246,6 +246,57 @@ export async function POST(request: NextRequest) {
             }
           }
 
+          // 階層型検品チェックリストがある場合は保存（新システム）
+          if (product.hierarchicalInspectionData) {
+            try {
+              console.log('[DEBUG] 階層型検品チェックリスト保存開始:', {
+                productName: product.name,
+                responses: Object.keys(product.hierarchicalInspectionData.responses || {}).length,
+                notes: product.hierarchicalInspectionData.notes?.length || 0
+              });
+
+              // メインのチェックリストレコードを作成
+              const hierarchicalChecklist = await tx.hierarchicalInspectionChecklist.create({
+                data: {
+                  deliveryPlanProductId: deliveryPlanProduct.id,
+                  createdBy: user.username || user.email,
+                  notes: product.hierarchicalInspectionData.notes || null,
+                }
+              });
+
+              // 各カテゴリーの回答を保存
+              const responses = product.hierarchicalInspectionData.responses || {};
+              for (const [categoryId, categoryData] of Object.entries(responses)) {
+                if (categoryData && typeof categoryData === 'object') {
+                  for (const [itemId, itemData] of Object.entries(categoryData as Record<string, any>)) {
+                    if (itemData && typeof itemData === 'object') {
+                      await tx.hierarchicalInspectionResponse.create({
+                        data: {
+                          checklistId: hierarchicalChecklist.id,
+                          categoryId,
+                          itemId,
+                          booleanValue: itemData.booleanValue || null,
+                          textValue: itemData.textValue || null,
+                        }
+                      });
+                    }
+                  }
+                }
+              }
+
+              console.log('[INFO] 階層型検品チェックリスト保存成功:', {
+                checklistId: hierarchicalChecklist.id,
+                responsesCount: Object.values(responses).reduce((sum, category) => 
+                  sum + (category ? Object.keys(category as object).length : 0), 0)
+              });
+
+            } catch (hierarchicalError) {
+              console.error('[ERROR] 階層型検品チェックリスト保存エラー:', hierarchicalError);
+              console.error('[ERROR] hierarchicalError詳細:', JSON.stringify(hierarchicalError, null, 2));
+              // エラーが発生しても処理を継続（階層型チェックリストは任意）
+            }
+          }
+
           return deliveryPlanProduct;
         })
       );
@@ -532,6 +583,11 @@ export async function GET(request: NextRequest) {
           products: {
             include: {
               inspectionChecklist: true,
+              hierarchicalInspectionChecklist: {
+                include: {
+                  responses: true
+                }
+              },
               images: true
             }
           },
@@ -668,6 +724,27 @@ export async function GET(request: NextRequest) {
                 createdBy: planProduct.inspectionChecklist.createdBy,
                 createdAt: planProduct.inspectionChecklist.createdAt?.toISOString()
               } : null,
+              
+              // 階層型検品チェックリスト（新システム）
+              hasHierarchicalInspectionData: !!planProduct.hierarchicalInspectionChecklist,
+              hierarchicalInspectionData: planProduct.hierarchicalInspectionChecklist ? {
+                responses: planProduct.hierarchicalInspectionChecklist.responses.reduce((acc: any, response: any) => {
+                  if (!acc[response.categoryId]) {
+                    acc[response.categoryId] = {};
+                  }
+                  acc[response.categoryId][response.itemId] = {
+                    booleanValue: response.booleanValue,
+                    textValue: response.textValue
+                  };
+                  return acc;
+                }, {}),
+                notes: planProduct.hierarchicalInspectionChecklist.notes || '',
+                createdBy: planProduct.hierarchicalInspectionChecklist.createdBy,
+                createdAt: planProduct.hierarchicalInspectionChecklist.createdAt?.toISOString(),
+                verifiedBy: planProduct.hierarchicalInspectionChecklist.verifiedBy,
+                verifiedAt: planProduct.hierarchicalInspectionChecklist.verifiedAt?.toISOString()
+              } : null,
+              
               // 商品画像
               images: planProduct.images ? planProduct.images.map((img: any) => ({
                 id: img.id,

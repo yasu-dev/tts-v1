@@ -312,6 +312,33 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
           }
           
           setProduct(enrichedProduct);
+
+          // 🆕 階層型検品データがある場合は設定
+          if (enrichedProduct.deliveryPlanInfo?.hierarchicalInspectionChecklist) {
+            const hierarchicalData = enrichedProduct.deliveryPlanInfo.hierarchicalInspectionChecklist;
+            console.log('[INFO] 階層型検品データを設定:', hierarchicalData);
+            
+            // responsesを適切な形式に変換
+            const convertedResponses = hierarchicalData.responses.reduce((acc: any, response: any) => {
+              if (!acc[response.categoryId]) {
+                acc[response.categoryId] = {};
+              }
+              acc[response.categoryId][response.itemId] = {
+                booleanValue: response.booleanValue,
+                textValue: response.textValue
+              };
+              return acc;
+            }, {});
+
+            setHierarchicalInspectionData({
+              responses: convertedResponses,
+              notes: hierarchicalData.notes || '',
+              createdBy: hierarchicalData.createdBy,
+              createdAt: hierarchicalData.createdAt,
+              verifiedBy: hierarchicalData.verifiedBy,
+              verifiedAt: hierarchicalData.verifiedAt
+            });
+          }
         } else {
           // デモ用フォールバック
           setProduct({

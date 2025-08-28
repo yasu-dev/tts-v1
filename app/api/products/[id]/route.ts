@@ -122,6 +122,20 @@ export async function GET(
               console.warn('[DEBUG] 既存検品チェックリスト取得エラー:', error);
             }
 
+            // 🆕 階層型検品チェックリストデータを取得
+            let hierarchicalInspectionChecklist = null;
+            try {
+              hierarchicalInspectionChecklist = await prisma.hierarchicalInspectionChecklist.findUnique({
+                where: { deliveryPlanProductId: metadata.deliveryPlanProductId },
+                include: { 
+                  responses: true
+                }
+              });
+              console.log('[DEBUG] 階層型検品チェックリスト取得:', hierarchicalInspectionChecklist ? '見つかった' : '見つからない');
+            } catch (error) {
+              console.warn('[DEBUG] 階層型検品チェックリスト取得エラー:', error);
+            }
+
             // deliveryPlanInfoを構築
             enrichedProduct.deliveryPlanInfo = {
               deliveryPlanId: metadata.deliveryPlanId,
@@ -136,6 +150,9 @@ export async function GET(
               
               // 🆕 既存システムの検品チェックリストデータを追加
               inspectionChecklist: existingInspectionChecklist,
+              
+              // 🆕 階層型検品チェックリストデータを追加
+              hierarchicalInspectionChecklist: hierarchicalInspectionChecklist,
             };
             
             console.log('[DEBUG] Final enrichedProduct.deliveryPlanInfo:', JSON.stringify(enrichedProduct.deliveryPlanInfo, null, 2));

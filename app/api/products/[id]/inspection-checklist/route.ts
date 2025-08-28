@@ -60,13 +60,10 @@ export async function GET(
       
       try {
         // productIdで検索
-        let hierarchicalChecklist = await hierarchicalPrisma.hierarchicalInspectionChecklist.findUnique({
+        let hierarchicalChecklist = await prisma.hierarchicalInspectionChecklist.findUnique({
           where: { productId },
           include: { 
-            responses: true,
-            createdByUser: {
-              select: { username: true, email: true }
-            }
+            responses: true
           }
         });
 
@@ -79,13 +76,10 @@ export async function GET(
           if (product?.metadata) {
             const metadata = JSON.parse(product.metadata);
             if (metadata.deliveryPlanProductId) {
-              hierarchicalChecklist = await hierarchicalPrisma.hierarchicalInspectionChecklist.findUnique({
+              hierarchicalChecklist = await prisma.hierarchicalInspectionChecklist.findUnique({
                 where: { deliveryPlanProductId: metadata.deliveryPlanProductId },
                 include: { 
-                  responses: true,
-                  createdByUser: {
-                    select: { username: true, email: true }
-                  }
+                  responses: true
                 }
               });
             }
