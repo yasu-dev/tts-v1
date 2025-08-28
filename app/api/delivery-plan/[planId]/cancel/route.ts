@@ -162,7 +162,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       // 6-1: 関連在庫アイテムを再検索（トランザクション内で安全に処理）
       console.log(`[CANCEL-${requestId}] Transaction: 関連在庫アイテム再検索`);
       
-      const relatedInventoryItemsInTx = await tx.inventoryItem.findMany({
+      const relatedInventoryItemsInTx = await tx.product.findMany({
         where: {
           metadata: {
             contains: `"deliveryPlanId":"${existingPlan.id}"`
@@ -195,7 +195,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       if (relatedInventoryItemsInTx.length > 0) {
         console.log(`[CANCEL-${requestId}] Transaction: 関連在庫アイテム非アクティブ化`);
         
-        const inventoryUpdateResult = await tx.inventoryItem.updateMany({
+        const inventoryUpdateResult = await tx.product.updateMany({
           where: {
             id: {
               in: relatedInventoryItemsInTx.map(item => item.id)
