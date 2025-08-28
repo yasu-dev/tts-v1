@@ -17,13 +17,16 @@ import {
   ClockIcon,
   CheckCircleIcon,
   XCircleIcon,
+  XMarkIcon,
   FunnelIcon,
   ChevronUpIcon,
   ChevronDownIcon,
   ArchiveBoxIcon,
+  ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 import NexusButton from '@/app/components/ui/NexusButton';
 import NexusInput from '@/app/components/ui/NexusInput';
+import NexusTextarea from '@/app/components/ui/NexusTextarea';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import NexusSelect from '@/app/components/ui/NexusSelect';
 import { BusinessStatusIndicator } from '@/app/components/ui/StatusIndicator';
@@ -68,6 +71,13 @@ export default function DeliveryPage() {
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [isShippingModalOpen, setIsShippingModalOpen] = useState(false);
   const [shippingTrackingNumber, setShippingTrackingNumber] = useState('');
+  
+  // 🚨 安全な取り下げ機能用の状態
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelConfirmStep, setCancelConfirmStep] = useState(0); // 段階的確認: 0=初期, 1=警告確認, 2=最終確認
+  const [cancelTypeText, setCancelTypeText] = useState(''); // タイプ確認用
+  const [isCancelProcessing, setIsCancelProcessing] = useState(false);
   
   // マスタデータの取得
   const { setting: deliveryStatuses, loading: masterDataLoading } = useSystemSetting('delivery_statuses');
@@ -321,6 +331,135 @@ export default function DeliveryPage() {
           : plan
       )
     );
+  };
+
+  // 🚨 最大限安全な取り下げ処理
+  const handleCancelPlan = async (planId: string) => {
+    const requestId = Math.random().toString(36).substr(2, 9);
+    console.log(`[CANCEL-UI-${requestId}] 取り下げ処理開始:`, { planId, cancelReason, cancelConfirmStep, selectedPlan });
+
+    try {
+      setIsCancelProcessing(true);
+      
+      const response = await fetch(`/api/delivery-plan/${planId}/cancel`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reason: cancelReason.trim() || null,
+          confirmationToken: requestId
+        }),
+      });
+
+      const result = await response.json();
+      console.log(`[CANCEL-UI-${requestId}] APIレスポンス:`, result);
+
+      if (!response.ok) {
+        throw new Error(result.error || '取り下げ処理に失敗しました');
+      }
+
+      // 成功時の処理
+      showToast({
+        type: 'success',
+        title: '納品プラン取り下げ完了',
+        message: `プラン「${result.data.planNumber}」を正常に取り下げました。`,
+        duration: 5000
+      });
+
+      // データ再読み込み
+      fetchDeliveryPlans().catch(error => {
+        console.error('[ERROR] データ再読み込み失敗:', error);
+      });
+
+      // モーダルクリーンアップ
+      handleCloseCancelModal();
+
+    } catch (error) {
+      console.error(`[CANCEL-UI-${requestId}] エラー:`, error);
+      
+      const errorMessage = error instanceof Error ? error.message : '予期しないエラーが発生しました';
+      
+      showToast({
+        type: 'error',
+        title: '取り下げ処理エラー',
+        message: errorMessage === '納品プランの取り下げに失敗しました。しばらく時間をおいて再度お試しください。' 
+          ? 'サーバーエラーが発生しました。管理者に連絡してください。' 
+          : errorMessage,
+        duration: 8000
+      });
+    } finally {
+      setIsCancelProcessing(false);
+    }
+  };
+
+  // 🔒 取り下げモーダルの安全なオープン
+  const handleOpenCancelModal = (plan: any) => {
+    console.log('[CANCEL-UI] モーダルオープン:', { planId: plan.id, status: plan.status });
+    
+    // 安全チェック: Pendingステータスのみ
+    if (plan.status !== 'Pending') {
+      showToast({
+        type: 'warning',
+        title: '取り下げ不可',
+        message: '出荷準備中の納品プランのみ取り下げ可能です。',
+        duration: 5000
+      });
+      return;
+    }
+
+    setSelectedPlan(plan);
+    setIsCancelModalOpen(true);
+    setCancelConfirmStep(0);
+    setCancelReason('');
+    setCancelTypeText('');
+    setIsAnyModalOpen(true);
+  };
+
+  // 🧹 取り下げモーダルの安全なクローズ
+  const handleCloseCancelModal = () => {
+    setIsCancelModalOpen(false);
+    setSelectedPlan(null);
+    setCancelConfirmStep(0);
+    setCancelReason('');
+    setCancelTypeText('');
+    setIsCancelProcessing(false);
+    setIsAnyModalOpen(false);
+  };
+
+  // ⏭️ 取り下げ確認ステップの進行
+  const handleCancelNextStep = () => {
+    if (cancelConfirmStep === 0) {
+      // Step 1: 理由入力必須チェック
+      if (!cancelReason.trim()) {
+        showToast({
+          type: 'warning',
+          title: '取り下げ理由が必要',
+          message: '取り下げ理由を入力してください。',
+          duration: 3000
+        });
+        return;
+      }
+      setCancelConfirmStep(1);
+    } else if (cancelConfirmStep === 1) {
+      // Step 2: タイプ確認必須チェック
+      if (cancelTypeText.toLowerCase() !== 'キャンセル') {
+        showToast({
+          type: 'warning', 
+          title: '確認テキスト不正',
+          message: '「キャンセル」と正確に入力してください。',
+          duration: 3000
+        });
+        return;
+      }
+      setCancelConfirmStep(2);
+    }
+  };
+
+  // ⏪ 取り下げ確認ステップの戻り
+  const handleCancelPrevStep = () => {
+    if (cancelConfirmStep > 0) {
+      setCancelConfirmStep(cancelConfirmStep - 1);
+    }
   };
 
   const handleShippingUpdate = async (planId: number) => {
@@ -714,7 +853,7 @@ export default function DeliveryPage() {
                                                 plan.status === 'Shipped' ? 'shipped' :
                                                 plan.status === 'Completed' ? 'completed' :
                                                 plan.status === 'Cancelled' ? 'cancelled' :
-                                                'pending';
+                                                'processing'; // 安全にPendingにフォールバック
                             return mappedStatus;
                           })()} 
                           size="sm" 
@@ -768,15 +907,27 @@ export default function DeliveryPage() {
                           </NexusButton>
 
                           {plan.status === 'Pending' && (
-                            <NexusButton
-                              variant="primary"
-                              size="sm"
-                              onClick={() => openShippingModal(plan)}
-                              className="flex items-center gap-1"
-                            >
-                              <TruckIcon className="h-4 w-4" />
-                              出荷
-                            </NexusButton>
+                            <>
+                              <NexusButton
+                                variant="primary"
+                                size="sm"
+                                onClick={() => openShippingModal(plan)}
+                                className="flex items-center gap-1"
+                              >
+                                <TruckIcon className="h-4 w-4" />
+                                出荷
+                              </NexusButton>
+                              <NexusButton
+                                variant="danger"
+                                size="sm"
+                                onClick={() => handleOpenCancelModal(plan)}
+                                className="flex items-center gap-1"
+                                title="納品プラン取り下げ"
+                              >
+                                <XMarkIcon className="h-4 w-4" />
+                                取り下げ
+                              </NexusButton>
+                            </>
                           )}
                         </div>
                       </td>
@@ -831,7 +982,7 @@ export default function DeliveryPage() {
                                             selectedPlan.status === 'Shipped' ? 'shipped' : 
                                             selectedPlan.status === 'Completed' ? 'completed' :
                                             selectedPlan.status === 'Cancelled' ? 'cancelled' :
-                                            'pending';
+                                            'processing'; // 安全にPendingにフォールバック
                           return mappedStatus;
                         })()} 
                         size="sm" 
@@ -1344,6 +1495,175 @@ export default function DeliveryPage() {
                   <TruckIcon className="h-4 w-4" />
                   発送済みにする
                 </NexusButton>
+              </div>
+            </div>
+          </div>
+        )}
+      </BaseModal>
+
+      {/* 🚨 最大限安全な取り下げ確認モーダル */}
+      <BaseModal
+        isOpen={isCancelModalOpen}
+        onClose={handleCloseCancelModal}
+        title={`納品プラン取り下げ ${cancelConfirmStep === 0 ? '- 理由入力' : cancelConfirmStep === 1 ? '- 警告確認' : '- 最終確認'}`}
+        size="lg"
+      >
+        {selectedPlan && (
+          <div className="space-y-6">
+            {/* プラン情報表示 */}
+            <div className="p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <ExclamationTriangleIcon className="h-5 w-5 text-yellow-400" />
+                </div>
+                <div className="ml-3">
+                  <h4 className="text-sm font-medium text-yellow-800">取り下げ対象プラン</h4>
+                  <div className="mt-2 text-sm text-yellow-700">
+                    <p><strong>プランID:</strong> {selectedPlan.deliveryId}</p>
+                    <p><strong>商品数:</strong> {selectedPlan.items}点</p>
+                    <p><strong>作成日:</strong> {selectedPlan.date}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 0: 理由入力 */}
+            {cancelConfirmStep === 0 && (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    取り下げ理由 <span className="text-red-500">*必須</span>
+                  </label>
+                  <NexusTextarea
+                    value={cancelReason}
+                    onChange={(e) => setCancelReason(e.target.value)}
+                    placeholder="例：商品に不具合が見つかったため、発送先住所の変更が必要なため、など"
+                    rows={4}
+                    maxLength={500}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {cancelReason.length}/500文字（後から変更できません）
+                  </p>
+                </div>
+                
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <h5 className="text-sm font-medium text-blue-800 mb-2">📋 取り下げの影響</h5>
+                  <ul className="text-sm text-blue-700 space-y-1 list-disc list-inside">
+                    <li>プランのステータスが「キャンセル済み」に変更されます</li>
+                    <li>関連する在庫アイテムが非アクティブになります</li>
+                    <li>この操作は取り消しできません</li>
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            {/* Step 1: 警告確認 */}
+            {cancelConfirmStep === 1 && (
+              <div className="space-y-4">
+                <div className="p-6 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <ExclamationTriangleIcon className="h-8 w-8 text-red-500" />
+                    </div>
+                    <div className="ml-3">
+                      <h4 className="text-lg font-medium text-red-800 mb-3">⚠️ 重要な警告</h4>
+                      <ul className="text-sm text-red-700 space-y-2 list-disc list-inside">
+                        <li><strong>この操作は完全に取り消し不可能です</strong></li>
+                        <li>登録された商品データは削除されます</li>
+                        <li>関連する在庫管理データも影響を受けます</li>
+                        <li>スタッフによる復旧作業が必要になる可能性があります</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <h5 className="text-sm font-medium text-gray-800 mb-2">入力された理由</h5>
+                  <p className="text-sm text-gray-700 italic">「{cancelReason}」</p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    確認のため「キャンセル」と入力してください <span className="text-red-500">*必須</span>
+                  </label>
+                  <NexusInput
+                    value={cancelTypeText}
+                    onChange={(e) => setCancelTypeText(e.target.value)}
+                    placeholder="キャンセル"
+                    className="font-mono"
+                  />
+                  <p className="text-xs text-gray-500">
+                    大文字小文字は区別されません
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: 最終確認 */}
+            {cancelConfirmStep === 2 && (
+              <div className="space-y-4">
+                <div className="p-6 bg-red-100 border-2 border-red-300 rounded-lg">
+                  <div className="text-center">
+                    <ExclamationTriangleIcon className="h-12 w-12 text-red-500 mx-auto mb-3" />
+                    <h4 className="text-xl font-bold text-red-800 mb-3">最終確認</h4>
+                    <p className="text-red-700 text-sm mb-4">
+                      本当にこの納品プランを取り下げますか？<br />
+                      <strong>この操作は絶対に取り消せません。</strong>
+                    </p>
+                    
+                    <div className="bg-white p-4 rounded border border-red-200 mb-4">
+                      <div className="text-left text-sm">
+                        <p><strong>プラン:</strong> {selectedPlan.deliveryId}</p>
+                        <p><strong>理由:</strong> {cancelReason}</p>
+                        <p><strong>実行日時:</strong> {new Date().toLocaleString('ja-JP')}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ボタンエリア */}
+            <div className="flex justify-between pt-4 border-t">
+              <div>
+                {cancelConfirmStep > 0 && (
+                  <NexusButton
+                    variant="secondary"
+                    onClick={handleCancelPrevStep}
+                    disabled={isCancelProcessing}
+                  >
+                    ← 前に戻る
+                  </NexusButton>
+                )}
+              </div>
+              
+              <div className="flex gap-2">
+                <NexusButton
+                  variant="secondary"
+                  onClick={handleCloseCancelModal}
+                  disabled={isCancelProcessing}
+                >
+                  キャンセル
+                </NexusButton>
+                
+                {cancelConfirmStep < 2 ? (
+                  <NexusButton
+                    variant="primary"
+                    onClick={handleCancelNextStep}
+                    disabled={isCancelProcessing}
+                  >
+                    次へ進む →
+                  </NexusButton>
+                ) : (
+                  <NexusButton
+                    variant="danger"
+                    onClick={() => handleCancelPlan(selectedPlan.id)}
+                    disabled={isCancelProcessing}
+                    className="font-bold"
+                  >
+                    {isCancelProcessing ? '処理中...' : '🚨 取り下げ実行'}
+                  </NexusButton>
+                )}
               </div>
             </div>
           </div>
