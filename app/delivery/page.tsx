@@ -1208,7 +1208,10 @@ export default function DeliveryPage() {
                                       'internal_structure': '内部構造撮影',
                                       'multiple_angles': '多角度撮影',
                                       'lighting_variation': 'ライティング変更',
-                                      'macro_photography': 'マクロ撮影'
+                                      'macro_photography': 'マクロ撮影',
+                                      // 不足していた項目を追加
+                                      'accessories': '付属品',
+                                      'other': 'その他'
                                     };
                                     return (
                                       <span 

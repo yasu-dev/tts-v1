@@ -77,7 +77,7 @@ const getCategoryJapaneseName = (category: string): string => {
   return categoryMapping[category] || category || '未設定';
 };
 
-// 申告コンディションの日本語表示関数
+// 納品プラン作成時と同じコンディション表示
 const getConditionJapaneseName = (condition: string): string => {
   const conditionMapping: Record<string, string> = {
     'excellent': '優良',
@@ -183,8 +183,8 @@ export default function ProductDetailModal({ isOpen, onClose, product, onOpenLis
                       />
                     </div>
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className="font-medium text-nexus-text-secondary">申告コンディション</span>
-                      <span className="text-nexus-text-primary">{getConditionJapaneseName(product.deliveryPlanInfo?.condition || product.condition)}</span>
+                      <span className="font-medium text-nexus-text-secondary">コンディション</span>
+                      <span className="text-nexus-text-primary">{getConditionJapaneseName(product.condition)}</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                       <span className="font-medium text-nexus-text-secondary">更新日</span>

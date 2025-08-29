@@ -340,6 +340,11 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
               'serial_numbers': 'シリアル番号',
               'damage_focus': '損傷焦点',
               'comparison_size': 'サイズ比較',
+              // 追加項目
+              'closeup': 'クローズアップ',
+              'internal_structure': '内部構造',
+              'accessories': '付属品',
+              'other': 'その他',
             };
             
             // 特別撮影スロットを生成
@@ -1043,14 +1048,18 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   {product.deliveryPlanInfo.condition && (
                     <div>
-                      <span className="text-gray-600">申告コンディション:</span>
+                      <span className="text-gray-600">コンディション:</span>
                       <span className="ml-2 font-medium">
-                        {product.deliveryPlanInfo.condition === 'excellent' ? '優良' :
-                         product.deliveryPlanInfo.condition === 'very_good' ? '美品' :
-                         product.deliveryPlanInfo.condition === 'good' ? '良好' :
-                         product.deliveryPlanInfo.condition === 'fair' ? '普通' :
-                         product.deliveryPlanInfo.condition === 'poor' ? '要修理' : 
-                         product.deliveryPlanInfo.condition}
+                        {(() => {
+                          const conditionMapping: Record<string, string> = {
+                            'excellent': '優良',
+                            'very_good': '美品',
+                            'good': '良好',
+                            'fair': '普通',
+                            'poor': '要修理'
+                          };
+                          return conditionMapping[product.deliveryPlanInfo.condition] || product.deliveryPlanInfo.condition;
+                        })()}
                       </span>
                     </div>
                   )}

@@ -15,7 +15,10 @@ const specialPhotographyLabels: { [key: string]: string } = {
   'closeup': 'クローズアップ撮影', 
   'functional_details': '機能部分詳細撮影',
   'internal_structure': '内部構造撮影',
-  'accessories_individual': '付属品個別撮影'
+  'accessories_individual': '付属品個別撮影',
+  // 追加項目
+  'accessories': '付属品',
+  'other': 'その他'
 };
 
 interface PhotographyRequestDisplayProps {

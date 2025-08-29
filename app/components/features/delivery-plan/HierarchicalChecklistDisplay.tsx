@@ -30,6 +30,7 @@ const CATEGORIES = {
 const ITEMS = {
   // カメラボディ外観
   body_scratches: '傷',
+  body_scuffs: 'スレ',
   body_abrasion: 'スレ',
   body_dents: '凹み',
   body_cracks: 'ひび',
@@ -44,6 +45,7 @@ const ITEMS = {
   vf_dust: 'ホコリ',
   vf_scratches: '傷',
   vf_dirt: '汚れ',
+  vf_fog: 'クモリ',
   vf_cloudiness: 'クモリ',
   vf_corrosion: '腐食',
   vf_balsam_separation: 'バルサム切れ',
@@ -55,6 +57,7 @@ const ITEMS = {
   
   // レンズ
   lens_scratches: '傷',
+  lens_scuffs: 'スレ',
   lens_abrasion: 'スレ',
   lens_dents: '凹み',
   lens_cracks: 'ひび',
@@ -66,7 +69,9 @@ const ITEMS = {
   
   // 光学
   opt_dust_debris: 'チリホコリ',
+  opt_dust_particles: 'チリホコリ',
   opt_cloudiness: 'クモリ',
+  opt_fog: 'クモリ',
   opt_mold: 'カビ',
   opt_balsam_separation: 'バルサム切れ',
   opt_scratches: 'キズ',
@@ -87,7 +92,8 @@ const ITEMS = {
   acc_lens_cap: 'レンズキャップ',
   
   // その他
-  other_item: 'その他'
+  other_item: 'その他',
+  other_general: 'その他'
 };
 
 export default function HierarchicalChecklistDisplay({ data }: HierarchicalChecklistDisplayProps) {
@@ -114,19 +120,7 @@ export default function HierarchicalChecklistDisplay({ data }: HierarchicalCheck
     <div className="space-y-4">
       {responseEntries.map(([categoryId, categoryData]) => {
         // カテゴリ名を日本語に変換（確実な変換処理）
-        const categoryName = (() => {
-          switch (categoryId) {
-            case 'camera_body_exterior': return 'カメラボディ外観';
-            case 'viewfinder': return 'ファインダー';
-            case 'film_chamber': return 'フィルム室';
-            case 'lens': return 'レンズ';
-            case 'optical': return '光学';
-            case 'exposure_function': return '露出機能';
-            case 'accessories': return '付属品';
-            case 'other': return 'その他';
-            default: return categoryId;
-          }
-        })();
+        const categoryName = CATEGORIES[categoryId as keyof typeof CATEGORIES] || categoryId;
         const itemEntries = Object.entries(categoryData);
 
         if (itemEntries.length === 0) return null;
@@ -138,80 +132,8 @@ export default function HierarchicalChecklistDisplay({ data }: HierarchicalCheck
             </h6>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
               {itemEntries.map(([itemId, itemData]) => {
-                // 項目名を日本語に変換（確実な変換処理）
-                const itemName = (() => {
-                  switch (itemId) {
-                    // カメラボディ外観
-                    case 'body_scratches': return '傷';
-                    case 'body_scuffs': return 'スレ';  // 実際のデータで使用
-                    case 'body_abrasion': return 'スレ';
-                    case 'body_dents': return '凹み';
-                    case 'body_cracks': return 'ひび';
-                    case 'body_breaks': return '割れ';
-                    case 'body_paint_peeling': return '塗装剥がれ';
-                    case 'body_dirt': return '汚れ';
-                    case 'body_stickiness': return 'ベタつき';
-                    case 'body_other': return 'その他';
-                    
-                    // ファインダー
-                    case 'vf_mold': return 'カビ';
-                    case 'vf_dust': return 'ホコリ';
-                    case 'vf_scratches': return '傷';
-                    case 'vf_fog': return 'クモリ';  // 実際のデータで使用
-                    case 'vf_dirt': return '汚れ';
-                    case 'vf_cloudiness': return 'クモリ';
-                    case 'vf_corrosion': return '腐食';
-                    case 'vf_balsam_separation': return 'バルサム切れ';
-                    
-                    // フィルム室
-                    case 'fc_interior_condition': return 'フィルム室内部の状況';
-                    case 'fc_light_seal_deterioration': return 'モルトの劣化';
-                    case 'fc_shutter_curtain_operation': return 'シャッター幕動作';
-                    
-                    // レンズ
-                    case 'lens_scratches': return '傷';
-                    case 'lens_scuffs': return 'スレ';  // 実際のデータで使用
-                    case 'lens_abrasion': return 'スレ';
-                    case 'lens_dents': return '凹み';
-                    case 'lens_cracks': return 'ひび';
-                    case 'lens_breaks': return '割れ';
-                    case 'lens_paint_peeling': return '塗装剥がれ';
-                    case 'lens_dirt': return '汚れ';
-                    case 'lens_stickiness': return 'ベタつき';
-                    case 'lens_other': return 'その他';
-                    
-                    // 光学
-                    case 'opt_dust_debris': return 'チリホコリ';
-                    case 'opt_dust_particles': return 'チリホコリ';  // 実際のデータで使用
-                    case 'opt_cloudiness': return 'クモリ';
-                    case 'opt_fog': return 'クモリ';  // 実際のデータで使用
-                    case 'opt_mold': return 'カビ';
-                    case 'opt_balsam_separation': return 'バルサム切れ';
-                    case 'opt_scratches': return 'キズ';
-                    case 'opt_dirt': return '汚れ';
-                    case 'opt_other': return 'その他';
-                    
-                    // 露出機能
-                    case 'exp_working': return '作動';
-                    case 'exp_not_working': return '不動';
-                    case 'exp_weak': return '弱い';
-                    
-                    // 付属品
-                    case 'acc_battery': return 'バッテリー';
-                    case 'acc_manual': return '説明書';
-                    case 'acc_case': return 'ケース';
-                    case 'acc_box': return '箱';
-                    case 'acc_strap': return 'ストラップ';
-                    case 'acc_lens_cap': return 'レンズキャップ';
-                    
-                    // その他
-                    case 'other_item': return 'その他';
-                    case 'other_general': return 'その他';  // 実際のデータで使用
-                    
-                    // フォールバック: 定義にない場合はそのまま返す
-                    default: return itemId;
-                  }
-                })();
+                // 項目名を日本語に変換（ITEMS定数を使用）
+                const itemName = ITEMS[itemId as keyof typeof ITEMS] || itemId;
                 const hasValue = itemData.booleanValue || itemData.textValue;
                 
                 if (!hasValue) return null;

@@ -105,6 +105,35 @@ const HIERARCHICAL_INSPECTION_CATEGORIES = [
       { id: 'opt_dirt', name: '汚れ' },
     ],
   },
+  {
+    id: 'exposure_function',
+    name: '露出機能',
+    items: [
+      { id: 'exp_working', name: '作動' },
+      { id: 'exp_not_working', name: '不動' },
+      { id: 'exp_weak', name: '弱い' },
+    ],
+  },
+  {
+    id: 'accessories',
+    name: '付属品',
+    items: [
+      { id: 'acc_battery', name: 'バッテリー' },
+      { id: 'acc_manual', name: '説明書' },
+      { id: 'acc_case', name: 'ケース' },
+      { id: 'acc_box', name: '箱' },
+      { id: 'acc_strap', name: 'ストラップ' },
+      { id: 'acc_lens_cap', name: 'レンズキャップ' },
+    ],
+  },
+  {
+    id: 'other',
+    name: 'その他',
+    items: [
+      { id: 'other_general', name: 'その他' },
+      { id: 'other_item', name: 'その他' },
+    ],
+  },
 ];
 
 export default function ProductInspectionDetails({ productId, status }: ProductInspectionDetailsProps) {
@@ -251,11 +280,74 @@ export default function ProductInspectionDetails({ productId, status }: ProductI
         data.hierarchicalInspectionChecklist.responses.forEach((response: any) => {
           console.log('[DEBUG] processHierarchicalData - レスポンス処理:', response);
           
-          const categoryName = HIERARCHICAL_INSPECTION_CATEGORIES
-            .find(cat => cat.id === response.categoryId)?.name || response.categoryId;
-          const itemName = HIERARCHICAL_INSPECTION_CATEGORIES
-            .find(cat => cat.id === response.categoryId)?.items
-            .find(item => item.id === response.itemId)?.name || response.itemId;
+          // 完全な翻訳辞書を使用
+          const categoryTranslations: Record<string, string> = {
+            'camera_body_exterior': 'カメラボディ外観',
+            'viewfinder': 'ファインダー',
+            'film_chamber': 'フィルム室',
+            'lens': 'レンズ',
+            'optical': '光学',
+            'exposure_function': '露出機能',
+            'accessories': '付属品',
+            'other': 'その他'
+          };
+          
+          const itemTranslations: Record<string, string> = {
+            'body_scratches': '傷',
+            'body_scuffs': 'スレ',
+            'body_abrasion': 'スレ',
+            'body_dents': '凹み',
+            'body_cracks': 'ひび',
+            'body_breaks': '割れ',
+            'body_paint_peeling': '塗装剥がれ',
+            'body_dirt': '汚れ',
+            'body_stickiness': 'ベタつき',
+            'body_other': 'その他',
+            'vf_mold': 'カビ',
+            'vf_dust': 'ホコリ',
+            'vf_scratches': '傷',
+            'vf_dirt': '汚れ',
+            'vf_fog': 'クモリ',
+            'vf_cloudiness': 'クモリ',
+            'vf_corrosion': '腐食',
+            'vf_balsam_separation': 'バルサム切れ',
+            'fc_interior_condition': 'フィルム室内部の状況',
+            'fc_light_seal_deterioration': 'モルトの劣化',
+            'fc_shutter_curtain_operation': 'シャッター幕動作',
+            'lens_scratches': '傷',
+            'lens_scuffs': 'スレ',
+            'lens_abrasion': 'スレ',
+            'lens_dents': '凹み',
+            'lens_cracks': 'ひび',
+            'lens_breaks': '割れ',
+            'lens_paint_peeling': '塗装剥がれ',
+            'lens_dirt': '汚れ',
+            'lens_stickiness': 'ベタつき',
+            'lens_other': 'その他',
+            'opt_dust_debris': 'チリホコリ',
+            'opt_dust_particles': 'チリホコリ',
+            'opt_cloudiness': 'クモリ',
+            'opt_fog': 'クモリ',
+            'opt_mold': 'カビ',
+            'opt_balsam_separation': 'バルサム切れ',
+            'opt_scratches': 'キズ',
+            'opt_dirt': '汚れ',
+            'opt_other': 'その他',
+            'exp_working': '作動',
+            'exp_not_working': '不動',
+            'exp_weak': '弱い',
+            'acc_battery': 'バッテリー',
+            'acc_manual': '説明書',
+            'acc_case': 'ケース',
+            'acc_box': '箱',
+            'acc_strap': 'ストラップ',
+            'acc_lens_cap': 'レンズキャップ',
+            'other_general': 'その他',
+            'other_item': 'その他'
+          };
+          
+          const categoryName = categoryTranslations[response.categoryId] || response.categoryId;
+          const itemName = itemTranslations[response.itemId] || response.itemId;
           
           const processedItem = {
             key: `${response.categoryId}_${response.itemId}`,

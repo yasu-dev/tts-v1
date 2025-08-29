@@ -52,6 +52,11 @@ const getSpecialPhotographyItemName = (itemId: string): string => {
     'serial_numbers': 'シリアル番号',
     'damage_focus': '損傷焦点',
     'comparison_size': 'サイズ比較',
+    // 追加項目
+    'closeup': 'クローズアップ',
+    'internal_structure': '内部構造',
+    'accessories': '付属品',
+    'other': 'その他',
   };
   
   return itemMapping[itemId] || itemId;
@@ -342,50 +347,36 @@ export default function ProductPhotographyDetails({ productId, status }: Product
 
   return (
     <>
-      <div className="space-y-6">
-        {Object.entries(categorizedImages).map(([category, images]) => (
-          <div key={category}>
-            <h4 className="font-semibold text-sm text-gray-700 mb-3 border-b pb-1 flex items-center gap-2">
-              {category.includes('必須撮影箇所') && (
-                <span className="bg-red-100 text-red-800 px-2 py-0.5 rounded text-xs font-bold">必須</span>
-              )}
-              {category} ({images.length}枚)
-            </h4>
-            
-            {images.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {images.map((image) => (
-                  <div
-                    key={image.id}
-                    className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all"
-                    onClick={() => setSelectedImage(image.url)}
-                  >
-                    <Image
-                      src={image.thumbnailUrl || image.url}
-                      alt={image.description || image.filename}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                    />
-                    <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all flex items-center justify-center">
-                      <EyeIcon className="w-6 h-6 text-white opacity-0 hover:opacity-100 transition-opacity" />
-                    </div>
-                    {image.description && (
-                      <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-60 text-white text-xs p-2">
-                        <p className="truncate">{image.description}</p>
-                      </div>
-                    )}
-                    {category.includes('必須撮影箇所') && (
-                      <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-1 py-0.5 rounded">
-                        必須
-                      </div>
-                    )}
+      <div className="space-y-4">
+        {Object.entries(categorizedImages).length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {Object.entries(categorizedImages).slice(0, 12).map(([category, images]) => 
+              images.slice(0, 1).map((image) => (
+                <div
+                  key={image.id}
+                  className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all"
+                  onClick={() => setSelectedImage(image.url)}
+                >
+                  <Image
+                    src={image.thumbnailUrl || image.url}
+                    alt={image.description || image.filename}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all flex items-center justify-center">
+                    <EyeIcon className="w-6 h-6 text-white opacity-0 hover:opacity-100 transition-opacity" />
                   </div>
-                ))}
-              </div>
+                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-xs p-1 text-center">
+                    <p className="truncate">{category}</p>
+                  </div>
+                </div>
+              ))
             )}
           </div>
-        ))}
+        ) : (
+          <div className="text-center py-8 text-gray-500">撮影画像がありません</div>
+        )}
       </div>
 
       {/* 画像拡大表示モーダル */}

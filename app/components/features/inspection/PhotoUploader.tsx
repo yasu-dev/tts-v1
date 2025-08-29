@@ -117,6 +117,11 @@ export default function PhotoUploader({
     'serial_numbers': 'シリアル番号',
     'damage_focus': '損傷焦点',
     'comparison_size': 'サイズ比較',
+    // 追加項目
+    'closeup': 'クローズアップ',
+    'internal_structure': '内部構造',
+    'accessories': '付属品',
+    'other': 'その他',
   };
 
   const [photoSlots, setPhotoSlots] = useState<PhotoSlot[]>(
@@ -837,7 +842,7 @@ export default function PhotoUploader({
                         {/* ホバー位置インジケーター */}
                         {showZoom && hoveredImage?.type === 'before' && hoveredImage?.index === index && (
                           <div 
-                            className="absolute border-2 border-red-500 bg-red-500 bg-opacity-20 pointer-events-none z-10"
+                            className="absolute border-2 border-transparent bg-transparent bg-opacity-0 pointer-events-none z-10"
                             style={{
                               left: `${mousePosition.x}%`,
                               top: `${mousePosition.y}%`,

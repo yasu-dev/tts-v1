@@ -141,7 +141,7 @@ export async function GET(
             enrichedProduct.deliveryPlanInfo = {
               deliveryPlanId: metadata.deliveryPlanId,
               deliveryPlanProductId: metadata.deliveryPlanProductId,
-              condition: metadata.condition || product.condition,
+              condition: product.condition, // 常に商品テーブルの正確なコンディションを使用
               purchasePrice: metadata.purchasePrice || product.price,
               purchaseDate: metadata.purchaseDate,
               supplier: metadata.supplier,
