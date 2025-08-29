@@ -15,6 +15,7 @@ import BaseModal from '../components/ui/BaseModal';
 import ListingFormModal from '@/app/components/modals/ListingFormModal';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import { useCategories, useProductStatuses, createSelectOptions, getNameByKey } from '@/lib/hooks/useMasterData';
+import ProductDetailModal from '../components/features/seller/ProductDetailModal';
 
 type SortField = 'name' | 'sku' | 'status' | 'price';
 type SortDirection = 'asc' | 'desc';
@@ -518,104 +519,15 @@ export default function InventoryPage() {
         </div>
 
         {/* 商品詳細モーダル */}
-        <BaseModal
+        <ProductDetailModal
           isOpen={isDetailModalOpen}
           onClose={() => {
             setIsDetailModalOpen(false);
             setSelectedProduct(null);
           }}
-          title="商品詳細"
-          size="lg"
-          data-testid="product-detail-modal"
-        >
-          {selectedProduct && (
-            <div className="space-y-6">
-              {/* 基本情報 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-bold text-nexus-text-primary mb-2">基本情報</h4>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className="font-medium text-nexus-text-secondary">商品名</span>
-                      <span className="font-bold text-nexus-text-primary">{selectedProduct.name || '未設定'}</span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className="font-medium text-nexus-text-secondary">SKU</span>
-                      <span className="font-mono text-nexus-text-primary">{selectedProduct.sku || '未設定'}</span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className="font-medium text-nexus-text-secondary">カテゴリー</span>
-                      <span className="text-nexus-text-primary">{selectedProduct.category || '未設定'}</span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className="font-medium text-nexus-text-secondary">保管場所</span>
-                      <span className="text-nexus-text-primary">{selectedProduct.location || '未設定'}</span>
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-bold text-nexus-text-primary mb-2">状況・価値</h4>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className="font-medium text-nexus-text-secondary">ステータス</span>
-                      <BusinessStatusIndicator 
-                        status={convertStatusToKey(selectedProduct.status) as any} 
-                        size="sm" 
-                      />
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className="font-medium text-nexus-text-secondary">品質ランク</span>
-                      {getConditionBadge(selectedProduct.condition)}
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className="font-medium text-nexus-text-secondary">評価額</span>
-                      <span className="font-bold text-blue-600 text-lg">
-                        ¥{selectedProduct.value ? selectedProduct.value.toLocaleString() : '0'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className="font-medium text-nexus-text-secondary">更新日</span>
-                      <span className="text-nexus-text-secondary">
-                        {selectedProduct.updatedAt ? new Date(selectedProduct.updatedAt).toLocaleDateString('ja-JP') : '未設定'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* 認証情報 */}
-              <div>
-                <h4 className="font-bold text-nexus-text-primary mb-2">認証情報</h4>
-                <div className="flex gap-2 flex-wrap">
-                  {selectedProduct.certifications && selectedProduct.certifications.length > 0 ? (
-                    selectedProduct.certifications.map((cert: string) => (
-                      <span key={cert} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-600 text-white">
-                        {cert}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-nexus-text-secondary text-sm">認証情報なし</span>
-                  )}
-                </div>
-              </div>
-              
-              {/* セラー向けアクションボタン */}
-              {selectedProduct.status === 'storage' && (
-                <div className="pt-4 border-t border-gray-200">
-                  <div className="flex justify-end">
-                    <NexusButton
-                      onClick={() => handleOpenListingForm(selectedProduct)}
-                      variant="primary"
-                      icon={<ShoppingCartIcon className="w-4 h-4" />}
-                    >
-                      出品する
-                    </NexusButton>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </BaseModal>
+          product={selectedProduct}
+          onOpenListingForm={handleOpenListingForm}
+        />
 
         {/* eBayリスティングフォームモーダル */}
         <ListingFormModal
