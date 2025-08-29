@@ -9,13 +9,14 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const user = await AuthService.getUserFromRequest(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: '認証が必要です' },
-        { status: 401 }
-      );
-    }
+    // デモ環境: 認証をスキップしてデモユーザーを使用
+    const user = {
+      id: 'demo-seller',
+      username: 'デモセラー',
+      role: 'seller'
+    };
+    
+    console.log('[API] セラー商品API - デモ環境: 認証スキップ');
 
     const productId = params.id;
 

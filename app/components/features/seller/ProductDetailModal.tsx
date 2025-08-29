@@ -1,7 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { ShoppingCartIcon } from '@heroicons/react/24/outline';
+import { 
+  ShoppingCartIcon,
+  DocumentTextIcon,
+  CheckCircleIcon,
+  CameraIcon,
+  BuildingStorefrontIcon
+} from '@heroicons/react/24/outline';
 import BaseModal from '../../ui/BaseModal';
 import NexusButton from '../../ui/NexusButton';
 import { BusinessStatusIndicator } from '../../ui';
@@ -53,16 +59,63 @@ const convertStatusToKey = (status: string): string => {
   return statusMapping[status] || 'unknown';
 };
 
+// カテゴリ名の日本語表示関数
+const getCategoryJapaneseName = (category: string): string => {
+  const categoryMapping: Record<string, string> = {
+    'camera': 'カメラ',
+    'camera_body': 'カメラボディ',
+    'lens': 'レンズ',
+    'watch': '腕時計',
+    'timepiece': '腕時計',
+    'accessory': 'アクセサリー',
+    'jewelry': 'ジュエリー',
+    'bag': 'バッグ',
+    'electronics': '電子機器',
+    'other': 'その他'
+  };
+  
+  return categoryMapping[category] || category || '未設定';
+};
+
+// 申告コンディションの日本語表示関数
+const getConditionJapaneseName = (condition: string): string => {
+  const conditionMapping: Record<string, string> = {
+    'excellent': '優良',
+    'very_good': '美品',
+    'good': '良好',
+    'fair': '普通',
+    'poor': '要修理'
+  };
+  
+  return conditionMapping[condition] || condition || '未設定';
+};
+
 export default function ProductDetailModal({ isOpen, onClose, product, onOpenListingForm }: ProductDetailModalProps) {
   const [activeTab, setActiveTab] = useState('basic');
 
   if (!product) return null;
 
   const tabs = [
-    { id: 'basic', label: '基本情報', icon: '📋' },
-    { id: 'inspection', label: '検品項目', icon: '✅' },
-    { id: 'photography', label: '撮影画像', icon: '📷' },
-    { id: 'storage', label: '保管先', icon: '🏪' },
+    { 
+      id: 'basic', 
+      label: '基本情報', 
+      icon: <DocumentTextIcon className="w-5 h-5" />
+    },
+    { 
+      id: 'inspection', 
+      label: '検品項目', 
+      icon: <CheckCircleIcon className="w-5 h-5" />
+    },
+    { 
+      id: 'photography', 
+      label: '撮影画像', 
+      icon: <CameraIcon className="w-5 h-5" />
+    },
+    { 
+      id: 'storage', 
+      label: '保管先', 
+      icon: <BuildingStorefrontIcon className="w-5 h-5" />
+    },
   ];
 
   return (
@@ -88,7 +141,7 @@ export default function ProductDetailModal({ isOpen, onClose, product, onOpenLis
                 }`}
               >
                 <span className="flex items-center gap-2">
-                  <span>{tab.icon}</span>
+                  {tab.icon}
                   {tab.label}
                 </span>
               </button>
@@ -115,11 +168,7 @@ export default function ProductDetailModal({ isOpen, onClose, product, onOpenLis
                     </div>
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                       <span className="font-medium text-nexus-text-secondary">カテゴリー</span>
-                      <span className="text-nexus-text-primary">{product.category || '未設定'}</span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className="font-medium text-nexus-text-secondary">保管場所</span>
-                      <span className="text-nexus-text-primary">{product.location || '未設定'}</span>
+                      <span className="text-nexus-text-primary">{getCategoryJapaneseName(product.category)}</span>
                     </div>
                   </div>
                 </div>
@@ -134,14 +183,8 @@ export default function ProductDetailModal({ isOpen, onClose, product, onOpenLis
                       />
                     </div>
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className="font-medium text-nexus-text-secondary">品質ランク</span>
-                      {getConditionBadge(product.condition)}
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className="font-medium text-nexus-text-secondary">評価額</span>
-                      <span className="font-bold text-blue-600 text-lg">
-                        ¥{product.value ? product.value.toLocaleString() : '0'}
-                      </span>
+                      <span className="font-medium text-nexus-text-secondary">申告コンディション</span>
+                      <span className="text-nexus-text-primary">{getConditionJapaneseName(product.deliveryPlanInfo?.condition || product.condition)}</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                       <span className="font-medium text-nexus-text-secondary">更新日</span>
@@ -152,22 +195,7 @@ export default function ProductDetailModal({ isOpen, onClose, product, onOpenLis
                   </div>
                 </div>
               </div>
-              
-              {/* 認証情報 */}
-              <div>
-                <h4 className="font-bold text-nexus-text-primary mb-2">認証情報</h4>
-                <div className="flex gap-2 flex-wrap">
-                  {product.certifications && product.certifications.length > 0 ? (
-                    product.certifications.map((cert: string) => (
-                      <span key={cert} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-600 text-white">
-                        {cert}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-nexus-text-secondary text-sm">認証情報なし</span>
-                  )}
-                </div>
-              </div>
+
 
               {/* セラー向けアクションボタン */}
               {product.status === 'storage' && (

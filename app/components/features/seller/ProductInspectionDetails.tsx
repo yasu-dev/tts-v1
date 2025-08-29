@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Badge } from '@/app/components/ui/badge';
-import { CheckCircleIcon, XCircleIcon, MinusCircleIcon } from '@heroicons/react/24/solid';
+import { CheckCircleIcon, XCircleIcon, MinusCircleIcon, ClipboardDocumentCheckIcon } from '@heroicons/react/24/outline';
 import { useIsHierarchicalChecklistEnabled } from '@/lib/hooks/useHierarchicalChecklistFeature';
 
 interface ProductInspectionDetailsProps {
@@ -92,6 +92,17 @@ const HIERARCHICAL_INSPECTION_CATEGORIES = [
       { id: 'lens_scratches', name: '傷' },
       { id: 'lens_dirt', name: '汚れ' },
       { id: 'lens_fog', name: 'クモリ' },
+      { id: 'lens_scuffs', name: 'スレ' },
+    ],
+  },
+  {
+    id: 'optical',
+    name: '光学系',
+    items: [
+      { id: 'opt_dust_particles', name: 'チリホコリ' },
+      { id: 'opt_fog', name: 'クモリ' },
+      { id: 'opt_scratches', name: '傷' },
+      { id: 'opt_dirt', name: '汚れ' },
     ],
   },
 ];
@@ -100,15 +111,76 @@ export default function ProductInspectionDetails({ productId, status }: ProductI
   const [inspectionData, setInspectionData] = useState<InspectionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const isHierarchicalEnabled = useIsHierarchicalChecklistEnabled();
+  const [isHierarchicalEnabled, setIsHierarchicalEnabled] = useState(false);
 
   useEffect(() => {
-    fetchInspectionData();
+    // フィーチャーフラグを直接APIから取得
+    const checkFeatureFlag = async () => {
+      try {
+        console.log('[DEBUG] ProductInspectionDetails - フィーチャーフラグAPI呼び出し開始');
+        const response = await fetch('/api/feature-flags/hierarchical-checklist');
+        console.log('[DEBUG] ProductInspectionDetails - フィーチャーフラグAPIレスポンス:', response.status);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('[DEBUG] ProductInspectionDetails - フィーチャーフラグデータ:', data);
+          
+          // APIレスポンスの構造に応じて enabled を取得
+          const enabled = data?.enabled === true || data?.data?.enabled === true;
+          setIsHierarchicalEnabled(enabled);
+          console.log('[DEBUG] ProductInspectionDetails - フィーチャーフラグ設定:', enabled);
+          console.log('[DEBUG] ProductInspectionDetails - data.enabled:', data?.enabled);
+          console.log('[DEBUG] ProductInspectionDetails - data.data.enabled:', data?.data?.enabled);
+        } else {
+          console.warn('[DEBUG] ProductInspectionDetails - フィーチャーフラグAPI失敗:', response.status);
+          setIsHierarchicalEnabled(false);
+        }
+      } catch (error) {
+        console.error('[DEBUG] ProductInspectionDetails - フィーチャーフラグ取得失敗:', error);
+        setIsHierarchicalEnabled(false);
+      }
+    };
+
+    const initializeComponent = async () => {
+      try {
+        console.log('[DEBUG] initializeComponent - 開始');
+        
+        // フィーチャーフラグを取得
+        const response = await fetch('/api/feature-flags/hierarchical-checklist');
+        let enabledFlag = false;
+        
+        if (response.ok) {
+          const data = await response.json();
+          enabledFlag = data?.enabled === true || data?.data?.enabled === true;
+          setIsHierarchicalEnabled(enabledFlag);
+          console.log('[DEBUG] initializeComponent - フィーチャーフラグ確定:', enabledFlag);
+        }
+        
+        // フィーチャーフラグの値を使って検品データを取得
+        await fetchInspectionDataWithFlag(enabledFlag);
+        
+      } catch (error) {
+        console.error('[DEBUG] initializeComponent - エラー:', error);
+        setIsHierarchicalEnabled(false);
+        await fetchInspectionDataWithFlag(false);
+      }
+    };
+
+    initializeComponent();
   }, [productId]);
 
-  const fetchInspectionData = async () => {
+  const fetchInspectionDataWithFlag = async (hierarchicalEnabled: boolean) => {
     try {
       setLoading(true);
+      
+      console.log('[DEBUG] fetchInspectionDataWithFlag - データ取得開始:', { productId, hierarchicalEnabled });
+    
+      // デバッグ: コンポーネントの状態をwindowオブジェクトに設定
+      (window as any).debugInspectionData = {
+        productId,
+        isHierarchicalEnabled: hierarchicalEnabled,
+        step: 'fetching'
+      };
       
       // 既存の検品チェックリストを取得
       const checklistResponse = await fetch(`/api/products/${productId}/inspection-checklist`);
@@ -116,15 +188,41 @@ export default function ProductInspectionDetails({ productId, status }: ProductI
       if (checklistResponse.ok) {
         const checklistData = await checklistResponse.json();
         
-        if (isHierarchicalEnabled) {
+        console.log('[DEBUG] ProductInspectionDetails - APIレスポンス:', checklistData);
+        console.log('[DEBUG] ProductInspectionDetails - 階層型データ存在確認:', !!checklistData?.hierarchicalInspectionChecklist);
+        console.log('[DEBUG] ProductInspectionDetails - 階層型responses:', checklistData?.hierarchicalInspectionChecklist?.responses);
+        
+        // デバッグ情報をウィンドウに設定
+        (window as any).debugInspectionData = {
+          ...((window as any).debugInspectionData || {}),
+          checklistData,
+          isHierarchicalEnabled,
+          hasHierarchicalData: !!checklistData?.hierarchicalInspectionChecklist?.responses,
+          hasStandardData: !!checklistData?.inspectionChecklist,
+          step: 'processing'
+        };
+
+        if (hierarchicalEnabled && checklistData?.hierarchicalInspectionChecklist?.responses) {
           // 階層型検品データを処理
+          console.log('[DEBUG] fetchInspectionDataWithFlag - 階層型データ処理開始');
           processHierarchicalData(checklistData);
-        } else {
+        } else if (!hierarchicalEnabled && checklistData?.inspectionChecklist) {
           // 既存システムデータを処理
-          processStandardData(checklistData);
+          console.log('[DEBUG] fetchInspectionDataWithFlag - 既存システムデータ処理開始');
+          processStandardData(checklistData.inspectionChecklist);
+        } else {
+          // 検品データが存在しない場合、空の項目リストを作成
+          console.log('[DEBUG] fetchInspectionDataWithFlag - 検品データなし、空データ作成');
+          console.log('[DEBUG] 判定条件:', {
+            hierarchicalEnabled,
+            hasHierarchicalResponses: !!checklistData?.hierarchicalInspectionChecklist?.responses,
+            hasInspectionChecklist: !!checklistData?.inspectionChecklist
+          });
+          createEmptyInspectionData();
         }
       } else {
         // 検品データが存在しない場合、空の項目リストを作成
+        console.log('[DEBUG] fetchInspectionDataWithFlag - API失敗、空データ作成');
         createEmptyInspectionData();
       }
     } catch (error) {
@@ -136,23 +234,56 @@ export default function ProductInspectionDetails({ productId, status }: ProductI
     }
   };
 
+  const fetchInspectionData = async () => {
+    // 後方互換性のため
+    await fetchInspectionDataWithFlag(isHierarchicalEnabled);
+  };
+
   const processHierarchicalData = (data: any) => {
+    console.log('[DEBUG] processHierarchicalData - 開始:', data);
     const items: InspectionItem[] = [];
     
     if (data?.hierarchicalInspectionChecklist?.responses) {
-      // 階層型データを展開
-      HIERARCHICAL_INSPECTION_CATEGORIES.forEach(category => {
-        category.items.forEach(item => {
-          const responseData = data.hierarchicalInspectionChecklist.responses[category.id]?.[item.id];
-          items.push({
-            key: `${category.id}_${item.id}`,
-            label: item.name,
-            value: responseData ? (responseData.booleanValue ?? responseData.textValue ?? null) : null,
-            category: category.name,
+      // 階層型データを展開 - responsesが配列形式の場合
+      if (Array.isArray(data.hierarchicalInspectionChecklist.responses)) {
+        console.log('[DEBUG] processHierarchicalData - 配列形式のデータ処理:', data.hierarchicalInspectionChecklist.responses.length);
+        
+        data.hierarchicalInspectionChecklist.responses.forEach((response: any) => {
+          console.log('[DEBUG] processHierarchicalData - レスポンス処理:', response);
+          
+          const categoryName = HIERARCHICAL_INSPECTION_CATEGORIES
+            .find(cat => cat.id === response.categoryId)?.name || response.categoryId;
+          const itemName = HIERARCHICAL_INSPECTION_CATEGORIES
+            .find(cat => cat.id === response.categoryId)?.items
+            .find(item => item.id === response.itemId)?.name || response.itemId;
+          
+          const processedItem = {
+            key: `${response.categoryId}_${response.itemId}`,
+            label: itemName,
+            value: response.booleanValue !== null ? response.booleanValue : response.textValue,
+            category: categoryName,
+          };
+          
+          console.log('[DEBUG] processHierarchicalData - 処理済み項目:', processedItem);
+          items.push(processedItem);
+        });
+      } else {
+        // オブジェクト形式の場合（既存の処理）
+        console.log('[DEBUG] processHierarchicalData - オブジェクト形式のデータ処理');
+        HIERARCHICAL_INSPECTION_CATEGORIES.forEach(category => {
+          category.items.forEach(item => {
+            const responseData = data.hierarchicalInspectionChecklist.responses[category.id]?.[item.id];
+            items.push({
+              key: `${category.id}_${item.id}`,
+              label: item.name,
+              value: responseData ? (responseData.booleanValue ?? responseData.textValue ?? null) : null,
+              category: category.name,
+            });
           });
         });
-      });
+      }
     } else {
+      console.log('[DEBUG] processHierarchicalData - responsesが存在しません');
       // データがない場合は空の項目を作成
       HIERARCHICAL_INSPECTION_CATEGORIES.forEach(category => {
         category.items.forEach(item => {
@@ -166,15 +297,27 @@ export default function ProductInspectionDetails({ productId, status }: ProductI
       });
     }
 
-    setInspectionData({
+    console.log('[DEBUG] processHierarchicalData - 最終的なitems数:', items.length);
+    console.log('[DEBUG] processHierarchicalData - 最終的なitems:', items);
+
+    const finalData = {
       items,
       notes: data?.hierarchicalInspectionChecklist?.notes || '',
-      inspectedBy: data?.createdBy,
-      inspectedAt: data?.createdAt,
+      inspectedBy: data?.hierarchicalInspectionChecklist?.createdBy || data?.createdBy,
+      inspectedAt: data?.hierarchicalInspectionChecklist?.createdAt || data?.createdAt,
       verifiedBy: data?.hierarchicalInspectionChecklist?.verifiedBy,
       verifiedAt: data?.hierarchicalInspectionChecklist?.verifiedAt,
       isHierarchical: true,
-    });
+    };
+    
+    console.log('[DEBUG] processHierarchicalData - 最終データ設定:', finalData);
+    (window as any).debugInspectionData = {
+      ...((window as any).debugInspectionData || {}),
+      processedData: finalData,
+      step: 'processed'
+    };
+    
+    setInspectionData(finalData);
   };
 
   const processStandardData = (data: any) => {
@@ -305,6 +448,19 @@ export default function ProductInspectionDetails({ productId, status }: ProductI
     return <MinusCircleIcon className="w-4 h-4 text-gray-400" />;
   };
 
+  // チェックされた項目のみをフィルタリング
+  const filterCheckedItems = (items: InspectionItem[]) => {
+    return items.filter(item => {
+      if (typeof item.value === 'boolean') {
+        return item.value === true; // trueのみ表示
+      }
+      if (typeof item.value === 'string') {
+        return item.value && item.value.trim().length > 0; // 空文字以外
+      }
+      return false; // null/undefinedは表示しない
+    });
+  };
+
   const getStatusBasedMessage = () => {
     if (status === 'inbound' || status === 'pending_inspection') {
       return '検品前のため、まだ項目は登録されていません';
@@ -356,6 +512,15 @@ export default function ProductInspectionDetails({ productId, status }: ProductI
     return acc;
   }, {} as Record<string, InspectionItem[]>) || {};
 
+  // チェックされた項目のみをフィルタリングした categorizedItems
+  const filteredCategorizedItems = Object.entries(categorizedItems).reduce((acc, [category, items]) => {
+    const checkedItems = filterCheckedItems(items);
+    if (checkedItems.length > 0) {
+      acc[category] = checkedItems;
+    }
+    return acc;
+  }, {} as Record<string, InspectionItem[]>);
+
   return (
     <Card>
       <CardHeader>
@@ -372,28 +537,51 @@ export default function ProductInspectionDetails({ productId, status }: ProductI
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        {Object.entries(categorizedItems).map(([category, items]) => (
-          <div key={category}>
-            <h4 className="font-semibold text-sm text-gray-700 mb-3 border-b pb-1">
-              {category}
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {items.map((item) => (
-                <div
-                  key={item.key}
-                  className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
-                >
-                  <span className="text-sm font-medium text-gray-700">
-                    {item.label}
-                  </span>
-                  <div className="flex items-center">
-                    {renderInspectionValue(item.value)}
-                  </div>
-                </div>
-              ))}
-            </div>
+        {Object.keys(filteredCategorizedItems).length === 0 ? (
+          <div className="text-center py-12">
+            <ClipboardDocumentCheckIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-500">チェックされた検品項目がありません</p>
+            <p className="text-xs text-gray-400 mt-2">{getStatusBasedMessage()}</p>
           </div>
-        ))}
+        ) : (
+          /* 納品管理と完全同一スタイル：HierarchicalChecklistDisplay */
+          <div className="space-y-4">
+            {Object.entries(filteredCategorizedItems).map(([category, items]) => (
+              <div key={category} className="border rounded-lg p-3 bg-gray-50">
+                <h6 className="text-sm font-semibold text-gray-900 mb-2">
+                  {category}
+                </h6>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                  {items.map((item) => {
+                    const isTextValue = typeof item.value === 'string' && item.value.trim().length > 0;
+                    const isBooleanValue = typeof item.value === 'boolean' && item.value === true;
+                    
+                    return (
+                      <div key={item.key} className="text-sm text-gray-800 p-2 bg-white rounded border border-gray-200">
+                        {isTextValue ? (
+                          /* テキスト値の表示 */
+                          <div>
+                            <div className="font-medium">
+                              ✓ {item.label}
+                            </div>
+                            <div className="mt-1 text-xs text-gray-600 bg-gray-50 p-1 rounded">
+                              {item.value as string}
+                            </div>
+                          </div>
+                        ) : isBooleanValue ? (
+                          /* チェック項目の表示 */
+                          <div className="font-medium">
+                            ✓ {item.label}
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
         
         {inspectionData?.notes && (
           <div>

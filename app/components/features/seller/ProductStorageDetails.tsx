@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Badge } from '@/app/components/ui/badge';
-import { MapPinIcon, ArchiveBoxIcon, CalendarIcon } from '@heroicons/react/24/solid';
+import { MapPinIcon, ArchiveBoxIcon } from '@heroicons/react/24/outline';
 
 interface ProductStorageDetailsProps {
   productId: string;
@@ -164,12 +164,7 @@ export default function ProductStorageDetails({ productId, status }: ProductStor
     return '保管状況を確認中';
   };
 
-  const getLocationStatusColor = (currentCount: number, capacity: number) => {
-    const ratio = currentCount / capacity;
-    if (ratio >= 0.9) return 'bg-red-100 text-red-800';
-    if (ratio >= 0.7) return 'bg-yellow-100 text-yellow-800';
-    return 'bg-green-100 text-green-800';
-  };
+
 
   if (loading) {
     return (
@@ -224,22 +219,14 @@ export default function ProductStorageDetails({ productId, status }: ProductStor
               現在の保管場所
             </h4>
             <div className="p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <ArchiveBoxIcon className="w-5 h-5 text-blue-600" />
-                  <h5 className="font-semibold text-gray-900">
-                    {storageData.currentLocation.name}
-                  </h5>
+                              <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <ArchiveBoxIcon className="w-5 h-5 text-blue-600" />
+                    <h5 className="font-semibold text-gray-900">
+                      {storageData.currentLocation.name}
+                    </h5>
+                  </div>
                 </div>
-                <Badge
-                  className={`text-xs ${getLocationStatusColor(
-                    storageData.currentLocation.currentCount,
-                    storageData.currentLocation.capacity
-                  )}`}
-                >
-                  {storageData.currentLocation.currentCount}/{storageData.currentLocation.capacity}
-                </Badge>
-              </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                 <div className="flex items-center gap-2">
@@ -249,12 +236,6 @@ export default function ProductStorageDetails({ productId, status }: ProductStor
                 <div className="flex items-center gap-2">
                   <span className="text-gray-600">ゾーン:</span>
                   <span className="font-medium">{storageData.currentLocation.zone}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-gray-600">収容率:</span>
-                  <span className="font-medium">
-                    {Math.round((storageData.currentLocation.currentCount / storageData.currentLocation.capacity) * 100)}%
-                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-gray-600">更新日:</span>
@@ -280,53 +261,7 @@ export default function ProductStorageDetails({ productId, status }: ProductStor
           </div>
         )}
 
-        {/* 移動履歴 */}
-        {storageData?.storageHistory && storageData.storageHistory.length > 0 && (
-          <div>
-            <h4 className="font-semibold text-sm text-gray-700 mb-3 border-b pb-1">
-              移動履歴 ({storageData.storageHistory.length}件)
-            </h4>
-            <div className="space-y-3">
-              {storageData.storageHistory.map((movement) => (
-                <div key={movement.id} className="p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <CalendarIcon className="w-4 h-4 text-blue-600" />
-                      <span className="text-sm font-medium text-gray-900">
-                        {movement.reason}
-                      </span>
-                    </div>
-                    <span className="text-xs text-gray-500">
-                      {new Date(movement.movedAt).toLocaleDateString('ja-JP')}
-                    </span>
-                  </div>
-                  
-                  <div className="text-sm text-gray-600">
-                    {movement.fromLocation && (
-                      <span>
-                        {movement.fromLocation.name} ({movement.fromLocation.code})
-                        <span className="mx-2">→</span>
-                      </span>
-                    )}
-                    <span className="font-medium">
-                      {movement.toLocation.name} ({movement.toLocation.code})
-                    </span>
-                  </div>
 
-                  {movement.notes && (
-                    <div className="mt-2 text-xs text-gray-500">
-                      <span>メモ: {movement.notes}</span>
-                    </div>
-                  )}
-
-                  <div className="mt-1 text-xs text-gray-400">
-                    移動者: {movement.movedBy}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* 保管完了情報 */}
         {storageData?.storageCompleted && storageData.storageBy && (
@@ -338,8 +273,8 @@ export default function ProductStorageDetails({ productId, status }: ProductStor
           </div>
         )}
 
-        {/* 保管場所と移動履歴が両方とも存在しない場合 */}
-        {!storageData?.currentLocation && (!storageData?.storageHistory || storageData.storageHistory.length === 0) && (
+        {/* 保管場所が存在しない場合 */}
+        {!storageData?.currentLocation && (
           <div className="text-center py-8 text-gray-500">
             <p>保管情報がありません</p>
             <p className="text-xs text-gray-400 mt-1">

@@ -951,13 +951,13 @@ export default function InspectionPage() {
                             }
 
                             if (product.status === 'inspecting') {
-                              // 保管作業中の場合は、検品処理モーダルを開く
+                              // 検品中の場合は、検品詳細画面に遷移（続行）
                               return (
                                 <NexusButton 
                                   size="sm" 
                                   variant="primary"
-                                  onClick={() => handleOpenInspectionModal(product)}
-                                  title="検品処理"
+                                  onClick={() => handleContinueInspection(product)}
+                                  title="検品続行"
                                 >
                                   <ClipboardDocumentListIcon className="w-4 h-4" />
                                   <span className="hidden sm:inline ml-1">検品する</span>
