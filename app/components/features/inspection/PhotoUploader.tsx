@@ -95,7 +95,7 @@ export default function PhotoUploader({
     setMousePosition({x: 0, y: 0});
   };
   
-  // 写真スロット定義（複数枚対応）
+  // 基本写真スロット定義（複数枚対応）
   const defaultPhotoSlots: PhotoSlot[] = [
     { id: 'front', label: '正面', description: '正面全体', photos: [], required: true },
     { id: 'back', label: '背面', description: '背面全体', photos: [], required: false },
@@ -104,6 +104,20 @@ export default function PhotoUploader({
     { id: 'top', label: '上面', description: '上から見た写真', photos: [], required: false },
     { id: 'detail', label: '詳細', description: '傷・特徴部分', photos: [], required: false },
   ];
+
+  // 特別撮影項目のラベル定義
+  const specialPhotographyLabels: { [key: string]: string } = {
+    'diagonal_45': '斜め45度',
+    'functional_details': '機能詳細',
+    'accessories_individual': '付属品個別',
+    'macro_closeup': 'マクロ接写',
+    'lighting_studio': 'スタジオ照明',
+    'background_white': '白背景',
+    'packaging_box': '梱包状態',
+    'serial_numbers': 'シリアル番号',
+    'damage_focus': '損傷焦点',
+    'comparison_size': 'サイズ比較',
+  };
 
   const [photoSlots, setPhotoSlots] = useState<PhotoSlot[]>(
     initialPhotoSlots || defaultPhotoSlots

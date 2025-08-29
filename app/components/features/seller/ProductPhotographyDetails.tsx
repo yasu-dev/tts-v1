@@ -295,8 +295,8 @@ export default function ProductPhotographyDetails({ productId, status }: Product
               createdAt: new Date().toISOString(),
             });
           });
-        } else if (slot.required) {
-          // 必須スロットなのに画像がない場合も表示（空の状態として）
+        } else if (slot.required && slot.id.startsWith('special_')) {
+          // 特別撮影スロット（画像なし）は「撮影待ち」として表示
           const slotCategory = `必須撮影箇所: ${slot.label}`;
           if (!categories[slotCategory]) {
             categories[slotCategory] = [];

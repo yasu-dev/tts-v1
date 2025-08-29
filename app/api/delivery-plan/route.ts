@@ -444,6 +444,48 @@ export async function POST(request: NextRequest) {
             }
           }
 
+          // 🆕 DeliveryPlanProductImageからProductImageにデータをコピー
+          if (correspondingPlanProduct) {
+            try {
+              const deliveryPlanImages = await tx.deliveryPlanProductImage.findMany({
+                where: { deliveryPlanProductId: correspondingPlanProduct.id },
+                orderBy: { sortOrder: 'asc' }
+              });
+              
+              console.log(`[DEBUG] ${product.name}の画像コピー開始: ${deliveryPlanImages.length}件`);
+              
+              for (const dpImage of deliveryPlanImages) {
+                await tx.productImage.create({
+                  data: {
+                    productId: createdProduct.id,
+                    url: dpImage.url,
+                    thumbnailUrl: dpImage.thumbnailUrl,
+                    filename: dpImage.filename,
+                    size: dpImage.size,
+                    mimeType: dpImage.mimeType,
+                    category: dpImage.category || 'product',
+                    description: dpImage.description,
+                    sortOrder: dpImage.sortOrder,
+                  }
+                });
+                console.log(`[INFO] 画像コピー完了: ${dpImage.filename}`);
+              }
+              
+              // 最初の画像のURLをProduct.imageUrlにも設定
+              if (deliveryPlanImages.length > 0) {
+                await tx.product.update({
+                  where: { id: createdProduct.id },
+                  data: { imageUrl: deliveryPlanImages[0].url }
+                });
+                console.log(`[INFO] メイン画像URL設定: ${deliveryPlanImages[0].url}`);
+              }
+              
+            } catch (imageError) {
+              console.error('[WARN] 画像データコピーエラー:', imageError);
+              // エラーでも処理は継続
+            }
+          }
+
           createdProducts.push(createdProduct);
           
         } catch (productCreateError) {

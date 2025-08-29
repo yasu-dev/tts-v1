@@ -313,6 +313,53 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
           
           setProduct(enrichedProduct);
 
+          // 🆕 特別撮影項目のスロットを動的に生成
+          if (enrichedProduct.deliveryPlanInfo?.photographyRequests?.specialPhotographyItems) {
+            const specialItems = enrichedProduct.deliveryPlanInfo.photographyRequests.specialPhotographyItems;
+            console.log('[INFO] 特別撮影項目検出:', specialItems);
+            
+            // 基本スロットを取得
+            const baseSlots = [
+              { id: 'front', label: '正面', description: '正面全体', photos: [], required: true },
+              { id: 'back', label: '背面', description: '背面全体', photos: [], required: false },
+              { id: 'left', label: '左側面', description: '左側全体', photos: [], required: false },
+              { id: 'right', label: '右側面', description: '右側全体', photos: [], required: false },
+              { id: 'top', label: '上面', description: '上から見た写真', photos: [], required: false },
+              { id: 'detail', label: '詳細', description: '傷・特徴部分', photos: [], required: false },
+            ];
+            
+            // 特別撮影項目ラベル定義
+            const specialLabels: { [key: string]: string } = {
+              'diagonal_45': '斜め45度',
+              'functional_details': '機能詳細',
+              'accessories_individual': '付属品個別',
+              'macro_closeup': 'マクロ接写',
+              'lighting_studio': 'スタジオ照明',
+              'background_white': '白背景',
+              'packaging_box': '梱包状態',
+              'serial_numbers': 'シリアル番号',
+              'damage_focus': '損傷焦点',
+              'comparison_size': 'サイズ比較',
+            };
+            
+            // 特別撮影スロットを生成
+            const specialSlots = specialItems.map((itemId: string) => ({
+              id: `special_${itemId}`,
+              label: specialLabels[itemId] || itemId,
+              description: `特別撮影: ${specialLabels[itemId] || itemId}`,
+              photos: [],
+              required: true,
+            }));
+            
+            console.log('[INFO] 生成された特別撮影スロット:', specialSlots);
+            
+            // InspectionDataのphotoSlotsを更新
+            setInspectionData(prev => ({
+              ...prev,
+              photoSlots: [...baseSlots, ...specialSlots]
+            }));
+          }
+
           // 🆕 階層型検品データがある場合は設定
           if (enrichedProduct.deliveryPlanInfo?.hierarchicalInspectionChecklist) {
             const hierarchicalData = enrichedProduct.deliveryPlanInfo.hierarchicalInspectionChecklist;

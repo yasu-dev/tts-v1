@@ -559,19 +559,29 @@ export default function ProductInspectionDetails({ productId, status }: ProductI
                     return (
                       <div key={item.key} className="text-sm text-gray-800 p-2 bg-white rounded border border-gray-200">
                         {isTextValue ? (
-                          /* テキスト値の表示 */
+                          /* テキスト値の表示（青色アイコン） */
                           <div>
-                            <div className="font-medium">
-                              ✓ {item.label}
+                            <div className="flex items-center mb-1">
+                              <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center mr-2 flex-shrink-0">
+                                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                </svg>
+                              </div>
+                              <span className="font-medium text-gray-800">{item.label}</span>
                             </div>
-                            <div className="mt-1 text-xs text-gray-600 bg-gray-50 p-1 rounded">
+                            <div className="ml-6 text-xs text-gray-600 bg-gray-50 p-2 rounded">
                               {item.value as string}
                             </div>
                           </div>
                         ) : isBooleanValue ? (
-                          /* チェック項目の表示 */
-                          <div className="font-medium">
-                            ✓ {item.label}
+                          /* チェック項目の表示（問題ありなので赤色アイコン） */
+                          <div className="flex items-center">
+                            <div className="w-4 h-4 rounded-full bg-red-500 flex items-center justify-center mr-2 flex-shrink-0">
+                              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                            <span className="font-medium text-gray-800">{item.label}</span>
                           </div>
                         ) : null}
                       </div>
