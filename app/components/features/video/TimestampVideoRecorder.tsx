@@ -170,11 +170,7 @@ export default function TimestampVideoRecorder({
   };
 
   const quickDescriptions = [
-    `${type === 'inspection' ? '検品' : '梱包'}開始`,
-    `${type === 'inspection' ? '外観確認' : '商品梱包'}`,
-    `${type === 'inspection' ? '機能確認' : '緩衝材追加'}`,
-    `${type === 'inspection' ? '品質評価' : '封印・完了'}`,
-    `${type === 'inspection' ? '検品完了' : '梱包完了'}`
+    `${type === 'inspection' ? '検品開始' : '梱包作業開始'}`
   ];
 
   return (
@@ -195,7 +191,7 @@ export default function TimestampVideoRecorder({
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
           <h4 className="font-medium text-blue-900 text-sm mb-1">タイムスタンプ記録について</h4>
           <ul className="text-xs text-blue-800 space-y-0.5">
-            <li>• 作業内容ボタンを押すと同時に開始時刻が記録されます</li>
+            <li>• 作業開始ボタンを押すと同時に開始時刻が記録されます</li>
             <li>• 記録した時刻から外部録画動画を呼び出して再生できます</li>
             <li>• タイムスタンプは0～5個まで任意で記録できます</li>
             <li>• ワンクリックで簡単に作業時刻を記録できます</li>
@@ -216,21 +212,21 @@ export default function TimestampVideoRecorder({
               </p>
             ) : (
               <p className="text-xs text-gray-600 mb-3">
-                作業内容を選択すると同時にタイムスタンプが記録されます
+                ボタンを押すと同時にタイムスタンプが記録されます
               </p>
             )}
             
-            {/* 作業内容選択ボタン（ワンクリックで記録） */}
-            <div className="grid grid-cols-2 gap-2">
+            {/* 作業開始ボタン（ワンクリックで記録） */}
+            <div className="flex justify-center">
               {quickDescriptions.map((desc) => (
                 <NexusButton
                   key={desc}
                   onClick={() => recordTimestampWithDescription(desc)}
                   variant="primary"
-                  size="sm"
+                  size="md"
                   disabled={timestamps.length >= 5}
-                  icon={<Calendar className="w-3 h-3" />}
-                  className="text-xs flex items-center justify-center gap-1"
+                  icon={<Calendar className="w-4 h-4" />}
+                  className="flex items-center gap-2 px-6 py-2"
                 >
                   {desc}
                 </NexusButton>
@@ -243,9 +239,6 @@ export default function TimestampVideoRecorder({
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <h4 className="font-medium text-sm">記録済みタイムスタンプ</h4>
-            <span className="text-xs text-gray-600">
-              {timestamps.length} / 5 個（任意）
-            </span>
           </div>
           
           {timestamps.length === 0 ? (

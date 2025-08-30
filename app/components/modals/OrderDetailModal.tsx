@@ -199,11 +199,26 @@ export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetail
                 </div>
               ))
             ) : (
-              <div className="p-4 bg-nexus-bg-secondary rounded-lg border border-nexus-border text-center text-nexus-text-secondary">
-                <div className="font-medium">{order.product || '商品情報なし'}</div>
-                {order.itemCount && (
-                  <div className="text-sm">商品点数: {order.itemCount}点</div>
-                )}
+              <div className="flex items-center gap-4 p-4 bg-nexus-bg-secondary rounded-lg border border-nexus-border">
+                <div className="w-16 h-16 rounded border border-nexus-border overflow-hidden bg-nexus-bg-tertiary">
+                  {order.ebayImage ? (
+                    <img 
+                      src={order.ebayImage} 
+                      alt={order.product}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-nexus-text-tertiary">
+                      <ShoppingBagIcon className="w-6 h-6" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <div className="font-medium text-nexus-text-primary">{order.product || '商品情報なし'}</div>
+                  {order.itemCount && (
+                    <div className="text-sm text-nexus-text-secondary">商品点数: {order.itemCount}点</div>
+                  )}
+                </div>
               </div>
             )}
           </div>

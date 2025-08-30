@@ -125,6 +125,7 @@ export async function GET(request: NextRequest) {
         updatedAt: product.updatedAt,
         soldAt: null,
         templateId: null,
+        imageUrl: product.images?.[0]?.url || product.imageUrl, // 画像URLを追加
         product: product
       }));
 
@@ -166,7 +167,7 @@ export async function GET(request: NextRequest) {
           customer: relatedOrder?.customerName || listing.platform,
           product: listing.title,
           ebayTitle: listing.title,
-          ebayImage: listing.product?.images?.[0]?.url || listing.imageUrl || 'https://via.placeholder.com/300',
+          ebayImage: listing.product?.images?.[0]?.url || listing.product?.imageUrl || 'https://via.placeholder.com/300',
           totalAmount: relatedOrder?.totalAmount || listing.price,
           status: displayStatus,
           itemCount: relatedOrder?.items?.length || 1,
@@ -180,7 +181,8 @@ export async function GET(request: NextRequest) {
             productName: listing.product?.name || listing.title,
             category: listing.product?.category || 'その他',
             quantity: 1,
-            price: relatedOrder?.totalAmount || listing.price
+            price: relatedOrder?.totalAmount || listing.price,
+            productImage: listing.product?.images?.[0]?.url || listing.product?.imageUrl || 'https://via.placeholder.com/300'
           }],
           labelGenerated: isLabelGenerated,
           trackingNumber: relatedOrder?.trackingNumber || null,

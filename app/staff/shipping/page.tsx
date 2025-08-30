@@ -232,22 +232,19 @@ export default function StaffShippingPage() {
 
         const labelInfo = await response.json();
         
-        // ラベルを新しいタブで表示（印刷可能）
-        const newWindow = window.open(labelInfo.url, '_blank');
-        if (newWindow) {
-          newWindow.focus();
-          showToast({
-            title: 'ラベル表示',
-            message: `${item.productName}の配送ラベルを新しいタブで表示しました。印刷してご利用ください。`,
-            type: 'success'
-          });
-        } else {
-          showToast({
-            title: 'エラー',
-            message: 'ポップアップがブロックされました。ブラウザの設定をご確認ください。',
-            type: 'error'
-          });
-        }
+        // ラベルをダウンロード
+        const link = document.createElement('a');
+        link.href = labelInfo.url;
+        link.download = `shipping_label_${item.orderNumber}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        showToast({
+          title: 'ラベルダウンロード完了',
+          message: `${item.productName}の配送ラベルをダウンロードしました。`,
+          type: 'success'
+        });
       } catch (error) {
         console.error('ラベルダウンロードエラー:', error);
         showToast({
@@ -279,20 +276,21 @@ export default function StaffShippingPage() {
         let successCount = 0;
         let errorCount = 0;
 
-        // 各アイテムのラベルを順次新しいタブで表示
+        // 各アイテムのラベルを順次ダウンロード
         for (const item of packedItems) {
           try {
             const response = await fetch(`/api/shipping/label/get?orderId=${item.orderNumber}`);
             
             if (response.ok) {
               const labelInfo = await response.json();
-              // 新しいタブでラベルを表示
-              const newWindow = window.open(labelInfo.url, '_blank');
-              if (newWindow) {
-                successCount++;
-              } else {
-                errorCount++;
-              }
+              // ラベルをダウンロード
+              const link = document.createElement('a');
+              link.href = labelInfo.url;
+              link.download = `shipping_label_${item.orderNumber}.pdf`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              successCount++;
             } else {
               errorCount++;
             }
@@ -309,14 +307,14 @@ export default function StaffShippingPage() {
 
         if (successCount > 0) {
           showToast({
-            title: '一括ラベル表示完了',
-            message: `${successCount}件の配送ラベルを新しいタブで表示しました。印刷してご利用ください。${errorCount > 0 ? ` (${errorCount}件エラー)` : ''}`,
+            title: '一括ラベルダウンロード完了',
+            message: `${successCount}件の配送ラベルをダウンロードしました。${errorCount > 0 ? ` (${errorCount}件エラー)` : ''}`,
             type: successCount === packedItems.length ? 'success' : 'warning'
           });
         } else {
           showToast({
-            title: 'ラベル表示失敗',
-            message: 'すべての配送ラベルの表示に失敗しました',
+            title: 'ラベルダウンロード失敗',
+            message: 'すべての配送ラベルのダウンロードに失敗しました',
             type: 'error'
           });
         }
@@ -387,31 +385,19 @@ export default function StaffShippingPage() {
         return;
       }
 
-      // ラベルを新しいタブで開く（印刷可能）
-      const newWindow = window.open(labelData.url, '_blank');
-      if (newWindow) {
-        newWindow.focus();
-        showToast({
-          title: 'ラベル印刷準備完了',
-          message: `配送ラベルを新しいタブで表示しました（提供者: ${labelData.provider === 'seller' ? 'セラー' : 'ワールドドア'}）。印刷してご利用ください。`,
-          type: 'success'
-        });
-      } else {
-        // ポップアップがブロックされた場合のフォールバック
-        const link = document.createElement('a');
-        link.href = labelData.url;
-        link.download = `shipping_label_${item.orderNumber}.pdf`;
-        link.target = '_blank';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+      // ラベルをダウンロード
+      const link = document.createElement('a');
+      link.href = labelData.url;
+      link.download = `shipping_label_${item.orderNumber}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
 
-        showToast({
-          title: 'ラベル印刷完了',
-          message: `配送ラベルをダウンロードしました（提供者: ${labelData.provider === 'seller' ? 'セラー' : 'ワールドドア'}）`,
-          type: 'success'
-        });
-      }
+      showToast({
+        title: 'ラベル印刷完了',
+        message: `配送ラベルをダウンロードしました（提供者: ${labelData.provider === 'seller' ? 'セラー' : 'ワールドドア'}）`,
+        type: 'success'
+      });
 
     } catch (error) {
       console.error('ラベル印刷エラー:', error);

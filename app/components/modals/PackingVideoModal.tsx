@@ -96,7 +96,7 @@ export default function PackingVideoModal({
         <div className="border-2 border-nexus-border rounded-lg p-6">
           <TimestampVideoRecorder
             productId={productId}
-            phase="packing"
+            phase="phase4"
             type="packing"
             onRecordingComplete={handleRecordingComplete}
           />
