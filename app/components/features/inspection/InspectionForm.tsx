@@ -839,7 +839,8 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
       const finalData = {
         productId,
         inspectionNotes: inspectionData.notes || '',
-        condition: result === 'passed' ? 'excellent' : result === 'conditional' ? 'good' : 'poor',
+        // コンディションは納品プラン作成時の値を保持（検品結果で変更しない）
+        // condition: null, // conditionパラメータを除去
         status: inspectionStatus,
         locationId: locationId, // 保管場所IDを追加
         skipPhotography: inspectionOnly,
