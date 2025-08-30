@@ -311,7 +311,18 @@ export async function GET(request: NextRequest) {
           customer: { select: { username: true } },
           items: {
             include: {
-              product: { select: { name: true, category: true } }
+              product: { 
+                select: { 
+                  name: true, 
+                  category: true,
+                  imageUrl: true,
+                  images: {
+                    select: { url: true },
+                    take: 1,
+                    orderBy: { order: 'asc' }
+                  }
+                }
+              }
             }
           }
         }
@@ -370,11 +381,15 @@ export async function GET(request: NextRequest) {
         limit: limit
       },
       recentOrders: recentOrders.map(order => {
+        const firstItem = order.items[0];
+        const productImage = firstItem?.product?.images?.[0]?.url || firstItem?.product?.imageUrl;
+        
         const orderData = {
           id: order.id,
           orderNumber: order.orderNumber,
           customer: order.customer.username,
           product: order.items[0]?.product.name || '商品なし', // 商品名を追加
+          ebayImage: productImage, // 商品画像を追加
           totalAmount: order.totalAmount,
           status: order.status,
           itemCount: order.items.length,
@@ -386,7 +401,8 @@ export async function GET(request: NextRequest) {
             productName: item.product.name,
             category: item.product.category,
             quantity: item.quantity,
-            price: item.price
+            price: item.price,
+            productImage: item.product?.images?.[0]?.url || item.product?.imageUrl // 商品画像を追加
           }))
         };
         console.log(`注文 ${orderData.orderNumber}: 商品「${orderData.product}」追跡番号「${orderData.trackingNumber}」`);

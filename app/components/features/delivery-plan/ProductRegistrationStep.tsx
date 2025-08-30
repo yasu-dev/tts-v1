@@ -482,11 +482,8 @@ export default function ProductRegistrationStep({
                 {isHierarchicalEnabled ? (
                   /* ========== 新システム: 階層型検品チェックリスト ========== */
                   <div>
-                    <div className="flex items-center mb-4">
+                    <div className="mb-4">
                       <h4 className="text-lg font-semibold text-nexus-text-primary">検品チェックリスト</h4>
-                      <span className="ml-2 px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
-                        新システム
-                      </span>
                     </div>
                     <HierarchicalInspectionChecklistInput
                       data={product.hierarchicalInspectionData || {

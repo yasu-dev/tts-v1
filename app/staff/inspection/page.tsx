@@ -1018,14 +1018,7 @@ export default function InspectionPage() {
                                     <span className="text-nexus-text-secondary">受領日</span>
                                     <span className="text-nexus-text-primary">{product.receivedDate}</span>
                                       </div>
-                                  <div className="flex items-center justify-between text-sm">
-                                    <span className="text-nexus-text-secondary">ブランド</span>
-                                    <span className="text-nexus-text-primary">{product.brand}</span>
-                                      </div>
-                                  <div className="flex items-center justify-between text-sm">
-                                    <span className="text-nexus-text-secondary">モデル</span>
-                                    <span className="text-nexus-text-primary">{product.model}</span>
-                                      </div>
+
                                   <div className="flex items-center justify-between text-sm">
                                     <span className="text-nexus-text-secondary">カテゴリ</span>
                                     <span className="text-nexus-text-primary">
