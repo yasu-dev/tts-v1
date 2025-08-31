@@ -104,13 +104,13 @@ export default function BasicInfoStep({
   };
 
   const handleNext = () => {
-    if (formData.deliveryAddress.trim()) {
+    if (formData.warehouseId && formData.deliveryAddress.trim()) {
       onNext();
     } else {
       showToast({
         type: 'warning',
         title: '入力エラー',
-        message: '納品先住所を入力してください。',
+        message: '配送先倉庫を選択してください。',
         duration: 3000
       });
     }
@@ -187,16 +187,7 @@ export default function BasicInfoStep({
           </div>
         )}
 
-        <NexusTextarea
-          label="納品先住所"
-          value={formData.deliveryAddress}
-          onChange={(e) => handleInputChange('deliveryAddress', e.target.value)}
-          rows={3}
-          placeholder="倉庫を選択すると自動入力されます"
-          required
-          variant="nexus"
-          disabled={!selectedWarehouse}
-        />
+{/* 納品先住所は選択された倉庫情報で表示されるため、重複を避けるため非表示 */}
 
 
 

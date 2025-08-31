@@ -139,10 +139,7 @@ export default function ConfirmationStep({
             <span className="font-medium text-nexus-text-secondary">配送先倉庫:</span>
             <span className="ml-2 text-nexus-text-primary">{data.basicInfo?.warehouseName || '未選択'}</span>
           </div>
-          <div className="md:col-span-2">
-            <span className="font-medium text-nexus-text-secondary">納品先住所:</span>
-            <span className="ml-2 text-nexus-text-primary">{data.basicInfo?.deliveryAddress || '未入力'}</span>
-          </div>
+{/* 納品先住所は配送先倉庫で明確になるため、重複を避けるため非表示 */}
           {user?.phoneNumber && (
             <div>
               <span className="font-medium text-nexus-text-secondary">電話番号:</span>

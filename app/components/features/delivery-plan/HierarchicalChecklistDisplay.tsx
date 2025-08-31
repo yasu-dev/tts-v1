@@ -14,6 +14,18 @@ interface HierarchicalChecklistDisplayProps {
   };
 }
 
+// カテゴリ表示順序（指定された順番で表示）
+const CATEGORY_ORDER = [
+  'camera_body_exterior',
+  'viewfinder', 
+  'film_chamber',
+  'lens',
+  'optical',
+  'exposure_function',
+  'accessories',
+  'other'
+];
+
 // カテゴリ定義（日本語表示用）
 const CATEGORIES = {
   camera_body_exterior: 'カメラボディ外観',
@@ -106,9 +118,8 @@ export default function HierarchicalChecklistDisplay({ data }: HierarchicalCheck
   }
 
   const { responses, notes } = data;
-  const responseEntries = Object.entries(responses);
 
-  if (responseEntries.length === 0 && !notes) {
+  if (Object.keys(responses).length === 0 && !notes) {
     return (
       <div className="text-gray-500 text-sm">
         検品項目が選択されていません
@@ -118,7 +129,12 @@ export default function HierarchicalChecklistDisplay({ data }: HierarchicalCheck
 
   return (
     <div className="space-y-4">
-      {responseEntries.map(([categoryId, categoryData]) => {
+      {CATEGORY_ORDER.map((categoryId) => {
+        const categoryData = responses[categoryId];
+        
+        // カテゴリデータが存在しない場合はスキップ
+        if (!categoryData) return null;
+        
         // カテゴリ名を日本語に変換（確実な変換処理）
         const categoryName = CATEGORIES[categoryId as keyof typeof CATEGORIES] || categoryId;
         const itemEntries = Object.entries(categoryData);
@@ -162,7 +178,7 @@ export default function HierarchicalChecklistDisplay({ data }: HierarchicalCheck
       {notes && (
         <div className="border rounded-lg p-3 bg-yellow-50">
           <h6 className="text-sm font-semibold text-gray-900 mb-1">
-            検品メモ
+            検品メモ（任意）
           </h6>
           <p className="text-sm text-gray-700">
             {notes}
