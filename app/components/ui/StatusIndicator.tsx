@@ -320,7 +320,7 @@ export function BusinessStatusIndicator({
   className = ''
 }: BusinessStatusIndicatorProps) {
   const config = businessStatusConfig[status] || {
-    label: status || '不明',
+    label: '不明',
     bg: 'bg-gray-800 dark:bg-gray-800',
     text: 'text-white dark:text-white',
     border: 'border-gray-800 dark:border-gray-800'
@@ -329,6 +329,11 @@ export function BusinessStatusIndicator({
   if (!status) {
     console.warn(`Status is undefined in BusinessStatusIndicator`);
     return <span className="status-badge neutral">不明</span>;
+  }
+  
+  // 未定義のステータスが来た場合の警告ログ
+  if (!businessStatusConfig[status]) {
+    console.warn(`Undefined status in BusinessStatusIndicator: "${status}"`);
   }
 
   const sizeConfig = {
