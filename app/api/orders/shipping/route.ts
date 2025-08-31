@@ -127,7 +127,9 @@ export async function GET(request: NextRequest) {
       }
       
       return {
-        id: shipment.id,
+        id: firstProduct?.id || shipment.id, // 商品IDを優先して使用
+        shipmentId: shipment.id, // ShipmentIDも保持
+        productId: firstProduct?.id, // 商品ID別途保持
         productName: productName,
         productSku: productSku,
         orderNumber: shipment.order?.orderNumber || `ORD-${shipment.orderId.slice(-6)}`,
@@ -331,8 +333,35 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { orderId, status } = body;
+    const { shipmentId, status, orderId } = body;
 
+    // 新しいShipmentステータス更新処理
+    if (shipmentId && status) {
+      console.log(`🔄 Shipmentステータス更新: ${shipmentId} -> ${status}`);
+      
+      try {
+        const updatedShipment = await prisma.shipment.update({
+          where: { id: shipmentId },
+          data: { status },
+        });
+        
+        console.log('✅ Shipmentステータス更新完了');
+        
+        return NextResponse.json({
+          success: true,
+          shipment: updatedShipment,
+          message: 'ステータス更新が完了しました'
+        });
+      } catch (updateError) {
+        console.error('Shipmentステータス更新エラー:', updateError);
+        return NextResponse.json(
+          { error: 'Shipmentステータス更新に失敗しました' },
+          { status: 500 }
+        );
+      }
+    }
+
+    // 従来の注文ステータス更新処理（配送完了用）
     if (!orderId || !status) {
       return NextResponse.json(
         { error: '注文IDとステータスが必要です' },

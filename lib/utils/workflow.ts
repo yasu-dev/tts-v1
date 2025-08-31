@@ -20,7 +20,7 @@ export const SHIPPING_WORKFLOW_STEPS = [
   },
   {
     id: 'ready_for_pickup',
-    label: '出荷済み',
+    label: '集荷準備完了',
     icon: 'shipping',
     order: 4
   }
@@ -57,7 +57,7 @@ export const STATUS_LABELS: Record<ShippingStatus, string> = {
   'picked': '梱包作業中',
   'workstation': '梱包作業中',
   'packed': '梱包済み',
-  'ready_for_pickup': '出荷済み'
+  'ready_for_pickup': '集荷準備完了'
 };
 
 /**

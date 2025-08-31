@@ -73,17 +73,17 @@ export default function WorkflowProgress({ steps, className = '' }: WorkflowProg
               `}>
                 {renderStepIcon(step)}
                 
-                {/* 現在ステップの強調表示 */}
+                {/* 現在ステップの強調表示 - 統一デザインに修正 */}
                 {step.status === 'active' && (
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white shadow-md">
                     <span className="text-[8px] text-white font-bold">!</span>
                   </div>
                 )}
               </div>
               
-              {/* Step Label - 常に表示 */}
+              {/* Step Label - 統一デザインパターンで修正 */}
               <div className={`
-                text-xs font-medium text-center max-w-[80px]
+                text-xs font-medium text-center max-w-[80px] transition-all duration-300
                 ${step.status === 'active' 
                   ? 'text-orange-600 font-bold' 
                   : step.status === 'completed'
@@ -93,29 +93,29 @@ export default function WorkflowProgress({ steps, className = '' }: WorkflowProg
               `}>
                 {step.label}
                 {step.status === 'active' && (
-                  <div className="text-[10px] text-orange-500 font-bold mt-1 bg-orange-100 px-2 py-1 rounded-full">
+                  <div className="text-[10px] text-orange-600 font-bold mt-1 bg-orange-50 px-2 py-1 rounded-full border border-orange-200">
                     ← 現在はここ
                   </div>
                 )}
                 {step.status === 'completed' && (
-                  <div className="text-[10px] text-green-500 font-medium mt-1">
+                  <div className="text-[10px] text-green-600 font-medium mt-1 bg-green-50 px-2 py-1 rounded-full">
                     ✓ 完了
                   </div>
                 )}
                 {step.status === 'pending' && (
-                  <div className="text-[10px] text-gray-400 font-medium mt-1">
+                  <div className="text-[10px] text-gray-500 font-medium mt-1">
                     待機中
                   </div>
                 )}
               </div>
             </div>
             
-            {/* Connector Line */}
+            {/* Connector Line - 統一デザインパターンで修正 */}
             {index < steps.length - 1 && (
               <div className={`
-                flex-1 h-1 mx-3 rounded-full transition-all duration-300
+                flex-1 h-1 mx-3 rounded-full transition-all duration-300 shadow-sm
                 ${step.status === 'completed'
-                  ? 'bg-green-400'
+                  ? 'bg-green-500'
                   : step.status === 'active'
                   ? 'bg-gradient-to-r from-orange-400 to-gray-300'
                   : 'bg-gray-300'

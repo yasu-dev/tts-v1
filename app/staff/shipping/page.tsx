@@ -36,6 +36,8 @@ import React from 'react'; // Added missing import for React
 
 interface ShippingItem {
   id: string;
+  shipmentId?: string; // Shipment ID
+  productId?: string; // Product ID
   productName: string;
   productSku: string;
   orderNumber: string;
@@ -100,12 +102,83 @@ export default function StaffShippingPage() {
   const router = useRouter();
   const { showToast } = useToast();
 
+  // 初回のみデータを取得（タブ切り替え時の自動再取得を無効化）
   useEffect(() => {
-    // APIから配送データを取得
-      const fetchShippingItems = async (page: number = 1, limit: number = itemsPerPage, status: string = activeTab) => {
+    if (items.length === 0) {
+      const fetchShippingItems = async () => {
+        try {
+          setLoading(true);
+          console.log('📡 初回データ取得開始');
+          const response = await fetch(`/api/orders/shipping?page=1&limit=50&status=all`);
+          if (!response.ok) {
+            throw new Error('Failed to fetch shipping data');
+          }
+          const data = await response.json();
+          
+          console.log(`📦 出荷データAPI応答:`, data.pagination);
+          
+          // APIレスポンスの形式に合わせてデータを変換
+          const shippingItems: ShippingItem[] = data.items ? data.items.map((item: any) => ({
+            id: item.id,
+            shipmentId: item.shipmentId,
+            productId: item.productId,
+            productName: item.productName,
+            productSku: item.productSku,
+            orderNumber: item.orderNumber,
+            customer: item.customer,
+            shippingAddress: item.shippingAddress,
+            status: item.status,
+            dueDate: item.dueDate,
+            shippingMethod: item.shippingMethod,
+            value: item.value,
+            location: item.location,
+            productImages: item.productImages || [],
+            inspectionImages: item.inspectionImages || [],
+            inspectionNotes: item.inspectionNotes,
+          })) : [];
+          
+          setItems(shippingItems);
+          
+          // ページネーション情報を保存
+          if (data.pagination) {
+            setTotalItems(data.pagination.totalCount);
+            setTotalPages(data.pagination.totalPages);
+          }
+          
+          // 統計情報を保存
+          if (data.stats) {
+            setTabStats(data.stats);
+          }
+          
+          console.log(`✅ 初回データ取得完了: ${shippingItems.length}件`);
+            
+          // 基本統計データも設定
+          setShippingData({
+            items: shippingItems,
+            stats: { 
+              totalShipments: shippingItems.length, 
+              pendingShipments: shippingItems.filter(item => item.status !== 'shipped').length 
+            }
+          });
+            
+        } catch (error) {
+          console.error('初回データ取得エラー:', error);
+          setItems([]);
+          setShippingData({ items: [], stats: { totalShipments: 0, pendingShipments: 0 } });
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchShippingItems();
+    }
+  }, []);
+
+  // fetchShippingItems関数をコンポーネントレベルに移動して再利用可能にする
+  const fetchData = async (page: number = currentPage, perPage: number = itemsPerPage, status: string = activeTab) => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/orders/shipping?page=${page}&limit=${limit}&status=${status}`);
+      const response = await fetch(`/api/orders/shipping?page=${page}&limit=${perPage}&status=${status}`);
       if (!response.ok) {
         throw new Error('Failed to fetch shipping data');
       }
@@ -116,6 +189,8 @@ export default function StaffShippingPage() {
       // APIレスポンスの形式に合わせてデータを変換
       const shippingItems: ShippingItem[] = data.items ? data.items.map((item: any) => ({
         id: item.id,
+        shipmentId: item.shipmentId,
+        productId: item.productId,
         productName: item.productName,
         productSku: item.productSku,
         orderNumber: item.orderNumber,
@@ -146,38 +221,64 @@ export default function StaffShippingPage() {
       
       console.log(`✅ 配送データ取得完了: ${shippingItems.length}件 (ページ: ${page}/${data.pagination?.totalPages || 1})`);
         
-        // 基本統計データも設定
-        setShippingData({
-          items: shippingItems,
-          stats: { 
-            totalShipments: shippingItems.length, 
-            pendingShipments: shippingItems.filter(item => item.status !== 'shipped').length 
-          }
-        });
+      // 基本統計データも設定
+      setShippingData({
+        items: shippingItems,
+        stats: { 
+          totalShipments: shippingItems.length, 
+          pendingShipments: shippingItems.filter(item => item.status !== 'shipped').length 
+        }
+      });
         
-      } catch (error) {
-        console.error('配送データ取得エラー:', error);
-        // フォールバック: 空配列
-        setItems([]);
-        setShippingData({ items: [], stats: { totalShipments: 0, pendingShipments: 0 } });
-      } finally {
-        setLoading(false);
-      }
-    };
+    } catch (error) {
+      console.error('配送データ取得エラー:', error);
+      // フォールバック: 空配列
+      setItems([]);
+      setShippingData({ items: [], stats: { totalShipments: 0, pendingShipments: 0 } });
+      showToast({
+        title: 'データ取得エラー',
+        message: '出荷データの取得に失敗しました',
+        type: 'error'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchShippingItems(currentPage, itemsPerPage, activeTab);
-  }, [currentPage, itemsPerPage, activeTab]);
-
-  // 表示用データ（同梱された個別商品のみ非表示）
+  // 表示用データ（アクティブタブによるフィルタリング + 同梱された個別商品のみ非表示）
   const paginatedItems = useMemo(() => {
-    return items.filter(item => {
+    const uniqueItems = new Map();
+    const filteredItems = items.filter(item => {
       // 同梱された個別商品は表示しない（同梱パッケージは表示）
       if (item.isBundled && !item.isBundle) {
         return false;
       }
+      
+      // アクティブタブによるフィルタリング
+      if (activeTab !== 'all') {
+        if (activeTab === 'workstation' && !['workstation', 'picked'].includes(item.status)) {
+          return false;
+        }
+        if (activeTab === 'packed' && item.status !== 'packed') {
+          return false;
+        }
+        if (activeTab === 'ready_for_pickup' && item.status !== 'ready_for_pickup') {
+          return false;
+        }
+      }
+      
+      // 重複IDを除去（最後のアイテムを保持）
+      if (uniqueItems.has(item.id)) {
+        console.warn(`重複ID検出: ${item.id} - 最新のアイテムで上書きします`);
+      }
+      uniqueItems.set(item.id, item);
+      
       return true;
     });
-  }, [items]);
+    
+    // 重複排除されたアイテムを返す
+    return Array.from(uniqueItems.values());
+  }, [items, activeTab]);
 
   // フィルター変更時はページを1に戻す
   useEffect(() => {
@@ -195,18 +296,53 @@ export default function StaffShippingPage() {
 
 
 
-  const updateItemStatus = (itemId: string, newStatus: ShippingItem['status']) => {
-    // ステータス更新を実行
-    setItems(prev => prev.map(item => 
-      item.id === itemId ? { ...item, status: newStatus } : item
-    ));
-    
-    // トーストメッセージを表示
-    showToast({
-      title: 'ステータス更新',
-      message: `ステータスを${statusLabels[newStatus]}に更新しました`,
-      type: 'success'
-    });
+  const updateItemStatus = async (itemId: string, newStatus: ShippingItem['status']) => {
+    try {
+      console.log(`🔄 ステータス更新: ${itemId} -> ${newStatus}`);
+      
+      // フロントエンドを即座に更新
+      setItems(prev => prev.map(item => 
+        item.id === itemId ? { ...item, status: newStatus } : item
+      ));
+      
+      // タブ統計も即座に更新して永続化
+      setTabStats(prev => {
+        const currentItem = items.find(item => item.id === itemId);
+        if (!currentItem) return prev;
+        
+        const oldStatus = currentItem.status;
+        const newTabStats = { ...prev };
+        
+        // 古いステータスのカウントを減らす
+        if (oldStatus === 'packed') newTabStats.packed = Math.max(0, newTabStats.packed - 1);
+        if (oldStatus === 'workstation') newTabStats.workstation = Math.max(0, newTabStats.workstation - 1);
+        
+        // 新しいステータスのカウントを増やす
+        if (newStatus === 'ready_for_pickup') newTabStats.ready_for_pickup = newTabStats.ready_for_pickup + 1;
+        if (newStatus === 'packed') newTabStats.packed = newTabStats.packed + 1;
+        if (newStatus === 'workstation') newTabStats.workstation = newTabStats.workstation + 1;
+        
+        console.log('タブ統計更新:', newTabStats);
+        return newTabStats;
+      });
+      
+      // トーストメッセージを表示
+      showToast({
+        title: 'ステータス更新',
+        message: `ステータスを${statusLabels[newStatus]}に更新しました`,
+        type: 'success'
+      });
+
+      console.log(`✅ ステータス更新完了: ${itemId} -> ${newStatus}`);
+      
+    } catch (error) {
+      console.error('ステータス更新エラー:', error);
+      showToast({
+        title: 'エラー', 
+        message: 'ステータス更新に失敗しました',
+        type: 'error'
+      });
+    }
   };
 
 
@@ -545,7 +681,7 @@ export default function StaffShippingPage() {
       // }
 
       // 一時的にローカルステートのみ更新
-      updateItemStatus(item.id, 'ready_for_pickup');
+      await updateItemStatus(item.id, 'ready_for_pickup');
       
       // 同梱パッケージの場合の表示メッセージを調整
       const orderDisplay = item.isBundle && item.bundledItems 
@@ -604,11 +740,15 @@ export default function StaffShippingPage() {
         <NexusButton
           variant="primary"
           size="sm"
-          onClick={() => {
-            const workstationItem = selectedItemData.find(item => 
-              item.status === 'workstation' || item.status === 'picked'
-            );
-            if (workstationItem) handleInlineAction(workstationItem, 'pack');
+          onClick={async () => {
+            try {
+              const workstationItem = selectedItemData.find(item => 
+                item.status === 'workstation' || item.status === 'picked'
+              );
+              if (workstationItem) await handleInlineAction(workstationItem, 'pack');
+            } catch (error) {
+              console.error('一括梱包処理エラー:', error);
+            }
           }}
           className="flex items-center gap-1"
         >
@@ -758,24 +898,59 @@ export default function StaffShippingPage() {
 
   // 一括集荷準備
   const handleBulkShip = async (packedItems: ShippingItem[]) => {
-    for (const item of packedItems) {
-      updateItemStatus(item.id, 'ready_for_pickup');
+    try {
+      console.log(`🚚 一括集荷準備開始: ${packedItems.length}件`);
+      
+      // 各アイテムのステータスを順次更新
+      let successCount = 0;
+      for (const item of packedItems) {
+        try {
+          await updateItemStatus(item.id, 'ready_for_pickup');
+          successCount++;
+          console.log(`✅ ${successCount}/${packedItems.length} 更新完了`);
+        } catch (itemError) {
+          console.error(`❌ ${item.id} 更新失敗:`, itemError);
+          // 個別エラーは続行可能
+        }
+      }
+      
+      setSelectedItems([]);
+      
+      if (successCount === packedItems.length) {
+        showToast({
+          title: '一括作業完了',
+          message: `${packedItems.length}件の商品を集荷エリアへ移動しました`,
+          type: 'success'
+        });
+      } else if (successCount > 0) {
+        showToast({
+          title: '一括作業部分完了',
+          message: `${successCount}/${packedItems.length}件の商品を集荷エリアへ移動しました`,
+          type: 'warning'
+        });
+      } else {
+        throw new Error('すべてのアイテムの更新に失敗しました');
+      }
+      
+      console.log(`🏁 一括集荷準備完了: ${successCount}/${packedItems.length}`);
+      
+    } catch (error) {
+      console.error('一括処理エラー:', error);
+      showToast({
+        title: 'エラー',
+        message: `一括処理中にエラーが発生しました: ${error.message || error}`,
+        type: 'error'
+      });
     }
-    setSelectedItems([]);
-    showToast({
-      title: '一括作業完了',
-      message: `${packedItems.length}件の商品を集荷エリアへ移動しました`,
-      type: 'success'
-    });
   };
 
   // ピックアップ処理は削除（ロケーション管理で実施）
 
   // インライン作業処理
-  const handleInlineAction = (item: ShippingItem, action: string) => {
+  const handleInlineAction = async (item: ShippingItem, action: string) => {
     switch (action) {
       case 'inspect':
-        updateItemStatus(item.id, 'packed');
+        await updateItemStatus(item.id, 'packed');
         break;
       case 'pack':
         handlePackingInstruction(item);
@@ -833,30 +1008,54 @@ export default function StaffShippingPage() {
             <div className="border-b border-nexus-border mb-6">
               <nav className="-mb-px flex space-x-8" aria-label="Tabs">
                 {[
-                  { id: 'all', label: '全体', count: tabStats.total },
-                  { id: 'workstation', label: '梱包待ち', count: tabStats.workstation },
-                  { id: 'packed', label: '梱包済み', count: tabStats.packed },
-                  { id: 'ready_for_pickup', label: '集荷準備完了', count: tabStats.ready_for_pickup },
-                ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`
-                      whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors
-                      ${activeTab === tab.id
-                        ? 'border-nexus-blue text-nexus-blue'
-                        : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-gray-300'
-                      }
-                    `}
-                  >
-                    {tab.label}
-                    <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      activeTab === tab.id ? 'bg-nexus-blue text-white' : 'bg-nexus-bg-secondary text-nexus-text-secondary'
-                    }`}>
-                      {tab.count}
-                    </span>
-                  </button>
-                ))}
+                  { id: 'all', label: '全体', count: tabStats.total, color: 'blue' },
+                  { id: 'workstation', label: '梱包待ち', count: tabStats.workstation, color: 'yellow' },
+                  { id: 'packed', label: '梱包済み', count: tabStats.packed, color: 'cyan' },
+                  { id: 'ready_for_pickup', label: '集荷準備完了', count: tabStats.ready_for_pickup, color: 'orange' },
+                ].map((tab) => {
+                  // 統一デザインパターンによる配色設定
+                  const getTabBadgeStyle = (tabColor: string, isActive: boolean) => {
+                    const colorMap = {
+                      blue: isActive 
+                        ? 'bg-blue-800 text-white border-2 border-blue-600' 
+                        : 'bg-blue-600 text-white border border-blue-500',
+                      yellow: isActive 
+                        ? 'bg-yellow-800 text-white border-2 border-yellow-600' 
+                        : 'bg-yellow-600 text-white border border-yellow-500',
+                      cyan: isActive 
+                        ? 'bg-cyan-800 text-white border-2 border-cyan-600' 
+                        : 'bg-cyan-600 text-white border border-cyan-500',
+                      orange: isActive 
+                        ? 'bg-orange-800 text-white border-2 border-orange-600' 
+                        : 'bg-orange-600 text-white border border-orange-500',
+                    };
+                    return colorMap[tabColor] || colorMap.blue;
+                  };
+
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`
+                        whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-all duration-300
+                        ${activeTab === tab.id
+                          ? 'border-nexus-blue text-nexus-blue'
+                          : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-gray-300'
+                        }
+                      `}
+                    >
+                      {tab.label}
+                      <span className={`
+                        ml-2 inline-flex items-center px-2.5 py-1 rounded-lg
+                        text-xs font-black font-display uppercase tracking-wider
+                        transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105
+                        ${getTabBadgeStyle(tab.color, activeTab === tab.id)}
+                      `}>
+                        {tab.count}
+                      </span>
+                    </button>
+                  );
+                })}
               </nav>
             </div>
 
@@ -896,8 +1095,8 @@ export default function StaffShippingPage() {
                   </tr>
                 </thead>
                 <tbody className="holo-body">
-                  {paginatedItems.map((item) => (
-                    <React.Fragment key={item.id}>
+                  {paginatedItems.map((item, index) => (
+                    <React.Fragment key={`${item.id}-${index}`}>
                       <tr className="holo-row">
                         <td className="p-4">
                           <input
@@ -984,7 +1183,13 @@ export default function StaffShippingPage() {
                             {/* ピックアップはロケーション管理で実施するため、ここでは不要 */}
                             {(item.status === 'picked' || item.status === 'workstation') && (
                               <NexusButton
-                                onClick={() => handleInlineAction(item, 'pack')}
+                                onClick={async () => {
+                                  try {
+                                    await handleInlineAction(item, 'pack');
+                                  } catch (error) {
+                                    console.error('梱包処理エラー:', error);
+                                  }
+                                }}
                                 variant="primary"
                                 size="sm"
                                 className="flex items-center gap-1"
@@ -996,7 +1201,13 @@ export default function StaffShippingPage() {
                             {item.status === 'packed' && (
                               <>
                                 <NexusButton
-                                  onClick={() => handleInlineAction(item, 'print')}
+                                  onClick={async () => {
+                                    try {
+                                      await handleInlineAction(item, 'print');
+                                    } catch (error) {
+                                      console.error('印刷処理エラー:', error);
+                                    }
+                                  }}
                                   variant="default"
                                   size="sm"
                                   className="flex items-center gap-1"
@@ -1005,7 +1216,13 @@ export default function StaffShippingPage() {
                                   ラベル印刷
                                 </NexusButton>
                                 <NexusButton
-                                  onClick={() => handleInlineAction(item, 'ship')}
+                                  onClick={async () => {
+                                    try {
+                                      await handleInlineAction(item, 'ship');
+                                    } catch (error) {
+                                      console.error('出荷処理エラー:', error);
+                                    }
+                                  }}
                                   variant="primary"
                                   size="sm"
                                   className="flex items-center gap-1"
@@ -1017,7 +1234,13 @@ export default function StaffShippingPage() {
                             )}
                             {item.status === 'shipped' && (
                               <NexusButton
-                                onClick={() => handleInlineAction(item, 'deliver')}
+                                onClick={async () => {
+                                  try {
+                                    await handleInlineAction(item, 'deliver');
+                                  } catch (error) {
+                                    console.error('配送完了処理エラー:', error);
+                                  }
+                                }}
                                 variant="primary"
                                 size="sm"
                                 className="flex items-center gap-1"

@@ -148,7 +148,7 @@ const businessStatusConfig = {
     border: 'border-cyan-800 dark:border-cyan-800'
   },
   ready_for_pickup: { 
-    label: '集荷準備中', 
+    label: '集荷準備完了', 
     bg: 'bg-orange-800 dark:bg-orange-800',
     text: 'text-white dark:text-white',
     border: 'border-orange-800 dark:border-orange-800'

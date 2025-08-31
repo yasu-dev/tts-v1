@@ -97,7 +97,7 @@ export default function ShippingDetailModal({
     'storage': '保管中',
     'packed': '梱包済み',
     'shipped': '出荷済み',
-    'ready_for_pickup': '集荷準備中'
+    'ready_for_pickup': '集荷準備完了'
   };
 
 

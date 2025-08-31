@@ -130,7 +130,7 @@ async function seedMasterData() {
       { workflowType: 'shipping', key: 'storage', nameJa: '保管中', nameEn: 'Storage', order: 1 },
       { workflowType: 'shipping', key: 'workstation', nameJa: '梱包作業中', nameEn: 'Workstation', order: 2 },
       { workflowType: 'shipping', key: 'packed', nameJa: '梱包完了', nameEn: 'Packed', order: 3 },
-      { workflowType: 'shipping', key: 'ready_for_pickup', nameJa: '出荷済み', nameEn: 'Ready for Pickup', order: 4 },
+      { workflowType: 'shipping', key: 'ready_for_pickup', nameJa: '集荷準備完了', nameEn: 'Ready for Pickup', order: 4 },
     ];
 
     // 検品ワークフロー
