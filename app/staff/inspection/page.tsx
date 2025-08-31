@@ -613,11 +613,21 @@ export default function InspectionPage() {
     await updateInspectionStatus(productId, newStatus);
   };
 
-  // 商品詳細表示（統一化により不使用）
+  // 商品詳細表示（保管完了済みは情報表示専用モーダル）
   const handleViewProduct = (product: Product) => {
-    // 詳細表示も統一のため、検品画面に遷移
-    saveCurrentState();
-    window.location.href = `/staff/inspection/${product.id}`;
+    const metadata = parseProductMetadata(product.metadata);
+    
+    // 保管完了済み商品の場合は在庫管理ページで情報表示専用モーダルを開く
+    if (product.status === 'storage' || 
+        (product.status === 'completed' && metadata.currentStep >= 4)) {
+      // 状態を保存してから在庫管理ページの情報表示モーダルに遷移
+      saveCurrentState();
+      window.location.href = `/staff/inventory?viewProduct=${product.id}`;
+    } else {
+      // その他の場合は従来通り検品画面に遷移
+      saveCurrentState();
+      window.location.href = `/staff/inspection/${product.id}`;
+    }
   };
 
   // 行の展開/折りたたみ

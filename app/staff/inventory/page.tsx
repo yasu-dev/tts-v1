@@ -6,8 +6,10 @@ import QRCodeModal from '../../components/QRCodeModal';
 import ItemDetailModal from '../../components/ItemDetailModal';
 import ProductEditModal from '../../components/ProductEditModal';
 import ProductMoveModal from '../../components/ProductMoveModal';
+import ProductInfoModal from '../../components/modals/ProductInfoModal';
 import BarcodeScanner from '../../components/features/BarcodeScanner';
 import { useState, useEffect, useRef, useMemo } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   XMarkIcon,
   CheckIcon
@@ -53,6 +55,8 @@ export default function StaffInventoryPage() {
   const barcodeScannerRef = useRef<HTMLDivElement>(null);
   const { showToast } = useToast();
   const { setIsAnyModalOpen } = useModal();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<InventoryItem[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
@@ -71,6 +75,8 @@ export default function StaffInventoryPage() {
   const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
   const [isBarcodeScannerOpen, setIsBarcodeScannerOpen] = useState(false);
   const [isListingModalOpen, setIsListingModalOpen] = useState(false);
+  const [isProductInfoModalOpen, setIsProductInfoModalOpen] = useState(false);
+  const [selectedProductForInfo, setSelectedProductForInfo] = useState<any>(null);
   
   // マスタデータの取得
   const { categories, loading: categoriesLoading } = useCategories();
@@ -300,6 +306,79 @@ export default function StaffInventoryPage() {
       setCurrentPage(1);
     }
   }, [items, selectedStatus, selectedLocation, selectedStaff, selectedSeller]);
+
+  // URLパラメータから商品IDを取得して情報表示モーダルを開く
+  useEffect(() => {
+    const viewProductId = searchParams.get('viewProduct');
+    if (viewProductId && items.length > 0) {
+      // 商品情報を詳細に取得
+      fetchProductDetail(viewProductId);
+    }
+  }, [searchParams, items]);
+
+  // 商品詳細情報を取得してモーダルを開く
+  const fetchProductDetail = async (productId: string) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/products/${productId}`);
+      
+      if (!response.ok) {
+        throw new Error('商品情報の取得に失敗しました');
+      }
+
+      const productData = await response.json();
+      
+      // ProductInfoModalで使用する形式に変換
+      const formattedProduct = {
+        id: productData.id,
+        name: productData.name,
+        sku: productData.sku,
+        category: productData.category,
+        status: productData.status,
+        condition: productData.condition,
+        price: productData.price,
+        description: productData.description,
+        imageUrl: productData.imageUrl,
+        entryDate: productData.entryDate,
+        inspectedAt: productData.inspectedAt,
+        inspectedBy: productData.inspectedBy,
+        inspectionNotes: productData.inspectionNotes,
+        currentLocation: productData.currentLocation,
+        seller: productData.seller,
+        images: productData.images,
+        updatedAt: productData.updatedAt,
+      };
+
+      setSelectedProductForInfo(formattedProduct);
+      setIsProductInfoModalOpen(true);
+      
+      showToast({
+        type: 'success',
+        title: '商品情報を表示',
+        message: `${productData.name} の詳細情報を表示しています`,
+        duration: 2000
+      });
+      
+    } catch (error) {
+      console.error('商品詳細取得エラー:', error);
+      showToast({
+        type: 'error',
+        title: 'エラー',
+        message: '商品情報の取得に失敗しました',
+        duration: 4000
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 情報表示モーダルを閉じる
+  const handleCloseProductInfoModal = () => {
+    setIsProductInfoModalOpen(false);
+    setSelectedProductForInfo(null);
+    // URLパラメータをクリア
+    router.replace('/staff/inventory');
+  };
 
   // 動的カテゴリーオプション生成（APIから取得）
   const categoryOptions = useMemo(() => {
@@ -776,6 +855,13 @@ export default function StaffInventoryPage() {
             imageUrl: selectedItem.imageUrl
           } : null}
           onSuccess={handleListingSuccess}
+        />
+
+        {/* Product Info Modal (for storage completed products) */}
+        <ProductInfoModal
+          isOpen={isProductInfoModalOpen}
+          onClose={handleCloseProductInfoModal}
+          product={selectedProductForInfo}
         />
 
         {/* Barcode Scanner Modal */}

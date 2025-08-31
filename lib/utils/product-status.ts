@@ -137,6 +137,7 @@ export interface ScanDestination {
   tab: string;
   message: string;
   reason: string;
+  modalType?: 'info' | 'inspection'; // 情報表示専用か検品編集かを判定
 }
 
 export function determineBarcodeDestination(product: any): ScanDestination {
@@ -147,10 +148,24 @@ export function determineBarcodeDestination(product: any): ScanDestination {
     status: product.status,
     metadata: metadata,
     inspectionCompleted: metadata.inspectionCompleted,
-    currentStep: metadata.currentStep
+    currentStep: metadata.currentStep,
+    currentLocationId: product.currentLocationId
   });
 
-  // 1. 納品直後（検品未実施）→ 検品項目タブ
+  // 1. 保管完了済み（検品・棚保管両方完了）→ 情報表示専用モーダル
+  if (product.status === 'storage' && 
+      product.currentLocationId && 
+      metadata.currentStep >= 4) {
+    return {
+      step: 4,
+      tab: 'info',
+      message: `${product.name} の商品情報を表示します`,
+      reason: '保管完了済み・情報表示専用',
+      modalType: 'info'
+    };
+  }
+
+  // 2. 納品直後（検品未実施）→ 検品項目タブ
   if (product.status === 'pending_inspection' || 
       product.status === 'inbound' ||
       (!metadata.inspectionCompleted && product.status === 'inspecting')) {
@@ -158,38 +173,42 @@ export function determineBarcodeDestination(product: any): ScanDestination {
       step: 1,
       tab: 'inspection',
       message: `${product.name} の検品項目画面へ移動します`,
-      reason: '納品直後・検品未実施'
+      reason: '納品直後・検品未実施',
+      modalType: 'inspection'
     };
   }
   
-  // 2. 検品完了済み（棚保管が必要）→ 棚保管タブ  
+  // 3. 検品完了済み（棚保管が必要）→ 棚保管タブ  
   if ((product.status === 'inspecting' && metadata.inspectionCompleted) ||
-      product.status === 'storage' ||
+      (product.status === 'storage' && !product.currentLocationId) ||
       metadata.currentStep >= 4) {
     return {
       step: 4,
       tab: 'storage',
       message: `${product.name} の棚保管画面へ移動します`,
-      reason: '検品完了済み・棚保管処理'
+      reason: '検品完了済み・棚保管処理',
+      modalType: 'inspection'
     };
   }
   
-  // 3. 検品中の場合、現在のステップに応じて判定
+  // 4. 検品中の場合、現在のステップに応じて判定
   if (product.status === 'inspecting' && metadata.currentStep) {
     const step = metadata.currentStep;
     return {
       step: step,
       tab: step >= 4 ? 'storage' : 'inspection',
       message: `${product.name} の${getStepName(step)}画面へ移動します`,
-      reason: `検品中・ステップ${step}継続`
+      reason: `検品中・ステップ${step}継続`,
+      modalType: 'inspection'
     };
   }
   
-  // 4. デフォルト：検品項目タブから開始
+  // 5. デフォルト：検品項目タブから開始
   return {
     step: 1,
     tab: 'inspection',  
     message: `${product.name} の検品項目画面へ移動します`,
-    reason: 'デフォルト判定・検品開始'
+    reason: 'デフォルト判定・検品開始',
+    modalType: 'inspection'
   };
 }

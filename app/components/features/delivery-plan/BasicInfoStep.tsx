@@ -176,7 +176,6 @@ export default function BasicInfoStep({
             <h4 className="text-sm font-medium text-nexus-text-primary mb-2">選択された倉庫情報</h4>
             <div className="space-y-1 text-sm text-nexus-text-secondary">
               <div><span className="font-medium">倉庫名:</span> {selectedWarehouse.name}</div>
-              <div><span className="font-medium">住所:</span> {selectedWarehouse.address}</div>
               {selectedWarehouse.phone && (
                 <div><span className="font-medium">電話:</span> {selectedWarehouse.phone}</div>
               )}

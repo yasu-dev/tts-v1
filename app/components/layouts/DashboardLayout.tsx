@@ -237,33 +237,39 @@ export default function DashboardLayout({
 
           // 判定された遷移先へ移動
           setTimeout(() => {
-            router.push(`/staff/inspection/${product.id}?step=${destination.step}`);
-            
-            // 遷移後に棚番号入力フィールドにフォーカス設定
-            setTimeout(() => {
-              const focusShelfInput = () => {
-                const shelfInput = document.querySelector('input[placeholder*="棚番号"]') as HTMLInputElement;
-                if (shelfInput) {
-                  console.log('[グローバルバーコード] 棚番号入力フィールドにフォーカス設定成功');
-                  shelfInput.focus();
-                  shelfInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                  return true;
-                }
-                return false;
-              };
+            if (destination.modalType === 'info') {
+              // 保管完了済み商品の場合は在庫管理ページで情報表示モーダルを開く
+              router.push(`/staff/inventory?viewProduct=${product.id}`);
+            } else {
+              // 検品・編集が必要な場合は従来通り検品画面に遷移
+              router.push(`/staff/inspection/${product.id}?step=${destination.step}`);
               
-              // 複数回試行して確実にフォーカス設定
-              let attempts = 0;
-              const tryFocus = () => {
-                attempts++;
-                if (focusShelfInput() || attempts >= 10) {
-                  return; // 成功または最大試行回数に達したら終了
-                }
-                setTimeout(tryFocus, 300); // 300ms間隔で再試行
-              };
-              
-              tryFocus();
-            }, 1000);
+              // 遷移後に棚番号入力フィールドにフォーカス設定
+              setTimeout(() => {
+                const focusShelfInput = () => {
+                  const shelfInput = document.querySelector('input[placeholder*="棚番号"]') as HTMLInputElement;
+                  if (shelfInput) {
+                    console.log('[グローバルバーコード] 棚番号入力フィールドにフォーカス設定成功');
+                    shelfInput.focus();
+                    shelfInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return true;
+                  }
+                  return false;
+                };
+                
+                // 複数回試行して確実にフォーカス設定
+                let attempts = 0;
+                const tryFocus = () => {
+                  attempts++;
+                  if (focusShelfInput() || attempts >= 10) {
+                    return; // 成功または最大試行回数に達したら終了
+                  }
+                  setTimeout(tryFocus, 300); // 300ms間隔で再試行
+                };
+                
+                tryFocus();
+              }, 1000);
+            }
           }, 500);
 
         } catch (error) {
@@ -724,7 +730,7 @@ export default function DashboardLayout({
                 </svg>
               </button>
             </div>
-            {!isFlowCollapsed && (
+            {!isFlowCollapsed && !isAnyModalOpen && (
               <UnifiedProductFlow 
                 currentStage={getCurrentStage()} 
                 userType={userType}
