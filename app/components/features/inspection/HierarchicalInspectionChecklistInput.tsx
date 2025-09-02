@@ -174,10 +174,11 @@ export default function HierarchicalInspectionChecklistInput({
     );
   };
 
-  // 統計計算
+  // 統計計算（安全なnullチェック）
   const totalItems = INSPECTION_CATEGORIES.reduce((sum, category) => sum + category.items.length, 0);
   const checkedItems = INSPECTION_CATEGORIES.reduce((sum, category) => {
     return sum + category.items.filter(item => {
+      if (!data?.responses?.[category.id]) return false;
       const response = data.responses[category.id]?.[item.id];
       return (response?.booleanValue === true) || (response?.textValue && response.textValue.trim() !== '');
     }).length;
@@ -215,7 +216,7 @@ export default function HierarchicalInspectionChecklistInput({
       <div className="space-y-3">
         {INSPECTION_CATEGORIES.map((category) => {
           const isExpanded = expandedCategories.includes(category.id);
-          const categoryResponses = data.responses[category.id] || {};
+          const categoryResponses = data?.responses?.[category.id] || {};
           const checkedCount = category.items.filter(item => {
             const response = categoryResponses[item.id];
             return (response?.booleanValue === true) || (response?.textValue && response.textValue.trim() !== '');

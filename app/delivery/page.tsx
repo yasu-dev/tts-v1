@@ -23,6 +23,7 @@ import {
   ChevronDownIcon,
   ArchiveBoxIcon,
   ExclamationTriangleIcon,
+  PencilIcon,
 } from '@heroicons/react/24/outline';
 import NexusButton from '@/app/components/ui/NexusButton';
 import NexusInput from '@/app/components/ui/NexusInput';
@@ -36,6 +37,9 @@ import { useModal } from '@/app/components/ui/ModalContext';
 import { useSystemSetting } from '@/lib/hooks/useMasterData';
 import { useIsHierarchicalChecklistEnabled } from '@/lib/hooks/useHierarchicalChecklistFeature';
 import HierarchicalChecklistDisplay from '@/app/components/features/delivery-plan/HierarchicalChecklistDisplay';
+import PhotographyRequestDisplay from '@/app/components/features/photography/PhotographyRequestDisplay';
+import InspectionChecklistInput, { InspectionChecklistData } from '@/app/components/features/inspection/InspectionChecklistInput';
+import HierarchicalInspectionChecklistInput from '@/app/components/features/inspection/HierarchicalInspectionChecklistInput';
 
 type SortField = 'date' | 'status' | 'items' | 'value';
 type SortDirection = 'asc' | 'desc';
@@ -78,6 +82,11 @@ export default function DeliveryPage() {
   const [cancelConfirmStep, setCancelConfirmStep] = useState(0); // 段階的確認: 0=初期, 1=警告確認, 2=最終確認
   const [cancelTypeText, setCancelTypeText] = useState(''); // タイプ確認用
   const [isCancelProcessing, setIsCancelProcessing] = useState(false);
+
+  // 📝 編集機能用の状態
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editData, setEditData] = useState<any>(null);
+  const [isEditSubmitting, setIsEditSubmitting] = useState(false);
   
   // マスタデータの取得
   const { setting: deliveryStatuses, loading: masterDataLoading } = useSystemSetting('delivery_statuses');
@@ -522,6 +531,95 @@ export default function DeliveryPage() {
     setIsAnyModalOpen(true); // 業務フロー制御
   };
 
+  // 📝 編集機能ハンドラー
+  const handleEditPlan = (plan: any) => {
+    setSelectedPlan(plan);
+    setEditData({
+      deliveryAddress: plan.deliveryAddress,
+      date: plan.date,
+      contactEmail: plan.contactEmail,
+      phoneNumber: plan.phoneNumber,
+      products: plan.products.map((product: any) => ({
+        ...product,
+        photographyRequests: product.photographyRequests || {
+          photographyPlan: product.photographyPlan || [],
+          premiumAddCount: product.photographyRequests?.premiumAddCount || undefined,
+          premiumCustomRequests: product.photographyRequests?.premiumCustomRequests || '',
+        },
+        premiumPacking: product.premiumPacking || false,
+        // 🆕 階層型検品データの安全な初期化
+        hierarchicalInspectionData: product.hierarchicalInspectionData || {
+          responses: {},
+          notes: '',
+          createdBy: null,
+          createdAt: null,
+          verifiedBy: null
+        }
+      }))
+    });
+    setIsEditModalOpen(true);
+    setIsAnyModalOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    try {
+      setIsEditSubmitting(true);
+      
+      // バリデーション
+      if (!editData?.deliveryAddress) {
+        showToast({
+          type: 'warning',
+          title: 'バリデーションエラー',
+          message: '納品先住所は必須です。'
+        });
+        return;
+      }
+
+      if (!editData.products || editData.products.length === 0) {
+        showToast({
+          type: 'warning',
+          title: 'バリデーションエラー',
+          message: '最低一つの商品が必要です。'
+        });
+        return;
+      }
+
+      const response = await fetch(`/api/delivery-plan/${selectedPlan.id}`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editData),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || '編集に失敗しました');
+      }
+
+      showToast({
+        type: 'success',
+        title: '編集完了',
+        message: '納品プランが正常に更新されました'
+      });
+
+      // データ再読み込み
+      fetchDeliveryPlans();
+      setIsEditModalOpen(false);
+      setIsAnyModalOpen(false);
+    } catch (error) {
+      showToast({
+        type: 'error',
+        title: '編集エラー',
+        message: error instanceof Error ? error.message : '編集に失敗しました'
+      });
+    } finally {
+      setIsEditSubmitting(false);
+    }
+  };
+
   const generateBarcodePDF = async (planId: number) => {
     try {
       showToast({
@@ -911,6 +1009,8 @@ export default function DeliveryPage() {
                             <span className="ml-1">詳細</span>
                           </NexusButton>
 
+
+
                           {plan.status === 'Pending' && (
                             <>
                               <NexusButton
@@ -1090,7 +1190,16 @@ export default function DeliveryPage() {
                               />
                             )}
                             <div className="flex-1">
-                              <h5 className="font-medium text-nexus-text-primary text-base">{product.name}</h5>
+                              <h5 className="font-medium text-nexus-text-primary text-lg">{product.name || '商品名未設定'}</h5>
+                              {/* デバッグ情報 */}
+                              {console.log(`[DEBUG] 詳細画面商品データ (${product.name}):`, {
+                                purchasePrice: product.purchasePrice,
+                                estimatedValue: product.estimatedValue,
+                                supplier: product.supplier,
+                                supplierDetails: product.supplierDetails,
+                                photographyRequests: product.photographyRequests,
+                                premiumPacking: product.premiumPacking
+                              })}
                               <div className="flex items-center gap-2 mt-1">
                                 <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
                                   {product.category === 'camera' || product.category === 'camera_body' ? 'カメラ' :
@@ -1108,134 +1217,104 @@ export default function DeliveryPage() {
                                   </span>
                                 )}
                               </div>
+                              {/* 🆕 購入価格・見積価値表示 */}
+                              <div className="mt-2 space-y-1">
+                                {product.purchasePrice !== undefined && product.purchasePrice > 0 && (
+                                  <div className="text-sm">
+                                    <span className="font-medium text-nexus-text-secondary">購入価格:</span>
+                                    <span className="ml-2 text-nexus-text-primary font-bold text-base">¥{product.purchasePrice.toLocaleString()}</span>
+                                  </div>
+                                )}
+                                {product.estimatedValue !== undefined && product.estimatedValue > 0 && (
+                                  <div className="text-sm">
+                                    <span className="font-medium text-nexus-text-secondary">見積価値:</span>
+                                    <span className="ml-2 text-nexus-text-primary">¥{product.estimatedValue.toLocaleString()}</span>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
 
-                          <div className="space-y-2 text-sm">
 
-                            {product.purchasePrice !== undefined && product.purchasePrice > 0 && (
-                              <div>
-                                <span className="font-medium text-nexus-text-secondary">購入価格:</span>
-                                <span className="ml-2 text-nexus-text-primary">¥{product.purchasePrice.toLocaleString()}</span>
-                              </div>
-                            )}
-                            {product.serialNumber && (
-                              <div>
-                                <span className="font-medium text-nexus-text-secondary">シリアル番号:</span>
-                                <span className="ml-2 font-mono text-xs text-nexus-text-primary">{product.serialNumber}</span>
-                              </div>
-                            )}
-                          </div>
                         </div>
 
-                        {/* 仕入・詳細情報 */}
-                        <div>
-                          <h6 className="font-medium text-nexus-text-primary mb-2 text-sm">仕入情報</h6>
-                          <div className="space-y-2 text-sm">
-                            {product.purchaseDate && (
-                              <div>
-                                <span className="font-medium text-nexus-text-secondary">仕入日:</span>
-                                <span className="ml-2 text-nexus-text-primary">{product.purchaseDate}</span>
-                              </div>
-                            )}
-                            {product.supplier && (
-                              <div>
-                                <span className="font-medium text-nexus-text-secondary">仕入先:</span>
-                                <span className="ml-2 text-nexus-text-primary">{product.supplier}</span>
-                              </div>
-                            )}
-                            {product.supplierDetails && (
-                              <div>
-                                <span className="font-medium text-nexus-text-secondary">仕入詳細:</span>
-                                <div className="ml-0 mt-1 text-nexus-text-primary bg-nexus-bg-tertiary p-2 rounded text-xs">
-                                  {product.supplierDetails}
+                        {/* 🆕 仕入・詳細情報（値が存在する項目のみ表示） */}
+                        {(product.purchaseDate || product.supplier || product.supplierDetails || product.brand || product.model || product.serialNumber || product.sku) && (
+                          <div>
+                            <h6 className="font-medium text-nexus-text-primary mb-3 text-sm">📋 仕入・詳細情報</h6>
+                            <div className="space-y-2 text-sm">
+                              {product.purchaseDate && (
+                                <div>
+                                  <span className="font-medium text-nexus-text-secondary">仕入日:</span>
+                                  <span className="ml-2 text-nexus-text-primary">{product.purchaseDate}</span>
                                 </div>
-                              </div>
-                            )}
-                            {product.brand && (
-                              <div>
-                                <span className="font-medium text-nexus-text-secondary">ブランド:</span>
-                                <span className="ml-2 text-nexus-text-primary">{product.brand}</span>
-                              </div>
-                            )}
-                            {product.model && (
-                              <div>
-                                <span className="font-medium text-nexus-text-secondary">モデル:</span>
-                                <span className="ml-2 text-nexus-text-primary">{product.model}</span>
-                              </div>
-                            )}
+                              )}
+                              {product.supplier && (
+                                <div>
+                                  <span className="font-medium text-nexus-text-secondary">仕入先:</span>
+                                  <span className="ml-2 text-nexus-text-primary font-medium">{product.supplier}</span>
+                                </div>
+                              )}
+                              {product.supplierDetails && (
+                                <div>
+                                  <span className="font-medium text-nexus-text-secondary">仕入詳細:</span>
+                                  <div className="ml-0 mt-1 text-nexus-text-primary bg-nexus-bg-tertiary p-2 rounded text-xs">
+                                    {product.supplierDetails}
+                                  </div>
+                                </div>
+                              )}
+                              {product.brand && (
+                                <div>
+                                  <span className="font-medium text-nexus-text-secondary">ブランド:</span>
+                                  <span className="ml-2 text-nexus-text-primary">{product.brand}</span>
+                                </div>
+                              )}
+                              {product.model && (
+                                <div>
+                                  <span className="font-medium text-nexus-text-secondary">モデル:</span>
+                                  <span className="ml-2 text-nexus-text-primary">{product.model}</span>
+                                </div>
+                              )}
+                              {product.serialNumber && (
+                                <div>
+                                  <span className="font-medium text-nexus-text-secondary">シリアル番号:</span>
+                                  <span className="ml-2 font-mono text-xs text-nexus-text-primary">{product.serialNumber}</span>
+                                </div>
+                              )}
+                              {product.sku && (
+                                <div>
+                                  <span className="font-medium text-nexus-text-secondary">SKU:</span>
+                                  <span className="ml-2 font-mono text-xs text-nexus-text-primary">{product.sku}</span>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        </div>
+                        )}
                       </div>
 
 
 
-                      {/* 撮影要望 */}
-                      {(() => {
-                        console.log(`[DEBUG] 撮影要望データ確認 (商品: ${product.name}):`, {
-                          hasPhotographyRequests: !!product.photographyRequests,
-                          photographyRequests: product.photographyRequests
-                        });
-                        return null;
-                      })()}
-                      {product.photographyRequests && (
-                        <div className="mt-3 pt-3 border-t border-gray-300">
-                          <span className="font-medium text-nexus-text-secondary text-sm mb-3 block">
-                            撮影要望
-                          </span>
-                          <div className="bg-nexus-bg-tertiary p-3 rounded">
-                            {product.photographyRequests.specialPhotography && (
-                              <div className="mb-3">
-                                <span className="inline-flex items-center px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
-                                  特別撮影要求あり
-                                </span>
-                              </div>
-                            )}
-                            
-                            {product.photographyRequests.specialPhotographyItems && 
-                             product.photographyRequests.specialPhotographyItems.length > 0 && (
-                              <div className="mb-3">
-                                <span className="font-medium text-nexus-text-secondary text-sm block mb-2">
-                                  特別撮影項目:
-                                </span>
-                                <div className="flex flex-wrap gap-2">
-                                  {product.photographyRequests.specialPhotographyItems.map((item: string, idx: number) => {
-                                    const itemLabels: Record<string, string> = {
-                                      'diagonal_45': '斜め45度撮影',
-                                      'functional_details': '機能詳細撮影',
-                                      'accessories_individual': '付属品個別撮影',
-                                      'closeup': 'クローズアップ撮影',
-                                      'internal_structure': '内部構造撮影',
-                                      'multiple_angles': '多角度撮影',
-                                      'lighting_variation': 'ライティング変更',
-                                      'macro_photography': 'マクロ撮影',
-                                      // 不足していた項目を追加
-                                      'accessories': '付属品',
-                                      'other': 'その他'
-                                    };
-                                    return (
-                                      <span 
-                                        key={idx}
-                                        className="inline-flex items-center px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded"
-                                      >
-                                        {itemLabels[item] || item}
-                                      </span>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            )}
-                            
-                            {product.photographyRequests.customRequests && (
-                              <div>
-                                <span className="font-medium text-nexus-text-secondary text-sm block mb-2">
-                                  カスタム要望:
-                                </span>
-                                <p className="text-sm text-nexus-text-primary bg-white p-2 rounded border">
-                                  {product.photographyRequests.customRequests}
-                                </p>
-                              </div>
-                            )}
+                      {/* 撮影要望表示（新構造完全対応） */}
+                      <div className="mt-4">
+                        <PhotographyRequestDisplay
+                          photographyRequests={product.photographyRequests || null}
+                          className=""
+                        />
+                      </div>
+
+                      {/* 🆕 プレミアム梱包表示（選択時のみ表示） */}
+                      {(product.premiumPacking === true || product.premiumPacking === 'true') && (
+                        <div className="mt-4">
+                          <div className="p-3 bg-purple-50 rounded border border-purple-200">
+                            <div className="flex items-center gap-2 text-sm">
+                              <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                              </svg>
+                              <span className="font-bold text-purple-800">✅ プレミアム梱包</span>
+                            </div>
+                            <p className="text-xs text-nexus-text-secondary mt-1 ml-6">
+                              特別な保護材料と丁寧な梱包でお客様にお届け
+                            </p>
                           </div>
                         </div>
                       )}
@@ -1326,70 +1405,63 @@ export default function DeliveryPage() {
                           </div>
                           <div className="bg-nexus-bg-tertiary p-3 rounded border">
                             <div className="space-y-3">
-                              {/* 外装チェック */}
+                              {/* 検品チェックリスト（該当項目のみチェック）- 入力フォームと完全一致 */}
                               <div>
-                                <h6 className="text-xs font-medium text-nexus-text-primary mb-2">外装チェック</h6>
-                                <div className="grid grid-cols-2 gap-2 text-xs">
-                                  <div className={`p-2 rounded ${product.inspectionChecklistData.exterior?.scratches ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-                                    外装キズ: {product.inspectionChecklistData.exterior?.scratches ? '有り' : '無し'}
+                                <h6 className="text-xs font-medium text-nexus-text-primary mb-2">検品チェックリスト（該当項目のみチェック）</h6>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                                  {/* カメラボディ外観（4項目）- 入力フォームと完全一致 */}
+                                  <div className={`p-2 rounded text-center font-medium ${product.inspectionChecklistData.exterior?.scratches ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                                    ✓傷: {product.inspectionChecklistData.exterior?.scratches ? 'チェック' : '正常'}
                                   </div>
-                                  <div className={`p-2 rounded ${product.inspectionChecklistData.exterior?.dents ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-                                    打痕・へこみ: {product.inspectionChecklistData.exterior?.dents ? '有り' : '無し'}
+                                  <div className={`p-2 rounded text-center font-medium ${product.inspectionChecklistData.exterior?.dents ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                                    ✓凹み: {product.inspectionChecklistData.exterior?.dents ? 'チェック' : '正常'}
                                   </div>
-                                  <div className={`p-2 rounded ${product.inspectionChecklistData.exterior?.discoloration ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-                                    部品欠損: {product.inspectionChecklistData.exterior?.discoloration ? '有り' : '無し'}
+                                  <div className={`p-2 rounded text-center font-medium ${product.inspectionChecklistData.exterior?.discoloration ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                                    ✓スレ: {product.inspectionChecklistData.exterior?.discoloration ? 'チェック' : '正常'}
                                   </div>
-                                  <div className={`p-2 rounded ${product.inspectionChecklistData.exterior?.dust ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-                                    汚れ・ホコリ: {product.inspectionChecklistData.exterior?.dust ? '有り' : '無し'}
+                                  <div className={`p-2 rounded text-center font-medium ${product.inspectionChecklistData.exterior?.dust ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                                    ✓汚れ: {product.inspectionChecklistData.exterior?.dust ? 'チェック' : '正常'}
                                   </div>
+                                  
+                                  {/* 露出機能（2項目）+ ファインダー（2項目）- 入力フォームと完全一致 */}
+                                  <div className={`p-2 rounded text-center font-medium ${product.inspectionChecklistData.functionality?.powerOn ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                    ✓作動: {product.inspectionChecklistData.functionality?.powerOn ? 'チェック' : '正常'}
+                                  </div>
+                                  <div className={`p-2 rounded text-center font-medium ${product.inspectionChecklistData.functionality?.allButtonsWork ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                                    ✓不動: {product.inspectionChecklistData.functionality?.allButtonsWork ? 'チェック' : '正常'}
+                                  </div>
+                                  <div className={`p-2 rounded text-center font-medium ${product.inspectionChecklistData.functionality?.screenDisplay ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                                    ✓クモリ: {product.inspectionChecklistData.functionality?.screenDisplay ? 'チェック' : '正常'}
+                                  </div>
+                                  <div className={`p-2 rounded text-center font-medium ${product.inspectionChecklistData.functionality?.connectivity ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                                    ✓カビ: {product.inspectionChecklistData.functionality?.connectivity ? 'チェック' : '正常'}
+                                  </div>
+                                  
+                                  {/* 光学系（2項目）+ 付属品（2項目）- 入力フォームと完全一致 */}
+                                  {product.inspectionChecklistData.optical && (
+                                    <>
+                                      <div className={`p-2 rounded text-center font-medium ${product.inspectionChecklistData.optical?.lensClarity ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                                        ✓チリホコリ: {product.inspectionChecklistData.optical?.lensClarity ? 'チェック' : '正常'}
+                                      </div>
+                                      <div className={`p-2 rounded text-center font-medium ${product.inspectionChecklistData.optical?.aperture ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                                        ✓キズ: {product.inspectionChecklistData.optical?.aperture ? 'チェック' : '正常'}
+                                      </div>
+                                      <div className={`p-2 rounded text-center font-medium ${product.inspectionChecklistData.optical?.focusAccuracy ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                        ✓バッテリー: {product.inspectionChecklistData.optical?.focusAccuracy ? 'チェック' : '正常'}
+                                      </div>
+                                      <div className={`p-2 rounded text-center font-medium ${product.inspectionChecklistData.optical?.stabilization ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                        ✓ケース: {product.inspectionChecklistData.optical?.stabilization ? 'チェック' : '正常'}
+                                      </div>
+                                    </>
+                                  )}
                                 </div>
                               </div>
-
-                              {/* 機能チェック */}
-                              <div>
-                                <h6 className="text-xs font-medium text-nexus-text-primary mb-2">機能チェック</h6>
-                                <div className="grid grid-cols-2 gap-2 text-xs">
-                                  <div className={`p-2 rounded ${product.inspectionChecklistData.functionality?.powerOn ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-                                    電源・動作: {product.inspectionChecklistData.functionality?.powerOn ? '異常' : '正常'}
-                                  </div>
-                                  <div className={`p-2 rounded ${product.inspectionChecklistData.functionality?.allButtonsWork ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-                                    ボタン操作: {product.inspectionChecklistData.functionality?.allButtonsWork ? '異常' : '正常'}
-                                  </div>
-                                  <div className={`p-2 rounded ${product.inspectionChecklistData.functionality?.screenDisplay ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-                                    画面表示: {product.inspectionChecklistData.functionality?.screenDisplay ? '異常' : '正常'}
-                                  </div>
-                                  <div className={`p-2 rounded ${product.inspectionChecklistData.functionality?.connectivity ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-                                    接続機能: {product.inspectionChecklistData.functionality?.connectivity ? '異常' : '正常'}
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* 光学系チェック（カメラ・レンズの場合） */}
-                              {(product.category === 'camera' || product.category === 'camera_body' || product.category === 'lens') && (
-                                <div>
-                                  <h6 className="text-xs font-medium text-nexus-text-primary mb-2">光学系チェック</h6>
-                                  <div className="grid grid-cols-2 gap-2 text-xs">
-                                    <div className={`p-2 rounded ${product.inspectionChecklistData.optical?.lensClarity ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-                                      レンズ清浄度: {product.inspectionChecklistData.optical?.lensClarity ? '問題有' : '良好'}
-                                    </div>
-                                    <div className={`p-2 rounded ${product.inspectionChecklistData.optical?.aperture ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-                                      絞り機構: {product.inspectionChecklistData.optical?.aperture ? '異常' : '正常'}
-                                    </div>
-                                    <div className={`p-2 rounded ${product.inspectionChecklistData.optical?.focusAccuracy ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-                                      フォーカス精度: {product.inspectionChecklistData.optical?.focusAccuracy ? '異常' : '正常'}
-                                    </div>
-                                    <div className={`p-2 rounded ${product.inspectionChecklistData.optical?.stabilization ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-                                      手ブレ補正: {product.inspectionChecklistData.optical?.stabilization ? '異常' : '正常'}
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
 
                               {/* 検品メモ */}
                               {product.inspectionChecklistData.notes && (
                                 <div>
                                   <h6 className="text-xs font-medium text-nexus-text-primary mb-2">検品メモ</h6>
-                                  <div className="bg-nexus-bg-secondary p-2 rounded text-xs text-nexus-text-primary">
+                                  <div className="bg-yellow-50 border border-yellow-200 p-2 rounded text-xs text-yellow-700">
                                     {product.inspectionChecklistData.notes}
                                   </div>
                                 </div>
@@ -1437,6 +1509,16 @@ export default function DeliveryPage() {
               >
                 閉じる
               </NexusButton>
+              
+              {selectedPlan.status === 'Pending' && (
+                <NexusButton
+                  variant="outline"
+                  onClick={() => handleEditPlan(selectedPlan)}
+                >
+                  <PencilIcon className="h-4 w-4 mr-2" />
+                  編集
+                </NexusButton>
+              )}
 
               <NexusButton
                 variant="primary"
@@ -1677,6 +1759,327 @@ export default function DeliveryPage() {
           </div>
         )}
       </BaseModal>
+      {/* 📝 編集モーダル */}
+      <BaseModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setIsAnyModalOpen(false);
+        }}
+        title="納品プラン編集"
+        className="max-w-6xl"
+      >
+        {selectedPlan && editData && (
+          <div className="space-y-6">
+            {/* 基本情報編集 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <NexusInput
+                label="納品先住所"
+                value={editData.deliveryAddress}
+                onChange={(e) => setEditData({...editData, deliveryAddress: e.target.value})}
+                required
+                placeholder="住所を入力"
+              />
+              <NexusInput
+                label="配送希望日時"
+                type="datetime-local"
+                value={editData.date ? new Date(editData.date).toISOString().slice(0, 16) : ''}
+                onChange={(e) => setEditData({...editData, date: e.target.value})}
+              />
+            </div>
+
+            {/* 商品一覧編集 */}
+            <div>
+              <h4 className="font-medium text-nexus-text-primary mb-4">登録商品</h4>
+              <div className="space-y-4">
+                {editData.products.map((product: any, index: number) => (
+                  <div key={index} className="border border-nexus-border rounded-lg p-4">
+                    <div className="flex items-start gap-3 mb-4">
+                      {product.imageUrl && (
+                        <img 
+                          src={product.imageUrl}
+                          alt={product.name}
+                          className="w-16 h-16 object-cover rounded-lg border border-gray-300"
+                        />
+                      )}
+                      <div className="flex-1 space-y-3">
+                        <NexusInput
+                          label="商品名"
+                          value={product.name}
+                          onChange={(e) => {
+                            const updatedProducts = editData.products.map((p: any, i: number) => 
+                              i === index ? {...p, name: e.target.value} : p
+                            );
+                            setEditData({...editData, products: updatedProducts});
+                          }}
+                          required
+                        />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <NexusSelect
+                            label="カテゴリー"
+                            value={product.category}
+                            onChange={(value) => {
+                              const updatedProducts = editData.products.map((p: any, i: number) => 
+                                i === index ? {...p, category: value} : p
+                              );
+                              setEditData({...editData, products: updatedProducts});
+                            }}
+                            options={[
+                              { value: 'camera', label: 'カメラ' },
+                              { value: 'lens', label: 'レンズ' },
+                              { value: 'watch', label: '腕時計' },
+                              { value: 'accessory', label: 'アクセサリ' },
+                              { value: 'other', label: 'その他' }
+                            ]}
+                            required
+                          />
+                          <NexusSelect
+                            label="コンディション"
+                            value={product.condition}
+                            onChange={(value) => {
+                              const updatedProducts = editData.products.map((p: any, i: number) => 
+                                i === index ? {...p, condition: value} : p
+                              );
+                              setEditData({...editData, products: updatedProducts});
+                            }}
+                            options={[
+                              { value: 'excellent', label: '優良' },
+                              { value: 'very_good', label: '美品' },
+                              { value: 'good', label: '良好' },
+                              { value: 'fair', label: '普通' },
+                              { value: 'poor', label: '要修理' }
+                            ]}
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 撮影要望編集 */}
+                    <div className="space-y-4">
+                      {/* 基本撮影プラン */}
+                      <div>
+                        <label className="block text-sm font-medium text-nexus-text-primary mb-2">
+                          撮影プラン
+                        </label>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                          {[
+                            { value: 'overall', label: '全体撮影' },
+                            { value: 'detailed', label: '詳細撮影' },
+                            { value: 'functional', label: '機能撮影' },
+                            { value: 'defect', label: '欠陥部位撮影' },
+                            { value: 'accessories', label: '付属品撮影' },
+                            { value: 'closeup', label: 'クローズアップ撮影' }
+                          ].map((option) => (
+                            <div key={option.value} className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                id={`photo-${index}-${option.value}`}
+                                checked={(product.photographyRequests?.photographyPlan || []).includes(option.value)}
+                                onChange={(e) => {
+                                  const currentPlan = product.photographyRequests?.photographyPlan || [];
+                                  let newPlan;
+                                  if (e.target.checked) {
+                                    newPlan = [...currentPlan, option.value];
+                                  } else {
+                                    newPlan = currentPlan.filter((plan: string) => plan !== option.value);
+                                  }
+                                  const updatedProducts = editData.products.map((p: any, i: number) => 
+                                    i === index ? {
+                                      ...p,
+                                      photographyRequests: {
+                                        ...p.photographyRequests,
+                                        photographyPlan: newPlan
+                                      }
+                                    } : p
+                                  );
+                                  setEditData({...editData, products: updatedProducts});
+                                }}
+                                className="w-4 h-4 text-nexus-primary focus:ring-nexus-primary"
+                              />
+                              <label htmlFor={`photo-${index}-${option.value}`} className="text-sm text-nexus-text-primary cursor-pointer">
+                                {option.label}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* プレミアム撮影オプション */}
+                      <div>
+                        <label className="block text-sm font-medium text-nexus-text-primary mb-2">
+                          プレミアム撮影（追加料金）
+                        </label>
+                        <div className="space-y-2">
+                          {[
+                            { value: 2, label: '+2枚追加（¥500）' },
+                            { value: 4, label: '+4枚追加（¥800）' }
+                          ].map((option) => (
+                            <div key={option.value} className="flex items-center gap-2">
+                              <input
+                                type="radio"
+                                name={`premium-${index}`}
+                                value={option.value}
+                                checked={product.photographyRequests?.premiumAddCount === option.value}
+                                onChange={() => {
+                                  const updatedProducts = editData.products.map((p: any, i: number) => 
+                                    i === index ? {
+                                      ...p,
+                                      photographyRequests: {
+                                        ...p.photographyRequests,
+                                        premiumAddCount: option.value as 2 | 4,
+                                      }
+                                    } : p
+                                  );
+                                  setEditData({...editData, products: updatedProducts});
+                                }}
+                                className="w-4 h-4 text-nexus-primary focus:ring-nexus-primary"
+                              />
+                              <label className="text-sm text-nexus-text-primary cursor-pointer">
+                                {option.label}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* 特別撮影要望 */}
+                      <div>
+                        <label className="block text-sm font-medium text-nexus-text-primary mb-2">
+                          特別撮影の要望
+                        </label>
+                        <NexusTextarea
+                          value={product.photographyRequests?.premiumCustomRequests || ''}
+                          onChange={(e) => {
+                            const updatedProducts = editData.products.map((p: any, i: number) => 
+                              i === index ? {
+                                ...p,
+                                photographyRequests: {
+                                  ...p.photographyRequests,
+                                  premiumCustomRequests: e.target.value,
+                                }
+                              } : p
+                            );
+                            setEditData({...editData, products: updatedProducts});
+                          }}
+                          rows={3}
+                          placeholder="例：特定の角度からの撮影、機能部分の詳細撮影、付属品の個別撮影など"
+                          maxLength={500}
+                          variant="nexus"
+                        />
+                        <p className="text-xs text-nexus-text-tertiary mt-1">
+                          {(product.photographyRequests?.premiumCustomRequests || '').length}/500文字
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* プレミアム梱包オプション */}
+                    <div className="mt-4">
+                      <h6 className="font-medium text-gray-700 mb-2">梱包オプション</h6>
+                      <div 
+                        className={`border rounded-lg p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                          product.premiumPacking
+                            ? 'border-nexus-primary bg-nexus-primary/5 shadow-md'
+                            : 'border-nexus-border bg-white hover:border-nexus-primary/50'
+                        }`}
+                        onClick={() => {
+                          const updatedProducts = editData.products.map((p: any, i: number) => 
+                            i === index ? { ...p, premiumPacking: !p.premiumPacking } : p
+                          );
+                          setEditData({...editData, products: updatedProducts});
+                        }}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="flex items-center justify-center mt-0.5">
+                            <input
+                              type="checkbox"
+                              checked={product.premiumPacking || false}
+                              onChange={() => {}}
+                              className="w-4 h-4 text-nexus-primary focus:ring-nexus-primary rounded"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h5 className="font-medium text-nexus-text-primary">
+                                プレミアム梱包
+                              </h5>
+                              <span className="px-2 py-0.5 text-xs bg-nexus-primary/10 text-nexus-primary rounded-full">
+                                オプション
+                              </span>
+                            </div>
+                            <p className="text-sm text-nexus-text-secondary">
+                              より丁寧な梱包材料と包装方法で商品をお預かりします。割れ物や高価な商品におすすめです。
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 検品チェックリスト編集 */}
+                    <div className="mt-4">
+                      <h6 className="font-medium text-gray-700 mb-2">検品チェックリスト</h6>
+                      {isHierarchicalEnabled ? (
+                        <HierarchicalInspectionChecklistInput
+                          category={product.category}
+                          initialData={product.hierarchicalInspectionData}
+                          onChange={(data) => {
+                            const updatedProducts = editData.products.map((p: any, i: number) => 
+                              i === index ? {
+                                ...p,
+                                hierarchicalInspectionData: data,
+                                hasHierarchicalInspectionData: true
+                              } : p
+                            );
+                            setEditData({...editData, products: updatedProducts});
+                          }}
+                        />
+                      ) : (
+                        <InspectionChecklistInput
+                          category={product.category}
+                          initialData={product.inspectionChecklistData}
+                          onChange={(data: InspectionChecklistData) => {
+                            const updatedProducts = editData.products.map((p: any, i: number) => 
+                              i === index ? {
+                                ...p,
+                                inspectionChecklistData: data,
+                                hasInspectionChecklist: true
+                              } : p
+                            );
+                            setEditData({...editData, products: updatedProducts});
+                          }}
+                        />
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* 編集保存アクション */}
+              <div className="flex justify-end gap-3 pt-6 border-t border-gray-300">
+                <NexusButton 
+                  variant="ghost" 
+                  onClick={() => {
+                    setIsEditModalOpen(false);
+                    setIsAnyModalOpen(false);
+                  }}
+                  disabled={isEditSubmitting}
+                >
+                  キャンセル
+                </NexusButton>
+                <NexusButton 
+                  variant="primary" 
+                  onClick={handleSaveEdit}
+                  disabled={isEditSubmitting}
+                  className="font-bold"
+                >
+                  {isEditSubmitting ? '保存中...' : '変更を保存'}
+                </NexusButton>
+              </div>
+            </div>
+          </div>
+        )}
+      </BaseModal>
+
     </DashboardLayout>
   );
 } 

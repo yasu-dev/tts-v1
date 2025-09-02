@@ -44,34 +44,34 @@ model Session {
 }
 
 model Product {
-  id                  String               @id @default(cuid())
-  name                String
-  sku                 String               @unique
-  category            String
-  status              String               @default("inbound")
-  price               Int
-  condition           String
-  description         String?
-  imageUrl            String?
-  entryDate           DateTime             @default(now())
-  sellerId            String
-  inspectedAt         DateTime?
-  inspectedBy         String?
-  inspectionNotes     String?
-  metadata            String?
-  currentLocationId   String?
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
-  activities                     Activity[]
-  inspectionChecklist            InspectionChecklist?
+  id                              String                           @id @default(cuid())
+  name                            String
+  sku                             String                           @unique
+  category                        String
+  status                          String                           @default("inbound")
+  price                           Int
+  condition                       String
+  description                     String?
+  imageUrl                        String?
+  entryDate                       DateTime                         @default(now())
+  sellerId                        String
+  inspectedAt                     DateTime?
+  inspectedBy                     String?
+  inspectionNotes                 String?
+  metadata                        String?
+  currentLocationId               String?
+  createdAt                       DateTime                         @default(now())
+  updatedAt                       DateTime                         @updatedAt
+  activities                      Activity[]
   hierarchicalInspectionChecklist HierarchicalInspectionChecklist? @relation("ProductHierarchicalInspection")
-  movements                      InventoryMovement[]
-  listings                       Listing[]
-  orderItems                     OrderItem[]
-  images                         ProductImage[]
-  seller                         User                              @relation(fields: [sellerId], references: [id])
-  currentLocation                Location?                         @relation(fields: [currentLocationId], references: [id])
-  videoRecords                   VideoRecord[]
+  inspectionChecklist             InspectionChecklist?
+  movements                       InventoryMovement[]
+  listings                        Listing[]
+  orderItems                      OrderItem[]
+  images                          ProductImage[]
+  currentLocation                 Location?                        @relation(fields: [currentLocationId], references: [id])
+  seller                          User                             @relation(fields: [sellerId], references: [id])
+  videoRecords                    VideoRecord[]
 
   @@map("products")
 }
@@ -90,8 +90,8 @@ model Location {
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
   barcodeScanners BarcodeScanner[]
-  movementsFrom   InventoryMovement[] @relation("MovementFrom")
   movementsTo     InventoryMovement[] @relation("MovementTo")
+  movementsFrom   InventoryMovement[] @relation("MovementFrom")
   products        Product[]
 
   @@map("locations")
@@ -105,9 +105,9 @@ model InventoryMovement {
   movedBy        String
   notes          String?
   createdAt      DateTime  @default(now())
-  product        Product   @relation(fields: [productId], references: [id])
-  fromLocation   Location? @relation("MovementFrom", fields: [fromLocationId], references: [id])
   toLocation     Location? @relation("MovementTo", fields: [toLocationId], references: [id])
+  fromLocation   Location? @relation("MovementFrom", fields: [fromLocationId], references: [id])
+  product        Product   @relation(fields: [productId], references: [id])
 
   @@map("inventory_movements")
 }
@@ -131,8 +131,8 @@ model Order {
   activities      Activity[]
   items           OrderItem[]
   customer        User          @relation(fields: [customerId], references: [id])
-  videoRecords    VideoRecord[]
   shipments       Shipment[]
+  videoRecords    VideoRecord[]
 
   @@map("orders")
 }
@@ -143,8 +143,8 @@ model OrderItem {
   productId String
   quantity  Int     @default(1)
   price     Int
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product   Product @relation(fields: [productId], references: [id])
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@map("order_items")
 }
@@ -158,9 +158,9 @@ model Activity {
   orderId     String?
   metadata    String?
   createdAt   DateTime @default(now())
-  user        User?    @relation(fields: [userId], references: [id])
-  product     Product? @relation(fields: [productId], references: [id])
   order       Order?   @relation(fields: [orderId], references: [id])
+  product     Product? @relation(fields: [productId], references: [id])
+  user        User?    @relation(fields: [userId], references: [id])
 
   @@map("activities")
 }
@@ -176,9 +176,9 @@ model VideoRecord {
   staffId     String
   notes       String?
   createdAt   DateTime @default(now())
-  product     Product? @relation(fields: [productId], references: [id])
-  order       Order?   @relation(fields: [orderId], references: [id])
   staff       User     @relation("VideoStaff", fields: [staffId], references: [id])
+  order       Order?   @relation(fields: [orderId], references: [id])
+  product     Product? @relation(fields: [productId], references: [id])
 
   @@map("video_records")
 }
@@ -285,19 +285,20 @@ model DeliveryPlan {
 }
 
 model DeliveryPlanProduct {
-  id                  String                     @id @default(cuid())
-  deliveryPlanId      String
-  name                String
-  category            String
-  estimatedValue      Int
-  description         String?
-  photographyRequests String?                    // 撮影要望データをJSONで保存
-  createdAt           DateTime                   @default(now())
-  updatedAt           DateTime                   @updatedAt
+  id                              String                           @id @default(cuid())
+  deliveryPlanId                  String
+  name                            String
+  category                        String
+  estimatedValue                  Int
+  description                     String?
+  photographyRequests             String?
+  premiumPacking                  Boolean                          @default(false)
+  createdAt                       DateTime                         @default(now())
+  updatedAt                       DateTime                         @updatedAt
   images                          DeliveryPlanProductImage[]
-  deliveryPlan                    DeliveryPlan                       @relation(fields: [deliveryPlanId], references: [id], onDelete: Cascade)
+  deliveryPlan                    DeliveryPlan                     @relation(fields: [deliveryPlanId], references: [id], onDelete: Cascade)
+  hierarchicalInspectionChecklist HierarchicalInspectionChecklist? @relation("DeliveryPlanProductHierarchicalInspection")
   inspectionChecklist             InspectionChecklist?
-  hierarchicalInspectionChecklist HierarchicalInspectionChecklist?   @relation("DeliveryPlanProductHierarchicalInspection")
 
   @@map("delivery_plan_products")
 }
@@ -326,7 +327,7 @@ model InspectionProgress {
   currentStep Int
   checklist   String?
   photos      String?
-  photoSlots  String?  // 写真の配置情報
+  photoSlots  String?
   notes       String?
   videoId     String?
   createdAt   DateTime @default(now())
@@ -358,8 +359,8 @@ model InspectionChecklist {
   updatedBy             String?
   updatedAt             DateTime             @updatedAt
   notes                 String?
-  product               Product?             @relation(fields: [productId], references: [id])
   deliveryPlanProduct   DeliveryPlanProduct? @relation(fields: [deliveryPlanProductId], references: [id])
+  product               Product?             @relation(fields: [productId], references: [id])
 
   @@map("inspection_checklists")
 }
@@ -595,37 +596,32 @@ model SystemSetting {
   @@map("system_settings")
 }
 
-// ===================================
-// 新しい階層型検品チェックリストシステム
-// (既存のInspectionChecklistとは完全に独立)
-// ===================================
-
 model HierarchicalInspectionChecklist {
-  id                    String                             @id @default(cuid())
-  productId             String?                            @unique
-  deliveryPlanProductId String?                            @unique
+  id                    String                           @id @default(cuid())
+  productId             String?                          @unique
+  deliveryPlanProductId String?                          @unique
   createdBy             String
-  createdAt             DateTime                           @default(now())
+  createdAt             DateTime                         @default(now())
   verifiedBy            String?
   verifiedAt            DateTime?
   updatedBy             String?
-  updatedAt             DateTime                           @updatedAt
+  updatedAt             DateTime                         @updatedAt
   notes                 String?
+  deliveryPlanProduct   DeliveryPlanProduct?             @relation("DeliveryPlanProductHierarchicalInspection", fields: [deliveryPlanProductId], references: [id])
+  product               Product?                         @relation("ProductHierarchicalInspection", fields: [productId], references: [id])
   responses             HierarchicalInspectionResponse[]
-  product               Product?                           @relation("ProductHierarchicalInspection", fields: [productId], references: [id])
-  deliveryPlanProduct   DeliveryPlanProduct?               @relation("DeliveryPlanProductHierarchicalInspection", fields: [deliveryPlanProductId], references: [id])
 
   @@map("hierarchical_inspection_checklists")
 }
 
 model HierarchicalInspectionResponse {
-  id           String                           @id @default(cuid())
+  id           String                          @id @default(cuid())
   checklistId  String
-  categoryId   String                           // e.g., "camera_body_exterior", "viewfinder"
-  itemId       String                           // e.g., "body_scratches", "vf_mold"
-  booleanValue Boolean?                         // チェックボックスの値
-  textValue    String?                          // 「その他」入力フォームの値
-  createdAt    DateTime                         @default(now())
+  categoryId   String
+  itemId       String
+  booleanValue Boolean?
+  textValue    String?
+  createdAt    DateTime                        @default(now())
   checklist    HierarchicalInspectionChecklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
 
   @@unique([checklistId, categoryId, itemId])

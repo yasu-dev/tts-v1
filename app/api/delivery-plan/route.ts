@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
     }
 
     const planData = await request.json();
+    console.log('[DEBUG] 受信した生データ:', JSON.stringify(planData, null, 2));
 
     // 基本的なバリデーション（デモ環境対応）
     console.log('[DEBUG] 受信データ:', JSON.stringify(planData, null, 2));
@@ -54,7 +55,8 @@ export async function POST(request: NextRequest) {
         name: product?.name,
         condition: product?.condition,
         purchasePrice: product?.purchasePrice,
-        hasPhotographyRequest: !!product?.photographyRequest
+        hasPhotographyRequest: !!product?.photographyRequest,
+        photographyType: product?.photographyRequest?.photographyType
       });
     });
 
@@ -67,6 +69,45 @@ export async function POST(request: NextRequest) {
     if (validProducts.length === 0) {
       return NextResponse.json(
         { error: '有効な商品データがありません。商品登録ステップで商品名を入力してください。' },
+        { status: 400 }
+      );
+    }
+
+    // 🆕 撮影要望必須選択バリデーション
+    const hasUnselectedPhotography = validProducts.some((product: any, index: number) => {
+      const photographyType = product.photographyRequest?.photographyType;
+      console.log(`[DEBUG] 商品${index + 1} 撮影要望チェック:`, {
+        photographyType,
+        hasPhotographyRequest: !!product.photographyRequest,
+        entireRequest: product.photographyRequest
+      });
+      return !photographyType || !['standard', 'premium', 'none'].includes(photographyType);
+    });
+    
+    if (hasUnselectedPhotography) {
+      console.error('[ERROR] 撮影要望未選択エラー');
+      return NextResponse.json(
+        { error: 'すべての商品で撮影要望（通常撮影・特別撮影・撮影不要）のいずれかを選択してください。' },
+        { status: 400 }
+      );
+    }
+
+    // 🆕 特別撮影選択時の追加枚数チェック
+    const hasIncompletePremiumPhotography = validProducts.some((product: any, index: number) => {
+      const request = product.photographyRequest;
+      const isIncomplete = request?.photographyType === 'premium' && !request.premiumAddCount;
+      console.log(`[DEBUG] 商品${index + 1} 特別撮影チェック:`, {
+        photographyType: request?.photographyType,
+        premiumAddCount: request?.premiumAddCount,
+        isIncomplete
+      });
+      return isIncomplete;
+    });
+    
+    if (hasIncompletePremiumPhotography) {
+      console.error('[ERROR] 特別撮影詳細未設定エラー');
+      return NextResponse.json(
+        { error: '特別撮影を選択した商品については、追加撮影枚数を選択してください。' },
         { status: 400 }
       );
     }
@@ -121,9 +162,19 @@ export async function POST(request: NextRequest) {
               deliveryPlanId: planId,
               name: product.name,
               category: product.category || 'camera',
-              estimatedValue: product.purchasePrice || 0,
-              description: `コンディション: ${product.condition}${product.supplierDetails ? `\n仕入れ詳細: ${product.supplierDetails}` : ''}`,
-              photographyRequests: product.photographyRequest ? JSON.stringify(product.photographyRequest) : null
+              estimatedValue: Math.min(product.purchasePrice || 0, 2147483647), // INT最大値制限
+              description: JSON.stringify({
+                condition: product.condition,
+                supplierDetails: product.supplierDetails,
+                purchaseDate: product.purchaseDate,
+                supplier: product.supplier,
+                brand: product.brand,
+                model: product.model,
+                serialNumber: product.serialNumber,
+                originalPurchasePrice: product.purchasePrice
+              }),
+              photographyRequests: product.photographyRequest ? JSON.stringify(product.photographyRequest) : null,
+              premiumPacking: product.premiumPacking || false
             }
           });
 
@@ -706,8 +757,22 @@ export async function GET(request: NextRequest) {
             // メタデータを安全に解析
             let productMetadata = {};
             try {
+              // 新しいシステム：descriptionフィールドからJSON解析
+              if (planProduct.description) {
+                try {
+                  const parsedDescription = JSON.parse(planProduct.description);
+                  if (typeof parsedDescription === 'object') {
+                    productMetadata = { ...productMetadata, ...parsedDescription };
+                  }
+                } catch (e) {
+                  console.log('[INFO] descriptionは旧形式（テキスト）です');
+                }
+              }
+              
+              // 既存システム：relatedProduct.metadataから解析
               if (relatedProduct?.metadata) {
-                productMetadata = JSON.parse(relatedProduct.metadata);
+                const relatedMetadata = JSON.parse(relatedProduct.metadata);
+                productMetadata = { ...productMetadata, ...relatedMetadata };
               }
             } catch (e) {
               console.warn('Product metadata parse error:', e);
@@ -721,8 +786,8 @@ export async function GET(request: NextRequest) {
               description: planProduct.description,
               // 実際のProduct情報
               sku: relatedProduct?.sku,
-              purchasePrice: relatedProduct?.price,
-              condition: relatedProduct?.condition,
+              purchasePrice: planProduct.estimatedValue, // 購入価格として保存されたestimatedValue
+              condition: relatedProduct?.condition || productMetadata.condition,
               imageUrl: relatedProduct?.imageUrl,
               // メタデータから詳細情報を取得
               purchaseDate: productMetadata.purchaseDate,
@@ -731,15 +796,26 @@ export async function GET(request: NextRequest) {
               brand: productMetadata.brand,
               model: productMetadata.model,
               serialNumber: productMetadata.serialNumber,
-              // 撮影要望データ
+              // 撮影要望データ（新構造対応）
               photographyRequests: (() => {
                 try {
-                  return planProduct.photographyRequests ? JSON.parse(planProduct.photographyRequests) : null;
+                  const parsed = planProduct.photographyRequests ? JSON.parse(planProduct.photographyRequests) : null;
+                  console.log(`[DEBUG] 商品${planProduct.name}の撮影要望:`, parsed);
+                  return parsed;
                 } catch (e) {
                   console.warn('Photography requests parse error:', e);
                   return null;
                 }
               })(),
+              // 🆕 プレミアム梱包オプション
+              premiumPacking: planProduct.premiumPacking || false,
+              // 商品画像
+              images: planProduct.images?.map(img => ({
+                id: img.id,
+                url: img.url,
+                filename: img.filename,
+                category: img.category || 'product'
+              })) || [],
               // 検品チェックリスト
               hasInspectionChecklist: !!planProduct.inspectionChecklist,
               inspectionChecklistData: planProduct.inspectionChecklist ? {

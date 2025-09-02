@@ -29,6 +29,7 @@ export default function BasicInfoStep({
     warehouseId: '',
     warehouseName: '',
     deliveryAddress: '',
+    contactEmail: '',
     phoneNumber: '',
     notes: ''
   });
@@ -58,7 +59,7 @@ export default function BasicInfoStep({
           warehouseId: data.basicInfo?.warehouseId || '',
           warehouseName: data.basicInfo?.warehouseName || '',
           deliveryAddress: data.basicInfo?.deliveryAddress || '',
-
+          contactEmail: data.basicInfo?.contactEmail || userResult.user?.email || '',
           phoneNumber: data.basicInfo?.phoneNumber || userResult.user?.phoneNumber || '',
           notes: data.basicInfo?.notes || ''
         };
@@ -186,9 +187,27 @@ export default function BasicInfoStep({
           </div>
         )}
 
-{/* 納品先住所は選択された倉庫情報で表示されるため、重複を避けるため非表示 */}
+        <NexusTextarea
+          label="配送先住所"
+          value={formData.deliveryAddress}
+          onChange={(e) => handleInputChange('deliveryAddress', e.target.value)}
+          rows={3}
+          placeholder="配送先住所を入力してください"
+          required
+          variant="nexus"
+        />
 
 
+
+        <NexusInput
+          label="連絡先メール"
+          type="email"
+          value={formData.contactEmail || user?.email || ''}
+          onChange={(e) => handleInputChange('contactEmail', e.target.value)}
+          placeholder="連絡先メールアドレス"
+          required
+          variant="nexus"
+        />
 
         <NexusInput
           label="電話番号（任意）"

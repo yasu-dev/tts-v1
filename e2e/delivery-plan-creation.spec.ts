@@ -46,7 +46,7 @@ test.describe('納品プラン作成機能テスト', () => {
   test('1. 納品プラン作成画面へのナビゲーション', async ({ page }) => {
     console.log('🔍 納品プラン作成画面へのナビゲーションをテスト');
     
-    await page.goto('http://localhost:3000/delivery');
+    await page.goto('http://localhost:3002/delivery');
     await page.waitForTimeout(2000);
 
     // 「新規作成」ボタンを探す
@@ -66,7 +66,7 @@ test.describe('納品プラン作成機能テスト', () => {
   test('2. 納品プラン作成フォームの表示確認', async ({ page }) => {
     console.log('🔍 納品プラン作成フォームの表示確認');
     
-    await page.goto('http://localhost:3000/delivery-plan');
+    await page.goto('http://localhost:3002/delivery-plan');
     await page.waitForTimeout(2000);
 
     // ページタイトルの確認
@@ -92,7 +92,7 @@ test.describe('納品プラン作成機能テスト', () => {
   test('3. 納品プラン作成フロー - 全ステップ完了まで', async ({ page }) => {
     console.log('🔍 納品プラン作成フロー全体をテスト');
     
-    await page.goto('http://localhost:3000/delivery-plan');
+    await page.goto('http://localhost:3002/delivery-plan');
     await page.waitForTimeout(3000);
 
     // Step 1: 基本情報入力
@@ -120,17 +120,36 @@ test.describe('納品プラン作成機能テスト', () => {
 
     // Step 2: 商品登録（最低1つの商品を追加）
     console.log('📝 Step 2: 商品登録');
+    console.log('🔍 現在のURL:', page.url());
+    
+    // より詳細な画面要素確認
+    const h2Elements = await page.locator('h2').allTextContents();
+    console.log('🔍 画面上のH2タイトル:', h2Elements);
+    const cardElements = await page.locator('[class*="Card"], [class*="card"]').count();
+    console.log('🔍 カード要素数:', cardElements);
+    const allButtons = await page.locator('button').allTextContents();
+    console.log('🔍 画面上の全ボタン:', allButtons);
+    const allInputs = await page.locator('input').count();
+    console.log('🔍 画面上の入力フィールド数:', allInputs);
     
     // 商品追加ボタンを探してクリック
     const addProductButton = page.locator('button', { hasText: '商品を追加' });
+    console.log('🔍 商品追加ボタン数:', await addProductButton.count());
+    
     if (await addProductButton.count() > 0) {
       await addProductButton.click();
-      await page.waitForTimeout(1000);
+      console.log('✅ 商品追加ボタンクリック完了');
+      await page.waitForTimeout(2000); // 待機時間を増加
+      
+      // 商品フォームが表示されるまで待機
+      await page.waitForSelector('input[placeholder*="商品名"], input[name*="name"]', { timeout: 10000 });
+      console.log('✅ 商品フォーム表示確認');
     }
 
     // 商品名を入力
     const productNameField = page.locator('input[placeholder*="商品名"], input[name*="name"]').first();
     await productNameField.fill('テスト商品カメラ');
+    console.log('✅ 商品名入力完了');
     
     // カテゴリーがある場合は選択
     const categorySelect = page.locator('select', { hasText: 'カテゴリ' });

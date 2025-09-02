@@ -21,9 +21,15 @@ interface ProductImage {
 }
 
 interface PhotographyRequest {
-  specialPhotography: boolean; // 特別撮影要望の有無
-  specialPhotographyItems: string[]; // 選択された特別撮影項目
-  customRequests: string; // 任意の撮影要望（テキスト）
+  // 新しい統一構造
+  photographyType?: 'standard' | 'premium' | 'none'; // 必須選択項目
+  standardCount?: number; // 通常撮影枚数（固定10枚）
+  premiumAddCount?: 2 | 4; // プレミアム追加枚数
+  customRequests?: string; // 要望フォーム
+  
+  // 後方互換性のための旧構造保持
+  specialPhotography?: boolean;
+  specialPhotographyItems?: string[];
 }
 
 interface Product {
@@ -37,6 +43,7 @@ interface Product {
   images?: ProductImage[]; // 商品画像
   inspectionChecklist?: InspectionChecklistData;
   photographyRequest?: PhotographyRequest; // 撮影要望
+  premiumPacking?: boolean; // プレミアム梱包オプション
 }
 
 interface ProductRegistrationStepProps {
@@ -94,19 +101,27 @@ export default function ProductRegistrationStep({
   
   const defaultProducts: Product[] = [];
 
-  // productsの安全な初期化
-  const initialProducts = (() => {
-    if (Array.isArray(data.products) && data.products.length > 0) {
-      return data.products;
+  // productsの強制初期化（E2Eテスト対応：確実に空配列から開始）
+  const [products, setProducts] = useState<Product[]>([]);
+  
+  console.log('[DEBUG] ProductRegistrationStep強制初期化:', {
+    dataProducts: data.products,
+    forcedEmpty: true,
+    productsLength: products.length
+  });
+  
+  // 既存データがある場合は復元（初回レンダー後）
+  useEffect(() => {
+    if (Array.isArray(data.products) && data.products.length > 0 && products.length === 0) {
+      console.log('[DEBUG] 既存データ復元:', data.products.length, '件');
+      setProducts(data.products);
     }
-    return defaultProducts;
-  })();
-
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+  }, [data.products]);
 
   // 商品が空の場合は何も自動更新しない
 
   const addProduct = () => {
+    console.log('[DEBUG] 商品追加開始 - 現在の商品数:', products.length);
     const newProduct: Product = {
       name: '',
       condition: 'excellent',
@@ -138,17 +153,29 @@ export default function ProductRegistrationStep({
         notes: '',
       },
       photographyRequest: {
+        // 新構造：デフォルトは未選択（必須選択）
+        photographyType: undefined, // 必須選択のため初期値はundefined
+        standardCount: 10,
+        premiumAddCount: undefined,
+        customRequests: '',
+        // 後方互換性
         specialPhotography: false,
         specialPhotographyItems: [],
-        customRequests: '',
       },
+      premiumPacking: false, // プレミアム梱包は任意（デフォルト：オフ）
     };
     const updatedProducts = [...products, newProduct];
+    console.log('[DEBUG] 商品追加後 - 新商品数:', updatedProducts.length);
     setProducts(updatedProducts);
     onUpdate({ ...data, products: updatedProducts });
     
     // 追加のフィードバック
-    showToast('商品を追加しました', 'success');
+    showToast({
+      type: 'success',
+      title: '商品追加',
+      message: '商品を追加しました'
+    });
+    console.log('[DEBUG] 商品追加完了');
   };
 
   const updateProduct = (index: number, field: string, value: any) => {
@@ -156,7 +183,7 @@ export default function ProductRegistrationStep({
       i === index ? { ...product, [field]: value } : product
     );
     setProducts(updatedProducts);
-    onUpdate({ products: updatedProducts });
+    onUpdate({ ...data, products: updatedProducts });
   };
 
   const updateInspectionChecklist = (index: number, checklistData: InspectionChecklistData) => {
@@ -164,7 +191,7 @@ export default function ProductRegistrationStep({
       i === index ? { ...product, inspectionChecklist: checklistData } : product
     );
     setProducts(updatedProducts);
-    onUpdate({ products: updatedProducts });
+    onUpdate({ ...data, products: updatedProducts });
   };
 
   // 🆕 階層型検品チェックリストデータの更新（新システム専用）
@@ -175,17 +202,19 @@ export default function ProductRegistrationStep({
       i === index ? { ...product, hierarchicalInspectionData: hierarchicalData } : product
     );
     setProducts(updatedProducts);
-    onUpdate({ products: updatedProducts });
+    onUpdate({ ...data, products: updatedProducts });
     
     console.log(`[ProductRegistration] 階層型データ更新完了 - 全商品データ:`, updatedProducts);
   };
 
   const updatePhotographyRequest = (index: number, photographyData: PhotographyRequest) => {
+    console.log(`[DEBUG] 撮影要望更新 - 商品${index + 1}:`, photographyData);
     const updatedProducts = products.map((product: any, i: number) => 
       i === index ? { ...product, photographyRequest: photographyData } : product
     );
     setProducts(updatedProducts);
-    onUpdate({ products: updatedProducts });
+    onUpdate({ ...data, products: updatedProducts });
+    console.log(`[DEBUG] 撮影要望更新後 - 商品${index + 1}の状態:`, updatedProducts[index]?.photographyRequest);
   };
 
 
@@ -285,7 +314,7 @@ export default function ProductRegistrationStep({
   const removeProduct = (index: number) => {
     const updatedProducts = products.filter((_: any, i: number) => i !== index);
     setProducts(updatedProducts);
-    onUpdate({ products: updatedProducts });
+    onUpdate({ ...data, products: updatedProducts });
   };
 
   const handleNext = () => {
@@ -310,6 +339,36 @@ export default function ProductRegistrationStep({
       });
       return;
     }
+
+    // 🆕 撮影要望必須選択チェック
+    const hasUnselectedPhotography = products.some((product: any, index: number) => {
+      const photographyType = product.photographyRequest?.photographyType;
+      return !photographyType || !['standard', 'premium', 'none'].includes(photographyType);
+    });
+    
+    if (hasUnselectedPhotography) {
+      showToast({
+        type: 'warning',
+        title: '撮影要望の選択が必要',
+        message: 'すべての商品で撮影要望（通常撮影・特別撮影・撮影不要）のいずれかを選択してください'
+      });
+      return;
+    }
+
+    // 🆕 特別撮影選択時の追加枚数チェック
+    const hasIncompletePremiumPhotography = products.some((product: any) => {
+      const request = product.photographyRequest;
+      return request?.photographyType === 'premium' && !request.premiumAddCount;
+    });
+    
+    if (hasIncompletePremiumPhotography) {
+      showToast({
+        type: 'warning',
+        title: '特別撮影の詳細設定が必要',
+        message: '特別撮影を選択した商品については、追加撮影枚数を選択してください'
+      });
+      return;
+    }
     
     onNext();
   };
@@ -321,11 +380,17 @@ export default function ProductRegistrationStep({
         <p className="text-nexus-text-secondary mb-6">納品する商品の詳細情報を入力してください</p>
       </div>
 
+      {console.log('[DEBUG] 商品表示判定:', {
+        isArray: Array.isArray(products),
+        length: products?.length,
+        products: products,
+        shouldShowAddButton: !Array.isArray(products) || products.length === 0
+      })}
       {!Array.isArray(products) || products.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-nexus-text-secondary mb-4">登録された商品がありません</p>
-          <NexusButton variant="primary" onClick={addProduct}>
-            最初の商品を追加
+          <NexusButton variant="primary" onClick={addProduct} data-testid="add-product-button">
+            商品を追加
           </NexusButton>
         </div>
       ) : (
@@ -347,11 +412,13 @@ export default function ProductRegistrationStep({
                 {/* 必須項目 */}
                 <NexusInput
                   label="商品名"
+                  name="productName"
                   value={product.name}
                   onChange={(e) => updateProduct(index, 'name', e.target.value)}
                   placeholder="商品名を入力"
                   required
                   variant="nexus"
+                  data-testid="product-name-input"
                 />
 
                 <NexusSelect
@@ -375,9 +442,14 @@ export default function ProductRegistrationStep({
                   label="購入価格"
                   type="number"
                   value={product.purchasePrice === 0 ? '' : product.purchasePrice.toString()}
-                  onChange={(e) => updateProduct(index, 'purchasePrice', e.target.value === '' ? 0 : parseInt(e.target.value) || 0)}
+                  onChange={(e) => {
+                    const value = e.target.value === '' ? 0 : parseInt(e.target.value) || 0;
+                    const limitedValue = Math.min(value, 2147483647); // INT最大値制限
+                    updateProduct(index, 'purchasePrice', limitedValue);
+                  }}
                   placeholder="購入価格を入力"
                   min="0"
+                  max="2147483647"
                   required
                   variant="nexus"
                 />
@@ -420,53 +492,14 @@ export default function ProductRegistrationStep({
                   商品画像（任意）
                 </h4>
                 <p className="text-sm text-nexus-text-secondary mb-4">
-                  商品本体、内箱、付属品、書類など、任意の数の画像をアップロードできます。
+                  商品本体、内箱、付属品、書類など、最大20枚まで画像をアップロードできます。
                 </p>
                 
-                {/* アップロード済み画像の表示 */}
-                {product.images && product.images.length > 0 && (
-                  <div className="mb-4">
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {product.images.map((image: ProductImage) => (
-                        <div key={image.id} className="relative group border border-nexus-border rounded-lg overflow-hidden">
-                          <img 
-                            src={image.url} 
-                            alt={image.filename}
-                            className="w-full h-32 object-cover"
-                          />
-                          <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <div className="flex gap-2">
-                              <NexusButton
-                                size="sm"
-                                variant="danger"
-                                onClick={() => removeImage(index, image.id)}
-                              >
-                                <TrashIcon className="h-4 w-4" />
-                              </NexusButton>
-                            </div>
-                          </div>
-                          <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white p-2">
-                            <select
-                              value={image.category}
-                              onChange={(e) => updateImageCategory(index, image.id, e.target.value)}
-                              className="w-full text-xs bg-transparent border-none text-white"
-                            >
-                              {imageCategoryOptions.map(option => (
-                                <option key={option.value} value={option.value} className="text-black">
-                                  {option.label}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+
 
                 {/* 画像アップロードエリア */}
                 <EnhancedImageUploader
-                  maxFiles={10}
+                  maxFiles={20}
                   maxSize={10 * 1024 * 1024} // 10MB
                   acceptedFormats={['image/jpeg', 'image/png', 'image/webp']}
                   onUpload={(files: File[]) => handleImageUpload(index, files)}
@@ -540,110 +573,292 @@ export default function ProductRegistrationStep({
               <div className="mt-6 border-t pt-6">
                 <h4 className="text-lg font-medium text-nexus-text-primary mb-4 flex items-center gap-2">
                   <CameraIcon className="h-5 w-5" />
-                  撮影要望（任意）
+                  撮影要望（必須選択）
                 </h4>
-                <p className="text-sm text-nexus-text-secondary mb-4">
-                  基本撮影（正面・背面・側面等）はスタッフが標準で実施いたします。特別な撮影をご希望の場合はこちらでご指定ください。
+                <p className="text-sm text-nexus-text-secondary mb-6">
+                  商品の撮影方法を選択してください。いずれかの選択が必要です。
                 </p>
 
                 {(() => {
                   const currentRequest = product.photographyRequest || {
+                    photographyType: undefined,
+                    standardCount: 10,
+                    premiumAddCount: undefined,
+                    customRequests: '',
+                    // 後方互換性
                     specialPhotography: false,
                     specialPhotographyItems: [],
-                    customRequests: '',
                   };
 
                   return (
                     <div className="space-y-4">
-                      {/* 特別撮影の有無チェック */}
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          id={`special-photography-${index}`}
-                          checked={currentRequest.specialPhotography}
-                          onChange={(e) => {
+                      {/* 撮影タイプ選択（ラジオボタン） */}
+                      <div className="space-y-3">
+                        {/* 通常撮影（10枚） */}
+                        <div 
+                          className={`border rounded-lg p-4 transition-all duration-200 cursor-pointer hover:shadow-md ${
+                            currentRequest.photographyType === 'standard'
+                              ? 'border-nexus-primary bg-nexus-primary/5 shadow-md'
+                              : 'border-nexus-border bg-white hover:border-nexus-primary/50'
+                          }`}
+                          onClick={() => {
                             const newRequest = {
                               ...currentRequest,
-                              specialPhotography: e.target.checked,
-                              specialPhotographyItems: e.target.checked ? currentRequest.specialPhotographyItems : [],
+                              photographyType: 'standard' as const,
+                              premiumAddCount: undefined,
+                              customRequests: '',
                             };
                             updatePhotographyRequest(index, newRequest);
                           }}
-                          className="w-4 h-4 text-nexus-primary bg-white border-nexus-border rounded focus:ring-nexus-primary focus:ring-2"
-                        />
-                        <label 
-                          htmlFor={`special-photography-${index}`}
-                          className="text-sm font-medium text-nexus-text-primary cursor-pointer"
                         >
-                          特別撮影を依頼する
-                        </label>
-                      </div>
-
-                      {/* 特別撮影項目選択（特別撮影がチェックされている場合のみ表示） */}
-                      {currentRequest.specialPhotography && (
-                        <div className="ml-6 p-4 bg-nexus-bg-tertiary rounded-lg border border-nexus-border space-y-4">
-                          {/* 特別撮影項目選択 */}
-                          <div>
-                            <h5 className="text-sm font-medium text-nexus-text-primary mb-3">特別撮影項目（複数選択可）</h5>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                              {specialPhotographyOptions.map((option) => (
-                                <div key={option.value} className="flex items-center gap-2">
-                                  <input
-                                    type="checkbox"
-                                    id={`photo-option-${index}-${option.value}`}
-                                    checked={currentRequest.specialPhotographyItems.includes(option.value)}
-                                    onChange={(e) => {
-                                      const newItems = e.target.checked
-                                        ? [...currentRequest.specialPhotographyItems, option.value]
-                                        : currentRequest.specialPhotographyItems.filter(item => item !== option.value);
-                                      
-                                      const newRequest = {
-                                        ...currentRequest,
-                                        specialPhotographyItems: newItems,
-                                      };
-                                      updatePhotographyRequest(index, newRequest);
-                                    }}
-                                    className="w-4 h-4 text-nexus-primary bg-white border-nexus-border rounded focus:ring-nexus-primary focus:ring-2"
-                                  />
-                                  <label 
-                                    htmlFor={`photo-option-${index}-${option.value}`}
-                                    className="text-sm text-nexus-text-primary cursor-pointer"
-                                  >
-                                    {option.label}
-                                  </label>
-                                </div>
-                              ))}
+                          <div className="flex items-start gap-3">
+                            <div className="flex items-center justify-center mt-0.5">
+                              <input
+                                type="radio"
+                                name={`photography-type-${index}`}
+                                value="standard"
+                                checked={currentRequest.photographyType === 'standard'}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    const newRequest = {
+                                      ...currentRequest,
+                                      photographyType: 'standard' as const,
+                                      premiumAddCount: undefined,
+                                      customRequests: '',
+                                    };
+                                    updatePhotographyRequest(index, newRequest);
+                                  }
+                                }}
+                                className="w-4 h-4 text-nexus-primary focus:ring-nexus-primary"
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h5 className="font-medium text-nexus-text-primary">通常撮影（10枚）</h5>
+                              </div>
+                              <p className="text-sm text-nexus-text-secondary">
+                                正面・背面・側面・上面・下面等の標準アングルでの撮影
+                              </p>
                             </div>
                           </div>
+                        </div>
 
-                          {/* 任意の撮影要望 */}
-                          <div>
-                            <label className="block text-sm font-medium text-nexus-text-primary mb-2">
-                              任意の撮影要望
-                            </label>
-                            <NexusTextarea
-                              value={currentRequest.customRequests}
-                              onChange={(e) => {
-                                const newRequest = {
-                                  ...currentRequest,
-                                  customRequests: e.target.value,
-                                };
-                                updatePhotographyRequest(index, newRequest);
-                              }}
-                              rows={3}
-                              placeholder="例：レンズのカビ状態を詳細に撮影してください、シャッター動作を動画で記録希望など"
-                              maxLength={500}
-                              variant="nexus"
-                            />
-                            <p className="text-xs text-nexus-text-tertiary mt-1">
-                              {currentRequest.customRequests.length}/500文字
-                            </p>
+                        {/* 特別撮影 */}
+                        <div 
+                          className={`border rounded-lg p-4 transition-all duration-200 cursor-pointer hover:shadow-md ${
+                            currentRequest.photographyType === 'premium'
+                              ? 'border-nexus-primary bg-nexus-primary/5 shadow-md'
+                              : 'border-nexus-border bg-white hover:border-nexus-primary/50'
+                          }`}
+                          onClick={() => {
+                            const newRequest = {
+                              ...currentRequest,
+                              photographyType: 'premium' as const,
+                              premiumAddCount: currentRequest.premiumAddCount || 2,
+                            };
+                            updatePhotographyRequest(index, newRequest);
+                          }}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="flex items-center justify-center mt-0.5">
+                              <input
+                                type="radio"
+                                name={`photography-type-${index}`}
+                                value="premium"
+                                checked={currentRequest.photographyType === 'premium'}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    const newRequest = {
+                                      ...currentRequest,
+                                      photographyType: 'premium' as const,
+                                      premiumAddCount: currentRequest.premiumAddCount || 2,
+                                    };
+                                    updatePhotographyRequest(index, newRequest);
+                                  }
+                                }}
+                                className="w-4 h-4 text-nexus-primary focus:ring-nexus-primary"
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h5 className="font-medium text-nexus-text-primary">特別撮影</h5>
+                              </div>
+                              <p className="text-sm text-nexus-text-secondary">
+                                通常撮影＋追加撮影枚数＋カスタム要望対応
+                              </p>
+
+                              {/* 特別撮影詳細オプション（特別撮影選択時のみ表示） */}
+                              {console.log(`[DEBUG] 商品${index + 1} 撮影詳細表示判定:`, {
+                                photographyType: currentRequest.photographyType,
+                                shouldShow: currentRequest.photographyType === 'premium'
+                              })}
+                              {currentRequest.photographyType === 'premium' && (
+                                <div className="mt-4 pt-4 border-t border-nexus-border space-y-4">
+                                  {/* 追加撮影枚数選択 */}
+                                  <div>
+                                    <h6 className="text-sm font-medium text-nexus-text-primary mb-3">追加撮影枚数</h6>
+                                    <div className="space-y-2">
+                                      {[
+                                        { value: 2, label: '2枚追加', description: '重要な角度からの追加撮影' },
+                                        { value: 4, label: '4枚追加', description: '詳細な状態確認用の追加撮影' }
+                                      ].map((option) => (
+                                        <div key={option.value} className="flex items-center gap-3">
+                                          <input
+                                            type="radio"
+                                            id={`premium-count-${index}-${option.value}`}
+                                            name={`premium-add-count-${index}`}
+                                            value={option.value.toString()}
+                                            checked={currentRequest.premiumAddCount === option.value}
+                                            onChange={() => {
+                                              const newRequest = {
+                                                ...currentRequest,
+                                                premiumAddCount: option.value as 2 | 4,
+                                              };
+                                              updatePhotographyRequest(index, newRequest);
+                                            }}
+                                            className="w-3 h-3 text-nexus-primary focus:ring-nexus-primary"
+                                          />
+                                          <label htmlFor={`premium-count-${index}-${option.value}`} className="flex-1 cursor-pointer">
+                                            <div className="text-sm font-medium text-nexus-text-primary">{option.label}</div>
+                                            <div className="text-xs text-nexus-text-secondary">{option.description}</div>
+                                          </label>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+
+                                  {/* カスタム撮影要望 */}
+                                  <div>
+                                    <label className="block text-sm font-medium text-nexus-text-primary mb-2">
+                                      撮影要望詳細（任意）
+                                    </label>
+                                    <NexusTextarea
+                                      value={currentRequest.customRequests || ''}
+                                      onChange={(e) => {
+                                        const newRequest = {
+                                          ...currentRequest,
+                                          customRequests: e.target.value,
+                                        };
+                                        updatePhotographyRequest(index, newRequest);
+                                      }}
+                                      rows={3}
+                                      placeholder="例：レンズのカビ状態を詳細に撮影、シャッター動作の確認、傷の位置を明確に等"
+                                      maxLength={500}
+                                      variant="nexus"
+                                    />
+                                    <p className="text-xs text-nexus-text-tertiary mt-1">
+                                      {(currentRequest.customRequests || '').length}/500文字
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      )}
+
+                        {/* 撮影不要 */}
+                        <div 
+                          className={`border rounded-lg p-4 transition-all duration-200 cursor-pointer hover:shadow-md ${
+                            currentRequest.photographyType === 'none'
+                              ? 'border-nexus-primary bg-nexus-primary/5 shadow-md'
+                              : 'border-nexus-border bg-white hover:border-nexus-primary/50'
+                          }`}
+                          onClick={() => {
+                            const newRequest = {
+                              ...currentRequest,
+                              photographyType: 'none' as const,
+                              premiumAddCount: undefined,
+                              customRequests: '',
+                            };
+                            updatePhotographyRequest(index, newRequest);
+                          }}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="flex items-center justify-center mt-0.5">
+                              <input
+                                type="radio"
+                                name={`photography-type-${index}`}
+                                value="none"
+                                checked={currentRequest.photographyType === 'none'}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    const newRequest = {
+                                      ...currentRequest,
+                                      photographyType: 'none' as const,
+                                      premiumAddCount: undefined,
+                                      customRequests: '',
+                                    };
+                                    updatePhotographyRequest(index, newRequest);
+                                  }
+                                }}
+                                className="w-4 h-4 text-nexus-primary focus:ring-nexus-primary"
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h5 className="font-medium text-nexus-text-primary">撮影不要</h5>
+                              </div>
+                              <p className="text-sm text-nexus-text-secondary">
+                                商品撮影をスキップします
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+
                     </div>
                   );
                 })()}
+              </div>
+
+              {/* プレミアム梱包オプション */}
+              <div className="mt-6 border-t pt-6">
+                <h4 className="text-lg font-medium text-nexus-text-primary mb-4 flex items-center gap-2">
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
+                  梱包オプション（任意）
+                </h4>
+                <p className="text-sm text-nexus-text-secondary mb-4">
+                  商品の梱包方法を選択できます。
+                </p>
+                
+                <div 
+                  className={`border rounded-lg p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                    product.premiumPacking
+                      ? 'border-nexus-primary bg-nexus-primary/5 shadow-md'
+                      : 'border-nexus-border bg-white hover:border-nexus-primary/50'
+                  }`}
+                  onClick={() => {
+                    updateProduct(index, 'premiumPacking', !product.premiumPacking);
+                  }}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex items-center justify-center mt-0.5">
+                      <input
+                        type="checkbox"
+                        checked={product.premiumPacking || false}
+                        onChange={() => {}}
+                        className="w-4 h-4 text-nexus-primary focus:ring-nexus-primary rounded"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h5 className="font-medium text-nexus-text-primary">プレミアム梱包</h5>
+                        <span className="text-xs px-2 py-1 bg-purple-100 text-purple-800 rounded-full">追加サービス</span>
+                      </div>
+                      <p className="text-sm text-nexus-text-secondary">
+                        特別な保護材料と丁寧な梱包でお客様にお届けします
+                      </p>
+                      <div className="mt-2 text-xs text-nexus-text-tertiary">
+                        • エアキャップによる追加保護
+                        • 専用梱包材での厳重包装
+                        • 取り扱い注意ラベル貼付
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           ))}

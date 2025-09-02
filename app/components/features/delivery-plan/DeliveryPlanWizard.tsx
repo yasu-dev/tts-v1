@@ -142,7 +142,9 @@ export default function DeliveryPlanWizard() {
             name: product?.name,
             condition: product?.condition,
             purchasePrice: product?.purchasePrice,
-            photographyRequest: product?.photographyRequest
+            photographyRequest: product?.photographyRequest,
+            photographyType: product?.photographyRequest?.photographyType,
+            premiumPacking: product?.premiumPacking
           });
         });
       }
@@ -314,6 +316,13 @@ export default function DeliveryPlanWizard() {
   };
 
   const CurrentStepComponent = steps[currentStep].component;
+  
+  console.log('[DEBUG] DeliveryPlanWizard現在の状態:', {
+    currentStep: currentStep,
+    stepTitle: steps[currentStep]?.title,
+    componentName: steps[currentStep]?.component.name,
+    stepsLength: steps.length
+  });
 
   return (
     <div className="max-w-4xl mx-auto">

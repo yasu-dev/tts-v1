@@ -227,10 +227,30 @@ export default function ConfirmationStep({
                 {/* 撮影要望表示 */}
                 <div className="mb-4">
                   <PhotographyRequestDisplay
-                    photographyRequests={product.photographyRequest || null}
+                    photographyRequests={typeof product.photographyRequest === 'string' 
+                      ? JSON.parse(product.photographyRequest) 
+                      : (product.photographyRequest || null)}
                     className=""
                   />
                 </div>
+
+                {/* プレミアム梱包表示 */}
+                {console.log(`[DEBUG] 確認画面 商品${product.name} プレミアム梱包:`, product.premiumPacking)}
+                {(product.premiumPacking === true || product.premiumPacking === 'true') && (
+                  <div className="mb-4">
+                    <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                      <div className="flex items-center gap-2 mb-2">
+                        <svg className="h-5 w-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
+                        <h4 className="text-sm font-medium text-purple-800">プレミアム梱包</h4>
+                      </div>
+                      <p className="text-sm text-nexus-text-secondary ml-7">
+                        特別な保護材料と丁寧な梱包でお客様にお届け
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {/* 検品チェックリスト表示 - フィーチャーフラグで新旧システム切り替え */}
                 <div className="mb-4 border-t pt-4">

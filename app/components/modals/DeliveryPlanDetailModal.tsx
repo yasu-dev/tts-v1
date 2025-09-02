@@ -41,16 +41,36 @@ interface DeliveryPlanDetailModalProps {
     products?: Array<{
       name: string;
       category: string;
-      brand: string;
-      model: string;
-      serialNumber?: string;
       estimatedValue: number;
       description?: string;
+      // 登録時の詳細項目
+      purchasePrice?: number;
+      condition?: string;
+      purchaseDate?: string;
+      supplier?: string;
+      supplierDetails?: string;
+      brand?: string;
+      model?: string;
+      serialNumber?: string;
+      // 撮影要望（新構造対応）
       photographyRequests?: {
-        specialPhotography: boolean;
-        specialPhotographyItems: string[];
-        customRequests: string;
+        photographyType?: 'standard' | 'premium' | 'none';
+        standardCount?: number;
+        premiumAddCount?: 2 | 4;
+        customRequests?: string;
+        // 後方互換性
+        specialPhotography?: boolean;
+        specialPhotographyItems?: string[];
       } | null;
+      // プレミアム梱包
+      premiumPacking?: boolean;
+      // 商品画像
+      images?: Array<{
+        id: string;
+        url: string;
+        filename: string;
+        category: string;
+      }>;
     }>;
   };
   onStatusChange?: (planId: number, newStatus: string) => void;
@@ -275,13 +295,25 @@ export default function DeliveryPlanDetailModal({
                   <NexusCard key={index} className="p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div>
-                        <h4 className="font-medium text-nexus-text-primary">{product.name}</h4>
-                        <p className="text-sm text-nexus-text-secondary">{product.category}</p>
+                        <h4 className="font-medium text-nexus-text-primary text-lg">{product.name}</h4>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-sm px-2 py-1 bg-blue-100 text-blue-800 rounded">{product.category}</span>
+                          {product.condition && (
+                            <span className="text-sm px-2 py-1 bg-green-100 text-green-800 rounded">{product.condition}</span>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-lg font-bold text-nexus-text-primary">
-                          ¥{product.estimatedValue.toLocaleString()}
-                        </span>
+                      <div className="text-right">
+                        {product.purchasePrice && (
+                          <div className="mb-1">
+                            <p className="text-sm text-nexus-text-secondary">購入価格</p>
+                            <p className="text-lg font-bold text-nexus-text-primary">¥{product.purchasePrice.toLocaleString()}</p>
+                          </div>
+                        )}
+                        <div className="mb-2">
+                          <p className="text-sm text-nexus-text-secondary">見積価値</p>
+                          <p className="font-medium text-nexus-text-primary">¥{product.estimatedValue.toLocaleString()}</p>
+                        </div>
                         <NexusButton
                           onClick={() => handleGenerateProductBarcode(product, index)}
                           size="sm"
@@ -292,15 +324,62 @@ export default function DeliveryPlanDetailModal({
                         </NexusButton>
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm text-nexus-text-secondary">ブランド</p>
-                        <p className="font-medium">{product.brand}</p>
+
+                    {/* 商品画像表示 */}
+                    {product.images && product.images.length > 0 && (
+                      <div className="mb-4">
+                        <h5 className="text-sm font-medium text-nexus-text-primary mb-2">商品画像</h5>
+                        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                          {product.images.map((image: any) => (
+                            <div key={image.id} className="relative group border border-nexus-border rounded-lg overflow-hidden">
+                              <img 
+                                src={image.url} 
+                                alt={image.filename}
+                                className="w-full h-20 object-cover"
+                              />
+                              <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-xs p-1 text-center">
+                                {image.category === 'product' ? '本体' :
+                                 image.category === 'package' ? '箱' :
+                                 image.category === 'accessory' ? '付属品' :
+                                 image.category === 'document' ? '書類' : 'その他'}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm text-nexus-text-secondary">モデル</p>
-                        <p className="font-medium">{product.model}</p>
-                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      {product.supplier && (
+                        <div>
+                          <p className="text-sm text-nexus-text-secondary">仕入先</p>
+                          <p className="font-medium">{product.supplier}</p>
+                        </div>
+                      )}
+                      {product.supplierDetails && (
+                        <div>
+                          <p className="text-sm text-nexus-text-secondary">仕入れ詳細</p>
+                          <p className="font-medium">{product.supplierDetails}</p>
+                        </div>
+                      )}
+                      {product.purchaseDate && (
+                        <div>
+                          <p className="text-sm text-nexus-text-secondary">仕入日</p>
+                          <p className="font-medium">{product.purchaseDate}</p>
+                        </div>
+                      )}
+                      {product.brand && (
+                        <div>
+                          <p className="text-sm text-nexus-text-secondary">ブランド</p>
+                          <p className="font-medium">{product.brand}</p>
+                        </div>
+                      )}
+                      {product.model && (
+                        <div>
+                          <p className="text-sm text-nexus-text-secondary">モデル</p>
+                          <p className="font-medium">{product.model}</p>
+                        </div>
+                      )}
                       {product.serialNumber && (
                         <div>
                           <p className="text-sm text-nexus-text-secondary">シリアル番号</p>
@@ -308,20 +387,38 @@ export default function DeliveryPlanDetailModal({
                         </div>
                       )}
                     </div>
+
                     {product.description && (
-                      <div className="mt-4">
+                      <div className="mb-4">
                         <p className="text-sm text-nexus-text-secondary">説明</p>
                         <p className="text-sm mt-1">{product.description}</p>
                       </div>
                     )}
                     
                     {/* 撮影要望表示 */}
-                    <div className="mt-4">
+                    <div className="mb-4">
                       <PhotographyRequestDisplay 
                         photographyRequests={product.photographyRequests}
                         className=""
                       />
                     </div>
+
+                    {/* プレミアム梱包表示 */}
+                    {product.premiumPacking && (
+                      <div className="mb-4">
+                        <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                          <div className="flex items-center gap-2 mb-2">
+                            <svg className="h-5 w-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                            </svg>
+                            <h4 className="text-sm font-medium text-purple-800">プレミアム梱包</h4>
+                          </div>
+                          <p className="text-sm text-nexus-text-secondary ml-7">
+                            特別な保護材料と丁寧な梱包でお客様にお届け
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </NexusCard>
                 ))
               ) : (
