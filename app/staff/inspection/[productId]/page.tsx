@@ -14,6 +14,7 @@ interface PageProps {
   };
   searchParams: {
     mode?: 'photography';
+    step?: string;
   };
 }
 

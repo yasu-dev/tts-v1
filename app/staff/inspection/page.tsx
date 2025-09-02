@@ -596,9 +596,8 @@ export default function InspectionPage() {
   const handleContinueInspection = (product: Product) => {
     saveCurrentState();
     const progress = progressData[product.id];
-    // 梱包・ラベル（ステップ3）で中断している場合のみ、棚保管（ステップ4）に直接遷移
-    const shouldJumpToStorage = progress && progress.currentStep === 3;
-    const stepQuery = shouldJumpToStorage ? '?step=4' : '';
+    // 保存された進捗のステップで再開（保存して一覧に戻るボタンで保存された状態）
+    const stepQuery = progress && progress.currentStep ? `?step=${progress.currentStep}` : '';
     window.location.href = `/staff/inspection/${product.id}${stepQuery}`;
   };
 
@@ -630,6 +629,40 @@ export default function InspectionPage() {
     }
   };
 
+  // 不合格商品削除関数
+  const handleDeleteFailedProduct = async (product: Product) => {
+    try {
+      const response = await fetch(`/api/inventory/failed-product-delete?id=${product.id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || '商品の削除に失敗しました');
+      }
+
+      // 商品リストから削除
+      setProducts(prev => prev.filter(p => p.id !== product.id));
+
+      showToast({
+        type: 'success',
+        title: '商品削除完了',
+        message: `${product.name}を削除しました`,
+        duration: 3000
+      });
+
+    } catch (error) {
+      console.error('Failed product deletion error:', error);
+      showToast({
+        type: 'error',
+        title: '削除エラー',
+        message: error instanceof Error ? error.message : '商品削除中にエラーが発生しました',
+        duration: 4000
+      });
+    }
+  };
+
   // 行の展開/折りたたみ
   const toggleRowExpansion = (productId: string) => {
     setExpandedRows(prev => 
@@ -653,7 +686,7 @@ export default function InspectionPage() {
           { value: 'pending_inspection', label: '入庫待ち' },
       { value: 'inspecting', label: '保管作業中' },
     { value: 'completed', label: '完了' },
-    { value: 'failed', label: '不合格' }
+    { value: 'failed', label: '保留中' }
   ];
 
   // 検品・撮影状況選択肢（ステップベース）
@@ -734,7 +767,7 @@ export default function InspectionPage() {
                 { id: 'pending_inspection', label: '検品待ち', count: inspectionStats.pending },
                 { id: 'inspecting', label: '保管作業中', count: inspectionStats.inspecting },
                 { id: 'completed', label: '完了', count: inspectionStats.completed },
-                { id: 'failed', label: '不合格', count: inspectionStats.failed },
+                { id: 'failed', label: '保留中', count: inspectionStats.failed },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -961,21 +994,21 @@ export default function InspectionPage() {
                             }
 
                             if (product.status === 'inspecting') {
-                              // 検品中の場合は、検品詳細画面に遷移（続行）
+                              // 保管作業中の場合は、「再開する」ボタン
                               return (
                                 <NexusButton 
                                   size="sm" 
                                   variant="primary"
                                   onClick={() => handleContinueInspection(product)}
-                                  title="検品続行"
+                                  title="保存された進捗から再開"
                                 >
-                                  <ClipboardDocumentListIcon className="w-4 h-4" />
-                                  <span className="hidden sm:inline ml-1">検品する</span>
+                                  <ArrowPathIcon className="w-4 h-4" />
+                                  <span className="hidden sm:inline ml-1">再開する</span>
                                 </NexusButton>
                               );
                             }
 
-                            if (product.status === 'completed' || product.status === 'failed') {
+                            if (product.status === 'completed') {
                               return (
                                 <NexusButton
                                   size="sm"
@@ -986,6 +1019,31 @@ export default function InspectionPage() {
                                   <span className="hidden sm:inline">詳細</span>
                                   <span className="sm:hidden sr-only">詳細</span>
                                 </NexusButton>
+                              );
+                            }
+
+                            if (product.status === 'failed') {
+                              return (
+                                <div className="flex gap-1">
+                                  <NexusButton
+                                    size="sm"
+                                    variant="default"
+                                    icon={<EyeIcon className="w-4 h-4" />}
+                                    onClick={() => handleViewProduct(product)}
+                                  >
+                                    <span className="hidden sm:inline">詳細</span>
+                                    <span className="sm:hidden sr-only">詳細</span>
+                                  </NexusButton>
+                                  <NexusButton
+                                    size="sm"
+                                    variant="danger"
+                                    icon={<XMarkIcon className="w-4 h-4" />}
+                                    onClick={() => handleDeleteFailedProduct(product)}
+                                    title="保留中商品を削除"
+                                  >
+                                    <span className="hidden sm:inline">削除</span>
+                                  </NexusButton>
+                                </div>
                               );
                             }
 
@@ -1071,15 +1129,15 @@ export default function InspectionPage() {
                                     <NexusButton
                                       size="sm"
                                       variant="primary"
-                                      onClick={() => handleOpenInspectionModal(product)}
+                                      onClick={() => handleContinueInspection(product)}
                                       className="flex items-center gap-1"
-                                      title="検品処理"
+                                      title="保存された進捗から再開"
                                     >
-                                      <ClipboardDocumentListIcon className="w-3 h-3" />
-                                      検品する
+                                      <ArrowPathIcon className="w-3 h-3" />
+                                      再開する
                                     </NexusButton>
                                   )}
-                                  {(product.status === 'completed' || product.status === 'failed') && (
+                                  {product.status === 'completed' && (
                                     <NexusButton
                                       size="sm"
                                       variant="default"
@@ -1087,8 +1145,31 @@ export default function InspectionPage() {
                                       className="flex items-center gap-1"
                                     >
                                       <EyeIcon className="w-3 h-3" />
-                                      詳細確認
+                                      詳細
                                     </NexusButton>
+                                  )}
+                                  {product.status === 'failed' && (
+                                    <div className="flex gap-1 flex-wrap">
+                                      <NexusButton
+                                        size="sm"
+                                        variant="default"
+                                        onClick={() => handleViewProduct(product)}
+                                        className="flex items-center gap-1"
+                                      >
+                                        <EyeIcon className="w-3 h-3" />
+                                        詳細
+                                      </NexusButton>
+                                      <NexusButton
+                                        size="sm"
+                                        variant="danger"
+                                        onClick={() => handleDeleteFailedProduct(product)}
+                                        className="flex items-center gap-1"
+                                        title="保留中商品を削除"
+                                      >
+                                        <XMarkIcon className="w-3 h-3" />
+                                        削除
+                                      </NexusButton>
+                                    </div>
                                   )}
                                 </div>
                                           </div>

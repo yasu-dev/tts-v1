@@ -488,6 +488,7 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
       if (stepParam) {
         const stepNum = parseInt(stepParam, 10);
         if ([1,2,3,4].includes(stepNum)) {
+          console.log(`[InspectionForm] URLパラメータからstep=${stepNum}を設定`);
           setCurrentStep(stepNum);
           // step指定で来た場合はUI初期化が落ち着くまで待ってからタブ部分にスクロール
           setTimeout(() => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
@@ -33,9 +33,39 @@ export default function PackagingAndLabelStep({
   const { showToast } = useToast();
   const [packagingCompleted, setPackagingCompleted] = useState(false);
   const [labelPrinted, setLabelPrinted] = useState(false);
+  const [weight, setWeight] = useState('');
+  const [weightEntered, setWeightEntered] = useState(false);
   const [labelAttached, setLabelAttached] = useState(false);
   const [isGeneratingLabel, setIsGeneratingLabel] = useState(false);
   const [notes, setNotes] = useState('');
+
+  // 保存された重量データを復元
+  useEffect(() => {
+    const loadSavedWeight = async () => {
+      try {
+        const response = await fetch(`/api/products/${productId}`);
+        if (response.ok) {
+          const productData = await response.json();
+          if (productData.metadata) {
+            const metadata = typeof productData.metadata === 'string'
+              ? JSON.parse(productData.metadata)
+              : productData.metadata;
+            
+            const savedWeight = metadata?.packaging?.weight;
+            if (savedWeight && savedWeight > 0) {
+              setWeight(savedWeight.toString());
+              setWeightEntered(true);
+              console.log(`[PackagingAndLabelStep] 保存された重量を復元: ${savedWeight}kg`);
+            }
+          }
+        }
+      } catch (error) {
+        console.log('[PackagingAndLabelStep] 重量データの復元をスキップ:', error);
+      }
+    };
+
+    loadSavedWeight();
+  }, [productId]);
 
   const handlePackagingComplete = () => {
     setPackagingCompleted(true);
@@ -113,7 +143,7 @@ export default function PackagingAndLabelStep({
     });
   };
 
-  const canProceedToNext = packagingCompleted && labelPrinted && labelAttached;
+  const canProceedToNext = packagingCompleted && labelPrinted && weightEntered && labelAttached;
 
   return (
     <div className="space-y-6">
@@ -206,10 +236,107 @@ export default function PackagingAndLabelStep({
             )}
           </div>
 
-          {/* ステップ3: ラベル貼り付け */}
+          {/* ステップ3: 重量測定 */}
           <div className="border rounded-lg p-4">
             <div className="flex items-center justify-between mb-3">
-              <h4 className="text-base font-medium">3. ラベル貼り付け</h4>
+              <h4 className="text-base font-medium">3. 重量測定 <span className="text-red-500">*</span></h4>
+              {weightEntered && (
+                <div className="flex items-center text-green-600">
+                  <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  完了
+                </div>
+              )}
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+              梱包済み商品の重量を測定してください。
+            </p>
+            {labelPrinted && !weightEntered && (
+              <div className="space-y-3">
+                <div>
+                  <label htmlFor="product-weight" className="block text-sm font-medium text-gray-700 mb-1">
+                    商品重量（kg）<span className="text-red-500 ml-1">*</span>
+                  </label>
+                  <input
+                    id="product-weight"
+                    type="number"
+                    value={weight}
+                    onChange={(e) => setWeight(e.target.value)}
+                    placeholder="例: 1.5"
+                    step="0.1"
+                    min="0"
+                    max="999.9"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    小数点第一位まで入力してください（例: 1.5kg）
+                  </p>
+                </div>
+                <NexusButton
+                  onClick={async () => {
+                    if (!weight || parseFloat(weight) <= 0) {
+                      showToast({
+                        type: 'error',
+                        title: '入力エラー',
+                        message: '有効な重量を入力してください',
+                        duration: 3000
+                      });
+                      return;
+                    }
+                    
+                    try {
+                      // 重量データをmetadataに保存
+                      const response = await fetch(`/api/products/${productId}/weight`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          weight: parseFloat(weight),
+                          weightUnit: 'kg'
+                        })
+                      });
+
+                      if (!response.ok) {
+                        throw new Error('重量データの保存に失敗しました');
+                      }
+
+                      setWeightEntered(true);
+                      showToast({
+                        type: 'success',
+                        title: '重量測定完了',
+                        message: `重量 ${weight}kg を記録しました`,
+                        duration: 3000
+                      });
+                    } catch (error) {
+                      showToast({
+                        type: 'error',
+                        title: '重量保存エラー',
+                        message: '重量データの保存に失敗しました',
+                        duration: 4000
+                      });
+                    }
+                  }}
+                  variant="primary"
+                  size="sm"
+                >
+                  重量を記録
+                </NexusButton>
+              </div>
+            )}
+            {!labelPrinted && (
+              <p className="text-sm text-gray-500">ラベル出力を完了してから重量を測定してください</p>
+            )}
+            {weightEntered && (
+              <div className="bg-green-50 p-3 rounded border text-sm">
+                <strong>記録済み重量:</strong> {weight}kg
+              </div>
+            )}
+          </div>
+
+          {/* ステップ4: ラベル貼り付け */}
+          <div className="border rounded-lg p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-base font-medium">4. ラベル貼り付け</h4>
               {labelAttached && (
                 <div className="flex items-center text-green-600">
                   <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -222,7 +349,7 @@ export default function PackagingAndLabelStep({
             <p className="text-sm text-gray-600 mb-4">
               出力した商品ラベルを梱包した商品に貼り付けてください。
             </p>
-            {labelPrinted && !labelAttached && (
+            {weightEntered && !labelAttached && (
               <NexusButton
                 onClick={handleLabelAttached}
                 variant="primary"
@@ -231,8 +358,8 @@ export default function PackagingAndLabelStep({
                 ラベル貼り付け完了
               </NexusButton>
             )}
-            {!labelPrinted && (
-              <p className="text-sm text-gray-500">ラベル出力を完了してから貼り付けを行ってください</p>
+            {!weightEntered && (
+              <p className="text-sm text-gray-500">重量測定を完了してからラベル貼り付けを行ってください</p>
             )}
           </div>
         </div>
@@ -246,6 +373,7 @@ export default function PackagingAndLabelStep({
             <p className="text-sm text-blue-700">
               {packagingCompleted ? '✓' : '○'} 内装梱包　
               {labelPrinted ? '✓' : '○'} ラベル出力　
+              {weightEntered ? '✓' : '○'} 重量測定　
               {labelAttached ? '✓' : '○'} ラベル貼り付け
             </p>
           </div>

@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { X, Package, MapPin, Calendar, User, FileText, Tag } from 'lucide-react';
+import { X, Package, MapPin, Calendar, User, FileText, Tag, Download } from 'lucide-react';
 import { useModal } from '@/app/components/ui/ModalContext';
+import NexusButton from '@/app/components/ui/NexusButton';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 // 商品情報表示用の型定義
 interface ProductInfo {
@@ -47,6 +49,7 @@ interface ProductInfoModalProps {
 
 export default function ProductInfoModal({ isOpen, onClose, product }: ProductInfoModalProps) {
   const { setIsAnyModalOpen } = useModal();
+  const { showToast } = useToast();
 
   // モーダル開閉時の業務フロー制御
   useEffect(() => {
@@ -126,6 +129,80 @@ export default function ProductInfoModal({ isOpen, onClose, product }: ProductIn
       style: 'currency',
       currency: 'JPY',
     }).format(price);
+  };
+
+  // 納品プランラベルダウンロード機能
+  const handleDownloadDeliveryPlanLabel = async () => {
+    try {
+      // 商品のメタデータから納品プランIDを取得
+      let planId = null;
+      try {
+        const metadata = typeof product.metadata === 'string' 
+          ? JSON.parse(product.metadata) 
+          : product.metadata;
+        planId = metadata?.deliveryPlanInfo?.planId || metadata?.planId;
+      } catch (e) {
+        console.warn('Failed to parse metadata for delivery plan ID');
+      }
+
+      if (!planId) {
+        showToast({
+          type: 'warning',
+          title: 'ラベル取得不可',
+          message: '納品プランのラベル情報が見つかりません',
+          duration: 4000
+        });
+        return;
+      }
+
+      showToast({
+        type: 'info',
+        title: 'ラベル生成中',
+        message: '納品プランのラベルを生成しています...',
+        duration: 2000
+      });
+
+      const response = await fetch(`/api/delivery-plan/${planId}/barcode-pdf`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'ラベルの生成に失敗しました');
+      }
+
+      const result = await response.json();
+      
+      if (!result.success || !result.base64Data) {
+        throw new Error(result.message || 'PDFデータの取得に失敗しました');
+      }
+
+      // PDFをダウンロード
+      const link = document.createElement('a');
+      link.href = `data:application/pdf;base64,${result.base64Data}`;
+      link.download = result.fileName || `delivery-plan-label-${product.sku}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      showToast({
+        type: 'success',
+        title: 'ラベルダウンロード完了',
+        message: '納品プランのラベルをダウンロードしました',
+        duration: 3000
+      });
+    } catch (error) {
+      console.error('Label download error:', error);
+      showToast({
+        type: 'error',
+        title: 'ラベルダウンロードエラー',
+        message: error instanceof Error ? error.message : 'ラベルのダウンロードに失敗しました',
+        duration: 5000
+      });
+    }
   };
 
   return (
@@ -314,13 +391,26 @@ export default function ProductInfoModal({ isOpen, onClose, product }: ProductIn
 
         {/* フッター */}
         <div className="border-t border-gray-200 p-6 bg-gray-50">
-          <div className="flex justify-end">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-            >
-              閉じる
-            </button>
+          <div className="flex justify-between">
+            {/* 納品プランラベルダウンロードボタン */}
+            {product.status === 'completed' && (
+              <NexusButton
+                onClick={handleDownloadDeliveryPlanLabel}
+                variant="primary"
+                icon={<Download className="h-4 w-4" />}
+                size="sm"
+              >
+                納品プランラベルDL
+              </NexusButton>
+            )}
+            <div className="flex gap-2 ml-auto">
+              <button
+                onClick={onClose}
+                className="px-4 py-2 text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                閉じる
+              </button>
+            </div>
           </div>
         </div>
       </div>
