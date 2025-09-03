@@ -371,7 +371,7 @@ export default function InventoryPage() {
                     onClick={() => handleSort('name')}
                   >
                     <div className="flex items-center gap-1">
-                      商品
+                      商品名
                       {getSortIcon('name')}
                     </div>
                   </th>
@@ -384,7 +384,15 @@ export default function InventoryPage() {
                       {getSortIcon('sku')}
                     </div>
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">保管場所</th>
+                  <th 
+                    className="px-6 py-3 text-right text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
+                    onClick={() => handleSort('price')}
+                  >
+                    <div className="flex items-center justify-end gap-1">
+                      購入価格
+                      {getSortIcon('price')}
+                    </div>
+                  </th>
                   <th 
                     className="px-6 py-3 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('status')}
@@ -392,15 +400,6 @@ export default function InventoryPage() {
                     <div className="flex items-center justify-center gap-1">
                       ステータス
                       {getSortIcon('status')}
-                    </div>
-                  </th>
-                  <th 
-                    className="px-6 py-3 text-right text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
-                    onClick={() => handleSort('price')}
-                  >
-                    <div className="flex items-center justify-end gap-1">
-                      価格
-                      {getSortIcon('price')}
                     </div>
                   </th>
                   <th className="px-6 py-3 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">更新日</th>
@@ -430,18 +429,15 @@ export default function InventoryPage() {
                       <div className="font-medium text-nexus-text-primary">
                         {item.name}
                       </div>
-                      <div className="text-sm text-nexus-text-secondary mt-1">
-                        {item.category}
-                      </div>
                     </td>
                     <td className="p-4">
                       <span className="font-mono text-sm text-nexus-text-primary">
                         {item.sku}
                       </span>
                     </td>
-                    <td className="p-4 text-center">
-                      <span className="text-sm text-nexus-text-secondary">
-                        {item.currentLocation?.name || item.currentLocation?.code || 'N/A'}
+                    <td className="p-4 text-right">
+                      <span className="font-bold text-nexus-text-primary">
+                        ${item.price ? item.price.toLocaleString() : '0'}
                       </span>
                     </td>
                     <td className="p-4">
@@ -451,11 +447,6 @@ export default function InventoryPage() {
                           size="sm" 
                         />
                       </div>
-                    </td>
-                    <td className="p-4 text-right">
-                      <span className="font-bold text-nexus-text-primary">
-                        ¥{item.price ? item.price.toLocaleString() : '0'}
-                      </span>
                     </td>
                     <td className="p-4 text-center">
                       <span className="text-sm text-nexus-text-secondary">

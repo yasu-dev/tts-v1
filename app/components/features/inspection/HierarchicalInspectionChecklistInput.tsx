@@ -134,13 +134,25 @@ export default function HierarchicalInspectionChecklistInput({
 }: HierarchicalInspectionChecklistInputProps) {
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
 
+  // データが undefined の場合のガード
+  if (!data) {
+    return <div>検品データを読み込み中...</div>;
+  }
+
   const handleItemChange = (
     categoryId: string,
     itemId: string,
     type: 'boolean' | 'text_input',
     value: boolean | string
   ) => {
+    if (!data) return;
+    
     const updatedData = { ...data };
+    
+    // responses オブジェクトが存在しない場合は初期化
+    if (!updatedData.responses) {
+      updatedData.responses = {};
+    }
     
     // カテゴリが存在しない場合は初期化
     if (!updatedData.responses[categoryId]) {
@@ -163,6 +175,7 @@ export default function HierarchicalInspectionChecklistInput({
   };
 
   const handleNotesChange = (notes: string) => {
+    if (!data) return;
     onChange({ ...data, notes });
   };
 
@@ -179,7 +192,7 @@ export default function HierarchicalInspectionChecklistInput({
   const checkedItems = INSPECTION_CATEGORIES.reduce((sum, category) => {
     return sum + category.items.filter(item => {
       if (!data?.responses?.[category.id]) return false;
-      const response = data.responses[category.id]?.[item.id];
+      const response = data?.responses?.[category.id]?.[item.id];
       return (response?.booleanValue === true) || (response?.textValue && response.textValue.trim() !== '');
     }).length;
   }, 0);
@@ -288,7 +301,7 @@ export default function HierarchicalInspectionChecklistInput({
           検品メモ（任意）
         </label>
         <NexusTextarea
-          value={data.notes || ''}
+          value={data?.notes || ''}
           onChange={(e) => handleNotesChange(e.target.value)}
           placeholder="検品時の特記事項があれば入力してください"
           rows={3}

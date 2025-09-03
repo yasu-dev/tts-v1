@@ -1847,7 +1847,7 @@ ${conditionDescription ? `・${conditionDescription}` : ''}
                 <div>
                   <div className="bg-gray-50 rounded-lg p-6 mb-4">
                     <div className="text-3xl font-bold mb-2">
-                      {formatType === 'Buy It Now' ? `¥${itemPrice.toLocaleString()}` : `開始価格: ¥${itemPrice.toLocaleString()}`}
+                      {formatType === 'Buy It Now' ? `$${itemPrice.toLocaleString()}` : `開始価格: $${itemPrice.toLocaleString()}`}
                     </div>
                     <div className="text-sm text-gray-600 mb-4">
                       {allowOffers && '価格交渉可'}

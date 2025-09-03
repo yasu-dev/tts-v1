@@ -686,7 +686,7 @@ export default function ListingPage() {
                           <span className="text-nexus-text-primary">{product.category}</span>
                         </td>
                         <td className="p-4 text-right">
-                          <span className="font-bold text-nexus-text-primary">¥{product.price.toLocaleString()}</span>
+                          <span className="font-bold text-nexus-text-primary">${product.price.toLocaleString()}</span>
                         </td>
                         <td className="p-4 text-center">
                           <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-sm font-medium">

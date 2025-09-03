@@ -348,7 +348,7 @@ export default function ItemDetailModal({
                         <label className="block text-xs font-medium text-blue-700 mb-1">
                           出品価格
                         </label>
-                        <p className="text-sm text-blue-900">¥{ebayListingInfo.buyItNowPrice?.toLocaleString()}</p>
+                        <p className="text-sm text-blue-900">${ebayListingInfo.buyItNowPrice?.toLocaleString()}</p>
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-blue-700 mb-1">

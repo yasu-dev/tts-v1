@@ -222,7 +222,7 @@ export default function EbayListingForm({ product, onSuccess, onCancel }: EbayLi
             </label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-nexus-text-secondary">
-                ¥
+                $
               </span>
               <input
                 type="number"
@@ -232,7 +232,7 @@ export default function EbayListingForm({ product, onSuccess, onCancel }: EbayLi
               />
             </div>
             <p className="text-xs text-nexus-text-muted mt-1">
-              推奨: ¥{Math.floor(product.price * 0.8).toLocaleString()}
+              推奨: ${Math.floor(product.price * 0.8).toLocaleString()}
             </p>
           </div>
 
@@ -242,7 +242,7 @@ export default function EbayListingForm({ product, onSuccess, onCancel }: EbayLi
             </label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-nexus-text-secondary">
-                ¥
+                $
               </span>
               <input
                 type="number"
@@ -252,7 +252,7 @@ export default function EbayListingForm({ product, onSuccess, onCancel }: EbayLi
               />
             </div>
             <p className="text-xs text-nexus-text-muted mt-1">
-              定価: ¥{product.price.toLocaleString()}
+              定価: ${product.price.toLocaleString()}
             </p>
           </div>
         </div>

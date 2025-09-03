@@ -95,6 +95,24 @@ export default function ProductDetailModal({ isOpen, onClose, product, onOpenLis
 
   if (!product) return null;
 
+  // 重量データを取得
+  const getWeightInfo = () => {
+    try {
+      const metadata = typeof product.metadata === 'string' 
+        ? JSON.parse(product.metadata) 
+        : product.metadata;
+      
+      if (metadata?.packaging?.weight) {
+        const weight = metadata.packaging.weight;
+        const unit = metadata.packaging.weightUnit || 'kg';
+        return `${weight}${unit}`;
+      }
+    } catch (error) {
+      console.warn('重量データの解析エラー:', error);
+    }
+    return null;
+  };
+
   const tabs = [
     { 
       id: 'basic', 
@@ -170,6 +188,12 @@ export default function ProductDetailModal({ isOpen, onClose, product, onOpenLis
                       <span className="font-medium text-nexus-text-secondary">カテゴリー</span>
                       <span className="text-nexus-text-primary">{getCategoryJapaneseName(product.category)}</span>
                     </div>
+                    {getWeightInfo() && (
+                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <span className="font-medium text-nexus-text-secondary">重量</span>
+                        <span className="text-nexus-text-primary">{getWeightInfo()}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div>

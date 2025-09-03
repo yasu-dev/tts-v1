@@ -1217,18 +1217,12 @@ export default function DeliveryPage() {
                                   </span>
                                 )}
                               </div>
-                              {/* 🆕 購入価格・見積価値表示 */}
-                              <div className="mt-2 space-y-1">
-                                {product.purchasePrice !== undefined && product.purchasePrice > 0 && (
+                              {/* 🆕 購入価格表示 */}
+                              <div className="mt-2">
+                                {((product.purchasePrice !== undefined && product.purchasePrice > 0) || (product.estimatedValue !== undefined && product.estimatedValue > 0)) && (
                                   <div className="text-sm">
                                     <span className="font-medium text-nexus-text-secondary">購入価格:</span>
-                                    <span className="ml-2 text-nexus-text-primary font-bold text-base">¥{product.purchasePrice.toLocaleString()}</span>
-                                  </div>
-                                )}
-                                {product.estimatedValue !== undefined && product.estimatedValue > 0 && (
-                                  <div className="text-sm">
-                                    <span className="font-medium text-nexus-text-secondary">見積価値:</span>
-                                    <span className="ml-2 text-nexus-text-primary">¥{product.estimatedValue.toLocaleString()}</span>
+                                    <span className="ml-2 text-nexus-text-primary font-bold text-base">¥{(product.purchasePrice || product.estimatedValue).toLocaleString()}</span>
                                   </div>
                                 )}
                               </div>

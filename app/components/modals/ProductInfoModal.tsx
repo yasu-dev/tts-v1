@@ -48,6 +48,24 @@ interface ProductInfoModalProps {
 }
 
 export default function ProductInfoModal({ isOpen, onClose, product }: ProductInfoModalProps) {
+  
+  // 重量データを取得
+  const getWeightInfo = () => {
+    try {
+      const metadata = typeof product.metadata === 'string' 
+        ? JSON.parse(product.metadata) 
+        : product.metadata;
+      
+      if (metadata?.packaging?.weight) {
+        const weight = metadata.packaging.weight;
+        const unit = metadata.packaging.weightUnit || 'kg';
+        return `${weight}${unit}`;
+      }
+    } catch (error) {
+      console.warn('重量データの解析エラー:', error);
+    }
+    return null;
+  };
   const { setIsAnyModalOpen } = useModal();
   const { showToast } = useToast();
 
@@ -290,7 +308,7 @@ export default function ProductInfoModal({ isOpen, onClose, product }: ProductIn
                     <p className="text-gray-900">{conditionLabels[product.condition] || product.condition}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">購入価格</label>
+                    <label className="text-sm font-medium text-gray-600">出品価格</label>
                     <p className="text-gray-900 font-semibold mt-1">{formatPrice(product.price)}</p>
                   </div>
                   <div>
@@ -299,6 +317,14 @@ export default function ProductInfoModal({ isOpen, onClose, product }: ProductIn
                       {statusLabels[product.status] || product.status}
                     </span>
                   </div>
+                  {getWeightInfo() && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-600">重量</label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-gray-900">{getWeightInfo()}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 

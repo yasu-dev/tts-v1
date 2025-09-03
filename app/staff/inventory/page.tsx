@@ -285,11 +285,6 @@ export default function StaffInventoryPage() {
       filtered = items.filter(item => item.location.includes(selectedLocation));
       setFilteredItems(filtered);
       setPaginatedItems(filtered);
-    } else if (selectedStaff !== 'all') {
-      // 担当者フィルターもクライアント側で処理（サーバーに未実装のため）
-      filtered = items.filter(item => item.assignedStaff === selectedStaff);
-      setFilteredItems(filtered);
-      setPaginatedItems(filtered);
     } else if (selectedSeller !== 'all') {
       // セラーフィルターもクライアント側で処理（サーバーに未実装のため）
       filtered = items.filter(item => item.seller?.id === selectedSeller);
@@ -305,7 +300,7 @@ export default function StaffInventoryPage() {
     if (currentPage !== 1) {
       setCurrentPage(1);
     }
-  }, [items, selectedStatus, selectedLocation, selectedStaff, selectedSeller]);
+  }, [items, selectedStatus, selectedLocation, selectedSeller]);
 
   // URLパラメータから商品IDを取得して情報表示モーダルを開く
   useEffect(() => {
@@ -414,23 +409,7 @@ export default function StaffInventoryPage() {
     ];
   }, [items]);
 
-  // 動的担当者オプション生成（実際に商品に割り当てられている担当者）
-  const staffOptions = useMemo(() => {
-    // 実際に存在する担当者を取得（重複排除）
-    const staffMembers = Array.from(new Set(
-      items
-        .map(item => item.assignedStaff)
-        .filter(Boolean) // 担当者が存在するもののみ
-    ));
-    
-    return [
-      { value: 'all', label: 'すべての担当者' },
-      ...staffMembers.map(staff => ({
-        value: staff,
-        label: staff
-      }))
-    ];
-  }, [items]);
+
 
   // サーバーサイドページネーションのため、クライアント側ページング処理は不要
   // paginatedItemsはAPI取得時に直接設定される
@@ -657,15 +636,6 @@ export default function StaffInventoryPage() {
               </div>
 
               <div>
-                <NexusSelect
-                  label="担当者"
-                  value={selectedStaff}
-                  onChange={(e) => setSelectedStaff(e.target.value)}
-                  options={staffOptions}
-                />
-              </div>
-
-              <div>
                 <NexusInput
                   type="text"
                   label="検索"
@@ -683,58 +653,46 @@ export default function StaffInventoryPage() {
               <table className="w-full">
                               <thead className="holo-header">
                   <tr>
-                    <th className="text-left p-4 font-medium text-nexus-text-secondary">商品</th>
-                    <th className="text-left p-4 font-medium text-nexus-text-secondary">ステータス</th>
+                    <th className="text-center p-4 font-medium text-nexus-text-secondary">画像</th>
+                    <th className="text-left p-4 font-medium text-nexus-text-secondary">商品名</th>
+                    <th className="text-left p-4 font-medium text-nexus-text-secondary">SKU</th>
+                    <th className="text-left p-4 font-medium text-nexus-text-secondary">セラー名</th>
                     <th className="text-left p-4 font-medium text-nexus-text-secondary">保管場所</th>
-                    <th className="text-left p-4 font-medium text-nexus-text-secondary">担当者</th>
-                    <th className="text-left p-4 font-medium text-nexus-text-secondary">最終更新</th>
+                    <th className="text-center p-4 font-medium text-nexus-text-secondary">ステータス</th>
+                    <th className="text-left p-4 font-medium text-nexus-text-secondary">更新日</th>
                     <th className="text-center p-4 font-medium text-nexus-text-secondary">操作</th>
                   </tr>
                 </thead>
                               <tbody className="holo-body">
                   {paginatedItems.map((item) => (
                     <tr key={item.id}>
-                      <td className="p-4">
-                      <div className="flex items-center">
-                        <div className="w-8 h-8 rounded-lg bg-nexus-bg-secondary flex items-center justify-center mr-3">
-                          {item.category === 'カメラ本体' ? (
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                          ) : item.category === 'レンズ' ? (
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12a3 3 0 106 0 3 3 0 00-6 0z" />
-                            </svg>
-                          ) : item.category === '腕時計' ? (
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                          ) : (
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                            </svg>
-                          )}
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-nexus-text-primary">
-                            {item.name}
+                      <td className="p-4 text-center">
+                        {item.imageUrl ? (
+                          <img 
+                            src={item.imageUrl} 
+                            alt={item.name}
+                            className="w-12 h-12 object-cover rounded-lg mx-auto border border-nexus-border"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 bg-gray-100 rounded-lg mx-auto border border-nexus-border flex items-center justify-center">
+                            <span className="text-xs text-gray-400">画像なし</span>
                           </div>
-                          <div className="text-sm text-nexus-text-secondary">
-                            {item.sku} | {item.qrCode}
-                          </div>
-                        </div>
-                      </div>
-                                          </td>
+                        )}
+                      </td>
                       <td className="p-4">
-                        <BusinessStatusIndicator status={item.status} size="sm" />
+                        <div className="font-medium text-nexus-text-primary">{item.name}</div>
+                      </td>
+                      <td className="p-4">
+                        <span className="font-mono text-sm text-nexus-text-primary">{item.sku}</span>
+                      </td>
+                      <td className="p-4">
+                        <span className="text-sm text-nexus-text-primary">{item.seller?.username || '未設定'}</span>
                       </td>
                       <td className="p-4">
                         <span className="text-sm text-nexus-text-primary">{item.location}</span>
                       </td>
-                      <td className="p-4">
-                        <span className="text-sm text-nexus-text-primary">{item.assignedStaff}</span>
+                      <td className="p-4 text-center">
+                        <BusinessStatusIndicator status={item.status} size="sm" />
                       </td>
                       <td className="p-4">
                         <span className="text-sm text-nexus-text-secondary">

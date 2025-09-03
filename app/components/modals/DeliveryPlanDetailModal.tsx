@@ -304,15 +304,9 @@ export default function DeliveryPlanDetailModal({
                         </div>
                       </div>
                       <div className="text-right">
-                        {product.purchasePrice && (
-                          <div className="mb-1">
-                            <p className="text-sm text-nexus-text-secondary">購入価格</p>
-                            <p className="text-lg font-bold text-nexus-text-primary">¥{product.purchasePrice.toLocaleString()}</p>
-                          </div>
-                        )}
                         <div className="mb-2">
-                          <p className="text-sm text-nexus-text-secondary">見積価値</p>
-                          <p className="font-medium text-nexus-text-primary">¥{product.estimatedValue.toLocaleString()}</p>
+                          <p className="text-sm text-nexus-text-secondary">購入価格</p>
+                          <p className="text-lg font-bold text-nexus-text-primary">¥{(product.purchasePrice || product.estimatedValue).toLocaleString()}</p>
                         </div>
                         <NexusButton
                           onClick={() => handleGenerateProductBarcode(product, index)}
