@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
 import InspectionChecklist from './InspectionChecklist';
@@ -107,7 +107,6 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
   
   // 🎛️ フィーチャーフラグ：階層型検品チェックリストの有効/無効
   const isHierarchicalEnabled = useIsHierarchicalChecklistEnabled();
-  console.log(`[InspectionForm] 階層型検品チェックリスト: ${isHierarchicalEnabled ? '有効(新システム)' : '無効(既存システム)'}`);
   
   const [product, setProduct] = useState<Product | null>(null);
   
@@ -642,17 +641,13 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
     }));
   };
 
-  const updatePhotos = (photos: string[], photoSlots?: any[]) => {
-    console.log('[DEBUG] InspectionForm: updatePhotos呼び出し', {
-      photos: photos.length,
-      photoSlots: photoSlots?.map(slot => ({ id: slot.id, photos: slot.photos.length }))
-    });
+  const updatePhotos = useCallback((photos: string[], photoSlots?: any[]) => {
     setInspectionData(prev => ({
       ...prev,
       photos,
       photoSlots: photoSlots || prev.photoSlots,
     }));
-  };
+  }, []);
 
   // 部分保存機能（各ステップで作業を中断して保存）
   // キャンセルして一覧に戻る（保存しない）
@@ -1305,22 +1300,10 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
         {currentStep === 2 && (
           <div className="space-y-6">
             {/* 撮影要望表示 */}
-            {(() => {
-              console.log('[DEBUG] PhotographyRequestDisplay レンダリング詳細:', {
-                productId: product?.id,
-                hasDeliveryPlanInfo: !!product?.deliveryPlanInfo,
-                deliveryPlanInfo: JSON.stringify(product?.deliveryPlanInfo, null, 2),
-                photographyRequestsRaw: JSON.stringify(product?.deliveryPlanInfo?.photographyRequests, null, 2),
-                photographyRequestsType: typeof product?.deliveryPlanInfo?.photographyRequests
-              });
-              
-              return (
-                <PhotographyRequestDisplay 
-                  photographyRequests={product.deliveryPlanInfo?.photographyRequests || null}
-                  className="mb-6"
-                />
-              );
-            })()}
+            <PhotographyRequestDisplay 
+              photographyRequests={product.deliveryPlanInfo?.photographyRequests || null}
+              className="mb-6"
+            />
             
             <PhotoUploader
               productId={productId}

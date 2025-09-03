@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, memo, useMemo } from 'react';
 import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
 import AIQualityResult from '@/app/components/features/inspection/AIQualityResult';
@@ -133,10 +133,6 @@ export default function PhotoUploader({
 
   useEffect(() => {
     if (isInitialized) {
-      console.log('[DEBUG] PhotoUploader: useEffectで親コンポーネントに通知', {
-        uploadedPhotos: uploadedPhotos.length,
-        photoSlots: photoSlots.map(slot => ({ id: slot.id, photos: slot.photos.length }))
-      });
       onUpdate(uploadedPhotos, photoSlots);
     } else {
       setIsInitialized(true);
@@ -151,12 +147,14 @@ export default function PhotoUploader({
   }, [initialPhotoSlots]);
 
   // 追加写真（スロットに配置されていない写真）
-  const getUnassignedPhotos = () => {
+  const unassignedPhotos = useMemo(() => {
     const assignedPhotos = photoSlots.flatMap(slot => slot.photos);
     return uploadedPhotos.filter(photo => !assignedPhotos.includes(photo));
-  };
+  }, [uploadedPhotos, photoSlots]);
 
-  const handleDragStart = (e: React.DragEvent, photo: string, fromSlotId?: string) => {
+  const getUnassignedPhotos = () => unassignedPhotos;
+
+  const handleDragStart = useCallback((e: React.DragEvent, photo: string, fromSlotId?: string) => {
     setDraggedPhoto(photo);
     setDraggedFromSlot(fromSlotId || null);
     e.dataTransfer.effectAllowed = 'move';
@@ -168,7 +166,7 @@ export default function PhotoUploader({
     dragImage.style.height = '60px';
     dragImage.style.objectFit = 'cover';
     e.dataTransfer.setDragImage(dragImage, 30, 30);
-  };
+  }, []);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -183,7 +181,7 @@ export default function PhotoUploader({
     setHoveredSlot(null);
   };
 
-  const handleDrop = (e: React.DragEvent, slotId: string) => {
+  const handleDrop = useCallback((e: React.DragEvent, slotId: string) => {
     e.preventDefault();
     setHoveredSlot(null);
     
@@ -208,12 +206,6 @@ export default function PhotoUploader({
         }
       }
       
-      // 親コンポーネントに通知（useEffectで自動的に呼ばれるため削除）
-      console.log('[DEBUG] PhotoUploader: ドロップ処理完了', {
-        uploadedPhotos: uploadedPhotos.length,
-        photoSlots: newSlots.map(slot => ({ id: slot.id, photos: slot.photos.length }))
-      });
-      
       return newSlots;
     });
 
@@ -229,9 +221,9 @@ export default function PhotoUploader({
         type: 'success'
       });
     }
-  };
+  }, [draggedPhoto, draggedFromSlot, photoSlots, showToast]);
 
-  const handleRemoveFromSlot = (slotId: string, photoToRemove: string) => {
+  const handleRemoveFromSlot = useCallback((slotId: string, photoToRemove: string) => {
     setPhotoSlots(prev => {
       const newSlots = prev.map(slot => 
         slot.id === slotId 
@@ -239,15 +231,9 @@ export default function PhotoUploader({
           : slot
       );
       
-      // 親コンポーネントに通知（useEffectで自動的に呼ばれるため削除）
-      console.log('[DEBUG] PhotoUploader: 削除処理完了', {
-        uploadedPhotos: uploadedPhotos.length,
-        photoSlots: newSlots.map(slot => ({ id: slot.id, photos: slot.photos.length }))
-      });
-      
       return newSlots;
     });
-  };
+  }, []);
 
   const handleDeletePhoto = (photoToDelete: string) => {
     // 全スロットから削除
@@ -267,7 +253,7 @@ export default function PhotoUploader({
   };
 
   // ファイルアップロード処理
-  const handleFileUpload = async (files: File[]) => {
+  const handleFileUpload = useCallback(async (files: File[]) => {
     if (files.length === 0) return;
     
     setLoading(true);
@@ -342,7 +328,7 @@ export default function PhotoUploader({
     } finally {
       setLoading(false);
     }
-  };
+  }, [uploadedPhotos, photoSlots, onUpdate, showToast]);
 
   // AI品質向上の実行
   const handleAIAnalysis = async () => {
@@ -576,7 +562,6 @@ export default function PhotoUploader({
       </div>
 
       {/* メイン作業エリア - 横並び最適化 */}
-      {console.log('[DEBUG] PhotoUploader メイン作業エリア表示:', { uploadedPhotos: uploadedPhotos.length, photoSlots: photoSlots.length })}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4" style={{display: 'grid !important', visibility: 'visible !important'}}>
         
         {/* 左側: 必須撮影箇所 (8列) */}

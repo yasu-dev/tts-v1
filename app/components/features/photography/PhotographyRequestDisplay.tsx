@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { CameraIcon, CheckIcon } from '@heroicons/react/24/outline';
 
 interface PhotographyRequest {
@@ -32,20 +33,10 @@ interface PhotographyRequestDisplayProps {
   className?: string;
 }
 
-export default function PhotographyRequestDisplay({ 
+const PhotographyRequestDisplay = memo(function PhotographyRequestDisplay({ 
   photographyRequests, 
   className = '' 
 }: PhotographyRequestDisplayProps) {
-  console.log('[DEBUG] PhotographyRequestDisplay props詳細:', {
-    photographyRequests: JSON.stringify(photographyRequests, null, 2),
-    photographyRequestsType: typeof photographyRequests,
-    isNull: photographyRequests === null,
-    isUndefined: photographyRequests === undefined,
-    photographyType: photographyRequests?.photographyType,
-    customRequests: photographyRequests?.customRequests,
-    className
-  });
-
   if (!photographyRequests) {
     return (
       <div className={`p-4 bg-nexus-bg-tertiary rounded-lg border border-nexus-border ${className}`}>
@@ -153,4 +144,6 @@ export default function PhotographyRequestDisplay({
       )}
     </div>
   );
-}
+});
+
+export default PhotographyRequestDisplay;

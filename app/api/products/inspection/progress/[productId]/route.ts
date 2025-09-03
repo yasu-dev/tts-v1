@@ -12,25 +12,43 @@ export async function GET(
   try {
     const { productId } = params;
     
-    if (!productId) {
-      console.log('[ERROR] Product ID is missing from params');
+    if (!productId || typeof productId !== 'string' || productId.trim() === '') {
+      console.log('[ERROR] Product ID is missing or invalid from params:', productId);
       return NextResponse.json(
-        { error: 'Product ID is required' },
+        { error: 'Valid Product ID is required' },
         { status: 400 }
       );
     }
 
     console.log('[DEBUG] Attempting to connect to database...');
-    await prisma.$connect();
-    console.log('[DEBUG] Database connected successfully');
+    try {
+      await prisma.$connect();
+      console.log('[DEBUG] Database connected successfully');
+    } catch (dbError) {
+      console.error('[ERROR] Database connection failed:', dbError);
+      return NextResponse.json(
+        { error: 'Database connection failed' },
+        { status: 503 }
+      );
+    }
 
     // データベースから進捗データを取得
     console.log(`[DEBUG] Searching for progress data for product: ${productId}`);
-    const progressData = await prisma.inspectionProgress.findUnique({
-      where: {
-        productId: productId
-      }
-    });
+    let progressData;
+    
+    try {
+      progressData = await prisma.inspectionProgress.findUnique({
+        where: {
+          productId: productId
+        }
+      });
+    } catch (queryError) {
+      console.error('[ERROR] Database query failed:', queryError);
+      return NextResponse.json(
+        { error: 'Database query failed', details: queryError instanceof Error ? queryError.message : 'Unknown query error' },
+        { status: 500 }
+      );
+    }
     
     if (!progressData) {
       console.log(`[INFO] No progress data found for product ${productId}`);

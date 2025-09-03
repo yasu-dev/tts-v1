@@ -45,9 +45,18 @@ export async function PUT(
     }
 
     // 商品の存在確認
-    const existingProduct = await prisma.product.findUnique({
-      where: { id: productId }
-    });
+    let existingProduct;
+    try {
+      existingProduct = await prisma.product.findUnique({
+        where: { id: productId }
+      });
+    } catch (queryError) {
+      console.error('[ERROR] Product query failed:', queryError);
+      return NextResponse.json(
+        { error: '商品検索中にエラーが発生しました', details: queryError instanceof Error ? queryError.message : 'Unknown query error' },
+        { status: 500 }
+      );
+    }
 
     if (!existingProduct) {
       return NextResponse.json(
@@ -82,26 +91,40 @@ export async function PUT(
     };
 
     // 商品metadataを更新
-    const updatedProduct = await prisma.product.update({
-      where: { id: productId },
-      data: {
-        metadata: JSON.stringify(updatedMetadata)
-      }
-    });
+    let updatedProduct;
+    try {
+      updatedProduct = await prisma.product.update({
+        where: { id: productId },
+        data: {
+          metadata: JSON.stringify(updatedMetadata)
+        }
+      });
+    } catch (updateError) {
+      console.error('[ERROR] Product update failed:', updateError);
+      return NextResponse.json(
+        { error: '商品更新中にエラーが発生しました', details: updateError instanceof Error ? updateError.message : 'Unknown update error' },
+        { status: 500 }
+      );
+    }
 
     // アクティビティログ
-    await prisma.activity.create({
-      data: {
-        type: 'weight_recorded',
-        description: `商品 ${existingProduct.name} の重量が記録されました: ${weight}${weightUnit}`,
-        userId: user.id,
-        productId: productId,
-        metadata: JSON.stringify({
-          weight: weight,
-          weightUnit: weightUnit
-        })
-      }
-    });
+    try {
+      await prisma.activity.create({
+        data: {
+          type: 'weight_recorded',
+          description: `商品 ${existingProduct.name} の重量が記録されました: ${weight}${weightUnit}`,
+          userId: user.id,
+          productId: productId,
+          metadata: JSON.stringify({
+            weight: weight,
+            weightUnit: weightUnit
+          })
+        }
+      });
+    } catch (activityError) {
+      console.error('[ERROR] Activity log failed:', activityError);
+      // アクティビティログは失敗してもメイン処理は継続
+    }
 
     return NextResponse.json({
       success: true,
