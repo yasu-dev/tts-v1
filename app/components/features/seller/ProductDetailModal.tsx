@@ -6,7 +6,8 @@ import {
   DocumentTextIcon,
   CheckCircleIcon,
   CameraIcon,
-  BuildingStorefrontIcon
+  BuildingStorefrontIcon,
+  TruckIcon
 } from '@heroicons/react/24/outline';
 import BaseModal from '../../ui/BaseModal';
 import NexusButton from '../../ui/NexusButton';
@@ -14,6 +15,8 @@ import { BusinessStatusIndicator } from '../../ui';
 import ProductInspectionDetails from './ProductInspectionDetails';
 import ProductPhotographyDetails from './ProductPhotographyDetails';
 import ProductStorageDetails from './ProductStorageDetails';
+import CarrierSelectionModal from '../../modals/CarrierSelectionModal';
+import { useToast } from '../../features/notifications/ToastProvider';
 
 interface ProductDetailModalProps {
   isOpen: boolean;
@@ -92,8 +95,76 @@ const getConditionJapaneseName = (condition: string): string => {
 
 export default function ProductDetailModal({ isOpen, onClose, product, onOpenListingForm }: ProductDetailModalProps) {
   const [activeTab, setActiveTab] = useState('basic');
+  const [isShippingModalOpen, setIsShippingModalOpen] = useState(false);
+  const [isShippingRequesting, setIsShippingRequesting] = useState(false);
+  const { showToast } = useToast();
 
   if (!product) return null;
+
+  // セラー出荷指示処理
+  const handleShippingRequest = async (carrier: any, service: string) => {
+    console.log('出荷指示開始:', { carrier, service, productId: product.id });
+    setIsShippingRequesting(true);
+    
+    try {
+      showToast({
+        type: 'info',
+        title: '出荷指示送信中',
+        message: '配送業者への出荷指示を送信しています...',
+        duration: 3000
+      });
+
+      const response = await fetch('/api/seller/shipping-request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer fixed-auth-token-seller-1', // デモ認証トークン
+        },
+        body: JSON.stringify({
+          productId: product.id,
+          shippingInfo: {
+            carrier: carrier,
+            service: service,
+            shippingAddress: '配送先住所（セラー出荷）'
+          }
+        })
+      });
+
+      const result = await response.json();
+      console.log('出荷指示結果:', result);
+
+      if (result.success) {
+        showToast({
+          type: 'success',
+          title: '出荷指示完了',
+          message: result.message || '出荷指示を正常に送信しました。スタッフがピッキング作業を開始します。',
+          duration: 5000
+        });
+        
+        // モーダルを閉じる
+        setIsShippingModalOpen(false);
+        
+        // 商品詳細モーダルも閉じる
+        onClose();
+        
+        // ページリロード（商品リストの更新のため）
+        window.location.reload();
+        
+      } else {
+        throw new Error(result.error || '出荷指示の送信に失敗しました');
+      }
+    } catch (error) {
+      console.error('出荷指示エラー:', error);
+      showToast({
+        type: 'error',
+        title: 'エラー',
+        message: error instanceof Error ? error.message : '出荷指示の処理中にエラーが発生しました',
+        duration: 4000
+      });
+    } finally {
+      setIsShippingRequesting(false);
+    }
+  };
 
   // 重量データを取得
   const getWeightInfo = () => {
@@ -224,7 +295,15 @@ export default function ProductDetailModal({ isOpen, onClose, product, onOpenLis
               {/* セラー向けアクションボタン */}
               {product.status === 'storage' && (
                 <div className="pt-4 border-t border-gray-200">
-                  <div className="flex justify-end">
+                  <div className="flex justify-end gap-3">
+                    <NexusButton
+                      onClick={() => setIsShippingModalOpen(true)}
+                      variant="secondary"
+                      icon={<TruckIcon className="w-4 h-4" />}
+                      disabled={isShippingRequesting}
+                    >
+                      出荷する
+                    </NexusButton>
                     <NexusButton
                       onClick={() => onOpenListingForm(product)}
                       variant="primary"
@@ -260,6 +339,19 @@ export default function ProductDetailModal({ isOpen, onClose, product, onOpenLis
           )}
         </div>
       </div>
+      
+      {/* 配送ラベル生成モーダル */}
+      <CarrierSelectionModal
+        isOpen={isShippingModalOpen}
+        onClose={() => setIsShippingModalOpen(false)}
+        onCarrierSelect={handleShippingRequest}
+        item={{
+          productName: product.name,
+          orderNumber: `SELLER-${product.id.slice(-8)}`,
+          shippingAddress: '配送先住所（セラー出荷）',
+          value: product.price || 0
+        }}
+      />
     </BaseModal>
   );
 }

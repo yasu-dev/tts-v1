@@ -167,6 +167,7 @@ export default function InventoryPage() {
       { value: 'listing', label: '出品中' },
       { value: 'sold', label: '購入者決定' },
       { value: 'ordered', label: '出荷準備中' },
+      { value: 'workstation', label: '作業台' },
       { value: 'shipping', label: '出荷済み' },
       { value: 'returned', label: '返品' },
       { value: 'on_hold', label: '保留中' }
@@ -253,7 +254,8 @@ export default function InventoryPage() {
       'inspection': 'inspection', 
       'storage': 'storage',
       'listing': 'listing',
-      'ordered': 'ordered',
+      'ordered': 'ordered', // 出荷準備中
+      'workstation': 'ordered', // workstation → ordered（出荷準備中として表示）
       'shipping': 'shipping',
       'sold': 'sold',
       'returned': 'returned',

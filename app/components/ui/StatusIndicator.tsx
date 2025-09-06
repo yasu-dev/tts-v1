@@ -11,7 +11,7 @@ type BusinessStatusType =
   | 'processing' | 'delivered' | 'returned'
   | 'packed' | 'shipped' | 'ready_for_pickup'
   | 'approved' | 'rejected' | 'refunded'
-  | 'ordered' | 'shipping'
+  | 'ordered' | 'shipping' | 'workstation'
   | 'on_hold';
 
 interface StatusIndicatorProps {
@@ -68,6 +68,12 @@ const businessStatusConfig = {
     bg: 'bg-purple-800 dark:bg-purple-800',
     text: 'text-white dark:text-white',
     border: 'border-purple-800 dark:border-purple-800'
+  },
+  workstation: { 
+    label: '作業台', 
+    bg: 'bg-indigo-800 dark:bg-indigo-800',
+    text: 'text-white dark:text-white',
+    border: 'border-indigo-800 dark:border-indigo-800'
   },
   shipping: { 
     label: '出荷済み', 
@@ -185,6 +191,7 @@ function getIndicatorColor(status: BusinessStatusType): string {
     sold: 'bg-gray-300',
 
     ordered: 'bg-purple-300',
+    workstation: 'bg-indigo-300',
     shipping: 'bg-purple-300',
     returned: 'bg-orange-300',
     on_hold: 'bg-yellow-300',

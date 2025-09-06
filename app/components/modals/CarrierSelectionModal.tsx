@@ -29,9 +29,11 @@ export default function CarrierSelectionModal({
   item
 }: CarrierSelectionModalProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const selectedCarrierRef = useRef<HTMLDivElement>(null);
   const [selectedCarrierId, setSelectedCarrierId] = useState<string>('');
   const [selectedService, setSelectedService] = useState<string>('standard');
   const [loading, setLoading] = useState(false);
+  const [isSelecting, setIsSelecting] = useState(false);
 
   // 利用可能な配送業者一覧
   const [carriers] = useState<Carrier[]>([
@@ -145,7 +147,7 @@ export default function CarrierSelectionModal({
     return Math.ceil(carrier.defaultRate * valueMultiplier);
   };
 
-  const selectedCarrier = carriers.find(c => c.key === selectedCarrierId);
+  const selectedCarrier = carriers.find(c => c.id === selectedCarrierId);
 
   if (!isOpen) return null;
 
@@ -158,7 +160,7 @@ export default function CarrierSelectionModal({
     >
       <div 
         ref={scrollContainerRef}
-        className="space-y-6 max-h-[70vh] overflow-y-auto pr-2"
+        className="space-y-6 max-h-[70vh] overflow-y-auto px-4"
       >
         {/* 商品情報 */}
         {item && (
@@ -181,34 +183,52 @@ export default function CarrierSelectionModal({
             配送業者を選択してください
           </h3>
           
-          <div className="grid gap-3">
+          <div className="grid gap-3 p-4">
             {activeCarriers.map((carrier) => (
-              <div
+              <label
                 key={carrier.id}
-                className={`border rounded-lg p-4 cursor-pointer transition-all duration-200 ${
+                className={`border rounded-lg p-4 cursor-pointer transition-all duration-300 transform ${
                   selectedCarrierId === carrier.id
-                    ? 'border-nexus-primary bg-nexus-primary/5'
-                    : 'border-nexus-border hover:border-nexus-primary/50'
+                    ? 'border-nexus-primary bg-nexus-primary/10 shadow-lg shadow-nexus-primary/30 ring-2 ring-nexus-primary/30 scale-105'
+                    : isSelecting && selectedCarrierId === carrier.id
+                    ? 'border-nexus-primary bg-nexus-primary/5 scale-102'
+                    : 'border-nexus-border hover:border-nexus-primary/50 hover:shadow-md hover:scale-101'
                 }`}
-                onClick={() => setSelectedCarrierId(carrier.id)}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className={`w-4 h-4 rounded-full border-2 ${
-                      selectedCarrierId === carrier.id
-                        ? 'border-nexus-primary bg-nexus-primary'
-                        : 'border-nexus-border'
-                    }`}>
-                      {selectedCarrierId === carrier.id && (
-                        <CheckIcon className="w-3 h-3 text-white m-0.5" />
-                      )}
-                    </div>
-                    <TruckIcon className="w-5 h-5 text-nexus-text-secondary" />
-                    <div>
-                      <div className="font-medium text-nexus-text-primary">
+                    {/* 実際のラジオボタン - テキストの1行目と完全に中央揃え */}
+                    <input
+                      type="radio"
+                      name="carrier-selection"
+                      value={carrier.id}
+                      checked={selectedCarrierId === carrier.id}
+                      onChange={() => {
+                        setIsSelecting(true);
+                        setSelectedCarrierId(carrier.id);
+                        
+                        // 選択時のフィードバック効果
+                        setTimeout(() => {
+                          setIsSelecting(false);
+                          // 選択された詳細情報にスクロール
+                          setTimeout(() => {
+                            if (selectedCarrierRef.current) {
+                              selectedCarrierRef.current.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'nearest'
+                              });
+                            }
+                          }, 100);
+                        }, 200);
+                      }}
+                      className="w-5 h-5 text-nexus-primary border-2 border-gray-300 focus:ring-2 focus:ring-nexus-primary focus:ring-opacity-50 checked:border-nexus-primary checked:bg-nexus-primary flex-shrink-0"
+                    />
+                    <TruckIcon className="w-5 h-5 text-nexus-text-secondary flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-nexus-text-primary leading-5">
                         {carrier.name}
                       </div>
-                      <div className="text-sm text-nexus-text-secondary">
+                      <div className="text-sm text-nexus-text-secondary leading-4 mt-1">
                         {carrier.notes}
                       </div>
                     </div>
@@ -222,40 +242,44 @@ export default function CarrierSelectionModal({
                     </div>
                   </div>
                 </div>
-              </div>
+              </label>
             ))}
           </div>
         </div>
 
-        {/* 配送サービス選択 */}
-        {selectedCarrier && getServiceOptions(selectedCarrierId).length > 0 && (
-          <div>
-            <h4 className="text-md font-medium text-nexus-text-primary mb-3">
-              配送サービス
-            </h4>
-            <NexusRadioGroup
-              options={getServiceOptions(selectedCarrierId)}
-              value={selectedService}
-              onChange={setSelectedService}
-              name="shipping-service"
-            />
-          </div>
-        )}
 
-        {/* 選択された配送業者の詳細 */}
+        {/* 選択された配送業者の詳細 - 上部に移動して目立たせる */}
         {selectedCarrier && (
-          <div className="bg-nexus-bg-secondary p-4 rounded-lg border border-nexus-border">
-            <div className="flex items-center space-x-2 mb-2">
-              <TruckIcon className="w-4 h-4 text-nexus-primary" />
-              <span className="font-medium text-nexus-text-primary">
-                {selectedCarrier.name} - {getServiceOptions(selectedCarrierId).find(s => s.value === selectedService)?.label || '通常配送'}
+          <div 
+            ref={selectedCarrierRef}
+            className="bg-gradient-to-r from-nexus-primary/10 to-nexus-primary/5 p-4 rounded-lg border-2 border-nexus-primary/30 shadow-md animate-in slide-in-from-top duration-300"
+          >
+            <div className="flex items-center space-x-2 mb-3">
+              <div className="w-6 h-6 rounded-full bg-nexus-primary flex items-center justify-center">
+                <CheckIcon className="w-4 h-4 text-white" />
+              </div>
+              <span className="font-bold text-nexus-text-primary text-lg">
+                選択中: {selectedCarrier.name}
               </span>
+              {getServiceOptions(selectedCarrierId).find(s => s.value === selectedService)?.label && (
+                <span className="text-sm text-nexus-text-secondary">
+                  ({getServiceOptions(selectedCarrierId).find(s => s.value === selectedService)?.label})
+                </span>
+              )}
             </div>
-            <div className="text-sm text-nexus-text-secondary space-y-1">
-              <div>配送料金: ¥{calculateShippingRate(selectedCarrier).toLocaleString()}</div>
-              <div>追跡URL: <span className="text-nexus-primary underline">{selectedCarrier.trackingUrl}</span></div>
+            <div className="text-sm text-nexus-text-secondary space-y-2">
+              <div className="flex items-center justify-between">
+                <span>配送料金:</span>
+                <span className="font-medium text-nexus-text-primary">¥{calculateShippingRate(selectedCarrier).toLocaleString()}</span>
+              </div>
+              <div className="text-xs">
+                追跡URL: <span className="text-nexus-primary underline">{selectedCarrier.trackingUrl}</span>
+              </div>
               {selectedCarrier.id === 'fedex' && (
-                <div className="text-nexus-success">✓ API連携でラベル自動生成されます</div>
+                <div className="flex items-center text-nexus-success font-medium">
+                  <CheckIcon className="w-4 h-4 mr-1" />
+                  API連携でラベル自動生成されます
+                </div>
               )}
             </div>
           </div>
