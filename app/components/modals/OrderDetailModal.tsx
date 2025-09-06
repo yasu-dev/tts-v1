@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { BaseModal, NexusButton } from '../ui';
 import { generateTrackingUrl, normalizeCarrierName } from '@/lib/utils/tracking';
+import { useToast } from '../features/notifications/ToastProvider';
+import ConfirmationModal from '../ui/ConfirmationModal';
 import { 
   TruckIcon, 
   UserIcon, 
@@ -12,7 +14,8 @@ import {
   ShoppingBagIcon,
   ClipboardDocumentCheckIcon,
   ArrowTopRightOnSquareIcon,
-  TagIcon
+  TagIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 
 interface OrderDetailModalProps {
@@ -22,6 +25,9 @@ interface OrderDetailModalProps {
 }
 
 export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetailModalProps) {
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const { showToast } = useToast();
   console.log('🔍 OrderDetailModal: 受信した注文データ', {
     order,
     trackingNumber: order?.trackingNumber,
@@ -55,6 +61,53 @@ export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetail
     }
   };
 
+  // 出品取り消し確認画面表示
+  const handleShowCancelConfirm = () => {
+    setShowCancelConfirm(true);
+  };
+
+  // 確認後の実際の出品取り消し処理
+  const handleCancelListing = async () => {
+    if (!order.listingId || cancelLoading) return;
+
+    setCancelLoading(true);
+    try {
+      // 出品削除APIを呼び出し（クエリパラメータでlistingIdを送信）
+      const response = await fetch(`/api/listing?id=${encodeURIComponent(order.listingId)}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || '出品取り消しに失敗しました');
+      }
+
+      showToast({
+        title: '出品取り消し完了',
+        message: '出品を取り消し、商品を在庫管理に戻しました',
+        type: 'success'
+      });
+
+      // 確認モーダルと詳細モーダルを閉じる
+      setShowCancelConfirm(false);
+      onClose();
+      
+      // ページリロードでデータを更新
+      window.location.reload();
+      
+    } catch (error) {
+      console.error('出品取り消しエラー:', error);
+      showToast({
+        title: '出品取り消しエラー',
+        message: error instanceof Error ? error.message : '出品取り消し中にエラーが発生しました',
+        type: 'error'
+      });
+    } finally {
+      setCancelLoading(false);
+    }
+  };
+
 
 
   const getStatusColor = (status: string) => {
@@ -82,6 +135,7 @@ export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetail
   };
 
   return (
+    <>
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
@@ -309,9 +363,34 @@ export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetail
         >
           閉じる
         </NexusButton>
-
+        
+        {/* 出品取り消しボタン（出品中ステータス時のみ表示） */}
+        {order.status === 'listing' && (
+          <NexusButton
+            onClick={handleShowCancelConfirm}
+            variant="danger"
+            disabled={cancelLoading}
+            icon={<XMarkIcon className="w-4 h-4" />}
+          >
+            出品取り消し
+          </NexusButton>
+        )}
       </div>
     </BaseModal>
+    
+    {/* 出品取り消し確認モーダル */}
+    <ConfirmationModal
+      isOpen={showCancelConfirm}
+      onClose={() => setShowCancelConfirm(false)}
+      onConfirm={handleCancelListing}
+      title="出品取り消し確認"
+      message={`eBayからの出品を取り消します。\n\n商品名: ${order.product}\n注文番号: ${order.orderNumber || order.id}\n\n※この操作により、eBayから出品が削除され、商品は在庫管理の「保管中」状態に戻ります。\n\n本当に出品を取り消しますか？`}
+      confirmText="はい、取り消します"
+      cancelText="いいえ、戻る"
+      confirmVariant="danger"
+      type="warning"
+    />
+    </>
   );
 }
 

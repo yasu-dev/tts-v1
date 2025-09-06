@@ -48,34 +48,34 @@ export default function CarrierSelectionModal({
       supportedServices: ['standard', 'express', 'priority']
     },
     {
-      id: 'yamato',
-      name: 'ヤマト運輸',
+      id: 'dhl',
+      name: 'DHL',
       active: true,
-      defaultRate: 800,
-      trackingUrl: 'https://toi.kuronekoyamato.co.jp/cgi-bin/tneko',
+      defaultRate: 1800,
+      trackingUrl: 'https://www.dhl.com/jp-ja/home/tracking.html',
       apiKey: '',
-      notes: '通常配送・国内専用',
-      supportedServices: ['standard', 'cool', 'collect_on_delivery']
+      notes: '国際宅配便・伝票作成Webサイトにジャンプ',
+      supportedServices: ['standard', 'express']
     },
     {
-      id: 'sagawa',
-      name: '佐川急便',  
+      id: 'ems',
+      name: 'EMS',
       active: true,
-      defaultRate: 750,
-      trackingUrl: 'https://k2k.sagawa-exp.co.jp/p/sagawa/web/okurijoinput.jsp',
-      apiKey: '',
-      notes: '大型商品対応・国内専用',
-      supportedServices: ['standard', 'large_item', 'fragile']
-    },
-    {
-      id: 'yupack',
-      name: 'ゆうパック',
-      active: true,
-      defaultRate: 700,
+      defaultRate: 1500,
       trackingUrl: 'https://trackings.post.japanpost.jp/services/srv/search/',
       apiKey: '',
-      notes: '離島配送可能・国内専用',
-      supportedServices: ['standard', 'cool', 'security']
+      notes: '国際スピード郵便・伝票作成Webサイトにジャンプ',
+      supportedServices: ['standard', 'express']
+    },
+    {
+      id: 'others',
+      name: 'その他（eBay SpeedPAK、クロネコヤマトなど）',
+      active: true,
+      defaultRate: 1000,
+      trackingUrl: '',
+      apiKey: '',
+      notes: 'その他配送業者・各社伝票作成サイトを利用',
+      supportedServices: ['standard']
     }
   ]);
 

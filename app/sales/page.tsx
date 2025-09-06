@@ -467,7 +467,7 @@ export default function SalesPage() {
                             </td>
                             <td className="p-4 text-center">
                               <div className="flex justify-center gap-2">
-                                {['confirmed', 'processing'].includes(row.status) && !row.labelGenerated ? (
+                                {row.status === 'sold' && !row.labelGenerated ? (
                                   <NexusButton
                                     onClick={() => handleGenerateLabel(row)}
                                     size="sm"

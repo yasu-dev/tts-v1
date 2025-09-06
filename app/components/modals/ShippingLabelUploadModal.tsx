@@ -200,9 +200,10 @@ export default function ShippingLabelUploadModal({
             <div className="flex items-center gap-2">
               <TruckIcon className="w-5 h-5 text-nexus-primary" />
               <span className="font-medium text-nexus-text-primary">
-                配送業者: {carrier === 'yamato' ? 'ヤマト運輸' : 
-                         carrier === 'sagawa' ? '佐川急便' : 
-                         carrier === 'yupack' ? 'ゆうパック' : carrier}
+                配送業者: {carrier === 'fedex' ? 'FedEx' : 
+                         carrier === 'dhl' ? 'DHL' : 
+                         carrier === 'ems' ? 'EMS' : 
+                         carrier === 'others' ? 'その他（eBay SpeedPAK、クロネコヤマトなど）' : carrier}
               </span>
             </div>
           </div>
