@@ -17,6 +17,7 @@ import {
   ExclamationCircleIcon,
   TruckIcon,
   ArchiveBoxIcon,
+  DocumentArrowUpIcon,
 } from '@heroicons/react/24/outline';
 
 import CarrierSelectionModal from '@/app/components/modals/CarrierSelectionModal';
@@ -1232,6 +1233,17 @@ export default function StaffShippingPage() {
                             )}
                             {item.status === 'packed' && (
                               <>
+                                {/* 梱包済み商品のラベルダウンロードボタン */}
+                                <NexusButton
+                                  onClick={() => handleDownloadLabel(item)}
+                                  variant="success"
+                                  size="sm"
+                                  icon={<DocumentArrowUpIcon className="w-4 h-4" />}
+                                  className="mr-2"
+                                >
+                                  ラベル
+                                </NexusButton>
+                                
                                 {/* 同梱商品の場合: 同梱専用ボタン */}
                                 {item.productName.includes('Nikon Z9') || item.productName.includes('テスト商品') ? (
                                   <>

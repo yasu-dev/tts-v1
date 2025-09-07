@@ -501,6 +501,50 @@ export default function SalesPage() {
     setIsOrderDetailModalOpen(true);
   };
 
+  // セラー梱包済み商品のラベルダウンロード機能
+  const handleDownloadLabel = async (order: any) => {
+    showToast({
+      title: 'ラベル取得中',
+      message: `${order.product}の配送ラベルを取得しています`,
+      type: 'info'
+    });
+
+    try {
+      // セラーが生成した配送ラベルを取得
+      const response = await fetch(`/api/shipping/label/get?orderId=${order.orderNumber || order.id}`);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('配送ラベルが見つかりません。ラベル生成をお待ちください。');
+        }
+        throw new Error('配送ラベルの取得に失敗しました');
+      }
+
+      const labelInfo = await response.json();
+      
+      // ラベルをダウンロード
+      const link = document.createElement('a');
+      link.href = labelInfo.url;
+      link.download = labelInfo.fileName || `shipping_label_${order.orderNumber || order.id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      showToast({
+        title: 'ダウンロード完了',
+        message: `${order.product}の配送ラベルをダウンロードしました`,
+        type: 'success'
+      });
+    } catch (error) {
+      console.error('ラベルダウンロードエラー:', error);
+      showToast({
+        title: 'エラー',
+        message: error instanceof Error ? error.message : '配送ラベルの取得に失敗しました',
+        type: 'error'
+      });
+    }
+  };
+
   // 販売管理同梱処理（競合回避のためsales専用名前）
   const handleSalesBundle = () => {
     const soldItems = salesData?.recentOrders?.filter(order => 
@@ -779,6 +823,17 @@ export default function SalesPage() {
                                     </NexusButton>
                                   )
                                 ) : null}
+                                {/* 梱包済み商品のラベルダウンロード */}
+                                {(row.status === 'packed' || row.status === 'processing' || row.status === 'completed' || row.labelGenerated) && (
+                                  <NexusButton
+                                    onClick={() => handleDownloadLabel(row)}
+                                    size="sm"
+                                    variant="success"
+                                    icon={<DocumentArrowUpIcon className="w-4 h-4" />}
+                                  >
+                                    ラベル
+                                  </NexusButton>
+                                )}
                                 <NexusButton
                                   onClick={() => handleShowDetails(row)}
                                   size="sm"
