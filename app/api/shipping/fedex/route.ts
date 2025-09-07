@@ -274,11 +274,22 @@ class FedExServerAdapter {
       'lens': 0.8,
       'watch': 0.3,
       'electronics': 1.0,
+      'bundle': 0.0, // 同梱グループ用（個別計算）
       'default': 0.5
     };
 
-    const category = item.category?.toLowerCase() || 'default';
-    return categoryWeights[category] || categoryWeights.default;
+    // 同梱グループの場合は個別商品の重量を合計
+    if (item.bundleItems && item.bundleItems.length > 0) {
+      return item.bundleItems.reduce((totalWeight: number, bundleItem: any) => {
+        const itemCategory = bundleItem.category?.toLowerCase() || 'default';
+        const itemWeight = categoryWeights[itemCategory] || categoryWeights.default;
+        return totalWeight + itemWeight;
+      }, 0);
+    } else {
+      // 個別商品の場合は既存処理
+      const category = item.category?.toLowerCase() || 'default';
+      return categoryWeights[category] || categoryWeights.default;
+    }
   }
 
   private calculateEstimatedDelivery(service: string): string {

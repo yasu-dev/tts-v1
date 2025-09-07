@@ -36,10 +36,10 @@ export async function GET(request: NextRequest) {
         _count: { status: true }
       }),
       
-      // セラーがラベル生成完了した商品（ordered状態）を動的にピッキングタスクとして取得
+      // セラーがラベル生成完了した商品（ordered, workstation状態）を動的にピッキングタスクとして取得
       prisma.product.findMany({
         where: {
-          status: 'ordered'
+          status: { in: ['ordered', 'workstation'] }
         },
         include: {
           seller: {
@@ -84,6 +84,51 @@ export async function GET(request: NextRequest) {
       })
     ]);
 
+    // 同梱Shipmentから同梱情報を取得（ステータス条件を拡大）
+    const bundleShipments = await prisma.shipment.findMany({
+      where: {
+        notes: { contains: 'sales_bundle' }
+        // ステータス条件を削除して全ての同梱Shipmentを取得
+      },
+      include: {
+        order: {
+          include: {
+            items: {
+              include: {
+                product: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    const bundleInfo = new Map();
+    
+    bundleShipments.forEach(shipment => {
+      try {
+        const bundleData = shipment.notes ? JSON.parse(shipment.notes) : null;
+        if (bundleData && bundleData.type === 'sales_bundle') {
+          console.log(`🔍 同梱データ処理中: ${bundleData.bundleId}, 商品数: ${bundleData.bundleItems?.length}`);
+          
+          bundleData.bundleItems.forEach((item: any) => {
+            bundleInfo.set(item.productId, {
+              bundleId: bundleData.bundleId,
+              trackingNumber: shipment.trackingNumber,
+              bundleItems: bundleData.bundleItems,
+              totalItems: bundleData.totalItems,
+              isBundle: true
+            });
+            console.log(`✅ 同梱情報設定: ${item.productId} -> ${bundleData.bundleId}`);
+          });
+        }
+      } catch (parseError) {
+        console.warn('Bundle data parse error:', parseError);
+      }
+    });
+
+    console.log('🔍 Bundle info loaded for picking:', bundleInfo.size, 'products');
+
     // orderedProducts（ラベル生成済み商品）を動的にピッキングタスクに変換
     const dynamicPickingTasks = orderedProducts.map(product => {
       const orderItem = product.orderItems?.[0];
@@ -92,26 +137,45 @@ export async function GET(request: NextRequest) {
       const dueDate = new Date();
       dueDate.setHours(dueDate.getHours() + 4); // 4時間後を期限とする
 
+      // 同梱情報を取得
+      const itemBundleInfo = bundleInfo.get(product.id);
+
+      console.log(`🔍 商品 ${product.id} (${product.name}) の同梱情報:`, itemBundleInfo ? 'あり' : 'なし');
+      if (itemBundleInfo) {
+        console.log(`   bundleId: ${itemBundleInfo.bundleId}`);
+        console.log(`   trackingNumber: ${itemBundleInfo.trackingNumber}`);
+        console.log(`   totalItems: ${itemBundleInfo.totalItems}`);
+      }
+
       return {
         id: `dynamic-${product.id}`,
         orderId: order?.id || `order-${product.id}`,
         customer: customerName,
         customerName: customerName,
-        status: 'pending', // ピッキング待ち
+        status: product.status === 'workstation' ? 'ピッキング作業中' : 'pending', // ステータスに応じて設定
         priority: 'normal',
         totalItems: 1,
         pickedItems: 0,
         progress: 0,
         dueDate: dueDate.toISOString(),
+        // 同梱情報を追加
+        bundleId: itemBundleInfo?.bundleId || null,
+        bundleTrackingNumber: itemBundleInfo?.trackingNumber || null,
+        isBundleItem: !!itemBundleInfo,
+        bundlePeers: itemBundleInfo?.bundleItems?.filter((bi: any) => bi.productId !== product.id)?.map((bi: any) => bi.productName || bi.product) || [],
         items: [{
           id: `item-${product.id}`,
           productId: product.id,
           productName: product.name,
           sku: product.sku,
-          location: product.currentLocation?.code || 'UNKNOWN',
+          location: product.currentLocation?.code || 'PICK-01',
           quantity: 1,
           pickedQuantity: 0,
-          status: 'pending'
+          status: product.status === 'workstation' ? 'ピッキング作業中' : 'pending',
+          // 同梱情報をitemにも追加
+          bundleId: itemBundleInfo?.bundleId || null,
+          bundleTrackingNumber: itemBundleInfo?.trackingNumber || null,
+          isBundleItem: !!itemBundleInfo
         }]
       };
     });
@@ -332,15 +396,37 @@ export async function POST(request: NextRequest) {
               console.log(`[STEP 8 WARNING] 注文情報取得失敗 (productId: ${product.id})`);
             }
             
+            // まず仮の注文を作成してから Shipment を作成
+            let validOrderId = orderInfo?.id;
+            
+            if (!validOrderId) {
+              // 仮の注文を作成
+              console.log(`[STEP 8-FIX] 仮注文作成: ${product.id}`);
+              const tempOrder = await prisma.order.create({
+                data: {
+                  orderNumber: `TEMP-ORDER-${Date.now()}-${product.id.slice(-6)}`,
+                  status: 'pending',
+                  customerId: 'temp-customer-001', // デフォルト顧客ID
+                  customerName: `ロケーション: ${locationName}`,
+                  totalAmount: product.price || 0,
+                  shippingAddress: 'ピッキング指示作成エリア',
+                  createdAt: new Date(),
+                  updatedAt: new Date()
+                }
+              });
+              validOrderId = tempOrder.id;
+              console.log(`[STEP 8-FIX] 仮注文作成成功: ${validOrderId}`);
+            }
+            
             await prisma.shipment.create({
               data: {
-                orderId: orderInfo?.id || `temp-order-${product.id}`,
+                orderId: validOrderId,
                 productId: product.id,
                 status: 'picked', // ピッキング完了状態
                 carrier: 'pending',
                 method: 'standard',
                 customerName: orderInfo?.customerName || `ロケーション: ${locationName}`,
-                address: orderInfo?.shippingAddress || '',
+                address: orderInfo?.shippingAddress || 'ピッキングエリア',
                 deadline: dueDate,
                 priority: 'normal',
                 value: product.price || 0,

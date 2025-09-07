@@ -20,6 +20,7 @@ import TrackingNumberDisplay from '@/app/components/ui/TrackingNumberDisplay';
 import { generateTrackingUrl } from '@/lib/utils/tracking';
 import FedExServiceModal from '@/app/components/modals/FedExServiceModal';
 import OrderDetailModal from '@/app/components/modals/OrderDetailModal';
+import SalesBundleModal from '@/app/components/modals/SalesBundleModal';
 import { 
   TruckIcon,
   DocumentArrowUpIcon,
@@ -28,7 +29,8 @@ import {
   ExclamationTriangleIcon,
   CameraIcon,
   EyeIcon,
-  ClipboardDocumentCheckIcon
+  ClipboardDocumentCheckIcon,
+  CubeIcon
 } from '@heroicons/react/24/outline';
 
 export default function SalesPage() {
@@ -50,11 +52,93 @@ export default function SalesPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [pageSize, setPageSize] = useState(20);
   
+  // 同梱機能用の状態（競合回避のためsalesプレフィックス使用）
+  const [salesBundleItems, setSalesBundleItems] = useState<string[]>([]);
+  const [isSalesBundleModalOpen, setIsSalesBundleModalOpen] = useState(false);
+  
   // マスタデータの取得
   const { setting: orderStatuses } = useSystemSetting('order_statuses');
   const { carriers: carrierData, loading: carriersLoading } = useCarriers();
   
   const router = useRouter();
+  
+  // 同梱グループ情報の状態管理
+  const [bundleGroups, setBundleGroups] = useState<{[key: string]: any}>({});
+  
+  // 同梱グループ情報を読み込む関数
+  const loadBundleGroupsInfo = async (orders: any[]) => {
+    const bundleGroupsInfo: {[key: string]: any} = {};
+    const processedBundleIds = new Set<string>();
+    
+    try {
+      for (const order of orders) {
+        if (!order.id) continue;
+        
+        const bundleCheck = await fetch(`/api/sales/bundle-check?itemId=${order.id}`);
+        const bundleData = await bundleCheck.json();
+        
+        if (bundleData.isBundle && !processedBundleIds.has(bundleData.bundleId)) {
+          // 同梱グループ情報を保存
+          bundleGroupsInfo[bundleData.bundleId] = {
+            bundleId: bundleData.bundleId,
+            items: bundleData.bundleGroup,
+            totalValue: bundleData.totalValue,
+            totalItems: bundleData.totalItems,
+            representativeItem: bundleData.bundleGroup[0], // 代表商品
+            notes: bundleData.bundleNotes
+          };
+          
+          processedBundleIds.add(bundleData.bundleId);
+        }
+      }
+      
+      setBundleGroups(bundleGroupsInfo);
+      console.log('🔍 Bundle Groups Info loaded:', bundleGroupsInfo);
+      
+    } catch (error) {
+      console.error('Bundle groups info loading error:', error);
+    }
+  };
+  
+  // 商品が同梱グループに属するかチェック
+  const getBundleGroupForItem = (itemId: string) => {
+    for (const bundleId in bundleGroups) {
+      const group = bundleGroups[bundleId];
+      if (group.items.some((item: any) => item.id === itemId)) {
+        return group;
+      }
+    }
+    return null;
+  };
+  
+  // 同梱グループの代表商品かチェック
+  const isRepresentativeItem = (itemId: string) => {
+    const bundleGroup = getBundleGroupForItem(itemId);
+    return bundleGroup && bundleGroup.representativeItem.id === itemId;
+  };
+  
+  // 同梱グループの統合item作成関数
+  const createBundleItem = (selectedOrder: any) => {
+    if (!selectedOrder.isBundleGroup || !selectedOrder.bundleItems) {
+      return null;
+    }
+    
+    return {
+      id: selectedOrder.bundleId,
+      orderNumber: selectedOrder.bundleItems.map((item: any) => item.orderNumber).join(','),
+      productName: selectedOrder.bundleItems.map((item: any) => item.product).join(' + '),
+      customer: selectedOrder.customer,
+      shippingAddress: selectedOrder.shippingAddress || '東京都渋谷区神南1-1-1',
+      value: selectedOrder.totalBundleValue,
+      category: 'bundle',
+      customerEmail: selectedOrder.customerEmail,
+      customerPhone: selectedOrder.customerPhone,
+      bundleItems: selectedOrder.bundleItems.map((item: any) => ({
+        ...item,
+        category: item.category || 'default'
+      }))
+    };
+  };
 
   // 配送業者のリスト（APIから動的取得）
   const carriers = carriersLoading ? [] : (carrierData || []).map(carrier => ({
@@ -191,6 +275,10 @@ export default function SalesPage() {
           orderNumber: data.recentOrders?.[0]?.orderNumber
         }
       });
+      
+      // 同梱グループ情報を取得・統合
+      await loadBundleGroupsInfo(data.recentOrders || []);
+      
       setSalesData(data);
     } catch (error) {
       console.error('Error fetching sales data:', error);
@@ -208,9 +296,38 @@ export default function SalesPage() {
     fetchSalesData();
   }, [currentPage, statusFilter, pageSize]);
 
-  const handleGenerateLabel = (order: any) => {
-    setSelectedOrder(order);
-    setIsLabelModalOpen(true);
+  const handleGenerateLabel = async (order: any) => {
+    try {
+      // 同梱グループ検出
+      console.log('Checking bundle for order:', order.id);
+      const bundleCheck = await fetch(`/api/sales/bundle-check?itemId=${order.id}`);
+      const bundleData = await bundleCheck.json();
+      
+      if (bundleData.isBundle) {
+        // 同梱グループとして処理
+        console.log('Bundle group found:', bundleData.bundleId);
+        setSelectedOrder({
+          ...order,
+          isBundleGroup: true,
+          bundleItems: bundleData.bundleGroup,
+          bundleId: bundleData.bundleId,
+          totalBundleValue: bundleData.totalValue,
+          bundleNotes: bundleData.bundleNotes
+        });
+      } else {
+        // 個別商品として処理
+        console.log('Individual order processing');
+        setSelectedOrder(order);
+      }
+      
+      setIsLabelModalOpen(true);
+      
+    } catch (error) {
+      console.error('Bundle check error:', error);
+      // エラー時は個別商品として処理
+      setSelectedOrder(order);
+      setIsLabelModalOpen(true);
+    }
   };
 
 
@@ -258,22 +375,35 @@ export default function SalesPage() {
     try {
       showToast({
         title: 'ラベル生成中',
-        message: 'FedExの配送ラベルを生成しています...',
+        message: selectedOrder.isBundleGroup 
+          ? `${selectedOrder.bundleItems.length}件の同梱ラベルを生成中...`
+          : 'FedXの配送ラベルを生成しています...',
         type: 'info'
+      });
+
+      // FedX API呼び出し（統合item使用）
+      const requestItem = selectedOrder.isBundleGroup 
+        ? createBundleItem(selectedOrder)
+        : {
+            id: selectedOrder.id,
+            orderNumber: selectedOrder.orderId || selectedOrder.orderNumber,
+            productName: selectedOrder.product,
+            customer: selectedOrder.customer,
+            shippingAddress: selectedOrder.shippingAddress || '東京都渋谷区神南1-1-1',
+            value: selectedOrder.amount
+          };
+
+      console.log('FedX API request:', { 
+        isBundleGroup: selectedOrder.isBundleGroup,
+        item: requestItem,
+        service: serviceId 
       });
 
       const response = await fetch('/api/shipping/fedex', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          item: {
-            id: selectedOrder.id,
-            orderNumber: selectedOrder.orderId || selectedOrder.orderNumber,
-            productName: selectedOrder.product,
-            customer: selectedOrder.customer,
-            shippingAddress: '東京都渋谷区神南1-1-1',
-            value: selectedOrder.amount
-          },
+          item: requestItem,
           service: serviceId
         })
       });
@@ -282,20 +412,67 @@ export default function SalesPage() {
 
       const result = await response.json();
 
-      showToast({
-        title: 'FedExラベルが正常に生成されました',
-        message: `追跡番号: ${result.trackingNumber}。スタッフが梱包完了後にラベルを出力いたします。`,
-        type: 'success'
-      });
+      // 状態更新分岐
+      if (selectedOrder.isBundleGroup) {
+        // 同梱グループ: 安全なバッチ更新
+        const bundleItemIds = selectedOrder.bundleItems.map((item: any) => item.id);
+        
+        console.log('Bundle state update:', {
+          bundleId: selectedOrder.bundleId,
+          itemIds: bundleItemIds,
+          trackingNumber: result.trackingNumber
+        });
 
-      setSalesData((prev: any) => ({
-        ...prev,
-        recentOrders: prev.recentOrders.map((o: any) => 
-          o.id === selectedOrder.id 
-            ? { ...o, labelGenerated: true, trackingNumber: result.trackingNumber, carrier: result.carrier || 'fedex' }
-            : o
-        )
-      }));
+        setSalesData((prev: any) => {
+          if (!prev || !prev.recentOrders) {
+            console.warn('Invalid salesData state, skipping update');
+            return prev;
+          }
+
+          const updatedOrders = prev.recentOrders.map((order: any) => {
+            if (bundleItemIds.includes(order.id)) {
+              return {
+                ...order,
+                labelGenerated: true,
+                trackingNumber: result.trackingNumber,
+                carrier: result.carrier || 'fedex',
+                bundleId: selectedOrder.bundleId,
+                bundleProcessed: true,
+                updatedAt: new Date().toISOString()
+              };
+            }
+            return order;
+          });
+
+          return {
+            ...prev,
+            recentOrders: updatedOrders
+          };
+        });
+        
+        showToast({
+          title: '同梱ラベル生成完了',
+          message: `${selectedOrder.bundleItems.length}件の商品をまとめて処理しました。追跡番号: ${result.trackingNumber}`,
+          type: 'success'
+        });
+        
+      } else {
+        // 個別商品: 既存の安全な更新
+        setSalesData((prev: any) => ({
+          ...prev,
+          recentOrders: prev.recentOrders.map((o: any) => 
+            o.id === selectedOrder.id 
+              ? { ...o, labelGenerated: true, trackingNumber: result.trackingNumber, carrier: result.carrier || 'fedex' }
+              : o
+          )
+        }));
+        
+        showToast({
+          title: 'FedExラベル生成完了',
+          message: `追跡番号: ${result.trackingNumber}`,
+          type: 'success'
+        });
+      }
 
       // FedXモーダルを閉じてstateをリセット
       setIsFedexModalOpen(false);
@@ -322,6 +499,59 @@ export default function SalesPage() {
     });
     setSelectedOrderForDetail(order);
     setIsOrderDetailModalOpen(true);
+  };
+
+  // 販売管理同梱処理（競合回避のためsales専用名前）
+  const handleSalesBundle = () => {
+    const soldItems = salesData?.recentOrders?.filter(order => 
+      salesBundleItems.includes(order.id) && order.status === 'sold'
+    );
+
+    if (!soldItems || soldItems.length < 2) {
+      showToast({
+        title: '同梱不可',
+        message: '購入者決定の商品を2件以上選択してください',
+        type: 'warning'
+      });
+      return;
+    }
+
+    setIsSalesBundleModalOpen(true);
+  };
+
+  const handleSalesBundleConfirm = async (bundleData: any) => {
+    try {
+      const response = await fetch('/api/sales/bundle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: salesData.recentOrders.filter(order => 
+            salesBundleItems.includes(order.id)
+          ),
+          notes: bundleData.notes || ''
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('同梱設定の保存に失敗しました');
+      }
+
+      showToast({
+        title: '同梱設定完了',
+        message: `${salesBundleItems.length}件の商品を同梱設定しました`,
+        type: 'success'
+      });
+
+      setSalesBundleItems([]);
+      setIsSalesBundleModalOpen(false);
+
+    } catch (error) {
+      showToast({
+        title: '同梱設定エラー',
+        message: error instanceof Error ? error.message : '同梱設定中にエラーが発生しました',
+        type: 'error'
+      });
+    }
   };
 
 
@@ -386,7 +616,18 @@ export default function SalesPage() {
                 options={orderStatusOptions}
               />
               
-
+              {/* 同梱機能ボタン */}
+              <div className="flex items-end">
+                {salesBundleItems.length >= 2 && (
+                  <NexusButton
+                    onClick={handleSalesBundle}
+                    variant="primary"
+                    icon={<CubeIcon className="w-4 h-4" />}
+                  >
+                    同梱設定 ({salesBundleItems.length}件)
+                  </NexusButton>
+                )}
+              </div>
             </div>
           </div>
 
@@ -397,6 +638,20 @@ export default function SalesPage() {
                   <table className="w-full">
                     <thead className="holo-header">
                       <tr>
+                        <th className="text-center p-4 font-medium text-nexus-text-secondary w-12">
+                          <input
+                            type="checkbox"
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                const soldItems = salesData.recentOrders.filter(row => row.status === 'sold').map(row => row.id);
+                                setSalesBundleItems(soldItems);
+                              } else {
+                                setSalesBundleItems([]);
+                              }
+                            }}
+                            className="rounded border-nexus-border"
+                          />
+                        </th>
                         <th className="text-left p-4 font-medium text-nexus-text-secondary">商品</th>
                         <th className="text-right p-4 font-medium text-nexus-text-secondary">金額</th>
                         <th className="text-center p-4 font-medium text-nexus-text-secondary">ステータス</th>
@@ -408,13 +663,36 @@ export default function SalesPage() {
                     <tbody className="holo-body">
                       {salesData.recentOrders.length === 0 ? (
                         <tr>
-                          <td colSpan={6} className="p-8 text-center text-nexus-text-secondary">
+                          <td colSpan={7} className="p-8 text-center text-nexus-text-secondary">
                             注文データがありません
                           </td>
                         </tr>
                       ) : (
-                        salesData.recentOrders.map((row: any, index: number) => (
-                          <tr key={row.id || index} className="holo-row">
+                        salesData.recentOrders.map((row: any, index: number) => {
+                          const bundleGroup = getBundleGroupForItem(row.id);
+                          const isInBundle = bundleGroup !== null;
+                          const isRepresentative = isRepresentativeItem(row.id);
+                          
+                          return (
+                          <tr 
+                            key={row.id || index} 
+                            className={`holo-row ${isInBundle ? 'bg-blue-50 border-l-4 border-l-blue-400' : ''}`}
+                          >
+                            <td className="p-4">
+                              <input
+                                type="checkbox"
+                                checked={salesBundleItems.includes(row.id)}
+                                onChange={() => {
+                                  setSalesBundleItems(prev => 
+                                    prev.includes(row.id) 
+                                      ? prev.filter(id => id !== row.id)
+                                      : [...prev, row.id]
+                                  );
+                                }}
+                                disabled={row.status !== 'sold'}
+                                className="rounded border-nexus-border"
+                              />
+                            </td>
                             <td className="p-4">
                               <div className="flex items-center gap-3">
                                 <div className="w-16 h-16 rounded border border-nexus-border overflow-hidden bg-nexus-bg-secondary">
@@ -434,6 +712,19 @@ export default function SalesPage() {
                                   <div className="text-nexus-text-primary font-medium max-w-xs overflow-hidden text-ellipsis whitespace-nowrap" title={row.product}>
                                     {row.product}
                                   </div>
+                                  {isInBundle && (
+                                    <div className="mt-1 flex items-center gap-2">
+                                      <div className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                                        <CubeIcon className="w-3 h-3" />
+                                        同梱グループ ({bundleGroup.totalItems}件)
+                                      </div>
+                                      {isRepresentative && (
+                                        <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                                          代表商品
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             </td>
@@ -468,14 +759,25 @@ export default function SalesPage() {
                             <td className="p-4 text-center">
                               <div className="flex justify-center gap-2">
                                 {row.status === 'sold' && !row.labelGenerated ? (
-                                  <NexusButton
-                                    onClick={() => handleGenerateLabel(row)}
-                                    size="sm"
-                                    variant="primary"
-                                    icon={<DocumentArrowUpIcon className="w-4 h-4" />}
-                                  >
-                                    ラベル生成
-                                  </NexusButton>
+                                  isInBundle && !isRepresentative ? (
+                                    <div className="text-center">
+                                      <div className="px-3 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                                        同梱設定済み
+                                      </div>
+                                      <div className="text-xs text-gray-500 mt-1">
+                                        代表商品からラベル生成
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <NexusButton
+                                      onClick={() => handleGenerateLabel(row)}
+                                      size="sm"
+                                      variant={isInBundle ? "success" : "primary"}
+                                      icon={<DocumentArrowUpIcon className="w-4 h-4" />}
+                                    >
+                                      {isInBundle ? `同梱ラベル生成(${bundleGroup.totalItems}件)` : 'ラベル生成'}
+                                    </NexusButton>
+                                  )
                                 ) : null}
                                 <NexusButton
                                   onClick={() => handleShowDetails(row)}
@@ -489,7 +791,8 @@ export default function SalesPage() {
                               </div>
                             </td>
                           </tr>
-                        ))
+                          );
+                        })
                       )}
                     </tbody>
                   </table>
@@ -628,6 +931,16 @@ export default function SalesPage() {
           isOpen={isOrderDetailModalOpen}
           onClose={() => setIsOrderDetailModalOpen(false)}
           order={selectedOrderForDetail}
+        />
+
+        {/* 販売管理同梱設定モーダル */}
+        <SalesBundleModal
+          isOpen={isSalesBundleModalOpen}
+          onClose={() => setIsSalesBundleModalOpen(false)}
+          onConfirm={handleSalesBundleConfirm}
+          items={salesData?.recentOrders?.filter(order => 
+            salesBundleItems.includes(order.id)
+          ) || []}
         />
       </div>
     </DashboardLayout>

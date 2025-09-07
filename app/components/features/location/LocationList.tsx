@@ -7,7 +7,7 @@ import NexusButton from '@/app/components/ui/NexusButton';
 import NexusCheckbox from '@/app/components/ui/NexusCheckbox';
 import Pagination from '@/app/components/ui/Pagination';
 import { useRouter } from 'next/navigation';
-import { ClipboardDocumentListIcon } from '@heroicons/react/24/outline';
+import { ClipboardDocumentListIcon, CubeIcon } from '@heroicons/react/24/outline';
 
 interface Location {
   code: string;
@@ -217,32 +217,54 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
 
   const fetchShippingData = async () => {
     try {
+      console.log('🔍 ピッキングデータ取得開始');
       // ピッキングタスクデータを取得
       const response = await fetch('/api/picking');
       if (response.ok) {
         const data = await response.json();
-        // ピッキングタスクを出荷リスト形式に変換
+        console.log('📡 ピッキングAPIレスポンス:', {
+          success: data.success,
+          tasksLength: data.tasks?.length || 0,
+          statisticsTotal: data.statistics?.total || 0
+        });
+        
+        // ピッキングタスクを出荷リスト形式に変換（同梱情報統合）
         const pickingItems = (data.tasks || []).flatMap((task: any) => 
-          (task.items || []).map((item: any) => ({
-            id: `pick-${item.id}`,
-            orderId: task.orderId,
-            productId: item.productId,
-            productName: item.productName,
-            customer: task.customerName,
-            locationCode: item.location,
-            locationName: `ロケーション ${item.location}`,
-            status: item.status === 'picked' ? 'ピッキング済み' : 'ピッキング待ち',
-            deadline: new Date(task.dueDate).toLocaleTimeString('ja-JP', { 
-              hour: '2-digit', 
-              minute: '2-digit' 
-            }),
-            sku: item.sku
-          }))
+          (task.items || []).map((item: any) => {
+            console.log(`📦 ピッキングアイテム処理: ${item.productName} (${item.productId})`);
+            return {
+              id: item.productId || `pick-${item.id}`, // productIdを優先して使用
+              orderId: task.orderId,
+              productId: item.productId,
+              productName: item.productName,
+              customer: task.customerName,
+              locationCode: item.location,
+              locationName: `ロケーション ${item.location}`,
+              status: item.status === 'picked' ? 'ピッキング済み' : 
+                      item.status === 'ピッキング作業中' ? 'ピッキング作業中' : 'ピッキング待ち',
+              deadline: new Date(task.dueDate).toLocaleTimeString('ja-JP', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+              }),
+              sku: item.sku,
+              // 同梱情報を追加
+              bundleId: task.bundleId || item.bundleId || null,
+              bundleTrackingNumber: task.bundleTrackingNumber || item.bundleTrackingNumber || null,
+              isBundleItem: task.isBundleItem || item.isBundleItem || false,
+              bundlePeers: task.bundlePeers || []
+            };
+          })
         );
         
+        console.log(`✅ ピッキングアイテム変換完了: ${pickingItems.length}件`);
+        
         const groupedByLocation = groupShippingDataByLocation(pickingItems);
+        console.log(`📍 ロケーション別グループ数: ${groupedByLocation.length}`);
+        
         setShippingData(groupedByLocation);
         return;
+      } else {
+        console.error('❌ ピッキングAPIエラー:', response.status, response.statusText);
       }
       
       // フォールバック: モックデータ
@@ -746,9 +768,9 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                   )}
                   
                   {shippingData.filter(locationGroup => {
-                  // ピッキング待ち・出荷準備中の商品があるロケーションのみ表示
+                  // ピッキング待ち・ピッキング作業中・出荷準備中の商品があるロケーションのみ表示
                   const activeItems = locationGroup.items.filter((item: any) => 
-                    item.status === 'ピッキング待ち' || item.status === 'ordered'
+                    item.status === 'ピッキング待ち' || item.status === 'ピッキング作業中' || item.status === 'ordered'
                   );
                   
                   if (activeItems.length === 0) return false;
@@ -765,7 +787,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                     );
                 }).map((locationGroup) => {
                   const activeItems = locationGroup.items.filter((item: any) => 
-                    item.status === 'ピッキング待ち' || item.status === 'ordered'
+                    item.status === 'ピッキング待ち' || item.status === 'ピッキング作業中' || item.status === 'ordered'
                   );
                   const completedItems = []; // ピッキング待ち・出荷準備中の商品を表示
                   
@@ -796,35 +818,91 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                       {locationGroup.items.map((item: any) => (
                         <div 
                           key={item.id} 
-                          className="flex justify-between items-start p-4 rounded-lg border bg-nexus-bg-secondary border-nexus-border"
+                          className={`flex justify-between items-start p-6 rounded-xl border-2 transition-all duration-200 ${
+                            item.isBundleItem 
+                              ? 'bg-gradient-to-r from-blue-50 to-blue-100 border-l-8 border-l-blue-500 border-blue-300 shadow-lg transform hover:scale-[1.02]' 
+                              : 'bg-nexus-bg-secondary border-nexus-border hover:shadow-md'
+                          }`}
                         >
                           <div className="flex items-start gap-3 flex-1">
-                            {/* 商品選択チェックボックス */}
-                            {item.status === 'ピッキング待ち' && (
+                                {/* 商品選択チェックボックス */}
+                            {(item.status === 'ピッキング待ち' || item.status === 'ピッキング作業中') && (
                               <div className="mt-1">
                                 <NexusCheckbox
-                                  checked={selectedProductIds.includes(item.id)}
+                                  checked={selectedProductIds.includes(item.id) || selectedProductIds.includes(item.productId)}
                                   onChange={(e) => {
+                                    const targetId = item.productId || item.id;
                                     if (e.target.checked) {
-                                      setSelectedProductIds(prev => [...prev, item.id]);
+                                      setSelectedProductIds(prev => [...prev, targetId]);
                                     } else {
-                                      setSelectedProductIds(prev => prev.filter(id => id !== item.id));
+                                      setSelectedProductIds(prev => prev.filter(id => id !== targetId));
                                     }
                                   }}
                                   variant="nexus"
-                                  size="md"
+                                  size={item.isBundleItem ? "lg" : "md"}
                                 />
                               </div>
                             )}
                             <div className="flex-1">
-                              <div className="flex items-center gap-3">
-                                <h4 className="font-medium text-nexus-text-primary">{item.productName}</h4>
+                              <div className="flex items-center gap-3 mb-2">
+                                <h4 className={`font-semibold ${item.isBundleItem ? 'text-lg text-blue-900' : 'text-base text-nexus-text-primary'}`}>
+                                  {item.productName}
+                                </h4>
                                 {item.sku && (
-                                  <span className="text-xs font-mono bg-nexus-bg-primary px-2 py-1 rounded text-nexus-text-secondary">
+                                  <span className={`font-mono px-3 py-1 rounded-lg ${
+                                    item.isBundleItem 
+                                      ? 'text-sm bg-blue-200 text-blue-800 font-medium' 
+                                      : 'text-xs bg-nexus-bg-primary text-nexus-text-secondary'
+                                  }`}>
                                     {item.sku}
                                   </span>
                                 )}
+                                {/* 同梱バッジ */}
+                                {item.isBundleItem && (
+                                  <span className="inline-flex items-center gap-1 text-sm px-4 py-2 bg-blue-600 text-white rounded-full font-bold shadow-md">
+                                    <CubeIcon className="w-4 h-4" />
+                                    同梱対象
+                                  </span>
+                                )}
                               </div>
+                              
+                              {/* 同梱情報表示 - 大幅改善 */}
+                              {item.isBundleItem && (
+                                <div className="mt-3 p-4 bg-gradient-to-r from-blue-100 to-blue-200 rounded-xl border-2 border-blue-300 shadow-inner">
+                                  <div className="space-y-3">
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-3 h-3 bg-blue-600 rounded-full animate-pulse"></div>
+                                      <span className="text-base font-bold text-blue-900">
+                                        📋 追跡番号: {item.bundleTrackingNumber}
+                                      </span>
+                                    </div>
+                                    {item.bundlePeers && item.bundlePeers.length > 0 && (
+                                      <div className="flex items-start gap-2">
+                                        <div className="w-3 h-3 bg-green-500 rounded-full mt-1"></div>
+                                        <div>
+                                          <div className="text-sm font-semibold text-blue-800 mb-1">🔗 同梱相手商品:</div>
+                                          <div className="bg-white p-2 rounded-lg border border-blue-200">
+                                            <span className="text-base font-medium text-blue-900">
+                                              {item.bundlePeers.join(', ')}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
+                                    <div className="bg-amber-100 border-l-4 border-amber-500 p-3 rounded-r-lg">
+                                      <div className="flex items-center gap-2 text-amber-800">
+                                        <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.996-.833-2.768 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                        </svg>
+                                        <span className="text-base font-bold">
+                                          ⚠️ 同じ追跡番号の商品をまとめてピッキングしてください
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                              
                               <p className="text-sm text-nexus-text-secondary font-mono mt-1">
                                 商品ID: {item.productId} | 注文ID: {item.orderId}
                               </p>
@@ -863,13 +941,13 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                                 type="checkbox"
                                 checked={activeItems.every(item => selectedProductIds.includes(item.id))}
                                 onChange={(e) => {
-                                  if (e.target.checked) {
-                                    const newIds = activeItems.map(item => item.id);
-                                    setSelectedProductIds(prev => [...new Set([...prev, ...newIds])]);
-                                  } else {
-                                    const activeItemIds = activeItems.map(item => item.id);
-                                    setSelectedProductIds(prev => prev.filter(id => !activeItemIds.includes(id)));
-                                  }
+                                    if (e.target.checked) {
+                                      const newIds = activeItems.map(item => item.productId || item.id);
+                                      setSelectedProductIds(prev => [...new Set([...prev, ...newIds])]);
+                                    } else {
+                                      const activeItemIds = activeItems.map(item => item.productId || item.id);
+                                      setSelectedProductIds(prev => prev.filter(id => !activeItemIds.includes(id)));
+                                    }
                                 }}
                                 className="w-4 h-4 text-nexus-yellow bg-nexus-bg-primary border-nexus-border rounded focus:ring-nexus-yellow focus:ring-2"
                               />
@@ -879,11 +957,11 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                             </div>
                           )}
                           {selectedProductIds.filter(id => 
-                            activeItems.some(item => item.id === id)
+                            activeItems.some(item => item.id === id || item.productId === id)
                           ).length > 0 && (
                             <span className="text-sm font-medium text-nexus-text-primary">
                               {selectedProductIds.filter(id => 
-                                activeItems.some(item => item.id === id)
+                                activeItems.some(item => item.id === id || item.productId === id)
                               ).length}件選択済み
                             </span>
                           )}
@@ -894,14 +972,14 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                             size="sm"
                             onClick={() => {
                               const currentLocationSelectedIds = selectedProductIds.filter(id => 
-                                activeItems.some(item => item.id === id)
+                                activeItems.some(item => item.id === id || item.productId === id)
                               );
                               if (currentLocationSelectedIds.length > 0) {
                                 setSelectedProductIds(prev => prev.filter(id => !currentLocationSelectedIds.includes(id)));
                               }
                             }}
                             disabled={selectedProductIds.filter(id => 
-                              activeItems.some(item => item.id === id)
+                              activeItems.some(item => item.id === id || item.productId === id)
                             ).length === 0}
                           >
                             選択解除
@@ -911,14 +989,14 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                             size="sm"
                             onClick={() => {
                               const selectedItemsFromThisLocation = activeItems.filter(item => 
-                                selectedProductIds.includes(item.id)
+                                selectedProductIds.includes(item.id) || selectedProductIds.includes(item.productId)
                               );
                               setSelectedPickingItems(selectedItemsFromThisLocation);
                               setSelectedLocationName(locationGroup.locationName);
                               setIsPickingModalOpen(true);
                             }}
                             disabled={selectedProductIds.filter(id => 
-                              activeItems.some(item => item.id === id)
+                              activeItems.some(item => item.id === id || item.productId === id)
                             ).length === 0}
                           >
                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -926,7 +1004,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                             </svg>
                             選択商品をピッキング指示
                             ({selectedProductIds.filter(id => 
-                              activeItems.some(item => item.id === id)
+                              activeItems.some(item => item.id === id || item.productId === id)
                             ).length})
                           </NexusButton>
                         </div>

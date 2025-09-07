@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { AuthService } from '@/lib/auth';
+import { promises as fs } from 'fs';
+import path from 'path';
 
 const prisma = new PrismaClient();
 
@@ -469,9 +471,39 @@ export async function POST(request: NextRequest) {
         throw new Error('対象の注文が見つかりません');
       }
 
-      // ラベル情報を保存（実装では適切なテーブル構造に合わせて調整）
-      const fileName = `fedx_label_${order.orderNumber}_${Date.now()}.pdf`;
-      const fileUrl = `/api/shipping/label/download/${fileName}`;
+      // ラベルファイル保存処理
+      let labelFileUrl = null;
+      let fileName = null;
+      
+      try {
+        // labelsディレクトリ存在確認・作成
+        const labelsDir = path.join(process.cwd(), 'public/labels');
+        try {
+          await fs.access(labelsDir);
+        } catch {
+          await fs.mkdir(labelsDir, { recursive: true });
+          console.log('Labels directory created:', labelsDir);
+        }
+        
+        // ラベルファイル名生成（同梱対応）
+        fileName = item.bundleItems 
+          ? `bundle_${item.bundleId}_${Date.now()}.pdf`
+          : `fedx_${order.orderNumber}_${Date.now()}.pdf`;
+          
+        const labelPath = path.join(labelsDir, fileName);
+        
+        // PDFファイル保存
+        await fs.writeFile(labelPath, Buffer.from(labelResult.labelData, 'base64'));
+        labelFileUrl = `/labels/${fileName}`;
+        
+        console.log('Label file saved:', { fileName, labelFileUrl });
+        
+      } catch (fileError) {
+        console.error('Label file save failed:', fileError);
+        // フォールバック: data URL形式
+        labelFileUrl = `data:application/pdf;base64,${labelResult.labelData}`;
+        fileName = `fedx_inline_${Date.now()}.pdf`;
+      }
       
       // 注文ステータスを processing に更新
       await prisma.order.update({
@@ -552,22 +584,46 @@ export async function POST(request: NextRequest) {
         }
       });
 
-      // Shipmentエントリを作成（出荷準備中として）
+      // Shipmentエントリを作成（同梱対応）
+      const shipmentData: any = {
+        orderId: order.id,
+        status: 'pending',
+        carrier: 'fedx',
+        method: service,
+        trackingNumber: labelResult.trackingNumber,
+        customerName: order.customerName || 'Unknown Customer',
+        address: order.shippingAddress || '',
+        deadline: new Date(labelResult.estimatedDelivery),
+        priority: 'normal',
+        value: order.totalAmount || 0,
+      };
+      
+      if (item.bundleItems && item.bundleItems.length > 0) {
+        // 同梱グループ: productId=null、notes JSON格納
+        shipmentData.productId = null;
+        shipmentData.notes = JSON.stringify({
+          type: 'sales_bundle',
+          bundleId: item.bundleId,
+          bundleItems: item.bundleItems.map(bi => ({
+            id: bi.id,
+            productId: bi.productId,
+            product: bi.product,
+            orderNumber: bi.orderNumber,
+            totalAmount: bi.totalAmount
+          })),
+          totalItems: item.bundleItems.length,
+          labelFileUrl: labelFileUrl,
+          createdBy: 'seller',
+          createdAt: new Date().toISOString()
+        });
+      } else {
+        // 個別商品: 既存処理
+        shipmentData.productId = productIds[0];
+        shipmentData.notes = `FedX配送ラベル生成済み - Service: ${service}`;
+      }
+
       await prisma.shipment.create({
-        data: {
-          orderId: order.id,
-          productId: productIds[0], // 最初の商品IDを使用
-          status: 'pending', // 出荷準備中
-          carrier: 'fedx',
-          method: service,
-          trackingNumber: labelResult.trackingNumber,
-          customerName: order.customerName || 'Unknown Customer',
-          address: order.shippingAddress || '',
-          deadline: new Date(labelResult.estimatedDelivery),
-          priority: 'normal',
-          value: order.totalAmount || 0,
-          notes: `FedX配送ラベル生成済み - Service: ${service}`,
-        }
+        data: shipmentData
       });
       
       console.log('ラベル保存、ステータス更新、Shipment作成完了:', {
@@ -608,10 +664,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         ...labelResult,
         fileName,
-        fileUrl,
+        fileUrl: labelFileUrl,
         orderId: order.id,
         productsUpdated: productIds.length,
-        message: 'FedX配送ラベルが生成され、購入者にも追跡番号が通知されました'
+        carrier: 'fedx',
+        bundleId: item.bundleId || null,
+        isBundle: !!(item.bundleItems && item.bundleItems.length > 0),
+        message: item.bundleItems && item.bundleItems.length > 0
+          ? `同梱ラベルが生成されました（${item.bundleItems.length}件）`
+          : 'FedX配送ラベルが生成され、購入者にも追跡番号が通知されました'
       });
 
     } catch (dbError) {

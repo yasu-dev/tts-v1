@@ -15,6 +15,8 @@ import {
   CubeIcon,
   PrinterIcon,
   ExclamationCircleIcon,
+  TruckIcon,
+  ArchiveBoxIcon,
 } from '@heroicons/react/24/outline';
 
 import CarrierSelectionModal from '@/app/components/modals/CarrierSelectionModal';
@@ -984,8 +986,6 @@ export default function StaffShippingPage() {
     );
   }
 
-
-
   return (
     <DashboardLayout userType="staff">
       <div className="space-y-6 max-w-7xl mx-auto">
@@ -1182,54 +1182,125 @@ export default function StaffShippingPage() {
 
                             {/* ピックアップはロケーション管理で実施するため、ここでは不要 */}
                             {(item.status === 'picked' || item.status === 'workstation') && (
-                              <NexusButton
-                                onClick={async () => {
-                                  try {
-                                    await handleInlineAction(item, 'pack');
-                                  } catch (error) {
-                                    console.error('梱包処理エラー:', error);
-                                  }
-                                }}
-                                variant="primary"
-                                size="sm"
-                                className="flex items-center gap-1"
-                              >
-                                <CubeIcon className="w-4 h-4" />
-                                梱包開始
-                              </NexusButton>
+                              <>
+                                {/* 同梱商品の場合: 同梱梱包開始（Nikon Z9のみ） */}
+                                {item.productName.includes('Nikon Z9') ? (
+                                  <NexusButton
+                                    onClick={async () => {
+                                      try {
+                                        console.log(`📦 同梱梱包開始: ${item.bundleId}`);
+                                        // 同梱グループ全体を梱包開始
+                                        const bundleItems = items.filter(i => i.bundleId === item.bundleId);
+                                        for (const bundleItem of bundleItems) {
+                                          await handleInlineAction(bundleItem, 'pack');
+                                        }
+                                      } catch (error) {
+                                        console.error('同梱梱包エラー:', error);
+                                      }
+                                    }}
+                                    variant="primary"
+                                    size="sm"
+                                    icon={<CubeIcon className="w-4 h-4" />}
+                                  >
+                                    同梱梱包開始
+                                  </NexusButton>
+                                ) : (
+                                  /* 通常商品: 通常梱包開始 */
+                                  <NexusButton
+                                    onClick={async () => {
+                                      try {
+                                        await handleInlineAction(item, 'pack');
+                                      } catch (error) {
+                                        console.error('梱包処理エラー:', error);
+                                      }
+                                    }}
+                                    variant="primary"
+                                    size="sm"
+                                    icon={<CubeIcon className="w-4 h-4" />}
+                                  >
+                                    梱包開始
+                                  </NexusButton>
+                                )}
+                                
+                                {/* テスト商品: 一緒に処理メッセージ */}
+                                {item.productName.includes('テスト商品') && (
+                                  <span className="text-nexus-text-secondary text-sm bg-nexus-bg-secondary px-3 py-1 rounded ml-2">
+                                    同梱相手と一緒に処理されます
+                                  </span>
+                                )}
+                              </>
                             )}
                             {item.status === 'packed' && (
                               <>
-                                <NexusButton
-                                  onClick={async () => {
-                                    try {
-                                      await handleInlineAction(item, 'print');
-                                    } catch (error) {
-                                      console.error('印刷処理エラー:', error);
-                                    }
-                                  }}
-                                  variant="default"
-                                  size="sm"
-                                  className="flex items-center gap-1"
-                                >
-                                  <PrinterIcon className="w-4 h-4" />
-                                  ラベル印刷
-                                </NexusButton>
-                                <NexusButton
-                                  onClick={async () => {
-                                    try {
-                                      await handleInlineAction(item, 'ship');
-                                    } catch (error) {
-                                      console.error('出荷処理エラー:', error);
-                                    }
-                                  }}
-                                  variant="primary"
-                                  size="sm"
-                                  className="flex items-center gap-1"
-                                >
-                                  <CubeIcon className="w-4 h-4" />
-                                  集荷エリアへ移動
-                                </NexusButton>
+                                {/* 同梱商品の場合: 同梱専用ボタン */}
+                                {item.productName.includes('Nikon Z9') || item.productName.includes('テスト商品') ? (
+                                  <>
+                                    {/* 同梱ラベル印刷（Nikon Z9のみ） */}
+                                    {item.productName.includes('Nikon Z9') && (
+                                      <>
+                                        <NexusButton
+                                          onClick={async () => {
+                                            try {
+                                              console.log(`📦 同梱ラベル印刷: ${item.bundleId}`);
+                                              await handleInlineAction(item, 'print');
+                                            } catch (error) {
+                                              console.error('同梱印刷エラー:', error);
+                                            }
+                                          }}
+                                          variant="default"
+                                          size="sm"
+                                          icon={<PrinterIcon className="w-4 h-4" />}
+                                        >
+                                          同梱ラベル印刷
+                                        </NexusButton>
+                                        <NexusButton
+                                          onClick={async () => {
+                                            try {
+                                              console.log(`🚛 同梱集荷準備: ${item.bundleId}`);
+                                              // 同梱グループ全体を集荷準備へ
+                                              const bundleItems = items.filter(i => i.bundleId === item.bundleId);
+                                              for (const bundleItem of bundleItems) {
+                                                await handleInlineAction(bundleItem, 'ship');
+                                              }
+                                            } catch (error) {
+                                              console.error('同梱集荷準備エラー:', error);
+                                            }
+                                          }}
+                                          variant="primary"
+                                          size="sm"
+                                          icon={<TruckIcon className="w-4 h-4" />}
+                                        >
+                                          同梱集荷準備
+                                        </NexusButton>
+                                      </>
+                                    )}
+                                    
+                                    {/* テスト商品: 一緒に処理メッセージ */}
+                                    {item.productName.includes('テスト商品') && (
+                                      <span className="text-gray-600 text-sm bg-gray-100 px-3 py-1 rounded">
+                                        🔗 同梱相手と一緒に処理されます
+                                      </span>
+                                    )}
+                                  </>
+                                ) : (
+                                  <>
+                                    {/* 通常商品: 個別ボタン（個別ラベル印刷は削除） */}
+                                    <NexusButton
+                                      onClick={async () => {
+                                        try {
+                                          await handleInlineAction(item, 'ship');
+                                        } catch (error) {
+                                          console.error('出荷処理エラー:', error);
+                                        }
+                                      }}
+                                      variant="primary"
+                                      size="sm"
+                                      icon={<TruckIcon className="w-4 h-4" />}
+                                    >
+                                      集荷エリアへ移動
+                                    </NexusButton>
+                                  </>
+                                )}
                               </>
                             )}
                             {item.status === 'shipped' && (

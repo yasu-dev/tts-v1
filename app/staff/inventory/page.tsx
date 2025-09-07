@@ -12,7 +12,8 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   XMarkIcon,
-  CheckIcon
+  CheckIcon,
+  CubeIcon
 } from '@heroicons/react/24/outline';
 import { ContentCard, BusinessStatusIndicator, Pagination, NexusLoadingSpinner } from '@/app/components/ui';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
@@ -49,6 +50,11 @@ interface InventoryItem {
   inspectedAt?: string; // 検品日時を追加
   photographyDate?: string; // 撮影日時を追加
   seller?: { id: string; username: string; email: string }; // セラー情報を追加
+  // 同梱情報フィールド追加
+  bundleId?: string;
+  isBundleItem?: boolean;
+  bundleTrackingNumber?: string;
+  bundlePeers?: string[]; // 同梱対象の他商品ID
 }
 
 export default function StaffInventoryPage() {
@@ -56,6 +62,53 @@ export default function StaffInventoryPage() {
   const { showToast } = useToast();
   const { setIsAnyModalOpen } = useModal();
   const router = useRouter();
+  
+  // 同梱情報統合処理
+  const integrateBundleInfo = async (inventoryItems: InventoryItem[]) => {
+    try {
+      console.log('🔍 同梱情報統合開始:', inventoryItems.length, '件の商品');
+      
+      // 出荷管理APIから同梱Shipmentを取得
+      const shippingResponse = await fetch('/api/orders/shipping?page=1&limit=100&status=all');
+      if (!shippingResponse.ok) {
+        console.warn('同梱情報取得失敗: Shipping API error');
+        return;
+      }
+      
+      const shippingData = await shippingResponse.json();
+      const bundleShipments = shippingData.items.filter((item: any) => item.isBundle);
+      
+      console.log('🔍 同梱Shipment数:', bundleShipments.length);
+      
+      if (bundleShipments.length === 0) return;
+      
+      // 各Inventory Itemに同梱情報を統合
+      for (const inventoryItem of inventoryItems) {
+        for (const bundleShipment of bundleShipments) {
+          const bundleItems = bundleShipment.bundledItems || [];
+          const matchedItem = bundleItems.find((bi: any) => 
+            bi.productId === inventoryItem.id || 
+            bi.id === inventoryItem.id
+          );
+          
+          if (matchedItem) {
+            inventoryItem.bundleId = bundleShipment.bundleId;
+            inventoryItem.isBundleItem = true;
+            inventoryItem.bundleTrackingNumber = bundleShipment.trackingNumber;
+            inventoryItem.bundlePeers = bundleItems
+              .filter((bi: any) => bi.productId !== inventoryItem.id && bi.id !== inventoryItem.id)
+              .map((bi: any) => bi.product || bi.productName);
+              
+            console.log(`✅ 同梱情報統合: ${inventoryItem.name} → Bundle: ${inventoryItem.bundleId}`);
+            break;
+          }
+        }
+      }
+      
+    } catch (error) {
+      console.error('同梱情報統合エラー:', error);
+    }
+  };
   const searchParams = useSearchParams();
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<InventoryItem[]>([]);
@@ -239,7 +292,15 @@ export default function StaffInventoryPage() {
           lastChecked: item.updatedAt || new Date().toISOString(),
           inspectedAt: item.inspectedAt || null,
           photographyDate: item.photographyDate || null,
+          // 同梱情報フィールド（初期値）
+          bundleId: item.bundleId || null,
+          isBundleItem: item.isBundleItem || false,
+          bundleTrackingNumber: item.bundleTrackingNumber || null,
+          bundlePeers: item.bundlePeers || []
         }));
+        
+        // 同梱情報を統合
+        await integrateBundleInfo(inventoryItems);
         
         // サーバーサイドページネーションのため、取得したデータをそのまま表示
         setItems(inventoryItems);
@@ -665,7 +726,10 @@ export default function StaffInventoryPage() {
                 </thead>
                               <tbody className="holo-body">
                   {paginatedItems.map((item) => (
-                    <tr key={item.id}>
+                    <tr 
+                      key={item.id} 
+                      className={item.isBundleItem ? 'bg-blue-50 border-l-4 border-l-blue-400' : ''}
+                    >
                       <td className="p-4 text-center">
                         {item.imageUrl ? (
                           <img 
@@ -681,6 +745,25 @@ export default function StaffInventoryPage() {
                       </td>
                       <td className="p-4">
                         <div className="font-medium text-nexus-text-primary">{item.name}</div>
+                        {item.isBundleItem && (
+                          <div className="mt-1 space-y-1">
+                            <div className="flex items-center gap-1 text-xs">
+                              <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
+                                📦 同梱対象
+                              </span>
+                              {item.bundleTrackingNumber && (
+                                <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full">
+                                  📋 {item.bundleTrackingNumber}
+                                </span>
+                              )}
+                            </div>
+                            {item.bundlePeers && item.bundlePeers.length > 0 && (
+                              <div className="text-xs text-blue-600">
+                                同梱相手: {item.bundlePeers.join(', ')}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </td>
                       <td className="p-4">
                         <span className="font-mono text-sm text-nexus-text-primary">{item.sku}</span>
