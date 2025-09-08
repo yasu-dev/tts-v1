@@ -824,7 +824,7 @@ export default function SalesPage() {
                                   )
                                 ) : null}
                                 {/* 梱包済み商品のラベルダウンロード */}
-                                {(row.status === 'packed' || row.status === 'processing' || row.status === 'completed' || row.labelGenerated) && (
+                                {(row.status === 'packed' || row.status === 'completed' || row.labelGenerated) && (
                                   <NexusButton
                                     onClick={() => handleDownloadLabel(row)}
                                     size="sm"
