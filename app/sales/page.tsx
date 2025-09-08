@@ -139,6 +139,149 @@ export default function SalesPage() {
       }))
     };
   };
+  
+  // ⚠️ TEST/DEMO FEATURE - DELETE BEFORE PRODUCTION ⚠️
+  // テスト用ステータス遷移機能
+  const [isTestFeatureOpen, setIsTestFeatureOpen] = useState(false);
+  const [testTransitionLoading, setTestTransitionLoading] = useState(false);
+  
+  const handleTestStatusTransition = async (productId: string, fromStatus: string, toStatus: string, productName: string) => {
+    console.log('🧪 [CLICK] テスト遷移クリック:', { productId, fromStatus, toStatus, productName });
+    
+    if (!confirm(`⚠️ テスト機能\n\n商品「${productName}」のステータスを「${getStatusDisplayName(fromStatus)}」から「${getStatusDisplayName(toStatus)}」に変更します。\n\n商品ID: ${productId}\n\nこの操作を実行しますか？`)) {
+      return;
+    }
+    
+    setTestTransitionLoading(true);
+    
+    try {
+      console.log('🧪 [API CALL] API呼び出し開始:', { productId, fromStatus, toStatus });
+      const response = await fetch('/api/test/status-transition', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId,
+          fromStatus,
+          toStatus,
+          reason: 'テスト/デモ用手動遷移'
+        })
+      });
+      
+      const result = await response.json();
+      console.log('🧪 [API RESPONSE] APIレスポンス:', result);
+      console.log('🧪 [API RESPONSE] HTTP Status:', response.status);
+      
+      if (!response.ok) {
+        console.error('🧪 [API ERROR] APIエラー:', result);
+        throw new Error(result.error || 'ステータス遷移に失敗しました');
+      }
+      
+      console.log('🧪 [SUCCESS] API成功 - トースト表示開始');
+      showToast({
+        title: 'テスト遷移完了',
+        message: result.message,
+        type: 'success'
+      });
+      console.log('🧪 [SUCCESS] トースト表示完了');
+      
+      // データを即座に更新（楽観的更新）
+      setSalesData((prev: any) => {
+        if (!prev || !prev.recentOrders) return prev;
+        
+        return {
+          ...prev,
+          recentOrders: prev.recentOrders.map((order: any) => {
+            const orderProductId = order.realProductId || order.productId || order.id.replace('pseudo-', '');
+            if (orderProductId === productId) {
+              console.log('🧪 [UI UPDATE] 商品ステータス更新:', orderProductId, order.status, '→', toStatus);
+              return { ...order, status: toStatus };
+            }
+            return order;
+          })
+        };
+      });
+      
+      // データを再読み込み（確実性のため）
+      await fetchSalesData();
+      
+    } catch (error) {
+      console.error('Test status transition error:', error);
+      showToast({
+        title: 'テスト遷移エラー',
+        message: error instanceof Error ? error.message : 'ステータス遷移に失敗しました',
+        type: 'error'
+      });
+    } finally {
+      setTestTransitionLoading(false);
+    }
+  };
+  
+  const handleTestStatusReset = async (productId: string, productName: string) => {
+    if (!confirm(`⚠️ テスト機能リセット\n\n商品「${productName}」のテスト用データを削除し、ステータスを「出品中」にリセットします。\n\nこの操作を実行しますか？`)) {
+      return;
+    }
+    
+    setTestTransitionLoading(true);
+    
+    try {
+      const response = await fetch(`/api/test/status-transition?productId=${productId}`, {
+        method: 'DELETE'
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'リセットに失敗しました');
+      }
+      
+      showToast({
+        title: 'テストリセット完了',
+        message: result.message,
+        type: 'info'
+      });
+      
+      // データを即座に更新（楽観的更新）
+      setSalesData((prev: any) => {
+        if (!prev || !prev.recentOrders) return prev;
+        
+        return {
+          ...prev,
+          recentOrders: prev.recentOrders.map((order: any) => {
+            const orderProductId = order.realProductId || order.productId || order.id.replace('pseudo-', '');
+            if (orderProductId === productId) {
+              console.log('🧪 [UI RESET] 商品ステータスリセット:', orderProductId, order.status, '→ listing');
+              return { ...order, status: 'listing' };
+            }
+            return order;
+          })
+        };
+      });
+      
+      // データを再読み込み（確実性のため）
+      await fetchSalesData();
+      
+    } catch (error) {
+      console.error('Test status reset error:', error);
+      showToast({
+        title: 'テストリセットエラー',
+        message: error instanceof Error ? error.message : 'リセットに失敗しました',
+        type: 'error'
+      });
+    } finally {
+      setTestTransitionLoading(false);
+    }
+  };
+  
+  const getStatusDisplayName = (status: string): string => {
+    const statusNames: Record<string, string> = {
+      'listing': '出品中',
+      'sold': '購入者決定',
+      'processing': '出荷準備中',
+      'shipped': '出荷済み',
+      'delivered': '到着済み'
+    };
+    return statusNames[status] || status;
+  };
 
   // 配送業者のリスト（APIから動的取得）
   const carriers = carriersLoading ? [] : (carrierData || []).map(carrier => ({
@@ -389,8 +532,9 @@ export default function SalesPage() {
             orderNumber: selectedOrder.orderId || selectedOrder.orderNumber,
             productName: selectedOrder.product,
             customer: selectedOrder.customer,
-            shippingAddress: selectedOrder.shippingAddress || '東京都渋谷区神南1-1-1',
-            value: selectedOrder.amount
+            shippingAddress: selectedOrder.shippingAddress || '〒150-0001 東京都渋谷区神宮前1-1-1 テストビル101',
+            value: selectedOrder.totalAmount || selectedOrder.amount,
+            isTestOrder: selectedOrder.orderNumber?.startsWith('TEST-') || false // テスト注文フラグ
           };
 
       console.log('FedX API request:', { 
@@ -644,6 +788,178 @@ export default function SalesPage() {
           userType="seller"
         />
 
+        {/* ⚠️ TEST/DEMO FEATURE - DELETE BEFORE PRODUCTION ⚠️ */}
+        <div className="bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 text-white shadow-lg">
+          <div className="p-4">
+            <div className="flex items-start gap-4">
+              <ExclamationTriangleIcon className="w-6 h-6 flex-shrink-0 mt-1" />
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-bold">⚠️ テスト/デモ機能</h3>
+                    <p className="text-sm opacity-90 mt-1">
+                      本機能はテスト・デモ専用です。実際のeBay購入なしで「出品中」→「購入者決定」の遷移をテストできます。
+                      <strong className="block mt-1">本番環境では削除してください。</strong>
+                    </p>
+                  </div>
+                  <NexusButton
+                    onClick={() => setIsTestFeatureOpen(!isTestFeatureOpen)}
+                    variant={isTestFeatureOpen ? "secondary" : "primary"}
+                    size="sm"
+                    className="bg-white text-orange-600 hover:bg-gray-100"
+                  >
+                    {isTestFeatureOpen ? 'テスト機能を閉じる' : 'テスト機能を開く'}
+                  </NexusButton>
+                </div>
+              </div>
+            </div>
+            
+            {/* テスト機能UI */}
+            {isTestFeatureOpen && (
+              <div className="mt-4 p-4 bg-white/10 rounded-lg border border-white/20">
+                <h4 className="font-semibold mb-3">テスト用ステータス遷移</h4>
+                <p className="text-sm opacity-90 mb-4">
+                  出品中の商品を選択して「購入者決定」に変更するか、購入者決定の商品を「出品中」にリセットできます。
+                </p>
+                
+                <div className="space-y-2">
+                  {salesData?.recentOrders?.filter((order: any) => 
+                    order.status && ['listing', 'sold'].includes(order.status)
+                  ).map((order: any, idx: number) => {
+                    console.log('🧪 [TEST UI] 商品詳細:', {
+                      id: order.id,
+                      productId: order.productId,
+                      realProductId: order.realProductId,
+                      status: order.status, 
+                      product: order.product,
+                      allKeys: Object.keys(order)
+                    });
+                    return (
+                    <div key={`test-${order.id}-${order.status}-${idx}`} className="flex items-center justify-between p-3 bg-white/20 rounded border border-white/30">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded border border-white/30 overflow-hidden bg-white/10">
+                          {order.ebayImage ? (
+                            <img 
+                              src={order.ebayImage} 
+                              alt={order.product}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-white/70">
+                              <CameraIcon className="w-4 h-4" />
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium">
+                            {order.product}
+                          </div>
+                          <div className="text-xs opacity-80">
+                            現在: {getStatusDisplayName(order.status)}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {order.status === 'listing' && (
+                          <NexusButton
+                            onClick={() => {
+                              // 確実な商品ID取得
+                              let targetProductId = order.realProductId;
+                              if (!targetProductId && order.id.startsWith('pseudo-')) {
+                                targetProductId = order.id.replace('pseudo-', '');
+                              } else if (!targetProductId) {
+                                targetProductId = order.productId || order.id;
+                              }
+                              
+                              console.log('🧪 [BUTTON CLICK] sss商品ボタンクリック詳細:', {
+                                orderObject: order,
+                                targetProductId,
+                                orderProduct: order.product
+                              });
+                              
+                              handleTestStatusTransition(
+                                targetProductId, 
+                                'listing', 
+                                'sold', 
+                                order.product
+                              );
+                            }}
+                            size="sm"
+                            variant="success"
+                            disabled={testTransitionLoading}
+                            className="bg-green-600 hover:bg-green-700 text-white border-green-700"
+                          >
+                            {testTransitionLoading ? '処理中...' : '→ 購入者決定'}
+                          </NexusButton>
+                        )}
+                        {order.status === 'sold' && (
+                          <>
+                            <NexusButton
+                              onClick={() => {
+                              // 確実な商品ID取得
+                              let targetProductId = order.realProductId;
+                              if (!targetProductId && order.id.startsWith('pseudo-')) {
+                                targetProductId = order.id.replace('pseudo-', '');
+                              } else if (!targetProductId) {
+                                targetProductId = order.productId || order.id;
+                              }
+                              
+                              handleTestStatusTransition(
+                                targetProductId, 
+                                'sold', 
+                                'listing', 
+                                order.product
+                              );
+                            }}
+                              size="sm"
+                              variant="secondary"
+                              disabled={testTransitionLoading}
+                              className="bg-blue-600 hover:bg-blue-700 text-white border-blue-700"
+                            >
+                              {testTransitionLoading ? '処理中...' : '→ 出品中'}
+                            </NexusButton>
+                            <NexusButton
+                            onClick={() => {
+                              // 確実な商品ID取得
+                              let targetProductId = order.realProductId;
+                              if (!targetProductId && order.id.startsWith('pseudo-')) {
+                                targetProductId = order.id.replace('pseudo-', '');
+                              } else if (!targetProductId) {
+                                targetProductId = order.productId || order.id;
+                              }
+                              
+                              handleTestStatusReset(
+                                targetProductId, 
+                                order.product
+                              );
+                            }}
+                              size="sm"
+                              variant="danger"
+                              disabled={testTransitionLoading}
+                              className="bg-red-600 hover:bg-red-700 text-white border-red-700"
+                            >
+                              {testTransitionLoading ? '処理中...' : 'リセット'}
+                            </NexusButton>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    );
+                  }) || []}
+                  
+                  {(!salesData?.recentOrders || 
+                    salesData.recentOrders.filter((order: any) => ['listing', 'sold'].includes(order.status)).length === 0
+                  ) && (
+                    <div className="text-center py-4 text-white/70">
+                      テスト可能な商品（出品中・購入者決定）がありません
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* 注文管理 - 統合版 */}
         <div className="intelligence-card oceania">
           
@@ -717,9 +1033,12 @@ export default function SalesPage() {
                           const isInBundle = bundleGroup !== null;
                           const isRepresentative = isRepresentativeItem(row.id);
                           
+                          // ユニークなキーを生成（IDが重複する場合を考慮）
+                          const uniqueKey = `${row.id || 'no-id'}-${row.orderNumber || 'no-order'}-${index}`;
+                          
                           return (
                           <tr 
-                            key={row.id || index} 
+                            key={uniqueKey} 
                             className={`holo-row ${isInBundle ? 'bg-blue-50 border-l-4 border-l-blue-400' : ''}`}
                           >
                             <td className="p-4">

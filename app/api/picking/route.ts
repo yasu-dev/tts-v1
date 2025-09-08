@@ -36,10 +36,11 @@ export async function GET(request: NextRequest) {
         _count: { status: true }
       }),
       
-      // セラーがラベル生成完了した商品（ordered, workstation状態）を動的にピッキングタスクとして取得
+      // セラーがラベル生成完了した商品（ordered, workstation, sold状態）を動的にピッキングタスクとして取得
+      // ⚠️ TEST FEATURE: soldステータスもテスト機能用に含める
       prisma.product.findMany({
         where: {
-          status: { in: ['ordered', 'workstation'] }
+          status: { in: ['ordered', 'workstation', 'sold'] }
         },
         include: {
           seller: {
@@ -418,21 +419,46 @@ export async function POST(request: NextRequest) {
               console.log(`[STEP 8-FIX] 仮注文作成成功: ${validOrderId}`);
             }
             
-            await prisma.shipment.create({
-              data: {
-                orderId: validOrderId,
-                productId: product.id,
-                status: 'picked', // ピッキング完了状態
-                carrier: 'pending',
-                method: 'standard',
-                customerName: orderInfo?.customerName || `ロケーション: ${locationName}`,
-                address: orderInfo?.shippingAddress || 'ピッキングエリア',
-                deadline: dueDate,
-                priority: 'normal',
-                value: product.price || 0,
-                notes: `ピッキング指示作成済み - ロケーション: ${locationName}`,
-              }
+            console.log(`[SHIPMENT] 作成開始: ${product.name} (${product.id})`);
+            
+            // 既存Shipmentエントリがあるかチェック
+            const existingShipment = await prisma.shipment.findFirst({
+              where: { productId: product.id }
             });
+            
+            if (existingShipment) {
+              console.log(`[SHIPMENT] 既存エントリ更新: ${existingShipment.id}`);
+              await prisma.shipment.update({
+                where: { id: existingShipment.id },
+                data: {
+                  status: 'pending', // 梱包待ち状態に更新
+                  updatedAt: new Date()
+                }
+              });
+            } else {
+              console.log(`[SHIPMENT] 新規エントリ作成: ${product.name}`);
+              await prisma.shipment.create({
+                data: {
+                  orderId: validOrderId,
+                  productId: product.id,
+                  status: 'pending', // 梱包待ち状態（picked ではなく pending）
+                  carrier: 'pending',
+                  method: 'standard',
+                  customerName: orderInfo?.customerName || `ロケーション: ${locationName}`,
+                  address: orderInfo?.shippingAddress || 'ピッキングエリア',
+                  deadline: dueDate,
+                  priority: 'normal',
+                  value: product.price || 0,
+                  notes: `ピッキング指示作成済み - ロケーション: ${locationName}`,
+                  weight: 1.0,
+                  dimensions: '25x15x10',
+                  trackingNumber: null,
+                  createdAt: new Date(),
+                  updatedAt: new Date()
+                }
+              });
+              console.log(`[SHIPMENT] 新規Shipmentエントリ作成完了: ${product.name}`);
+            }
             console.log(`[STEP 8 OK] Shipmentエントリ作成成功 (productId: ${product.id})`);
           } catch (shipmentError) {
             console.log(`[STEP 8 WARNING] Shipmentエントリ作成失敗 (productId: ${product.id}):`, shipmentError);

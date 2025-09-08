@@ -129,9 +129,27 @@ export async function GET(request: NextRequest) {
         product: product
       }));
 
-      // ListingとPseudo-Listingをマージ
-      const allListings = [...listings, ...pseudoListings];
-      const totalCount = totalListingCount + totalProductCount;
+      // ListingとPseudo-Listingをマージ（重複除去）
+      const productIdSet = new Set();
+      const allListings = [];
+      
+      // 既存のListingを優先追加
+      for (const listing of listings) {
+        if (!productIdSet.has(listing.productId)) {
+          productIdSet.add(listing.productId);
+          allListings.push(listing);
+        }
+      }
+      
+      // Pseudo-Listingは重複しない場合のみ追加
+      for (const pseudoListing of pseudoListings) {
+        if (!productIdSet.has(pseudoListing.productId)) {
+          productIdSet.add(pseudoListing.productId);
+          allListings.push(pseudoListing);
+        }
+      }
+      
+      const totalCount = allListings.length;
       
       // Listingデータを販売管理画面用に変換（ステータスマッピング適用）
       const statusMapping = {
@@ -190,6 +208,7 @@ export async function GET(request: NextRequest) {
           // ラベル生成時に必要な情報を追加
           orderId: relatedOrder?.id, // 注文ID
           productId: listing.productId, // 商品ID
+          realProductId: listing.productId, // 実際の商品ID（テスト機能用）
           shippingAddress: relatedOrder?.shippingAddress || '住所未設定'
         };
       });
