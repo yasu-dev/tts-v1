@@ -1022,16 +1022,6 @@ export default function DeliveryPage() {
                                 <TruckIcon className="h-4 w-4" />
                                 出荷
                               </NexusButton>
-                              <NexusButton
-                                variant="danger"
-                                size="sm"
-                                onClick={() => handleOpenCancelModal(plan)}
-                                className="flex items-center gap-1"
-                                title="納品プラン取り下げ"
-                              >
-                                <XMarkIcon className="h-4 w-4" />
-                                取り下げ
-                              </NexusButton>
                             </>
                           )}
                         </div>
@@ -1511,6 +1501,17 @@ export default function DeliveryPage() {
                 >
                   <PencilIcon className="h-4 w-4 mr-2" />
                   編集
+                </NexusButton>
+              )}
+
+              {selectedPlan.status === 'Pending' && (
+                <NexusButton
+                  variant="danger"
+                  onClick={() => handleOpenCancelModal(selectedPlan)}
+                  title="納品プラン取り下げ"
+                >
+                  <XMarkIcon className="h-4 w-4 mr-2" />
+                  取り下げ
                 </NexusButton>
               )}
 
