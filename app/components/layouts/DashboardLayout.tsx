@@ -316,10 +316,10 @@ export default function DashboardLayout({
   // モーダル表示時の業務フロー制御
   useEffect(() => {
     if (isAnyModalOpen) {
-      console.log('🔴 モーダル開: 業務フローを閉じます');
+      // console noise reduction
       setIsFlowCollapsed(true);
     } else {
-      console.log('🟢 モーダル閉: 業務フローの自動制御を復活します');
+      // console noise reduction
       // モーダル閉時は元の状態に戻さない（スクロール制御に任せる）
     }
   }, [isAnyModalOpen]);
@@ -407,9 +407,8 @@ export default function DashboardLayout({
         return;
       }
       
-      // モーダル表示中は自動制御を無効化
+      // モーダル表示中は自動制御を無効化（ログ抑制）
       if (isAnyModalOpen) {
-        console.log('🔴 モーダル表示中: スクロール連動制御をスキップ');
         return;
       }
       
@@ -450,9 +449,8 @@ export default function DashboardLayout({
           return;
         }
         
-        // モーダル表示中は自動制御を無効化
+        // モーダル表示中は自動制御を無効化（ログ抑制）
         if (isAnyModalOpen) {
-          console.log('🔴 モーダル表示中: スクロール停止時制御をスキップ');
           return;
         }
         

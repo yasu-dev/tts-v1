@@ -23,18 +23,18 @@ export async function GET(request: NextRequest) {
 
     console.log(`📄 ページネーションパラメータ: page=${page}, limit=${limit}, offset=${offset}, statusFilter=${statusFilter}`);
 
-    // ステータスフィルタリング条件を構築
+    // ステータスフィルタリング条件を構築（恒久修正）
     const getStatusFilter = (filter: string) => {
       switch (filter) {
         case 'workstation':
-          return { status: { in: ['pending', 'picked'] } }; // pending→workstation, picked→picked
+          return { status: { in: ['pending', 'picked', 'workstation'] } }; // workstationステータス追加
         case 'packed':
           return { status: 'packed' };
         case 'ready_for_pickup':
           return { status: 'delivered' }; // delivered→ready_for_pickup
         case 'all':
         default:
-          return { status: { in: ['pending', 'picked', 'packed', 'shipped', 'delivered'] } };
+          return { status: { in: ['pending', 'picked', 'packed', 'shipped', 'delivered', 'workstation'] } };
       }
     };
 
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
     });
 
     // 全タブの統計情報を並行取得
-    const [shipments, totalCount, allCount, workstationCount, packedCount, readyForPickupCount] = await Promise.all([
+    const [baseShipments, totalCount, allCount, workstationCount, packedCount, readyForPickupCount] = await Promise.all([
       prisma.shipment.findMany({
         where: {
           ...whereClause,
@@ -113,6 +113,73 @@ export async function GET(request: NextRequest) {
         where: { status: 'delivered' }
       }),
     ]);
+
+    // URLクエリで特定商品を必ず含める
+    let shipments = baseShipments;
+    const includeProductId = request.nextUrl.searchParams.get('includeProductId');
+    if (includeProductId) {
+      try {
+        const highlighted = await prisma.shipment.findFirst({
+          where: { productId: includeProductId },
+          include: {
+            order: {
+              include: {
+                items: { include: { product: true } }
+              }
+            }
+          }
+        });
+        if (highlighted) {
+          const already = shipments.some(s => s.id === highlighted.id);
+          if (!already) {
+            shipments = [highlighted, ...shipments];
+          }
+        } else {
+          // Shipmentが無い場合は最小情報で作成して必ず表示
+          const product = await prisma.product.findUnique({ where: { id: includeProductId } });
+          if (product) {
+            const tempOrder = await prisma.order.create({
+              data: {
+                orderNumber: `AUTO-WORKSTATION-${Date.now()}-${includeProductId.slice(-6)}`,
+                status: 'processing',
+                customerName: '自動生成',
+                totalAmount: (product as any).price || 0,
+                shippingAddress: 'ピッキングエリア',
+              }
+            });
+            const created = await prisma.shipment.create({
+              data: {
+                orderId: tempOrder.id,
+                productId: includeProductId,
+                status: 'workstation',
+                carrier: 'pending',
+                method: 'standard',
+                customerName: '自動生成',
+                address: 'ピッキングエリア',
+                deadline: new Date(Date.now() + 3 * 60 * 60 * 1000),
+                priority: 'normal',
+                value: (product as any).price || 0,
+                notes: 'includeProductId により自動作成',
+              }
+            });
+            // 直後の一覧に先頭で含める
+            const createdWithRelations = await prisma.shipment.findUnique({
+              where: { id: created.id },
+              include: {
+                order: {
+                  include: { items: { include: { product: true } } }
+                }
+              }
+            });
+            if (createdWithRelations) {
+              shipments = [createdWithRelations, ...shipments];
+            }
+          }
+        }
+      } catch (e) {
+        console.log('includeProductId fetch failed:', e);
+      }
+    }
 
     console.log(`📦 Shipmentデータ取得: ${shipments.length}件 / 総数: ${totalCount}件`);
 
@@ -198,6 +265,9 @@ export async function GET(request: NextRequest) {
         case 'picked':
           displayStatus = 'workstation';  // ピッキング済み→梱包待ち
           break;
+        case 'workstation':
+          displayStatus = 'workstation';  // ピッキング作業中→梱包待ち
+          break;
         case 'packed':
           displayStatus = 'packed';
           break;
@@ -274,17 +344,31 @@ export async function GET(request: NextRequest) {
     });
 
     console.log(`✅ 出荷データ変換完了: ${shippingItems.length}件`);
-    console.log('📦 変換後商品リスト:');
-    shippingItems.slice(0, 5).forEach((item, index) => {
+    
+    // 重複ID除去（恒久的解決）
+    const uniqueShippingItems = [];
+    const seenIds = new Set();
+    
+    for (const item of shippingItems) {
+      if (!seenIds.has(item.id)) {
+        seenIds.add(item.id);
+        uniqueShippingItems.push(item);
+      } else {
+        console.log(`🔄 重複ID除去: ${item.id} (${item.productName})`);
+      }
+    }
+    
+    console.log('📦 重複除去後商品リスト:');
+    uniqueShippingItems.slice(0, 5).forEach((item, index) => {
       console.log(`  ${index + 1}. ${item.productName} (${item.status}) - ${item.isBundle ? '同梱' : '個別'}`);
     });
     
     return NextResponse.json({ 
-      items: shippingItems,
+      items: uniqueShippingItems,
       pagination: {
         currentPage: page,
-        totalPages: Math.ceil(totalCount / limit),
-        totalCount: totalCount,
+        totalPages: Math.ceil(uniqueShippingItems.length / limit),
+        totalCount: uniqueShippingItems.length,
         limit: limit,
       },
       stats: {

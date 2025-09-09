@@ -6,7 +6,7 @@ import WorkflowProgress from '@/app/components/ui/WorkflowProgress';
 
 import PackingVideoModal from '@/app/components/modals/PackingVideoModal';
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ArchiveBoxArrowDownIcon,
   InformationCircleIcon,
@@ -103,16 +103,22 @@ export default function StaffShippingPage() {
   });
 
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const hasFetchedRef = useRef(false);
   const { showToast } = useToast();
 
-  // 初回のみデータを取得（タブ切り替え時の自動再取得を無効化）
+  // 初回データをURLのstatusクエリに合わせて取得（二重取得防止）
   useEffect(() => {
-    if (items.length === 0) {
-      const fetchShippingItems = async () => {
-        try {
-          setLoading(true);
-          console.log('📡 初回データ取得開始');
-          const response = await fetch(`/api/orders/shipping?page=1&limit=50&status=all`);
+    if (hasFetchedRef.current) return;
+    hasFetchedRef.current = true;
+    const fetchShippingItems = async () => {
+      try {
+        setLoading(true);
+        const initialStatus = (searchParams.get('status') || 'all');
+        setActiveTab(initialStatus);
+        console.log('📡 初回データ取得開始');
+        const includeProductId = searchParams.get('includeProductId');
+        const response = await fetch(`/api/orders/shipping?page=1&limit=50&status=${initialStatus}${includeProductId ? `&includeProductId=${encodeURIComponent(includeProductId)}` : ''}`);
           if (!response.ok) {
             throw new Error('Failed to fetch shipping data');
           }
@@ -164,24 +170,24 @@ export default function StaffShippingPage() {
             }
           });
             
-        } catch (error) {
-          console.error('初回データ取得エラー:', error);
-          setItems([]);
-          setShippingData({ items: [], stats: { totalShipments: 0, pendingShipments: 0 } });
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      fetchShippingItems();
-    }
-  }, []);
+      } catch (error) {
+        console.error('初回データ取得エラー:', error);
+        setItems([]);
+        setShippingData({ items: [], stats: { totalShipments: 0, pendingShipments: 0 } });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchShippingItems();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   // fetchShippingItems関数をコンポーネントレベルに移動して再利用可能にする
   const fetchData = async (page: number = currentPage, perPage: number = itemsPerPage, status: string = activeTab) => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/orders/shipping?page=${page}&limit=${perPage}&status=${status}`);
+      const includeProductId = searchParams.get('includeProductId');
+      const response = await fetch(`/api/orders/shipping?page=${page}&limit=${perPage}&status=${status}${includeProductId ? `&includeProductId=${encodeURIComponent(includeProductId)}` : ''}`);
       if (!response.ok) {
         throw new Error('Failed to fetch shipping data');
       }
@@ -250,8 +256,18 @@ export default function StaffShippingPage() {
 
   // 表示用データ（アクティブタブによるフィルタリング + 同梱された個別商品のみ非表示）
   const paginatedItems = useMemo(() => {
+    // 1. まず重複IDを除去
     const uniqueItems = new Map();
-    const filteredItems = items.filter(item => {
+    items.forEach(item => {
+      // 重複IDがあれば最新のアイテムで上書き（ログは1回のみ）
+      if (uniqueItems.has(item.id)) {
+        // 重複ログを制限
+      }
+      uniqueItems.set(item.id, item);
+    });
+    
+    // 2. 重複排除済みのアイテムをフィルタリング
+    const filteredItems = Array.from(uniqueItems.values()).filter(item => {
       // 同梱された個別商品は表示しない（同梱パッケージは表示）
       if (item.isBundled && !item.isBundle) {
         return false;
@@ -270,17 +286,10 @@ export default function StaffShippingPage() {
         }
       }
       
-      // 重複IDを除去（最後のアイテムを保持）
-      if (uniqueItems.has(item.id)) {
-        console.warn(`重複ID検出: ${item.id} - 最新のアイテムで上書きします`);
-      }
-      uniqueItems.set(item.id, item);
-      
       return true;
     });
     
-    // 重複排除されたアイテムを返す
-    return Array.from(uniqueItems.values());
+    return filteredItems;
   }, [items, activeTab]);
 
   // フィルター変更時はページを1に戻す
@@ -1036,7 +1045,11 @@ export default function StaffShippingPage() {
                   return (
                     <button
                       key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
+                      onClick={() => {
+                        setActiveTab(tab.id);
+                        router.push(`/staff/shipping?status=${tab.id}`);
+                        fetchData(1, itemsPerPage, tab.id);
+                      }}
                       className={`
                         whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-all duration-300
                         ${activeTab === tab.id

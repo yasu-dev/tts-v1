@@ -38,9 +38,10 @@ export async function GET(request: NextRequest) {
       
       // セラーがラベル生成完了した商品（ordered, workstation, sold状態）を動的にピッキングタスクとして取得
       // ⚠️ TEST FEATURE: soldステータスもテスト機能用に含める
+      // ⚠️ PERMANENT FIX: completedステータス（棚保管完了）もピッキング対象として恒久対応
       prisma.product.findMany({
         where: {
-          status: { in: ['ordered', 'workstation', 'sold'] }
+          status: { in: ['ordered', 'workstation', 'sold', 'completed'] }
         },
         include: {
           seller: {
@@ -273,20 +274,28 @@ export async function POST(request: NextRequest) {
     if (action === 'create_picking_list' || action === 'create_picking_instruction') {
       console.log('[STEP 3] ピッキングリスト作成処理開始');
       
-      // 1. 対象商品を取得（一時的にモックデータ）
-      console.log('[STEP 4] 商品データ取得開始（デモモード）');
-      const products = validProductIds.map((id, index) => ({
-        id: id,
-        name: `商品${index + 1}`,
-        sku: `SKU-${id.slice(-6)}`,
-        status: 'storage',
-        category: 'camera_body',
-        currentLocation: {
-          code: locationCode || 'TEMP-02',
-          name: locationName || 'テストロケーション'
+      // 1. 対象商品を実データベースから取得（恒久的解決）
+      console.log('[STEP 4] 商品データ取得開始（実データ使用）');
+      console.log('[DEBUG] 取得対象商品ID:', validProductIds);
+      
+      const products = await prisma.product.findMany({
+        where: {
+          id: { in: validProductIds }
+        },
+        include: {
+          currentLocation: {
+            select: {
+              code: true,
+              name: true
+            }
+          }
         }
-      }));
-      console.log('[STEP 4 OK] 商品データ取得成功（デモモード）:', products.length, '件');
+      });
+      
+      console.log('[STEP 4 OK] 商品データ取得成功（実データ）:', products.length, '件');
+      products.forEach((product, index) => {
+        console.log(`  商品${index + 1}: ${product.name} (${product.id}) - status: ${product.status}`);
+      });
 
       if (products.length === 0) {
         console.log('[STEP 4 FAILED] ピッキング対象商品なし');
@@ -357,19 +366,28 @@ export async function POST(request: NextRequest) {
       console.log('[STEP 7] 商品ステータス更新開始');
       const newStatus = action === 'create_picking_instruction' ? 'workstation' : 'ordered';
       
-      // 実際に商品ステータスを更新
+      // 実際に商品ステータスを更新（恒久的解決）
       try {
-        await prisma.product.updateMany({
+        const updateResult = await prisma.product.updateMany({
           where: {
-            id: { in: productIds }
+            id: { in: validProductIds }
           },
           data: {
             status: newStatus
           }
         });
-        console.log(`[STEP 7 OK] 商品ステータス更新完了: ${productIds.length}件 -> ${newStatus}`);
+        console.log(`[STEP 7 OK] 商品ステータス更新完了: ${updateResult.count}件 -> ${newStatus}`);
+        
+        // ステータス更新が失敗した場合は処理を中断
+        if (updateResult.count === 0) {
+          throw new Error(`商品ステータス更新に失敗しました: 対象商品が見つかりません`);
+        }
       } catch (updateError) {
-        console.log('[STEP 7 WARNING] 商品ステータス更新失敗（デモモード継続）:', updateError);
+        console.error('[STEP 7 ERROR] 商品ステータス更新エラー:', updateError);
+        return NextResponse.json(
+          { error: `商品ステータスの更新に失敗しました: ${updateError.message}` },
+          { status: 500 }
+        );
       }
       
       // Shipmentエントリを作成（出荷管理で表示するため）
@@ -401,13 +419,33 @@ export async function POST(request: NextRequest) {
             let validOrderId = orderInfo?.id;
             
             if (!validOrderId) {
-              // 仮の注文を作成
+              // 仮の注文を作成（まず仮顧客を取得/作成）
               console.log(`[STEP 8-FIX] 仮注文作成: ${product.id}`);
+              
+              // 仮顧客を取得または作成
+              let tempCustomer = await prisma.customer.findFirst({
+                where: { username: 'temp-customer-001' }
+              });
+              
+              if (!tempCustomer) {
+                console.log('[STEP 8-CUST] 仮顧客作成中...');
+                tempCustomer = await prisma.customer.create({
+                  data: {
+                    username: 'temp-customer-001',
+                    fullName: 'ピッキング指示用仮顧客',
+                    email: 'temp@picking.system',
+                    password: 'temp-password',
+                    role: 'customer'
+                  }
+                });
+                console.log('[STEP 8-CUST] 仮顧客作成完了:', tempCustomer.id);
+              }
+              
               const tempOrder = await prisma.order.create({
                 data: {
                   orderNumber: `TEMP-ORDER-${Date.now()}-${product.id.slice(-6)}`,
                   status: 'pending',
-                  customerId: 'temp-customer-001', // デフォルト顧客ID
+                  customerId: tempCustomer.id,
                   customerName: `ロケーション: ${locationName}`,
                   totalAmount: product.price || 0,
                   shippingAddress: 'ピッキング指示作成エリア',
@@ -431,7 +469,7 @@ export async function POST(request: NextRequest) {
               await prisma.shipment.update({
                 where: { id: existingShipment.id },
                 data: {
-                  status: 'pending', // 梱包待ち状態に更新
+                  status: 'workstation', // ピッキング作業中状態に更新（出荷管理表示用）
                   updatedAt: new Date()
                 }
               });
@@ -441,14 +479,14 @@ export async function POST(request: NextRequest) {
                 data: {
                   orderId: validOrderId,
                   productId: product.id,
-                  status: 'pending', // 梱包待ち状態（picked ではなく pending）
+                  status: 'workstation', // ピッキング作業中状態（出荷管理表示用）
                   carrier: 'pending',
                   method: 'standard',
                   customerName: orderInfo?.customerName || `ロケーション: ${locationName}`,
                   address: orderInfo?.shippingAddress || 'ピッキングエリア',
                   deadline: dueDate,
                   priority: 'normal',
-                  value: product.price || 0,
+                  value: (product as any).price || 0,
                   notes: `ピッキング指示作成済み - ロケーション: ${locationName}`,
                   weight: 1.0,
                   dimensions: '25x15x10',

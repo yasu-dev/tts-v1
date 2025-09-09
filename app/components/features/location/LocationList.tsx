@@ -241,7 +241,10 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
               locationCode: item.location,
               locationName: `ロケーション ${item.location}`,
               status: item.status === 'picked' ? 'ピッキング済み' : 
-                      item.status === 'ピッキング作業中' ? 'ピッキング作業中' : 'ピッキング待ち',
+                      item.status === 'ピッキング作業中' ? 'ピッキング作業中' : 
+                      item.status === 'pending' ? 'ピッキング待ち' : 
+                      (item.status === 'completed') ? 'ピッキング待ち' : // 棚保管完了商品も恒久対応
+                      'ピッキング待ち',
               deadline: new Date(task.dueDate).toLocaleTimeString('ja-JP', { 
                 hour: '2-digit', 
                 minute: '2-digit' 
@@ -768,9 +771,9 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                   )}
                   
                   {shippingData.filter(locationGroup => {
-                  // ピッキング待ち・ピッキング作業中・出荷準備中の商品があるロケーションのみ表示
+                  // ピッキング待ち・ピッキング作業中の商品があるロケーションのみ表示
                   const activeItems = locationGroup.items.filter((item: any) => 
-                    item.status === 'ピッキング待ち' || item.status === 'ピッキング作業中' || item.status === 'ordered'
+                    item.status === 'ピッキング待ち' || item.status === 'ピッキング作業中'
                   );
                   
                   if (activeItems.length === 0) return false;
@@ -787,9 +790,9 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                     );
                 }).map((locationGroup) => {
                   const activeItems = locationGroup.items.filter((item: any) => 
-                    item.status === 'ピッキング待ち' || item.status === 'ピッキング作業中' || item.status === 'ordered'
+                    item.status === 'ピッキング待ち' || item.status === 'ピッキング作業中'
                   );
-                  const completedItems = []; // ピッキング待ち・出荷準備中の商品を表示
+                  const completedItems = []; // ピッキング待ち・ピッキング作業中の商品を表示
                   
                   return (
                   <div key={locationGroup.locationCode} className="holo-card p-6">
@@ -1252,15 +1255,27 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                     // ピッキング指示を作成
                     const productIds = selectedPickingItems.map(item => item.productId || item.id);
                     
+                    console.log('🚀 ピッキング指示作成開始:', {
+                      productIds,
+                      selectedItems: selectedPickingItems.length,
+                      locationName: selectedLocationName,
+                      ystCameraIncluded: selectedPickingItems.some(item => item.productName === 'YSTカメラ')
+                    });
+                    
+                    const requestBody = {
+                      productIds,
+                      action: 'create_picking_instruction',
+                      // 先頭に英数記号を含む棚コードのみ抽出（例: "A-01"）
+                      locationCode: (selectedLocationName.match(/[A-Z]-\d{2}/)?.[0]) || selectedLocationName.split(' ')[0] || 'UNKNOWN',
+                      locationName: selectedLocationName
+                    };
+                    
+                    console.log('📤 POST リクエスト送信:', requestBody);
+                    
                     const response = await fetch('/api/picking', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        productIds,
-                        action: 'create_picking_instruction',
-                        locationCode: selectedLocationName.split(' ')[0] || 'UNKNOWN',
-                        locationName: selectedLocationName
-                      })
+                      body: JSON.stringify(requestBody)
                     });
 
                     if (response.ok) {
@@ -1277,8 +1292,9 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                         duration: 4000
                       });
 
-                      // 出荷管理画面へ遷移
-                      router.push('/staff/shipping?status=workstation');
+                      // 出荷管理画面へ遷移（作成した商品を強調表示）
+                      const includeId = productIds[0];
+                      router.push(`/staff/shipping?status=workstation&includeProductId=${encodeURIComponent(includeId)}`);
                     } else {
                       throw new Error('ピッキング指示作成に失敗しました');
                     }
