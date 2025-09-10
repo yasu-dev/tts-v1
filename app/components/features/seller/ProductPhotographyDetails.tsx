@@ -167,10 +167,14 @@ export default function ProductPhotographyDetails({ productId, status }: Product
               
               // 撮影された画像を基本スロット（正面、背面等）に自動配置
               metadata.photos.forEach((photo: any, index: number) => {
+                // Base64データかファイルパスかを判別
                 const photoUrl = typeof photo === 'string' ? photo : photo.url;
+                
+                console.log('[DEBUG] ProductPhotographyDetails - 画像URL:', photoUrl.substring(0, 100));
+                
                 const photoItem = {
                   id: `metadata_${index}`,
-                  url: photoUrl,
+                  url: photoUrl, // Base64データまたはファイルパスそのまま使用
                   filename: typeof photo === 'string' ? `撮影画像_${index + 1}` : (photo.filename || `撮影画像_${index + 1}`),
                   category: 'photography',
                   description: `撮影画像 ${index + 1}`,
@@ -186,6 +190,7 @@ export default function ProductPhotographyDetails({ productId, status }: Product
                   console.log('[DEBUG] ProductPhotographyDetails - 画像をスロットに配置:', {
                     slotLabel: photoSlots[index].label,
                     photoIndex: index,
+                    isBase64: photoUrl.startsWith('data:image/'),
                     photoUrl: photoUrl.substring(0, 50) + '...'
                   });
                 }

@@ -27,14 +27,14 @@ export async function GET(request: NextRequest) {
     const getStatusFilter = (filter: string) => {
       switch (filter) {
         case 'workstation':
-          return { status: { in: ['pending', 'picked', 'workstation'] } }; // workstationステータス追加
+          return { status: { in: ['pending', 'picked', 'workstation', 'ordered'] } }; // 梱包待ちステータス群
         case 'packed':
           return { status: 'packed' };
         case 'ready_for_pickup':
-          return { status: 'delivered' }; // delivered→ready_for_pickup
+          return { status: { in: ['delivered', 'ready_for_pickup'] } }; // 集荷準備完了ステータス
         case 'all':
         default:
-          return { status: { in: ['pending', 'picked', 'packed', 'shipped', 'delivered', 'workstation'] } };
+          return { status: { in: ['pending', 'picked', 'packed', 'shipped', 'delivered', 'workstation', 'ordered', 'ready_for_pickup'] } };
       }
     };
 
@@ -65,17 +65,10 @@ export async function GET(request: NextRequest) {
       console.log(`  - ProductID: ${s.productId}, Status: ${s.status}, OrderID: ${s.orderId}`);
     });
 
-    // 全タブの統計情報を並行取得
-    const [baseShipments, totalCount, allCount, workstationCount, packedCount, readyForPickupCount] = await Promise.all([
+    // ベースデータと総件数を取得
+    const [baseShipments, totalCount] = await Promise.all([
       prisma.shipment.findMany({
-        where: {
-          ...whereClause,
-          // 確実にテスト商品とNikon Z9も含める
-          OR: [
-            whereClause,
-            { productId: { in: ['cmf7v0jtc0002elm9gn4dxx2c', 'cmeqdnrhe000tw3j7eqlbvsj2'] } }
-          ]
-        },
+        where: whereClause,
         include: {
           order: {
             include: {
@@ -94,24 +87,8 @@ export async function GET(request: NextRequest) {
         skip: offset,
       }),
       prisma.shipment.count({
-        where: whereClause,
-      }),
-      // 全ステータス
-      prisma.shipment.count({
-        where: { status: { in: ['pending', 'picked', 'packed', 'shipped', 'delivered'] } }
-      }),
-      // 梱包待ち (pending + picked)
-      prisma.shipment.count({
-        where: { status: { in: ['pending', 'picked'] } }
-      }),
-      // 梱包済み
-      prisma.shipment.count({
-        where: { status: 'packed' }
-      }),
-      // 集荷準備完了 (delivered)
-      prisma.shipment.count({
-        where: { status: 'delivered' }
-      }),
+        where: whereClause
+      })
     ]);
 
     // URLクエリで特定商品を必ず含める
@@ -135,44 +112,85 @@ export async function GET(request: NextRequest) {
             shipments = [highlighted, ...shipments];
           }
         } else {
-          // Shipmentが無い場合は最小情報で作成して必ず表示
-          const product = await prisma.product.findUnique({ where: { id: includeProductId } });
-          if (product) {
-            const tempOrder = await prisma.order.create({
-              data: {
-                orderNumber: `AUTO-WORKSTATION-${Date.now()}-${includeProductId.slice(-6)}`,
-                status: 'processing',
-                customerName: '自動生成',
-                totalAmount: (product as any).price || 0,
-                shippingAddress: 'ピッキングエリア',
-              }
-            });
-            const created = await prisma.shipment.create({
-              data: {
-                orderId: tempOrder.id,
-                productId: includeProductId,
-                status: 'workstation',
-                carrier: 'pending',
-                method: 'standard',
-                customerName: '自動生成',
-                address: 'ピッキングエリア',
-                deadline: new Date(Date.now() + 3 * 60 * 60 * 1000),
-                priority: 'normal',
-                value: (product as any).price || 0,
-                notes: 'includeProductId により自動作成',
-              }
-            });
-            // 直後の一覧に先頭で含める
-            const createdWithRelations = await prisma.shipment.findUnique({
-              where: { id: created.id },
-              include: {
-                order: {
-                  include: { items: { include: { product: true } } }
+          // Shipmentが無い場合、まずステータスを無視して検索
+          console.log(`⚠️ Shipmentが見つからない (productId: ${includeProductId}, filter: ${statusFilter})`);
+          
+          const anyStatusShipment = await prisma.shipment.findFirst({
+            where: { 
+              productId: includeProductId,
+              status: { notIn: ['delivered', 'shipped'] } // 配達済み・出荷済みは除外
+            },
+            orderBy: { updatedAt: 'desc' }, // 最新の更新を優先
+            include: {
+              order: {
+                include: {
+                  items: { include: { product: true } }
                 }
               }
-            });
-            if (createdWithRelations) {
-              shipments = [createdWithRelations, ...shipments];
+            }
+          });
+          
+          if (anyStatusShipment) {
+            console.log(`✅ 別ステータスでShipment発見: ${anyStatusShipment.status}`);
+            shipments = [anyStatusShipment, ...shipments];
+          } else {
+            // それでも見つからない場合は、Productが存在するか確認
+            const product = await prisma.product.findUnique({ where: { id: includeProductId } });
+            if (product) {
+              console.log(`📦 Product発見、Shipment作成: ${product.name}`);
+              
+              // 既存の注文を探すか、新規作成
+              let orderId: string;
+              const existingOrderItem = await prisma.orderItem.findFirst({
+                where: { productId: includeProductId },
+                include: { order: true }
+              });
+              
+              if (existingOrderItem) {
+                orderId = existingOrderItem.orderId;
+              } else {
+                const tempOrder = await prisma.order.create({
+                  data: {
+                    orderNumber: `AUTO-WORKSTATION-${Date.now()}-${includeProductId.slice(-6)}`,
+                    status: 'processing',
+                    customerName: 'ピッキング指示',
+                    totalAmount: (product as any).price || 0,
+                    shippingAddress: 'ピッキングエリア',
+                  }
+                });
+                orderId = tempOrder.id;
+              }
+              
+              const created = await prisma.shipment.create({
+                data: {
+                  orderId: orderId,
+                  productId: includeProductId,
+                  status: 'workstation',
+                  carrier: 'pending',
+                  method: 'standard',
+                  customerName: 'ピッキング指示',
+                  address: 'ピッキングエリア',
+                  deadline: new Date(Date.now() + 3 * 60 * 60 * 1000),
+                  priority: 'normal',
+                  value: (product as any).price || 0,
+                  notes: 'includeProductId により自動作成',
+                }
+              });
+              
+              const createdWithRelations = await prisma.shipment.findUnique({
+                where: { id: created.id },
+                include: {
+                  order: {
+                    include: { items: { include: { product: true } } }
+                  }
+                }
+              });
+              
+              if (createdWithRelations) {
+                shipments = [createdWithRelations, ...shipments];
+              }
+            } else {
+              console.log(`❌ Product自体が存在しない: ${includeProductId}`);
             }
           }
         }
@@ -268,6 +286,9 @@ export async function GET(request: NextRequest) {
         case 'workstation':
           displayStatus = 'workstation';  // ピッキング作業中→梱包待ち
           break;
+        case 'ordered':
+          displayStatus = 'workstation';  // 注文済み→梱包待ち
+          break;
         case 'packed':
           displayStatus = 'packed';
           break;
@@ -275,11 +296,17 @@ export async function GET(request: NextRequest) {
           displayStatus = 'shipped';
           break;
         case 'delivered':
+          displayStatus = 'ready_for_pickup';  // 配達済み→集荷準備完了
+          break;
+        case 'ready_for_pickup':
           displayStatus = 'ready_for_pickup';
           break;
         default:
           displayStatus = 'workstation';
       }
+      
+      // デバッグログ追加
+      console.log(`[STATUS_DEBUG] shipment.id: ${shipment.id}, shipment.status: ${shipment.status}, displayStatus: ${displayStatus}, productName: ${productName}`);
       
       // 同梱情報の解析
       let bundleInfo = null;
@@ -363,20 +390,56 @@ export async function GET(request: NextRequest) {
       console.log(`  ${index + 1}. ${item.productName} (${item.status}) - ${item.isBundle ? '同梱' : '個別'}`);
     });
     
+    // フロントエンドの表示ルールに合わせて統計を計算（bundled individual itemsを除外）
+    const displayItems = uniqueShippingItems.filter(item => {
+      // 同梱された個別商品のみ除外（同梱パッケージは含める）
+      if (item.isBundled && !item.isBundle) {
+        console.log(`🔄 Filtering out bundled individual item: ${item.productName} (${item.id})`);
+        return false;
+      }
+      return true;
+    });
+    
+    console.log(`📦 Filtering results: ${uniqueShippingItems.length} -> ${displayItems.length} items`);
+    
+    const stats = displayItems.reduce((acc, item) => {
+      const status = item.status;
+      if (['workstation', 'picked', 'ordered', 'pending'].includes(status)) {
+        acc.workstation = (acc.workstation || 0) + 1;
+      } else if (status === 'packed') {
+        acc.packed = (acc.packed || 0) + 1;
+      } else if (['ready_for_pickup', 'delivered'].includes(status)) {
+        acc.ready_for_pickup = (acc.ready_for_pickup || 0) + 1;
+      }
+      acc.total = (acc.total || 0) + 1;
+      return acc;
+    }, { total: 0, workstation: 0, packed: 0, ready_for_pickup: 0 });
+    
+    console.log('📊 統計計算詳細:', {
+      allItems: uniqueShippingItems.length,
+      displayItems: displayItems.length,
+      excludedBundledItems: uniqueShippingItems.length - displayItems.length,
+      finalStats: stats
+    });
+    
+    console.log('📊 正確な統計データ:', {
+      stats,
+      itemsDisplayed: displayItems.length,
+      statusBreakdown: displayItems.reduce((acc, item) => {
+        acc[item.status] = (acc[item.status] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>)
+    });
+    
     return NextResponse.json({ 
       items: uniqueShippingItems,
       pagination: {
         currentPage: page,
-        totalPages: Math.ceil(uniqueShippingItems.length / limit),
-        totalCount: uniqueShippingItems.length,
+        totalPages: Math.ceil(displayItems.length / limit),
+        totalCount: displayItems.length,
         limit: limit,
       },
-      stats: {
-        total: allCount,
-        workstation: workstationCount,
-        packed: packedCount,
-        ready_for_pickup: readyForPickupCount,
-      }
+      stats: stats
     });
   } catch (error) {
     console.error('❌ Shipping items fetch error:', error);

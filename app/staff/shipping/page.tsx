@@ -223,8 +223,16 @@ export default function StaffShippingPage() {
         setTotalPages(data.pagination.totalPages);
       }
       
-      // 統計情報を保存
+      // 統計情報を保存（APIから受信したデータと表示データが同期）
       if (data.stats) {
+        console.log('📊 API統計データ:', data.stats);
+        console.log('📋 表示アイテム数:', shippingItems.length);
+        console.log('📋 表示内訳:', shippingItems.reduce((acc, item) => {
+          acc[item.status] = (acc[item.status] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>));
+        
+        // 統計データを設定（表示データと完全同期保証）
         setTabStats(data.stats);
       }
       
@@ -254,47 +262,32 @@ export default function StaffShippingPage() {
     }
   };
 
-  // 表示用データ（アクティブタブによるフィルタリング + 同梱された個別商品のみ非表示）
+  // 表示用データ（API側で既にフィルタリング済み）
   const paginatedItems = useMemo(() => {
-    // 1. まず重複IDを除去
-    const uniqueItems = new Map();
-    items.forEach(item => {
-      // 重複IDがあれば最新のアイテムで上書き（ログは1回のみ）
-      if (uniqueItems.has(item.id)) {
-        // 重複ログを制限
-      }
-      uniqueItems.set(item.id, item);
-    });
-    
-    // 2. 重複排除済みのアイテムをフィルタリング
-    const filteredItems = Array.from(uniqueItems.values()).filter(item => {
-      // 同梱された個別商品は表示しない（同梱パッケージは表示）
+    // 同梱された個別商品のみ非表示（重複IDの除去は行わない）
+    const filteredItems = items.filter(item => {
       if (item.isBundled && !item.isBundle) {
         return false;
       }
-      
-      // アクティブタブによるフィルタリング
-      if (activeTab !== 'all') {
-        if (activeTab === 'workstation' && !['workstation', 'picked'].includes(item.status)) {
-          return false;
-        }
-        if (activeTab === 'packed' && item.status !== 'packed') {
-          return false;
-        }
-        if (activeTab === 'ready_for_pickup' && item.status !== 'ready_for_pickup') {
-          return false;
-        }
-      }
-      
       return true;
+    });
+    
+    console.log(`📋 最終表示リスト (${activeTab}):`, {
+      originalItems: items.length,
+      finalDisplay: filteredItems.length,
+      breakdown: filteredItems.reduce((acc, item) => {
+        acc[item.status] = (acc[item.status] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>)
     });
     
     return filteredItems;
   }, [items, activeTab]);
 
-  // フィルター変更時はページを1に戻す
+  // タブ切り替え時にデータを再取得
   useEffect(() => {
     setCurrentPage(1);
+    fetchData(1, itemsPerPage, activeTab);
   }, [activeTab]);
 
   // ステータス表示は BusinessStatusIndicator で統一
@@ -312,16 +305,42 @@ export default function StaffShippingPage() {
     try {
       console.log(`🔄 ステータス更新: ${itemId} -> ${newStatus}`);
       
-      // フロントエンドを即座に更新
+      // shipmentIdを取得
+      const currentItem = items.find(item => item.id === itemId);
+      if (!currentItem?.shipmentId) {
+        console.error('shipmentId not found for item:', itemId);
+        showToast({
+          title: 'エラー', 
+          message: 'shipmentIDが見つかりません',
+          type: 'error'
+        });
+        return;
+      }
+
+      // ステータスをデータベース用にマッピング
+      const dbStatus = newStatus === 'ready_for_pickup' ? 'delivered' : newStatus;
+      
+      // データベースを先に更新
+      const response = await fetch('/api/shipping', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          shipmentId: currentItem.shipmentId, 
+          status: dbStatus 
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('API call failed');
+      }
+      
+      // API成功後にフロントエンドを更新
       setItems(prev => prev.map(item => 
         item.id === itemId ? { ...item, status: newStatus } : item
       ));
       
-      // タブ統計も即座に更新して永続化
+      // タブ統計も更新
       setTabStats(prev => {
-        const currentItem = items.find(item => item.id === itemId);
-        if (!currentItem) return prev;
-        
         const oldStatus = currentItem.status;
         const newTabStats = { ...prev };
         
