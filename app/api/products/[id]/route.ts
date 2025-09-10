@@ -149,6 +149,9 @@ export async function GET(
               photographyRequests: photographyRequests,
               images: deliveryPlanProduct.images || [],
               
+              // 🆕 プレミアム梱包リクエストを追加
+              premiumPacking: deliveryPlanProduct.premiumPacking || false,
+              
               // 🆕 既存システムの検品チェックリストデータを追加
               inspectionChecklist: existingInspectionChecklist,
               

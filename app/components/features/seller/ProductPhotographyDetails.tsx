@@ -81,11 +81,8 @@ export default function ProductPhotographyDetails({ productId, status }: Product
     try {
       setLoading(true);
       
-      // 商品の画像データを取得
-      const [productResponse, imagesResponse] = await Promise.all([
-        fetch(`/api/products/${productId}`),
-        fetch(`/api/products/${productId}/images`)
-      ]);
+      // 商品データを取得（ProductImage APIは削除）
+      const productResponse = await fetch(`/api/products/${productId}`);
 
       let images: ProductImage[] = [];
       let photographyCompleted = false;
@@ -213,21 +210,11 @@ export default function ProductPhotographyDetails({ productId, status }: Product
         }
       }
 
-      // ProductImageテーブルからの画像を取得
-      if (imagesResponse.ok) {
-        const imageData = await imagesResponse.json();
-        if (imageData.images && Array.isArray(imageData.images)) {
-          images.push(...imageData.images);
-        }
-      }
-
-      // 重複を除去し、ソート順で並び替え
-      const uniqueImages = images.filter((image, index, self) => 
-        index === self.findIndex(i => i.url === image.url)
-      ).sort((a, b) => a.sortOrder - b.sortOrder);
+      // ProductImage APIの呼び出しと処理を削除
+      // Product.metadataの画像データのみを使用
 
       setPhotographyData({
-        images: uniqueImages,
+        images,
         photographyCompleted,
         photographyDate,
         photographyBy,

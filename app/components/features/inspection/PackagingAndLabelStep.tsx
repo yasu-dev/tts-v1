@@ -38,14 +38,26 @@ export default function PackagingAndLabelStep({
   const [labelAttached, setLabelAttached] = useState(false);
   const [isGeneratingLabel, setIsGeneratingLabel] = useState(false);
   const [notes, setNotes] = useState('');
+  const [productMetadata, setProductMetadata] = useState<any>(null);
 
-  // 保存された重量データを復元
+  // 保存された重量データと商品メタデータを復元
   useEffect(() => {
-    const loadSavedWeight = async () => {
+    const loadProductData = async () => {
       try {
         const response = await fetch(`/api/products/${productId}`);
         if (response.ok) {
           const productData = await response.json();
+          
+          console.log('[PackagingAndLabelStep] 商品データ取得:', {
+            productId,
+            hasDeliveryPlanInfo: !!productData.deliveryPlanInfo,
+            deliveryPlanInfo: productData.deliveryPlanInfo,
+            premiumPacking: productData.deliveryPlanInfo?.premiumPacking
+          });
+          
+          // メタデータを保存
+          setProductMetadata(productData);
+          
           if (productData.metadata) {
             const metadata = typeof productData.metadata === 'string'
               ? JSON.parse(productData.metadata)
@@ -60,12 +72,20 @@ export default function PackagingAndLabelStep({
           }
         }
       } catch (error) {
-        console.log('[PackagingAndLabelStep] 重量データの復元をスキップ:', error);
+        console.log('[PackagingAndLabelStep] 商品データの復元をスキップ:', error);
       }
     };
 
-    loadSavedWeight();
-  }, [productId]);
+    // InspectionFormから渡されたproductプロパティも確認
+    console.log('[PackagingAndLabelStep] プロパティで受け取った商品データ:', {
+      productId: product?.id,
+      hasDeliveryPlanInfo: !!(product as any)?.deliveryPlanInfo,
+      deliveryPlanInfo: (product as any)?.deliveryPlanInfo,
+      premiumPacking: (product as any)?.deliveryPlanInfo?.premiumPacking
+    });
+
+    loadProductData();
+  }, [productId, product]);
 
   const handlePackagingComplete = () => {
     setPackagingCompleted(true);
@@ -143,6 +163,41 @@ export default function PackagingAndLabelStep({
     });
   };
 
+  // プレミアム梱包リクエストの確認
+  const getPremiumPackagingRequest = () => {
+    // まずpropsから確認
+    const propDeliveryPlanInfo = (product as any)?.deliveryPlanInfo;
+    // 次にAPIから取得したデータを確認
+    const metadataDeliveryPlanInfo = productMetadata?.deliveryPlanInfo;
+    
+    const deliveryPlanInfo = propDeliveryPlanInfo || metadataDeliveryPlanInfo;
+    
+    if (!deliveryPlanInfo) {
+      console.log('[PackagingAndLabelStep] deliveryPlanInfo not found in both props and metadata');
+      return null;
+    }
+    
+    try {
+      console.log('[PackagingAndLabelStep] deliveryPlanInfo:', deliveryPlanInfo);
+      console.log('[PackagingAndLabelStep] premiumPacking value:', deliveryPlanInfo.premiumPacking);
+      
+      // プレミアム梱包のリクエストを確認
+      if (deliveryPlanInfo.premiumPacking === true) {
+        console.log('[PackagingAndLabelStep] プレミアム梱包リクエスト発見');
+        return {
+          requested: true,
+          notes: deliveryPlanInfo.packagingNotes || deliveryPlanInfo.specialNotes || ''
+        };
+      }
+    } catch (error) {
+      console.warn('[PackagingAndLabelStep] プレミアム梱包リクエストの確認エラー:', error);
+    }
+    
+    console.log('[PackagingAndLabelStep] プレミアム梱包リクエストなし');
+    return null;
+  };
+
+  const premiumPackagingRequest = getPremiumPackagingRequest();
   const canProceedToNext = packagingCompleted && labelPrinted && weightEntered && labelAttached;
 
   return (
@@ -152,6 +207,32 @@ export default function PackagingAndLabelStep({
         <p className="text-sm text-gray-600 mb-6">
           商品の内装梱包を行い、商品ラベルを出力して貼り付けてください。
         </p>
+
+        {/* プレミアム梱包リクエスト通知 */}
+        {premiumPackagingRequest && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="ml-3 flex-1">
+                <h4 className="text-sm font-medium text-blue-800">
+                  ⭐ プレミアム梱包リクエスト
+                </h4>
+                <p className="mt-1 text-sm text-blue-700">
+                  この商品はセラーからプレミアム梱包がリクエストされています。高品質な梱包材を使用し、丁寧に梱包してください。
+                </p>
+                {premiumPackagingRequest.notes && (
+                  <div className="mt-2 p-2 bg-blue-100 rounded text-sm text-blue-800">
+                    <strong>特記事項:</strong> {premiumPackagingRequest.notes}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-6">
           {/* ステップ1: 内装梱包 */}
