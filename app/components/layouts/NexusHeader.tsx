@@ -160,10 +160,10 @@ export default function NexusHeader({
           )}
         </button>
         
-        {/* ユーザータイプ切り替えボタン */}
+        {/* ユーザータイプ切り替えボタン - テスト用のため非表示 */}
         <button
           onClick={handleUserTypeSwitch}
-          className="hidden sm:flex items-center gap-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg px-3 py-2 hover:bg-white/20 transition-all duration-200"
+          className="hidden"
           title={`${userType === 'staff' ? 'セラー' : 'スタッフ'}画面に切り替え`}
         >
           <svg className="w-4 h-4 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">

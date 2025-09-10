@@ -349,12 +349,26 @@ export default function ProductInspectionDetails({ productId, status }: ProductI
           const categoryName = categoryTranslations[response.categoryId] || response.categoryId;
           const itemName = itemTranslations[response.itemId] || response.itemId;
           
+          // データの正確なマッピング
+          let processedValue = null;
+          if (response.booleanValue !== null && response.booleanValue !== undefined) {
+            processedValue = response.booleanValue;
+          } else if (response.textValue !== null && response.textValue !== undefined && response.textValue.trim() !== '') {
+            processedValue = response.textValue;
+          }
+          
           const processedItem = {
             key: `${response.categoryId}_${response.itemId}`,
             label: itemName,
-            value: response.booleanValue !== null ? response.booleanValue : response.textValue,
+            value: processedValue,
             category: categoryName,
           };
+          
+          console.log('[DEBUG] processHierarchicalData - マッピング結果:', {
+            original: { booleanValue: response.booleanValue, textValue: response.textValue },
+            processed: processedValue,
+            item: processedItem
+          });
           
           console.log('[DEBUG] processHierarchicalData - 処理済み項目:', processedItem);
           items.push(processedItem);
@@ -413,6 +427,7 @@ export default function ProductInspectionDetails({ productId, status }: ProductI
   };
 
   const processStandardData = (data: any) => {
+    console.log('[DEBUG] processStandardData - 開始:', data);
     const items: InspectionItem[] = [];
     
     // 既存システムデータを処理
@@ -463,6 +478,8 @@ export default function ProductInspectionDetails({ productId, status }: ProductI
         }
       }
       
+      console.log('[DEBUG] processStandardData - 項目処理:', { key: item.key, label: item.label, value });
+      
       items.push({
         key: item.key,
         label: item.label,
@@ -471,7 +488,10 @@ export default function ProductInspectionDetails({ productId, status }: ProductI
       });
     });
 
-    setInspectionData({
+    console.log('[DEBUG] processStandardData - 最終的なitems数:', items.length);
+    console.log('[DEBUG] processStandardData - フィルタリング前のアイテム:', items);
+    
+    const finalData = {
       items,
       notes: data?.notes || '',
       inspectedBy: data?.createdBy,
@@ -479,7 +499,10 @@ export default function ProductInspectionDetails({ productId, status }: ProductI
       verifiedBy: data?.verifiedBy,
       verifiedAt: data?.verifiedAt,
       isHierarchical: false,
-    });
+    };
+    
+    console.log('[DEBUG] processStandardData - 最終データ:', finalData);
+    setInspectionData(finalData);
   };
 
   const createEmptyInspectionData = () => {
@@ -543,6 +566,8 @@ export default function ProductInspectionDetails({ productId, status }: ProductI
   // チェックされた項目のみをフィルタリング
   const filterCheckedItems = (items: InspectionItem[]) => {
     return items.filter(item => {
+      console.log('[DEBUG] filterCheckedItems - 項目チェック:', { label: item.label, value: item.value, type: typeof item.value });
+      
       if (typeof item.value === 'boolean') {
         return item.value === true; // trueのみ表示
       }
@@ -606,12 +631,16 @@ export default function ProductInspectionDetails({ productId, status }: ProductI
 
   // チェックされた項目のみをフィルタリングした categorizedItems
   const filteredCategorizedItems = Object.entries(categorizedItems).reduce((acc, [category, items]) => {
+    console.log('[DEBUG] カテゴリ処理:', { category, itemCount: items.length });
     const checkedItems = filterCheckedItems(items);
+    console.log('[DEBUG] フィルタ結果:', { category, checkedCount: checkedItems.length });
     if (checkedItems.length > 0) {
       acc[category] = checkedItems;
     }
     return acc;
   }, {} as Record<string, InspectionItem[]>);
+  
+  console.log('[DEBUG] 最終フィルタ結果:', filteredCategorizedItems);
 
   return (
     <Card>
@@ -619,9 +648,6 @@ export default function ProductInspectionDetails({ productId, status }: ProductI
         <div className="flex justify-between items-center">
           <CardTitle>検品項目</CardTitle>
           <div className="flex items-center gap-2">
-            {inspectionData?.isHierarchical && (
-              <Badge variant="secondary" className="text-xs">階層型</Badge>
-            )}
             <Badge variant="outline" className="text-xs">
               {getStatusBasedMessage()}
             </Badge>
