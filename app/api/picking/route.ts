@@ -233,7 +233,13 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  console.log('=== POST /api/picking 開始 ===');
+  const timestamp = new Date().toISOString();
+  console.log(`=== POST /api/picking 開始 [${timestamp}] ===`);
+  console.log('[🚀 DEBUG] リクエスト受信:', {
+    method: request.method,
+    url: request.url,
+    headers: Object.fromEntries(request.headers.entries())
+  });
   try {
     // 認証チェック（スタッフのみ） - 一時的にスキップ
     console.log('[STEP 1] 認証チェック開始（デモモード）');
@@ -469,13 +475,13 @@ export async function POST(request: NextRequest) {
               console.log(`[STEP 8-FIX] 仮注文作成: ${product.id}`);
               
               // 仮顧客を取得または作成
-              let tempCustomer = await prisma.customer.findFirst({
+              let tempCustomer = await prisma.user.findFirst({
                 where: { username: 'temp-customer-001' }
               });
               
               if (!tempCustomer) {
                 console.log('[STEP 8-CUST] 仮顧客作成中...');
-                tempCustomer = await prisma.customer.create({
+                tempCustomer = await prisma.user.create({
                   data: {
                     username: 'temp-customer-001',
                     fullName: 'ピッキング指示用仮顧客',
@@ -492,11 +498,8 @@ export async function POST(request: NextRequest) {
                   orderNumber: `TEMP-ORDER-${Date.now()}-${product.id.slice(-6)}`,
                   status: 'pending',
                   customerId: tempCustomer.id,
-                  customerName: `ロケーション: ${locationName}`,
                   totalAmount: product.price || 0,
-                  shippingAddress: 'ピッキング指示作成エリア',
-                  createdAt: new Date(),
-                  updatedAt: new Date()
+                  shippingAddress: 'ピッキング指示作成エリア'
                 }
               });
               validOrderId = tempOrder.id;
@@ -520,8 +523,7 @@ export async function POST(request: NextRequest) {
                   orderId: validOrderId, // 注文IDも更新
                   customerName: `ロケーション: ${locationName}`,
                   address: 'ピッキングエリア',
-                  notes: `ピッキング指示作成済み - ロケーション: ${locationName}`,
-                  updatedAt: new Date()
+                  notes: `ピッキング指示作成済み - ロケーション: ${locationName}`
                 }
               });
               console.log(`[SHIPMENT] 更新完了確認: ${updatedShipment.id} - status: ${updatedShipment.status}`);
@@ -539,12 +541,7 @@ export async function POST(request: NextRequest) {
                   deadline: dueDate,
                   priority: 'normal',
                   value: (product as any).price || 0,
-                  notes: `ピッキング指示作成済み - ロケーション: ${locationName}`,
-                  weight: 1.0,
-                  dimensions: '25x15x10',
-                  trackingNumber: null,
-                  createdAt: new Date(),
-                  updatedAt: new Date()
+                  notes: `ピッキング指示作成済み - ロケーション: ${locationName}`
                 }
               });
               console.log(`[SHIPMENT] 新規Shipmentエントリ作成完了: ${product.name}`, {
@@ -557,7 +554,17 @@ export async function POST(request: NextRequest) {
             }
             console.log(`[STEP 8 OK] Shipmentエントリ作成成功 (productId: ${product.id})`);
           } catch (shipmentError) {
-            console.log(`[STEP 8 WARNING] Shipmentエントリ作成失敗 (productId: ${product.id}):`, shipmentError);
+            console.error(`[🚨 CRITICAL ERROR] Shipmentエントリ作成失敗 (productId: ${product.id}):`, {
+              error: shipmentError,
+              message: shipmentError.message,
+              stack: shipmentError.stack,
+              productId: product.id,
+              productName: product.name,
+              validOrderId: validOrderId || 'undefined'
+            });
+            
+            // このエラーは重要なので、全体の処理失敗として扱う
+            throw new Error(`Shipment作成失敗: ${shipmentError.message}`);
           }
         }
       }
@@ -584,14 +591,21 @@ export async function POST(request: NextRequest) {
         newStatus: newStatus
       });
 
-      return NextResponse.json({
+      const response = {
         success: true,
         taskId: pickingTaskId,
         itemsCount: pickingItems.length,
         action: action,
         newStatus: newStatus,
         message: successMessage
+      };
+      
+      console.log('[✅ SUCCESS] ピッキング指示作成完了:', {
+        response: response,
+        timestamp: new Date().toISOString()
       });
+      
+      return NextResponse.json(response);
 
     } else {
       return NextResponse.json(

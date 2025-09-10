@@ -336,6 +336,24 @@ export default function ProductPhotographyDetails({ productId, status }: Product
   }
 
   const categorizedImages = categorizeImages(photographyData?.images || [], photographyData?.photoSlots);
+  
+  // ===== デバッグ用ログ =====
+  console.log('[🔍 FINAL DEBUG] ProductPhotographyDetails - 最終表示データ確認:', {
+    productId: productId,
+    categorizedImages: categorizedImages,
+    imageCount: Object.keys(categorizedImages).length,
+    totalImages: Object.values(categorizedImages).reduce((sum, images) => sum + images.length, 0)
+  });
+  
+  // 各カテゴリの画像を詳細表示
+  Object.entries(categorizedImages).forEach(([category, images]) => {
+    console.log(`[🔍 CATEGORY] ${category}:`, images.length, '件');
+    images.forEach((image, index) => {
+      console.log(`  [${index + 1}] ID: ${image.id}`);
+      console.log(`      URL: ${image.url?.substring(0, 100)}${image.url?.length > 100 ? '...' : ''}`);
+      console.log(`      Type: ${image.url?.startsWith('data:image/') ? 'Base64' : image.url?.startsWith('/api/') ? 'API' : 'Unknown'}`);
+    });
+  });
 
   return (
     <>
@@ -349,13 +367,22 @@ export default function ProductPhotographyDetails({ productId, status }: Product
                   className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all"
                   onClick={() => setSelectedImage(image.url)}
                 >
-                  <Image
-                    src={image.thumbnailUrl || image.url}
-                    alt={image.description || image.filename}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  />
+                  {/* Base64の場合は img 要素を直接使用、そうでない場合は Next.js Image */}
+                  {image.url?.startsWith('data:image/') ? (
+                    <img
+                      src={image.url}
+                      alt={image.description || image.filename}
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Image
+                      src={image.thumbnailUrl || image.url}
+                      alt={image.description || image.filename}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    />
+                  )}
                   <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all flex items-center justify-center">
                     <EyeIcon className="w-6 h-6 text-white opacity-0 hover:opacity-100 transition-opacity" />
                   </div>
@@ -378,13 +405,22 @@ export default function ProductPhotographyDetails({ productId, status }: Product
           onClick={() => setSelectedImage(null)}
         >
           <div className="relative max-w-4xl max-h-4xl w-full h-full m-4">
-            <Image
-              src={selectedImage}
-              alt="拡大画像"
-              fill
-              className="object-contain"
-              sizes="100vw"
-            />
+            {/* Base64画像は img 要素で表示 */}
+            {selectedImage?.startsWith('data:image/') ? (
+              <img
+                src={selectedImage}
+                alt="拡大画像"
+                className="max-w-full max-h-full object-contain"
+              />
+            ) : (
+              <Image
+                src={selectedImage}
+                alt="拡大画像"
+                fill
+                className="object-contain"
+                sizes="100vw"
+              />
+            )}
             <button
               onClick={() => setSelectedImage(null)}
               className="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-75"
