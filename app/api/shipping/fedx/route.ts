@@ -465,6 +465,7 @@ export async function POST(request: NextRequest) {
       if (item.bundleItems && item.bundleItems.length > 0) {
         console.log('📦 [FedX] 同梱商品用の注文作成:', {
           bundleId: item.id,
+          bundleIdFromItem: item.bundleId,
           bundleItemsCount: item.bundleItems.length
         });
         
@@ -696,6 +697,8 @@ export async function POST(request: NextRequest) {
         // 同梱グループ: productId=null、notes JSON格納
         console.log(`🔍 [FedX] 同梱Shipment作成準備:`, {
           bundleId: item.bundleId,
+          itemId: item.id,
+          finalBundleId: item.bundleId || item.id,
           bundleItemsCount: item.bundleItems.length,
           trackingNumber: labelResult.trackingNumber
         });
@@ -703,7 +706,7 @@ export async function POST(request: NextRequest) {
         shipmentData.productId = null;
         const bundleNotesData = {
           type: 'sales_bundle',
-          bundleId: item.bundleId,
+          bundleId: item.bundleId || item.id, // Fix: Ensure bundleId is not undefined
           bundleItems: item.bundleItems.map(bi => ({
             id: bi.id,
             productId: bi.productId,

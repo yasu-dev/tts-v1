@@ -144,6 +144,10 @@ export default function StaffShippingPage() {
             productImages: item.productImages || [],
             inspectionImages: item.inspectionImages || [],
             inspectionNotes: item.inspectionNotes,
+            isBundle: item.isBundle,
+            bundledItems: item.bundledItems,
+            isBundled: item.isBundled,
+            bundleId: item.bundleId,
           })) : [];
           
           setItems(shippingItems);
@@ -213,6 +217,10 @@ export default function StaffShippingPage() {
         productImages: item.productImages || [],
         inspectionImages: item.inspectionImages || [],
         inspectionNotes: item.inspectionNotes,
+        isBundle: item.isBundle,
+        bundledItems: item.bundledItems,
+        isBundled: item.isBundled,
+        bundleId: item.bundleId,
       })) : [];
       
       setItems(shippingItems);
@@ -1130,7 +1138,7 @@ export default function StaffShippingPage() {
                 <tbody className="holo-body">
                   {paginatedItems.map((item, index) => (
                     <React.Fragment key={`${item.id}-${index}`}>
-                      <tr className="holo-row">
+                      <tr className={`holo-row ${item.isBundled || item.isBundle ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}>
                         <td className="p-4">
                           <input
                             type="checkbox"
@@ -1156,7 +1164,7 @@ export default function StaffShippingPage() {
                             >
                               <div className="font-semibold hover:underline flex items-center gap-2 text-nexus-text-primary">
                                 {item.productName}
-                                {item.isBundle && (
+                                {(item.isBundle || item.isBundled) && (
                                   <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-nexus-blue/20 text-nexus-blue rounded-full">
                                     同梱
                                   </span>
@@ -1168,6 +1176,11 @@ export default function StaffShippingPage() {
                               {item.isBundle && item.bundledItems && (
                                 <div className="mt-1 text-xs text-nexus-text-secondary">
                                   含む商品: {item.bundledItems.map(bi => bi.productName).join(', ')}
+                                </div>
+                              )}
+                              {item.isBundled && item.bundleId && (
+                                <div className="mt-1 text-xs text-nexus-text-secondary">
+                                  同梱グループ: {item.bundleId}
                                 </div>
                               )}
                             </div>

@@ -125,6 +125,7 @@ export default function SalesPage() {
     
     return {
       id: selectedOrder.bundleId,
+      bundleId: selectedOrder.bundleId, // Fix: Ensure bundleId is explicitly set
       orderNumber: selectedOrder.bundleItems.map((item: any) => item.orderNumber).join(','),
       productName: selectedOrder.bundleItems.map((item: any) => item.product).join(' + '),
       customer: selectedOrder.customer,
