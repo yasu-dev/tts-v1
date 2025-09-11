@@ -174,9 +174,10 @@ export default function ProductDetailModal({ isOpen, onClose, product, onOpenLis
         : product.metadata;
       
       if (metadata?.packaging?.weight) {
-        const weight = metadata.packaging.weight;
+        const weight = parseFloat(metadata.packaging.weight);
         const unit = metadata.packaging.weightUnit || 'kg';
-        return `${weight}${unit}`;
+        // 常に小数点第一位まで表示
+        return `${weight.toFixed(1)}${unit}`;
       }
     } catch (error) {
       console.warn('重量データの解析エラー:', error);

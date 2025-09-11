@@ -409,7 +409,16 @@ export async function POST(request: NextRequest) {
 
     const { item, service } = await request.json();
 
-    console.log('FedX API呼び出し開始:', { item: item?.orderNumber, service });
+    console.log('🚀 [FedX] API呼び出し開始:', { 
+      itemOrderNumber: item?.orderNumber, 
+      service,
+      itemId: item?.id,
+      hasBundleItems: !!(item?.bundleItems),
+      bundleItemsLength: item?.bundleItems?.length || 0,
+      bundleId: item?.bundleId
+    });
+    
+    console.log('🔍 [FedX] 受信したitemオブジェクト構造:', JSON.stringify(item, null, 2));
 
     if (!item || !item.id) {
       console.error('商品情報が不足しています');
@@ -450,25 +459,83 @@ export async function POST(request: NextRequest) {
 
     // ラベル情報をデータベースに保存
     try {
-      // まず注文を取得
-      const order = await prisma.order.findFirst({
-        where: {
-          OR: [
-            { id: item.id },
-            { orderNumber: item.orderNumber }
-          ]
-        },
-        include: {
-          items: {
-            include: {
-              product: true
+      let order;
+      
+      // 同梱の場合は実際の注文レコードを作成
+      if (item.bundleItems && item.bundleItems.length > 0) {
+        console.log('📦 [FedX] 同梱商品用の注文作成:', {
+          bundleId: item.id,
+          bundleItemsCount: item.bundleItems.length
+        });
+        
+        const bundleOrderId = `BUNDLE-${item.id}`;
+        
+        // 既存の同梱注文をチェック
+        const existingOrder = await prisma.order.findUnique({
+          where: { id: bundleOrderId },
+          include: {
+            items: {
+              include: {
+                product: true
+              }
             }
           }
+        });
+        
+        if (existingOrder) {
+          console.log('📦 [FedX] 既存の同梱注文を使用:', existingOrder.id);
+          order = existingOrder;
+        } else {
+          // 実際の注文レコードを作成（同梱用）
+          order = await prisma.order.create({
+            data: {
+              id: bundleOrderId,
+              orderNumber: item.orderNumber,
+              customerId: user.id, // 現在のユーザーを顧客として設定
+              status: 'pending',
+              totalAmount: item.value || 0,
+              shippingAddress: item.shippingAddress || '住所未設定',
+              paymentMethod: 'bundle_payment',
+              notes: `同梱注文 - Bundle ID: ${item.id}`,
+              items: {
+                create: item.bundleItems.map((bundleItem: any) => ({
+                  productId: bundleItem.productId,
+                  quantity: 1,
+                  price: bundleItem.totalAmount || 0
+                }))
+              }
+            },
+            include: {
+              items: {
+                include: {
+                  product: true
+                }
+              }
+            }
+          });
+          console.log('📦 [FedX] 新規同梱注文を作成:', order.id);
         }
-      });
+      } else {
+        // 個別商品の場合は既存の注文検索
+        order = await prisma.order.findFirst({
+          where: {
+            OR: [
+              { id: item.id },
+              { orderNumber: item.orderNumber }
+            ]
+          },
+          include: {
+            items: {
+              include: {
+                product: true
+              }
+            }
+          }
+        });
 
-      if (!order) {
-        throw new Error('対象の注文が見つかりません');
+        if (!order) {
+          throw new Error('対象の注文が見つかりません');
+        }
       }
 
       // ラベルファイル保存処理
@@ -505,15 +572,20 @@ export async function POST(request: NextRequest) {
         fileName = `fedx_inline_${Date.now()}.pdf`;
       }
       
-      // 注文ステータスを processing に更新
-      await prisma.order.update({
-        where: { id: order.id },
-        data: {
-          status: 'processing',
-          trackingNumber: labelResult.trackingNumber,
-          carrier: 'fedx'
-        }
-      });
+      // 注文ステータスを processing に更新（同梱の場合はスキップ）
+      if (!(item.bundleItems && item.bundleItems.length > 0)) {
+        await prisma.order.update({
+          where: { id: order.id },
+          data: {
+            status: 'processing',
+            trackingNumber: labelResult.trackingNumber,
+            carrier: 'fedx'
+          }
+        });
+        console.log('FedX - 注文ステータス更新完了:', order.id);
+      } else {
+        console.log('FedX - 同梱のため注文ステータス更新をスキップ');
+      }
 
       // 関連商品のステータスを ordered に更新し、ピッキング用ロケーションに紐付け
       const productIds = order.items.map(item => item.productId);
@@ -565,26 +637,42 @@ export async function POST(request: NextRequest) {
         throw updateError;
       }
 
-      // アクティビティログを記録
-      await prisma.activity.create({
-        data: {
-          type: 'label_generated',
-          description: `FedX配送ラベルが生成されました（追跡番号: ${labelResult.trackingNumber}）`,
-          userId: user.id,
-          orderId: order.id,
-          metadata: JSON.stringify({
-            carrier: 'fedx',
-            carrierName: 'FedX',
-            service,
-            trackingNumber: labelResult.trackingNumber,
-            fileName,
-            cost: labelResult.cost,
-            estimatedDelivery: labelResult.estimatedDelivery
-          })
-        }
-      });
+      // アクティビティログを記録（同梱の場合はスキップ）
+      if (!(item.bundleItems && item.bundleItems.length > 0)) {
+        await prisma.activity.create({
+          data: {
+            type: 'label_generated',
+            description: `FedX配送ラベルが生成されました（追跡番号: ${labelResult.trackingNumber}）`,
+            userId: user.id,
+            orderId: order.id,
+            metadata: JSON.stringify({
+              carrier: 'fedx',
+              carrierName: 'FedX',
+              service,
+              trackingNumber: labelResult.trackingNumber,
+              fileName,
+              cost: labelResult.cost,
+              estimatedDelivery: labelResult.estimatedDelivery
+            })
+          }
+        });
+        console.log('FedX - アクティビティログ記録完了:', order.id);
+      } else {
+        console.log('FedX - 同梱のためアクティビティログをスキップ');
+      }
 
       // Shipmentエントリを作成（同梱対応）
+      console.log('🏗️ [FedX] Shipment作成開始:', {
+        orderId: order.id,
+        trackingNumber: labelResult.trackingNumber,
+        willCreateBundle: !!(item.bundleItems && item.bundleItems.length > 0),
+        bundleCheckResult: {
+          hasBundleItems: !!item.bundleItems,
+          bundleItemsLength: item.bundleItems ? item.bundleItems.length : 'undefined',
+          bundleItemsType: typeof item.bundleItems
+        }
+      });
+      
       const shipmentData: any = {
         orderId: order.id,
         status: 'pending',
@@ -598,15 +686,28 @@ export async function POST(request: NextRequest) {
         value: order.totalAmount || 0,
       };
       
+      console.log('🔀 [FedX] Bundle条件チェック:', {
+        condition1: !!item.bundleItems,
+        condition2: item.bundleItems ? item.bundleItems.length > 0 : false,
+        finalCondition: !!(item.bundleItems && item.bundleItems.length > 0)
+      });
+      
       if (item.bundleItems && item.bundleItems.length > 0) {
         // 同梱グループ: productId=null、notes JSON格納
+        console.log(`🔍 [FedX] 同梱Shipment作成準備:`, {
+          bundleId: item.bundleId,
+          bundleItemsCount: item.bundleItems.length,
+          trackingNumber: labelResult.trackingNumber
+        });
+        
         shipmentData.productId = null;
-        shipmentData.notes = JSON.stringify({
+        const bundleNotesData = {
           type: 'sales_bundle',
           bundleId: item.bundleId,
           bundleItems: item.bundleItems.map(bi => ({
             id: bi.id,
             productId: bi.productId,
+            productName: bi.product || bi.productName || '不明', // 商品名を確実に含める
             product: bi.product,
             orderNumber: bi.orderNumber,
             totalAmount: bi.totalAmount
@@ -615,15 +716,41 @@ export async function POST(request: NextRequest) {
           labelFileUrl: labelFileUrl,
           createdBy: 'seller',
           createdAt: new Date().toISOString()
+        };
+        
+        shipmentData.notes = JSON.stringify(bundleNotesData);
+        
+        console.log(`📝 [FedX] 同梱Shipment notes作成:`, {
+          notesLength: shipmentData.notes.length,
+          bundleItemProductIds: item.bundleItems.map(bi => bi.productId)
         });
       } else {
-        // 個別商品: 既存処理
+        // 個別商品: 既存処理（変更なし）
+        console.log('📦 [FedX] 単品モードで処理:', {
+          reason: !item.bundleItems ? 'bundleItemsが存在しない' : 'bundleItemsが空配列',
+          productIdsCount: productIds.length,
+          firstProductId: productIds[0]
+        });
+        
         shipmentData.productId = productIds[0];
         shipmentData.notes = `FedX配送ラベル生成済み - Service: ${service}`;
+        
+        console.log(`📝 [FedX] 単品Shipment作成:`, {
+          productId: productIds[0],
+          trackingNumber: labelResult.trackingNumber
+        });
       }
 
-      await prisma.shipment.create({
+      const createdShipment = await prisma.shipment.create({
         data: shipmentData
+      });
+      
+      console.log(`✅ [FedX] Shipment作成完了:`, {
+        shipmentId: createdShipment.id,
+        trackingNumber: createdShipment.trackingNumber,
+        hasNotes: !!createdShipment.notes,
+        notesContainsSalesBundle: createdShipment.notes?.includes('sales_bundle') || false,
+        isBundle: !!(item.bundleItems && item.bundleItems.length > 0)
       });
       
       console.log('ラベル保存、ステータス更新、Shipment作成完了:', {

@@ -245,8 +245,16 @@ export async function GET(request: NextRequest) {
     
     console.log('🔍 Bundle mapping完了:', bundleMap.size, '件の同梱商品');
 
-    // 商品情報を直接取得してマッピング
-    const allProductIds = shipments.map(s => s.productId).filter(Boolean);
+    // 商品情報を直接取得してマッピング（同梱商品も含める）
+    let allProductIds = shipments.map(s => s.productId).filter(Boolean);
+    
+    // 同梱商品のproductIdもallProductIdsに追加
+    bundleMap.forEach((bundleInfo, productId) => {
+      if (!allProductIds.includes(productId)) {
+        allProductIds.push(productId);
+        console.log(`🔗 Bundle商品ID追加: ${productId}`);
+      }
+    });
     const productMap = new Map();
     
     if (allProductIds.length > 0) {
@@ -261,8 +269,11 @@ export async function GET(request: NextRequest) {
       console.log(`📦 商品情報マッピング完了: ${productMap.size}件`);
     }
 
-    // Shipmentデータを適切な形式に変換
-    const shippingItems = shipments.map((shipment) => {
+    // Shipmentデータを適切な形式に変換 + 同梱商品の個別アイテム生成
+    let shippingItems = [];
+    
+    // 既存のShipmentレコードを変換
+    const existingShipmentItems = shipments.map((shipment) => {
       // 直接ProductIDから商品情報を取得
       const directProduct = productMap.get(shipment.productId);
       // フォールバック：注文の最初の商品を使用
@@ -369,8 +380,53 @@ export async function GET(request: NextRequest) {
         labelFileUrl: shipment.labelFileUrl || null
       };
     });
+    
+    // 既存のShipmentアイテムをshippingItemsに追加
+    shippingItems = [...existingShipmentItems];
+    
+    // 同梱商品の個別アイテムを生成（Bundle Shipmentから）
+    bundleMap.forEach((bundleInfo, productId) => {
+      const product = productMap.get(productId);
+      if (product) {
+        // この商品が既にShipmentアイテムとして存在するかチェック
+        const existingItem = shippingItems.find(item => item.productId === productId);
+        if (!existingItem) {
+          console.log(`🔗 同梱商品の個別アイテム生成: ${product.name}`);
+          
+          // 同梱用の個別アイテムを作成
+          const bundledItem = {
+            id: productId,
+            shipmentId: null, // Bundle shipmentは別途管理
+            productId: productId,
+            productName: product.name,
+            productSku: product.sku,
+            orderNumber: `BUNDLE-${bundleInfo.bundleId}`,
+            customer: 'Bundle Customer',
+            shippingAddress: '同梱対象商品',
+            status: 'workstation' as const,
+            dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            shippingMethod: 'Bundle Shipping',
+            value: 0,
+            location: product.currentLocationId ? `LOC-${product.currentLocationId.slice(-4)}` : 'BUNDLE',
+            productImages: product.imageUrl ? [product.imageUrl] : [],
+            inspectionImages: [],
+            inspectionNotes: `同梱商品 - Bundle ID: ${bundleInfo.bundleId}`,
+            trackingNumber: bundleInfo.trackingNumber || undefined,
+            // 同梱情報フィールド
+            isBundle: false, // 個別商品
+            bundleId: bundleInfo.bundleId,
+            bundledItems: bundleInfo.bundleItems.filter((bi: any) => bi.productId !== productId),
+            isBundled: true, // 同梱対象
+            bundleItemCount: bundleInfo.bundleItems.length - 1,
+            labelFileUrl: null
+          };
+          
+          shippingItems.push(bundledItem);
+        }
+      }
+    });
 
-    console.log(`✅ 出荷データ変換完了: ${shippingItems.length}件`);
+    console.log(`✅ 出荷データ変換完了: ${shippingItems.length}件 (Bundle個別アイテム含む)`);
     
     // 重複ID除去（恒久的解決）
     const uniqueShippingItems = [];
@@ -390,14 +446,11 @@ export async function GET(request: NextRequest) {
       console.log(`  ${index + 1}. ${item.productName} (${item.status}) - ${item.isBundle ? '同梱' : '個別'}`);
     });
     
-    // フロントエンドの表示ルールに合わせて統計を計算（bundled individual itemsを除外）
+    // 【修正】同梱商品も個別に表示する（除外フィルタを無効化）
     const displayItems = uniqueShippingItems.filter(item => {
-      // 同梱された個別商品のみ除外（同梱パッケージは含める）
-      if (item.isBundled && !item.isBundle) {
-        console.log(`🔄 Filtering out bundled individual item: ${item.productName} (${item.id})`);
-        return false;
-      }
-      return true;
+      // 同梱商品も表示するため、フィルタリングを緩和
+      // 重複商品のみ除外（同じproductIdで複数のShipmentがある場合）
+      return true; // 全商品を表示
     });
     
     console.log(`📦 Filtering results: ${uniqueShippingItems.length} -> ${displayItems.length} items`);

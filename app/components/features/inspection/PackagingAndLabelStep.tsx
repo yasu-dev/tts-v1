@@ -67,7 +67,7 @@ export default function PackagingAndLabelStep({
             if (savedWeight && savedWeight > 0) {
               setWeight(savedWeight.toString());
               setWeightEntered(true);
-              console.log(`[PackagingAndLabelStep] 保存された重量を復元: ${savedWeight}kg`);
+              console.log(`[PackagingAndLabelStep] 保存された重量を復元: ${parseFloat(savedWeight).toFixed(1)}kg`);
             }
           }
         }
@@ -385,7 +385,7 @@ export default function PackagingAndLabelStep({
                       showToast({
                         type: 'success',
                         title: '重量測定完了',
-                        message: `重量 ${weight}kg を記録しました`,
+                        message: `重量 ${parseFloat(weight).toFixed(1)}kg を記録しました`,
                         duration: 3000
                       });
                     } catch (error) {
@@ -409,7 +409,7 @@ export default function PackagingAndLabelStep({
             )}
             {weightEntered && (
               <div className="bg-green-50 p-3 rounded border text-sm">
-                <strong>記録済み重量:</strong> {weight}kg
+                <strong>記録済み重量:</strong> {parseFloat(weight).toFixed(1)}kg
               </div>
             )}
           </div>

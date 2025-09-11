@@ -543,7 +543,7 @@ export default function SalesPage() {
         service: serviceId 
       });
 
-      const response = await fetch('/api/shipping/fedex', {
+      const response = await fetch('/api/shipping/fedx', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

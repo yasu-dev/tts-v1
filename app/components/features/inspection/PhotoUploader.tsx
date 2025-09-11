@@ -20,6 +20,7 @@ export interface PhotoUploaderProps {
   loading?: boolean;
   nextButtonText?: string; // 次へボタンのテキストをカスタマイズ
   mode?: 'inspection' | 'photography'; // モードによってUIを調整
+  photographyType?: 'standard' | 'premium' | 'none'; // 撮影タイプ
 }
 
 interface PhotoSlot {
@@ -43,6 +44,7 @@ export default function PhotoUploader({
   loading: externalLoading = false,
   nextButtonText = '次へ（梱包・ラベル）',
   mode = 'inspection',
+  photographyType,
 }: PhotoUploaderProps) {
   const beforeAfterModalRef = useRef<HTMLDivElement>(null);
   const { showToast } = useToast();
@@ -433,8 +435,10 @@ export default function PhotoUploader({
     });
   };
 
-  // 撮影専用モードでは0枚でも進行可能、検品モードでは最低1枚必要
-  const canProceed = mode === 'photography' ? true : uploadedPhotos.length >= 1;
+  // 撮影専用モードでは0枚でも進行可能、撮影不要の場合も0枚で進行可能、それ以外の検品モードでは最低1枚必要
+  const canProceed = mode === 'photography' ? true : 
+                     photographyType === 'none' ? true : 
+                     uploadedPhotos.length >= 1;
 
   // ビフォアアフターモーダルのスクロール位置リセット
   useEffect(() => {
@@ -560,6 +564,20 @@ export default function PhotoUploader({
           )}
         </NexusCard>
       </div>
+
+      {/* 撮影不要の場合のメッセージ */}
+      {photographyType === 'none' && (
+        <div className="bg-orange-50 border border-orange-300 rounded-lg p-4 mb-4">
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-sm font-medium text-orange-700">
+              撮影不要が選択されています。写真をアップロードせずに次へ進むことができます。
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* メイン作業エリア - 横並び最適化 */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4" style={{display: 'grid !important', visibility: 'visible !important'}}>
@@ -1053,7 +1071,7 @@ export default function PhotoUploader({
           disabled={!canProceed || externalLoading}
         >
           {externalLoading ? '保存中...' : nextButtonText}
-          {!canProceed && mode === 'inspection' && (
+          {!canProceed && mode === 'inspection' && photographyType !== 'none' && (
             <span className="ml-2 text-sm">
               （最低1枚必要）
             </span>

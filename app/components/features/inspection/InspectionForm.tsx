@@ -1316,6 +1316,7 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
               onCancel={handleCancelAndReturn}
               category={product.category}
               loading={loading}
+              photographyType={product.deliveryPlanInfo?.photographyRequests?.photographyType}
             />
           </div>
         )}

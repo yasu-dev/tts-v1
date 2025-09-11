@@ -86,7 +86,39 @@ export async function GET(request: NextRequest) {
       })
     ]);
 
+    console.log(`📦 orderedProducts検索結果: ${orderedProducts.length}件`);
+    orderedProducts.forEach((product, index) => {
+      console.log(`  ${index + 1}. Product: ${product.name} (${product.id}), Status: ${product.status}`);
+    });
+    
+    // 🔍 DEBUG: カメラ商品を特別に検索
+    console.log('🔍 DEBUG: カメラ商品を特別検索');
+    const cameraProducts = await prisma.product.findMany({
+      where: {
+        name: { contains: 'カメラ' }
+      },
+      include: {
+        seller: {
+          select: {
+            username: true,
+            fullName: true
+          }
+        },
+        currentLocation: {
+          select: {
+            code: true,
+            name: true
+          }
+        }
+      }
+    });
+    console.log(`📸 カメラ商品検索結果: ${cameraProducts.length}件`);
+    cameraProducts.forEach((product, index) => {
+      console.log(`  ${index + 1}. ${product.name} (${product.id}) - Status: ${product.status}, Location: ${product.currentLocation?.code || 'なし'}`);
+    });
+
     // 同梱Shipmentから同梱情報を取得（ステータス条件を拡大）
+    console.log('🔍 同梱Shipmentを検索中...');
     const bundleShipments = await prisma.shipment.findMany({
       where: {
         notes: { contains: 'sales_bundle' }
@@ -101,6 +133,20 @@ export async function GET(request: NextRequest) {
               }
             }
           }
+        }
+      }
+    });
+
+    console.log(`📋 同梱Shipment検索結果: ${bundleShipments.length}件`);
+    bundleShipments.forEach((shipment, index) => {
+      console.log(`  ${index + 1}. Shipment ID: ${shipment.id}, Tracking: ${shipment.trackingNumber}`);
+      console.log(`     Notes length: ${shipment.notes?.length || 0}文字`);
+      if (shipment.notes) {
+        try {
+          const bundleData = JSON.parse(shipment.notes);
+          console.log(`     Bundle ID: ${bundleData.bundleId}, Items: ${bundleData.bundleItems?.length || 0}件`);
+        } catch (e) {
+          console.log(`     Notes parse error: ${e}`);
         }
       }
     });

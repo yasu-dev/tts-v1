@@ -21,6 +21,7 @@ yarn.lock
 # OS files
 .DS_Store
 Thumbs.db
+NUL
 
 # Build outputs
 .next/

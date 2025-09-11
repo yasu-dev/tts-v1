@@ -57,7 +57,7 @@ const PhotographyRequestDisplay = memo(function PhotographyRequestDisplay({
     switch (photographyType) {
       case 'standard': return 'bg-green-50 border-green-200';
       case 'premium': return 'bg-orange-50 border-orange-200';
-      case 'none': return 'bg-gray-50 border-gray-200';
+      case 'none': return 'bg-orange-50 border-orange-400 border-2';
       default: return 'bg-nexus-bg-tertiary border-nexus-border';
     }
   };
@@ -66,7 +66,7 @@ const PhotographyRequestDisplay = memo(function PhotographyRequestDisplay({
     switch (photographyType) {
       case 'standard': return 'text-green-600';
       case 'premium': return 'text-orange-600';
-      case 'none': return 'text-gray-600';
+      case 'none': return 'text-orange-600';
       default: return 'text-nexus-text-secondary';
     }
   };
@@ -83,8 +83,14 @@ const PhotographyRequestDisplay = memo(function PhotographyRequestDisplay({
   return (
     <div className={`p-4 rounded-lg border ${getBgColor()} ${className}`}>
       <div className="flex items-center gap-2 mb-3">
-        <CameraIcon className={`h-5 w-5 ${getIconColor()}`} />
-        <h4 className="text-sm font-medium text-nexus-text-primary">{getTitle()}</h4>
+        {photographyType === 'none' ? (
+          <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        ) : (
+          <CameraIcon className={`h-5 w-5 ${getIconColor()}`} />
+        )}
+        <h4 className={`text-sm font-medium ${photographyType === 'none' ? 'text-orange-700' : 'text-nexus-text-primary'}`}>{getTitle()}</h4>
       </div>
 
       {/* 撮影タイプ別詳細表示 */}
@@ -136,10 +142,7 @@ const PhotographyRequestDisplay = memo(function PhotographyRequestDisplay({
 
       {photographyType === 'none' && (
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 flex items-center justify-center">
-            <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
-          </div>
-          <span className="text-sm text-nexus-text-primary">商品撮影をスキップ</span>
+          <span className="text-sm font-medium text-orange-700">商品撮影をスキップ</span>
         </div>
       )}
     </div>
