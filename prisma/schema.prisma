@@ -396,20 +396,23 @@ model ListingTemplate {
 }
 
 model Listing {
-  id          String    @id @default(cuid())
-  productId   String
-  templateId  String?
-  platform    String
-  listingId   String?
-  title       String
-  description String?
-  price       Int
-  status      String    @default("draft")
-  listedAt    DateTime?
-  soldAt      DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  product     Product   @relation(fields: [productId], references: [id])
+  id             String    @id @default(cuid())
+  productId      String
+  templateId     String?
+  platform       String
+  listingId      String?
+  title          String
+  description    String?
+  price          Int
+  status         String    @default("draft")
+  shippingStatus String?   // 出荷ステータス管理用
+  shippedAt      DateTime? // 出荷日時
+  deliveredAt    DateTime? // 到着日時  
+  listedAt       DateTime?
+  soldAt         DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  product        Product   @relation(fields: [productId], references: [id])
 
   @@map("listings")
 }

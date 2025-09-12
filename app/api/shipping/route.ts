@@ -190,6 +190,53 @@ export async function PUT(request: NextRequest) {
       }
     });
 
+    // ready_for_pickup（集荷準備完了）ステータス更新時にセラー販売管理も連携更新
+    if (status === 'delivered') { // ready_for_pickupはdeliveredでDBに保存される
+      try {
+        // 関連するListingを特定してshippedステータスに更新
+        const relatedOrders = await prisma.order.findMany({
+          where: {
+            shipments: {
+              some: { id: shipmentId }
+            }
+          },
+          include: {
+            orderItems: {
+              include: {
+                product: {
+                  include: {
+                    listings: true
+                  }
+                }
+              }
+            }
+          }
+        });
+
+        for (const order of relatedOrders) {
+          for (const item of order.orderItems) {
+            if (item.product?.listings) {
+              for (const listing of item.product.listings) {
+                // shippingStatusカラムを更新
+                await prisma.listing.update({
+                  where: { id: listing.id },
+                  data: {
+                    shippingStatus: 'shipped',
+                    shippedAt: new Date()
+                  }
+                });
+              }
+            }
+          }
+        }
+
+        console.log(`✅ セラー販売管理連携完了: shipmentId=${shipmentId} -> shipped`);
+      } catch (linkError) {
+        console.error('セラー販売管理連携エラー:', linkError);
+        // 連携エラーでもShipment更新は成功として扱う
+      }
+    }
+
     return NextResponse.json(updatedShipment);
   } catch (error) {
     console.error('[ERROR] PUT /api/shipping:', error);

@@ -169,8 +169,13 @@ export async function GET(request: NextRequest) {
         // ステータス判定ロジック
         let displayStatus = statusMapping[listing.status as keyof typeof statusMapping] || 'processing';
         
-        // ラベル生成済みの場合は適切なステータスに変更
-        if (isLabelGenerated) {
+        // shippingStatusカラムからステータスを確認
+        const shippingStatus = listing.shippingStatus;
+        
+        // shippingStatusまたはラベル生成済みに基づいてステータス判定
+        if (shippingStatus === 'delivered') {
+          displayStatus = 'delivered';
+        } else if (shippingStatus === 'shipped' || isLabelGenerated) {
           if (listing.status === 'active') {
             displayStatus = 'shipped';
           } else if (listing.status === 'sold') {
@@ -231,18 +236,20 @@ export async function GET(request: NextRequest) {
           return listing.status === 'sold' && !relatedOrder?.trackingNumber;
         });
       } else if (statusFilter === 'shipped') {
-        // 出荷済み: activeでラベル生成済み
+        // 出荷済み: activeでラベル生成済みまたはシッピングステータスがshipped
         recentOrders = recentOrders.filter(order => {
           const listing = allListings.find(l => l.id === order.listingId);
           const relatedOrder = listing?.product?.orderItems?.[0]?.order;
-          return listing.status === 'active' && relatedOrder?.trackingNumber;
+          const hasShippingStatus = listing?.shippingStatus === 'shipped';
+          return listing.status === 'active' && (relatedOrder?.trackingNumber || hasShippingStatus);
         });
       } else if (statusFilter === 'delivered') {
-        // 到着済み: soldでラベル生成済み
+        // 到着済み: shippingStatusでdeliveredまたはsoldでラベル生成済み
         recentOrders = recentOrders.filter(order => {
           const listing = allListings.find(l => l.id === order.listingId);
           const relatedOrder = listing?.product?.orderItems?.[0]?.order;
-          return listing.status === 'sold' && relatedOrder?.trackingNumber;
+          const isDelivered = listing?.shippingStatus === 'delivered';
+          return isDelivered || (listing.status === 'sold' && relatedOrder?.trackingNumber);
         });
       }
       
