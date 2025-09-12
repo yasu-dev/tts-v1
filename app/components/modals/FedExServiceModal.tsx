@@ -1,14 +1,15 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { BaseModal, NexusButton } from '../ui';
+import { BaseModal, NexusButton, NexusCard } from '../ui';
 import { useToast } from '../features/notifications/ToastProvider';
 import { useSystemSetting } from '@/lib/hooks/useMasterData';
 import { 
   TruckIcon,
   ClockIcon,
-  CurrencyDollarIcon,
+  CurrencyYenIcon,
   CheckCircleIcon,
+  CheckIcon,
   InformationCircleIcon
 } from '@heroicons/react/24/outline';
 
@@ -169,187 +170,228 @@ export default function FedExServiceModal({
       <div className="space-y-6">
         {/* 注文情報表示 */}
         {orderDetails && (
-          <div className="bg-nexus-bg-secondary rounded-lg p-4">
-            <h3 className="font-semibold text-nexus-text-primary mb-2 flex items-center gap-2">
-              <InformationCircleIcon className="w-5 h-5" />
-              注文情報
-            </h3>
-            <div className="text-sm text-nexus-text-secondary space-y-1">
-              <p><span className="font-medium">注文ID:</span> {orderDetails.orderId}</p>
-              <p><span className="font-medium">商品:</span> {orderDetails.product}</p>
-              {orderDetails.weight && <p><span className="font-medium">重量:</span> {orderDetails.weight}</p>}
-              {orderDetails.destination && <p><span className="font-medium">配送先:</span> {orderDetails.destination}</p>}
+          <NexusCard className="bg-nexus-bg-tertiary border-nexus-border">
+            <div className="p-4">
+              <h3 className="font-semibold text-nexus-text-primary mb-2 flex items-center gap-2">
+                <InformationCircleIcon className="w-5 h-5" />
+                注文情報
+              </h3>
+              <div className="text-sm text-nexus-text-secondary space-y-1">
+                <p><span className="font-medium">注文ID:</span> {orderDetails.orderId}</p>
+                <p><span className="font-medium">商品:</span> {orderDetails.product}</p>
+                {orderDetails.weight && <p><span className="font-medium">重量:</span> {orderDetails.weight}</p>}
+                {orderDetails.destination && <p><span className="font-medium">配送先:</span> {orderDetails.destination}</p>}
+              </div>
             </div>
-          </div>
+          </NexusCard>
         )}
 
         {!isConfirming ? (
           // サービス選択画面
           <>
             <div className="text-center">
-              <p className="text-nexus-text-secondary">
+              <p className="text-nexus-text-secondary font-medium">
                 配送の緊急度と予算に応じて最適なサービスをお選びください
               </p>
             </div>
 
-            <div className="space-y-4 max-h-96 overflow-y-auto">
+            <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
               {dynamicFedexServices.map((service) => (
                 <div
                   key={service.id}
                   onClick={() => handleServiceSelect(service.id)}
                   className={`
-                    relative border rounded-lg p-4 cursor-pointer transition-all
+                    border rounded-lg p-4 cursor-pointer transition-all duration-200
                     ${selectedService === service.id 
-                      ? 'border-nexus-blue bg-nexus-blue/5' 
-                      : 'border-nexus-border hover:border-nexus-blue/50 hover:bg-nexus-bg-secondary'
+                      ? 'border-2 border-nexus-primary bg-nexus-primary/5 shadow-md' 
+                      : 'border border-gray-300 hover:border-gray-400 hover:bg-gray-50'
                     }
                   `}
                 >
-                  <div className="flex items-start gap-4">
+                  <div className="flex items-start gap-3">
+                    {/* ラジオボタン */}
+                    <div className="pt-1">
+                      <input
+                        type="radio"
+                        name="fedex-service"
+                        id={`service-${service.id}`}
+                        checked={selectedService === service.id}
+                        onChange={() => handleServiceSelect(service.id)}
+                        className="w-5 h-5 text-nexus-primary focus:ring-nexus-primary"
+                      />
+                    </div>
+
+                    {/* サービスアイコン */}
                     <div className={`
-                      p-2 rounded-lg
-                      ${selectedService === service.id ? 'text-nexus-blue' : 'text-nexus-text-secondary'}
+                      p-2 rounded-lg transition-colors flex-shrink-0
+                      ${selectedService === service.id 
+                        ? 'bg-nexus-primary/20 text-nexus-primary' 
+                        : 'bg-gray-100 text-gray-600'
+                      }
                     `}>
-                      {service.icon}
+                      <TruckIcon className="w-6 h-6" />
                     </div>
                     
+                    {/* サービス詳細 */}
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-2">
-                        <h3 className="font-semibold text-nexus-text-primary">{service.name}</h3>
-                        <span className="font-bold text-lg text-nexus-blue">{service.estimatedCost}</span>
+                        <label htmlFor={`service-${service.id}`} className="font-bold text-nexus-text-primary cursor-pointer">
+                          {service.name}
+                        </label>
+                        <span className="font-bold text-lg text-nexus-text-primary">
+                          {service.estimatedCost}
+                        </span>
                       </div>
                       
-                      <p className="text-nexus-text-secondary mb-2">{service.description}</p>
+                      <p className="text-nexus-text-secondary text-sm mb-2">{service.description}</p>
                       
-                      <div className="flex items-center gap-4 text-sm mb-3">
+                      <div className="flex items-center gap-3 text-sm">
                         <span className="flex items-center gap-1 text-green-600">
                           <ClockIcon className="w-4 h-4" />
                           {service.deliveryTime}
                         </span>
                       </div>
                       
-                      <div className="space-y-1">
+                      <div className="mt-2 space-y-1">
                         {service.features.map((feature, index) => (
                           <div key={index} className="flex items-center gap-2 text-sm text-nexus-text-secondary">
-                            <CheckCircleIcon className="w-4 h-4 text-green-500" />
+                            <CheckCircleIcon className="w-4 h-4 text-green-500 flex-shrink-0" />
                             {feature}
                           </div>
                         ))}
                       </div>
                     </div>
-                    
-                    {selectedService === service.id && (
-                      <div className="absolute top-2 right-2">
-                        <CheckCircleIcon className="w-6 h-6 text-nexus-blue" />
-                      </div>
-                    )}
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <div className="flex items-start gap-2">
-                <InformationCircleIcon className="w-5 h-5 text-yellow-600 mt-0.5" />
-                <div className="text-sm text-yellow-800">
-                  <p className="font-medium mb-1">ご注意</p>
-                  <ul className="space-y-1 text-xs">
-                    <li>• 料金は概算です。実際の料金は重量・サイズ・配送先により変動します</li>
-                    <li>• 配送時間は営業日ベースです（土日祝日除く）</li>
-                    <li>• 悪天候等により遅延する場合があります</li>
-                  </ul>
+            {/* 選択したサービスのサマリー */}
+            {selectedService && selectedServiceData && (
+              <div className="p-4 bg-gradient-to-r from-nexus-primary/10 to-blue-50/50 rounded-lg border border-nexus-primary/30">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-nexus-primary flex items-center justify-center">
+                      <CheckIcon className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-nexus-text-secondary">選択中のサービス</p>
+                      <p className="font-bold text-nexus-text-primary">{selectedServiceData.name}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-nexus-text-secondary">配送料金</p>
+                    <p className="font-bold text-lg text-nexus-primary">{selectedServiceData.estimatedCost}</p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-nexus-border">
+            {/* アクションボタン */}
+            <div className="flex gap-3 justify-end">
               <NexusButton
-                onClick={handleBack}
                 variant="secondary"
+                onClick={handleBack}
               >
                 キャンセル
               </NexusButton>
               <NexusButton
-                onClick={handleContinue}
                 variant="primary"
+                onClick={handleContinue}
                 disabled={!selectedService}
-                icon={<TruckIcon className="w-5 h-5" />}
               >
-                選択したサービスで続行
+                次へ
               </NexusButton>
             </div>
           </>
         ) : (
           // 確認画面
           <>
-            <div className="text-center">
-              <CheckCircleIcon className="w-16 h-16 text-green-500 mx-auto mb-4" />
-              <h2 className="text-xl font-bold text-nexus-text-primary mb-2">サービス選択の確認</h2>
-              <p className="text-nexus-text-secondary">
-                以下の内容でFedExラベルを生成します
-              </p>
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 bg-nexus-primary/10 rounded-full flex items-center justify-center mx-auto">
+                <CheckCircleIcon className="w-10 h-10 text-nexus-primary" />
+              </div>
+              
+              <div>
+                <h3 className="text-lg font-bold text-nexus-text-primary mb-2">
+                  以下のサービスで配送ラベルを生成します
+                </h3>
+                <p className="text-nexus-text-secondary">
+                  選択したサービスで問題ないか確認してください
+                </p>
+              </div>
             </div>
 
             {selectedServiceData && (
-              <div className="bg-nexus-bg-secondary rounded-lg p-6">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="text-nexus-blue">
-                    {selectedServiceData.icon}
+              <NexusCard className="bg-nexus-primary/5 border-nexus-primary/30">
+                <div className="p-6">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="p-3 bg-nexus-primary/20 text-nexus-primary rounded-lg">
+                      {selectedServiceData.icon}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-nexus-text-primary text-xl">
+                        {selectedServiceData.name}
+                      </h3>
+                      <p className="text-nexus-text-secondary">
+                        {selectedServiceData.description}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-nexus-text-primary">
-                      {selectedServiceData.name}
-                    </h3>
-                    <p className="text-nexus-text-secondary">{selectedServiceData.description}</p>
+                  
+                  <div className="grid grid-cols-2 gap-4 pt-4 border-t border-nexus-border">
+                    <div>
+                      <p className="text-sm text-nexus-text-secondary mb-1">配送日数</p>
+                      <p className="font-semibold text-nexus-text-primary">
+                        {selectedServiceData.deliveryTime}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-nexus-text-secondary mb-1">配送料金</p>
+                      <p className="font-bold text-lg text-nexus-primary">
+                        {selectedServiceData.estimatedCost}
+                      </p>
+                    </div>
                   </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="font-medium text-nexus-text-primary">配送時間:</span>
-                    <p className="text-green-600">{selectedServiceData.deliveryTime}</p>
-                  </div>
-                  <div>
-                    <span className="font-medium text-nexus-text-primary">概算料金:</span>
-                    <p className="text-nexus-blue font-bold text-lg">{selectedServiceData.estimatedCost}</p>
-                  </div>
-                </div>
-
-                <div className="mt-4">
-                  <span className="font-medium text-nexus-text-primary">サービス特徴:</span>
-                  <div className="mt-2 space-y-1">
+                  
+                  <div className="mt-4 space-y-2">
                     {selectedServiceData.features.map((feature, index) => (
-                      <div key={index} className="flex items-center gap-2 text-sm text-nexus-text-secondary">
-                        <CheckCircleIcon className="w-4 h-4 text-green-500" />
-                        {feature}
+                      <div key={index} className="flex items-center gap-2 text-sm">
+                        <CheckCircleIcon className="w-5 h-5 text-green-500" />
+                        <span className="text-nexus-text-primary">{feature}</span>
                       </div>
                     ))}
                   </div>
                 </div>
-              </div>
+              </NexusCard>
             )}
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-start gap-2">
-                <InformationCircleIcon className="w-5 h-5 text-blue-600 mt-0.5" />
-                <div className="text-sm text-blue-800">
-                  <p className="font-medium mb-1">最終確認</p>
-                  <p>「ラベル生成を開始」をクリックすると、FedExラベルの生成処理が開始されます。生成後の変更はできませんのでご注意ください。</p>
+            {/* 注意事項 */}
+            <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+              <div className="flex gap-3">
+                <InformationCircleIcon className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-yellow-800">
+                  <p className="font-semibold mb-1">ご注意</p>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>料金は概算です。実際の料金は重量・サイズ・配送先により変動します</li>
+                    <li>配送時間は営業日ベースです（土日祝日除く）</li>
+                    <li>選択後にラベル生成処理が開始されます</li>
+                  </ul>
                 </div>
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-nexus-border">
+            {/* アクションボタン */}
+            <div className="flex gap-3 justify-end">
               <NexusButton
-                onClick={handleBack}
                 variant="secondary"
+                onClick={handleBack}
               >
                 戻る
               </NexusButton>
               <NexusButton
-                onClick={handleConfirm}
                 variant="primary"
-                icon={<CurrencyDollarIcon className="w-5 h-5" />}
+                onClick={handleConfirm}
               >
                 ラベル生成を開始
               </NexusButton>

@@ -161,11 +161,11 @@ export default function ProductPhotographyDetails({ productId, status }: Product
             
             console.log('[DEBUG] ProductPhotographyDetails - 最終的なphotoSlots:', photoSlots);
             
-            // メタデータに写真が含まれている場合、これらを基本撮影スロットに自動配置
+            // メタデータに写真が含まれている場合、アップロードされた画像をそのまま表示
             if (metadata.photos && Array.isArray(metadata.photos)) {
               console.log('[DEBUG] ProductPhotographyDetails - metadata写真データ:', metadata.photos.length);
               
-              // 撮影された画像を基本スロット（正面、背面等）に自動配置
+              // アップロードされた画像をそのまま画像リストに追加（スロットへの自動配置はしない）
               metadata.photos.forEach((photo: any, index: number) => {
                 // Base64データかファイルパスかを判別
                 const photoUrl = typeof photo === 'string' ? photo : photo.url;
@@ -183,23 +183,9 @@ export default function ProductPhotographyDetails({ productId, status }: Product
                 };
                 
                 images.push(photoItem);
-                
-                // 画像を適切なスロットに配置（順番に配置）
-                if (index < photoSlots.length && photoSlots[index]) {
-                  photoSlots[index].photos.push(photoUrl);
-                  console.log('[DEBUG] ProductPhotographyDetails - 画像をスロットに配置:', {
-                    slotLabel: photoSlots[index].label,
-                    photoIndex: index,
-                    isBase64: photoUrl.startsWith('data:image/'),
-                    photoUrl: photoUrl.substring(0, 50) + '...'
-                  });
-                }
               });
               
-              console.log('[DEBUG] ProductPhotographyDetails - 画像配置後のphotoSlots:', photoSlots.map(s => ({
-                label: s.label,
-                photosCount: s.photos.length
-              })));
+              console.log('[DEBUG] ProductPhotographyDetails - metadata.photosから追加した画像数:', images.length);
             }
           } catch (metadataError) {
             console.warn('メタデータの解析に失敗:', metadataError);
@@ -257,24 +243,15 @@ export default function ProductPhotographyDetails({ productId, status }: Product
   const categorizeImages = (images: ProductImage[], photoSlots?: PhotoSlot[]) => {
     const categories: Record<string, ProductImage[]> = {};
     
-    // 通常の画像をカテゴリ別に分類
-    images.forEach(image => {
-      const category = image.category || 'その他';
-      if (!categories[category]) {
-        categories[category] = [];
-      }
-      categories[category].push(image);
-    });
-
-    // 必須撮影スロットからの画像を追加
+    // photoSlotsが存在し、画像がある場合は優先的に使用
     if (photoSlots && photoSlots.length > 0) {
       console.log('[DEBUG] categorizeImages - photoSlots処理開始:', photoSlots.length);
+      
+      // スロット内の画像を処理
       photoSlots.forEach(slot => {
         console.log(`[DEBUG] categorizeImages - スロット処理: ${slot.id} (${slot.label}), 写真数: ${slot.photos?.length || 0}`);
         if (slot.photos && slot.photos.length > 0) {
-          const slotCategory = slot.required 
-            ? `必須撮影箇所: ${slot.label}` 
-            : `撮影箇所: ${slot.label}`;
+          const slotCategory = slot.label; // シンプルなカテゴリ名を使用
           if (!categories[slotCategory]) {
             categories[slotCategory] = [];
           }
@@ -285,21 +262,30 @@ export default function ProductPhotographyDetails({ productId, status }: Product
               url: photoUrl,
               filename: `${slot.label}_${index + 1}`,
               category: slotCategory,
-              description: slot.required 
-                ? `【必須】 ${slot.label}${slot.description ? ` - ${slot.description}` : ''}`
-                : `${slot.label}${slot.description ? ` - ${slot.description}` : ''}`,
-              sortOrder: index,
+              description: `${slot.label}${slot.description ? ` - ${slot.description}` : ''}`,
+              sortOrder: slot.required ? 0 : 1, // 必須項目を優先
               createdAt: new Date().toISOString(),
             });
           });
-        } else if (slot.required && slot.id.startsWith('special_')) {
-          // 特別撮影スロット（画像なし）は「撮影待ち」として表示
-          const slotCategory = `必須撮影箇所: ${slot.label}`;
-          if (!categories[slotCategory]) {
-            categories[slotCategory] = [];
-          }
         }
       });
+    }
+    
+    // photoSlotsにない画像（または追加画像）を処理
+    if (images && images.length > 0) {
+      // photoSlotsに含まれていない画像のみを追加
+      const slotPhotos = photoSlots ? photoSlots.flatMap(slot => slot.photos || []) : [];
+      const unassignedImages = images.filter(img => !slotPhotos.includes(img.url));
+      
+      if (unassignedImages.length > 0) {
+        unassignedImages.forEach(image => {
+          const category = image.category || 'その他';
+          if (!categories[category]) {
+            categories[category] = [];
+          }
+          categories[category].push(image);
+        });
+      }
     }
 
     return categories;
@@ -360,8 +346,9 @@ export default function ProductPhotographyDetails({ productId, status }: Product
       <div className="space-y-4">
         {Object.entries(categorizedImages).length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {Object.entries(categorizedImages).slice(0, 12).map(([category, images]) => 
-              images.slice(0, 1).map((image) => (
+            {/* すべての画像を順番に表示（カテゴリごとに最初の1枚ではなく、すべて表示） */}
+            {Object.entries(categorizedImages).flatMap(([category, images]) => 
+              images.map((image) => (
                 <div
                   key={image.id}
                   className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all"
@@ -391,7 +378,7 @@ export default function ProductPhotographyDetails({ productId, status }: Product
                   </div>
                 </div>
               ))
-            )}
+            ).slice(0, 12)} {/* 最大12枚まで表示 */}
           </div>
         ) : (
           <div className="text-center py-8 text-gray-500">撮影画像がありません</div>
