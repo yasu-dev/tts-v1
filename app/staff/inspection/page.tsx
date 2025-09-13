@@ -720,83 +720,109 @@ export default function InspectionPage() {
         />
 
         {/* 検品管理 - 統合版 */}
-        <div className="intelligence-card oceania">
-          
+        <div className="intelligence-card global">
+          <div className="p-8">
+            {/* フィルター部分（完全保持） */}
+            <div className="p-6 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <NexusSelect
+                  label="ステータス"
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  options={statusOptions}
+                  useCustomDropdown={true}
+                />
 
-          
-          {/* フィルター部分（完全保持） */}
-          <div className="p-6 border-b border-gray-300">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <NexusSelect
-                label="ステータス"
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                options={statusOptions}
-              />
+                <NexusSelect
+                  label="検品・撮影状況"
+                  value={selectedInspectionPhotoStatus}
+                  onChange={(e) => setSelectedInspectionPhotoStatus(e.target.value)}
+                  options={inspectionPhotoStatusOptions}
+                  useCustomDropdown={true}
+                />
 
-              <NexusSelect
-                label="検品・撮影状況"
-                value={selectedInspectionPhotoStatus}
-                onChange={(e) => setSelectedInspectionPhotoStatus(e.target.value)}
-                options={inspectionPhotoStatusOptions}
-              />
+                <NexusSelect
+                  label="カテゴリー"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  options={categoryOptions}
+                  useCustomDropdown={true}
+                />
 
-              <NexusSelect
-                label="カテゴリー"
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                options={categoryOptions}
-              />
-
-              <NexusInput
-                type="text"
-                label="検索"
-                placeholder="商品名・SKU・ブランドで検索"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+                <NexusInput
+                  type="text"
+                  label="検索"
+                  placeholder="商品名・SKU・ブランドで検索"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
             </div>
-          </div>
-          
-          {/* タブビュー部分 */}
-          {/* タブヘッダー */}
-          <div className="border-b border-nexus-border mb-6">
-            <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-              {[
-                { id: 'all', label: '全体', count: inspectionStats.total },
-                { id: 'pending_inspection', label: '検品待ち', count: inspectionStats.pending },
-                { id: 'inspecting', label: '保管作業中', count: inspectionStats.inspecting },
-                { id: 'completed', label: '完了', count: inspectionStats.completed },
-                { id: 'failed', label: '保留中', count: inspectionStats.failed },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`
-                    whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors
-                    ${activeTab === tab.id
-                      ? 'border-nexus-blue text-nexus-blue'
-                      : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-gray-300'
-                    }
-                  `}
-                >
-                  {tab.label}
-                  <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    activeTab === tab.id ? 'bg-nexus-blue text-white' : 'bg-nexus-bg-secondary text-nexus-text-secondary'
-                  }`}>
-                    {tab.count}
-                  </span>
-                </button>
-              ))}
-            </nav>
-          </div>
-
-
             
-          <div className="overflow-x-auto">
-            <table className="holo-table">
-              <thead className="holo-header">
-                <tr>
+            {/* タブビュー部分 */}
+            {/* タブヘッダー */}
+            <div className="border-b border-nexus-border mb-6">
+              <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+              {[
+                { id: 'all', label: '全体', count: inspectionStats.total, color: 'blue' },
+                { id: 'pending_inspection', label: '検品待ち', count: inspectionStats.pending, color: 'yellow' },
+                { id: 'inspecting', label: '保管作業中', count: inspectionStats.inspecting, color: 'cyan' },
+                { id: 'completed', label: '完了', count: inspectionStats.completed, color: 'green' },
+                { id: 'failed', label: '保留中', count: inspectionStats.failed, color: 'red' },
+              ].map((tab) => {
+                // 統一デザインパターンによる配色設定
+                const getTabBadgeStyle = (tabColor: string, isActive: boolean) => {
+                  const colorMap = {
+                    blue: isActive 
+                      ? 'bg-blue-800 text-white border-2 border-blue-600' 
+                      : 'bg-blue-600 text-white border border-blue-500',
+                    yellow: isActive 
+                      ? 'bg-yellow-800 text-white border-2 border-yellow-600' 
+                      : 'bg-yellow-600 text-white border border-yellow-500',
+                    cyan: isActive 
+                      ? 'bg-cyan-800 text-white border-2 border-cyan-600' 
+                      : 'bg-cyan-600 text-white border border-cyan-500',
+                    green: isActive 
+                      ? 'bg-green-800 text-white border-2 border-green-600' 
+                      : 'bg-green-600 text-white border border-green-500',
+                    red: isActive 
+                      ? 'bg-red-800 text-white border-2 border-red-600' 
+                      : 'bg-red-600 text-white border border-red-500',
+                  };
+                  return colorMap[tabColor] || colorMap.blue;
+                };
+
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`
+                      whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-all duration-300
+                      ${activeTab === tab.id
+                        ? 'border-nexus-blue text-nexus-blue'
+                        : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-gray-300'
+                      }
+                    `}
+                  >
+                    {tab.label}
+                    <span className={`
+                      ml-2 inline-flex items-center px-2.5 py-1 rounded-lg
+                      text-xs font-black font-display uppercase tracking-wider
+                      transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105
+                      ${getTabBadgeStyle(tab.color, activeTab === tab.id)}
+                    `}>
+                      {tab.count}
+                    </span>
+                  </button>
+                );
+              })}
+              </nav>
+            </div>
+
+            <div className="overflow-x-auto">
+                <table className="holo-table">
+                <thead className="holo-header">
+                  <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">商品</th>
                   <th 
                     className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
@@ -1250,22 +1276,23 @@ export default function InspectionPage() {
                   </tr>
                 )}
               </tbody>
-            </table>
-          </div>
-
-          {/* ページネーション */}
-          {filteredProducts.length > 0 && (
-            <div className="mt-6 pt-4 border-t border-nexus-border">
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalItems={filteredProducts.length}
-                itemsPerPage={itemsPerPage}
-                onPageChange={setCurrentPage}
-                onItemsPerPageChange={setItemsPerPage}
-              />
+              </table>
             </div>
-          )}
+
+            {/* ページネーション */}
+            {filteredProducts.length > 0 && (
+              <div className="mt-6 pt-4 border-t border-nexus-border">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={filteredProducts.length}
+                  itemsPerPage={itemsPerPage}
+                  onPageChange={setCurrentPage}
+                  onItemsPerPageChange={setItemsPerPage}
+                />
+              </div>
+            )}
+          </div>
         </div>
 
         {/* 検品詳細モーダル */}

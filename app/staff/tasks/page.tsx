@@ -649,6 +649,7 @@ export default function StaffTasksPage() {
                     { value: "all", label: "すべて" },
                     ...assignees.map(assignee => ({ value: assignee, label: assignee }))
                   ]}
+                  useCustomDropdown={true}
                 />
               </div>
 
@@ -875,6 +876,7 @@ export default function StaffTasksPage() {
                       { value: "medium", label: "中時間（30分-2時間）" },
                       { value: "long", label: "長時間（2時間以上）" }
                     ]}
+                    useCustomDropdown={true}
                   />
                 </div>
 
@@ -889,6 +891,7 @@ export default function StaffTasksPage() {
                       { value: "bag", label: "バッグ" },
                       { value: "jewelry", label: "ジュエリー" }
                     ]}
+                    useCustomDropdown={true}
                   />
                 </div>
 

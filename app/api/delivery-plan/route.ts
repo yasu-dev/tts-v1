@@ -665,9 +665,14 @@ export async function GET(request: NextRequest) {
     if (search) {
       where.OR = [
         { planNumber: { contains: search, mode: 'insensitive' } },
-        { sellerName: { contains: search, mode: 'insensitive' } },
-        { deliveryAddress: { contains: search, mode: 'insensitive' } },
-        { contactEmail: { contains: search, mode: 'insensitive' } }
+        { warehouseName: { contains: search, mode: 'insensitive' } },
+        {
+          products: {
+            some: {
+              name: { contains: search, mode: 'insensitive' }
+            }
+          }
+        }
       ];
     }
 

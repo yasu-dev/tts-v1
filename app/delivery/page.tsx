@@ -679,32 +679,44 @@ export default function DeliveryPage() {
           {/* フィルター・検索部分（タイトル削除版） */}
           {!isDetailModalOpen && (
             <div className="p-6 border-b border-gray-300">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <NexusSelect
-                  label="ステータス"
-                  value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value)}
-                  options={statusOptions}
-                  variant="nexus"
-                />
-                <NexusSelect
-                  label="期間"
-                  value={dateRange}
-                  onChange={(e) => {
-                    setDateRange(e.target.value);
-                    // 期間指定以外を選んだ時はカスタム日付をクリア
-                    if (e.target.value !== 'custom') {
-                      setCustomStartDate('');
-                      setCustomEndDate('');
-                    }
-                  }}
-                  options={dateRangeOptions}
-                  variant="nexus"
-                />
-                
-                {/* 期間指定用の日付入力フィールド */}
+              <div className="space-y-4">
+                {/* 上段：ステータス、期間、検索 */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <NexusSelect
+                    label="ステータス"
+                    value={selectedStatus}
+                    onChange={(e) => setSelectedStatus(e.target.value)}
+                    options={statusOptions}
+                    variant="nexus"
+                    useCustomDropdown={true}
+                  />
+                  <NexusSelect
+                    label="期間"
+                    value={dateRange}
+                    onChange={(e) => {
+                      setDateRange(e.target.value);
+                      // 期間指定以外を選んだ時はカスタム日付をクリア
+                      if (e.target.value !== 'custom') {
+                        setCustomStartDate('');
+                        setCustomEndDate('');
+                      }
+                    }}
+                    options={dateRangeOptions}
+                    variant="nexus"
+                    useCustomDropdown={true}
+                  />
+                  <NexusInput
+                    label="検索"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="プラン番号、商品名、配送先倉庫で検索..."
+                    variant="nexus"
+                  />
+                </div>
+
+                {/* 下段：期間指定用の日付入力フィールド（カスタム選択時のみ表示） */}
                 {dateRange === 'custom' && (
-                  <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-gray-200">
                     <NexusInput
                       type="date"
                       label="開始日"
@@ -719,16 +731,8 @@ export default function DeliveryPage() {
                       onChange={(e) => setCustomEndDate(e.target.value)}
                       variant="nexus"
                     />
-                  </>
+                  </div>
                 )}
-                
-                <NexusInput
-                  label="検索"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="住所、メール、備考で検索..."
-                  variant="nexus"
-                />
               </div>
             </div>
           )}

@@ -40,7 +40,7 @@ const NexusCheckbox = forwardRef<HTMLInputElement, NexusCheckboxProps>(({
     nexus: `
       border-2 border-nexus-border text-primary-blue bg-white
       focus:ring-primary-blue focus:ring-offset-0 focus:ring-2
-      checked:bg-primary-blue checked:border-primary-blue checked:text-white
+      checked:bg-green-600 checked:border-green-600 checked:text-white
       hover:border-primary-blue/70 hover:bg-primary-blue/5
       transition-colors duration-200 ease-in-out
     `,

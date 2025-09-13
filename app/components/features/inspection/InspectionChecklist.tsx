@@ -108,21 +108,30 @@ export default function InspectionChecklist({
           </button>
         </div>
         <div className="grid grid-cols-2 gap-1">
-          {items.map(item => (
-            <div
-              key={item.key}
-              className="p-2 rounded-md border border-gray-200 hover:border-blue-300 transition-all bg-white text-xs"
-            >
-              <NexusCheckbox
-                checked={sectionData[item.key as keyof typeof sectionData] || false}
-                onChange={(e) => onUpdate(sectionKey, item.key, e.target.checked)}
-                label={item.label}
-                description={item.description}
-                variant="nexus"
-                size="md"
-              />
-            </div>
-          ))}
+          {items.map(item => {
+            const isChecked = sectionData[item.key as keyof typeof sectionData] || false;
+            return (
+              <div
+                key={item.key}
+                className={`
+                  p-2 rounded-md border transition-all text-xs
+                  ${isChecked
+                    ? 'border-green-400 bg-green-50 shadow-sm ring-1 ring-green-200'
+                    : 'border-gray-200 bg-white hover:border-blue-300'
+                  }
+                `}
+              >
+                <NexusCheckbox
+                  checked={isChecked}
+                  onChange={(e) => onUpdate(sectionKey, item.key, e.target.checked)}
+                  label={item.label}
+                  description={item.description}
+                  variant="nexus"
+                  size="md"
+                />
+              </div>
+            );
+          })}
         </div>
       </NexusCard>
     );
@@ -158,14 +167,30 @@ export default function InspectionChecklist({
         checkItems.issues
       )}
 
-      {/* 進捗表示 - コンパクトに */}
-      <div className="bg-gray-50 rounded-lg p-2 border border-gray-200">
-        <div className="flex justify-between items-center">
-          <span className="text-xs font-medium text-gray-700">チェック項目</span>
-          <span className="text-xs text-gray-600">
-            {checklist.issues ? Object.values(checklist.issues).filter(v => v).length : 0} / 12 項目（任意）
+      {/* 進捗表示 - 改善版 */}
+      <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-3 border border-blue-200">
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+            <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            チェック済み項目
+          </span>
+          <span className="text-sm font-bold text-green-700 bg-green-100 px-2 py-1 rounded-full">
+            {checklist.issues ? Object.values(checklist.issues).filter(v => v).length : 0} / 12 項目
           </span>
         </div>
+        <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+          <div
+            className="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full transition-all duration-500 ease-out"
+            style={{
+              width: `${((checklist.issues ? Object.values(checklist.issues).filter(v => v).length : 0) / 12) * 100}%`
+            }}
+          />
+        </div>
+        <p className="text-xs text-gray-600 mt-1 text-center">
+          該当する項目のみチェックしてください（0個でも進行可能）
+        </p>
       </div>
 
       {/* ナビゲーションボタン */}

@@ -654,6 +654,7 @@ export default function StaffInventoryPage() {
                   value={selectedSeller}
                   onChange={(e) => setSelectedSeller(e.target.value)}
                   options={sellerOptions}
+                  useCustomDropdown={true}
                 />
               </div>
 
@@ -671,6 +672,7 @@ export default function StaffInventoryPage() {
                       label: status.nameJa
                     }))
                   ]}
+                  useCustomDropdown={true}
                 />
               </div>
 
@@ -680,6 +682,7 @@ export default function StaffInventoryPage() {
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                   options={categoryOptions}
+                  useCustomDropdown={true}
                 />
               </div>
 
@@ -695,6 +698,7 @@ export default function StaffInventoryPage() {
                       label: zone
                     }))
                   ]}
+                  useCustomDropdown={true}
                 />
               </div>
 

@@ -2054,4 +2054,100 @@
       grid-template-columns: 260px 1fr 300px;
     }
   }
+
+  /* Form Elements Styling - 統一された境界線 */
+  select,
+  input[type="text"],
+  input[type="search"],
+  input[type="email"],
+  input[type="password"],
+  input[type="date"],
+  input[type="datetime-local"],
+  input[type="time"],
+  input[type="number"],
+  textarea {
+    border: 1px solid rgb(209, 213, 219) !important;
+    border-radius: 8px !important;
+  }
+
+  /* Select option styling for consistent borders */
+  select option {
+    border: none;
+    background: white;
+    color: #1a1a1a;
+    padding: 8px 12px;
+  }
+
+  /* Focus states for all form elements */
+  select:focus,
+  input:focus,
+  textarea:focus {
+    outline: none;
+    border-color: #0064D2 !important;
+    box-shadow: 0 0 0 2px rgba(0, 100, 210, 0.2) !important;
+  }
+
+  /* Date picker specific styling */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    background: transparent;
+    cursor: pointer;
+  }
+
+  /* Date picker dropdown (Chrome/Safari) */
+  input[type="date"]::-webkit-datetime-edit {
+    padding: 0;
+  }
+
+  /* Firefox specific form styling */
+  @-moz-document url-prefix() {
+    select,
+    input {
+      border: 1px solid rgb(209, 213, 219) !important;
+      background-color: rgba(248, 250, 254, 0.97) !important;
+    }
+  }
+
+  /* Webkit based browsers (Chrome, Safari, Edge) */
+  @media screen and (-webkit-min-device-pixel-ratio:0) {
+    select,
+    input {
+      border: 1px solid rgb(209, 213, 219) !important;
+      background-color: rgba(248, 250, 254, 0.97) !important;
+    }
+  }
+
+  /* Date picker popup styling (limited browser support) */
+  input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    background-color: rgba(0, 100, 210, 0.1);
+    border-radius: 4px;
+  }
+
+  /* Date picker calendar popup - Chrome/Safari */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 1;
+  }
+
+  /* Force consistent appearance across browsers */
+  input[type="date"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    position: relative;
+  }
+
+  /* Custom date picker styling for better consistency */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="rgb(107,114,128)" viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>') no-repeat center;
+    background-size: 16px 16px;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+
+  /* Ensure all form selectors have consistent border radius */
+  .nexus-select select,
+  .nexus-input input {
+    border-radius: 8px !important;
+  }
 }

@@ -199,13 +199,33 @@ export default function HierarchicalInspectionChecklistInput({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <h3 className="text-sm font-medium text-gray-900">階層型検品チェックリスト</h3>
-          <span className="text-xs text-gray-500">
-            ({checkedItems}/{totalItems} 項目入力済み)
+      {/* 進捗表示 - 改善版 */}
+      <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-4 border border-blue-200 mb-4">
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            </svg>
+            階層型検品チェックリスト
+          </span>
+          <span className="text-sm font-bold text-green-700 bg-green-100 px-3 py-1 rounded-full">
+            {checkedItems} / {totalItems} 項目
           </span>
         </div>
+        <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+          <div
+            className="bg-gradient-to-r from-green-400 to-green-600 h-3 rounded-full transition-all duration-500 ease-out"
+            style={{
+              width: `${totalItems > 0 ? (checkedItems / totalItems) * 100 : 0}%`
+            }}
+          />
+        </div>
+        <p className="text-xs text-gray-600 mt-2 text-center">
+          該当する項目のみチェック・入力してください（0個でも進行可能）
+        </p>
+      </div>
+
+      <div className="flex items-center justify-between">
         <button
           type="button"
           onClick={() => setExpandedCategories(
@@ -261,7 +281,18 @@ export default function HierarchicalInspectionChecklistInput({
                     const response = categoryResponses[item.id] || {};
                     
                     return (
-                      <div key={item.id} className="p-2 rounded-md border border-gray-200 bg-white">
+                      <div
+                        key={item.id}
+                        className={`
+                          p-2 rounded-md border transition-all
+                          ${item.type === 'boolean' && response.booleanValue
+                            ? 'border-green-400 bg-green-50 shadow-sm ring-1 ring-green-200'
+                            : item.type === 'text_input' && response.textValue && response.textValue.trim()
+                            ? 'border-blue-400 bg-blue-50 shadow-sm ring-1 ring-blue-200'
+                            : 'border-gray-200 bg-white hover:border-blue-300'
+                          }
+                        `}
+                      >
                         {item.type === 'boolean' ? (
                           <NexusCheckbox
                             label={item.name}
@@ -270,6 +301,8 @@ export default function HierarchicalInspectionChecklistInput({
                               handleItemChange(category.id, item.id, 'boolean', event.target.checked)
                             }
                             disabled={readOnly}
+                            variant="nexus"
+                            size="md"
                           />
                         ) : (
                           <div>
