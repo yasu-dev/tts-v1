@@ -138,12 +138,14 @@ export async function POST(request: NextRequest) {
           planNumber: planId,
           sellerId: user.id,
           sellerName: user.username || user.email,
+          warehouseId: planData.basicInfo.warehouseId || null,
+          warehouseName: planData.basicInfo.warehouseName || null,
           deliveryAddress: planData.basicInfo.deliveryAddress,
           contactEmail: user.email,
           phoneNumber: planData.basicInfo.phoneNumber || null,
           status: 'Pending', // '発送待ち'から'Pending'に変更
           totalItems: validProducts.length,
-          totalValue: validProducts.reduce((sum: number, product: any) => 
+          totalValue: validProducts.reduce((sum: number, product: any) =>
             sum + (product.estimatedValue || 0), 0
           ),
           notes: planData.confirmation?.notes
@@ -732,6 +734,8 @@ export async function GET(request: NextRequest) {
           value: plan.totalValue,
           sellerName: plan.sellerName,
           sellerId: plan.sellerId,
+          warehouseId: plan.warehouseId,
+          warehouseName: plan.warehouseName,
           deliveryAddress: plan.deliveryAddress,
           contactEmail: plan.contactEmail,
           phoneNumber: plan.phoneNumber,

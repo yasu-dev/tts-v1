@@ -33,6 +33,7 @@ import NexusSelect from '@/app/components/ui/NexusSelect';
 import { BusinessStatusIndicator } from '@/app/components/ui/StatusIndicator';
 import Pagination from '@/app/components/ui/Pagination';
 import BaseModal from '@/app/components/ui/BaseModal';
+import ProductImage from '@/app/components/ui/ProductImage';
 import { useModal } from '@/app/components/ui/ModalContext';
 import { useSystemSetting } from '@/lib/hooks/useMasterData';
 import { useIsHierarchicalChecklistEnabled } from '@/lib/hooks/useHierarchicalChecklistFeature';
@@ -734,27 +735,49 @@ export default function DeliveryPage() {
             <table className="holo-table">
               <thead className="holo-header">
                 <tr>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('date')}
                   >
                     <div className="flex items-center gap-1">
                       作成日
                       {sortField === 'date' && (
-                        sortDirection === 'asc' 
+                        sortDirection === 'asc'
                           ? <ChevronUpIcon className="h-4 w-4" />
                           : <ChevronDownIcon className="h-4 w-4" />
                       )}
                     </div>
                   </th>
-                  <th 
+                  <th className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">
+                    画像
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">
+                    商品名
+                  </th>
+                  <th
+                    className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
+                    onClick={() => handleSort('items')}
+                  >
+                    <div className="flex items-center gap-1">
+                      商品数
+                      {sortField === 'items' && (
+                        sortDirection === 'asc'
+                          ? <ChevronUpIcon className="h-4 w-4" />
+                          : <ChevronDownIcon className="h-4 w-4" />
+                      )}
+                    </div>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">
+                    配送先倉庫
+                  </th>
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('status')}
                   >
                     <div className="flex items-center gap-1">
                       ステータス
                       {sortField === 'status' && (
-                        sortDirection === 'asc' 
+                        sortDirection === 'asc'
                           ? <ChevronUpIcon className="h-4 w-4" />
                           : <ChevronDownIcon className="h-4 w-4" />
                       )}
@@ -765,38 +788,6 @@ export default function DeliveryPage() {
                       セラー名
                     </th>
                   )}
-                  <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
-                    onClick={() => handleSort('items')}
-                  >
-                    <div className="flex items-center gap-1">
-                      商品数
-                      {sortField === 'items' && (
-                        sortDirection === 'asc' 
-                          ? <ChevronUpIcon className="h-4 w-4" />
-                          : <ChevronDownIcon className="h-4 w-4" />
-                      )}
-                    </div>
-                  </th>
-                  <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
-                    onClick={() => handleSort('value')}
-                  >
-                    <div className="flex items-center gap-1">
-                      予想価格
-                      {sortField === 'value' && (
-                        sortDirection === 'asc' 
-                          ? <ChevronUpIcon className="h-4 w-4" />
-                          : <ChevronDownIcon className="h-4 w-4" />
-                      )}
-                    </div>
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">
-                    商品概要
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">
-                    納品先
-                  </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">
                     操作
                   </th>
@@ -853,43 +844,46 @@ export default function DeliveryPage() {
                 ) : (
                   paginatedPlans.map((plan: any) => (
                     <tr key={plan.id} className="holo-row">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-nexus-text-primary">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-nexus-text-primary align-top">
                         {new Date(plan.date).toLocaleDateString()}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <BusinessStatusIndicator 
-                          status={(() => {
-                            // ステータスマッピング
-                            const mappedStatus = plan.status === 'Pending' ? 'processing' :
-                                                plan.status === 'Shipped' ? 'shipped' :
-                                                plan.status === 'Completed' ? 'completed' :
-                                                plan.status === 'Cancelled' ? 'cancelled' :
-                                                'processing'; // 安全にPendingにフォールバック
-                            return mappedStatus;
-                          })()} 
-                          size="sm" 
-                        />
+                      <td className="px-6 py-4">
+                        {plan.products && plan.products.length > 0 ? (
+                          <div className="space-y-1">
+                            {plan.products.slice(0, 3).map((product: any, index: number) => {
+                              // 画像URLを取得（imageUrl または images配列の最初の画像）
+                              const imageUrl = product.imageUrl ||
+                                             (product.images && product.images.length > 0 ? product.images[0].url : null);
+
+                              return (
+                                <ProductImage
+                                  key={index}
+                                  src={imageUrl}
+                                  alt={product.name}
+                                  size="sm"
+                                />
+                              );
+                            })}
+                            {plan.products.length > 3 && (
+                              <div className="w-12 h-8 bg-nexus-bg-tertiary border border-nexus-border rounded-md flex items-center justify-center">
+                                <span className="text-xs text-nexus-text-tertiary">+{plan.products.length - 3}</span>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <ProductImage
+                            src={null}
+                            alt="商品画像なし"
+                            size="sm"
+                          />
+                        )}
                       </td>
-                      {user?.role === 'staff' && (
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-nexus-text-primary">
-                          {plan.sellerName}
-                        </td>
-                      )}
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-nexus-text-primary">
-                        {plan.items}点
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-nexus-text-primary">
-                        ¥{plan.value.toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-nexus-text-primary max-w-xs">
+                      <td className="px-6 py-4 text-sm text-nexus-text-primary max-w-xs align-top">
                         {plan.products && plan.products.length > 0 ? (
                           <div className="space-y-1">
                             {plan.products.slice(0, 2).map((product: any, index: number) => (
-                              <div key={index} className="text-xs text-nexus-text-secondary bg-nexus-bg-secondary px-2 py-1 rounded">
+                              <div key={index} className="text-sm text-nexus-text-primary">
                                 {product.name}
-                                {product.category && (
-                                  <span className="text-nexus-text-tertiary ml-1">({product.category})</span>
-                                )}
                               </div>
                             ))}
                             {plan.products.length > 2 && (
@@ -902,9 +896,31 @@ export default function DeliveryPage() {
                           <span className="text-xs text-nexus-text-tertiary">商品詳細なし</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-sm text-nexus-text-primary max-w-xs truncate">
-                        {plan.deliveryAddress}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-nexus-text-primary align-top">
+                        {plan.items}点
                       </td>
+                      <td className="px-6 py-4 text-sm text-nexus-text-primary max-w-xs truncate align-top">
+                        {plan.warehouseName || '配送先倉庫不明'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap align-top">
+                        <BusinessStatusIndicator
+                          status={(() => {
+                            // ステータスマッピング
+                            const mappedStatus = plan.status === 'Pending' ? 'processing' :
+                                                plan.status === 'Shipped' ? 'shipped' :
+                                                plan.status === 'Completed' ? 'completed' :
+                                                plan.status === 'Cancelled' ? 'cancelled' :
+                                                'processing'; // 安全にPendingにフォールバック
+                            return mappedStatus;
+                          })()}
+                          size="sm"
+                        />
+                      </td>
+                      {user?.role === 'staff' && (
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-nexus-text-primary">
+                          {plan.sellerName}
+                        </td>
+                      )}
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end gap-2">
                           <NexusButton
