@@ -191,46 +191,44 @@ export async function PUT(request: NextRequest) {
     });
 
     // ready_for_pickup（集荷準備完了）ステータス更新時にセラー販売管理も連携更新
-    if (status === 'delivered') { // ready_for_pickupはdeliveredでDBに保存される
+    if (status === 'ready_for_pickup' || status === 'delivered') {
       try {
-        // 関連するListingを特定してshippedステータスに更新
-        const relatedOrders = await prisma.order.findMany({
-          where: {
-            shipments: {
-              some: { id: shipmentId }
-            }
-          },
-          include: {
-            orderItems: {
-              include: {
-                product: {
-                  include: {
-                    listings: true
-                  }
-                }
-              }
-            }
-          }
+        // Shipmentから直接ProductIdを取得してListingを更新
+        const shipment = await prisma.shipment.findUnique({
+          where: { id: shipmentId },
+          select: { productId: true }
         });
 
-        for (const order of relatedOrders) {
-          for (const item of order.orderItems) {
-            if (item.product?.listings) {
-              for (const listing of item.product.listings) {
-                // shippingStatusカラムを更新
-                await prisma.listing.update({
-                  where: { id: listing.id },
-                  data: {
-                    shippingStatus: 'shipped',
-                    shippedAt: new Date()
-                  }
-                });
-              }
-            }
-          }
-        }
+        if (shipment?.productId) {
+          // ProductIdに関連するListingを直接更新
+          const relatedListings = await prisma.listing.findMany({
+            where: { productId: shipment.productId }
+          });
 
-        console.log(`✅ セラー販売管理連携完了: shipmentId=${shipmentId} -> shipped`);
+          for (const listing of relatedListings) {
+            await prisma.listing.update({
+              where: { id: listing.id },
+              data: {
+                shippingStatus: 'shipped',
+                shippedAt: new Date()
+              }
+            });
+            console.log(`✅ Listing更新: ${listing.id} -> shipped`);
+          }
+
+          // Productのステータスも「shipping」に更新（在庫管理画面用）
+          await prisma.product.update({
+            where: { id: shipment.productId },
+            data: {
+              status: 'shipping'
+            }
+          });
+          console.log(`✅ Product更新: ${shipment.productId} -> shipping`);
+
+          console.log(`✅ セラー販売管理連携完了: shipmentId=${shipmentId}, productId=${shipment.productId} -> shipped`);
+        } else {
+          console.warn(`⚠️ ShipmentにProductIdが設定されていません: ${shipmentId}`);
+        }
       } catch (linkError) {
         console.error('セラー販売管理連携エラー:', linkError);
         // 連携エラーでもShipment更新は成功として扱う
