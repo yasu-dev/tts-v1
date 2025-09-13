@@ -976,6 +976,7 @@ export default function SalesPage() {
                   setCurrentPage(1);
                 }}
                 options={orderStatusOptions}
+                useCustomDropdown={true}
               />
               
               {/* 同梱機能ボタン */}
@@ -1221,6 +1222,7 @@ export default function SalesPage() {
                     label: c.label
                   }))
                 ]}
+                useCustomDropdown={true}
                 required
               />
               {selectedCarrier === 'fedex' && (

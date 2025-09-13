@@ -99,7 +99,7 @@ export default function WorkflowProgress({ steps, className = '' }: WorkflowProg
                 )}
                 {step.status === 'completed' && (
                   <div className="text-[10px] text-green-600 font-medium mt-1 bg-green-50 px-2 py-1 rounded-full">
-                    ✓ 完了
+                    完了
                   </div>
                 )}
                 {step.status === 'pending' && (

@@ -14,7 +14,7 @@ import { NexusInput, NexusButton, NexusLoadingSpinner, NexusSelect, BusinessStat
 import BaseModal from '../components/ui/BaseModal';
 import ListingFormModal from '@/app/components/modals/ListingFormModal';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
-import { useCategories, useProductStatuses, createSelectOptions, getNameByKey } from '@/lib/hooks/useMasterData';
+import { useProductStatuses, getNameByKey } from '@/lib/hooks/useMasterData';
 import ProductDetailModal from '../components/features/seller/ProductDetailModal';
 
 type SortField = 'name' | 'sku' | 'status' | 'price';
@@ -60,12 +60,10 @@ export default function InventoryPage() {
   const [selectedListingProduct, setSelectedListingProduct] = useState<any>(null);
   
   // マスタデータの取得
-  const { categories, loading: categoriesLoading } = useCategories();
   const { statuses: productStatuses, loading: statusesLoading } = useProductStatuses();
   
   // フィルター・ソート状態
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -91,9 +89,6 @@ export default function InventoryPage() {
         
         if (selectedStatus !== 'all') {
           searchParams.set('status', selectedStatus);
-        }
-        if (selectedCategory !== 'all') {
-          searchParams.set('category', selectedCategory);
         }
         if (searchQuery.trim()) {
           searchParams.set('search', searchQuery);
@@ -143,18 +138,8 @@ export default function InventoryPage() {
     fetchData().catch(error => {
       console.error('Fetch data error:', error);
     });
-  }, [currentPage, itemsPerPage, selectedStatus, selectedCategory, searchQuery]); // フィルター変更時も再取得
+  }, [currentPage, itemsPerPage, selectedStatus, searchQuery]); // フィルター変更時も再取得
 
-  // カテゴリーオプション（APIから動的取得）
-  const categoryOptions = useMemo(() => {
-    if (categoriesLoading || !categories.length) {
-      return [{ value: 'all', label: 'すべてのカテゴリー' }];
-    }
-    return [
-      { value: 'all', label: 'すべてのカテゴリー' },
-      ...createSelectOptions(categories)
-    ];
-  }, [categories, categoriesLoading]);
 
   // ステータスオプション（現在表示されているバッジのみ）
   const statusOptions = useMemo(() => {
@@ -181,7 +166,7 @@ export default function InventoryPage() {
     if (currentPage !== 1) {
       setCurrentPage(1);
     }
-  }, [selectedStatus, selectedCategory, searchQuery]);
+  }, [selectedStatus, searchQuery]);
 
   // サーバーサイドページネーション対応のため、フィルタリングはAPIで処理済み
   // クライアント側では取得したデータをそのまま使用
@@ -337,19 +322,13 @@ export default function InventoryPage() {
           
           {/* フィルター・検索部分（タイトル削除版） */}
           <div className="p-6 border-b border-gray-300">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <NexusSelect
                 label="ステータス"
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
                 options={statusOptions}
-              />
-
-              <NexusSelect
-                label="カテゴリー"
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                options={categoryOptions}
+                useCustomDropdown={true}
               />
 
               <NexusInput
@@ -395,6 +374,7 @@ export default function InventoryPage() {
                       {getSortIcon('price')}
                     </div>
                   </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">更新日</th>
                   <th 
                     className="px-6 py-3 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('status')}
@@ -404,7 +384,6 @@ export default function InventoryPage() {
                       {getSortIcon('status')}
                     </div>
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">更新日</th>
                   <th className="px-6 py-3 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">操作</th>
                 </tr>
               </thead>
@@ -442,14 +421,6 @@ export default function InventoryPage() {
                         ¥{item.price ? item.price.toLocaleString() : '0'}
                       </span>
                     </td>
-                    <td className="p-4">
-                      <div className="flex justify-center">
-                        <BusinessStatusIndicator 
-                          status={convertStatusToKey(item.status) as any} 
-                          size="sm" 
-                        />
-                      </div>
-                    </td>
                     <td className="p-4 text-center">
                       <span className="text-sm text-nexus-text-secondary">
                         {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString('ja-JP', { 
@@ -457,6 +428,14 @@ export default function InventoryPage() {
                           day: 'numeric' 
                         }) : '未設定'}
                       </span>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex justify-center">
+                        <BusinessStatusIndicator 
+                          status={convertStatusToKey(item.status) as any} 
+                          size="sm" 
+                        />
+                      </div>
                     </td>
                     <td className="p-4">
                       <div className="flex justify-center gap-2">
@@ -485,7 +464,7 @@ export default function InventoryPage() {
                 {sortedInventory.length === 0 && (
                   <tr>
                     <td colSpan={8} className="p-8 text-center text-nexus-text-secondary">
-                      {searchQuery || selectedStatus !== 'all' || selectedCategory !== 'all'
+                      {searchQuery || selectedStatus !== 'all'
                         ? '検索条件に一致する商品がありません' 
                         : '商品データがありません'
                       }

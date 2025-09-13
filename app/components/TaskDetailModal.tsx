@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import { BaseModal, NexusButton } from './ui';
-import { 
-  PlayIcon, 
-  CheckIcon, 
-  CheckCircleIcon, 
-  TrashIcon, 
-  PencilIcon 
+import {
+  PlayIcon,
+  CheckIcon,
+  CheckCircleIcon,
+  TrashIcon,
+  PencilIcon,
+  ClockIcon,
+  ArrowPathIcon
 } from '@heroicons/react/24/outline';
 
 interface Task {
@@ -171,9 +173,22 @@ export default function TaskDetailModal({ isOpen, onClose, task, onEdit, onStatu
                 currentStatus === 'in_progress' ? 'bg-blue-100 text-blue-800' :
                 currentStatus === 'completed' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
               }`}>
-                {currentStatus === 'pending' ? '⏳ 待機中' :
-                 currentStatus === 'in_progress' ? '🔄 作業中' :
-                 currentStatus === 'completed' ? '✅ 完了' : currentStatus}
+                {currentStatus === 'pending' ? (
+                  <span className="flex items-center gap-1">
+                    <ClockIcon className="h-4 w-4" />
+                    待機中
+                  </span>
+                ) : currentStatus === 'in_progress' ? (
+                  <span className="flex items-center gap-1">
+                    <ArrowPathIcon className="h-4 w-4" />
+                    作業中
+                  </span>
+                ) : currentStatus === 'completed' ? (
+                  <span className="flex items-center gap-1">
+                    <CheckCircleIcon className="h-4 w-4" />
+                    完了
+                  </span>
+                ) : currentStatus}
               </div>
           </div>
           

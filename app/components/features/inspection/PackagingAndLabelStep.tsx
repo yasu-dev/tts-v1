@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
+import { StarIcon } from '@heroicons/react/24/solid';
 
 interface PackagingAndLabelStepProps {
   productId: string;
@@ -219,14 +220,14 @@ export default function PackagingAndLabelStep({
               </div>
               <div className="ml-3 flex-1">
                 <h4 className="text-sm font-medium text-blue-800">
-                  ⭐ プレミアム梱包リクエスト
+                  プレミアム梱包リクエスト
                 </h4>
                 <p className="mt-1 text-sm text-blue-700">
                   この商品はセラーからプレミアム梱包がリクエストされています。高品質な梱包材を使用し、丁寧に梱包してください。
                 </p>
                 {premiumPackagingRequest.notes && (
                   <div className="mt-2 p-2 bg-blue-100 rounded text-sm text-blue-800">
-                    <strong>特記事項:</strong> {premiumPackagingRequest.notes}
+                    <strong>特記事項:</strong> {premiumPackagingRequest.notes.replace(/[★⭐]/g, '').trim()}
                   </div>
                 )}
               </div>

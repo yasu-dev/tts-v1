@@ -5,14 +5,15 @@ import { BaseModal, NexusButton, NexusSelect, NexusInput, NexusTextarea, NexusCh
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import { useRouter } from 'next/navigation';
 import TemplateEditor from '@/app/components/features/listing/TemplateEditor';
-import { 
-  PhotoIcon, 
-  VideoCameraIcon, 
-  ShoppingCartIcon, 
+import {
+  PhotoIcon,
+  VideoCameraIcon,
+  ShoppingCartIcon,
   GlobeAltIcon,
   PlusIcon,
   MinusIcon,
-  InformationCircleIcon
+  InformationCircleIcon,
+  StarIcon
 } from '@heroicons/react/24/outline';
 import { FileCode, Edit3, Loader2, RefreshCw, Eye } from 'lucide-react';
 import { 
@@ -2095,7 +2096,9 @@ ${conditionDescription ? `・${conditionDescription}` : ''}
                             <p className="text-sm text-gray-600">Professional Camera Equipment Dealer</p>
                             <div className="flex items-center mt-2">
                               <div className="flex text-yellow-400">
-                                {'★'.repeat(5)}
+                                {Array.from({ length: 5 }).map((_, i) => (
+                                  <StarIcon key={i} className="h-4 w-4 fill-current" />
+                                ))}
                               </div>
                               <span className="text-sm text-gray-600 ml-2">4.9 (1,847件の評価)</span>
                             </div>
@@ -2104,9 +2107,9 @@ ${conditionDescription ? `・${conditionDescription}` : ''}
                         
                         <div className="border-t pt-4">
                           <h5 className="font-medium mb-2">連絡先情報</h5>
-                          <p className="text-sm text-gray-600">📍 東京都、日本</p>
-                          <p className="text-sm text-gray-600">📧 contact@theworlddoor.com</p>
-                          <p className="text-sm text-gray-600">🕒 営業時間: 平日 9:00-18:00 (JST)</p>
+                          <p className="text-sm text-gray-600">東京都、日本</p>
+                          <p className="text-sm text-gray-600">contact@theworlddoor.com</p>
+                          <p className="text-sm text-gray-600">営業時間: 平日 9:00-18:00 (JST)</p>
                         </div>
                       </div>
                     </div>
