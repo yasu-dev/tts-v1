@@ -62,6 +62,7 @@ interface ShippingItem {
   bundledItems?: ShippingItem[]; // 同梱された商品リスト
   isBundled?: boolean; // 他の商品に同梱されているか
   bundleId?: string; // 同梱パッケージID
+  isBundleItem?: boolean; // APIから取得した同梱フラグ
 }
 
 export default function StaffShippingPage() {
@@ -142,6 +143,7 @@ export default function StaffShippingPage() {
             value: item.value,
             location: item.location,
             productImages: item.productImages || [],
+            isBundleItem: item.isBundleItem || false,
             inspectionImages: item.inspectionImages || [],
             inspectionNotes: item.inspectionNotes,
             isBundle: item.isBundle,
@@ -214,6 +216,7 @@ export default function StaffShippingPage() {
         shippingMethod: item.shippingMethod,
         value: item.value,
         location: item.location,
+        isBundleItem: item.isBundleItem || false,
         productImages: item.productImages || [],
         inspectionImages: item.inspectionImages || [],
         inspectionNotes: item.inspectionNotes,
@@ -272,13 +275,8 @@ export default function StaffShippingPage() {
 
   // 表示用データ（API側で既にフィルタリング済み）
   const paginatedItems = useMemo(() => {
-    // 同梱された個別商品のみ非表示（重複IDの除去は行わない）
-    const filteredItems = items.filter(item => {
-      if (item.isBundled && !item.isBundle) {
-        return false;
-      }
-      return true;
-    });
+    // 全商品を表示（フィルタリングを無効化）
+    const filteredItems = items;
     
     console.log(`📋 最終表示リスト (${activeTab}):`, {
       originalItems: items.length,
@@ -862,46 +860,62 @@ export default function StaffShippingPage() {
   // 同梱確認後の処理
   const handleBundleConfirm = async () => {
     try {
+      console.log('🔄 同梱梱包処理開始:', bundleItems.map(item => ({
+        id: item.id,
+        shipmentId: item.shipmentId,
+        productName: item.productName
+      })));
+
+      // 両方の商品のステータスを「packed」に更新
+      const updatePromises = bundleItems.map(async (item) => {
+        if (item.shipmentId) {
+          console.log(`📦 商品ステータス更新: ${item.productName} (${item.shipmentId}) -> packed`);
+
+          const response = await fetch('/api/shipping', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              shipmentId: item.shipmentId,
+              status: 'packed',
+              notes: `Bundle packed with: ${bundleItems.filter(bi => bi.id !== item.id).map(bi => bi.productName).join(', ')}`
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error(`商品${item.productName}のステータス更新に失敗`);
+          }
+
+          const result = await response.json();
+          console.log(`✅ 商品ステータス更新完了: ${item.productName}`);
+          return result;
+        }
+      });
+
+      await Promise.all(updatePromises);
+
       // 同梱ID生成
       const bundleId = `BUNDLE-${Date.now()}`;
-      
-      // 同梱された商品の合計価値を計算
-      const totalValue = bundleItems.reduce((sum, item) => sum + (item.value || 0), 0);
-      
-      // 最も早い期限を取得
-      const earliestDueDate = bundleItems
-        .map(item => item.dueDate)
-        .sort()[0];
-      
-      // 同梱パッケージの作成
-      const bundlePackage: ShippingItem = {
-        id: bundleId,
-        productName: `同梱パッケージ (${bundleItems.length}件)`,
-        productSku: bundleId,
-        orderNumber: bundleItems.map(item => item.orderNumber).join(', '),
-        customer: bundleItems[0].customer, // 同じ顧客と仮定
-        shippingAddress: bundleItems[0].shippingAddress, // 同じ配送先と仮定
-        status: 'packed',
-        dueDate: earliestDueDate,
-        shippingMethod: bundleItems[0].shippingMethod,
-        value: totalValue,
-        isBundle: true,
-        bundledItems: bundleItems.map(item => ({ ...item, isBundled: true, bundleId }))
-      };
-      
-      // アイテムリストを更新：個別商品を非表示にし、同梱パッケージを追加
+      const bundleTrackingNumber = `BDL${Date.now().toString().slice(-6)}`;
+
+      // フロントエンドのアイテムリストを更新：両方とも packed ステータスで表示
       setItems(prev => {
-        // 同梱された商品をフィルタリング（非表示）
-        const filteredItems = prev.map(item => {
+        return prev.map(item => {
           if (bundleItems.some(bi => bi.id === item.id)) {
-            return { ...item, isBundled: true, bundleId, status: 'packed' as const };
+            return {
+              ...item,
+              isBundled: true,
+              bundleId,
+              status: 'packed' as const,
+              isBundleItem: true,
+              trackingNumber: bundleTrackingNumber
+            };
           }
           return item;
         });
-        
-        // 同梱パッケージを追加
-        return [...filteredItems, bundlePackage];
       });
+
+      // データを再取得して最新状態を反映
+      await fetchShippingData();
 
       // 選択解除
       setSelectedItems([]);
@@ -909,21 +923,19 @@ export default function StaffShippingPage() {
 
       showToast({
         title: '同梱梱包完了',
-        message: `${bundleItems.length}件の商品を同梱パッケージとして作成しました`,
+        message: `${bundleItems.length}件の商品が同梱で梱包されました。両方とも「梱包済み」ステータスになります。`,
         type: 'success'
       });
-
-      // 梱包モーダルを表示
-      setSelectedPackingItem(bundlePackage);
-      setIsPackingVideoModalOpen(true);
 
     } catch (error) {
       console.error('同梱梱包エラー:', error);
       showToast({
         title: 'エラー',
-        message: '同梱梱包処理に失敗しました',
+        message: `同梱梱包処理中にエラーが発生しました: ${error.message}`,
         type: 'error'
       });
+    } finally {
+      setIsBundleConfirmModalOpen(false);
     }
   };
 
@@ -1138,7 +1150,7 @@ export default function StaffShippingPage() {
                 <tbody className="holo-body">
                   {paginatedItems.map((item, index) => (
                     <React.Fragment key={`${item.id}-${index}`}>
-                      <tr className={`holo-row ${item.isBundled || item.isBundle ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}>
+                      <tr className={`holo-row ${item.isBundled || item.isBundle || item.isBundleItem ? 'bg-gradient-to-r from-blue-50 to-blue-100 border-l-8 border-l-blue-500 shadow-lg transform hover:scale-[1.01]' : ''}`}>
                         <td className="p-4">
                           <input
                             type="checkbox"
@@ -1164,23 +1176,54 @@ export default function StaffShippingPage() {
                             >
                               <div className="font-semibold hover:underline flex items-center gap-2 text-nexus-text-primary">
                                 {item.productName}
-                                {(item.isBundle || item.isBundled) && (
-                                  <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-nexus-blue/20 text-nexus-blue rounded-full">
-                                    同梱
+                                {(item.isBundle || item.isBundled || item.isBundleItem) && (
+                                  <span className="inline-flex items-center px-3 py-1 text-xs font-bold bg-blue-600 text-white rounded-full shadow-md">
+                                    <CubeIcon className="w-3 h-3 mr-1" />
+                                    同梱対象
                                   </span>
                                 )}
                               </div>
                               <p className="text-sm text-nexus-text-secondary">
                                 SKU: {item.productSku}
                               </p>
+
+                              {/* 同梱情報の詳細表示 - ロケーション管理と同様のスタイル */}
+                              {(item.isBundled || item.isBundleItem) && (
+                                <div className="mt-2 p-3 bg-gradient-to-r from-blue-100 to-blue-200 rounded-lg border-2 border-blue-300 shadow-inner">
+                                  <div className="space-y-2">
+                                    {item.trackingNumber && (
+                                      <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+                                        <span className="text-sm font-bold text-blue-900">
+                                          📋 追跡番号: {item.trackingNumber}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {item.bundleId && (
+                                      <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                        <span className="text-sm font-semibold text-blue-800">
+                                          🔗 同梱グループ: {item.bundleId}
+                                        </span>
+                                      </div>
+                                    )}
+                                    <div className="bg-amber-100 border-l-4 border-amber-500 p-2 rounded-r">
+                                      <div className="flex items-center gap-2 text-amber-800">
+                                        <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.996-.833-2.768 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                        </svg>
+                                        <span className="text-sm font-bold">
+                                          ⚠️ 同じ追跡番号の商品をまとめて処理してください
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+
                               {item.isBundle && item.bundledItems && (
                                 <div className="mt-1 text-xs text-nexus-text-secondary">
                                   含む商品: {item.bundledItems.map(bi => bi.productName).join(', ')}
-                                </div>
-                              )}
-                              {item.isBundled && item.bundleId && (
-                                <div className="mt-1 text-xs text-nexus-text-secondary">
-                                  同梱グループ: {item.bundleId}
                                 </div>
                               )}
                             </div>

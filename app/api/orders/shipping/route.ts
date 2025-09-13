@@ -323,13 +323,24 @@ export async function GET(request: NextRequest) {
       let bundleInfo = null;
       let isBundle = false;
       let bundleId = null;
+      let isBundleItem = false;
       let bundledItems = [];
       let isBundled = false;
       
       try {
-        bundleInfo = shipment.notes && shipment.notes.includes('sales_bundle') 
-          ? JSON.parse(shipment.notes) 
-          : null;
+        if (shipment.notes) {
+          // notesが文字列かオブジェクトかをチェック
+          const notesStr = typeof shipment.notes === 'string' ? shipment.notes : JSON.stringify(shipment.notes);
+          console.log(`[BUNDLE_CHECK] Product: ${productName}, Notes exists: ${!!shipment.notes}, Contains sales_bundle: ${notesStr.includes('sales_bundle')}`);
+          if (notesStr.includes('sales_bundle')) {
+            bundleInfo = typeof shipment.notes === 'string' ? JSON.parse(shipment.notes) : shipment.notes;
+            console.log(`[BUNDLE_INFO] Products in bundle: ${bundleInfo?.products?.length}, Type: ${bundleInfo?.type}`);
+            if (bundleInfo && bundleInfo.type === 'sales_bundle' && bundleInfo.products?.length > 1) {
+              isBundleItem = true;
+              console.log(`[BUNDLE_SET] ${productName} is marked as bundle item`);
+            }
+          }
+        }
       } catch (parseError) {
         console.warn('Bundle notes parse failed:', parseError);
         bundleInfo = null;
@@ -362,6 +373,7 @@ export async function GET(request: NextRequest) {
         customer: shipment.customerName,
         shippingAddress: shipment.address,
         status: displayStatus,
+        isBundleItem: isBundleItem,
         dueDate: shipment.deadline ? new Date(shipment.deadline).toISOString().split('T')[0] : 
                  new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         shippingMethod: `${shipment.carrier} - ${shipment.method}`,

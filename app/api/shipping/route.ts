@@ -23,6 +23,9 @@ export async function GET(request: NextRequest) {
           notIn: ['', ' ']
         }
       },
+      include: {
+        order: true
+      },
       orderBy: { createdAt: 'desc' },
       take: 20
     });
@@ -81,23 +84,53 @@ export async function GET(request: NextRequest) {
       }
     });
 
+    // 商品情報を取得して正しい商品名を設定
+    const shipmentsWithProducts = await Promise.all(
+      todayShipments.map(async (shipment) => {
+        let productName = 'N/A';
+        let isBundleItem = false;
+
+        if (shipment.productId) {
+          const product = await prisma.product.findUnique({
+            where: { id: shipment.productId }
+          });
+          productName = product?.name || `商品 ${shipment.productId.substring(0, 8)}`;
+        }
+
+        // 同梱チェック
+        if (shipment.notes) {
+          try {
+            const bundleInfo = JSON.parse(shipment.notes);
+            if (bundleInfo.type === 'sales_bundle' && bundleInfo.products?.length > 1) {
+              isBundleItem = true;
+            }
+          } catch (e) {
+            // JSON parse error - not bundle
+          }
+        }
+
+        return {
+          id: shipment.id,
+          orderId: shipment.orderId,
+          productId: shipment.productId,
+          productName,
+          customer: shipment.customerName,
+          address: shipment.address,
+          shippingMethod: shipment.carrier,
+          priority: shipment.priority,
+          deadline: shipment.deadline?.toTimeString().substring(0, 5) || '',
+          status: shipment.status,
+          trackingNumber: shipment.trackingNumber,
+          value: shipment.value,
+          locationCode: 'STD-A-01',
+          locationName: '標準棚A-01',
+          isBundleItem
+        };
+      })
+    );
+
     const shippingData = {
-      todayShipments: todayShipments.map(shipment => ({
-        id: shipment.id,
-        orderId: shipment.orderId,
-        productId: shipment.productId,
-        productName: `商品 ${shipment.productId?.substring(0, 8) || 'N/A'}`,
-        customer: shipment.customerName,
-        address: shipment.address,
-        shippingMethod: shipment.carrier,
-        priority: shipment.priority,
-        deadline: shipment.deadline?.toTimeString().substring(0, 5) || '',
-        status: shipment.status,
-        trackingNumber: shipment.trackingNumber, // 必ず有効な追跡番号が存在
-        value: shipment.value,
-        locationCode: 'STD-A-01', // デフォルト値
-        locationName: '標準棚A-01' // デフォルト値
-      })),
+      todayShipments: shipmentsWithProducts,
       pickingTasks: pickingTasks.map(task => ({
         id: task.id,
         orderId: task.orderId,

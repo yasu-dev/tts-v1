@@ -96,10 +96,6 @@ const PhotographyRequestDisplay = memo(function PhotographyRequestDisplay({
       {/* 撮影タイプ別詳細表示 */}
       {photographyType === 'standard' && (
         <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <CheckIcon className="h-4 w-4 text-green-600" />
-            <span className="text-sm font-medium text-nexus-text-primary">基本撮影（10枚）</span>
-          </div>
           <p className="text-xs text-nexus-text-secondary ml-6">
             正面・背面・側面・上面・下面等の標準アングルでの撮影
           </p>
