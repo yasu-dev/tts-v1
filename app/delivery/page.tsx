@@ -1106,10 +1106,9 @@ export default function DeliveryPage() {
                               })}
                               <div className="flex items-center gap-2 mt-1">
                                 <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                                  {product.category === 'camera' || product.category === 'camera_body' ? 'カメラ' :
-                                   product.category === 'lens' ? 'レンズ' :
+                                  {product.category === 'camera' ? 'カメラ' :
                                    product.category === 'watch' ? '腕時計' :
-                                   product.category === 'accessory' ? 'アクセサリ' : product.category}
+                                   product.category === 'other' ? 'その他' : product.category}
                                 </span>
                                 {product.condition && (
                                   <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">

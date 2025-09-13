@@ -66,14 +66,7 @@ const convertStatusToKey = (status: string): string => {
 const getCategoryJapaneseName = (category: string): string => {
   const categoryMapping: Record<string, string> = {
     'camera': 'カメラ',
-    'camera_body': 'カメラボディ',
-    'lens': 'レンズ',
     'watch': '腕時計',
-    'timepiece': '腕時計',
-    'accessory': 'アクセサリー',
-    'jewelry': 'ジュエリー',
-    'bag': 'バッグ',
-    'electronics': '電子機器',
     'other': 'その他'
   };
   

@@ -114,10 +114,7 @@ type BusinessStatus = 'inbound' | 'inspection' | 'completed' | 'rejected' | 'pen
 
 const categoryLabels = {
   camera: 'カメラ',
-  camera_body: 'カメラボディ',
-  lens: 'レンズ', 
   watch: '腕時計',
-  accessory: 'アクセサリ',
   other: 'その他',
 };
 

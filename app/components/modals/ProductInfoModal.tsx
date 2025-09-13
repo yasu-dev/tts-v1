@@ -83,12 +83,10 @@ export default function ProductInfoModal({ isOpen, onClose, product }: ProductIn
 
   if (!isOpen || !product) return null;
 
-  // カテゴリの日本語ラベル
+  // カテゴリの日本語ラベル（納品プラン作成と統一）
   const categoryLabels: Record<string, string> = {
     camera: 'カメラ',
     watch: '腕時計',
-    lens: 'レンズ',
-    accessory: 'アクセサリー',
     other: 'その他',
   };
 

@@ -199,10 +199,7 @@ export default function ProductRegistrationModal({ isOpen, onClose, onSubmit, in
                 options={[
                   { value: '', label: 'カテゴリを選択' },
                   { value: 'camera', label: 'カメラ' },
-                  { value: 'lens', label: 'レンズ' },
-                  { value: 'watch', label: '時計' },
-                  { value: 'jewelry', label: 'ジュエリー' },
-                  { value: 'bag', label: 'バッグ' },
+                  { value: 'watch', label: '腕時計' },
                   { value: 'other', label: 'その他' }
                 ]}
               />

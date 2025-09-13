@@ -3,6 +3,7 @@
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import UnifiedPageHeader from '@/app/components/ui/UnifiedPageHeader';
 import WorkflowProgress from '@/app/components/ui/WorkflowProgress';
+import NexusInput from '@/app/components/ui/NexusInput';
 
 import PackingVideoModal from '@/app/components/modals/PackingVideoModal';
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -85,6 +86,7 @@ export default function StaffShippingPage() {
   const [activeTab, setActiveTab] = useState<string>('all');
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [expandedRows, setExpandedRows] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [isCarrierSelectionModalOpen, setIsCarrierSelectionModalOpen] = useState(false);
   const [selectedLabelItem, setSelectedLabelItem] = useState<ShippingItem | null>(null);
   const [isPackingVideoModalOpen, setIsPackingVideoModalOpen] = useState(false);
@@ -277,8 +279,15 @@ export default function StaffShippingPage() {
 
   // 表示用データ（API側で既にフィルタリング済み）
   const paginatedItems = useMemo(() => {
-    // 全商品を表示（フィルタリングを無効化）
-    const filteredItems = items;
+    // 検索フィルタリングを追加
+    let filteredItems = items;
+
+    if (searchQuery.trim()) {
+      filteredItems = items.filter(item =>
+        item.productName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.productSku?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
     
     console.log(`[INFO] 最終表示リスト (${activeTab}):`, {
       originalItems: items.length,
@@ -290,7 +299,7 @@ export default function StaffShippingPage() {
     });
     
     return filteredItems;
-  }, [items, activeTab]);
+  }, [items, activeTab, searchQuery]);
 
   // タブ切り替え時にデータを再取得
   useEffect(() => {
@@ -1055,6 +1064,19 @@ export default function StaffShippingPage() {
         {/* ステータス別タブビュー */}
         <div className="intelligence-card global">
           <div className="p-8">
+            {/* 検索フィルター */}
+            <div className="p-6 mb-6">
+              <div className="max-w-md">
+                <NexusInput
+                  type="text"
+                  label="検索"
+                  placeholder="商品名・SKUで検索"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            </div>
+
             {/* タブヘッダー */}
             <div className="border-b border-nexus-border mb-6">
               <nav className="-mb-px flex space-x-8" aria-label="Tabs">

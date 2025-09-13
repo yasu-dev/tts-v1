@@ -356,7 +356,7 @@ export default function InventoryPage() {
                       {getSortIcon('name')}
                     </div>
                   </th>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('sku')}
                   >
@@ -365,7 +365,8 @@ export default function InventoryPage() {
                       {getSortIcon('sku')}
                     </div>
                   </th>
-                  <th 
+                  <th className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">カテゴリー</th>
+                  <th
                     className="px-6 py-3 text-right text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('price')}
                   >
@@ -414,6 +415,13 @@ export default function InventoryPage() {
                     <td className="p-4">
                       <span className="font-mono text-sm text-nexus-text-primary">
                         {item.sku}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <span className="text-sm text-nexus-text-primary">
+                        {item.category === 'camera' ? 'カメラ' :
+                         item.category === 'watch' ? '腕時計' :
+                         item.category === 'other' ? 'その他' : item.category}
                       </span>
                     </td>
                     <td className="p-4 text-right">

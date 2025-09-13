@@ -252,10 +252,9 @@ export default function StaffInventoryPage() {
           name: item.name,
           sku: item.sku,
           originalCategory: item.category, // 元の英語カテゴリーを保持
-          category: item.category.replace('camera_body', 'カメラ本体')
-                                 .replace('lens', 'レンズ')
-                                 .replace('watch', '腕時計')
-                                 .replace('accessory', 'アクセサリ'),
+          category: item.category === 'camera' ? 'カメラ' :
+                   item.category === 'watch' ? '腕時計' :
+                   item.category === 'other' ? 'その他' : item.category,
           status: item.status, // 英語ステータスをそのまま保持（BusinessStatusIndicator用）
           statusOriginal: item.status,
           statusDisplay: item.status.replace('inbound', '入庫待ち')
@@ -438,20 +437,15 @@ export default function StaffInventoryPage() {
     router.replace('/staff/inventory');
   };
 
-  // 動的カテゴリーオプション生成（APIから取得）
+  // カテゴリーオプション（納品プラン作成と統一）
   const categoryOptions = useMemo(() => {
-    if (!categories.length) {
-      return [{ value: 'all', label: 'すべてのカテゴリー' }];
-    }
-    
     return [
       { value: 'all', label: 'すべてのカテゴリー' },
-      ...categories.map(category => ({
-        value: category.key,
-        label: category.nameJa
-      }))
+      { value: 'camera', label: 'カメラ' },
+      { value: 'watch', label: '腕時計' },
+      { value: 'other', label: 'その他' }
     ];
-  }, [categories]);
+  }, []);
 
   // 動的セラーオプション生成
   const sellerOptions = useMemo(() => {
@@ -667,10 +661,15 @@ export default function StaffInventoryPage() {
                   options={[
                     { value: 'all', label: 'すべてのステータス' },
                     { value: 'listable', label: '出品可能' },
-                    ...productStatuses.map(status => ({
-                      value: status.key,
-                      label: status.nameJa
-                    }))
+                    { value: 'inbound', label: '入庫待ち' },
+                    { value: 'inspection', label: '保管作業中' },
+                    { value: 'storage', label: '保管中' },
+                    { value: 'listing', label: '出品中' },
+                    { value: 'ordered', label: '出荷準備中' },
+                    { value: 'shipping', label: '出荷済み' },
+                    { value: 'sold', label: '購入者決定' },
+                    { value: 'returned', label: '返品' },
+                    { value: 'on_hold', label: '保留中' }
                   ]}
                   useCustomDropdown={true}
                 />
@@ -706,7 +705,7 @@ export default function StaffInventoryPage() {
                 <NexusInput
                   type="text"
                   label="検索"
-                  placeholder="商品名・SKU・カテゴリーで検索（日本語）"
+                  placeholder="商品名・SKUで検索"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -723,6 +722,7 @@ export default function StaffInventoryPage() {
                     <th className="text-center p-4 font-medium text-nexus-text-secondary">画像</th>
                     <th className="text-left p-4 font-medium text-nexus-text-secondary">商品名</th>
                     <th className="text-left p-4 font-medium text-nexus-text-secondary">SKU</th>
+                    <th className="text-left p-4 font-medium text-nexus-text-secondary">カテゴリー</th>
                     <th className="text-left p-4 font-medium text-nexus-text-secondary">セラー名</th>
                     <th className="text-left p-4 font-medium text-nexus-text-secondary">保管場所</th>
                     <th className="text-center p-4 font-medium text-nexus-text-secondary">ステータス</th>
@@ -774,6 +774,9 @@ export default function StaffInventoryPage() {
                       </td>
                       <td className="p-4">
                         <span className="font-mono text-sm text-nexus-text-primary">{item.sku}</span>
+                      </td>
+                      <td className="p-4">
+                        <span className="text-sm text-nexus-text-primary">{item.category}</span>
                       </td>
                       <td className="p-4">
                         <span className="text-sm text-nexus-text-primary">{item.seller?.username || '未設定'}</span>

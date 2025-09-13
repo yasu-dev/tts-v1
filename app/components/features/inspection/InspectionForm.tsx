@@ -1023,10 +1023,7 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
                 <span className="text-gray-600">カテゴリ:</span>
                 <span className="ml-2 font-medium">
                   {product.category === 'camera' ? 'カメラ' :
-                   product.category === 'camera_body' ? 'カメラボディ' :
-                   product.category === 'lens' ? 'レンズ' :
                    product.category === 'watch' ? '腕時計' :
-                   product.category === 'accessory' ? 'アクセサリ' : 
                    product.category === 'other' ? 'その他' : product.category}
                 </span>
               </div>
