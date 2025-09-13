@@ -74,7 +74,17 @@ export async function GET(request: NextRequest) {
             include: {
               items: {
                 include: {
-                  product: true
+                  product: {
+                    include: {
+                      seller: {
+                        select: {
+                          id: true,
+                          username: true,
+                          fullName: true
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -101,7 +111,21 @@ export async function GET(request: NextRequest) {
           include: {
             order: {
               include: {
-                items: { include: { product: true } }
+                items: { 
+                  include: { 
+                    product: {
+                      include: {
+                        seller: {
+                          select: {
+                            id: true,
+                            username: true,
+                            fullName: true
+                          }
+                        }
+                      }
+                    }
+                  } 
+                }
               }
             }
           }
@@ -259,7 +283,16 @@ export async function GET(request: NextRequest) {
     
     if (allProductIds.length > 0) {
       const products = await prisma.product.findMany({
-        where: { id: { in: allProductIds } }
+        where: { id: { in: allProductIds } },
+        include: {
+          seller: {
+            select: {
+              id: true,
+              username: true,
+              fullName: true
+            }
+          }
+        }
       });
       
       products.forEach(p => {
@@ -371,6 +404,7 @@ export async function GET(request: NextRequest) {
         productSku: productSku,
         orderNumber: shipment.order?.orderNumber || `ORD-${shipment.orderId.slice(-6)}`,
         customer: shipment.customerName,
+        sellerName: product?.seller?.fullName || product?.seller?.username || 'セラー名不明',
         shippingAddress: shipment.address,
         status: displayStatus,
         isBundleItem: isBundleItem,
@@ -414,6 +448,7 @@ export async function GET(request: NextRequest) {
             productSku: product.sku,
             orderNumber: `BUNDLE-${bundleInfo.bundleId}`,
             customer: 'Bundle Customer',
+            sellerName: product.seller?.fullName || product.seller?.username || 'セラー名不明',
             shippingAddress: '同梱対象商品',
             status: 'workstation' as const,
             dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -533,6 +568,7 @@ export async function GET(request: NextRequest) {
         productSku: shipment.productId === 'cmf7v0jtc0002elm9gn4dxx2c' ? 'TEST-001' : 'CAMERA-005',
         orderNumber: 'GUARANTEED-ORDER-001',
         customer: shipment.customerName || 'テスト顧客',
+        sellerName: 'テストセラー',
         shippingAddress: shipment.address || 'テスト住所',
         status: 'workstation',
         dueDate: new Date().toISOString().split('T')[0],

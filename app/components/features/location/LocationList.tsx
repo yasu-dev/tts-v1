@@ -239,18 +239,13 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
               productId: safeProductId,
               productName: item.productName,
               customer: task.customerName,
+              sellerName: item.sellerName || task.sellerName || 'セラー名不明',
               locationCode: item.location,
               locationName: `ロケーション ${item.location}`,
-              status: item.status === 'picked' ? 'ピッキング済み' : 
- 
-                      item.status === 'pending' ? 'ピッキング待ち' : 
-                      (item.status === 'completed') ? 'ピッキング待ち' : // 棚保管完了商品も恒久対応
-                      'ピッキング待ち',
-              deadline: new Date(task.dueDate).toLocaleTimeString('ja-JP', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-              }),
+              status: 'ピッキング待ち', // 全てピッキング待ちに統一
               sku: item.sku,
+              // 商品画像を追加
+              productImage: item.productImage || item.imageUrl || '/api/placeholder/64/64',
               // 同梱情報を追加
               bundleId: task.bundleId || item.bundleId || null,
               bundleTrackingNumber: task.bundleTrackingNumber || item.bundleTrackingNumber || null,
@@ -279,10 +274,11 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
           productId: "TWD-CAM-011",
           productName: "Nikon Z8",
           customer: "山田太郎",
+          sellerName: "テストセラー1",
           locationCode: "A-01",
           locationName: "A棚1段目",
           status: "ピッキング待ち",
-          deadline: "16:00"
+          productImage: "/api/placeholder/64/64"
         },
         {
           id: "ship-002",
@@ -290,10 +286,11 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
           productId: "TWD-LEN-005",
           productName: "Canon RF 24-70mm F2.8",
           customer: "佐藤花子",
+          sellerName: "テストセラー2",
           locationCode: "B-01",
           locationName: "B棚1段目",
           status: "ピッキング待ち",
-          deadline: "18:00"
+          productImage: "/api/placeholder/64/64"
         },
         {
           id: "ship-003",
@@ -301,10 +298,11 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
           productId: "TWD-WATCH-001",
           productName: "Rolex Submariner",
           customer: "田中一郎",
+          sellerName: "テストセラー3",
           locationCode: "C-01",
           locationName: "C棚1段目（高価値商品）",
           status: "ピッキング待ち",
-          deadline: "17:00"
+          productImage: "/api/placeholder/64/64"
         }
       ];
       const groupedData = groupShippingDataByLocation(mockShippingData);
@@ -319,10 +317,11 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
           productId: "TWD-CAM-011",
           productName: "Nikon Z8",
           customer: "山田太郎",
+          sellerName: "テストセラー1",
           locationCode: "A-01",
           locationName: "A棚1段目",
           status: "ピッキング待ち",
-          deadline: "16:00"
+          productImage: "/api/placeholder/64/64"
         },
         {
           id: "ship-002",
@@ -330,10 +329,11 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
           productId: "TWD-LEN-005",
           productName: "Canon RF 24-70mm F2.8",
           customer: "佐藤花子",
+          sellerName: "テストセラー2",
           locationCode: "B-01",
           locationName: "B棚1段目",
           status: "ピッキング待ち",
-          deadline: "18:00"
+          productImage: "/api/placeholder/64/64"
         }
       ];
       const groupedData = groupShippingDataByLocation(mockShippingData);
@@ -540,7 +540,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                     : 'text-nexus-text-secondary hover:text-nexus-text-primary'
                 }`}
               >
-                出荷リスト
+                ピッキングリスト
               </button>
             </div>
           </div>
@@ -732,7 +732,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
 
 
 
-          {/* 出荷リストビュー */}
+          {/* ピッキングリストビュー */}
           {viewMode === 'shipping' && (
             <div className="space-y-6">
               {shippingData.length === 0 ? (
@@ -847,6 +847,22 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                                 />
                               </div>
                             )}
+                            {/* 商品画像 */}
+                            <div className="flex-shrink-0">
+                              <div className="w-16 h-16 rounded border border-nexus-border overflow-hidden bg-nexus-bg-secondary">
+                                {item.productImage ? (
+                                  <img
+                                    src={item.productImage}
+                                    alt={item.productName}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-nexus-text-tertiary">
+                                    <ClipboardDocumentListIcon className="w-5 h-5" />
+                                  </div>
+                                )}
+                              </div>
+                            </div>
                             <div className="flex-1">
                               <div className="flex items-center gap-3 mb-2">
                                 <h4 className={`font-semibold ${item.isBundleItem ? 'text-lg text-blue-900' : 'text-base text-nexus-text-primary'}`}>
@@ -912,24 +928,10 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                               </p>
                               <div className="flex items-center gap-4 mt-2 text-sm">
                                 <span className="text-nexus-text-secondary">
-                                  顧客: <span className="font-medium text-nexus-text-primary">{item.customer}</span>
-                                </span>
-                                <span className="text-nexus-text-secondary">
-                                  締切: <span className="font-medium text-nexus-yellow">{item.deadline}</span>
+                                  セラー: <span className="font-medium text-nexus-text-primary">{item.sellerName || item.customer || 'セラー名不明'}</span>
                                 </span>
                               </div>
                             </div>
-                          </div>
-                          <div className="text-right">
-                            <span className={`status-badge ${
-                              item.status === 'ピッキング待ち' ? 'warning' :
-                              item.status === 'ピッキング済み' ? 'success' :
-                              item.status === '準備完了' ? 'success' :
-                              item.status === '梱包待ち' ? 'info' :
-                              item.status === '出荷完了' ? 'info' : 'info'
-                            }`}>
-                              {item.status}
-                            </span>
                           </div>
                         </div>
                       ))}
@@ -1209,7 +1211,6 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-nexus-text-secondary">
-                    締切: {item.deadline}
                   </p>
                   <p className="text-xs text-nexus-text-secondary mt-1">
                     ロケーション: {selectedLocationName}

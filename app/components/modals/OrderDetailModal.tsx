@@ -5,12 +5,12 @@ import { BaseModal, NexusButton, BusinessStatusIndicator } from '../ui';
 import { generateTrackingUrl, normalizeCarrierName } from '@/lib/utils/tracking';
 import { useToast } from '../features/notifications/ToastProvider';
 import ConfirmationModal from '../ui/ConfirmationModal';
-import { 
-  TruckIcon, 
-  UserIcon, 
-  MapPinIcon, 
-  CalendarIcon, 
-  CurrencyYenIcon,
+import {
+  TruckIcon,
+  UserIcon,
+  MapPinIcon,
+  CalendarIcon,
+  CurrencyDollarIcon,
   ShoppingBagIcon,
   ClipboardDocumentCheckIcon,
   ArrowTopRightOnSquareIcon,
@@ -180,7 +180,7 @@ export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetail
           <div className="space-y-4">
             <div>
               <label className="flex items-center gap-2 text-sm font-medium text-nexus-text-secondary mb-2">
-                <CurrencyYenIcon className="w-4 h-4" />
+                <CurrencyDollarIcon className="w-4 h-4" />
                 販売価格
               </label>
               <div className="text-lg font-bold text-nexus-text-primary">
@@ -244,12 +244,12 @@ export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetail
                       カテゴリ: {item.category || '未分類'}
                     </div>
                     <div className="text-sm text-nexus-text-secondary">
-                      数量: {item.quantity} / 単価: ¥{item.price?.toLocaleString()}
+                      数量: {item.quantity} / 単価: ${item.price?.toLocaleString()}
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="font-bold text-nexus-text-primary">
-                      ¥{((item.price || 0) * (item.quantity || 1)).toLocaleString()}
+                      ${((item.price || 0) * (item.quantity || 1)).toLocaleString()}
                     </div>
                   </div>
                 </div>

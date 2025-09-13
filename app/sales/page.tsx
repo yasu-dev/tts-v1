@@ -1019,6 +1019,7 @@ export default function SalesPage() {
                         <th className="text-left p-4 font-medium text-nexus-text-secondary">商品名</th>
                         <th className="text-right p-4 font-medium text-nexus-text-secondary">販売価格</th>
                         <th className="text-center p-4 font-medium text-nexus-text-secondary">出品日</th>
+                        <th className="text-center p-4 font-medium text-nexus-text-secondary">注文日</th>
                         <th className="text-center p-4 font-medium text-nexus-text-secondary">ステータス</th>
                         <th className="text-center p-4 font-medium text-nexus-text-secondary">ラベル</th>
                         <th className="text-center p-4 font-medium text-nexus-text-secondary">操作</th>
@@ -1027,7 +1028,7 @@ export default function SalesPage() {
                     <tbody className="holo-body">
                       {salesData.recentOrders.length === 0 ? (
                         <tr>
-                          <td colSpan={8} className="p-8 text-center text-nexus-text-secondary">
+                          <td colSpan={9} className="p-8 text-center text-nexus-text-secondary">
                             注文データがありません
                           </td>
                         </tr>
@@ -1105,6 +1106,11 @@ export default function SalesPage() {
                             <td className="p-4 text-center">
                               <span className="text-sm text-nexus-text-primary">
                                 {new Date(row.listingDate || row.ebayListingDate || row.orderDate || row.date).toLocaleDateString('ja-JP')}
+                              </span>
+                            </td>
+                            <td className="p-4 text-center">
+                              <span className="text-sm text-nexus-text-primary">
+                                {row.status !== 'listing' && row.orderDate ? new Date(row.orderDate).toLocaleDateString('ja-JP') : '-'}
                               </span>
                             </td>
                             <td className="p-4">
