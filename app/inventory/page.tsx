@@ -423,9 +423,10 @@ export default function InventoryPage() {
                     </td>
                     <td className="p-4 text-center">
                       <span className="text-sm text-nexus-text-secondary">
-                        {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString('ja-JP', { 
-                          month: 'short', 
-                          day: 'numeric' 
+                        {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString('ja-JP', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit'
                         }) : '未設定'}
                       </span>
                     </td>

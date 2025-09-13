@@ -1001,7 +1001,7 @@ export default function SalesPage() {
                   <table className="w-full">
                     <thead className="holo-header">
                       <tr>
-                        <th className="text-center p-4 font-medium text-nexus-text-secondary w-16">
+                        <th className="text-center p-4 font-medium text-nexus-text-secondary w-12">
                           <input
                             type="checkbox"
                             onChange={(e) => {
@@ -1015,6 +1015,7 @@ export default function SalesPage() {
                             className="rounded border-nexus-border"
                           />
                         </th>
+                        <th className="text-center p-4 font-medium text-nexus-text-secondary w-20">画像</th>
                         <th className="text-left p-4 font-medium text-nexus-text-secondary">商品名</th>
                         <th className="text-right p-4 font-medium text-nexus-text-secondary">販売価格</th>
                         <th className="text-center p-4 font-medium text-nexus-text-secondary">出品日</th>
@@ -1026,7 +1027,7 @@ export default function SalesPage() {
                     <tbody className="holo-body">
                       {salesData.recentOrders.length === 0 ? (
                         <tr>
-                          <td colSpan={7} className="p-8 text-center text-nexus-text-secondary">
+                          <td colSpan={8} className="p-8 text-center text-nexus-text-secondary">
                             注文データがありません
                           </td>
                         </tr>
@@ -1044,13 +1045,13 @@ export default function SalesPage() {
                             key={uniqueKey} 
                             className={`holo-row ${isInBundle ? 'bg-blue-50 border-l-4 border-l-blue-400' : ''}`}
                           >
-                            <td className="p-4">
+                            <td className="p-4 text-center">
                               <input
                                 type="checkbox"
                                 checked={salesBundleItems.includes(row.id)}
                                 onChange={() => {
-                                  setSalesBundleItems(prev => 
-                                    prev.includes(row.id) 
+                                  setSalesBundleItems(prev =>
+                                    prev.includes(row.id)
                                       ? prev.filter(id => id !== row.id)
                                       : [...prev, row.id]
                                   );
@@ -1060,11 +1061,11 @@ export default function SalesPage() {
                               />
                             </td>
                             <td className="p-4">
-                              <div className="flex items-center gap-3">
+                              <div className="flex justify-center">
                                 <div className="w-16 h-16 rounded border border-nexus-border overflow-hidden bg-nexus-bg-secondary">
                                   {row.ebayImage || row.items?.[0]?.productImage ? (
-                                    <img 
-                                      src={row.ebayImage || row.items[0].productImage} 
+                                    <img
+                                      src={row.ebayImage || row.items[0].productImage}
                                       alt={row.product}
                                       className="w-full h-full object-cover"
                                     />
@@ -1074,24 +1075,26 @@ export default function SalesPage() {
                                     </div>
                                   )}
                                 </div>
-                                <div className="flex-1">
-                                  <div className="text-nexus-text-primary font-medium max-w-xs overflow-hidden text-ellipsis whitespace-nowrap" title={row.product}>
-                                    {row.product}
-                                  </div>
-                                  {isInBundle && (
-                                    <div className="mt-1 flex items-center gap-2">
-                                      <div className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                                        <CubeIcon className="w-3 h-3" />
-                                        同梱グループ ({bundleGroup.totalItems}件)
-                                      </div>
-                                      {isRepresentative && (
-                                        <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                                          代表商品
-                                        </span>
-                                      )}
-                                    </div>
-                                  )}
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              <div>
+                                <div className="text-nexus-text-primary font-medium overflow-hidden text-ellipsis whitespace-nowrap" title={row.product}>
+                                  {row.product}
                                 </div>
+                                {isInBundle && (
+                                  <div className="mt-1 flex items-start gap-2">
+                                    <div className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                                      <CubeIcon className="w-3 h-3" />
+                                      同梱グループ ({bundleGroup.totalItems}件)
+                                    </div>
+                                    {isRepresentative && (
+                                      <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                                        代表商品
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
                               </div>
                             </td>
                             <td className="p-4 text-right">
