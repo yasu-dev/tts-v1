@@ -1001,7 +1001,7 @@ export default function SalesPage() {
                   <table className="w-full">
                     <thead className="holo-header">
                       <tr>
-                        <th className="text-center p-4 font-medium text-nexus-text-secondary w-12">
+                        <th className="text-center p-4 font-medium text-nexus-text-secondary w-16">
                           <input
                             type="checkbox"
                             onChange={(e) => {
@@ -1015,11 +1015,11 @@ export default function SalesPage() {
                             className="rounded border-nexus-border"
                           />
                         </th>
-                        <th className="text-left p-4 font-medium text-nexus-text-secondary">商品</th>
+                        <th className="text-left p-4 font-medium text-nexus-text-secondary">商品名</th>
                         <th className="text-right p-4 font-medium text-nexus-text-secondary">販売価格</th>
+                        <th className="text-center p-4 font-medium text-nexus-text-secondary">出品日</th>
                         <th className="text-center p-4 font-medium text-nexus-text-secondary">ステータス</th>
                         <th className="text-center p-4 font-medium text-nexus-text-secondary">ラベル</th>
-                        <th className="text-left p-4 font-medium text-nexus-text-secondary">注文日</th>
                         <th className="text-center p-4 font-medium text-nexus-text-secondary">操作</th>
                       </tr>
                     </thead>
@@ -1099,6 +1099,11 @@ export default function SalesPage() {
                                 ${Number(row.ebayPrice || row.listingPrice || row.sellingPrice || row.totalAmount || row.amount || 0).toLocaleString()}
                               </span>
                             </td>
+                            <td className="p-4 text-center">
+                              <span className="text-sm text-nexus-text-primary">
+                                {new Date(row.listingDate || row.ebayListingDate || row.orderDate || row.date).toLocaleDateString('ja-JP')}
+                              </span>
+                            </td>
                             <td className="p-4">
                               <div className="flex justify-center">
                                 <BusinessStatusIndicator status={row.status} size="md" showLabel={true} />
@@ -1116,11 +1121,6 @@ export default function SalesPage() {
                                   </span>
                                 )}
                               </div>
-                            </td>
-                            <td className="p-4">
-                              <span className="text-sm text-nexus-text-primary">
-                                {new Date(row.orderDate || row.date).toLocaleDateString('ja-JP')}
-                              </span>
                             </td>
                             <td className="p-4 text-center">
                               <div className="flex justify-center gap-2">
