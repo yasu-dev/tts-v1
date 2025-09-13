@@ -762,19 +762,16 @@ export default function DeliveryPage() {
                   </th>
                   <th
                     className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
-                    onClick={() => handleSort('items')}
+                    onClick={() => handleSort('date')}
                   >
                     <div className="flex items-center gap-1">
-                      商品数
-                      {sortField === 'items' && (
+                      注文日
+                      {sortField === 'date' && (
                         sortDirection === 'asc'
                           ? <ChevronUpIcon className="h-4 w-4" />
                           : <ChevronDownIcon className="h-4 w-4" />
                       )}
                     </div>
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">
-                    配送先倉庫
                   </th>
                   <th
                     className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
@@ -789,11 +786,6 @@ export default function DeliveryPage() {
                       )}
                     </div>
                   </th>
-                  {user?.role === 'staff' && (
-                    <th className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">
-                      セラー名
-                    </th>
-                  )}
                   <th className="px-6 py-3 text-right text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">
                     操作
                   </th>
@@ -802,7 +794,7 @@ export default function DeliveryPage() {
               <tbody className="holo-body">
                 {loading ? (
                   <tr>
-                    <td colSpan={user?.role === 'staff' ? 8 : 7} className="px-6 py-12 text-center text-nexus-text-secondary">
+                    <td colSpan={5} className="px-6 py-12 text-center text-nexus-text-secondary">
                       <div className="flex flex-col items-center">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-nexus-primary mb-4"></div>
                         <p className="text-lg font-medium mb-2">データを読み込み中...</p>
@@ -812,7 +804,7 @@ export default function DeliveryPage() {
                   </tr>
                 ) : error ? (
                   <tr>
-                    <td colSpan={user?.role === 'staff' ? 8 : 7} className="px-6 py-12 text-center text-nexus-text-secondary">
+                    <td colSpan={5} className="px-6 py-12 text-center text-nexus-text-secondary">
                       <div className="flex flex-col items-center">
                         <XCircleIcon className="h-12 w-12 text-red-500 mb-4" />
                         <p className="text-lg font-medium mb-2 text-red-600">データ取得エラー</p>
@@ -831,7 +823,7 @@ export default function DeliveryPage() {
                   </tr>
                 ) : paginatedPlans.length === 0 ? (
                   <tr>
-                    <td colSpan={user?.role === 'staff' ? 8 : 7} className="px-6 py-12 text-center text-nexus-text-secondary">
+                    <td colSpan={5} className="px-6 py-12 text-center text-nexus-text-secondary">
                       <div className="flex flex-col items-center">
                         <DocumentTextIcon className="h-12 w-12 text-nexus-text-tertiary mb-4" />
                         <p className="text-lg font-medium mb-2">納品プランが見つかりません</p>
@@ -903,10 +895,7 @@ export default function DeliveryPage() {
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-nexus-text-primary align-top">
-                        {plan.items}点
-                      </td>
-                      <td className="px-6 py-4 text-sm text-nexus-text-primary max-w-xs truncate align-top">
-                        {plan.warehouseName || '配送先倉庫不明'}
+                        {new Date(plan.date).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap align-top">
                         <BusinessStatusIndicator
@@ -922,11 +911,6 @@ export default function DeliveryPage() {
                           size="sm"
                         />
                       </td>
-                      {user?.role === 'staff' && (
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-nexus-text-primary">
-                          {plan.sellerName}
-                        </td>
-                      )}
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end gap-2">
                           <NexusButton
