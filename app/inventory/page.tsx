@@ -439,7 +439,7 @@ export default function InventoryPage() {
                     </td>
                     <td className="p-4 text-right">
                       <span className="font-bold text-nexus-text-primary">
-                        ${item.price ? item.price.toLocaleString() : '0'}
+                        ¥{item.price ? item.price.toLocaleString() : '0'}
                       </span>
                     </td>
                     <td className="p-4">

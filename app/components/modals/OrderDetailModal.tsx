@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { BaseModal, NexusButton } from '../ui';
+import { BaseModal, NexusButton, BusinessStatusIndicator } from '../ui';
 import { generateTrackingUrl, normalizeCarrierName } from '@/lib/utils/tracking';
 import { useToast } from '../features/notifications/ToastProvider';
 import ConfirmationModal from '../ui/ConfirmationModal';
@@ -181,10 +181,10 @@ export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetail
             <div>
               <label className="flex items-center gap-2 text-sm font-medium text-nexus-text-secondary mb-2">
                 <CurrencyYenIcon className="w-4 h-4" />
-                合計金額
+                販売価格
               </label>
               <div className="text-lg font-bold text-nexus-text-primary">
-                ¥{Number(order.totalAmount || order.amount || 0).toLocaleString()}
+                ${Number(order.ebayPrice || order.listingPrice || order.sellingPrice || order.totalAmount || order.amount || 0).toLocaleString()}
               </div>
             </div>
 
@@ -192,9 +192,11 @@ export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetail
               <label className="text-sm font-medium text-nexus-text-secondary mb-2 block">
                 ステータス
               </label>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
-                {getStatusLabel(order.status)}
-              </span>
+              <BusinessStatusIndicator 
+                status={order.status} 
+                size="md" 
+                showLabel={true}
+              />
             </div>
 
             {order.shippingAddress && (

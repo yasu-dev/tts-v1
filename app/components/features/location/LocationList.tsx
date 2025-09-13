@@ -231,17 +231,18 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
         // ピッキングタスクを出荷リスト形式に変換（同梱情報統合）
         const pickingItems = (data.tasks || []).flatMap((task: any) => 
           (task.items || []).map((item: any) => {
-            console.log(`📦 ピッキングアイテム処理: ${item.productName} (${item.productId})`);
+            const safeProductId = item.productId || item.id || `pick-${item.id}`;
+            console.log(`📦 ピッキングアイテム処理: ${item.productName} (${safeProductId})`);
             return {
-              id: item.productId || `pick-${item.id}`, // productIdを優先して使用
+              id: safeProductId,
               orderId: task.orderId,
-              productId: item.productId,
+              productId: safeProductId,
               productName: item.productName,
               customer: task.customerName,
               locationCode: item.location,
               locationName: `ロケーション ${item.location}`,
               status: item.status === 'picked' ? 'ピッキング済み' : 
-                      item.status === 'ピッキング作業中' ? 'ピッキング作業中' : 
+ 
                       item.status === 'pending' ? 'ピッキング待ち' : 
                       (item.status === 'completed') ? 'ピッキング待ち' : // 棚保管完了商品も恒久対応
                       'ピッキング待ち',
@@ -771,11 +772,11 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                   )}
                   
                   {shippingData.filter(locationGroup => {
-                  // ピッキング待ち・ピッキング作業中の商品があるロケーションのみ表示
-                  const activeItems = locationGroup.items.filter((item: any) => 
-                    item.status === 'ピッキング待ち' || item.status === 'ピッキング作業中'
+                  // ピッキング待ちの商品があるロケーションのみ表示（ピッキング済みは除外）
+                  const activeItems = locationGroup.items.filter((item: any) =>
+                    item.status === 'ピッキング待ち'
                   );
-                  
+
                   if (activeItems.length === 0) return false;
                   
                   // 検索条件でフィルタリング
@@ -789,10 +790,10 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                       (item.sku?.toLowerCase() || '').includes(searchQuery.toLowerCase())
                     );
                 }).map((locationGroup) => {
-                  const activeItems = locationGroup.items.filter((item: any) => 
-                    item.status === 'ピッキング待ち' || item.status === 'ピッキング作業中'
+                  const activeItems = locationGroup.items.filter((item: any) =>
+                    item.status === 'ピッキング待ち'
                   );
-                  const completedItems = []; // ピッキング待ち・ピッキング作業中の商品を表示
+                  const completedItems = []; // ピッキング済み商品は表示しない
                   
                   return (
                   <div key={locationGroup.locationCode} className="holo-card p-6">
@@ -818,7 +819,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                     </div>
                     
                     <div className="space-y-3">
-                      {locationGroup.items.map((item: any) => (
+                      {activeItems.map((item: any) => (
                         <div 
                           key={item.id} 
                           className={`flex justify-between items-start p-6 rounded-xl border-2 transition-all duration-200 ${
@@ -829,7 +830,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                         >
                           <div className="flex items-start gap-3 flex-1">
                                 {/* 商品選択チェックボックス */}
-                            {(item.status === 'ピッキング待ち' || item.status === 'ピッキング作業中') && (
+                            {item.status === 'ピッキング待ち' && (
                               <div className="mt-1">
                                 <NexusCheckbox
                                   checked={selectedProductIds.includes(item.id) || selectedProductIds.includes(item.productId)}
@@ -922,7 +923,6 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                           <div className="text-right">
                             <span className={`status-badge ${
                               item.status === 'ピッキング待ち' ? 'warning' :
-                              item.status === 'ピッキング作業中' ? 'processing' :
                               item.status === 'ピッキング済み' ? 'success' :
                               item.status === '準備完了' ? 'success' :
                               item.status === '梱包待ち' ? 'info' :
@@ -991,22 +991,22 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                             variant="primary"
                             size="sm"
                             onClick={() => {
-                              const selectedItemsFromThisLocation = activeItems.filter(item => 
+                              const selectedItemsFromThisLocation = activeItems.filter(item =>
                                 selectedProductIds.includes(item.id) || selectedProductIds.includes(item.productId)
                               );
                               setSelectedPickingItems(selectedItemsFromThisLocation);
                               setSelectedLocationName(locationGroup.locationName);
                               setIsPickingModalOpen(true);
                             }}
-                            disabled={selectedProductIds.filter(id => 
+                            disabled={selectedProductIds.filter(id =>
                               activeItems.some(item => item.id === id || item.productId === id)
                             ).length === 0}
                           >
                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            選択商品をピッキング指示
-                            ({selectedProductIds.filter(id => 
+                            選択商品をピッキング完了
+                            ({selectedProductIds.filter(id =>
                               activeItems.some(item => item.id === id || item.productId === id)
                             ).length})
                           </NexusButton>
@@ -1171,7 +1171,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
         </div>
       </BaseModal>
 
-      {/* ピッキングリスト作成確認モーダル */}
+      {/* ピッキング完了確認モーダル */}
       <BaseModal
         isOpen={isPickingModalOpen}
         onClose={() => {
@@ -1179,7 +1179,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
           setSelectedPickingItems([]);
           setSelectedLocationName('');
         }}
-        title="ピッキング指示作成"
+        title="ピッキング完了確認"
         size="lg"
       >
         <div>
@@ -1188,7 +1188,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
               {selectedLocationName}の選択商品
             </h3>
             <p className="text-sm text-nexus-text-secondary">
-              以下の{selectedPickingItems.length}件の商品に対してピッキング指示を作成し、出荷管理に追加します
+              以下の{selectedPickingItems.length}件の商品のピッキング作業完了を確認します
             </p>
           </div>
 
@@ -1226,10 +1226,10 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
               <h4 className="font-semibold text-blue-900">作業フロー</h4>
             </div>
             <ol className="list-decimal list-inside space-y-2 text-sm text-blue-800">
-              <li>商品ステータスを「ピッキング作業中」に更新</li>
-              <li>出荷管理画面に作業対象として追加</li>
-              <li>スタッフが物理的なピッキング作業を実施</li>
-              <li>ピッキング完了後、梱包・出荷作業へ進行</li>
+              <li>物理的なピッキング作業の完了を確認</li>
+              <li>商品ステータスを「ピッキング完了」に更新</li>
+              <li>出荷管理画面に梱包対象として移動</li>
+              <li>梱包・出荷作業へ進行</li>
             </ol>
           </div>
 
@@ -1252,19 +1252,31 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
               <NexusButton
                 onClick={async () => {
                   try {
-                    // ピッキング指示を作成
-                    const productIds = selectedPickingItems.map(item => item.productId || item.id);
+                    // ピッキング完了を処理
+                    const productIds = selectedPickingItems
+                      .map(item => item.productId || item.id)
+                      .filter(id => id && id !== 'undefined');
                     
-                    console.log('🚀 ピッキング指示作成開始:', {
+                    if (productIds.length === 0) {
+                      showToast({
+                        type: 'error',
+                        title: 'エラー',
+                        message: '有効な商品IDが見つかりません',
+                        duration: 4000
+                      });
+                      return;
+                    }
+
+                    console.log('🚀 ピッキング完了処理開始:', {
                       productIds,
                       selectedItems: selectedPickingItems.length,
                       locationName: selectedLocationName,
-                      ystCameraIncluded: selectedPickingItems.some(item => item.productName === 'YSTカメラ')
+                      validProductCount: productIds.length
                     });
                     
                     const requestBody = {
                       productIds,
-                      action: 'create_picking_instruction',
+                      action: 'complete_picking',
                       // 先頭に英数記号を含む棚コードのみ抽出（例: "A-01"）
                       locationCode: (selectedLocationName.match(/[A-Z]-\d{2}/)?.[0]) || selectedLocationName.split(' ')[0] || 'UNKNOWN',
                       locationName: selectedLocationName
@@ -1287,23 +1299,26 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
 
                       showToast({
                         type: 'success',
-                        title: 'ピッキング指示作成完了',
-                        message: `${selectedLocationName}の商品${selectedPickingItems.length}件を出荷管理に追加しました`,
+                        title: 'ピッキング完了',
+                        message: `${selectedLocationName}の商品${selectedPickingItems.length}件のピッキングが完了しました`,
                         duration: 4000
                       });
+
+                      // データを再取得してリストを更新
+                      fetchShippingData();
 
                       // 出荷管理画面へ遷移（作成した商品を強調表示）
                       const includeId = productIds[0];
                       router.push(`/staff/shipping?status=workstation&includeProductId=${encodeURIComponent(includeId)}`);
                     } else {
-                      throw new Error('ピッキング指示作成に失敗しました');
+                      throw new Error('ピッキング完了処理に失敗しました');
                     }
                   } catch (error) {
-                    console.error('Error creating picking instruction:', error);
+                    console.error('Error completing picking:', error);
                     showToast({
                       type: 'error',
                       title: 'エラー',
-                      message: 'ピッキング指示作成中にエラーが発生しました',
+                      message: 'ピッキング完了処理中にエラーが発生しました',
                       duration: 4000
                     });
                   }
@@ -1317,7 +1332,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                ピッキング指示を作成
+ピッキング完了を確認
               </NexusButton>
             </div>
           </div>

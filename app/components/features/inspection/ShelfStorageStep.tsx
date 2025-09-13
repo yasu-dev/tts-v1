@@ -342,7 +342,7 @@ export default function ShelfStorageStep({
                 <div><strong>容量:</strong> {locationData.currentCount + 1}/{locationData.capacity}</div>
               </div>
               <div className="mt-3 text-sm text-green-700 bg-green-100 p-2 rounded">
-                <strong>準備完了:</strong> 「保管完了」ボタンで即座に保管処理が実行されます
+                <strong>準備完了:</strong> 「保管場所を確認」ボタンで確認画面に進みます
               </div>
             </NexusCard>
           )}
@@ -358,7 +358,8 @@ export default function ShelfStorageStep({
           <div>
             <h4 className="text-sm font-medium text-yellow-900 mb-1">重要</h4>
             <p className="text-sm text-yellow-800">
-              「保管完了」ボタンを押すと即座に保管処理が実行され、検品作業が完了します。
+              「保管場所を確認」ボタンを押すと、保管確認画面が表示されます。
+              実際に商品を棚に配置してから「はい、保管しました」を選択してください。
               複数商品を同時に進行している場合は、「保存して一覧に戻る」で他の商品の作業を続けることができます。
             </p>
           </div>

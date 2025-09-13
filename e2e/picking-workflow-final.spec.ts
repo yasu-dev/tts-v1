@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * ピッキング指示→梱包待ちリスト 最終確認E2Eテスト
+ * ピッキング完了→梱包待ちリスト 最終確認E2Eテスト
  * 
  * 実際のUI構造に基づいた正確なテスト
  */
 
-test.describe('ピッキング指示→梱包待ちリスト最終確認', () => {
+test.describe('ピッキング完了→梱包待ちリスト最終確認', () => {
   
   test('API直接呼び出しテスト - 確実なShipment作成', async ({ page }) => {
     console.log('🧪 [E2E] API直接テスト開始');
@@ -17,11 +17,11 @@ test.describe('ピッキング指示→梱包待ちリスト最終確認', () =>
     // ブラウザコンソールでAPIを直接呼び出し
     const apiResult = await page.evaluate(async () => {
       try {
-        // ピッキング画面で表示される商品IDを使用
+        // 実際に存在する商品IDを使用
         const testProductIds = [
-          'cmf2ehjmc002sj123pot3yb3c', // aaaaaaaaaaaaa
-          'cmf0hjyc7000ip60awh5abc13', // XYZカメラ
-          'cmex0717s000711l07m6p27by'  // コンディションテスト_普通
+          'cmfgudxp9000ezj2axb9mdc17', // ABCカメラ
+          'cmfdqjc2g0052rpavqnvmwq6b', // YST6カメラ
+          'cmfdr0694000l11sbh017q2fa'  // TESTカメラ
         ];
         
         console.log('🧪 [API TEST] テスト商品ID:', testProductIds);
@@ -31,7 +31,7 @@ test.describe('ピッキング指示→梱包待ちリスト最終確認', () =>
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             productIds: testProductIds,
-            action: 'create_picking_instruction',
+            action: 'complete_picking',
             locationCode: 'A1-01',
             locationName: 'A1-01 メインシェルフ'
           })
@@ -59,7 +59,7 @@ test.describe('ピッキング指示→梱包待ちリスト最終確認', () =>
     // APIが成功することを確認
     expect(apiResult.success).toBe(true);
     expect(apiResult.data.success).toBe(true);
-    expect(apiResult.data.message).toContain('出荷管理に追加されました');
+    expect(apiResult.data.message).toContain('ピッキング完了が正常に確認され');
     
     console.log('🎉 [E2E] API直接テスト成功');
   });
@@ -112,7 +112,7 @@ test.describe('ピッキング指示→梱包待ちリスト最終確認', () =>
   test('完全ワークフロー統合テスト', async ({ page }) => {
     console.log('🧪 [E2E] 完全ワークフロー統合テスト開始');
 
-    // Step 1: API直接実行でピッキング指示作成
+    // Step 1: API直接実行でピッキング完了作成
     await page.goto('/staff/location');
     await page.waitForLoadState('networkidle');
     
@@ -124,16 +124,16 @@ test.describe('ピッキング指示→梱包待ちリスト最終確認', () =>
     const beforeCount = await page.locator('tr').count();
     console.log('📊 [E2E] 作成前のアイテム数:', beforeCount);
     
-    // Step 2: 新しいテスト商品でピッキング指示作成
+    // Step 2: 新しいテスト商品でピッキング完了作成
     const newTestResult = await page.evaluate(async () => {
-      const testProductId = 'cmf2aqk7r000c40w2shz1gae5'; // 商品 'a'
+      const testProductId = 'cmff9b7ca000txouor9sfjcx0'; // YST8カメラ
       
       const response = await fetch('/api/picking', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           productIds: [testProductId],
-          action: 'create_picking_instruction',
+          action: 'complete_picking',
           locationCode: 'B2-05',
           locationName: 'B2-05 テストシェルフ'
         })
@@ -146,7 +146,7 @@ test.describe('ピッキング指示→梱包待ちリスト最終確認', () =>
       };
     });
     
-    console.log('✅ [E2E] 新規ピッキング指示作成結果:', newTestResult);
+    console.log('✅ [E2E] 新規ピッキング完了作成結果:', newTestResult);
     expect(newTestResult.success).toBe(true);
     
     // Step 3: 梱包待ちリストで増加確認
@@ -161,6 +161,6 @@ test.describe('ピッキング指示→梱包待ちリスト最終確認', () =>
     expect(afterCount).toBeGreaterThanOrEqual(beforeCount);
     
     console.log('🎉 [E2E] 完全ワークフロー統合テスト成功');
-    console.log(`🎯 [E2E] 結果: ピッキング指示作成により梱包待ちリストが更新されることを確認`);
+    console.log(`🎯 [E2E] 結果: ピッキング完了作成により梱包待ちリストが更新されることを確認`);
   });
 });

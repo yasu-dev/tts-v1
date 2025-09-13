@@ -274,13 +274,19 @@ export default function ProductDetailModal({ isOpen, onClose, product, onOpenLis
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                       <span className="font-medium text-nexus-text-secondary">ステータス</span>
                       <BusinessStatusIndicator 
-                        status={convertStatusToKey(product.status) as any} 
+                        status={product.status} 
                         size="sm" 
                       />
                     </div>
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                       <span className="font-medium text-nexus-text-secondary">コンディション</span>
                       <span className="text-nexus-text-primary">{getConditionJapaneseName(product.condition)}</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                      <span className="font-medium text-nexus-text-secondary">購入価格</span>
+                      <span className="font-bold text-nexus-text-primary">
+                        ¥{product.price ? product.price.toLocaleString() : '0'}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                       <span className="font-medium text-nexus-text-secondary">更新日</span>

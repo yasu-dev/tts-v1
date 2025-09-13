@@ -200,7 +200,7 @@ export async function GET(request: NextRequest) {
         orderId: order?.id || `order-${product.id}`,
         customer: customerName,
         customerName: customerName,
-        status: product.status === 'workstation' ? 'ピッキング作業中' : 'pending', // ステータスに応じて設定
+        status: 'pending', // ピッキング待ちのみ表示
         priority: 'normal',
         totalItems: 1,
         pickedItems: 0,
@@ -219,7 +219,7 @@ export async function GET(request: NextRequest) {
           location: product.currentLocation?.code || 'PICK-01',
           quantity: 1,
           pickedQuantity: 0,
-          status: product.status === 'workstation' ? 'ピッキング作業中' : 'pending',
+          status: 'pending',
           // 同梱情報をitemにも追加
           bundleId: itemBundleInfo?.bundleId || null,
           bundleTrackingNumber: itemBundleInfo?.trackingNumber || null,
@@ -323,8 +323,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (action === 'create_picking_list' || action === 'create_picking_instruction') {
-      console.log('[STEP 3] ピッキングリスト作成処理開始');
+    if (action === 'create_picking_list' || action === 'create_picking_instruction' || action === 'complete_picking') {
+      console.log('[STEP 3] ピッキング処理開始');
       
       // 1. 対象商品を実データベースから取得（恒久的解決）
       console.log('[STEP 4] 商品データ取得開始（実データ使用）');
@@ -349,58 +349,18 @@ export async function POST(request: NextRequest) {
         console.log(`  商品${index + 1}: ${product.name} (${product.id}) - status: ${product.status}`);
       });
 
-      // 商品が見つからない場合、仮商品を作成
+      // 商品が見つからない場合、エラーを返す
       if (products.length === 0) {
-        console.log('[STEP 4 ALTER] 商品が見つからないため、仮商品を作成');
-        
-        const newProducts = [];
-        for (const productId of validProductIds) {
-          try {
-            // まず仮セラーを取得または作成
-            let tempSeller = await prisma.user.findFirst({
-              where: { username: 'temp-seller-001' }
-            });
-            
-            if (!tempSeller) {
-              tempSeller = await prisma.user.create({
-                data: {
-                  username: 'temp-seller-001',
-                  fullName: 'テンポラリーセラー',
-                  email: 'temp-seller@system.local',
-                  password: 'temp-password',
-                  role: 'seller'
-                }
-              });
-            }
-            
-            const newProduct = await prisma.product.create({
-              data: {
-                id: productId,
-                name: productId, // 商品名としてIDを使用
-                price: 0,
-                stock: 1,
-                status: 'ordered',
-                sellerId: tempSeller.id,
-                sku: `SKU-${productId.slice(-8)}`,
-                description: 'ピッキング指示用仮商品'
-              }
-            });
-            newProducts.push(newProduct);
-            console.log(`[STEP 4 ALTER] 仮商品作成成功: ${newProduct.id}`);
-          } catch (createError) {
-            console.error(`[STEP 4 ALTER] 仮商品作成エラー: ${productId}`, createError);
-          }
-        }
-        
-        if (newProducts.length === 0) {
-          console.log('[STEP 4 FAILED] 商品作成失敗');
-          return NextResponse.json(
-            { error: 'ピッキング対象の商品を作成できませんでした' },
-            { status: 500 }
-          );
-        }
-        
-        products = newProducts;
+        console.log('[STEP 4 ERROR] 商品が見つかりません');
+        console.log('リクエストされた商品ID:', validProductIds);
+        return NextResponse.json(
+          { 
+            success: false,
+            error: '選択された商品が見つかりません。有効な商品を選択してください。',
+            requestedIds: validProductIds
+          },
+          { status: 404 }
+        );
       }
 
       // 2. ピッキングタスクを作成
@@ -462,7 +422,8 @@ export async function POST(request: NextRequest) {
 
       // 4. 商品のステータスを更新
       console.log('[STEP 7] 商品ステータス更新開始');
-      const newStatus = action === 'create_picking_instruction' ? 'workstation' : 'ordered';
+      const newStatus = action === 'complete_picking' ? 'shipping' : 
+                        action === 'create_picking_instruction' ? 'workstation' : 'ordered';
       
       // 実際に商品ステータスを更新（恒久的解決）
       try {
@@ -489,7 +450,7 @@ export async function POST(request: NextRequest) {
       }
       
       // Shipmentエントリを作成（出荷管理で表示するため）
-      if (action === 'create_picking_instruction') {
+      if (action === 'create_picking_instruction' || action === 'complete_picking') {
         console.log('[STEP 8] Shipmentエントリ作成開始');
         for (const product of products) {
           try {
@@ -565,11 +526,11 @@ export async function POST(request: NextRequest) {
               const updatedShipment = await prisma.shipment.update({
                 where: { id: existingShipment.id },
                 data: {
-                  status: 'workstation', // ピッキング作業中状態に更新（出荷管理表示用）
+                  status: action === 'complete_picking' ? 'shipping' : 'workstation', // ピッキング完了は出荷状態に更新
                   orderId: validOrderId, // 注文IDも更新
                   customerName: `ロケーション: ${locationName}`,
                   address: 'ピッキングエリア',
-                  notes: `ピッキング指示作成済み - ロケーション: ${locationName}`
+                  notes: action === 'complete_picking' ? `ピッキング完了 - ロケーション: ${locationName}` : `ピッキング指示作成済み - ロケーション: ${locationName}`
                 }
               });
               console.log(`[SHIPMENT] 更新完了確認: ${updatedShipment.id} - status: ${updatedShipment.status}`);
@@ -579,7 +540,7 @@ export async function POST(request: NextRequest) {
                 data: {
                   orderId: validOrderId,
                   productId: product.id,
-                  status: 'workstation', // ピッキング作業中状態（出荷管理表示用）
+                  status: action === 'complete_picking' ? 'shipping' : 'workstation', // ピッキング完了は出荷状態
                   carrier: 'pending',
                   method: 'standard',
                   customerName: orderInfo?.customerName || `ロケーション: ${locationName}`,
@@ -587,7 +548,7 @@ export async function POST(request: NextRequest) {
                   deadline: dueDate,
                   priority: 'normal',
                   value: (product as any).price || 0,
-                  notes: `ピッキング指示作成済み - ロケーション: ${locationName}`
+                  notes: action === 'complete_picking' ? `ピッキング完了 - ロケーション: ${locationName}` : `ピッキング指示作成済み - ロケーション: ${locationName}`
                 }
               });
               console.log(`[SHIPMENT] 新規Shipmentエントリ作成完了: ${product.name}`, {
@@ -617,15 +578,44 @@ export async function POST(request: NextRequest) {
       
       console.log('[STEP 7 OK] 商品ステータス更新成功（デモモード）:', newStatus);
 
-      // 5. アクティビティログを記録（デモモード - ログのみ）
-      console.log('[STEP 8] アクティビティログ記録開始（デモモード）');
-      const activityType = action === 'create_picking_instruction' ? 'picking_instruction_created' : 'picking_list_created';
-      const activityDescription = action === 'create_picking_instruction' 
+      // 5. アクティビティログを記録（実データベースに記録）
+      console.log('[STEP 8] アクティビティログ記録開始');
+      const activityType = action === 'complete_picking' ? 'picking_completed' : 
+                           action === 'create_picking_instruction' ? 'picking_instruction_created' : 'picking_list_created';
+      const activityDescription = action === 'complete_picking' 
+        ? `ピッキング完了「${pickingTaskId}」が確認され、商品を梱包・出荷準備に移行しました（${products.length}件）`
+        : action === 'create_picking_instruction' 
         ? `ピッキング指示「${pickingTaskId}」が作成され、商品を出荷管理に追加しました（${products.length}件）`
         : `ピッキングリスト「${pickingTaskId}」が作成されました（${products.length}件）`;
-      console.log('[STEP 8 OK] アクティビティログ記録成功（デモモード）');
+      
+      // 各商品にアクティビティを記録
+      try {
+        for (const product of products) {
+          await prisma.activity.create({
+            data: {
+              type: activityType,
+              description: activityDescription,
+              productId: product.id,
+              userId: user.id,
+              metadata: JSON.stringify({
+                taskId: pickingTaskId,
+                locationCode: locationCode,
+                locationName: locationName,
+                action: action,
+                status: newStatus
+              })
+            }
+          });
+        }
+        console.log(`[STEP 8 OK] アクティビティログ記録成功: ${products.length}件`);
+      } catch (activityError) {
+        console.error('[STEP 8 WARNING] アクティビティログ記録エラー:', activityError);
+        // アクティビティログのエラーは処理を停止させない
+      }
 
-      const successMessage = action === 'create_picking_instruction' 
+      const successMessage = action === 'complete_picking' 
+        ? 'ピッキング完了が正常に確認され、梱包・出荷準備に移行しました'
+        : action === 'create_picking_instruction' 
         ? 'ピッキング指示が正常に作成され、出荷管理に追加されました'
         : 'ピッキングリストが正常に作成されました';
 
@@ -646,7 +636,7 @@ export async function POST(request: NextRequest) {
         message: successMessage
       };
       
-      console.log('[✅ SUCCESS] ピッキング指示作成完了:', {
+      console.log('[✅ SUCCESS] ピッキング処理完了:', {
         response: response,
         timestamp: new Date().toISOString()
       });

@@ -1,7 +1,7 @@
 import { test, expect, Page } from '@playwright/test';
 
-test.describe('同梱商品ピッキング指示→出荷管理リスト生成検証', () => {
-  test('同梱商品ピッキング指示作成から出荷管理リスト表示まで完全検証', async ({ page }) => {
+test.describe('同梱商品ピッキング完了→出荷管理リスト生成検証', () => {
+  test('同梱商品ピッキング完了作成から出荷管理リスト表示まで完全検証', async ({ page }) => {
     console.log('🎯 同梱商品ピッキング→出荷管理フロー検証開始');
 
     // サーバー起動待機
@@ -60,8 +60,8 @@ test.describe('同梱商品ピッキング指示→出荷管理リスト生成�
           fullPage: true
         });
 
-        // ピッキング指示作成ボタンを押下
-        console.log('📍 Step 3: ピッキング指示作成ボタン押下');
+        // ピッキング完了作成ボタンを押下
+        console.log('📍 Step 3: ピッキング完了作成ボタン押下');
         
         // より広範囲でボタンを探索
         const allButtons = page.locator('button');
@@ -74,9 +74,9 @@ test.describe('同梱商品ピッキング指示→出荷管理リスト生成�
           console.log(`ボタン ${i}: "${buttonText}"`);
         }
         
-        const pickingButtons = page.locator('button:has-text("選択商品をピッキング指示"), button:has-text("ピッキング指示を作成"), button:has-text("ピッキング指示")');
+        const pickingButtons = page.locator('button:has-text("選択商品をピッキング完了"), button:has-text("ピッキング完了を作成"), button:has-text("ピッキング完了")');
         const buttonCount = await pickingButtons.count();
-        console.log(`🔍 ピッキング指示ボタン検出数: ${buttonCount}件`);
+        console.log(`🔍 ピッキング完了ボタン検出数: ${buttonCount}件`);
 
         if (buttonCount > 0) {
           // ボタンをクリック
@@ -91,7 +91,7 @@ test.describe('同梱商品ピッキング指示→出荷管理リスト生成�
           // モーダルが表示される場合は確認
           const modal = page.locator('.modal, [role="dialog"], .fixed.inset-0');
           if (await modal.count() > 0) {
-            console.log('📍 Step 4: ピッキング指示確認モーダル');
+            console.log('📍 Step 4: ピッキング完了確認モーダル');
             
             await page.screenshot({
               path: 'picking-step-4-confirmation-modal.png',
@@ -99,7 +99,7 @@ test.describe('同梱商品ピッキング指示→出荷管理リスト生成�
             });
 
             // 確認ボタンをクリック
-            const confirmButtons = modal.locator('button:has-text("ピッキング指示を作成"), button:has-text("確認"), button:has-text("作成")');
+            const confirmButtons = modal.locator('button:has-text("ピッキング完了を作成"), button:has-text("確認"), button:has-text("作成")');
             if (await confirmButtons.count() > 0) {
               await confirmButtons.first().click();
               await page.waitForTimeout(3000);
@@ -163,7 +163,7 @@ test.describe('同梱商品ピッキング指示→出荷管理リスト生成�
           }
 
         } else {
-          console.error('❌ ピッキング指示ボタンが見つかりません');
+          console.error('❌ ピッキング完了ボタンが見つかりません');
           await page.screenshot({
             path: 'picking-error-no-button.png',
             fullPage: true

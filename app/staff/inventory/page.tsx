@@ -292,6 +292,8 @@ export default function StaffInventoryPage() {
           lastChecked: item.updatedAt || new Date().toISOString(),
           inspectedAt: item.inspectedAt || null,
           photographyDate: item.photographyDate || null,
+          imageUrl: item.imageUrl || item.images?.[0] || null, // セラーがアップロードした画像を優先
+          images: item.images || [], // セラーがアップロードした全画像
           // 同梱情報フィールド（初期値）
           bundleId: item.bundleId || null,
           isBundleItem: item.isBundleItem || false,
@@ -731,11 +733,12 @@ export default function StaffInventoryPage() {
                       className={item.isBundleItem ? 'bg-blue-50 border-l-4 border-l-blue-400' : ''}
                     >
                       <td className="p-4 text-center">
-                        {item.imageUrl ? (
+                        {(item.imageUrl || item.images?.[0]) ? (
                           <img 
-                            src={item.imageUrl} 
+                            src={item.imageUrl || item.images?.[0]} 
                             alt={item.name}
                             className="w-12 h-12 object-cover rounded-lg mx-auto border border-nexus-border"
+                            title="セラーがアップロードした画像"
                           />
                         ) : (
                           <div className="w-12 h-12 bg-gray-100 rounded-lg mx-auto border border-nexus-border flex items-center justify-center">

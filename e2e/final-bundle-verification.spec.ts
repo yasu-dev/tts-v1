@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('最終同梱商品フロー検証', () => {
-  test('同梱商品ピッキング指示→出荷管理完全フロー', async ({ page }) => {
+  test('同梱商品ピッキング完了→出荷管理完全フロー', async ({ page }) => {
     console.log('🎯 最終同梱商品フロー検証開始');
 
     // APIレスポンスをモニタ
@@ -90,17 +90,17 @@ test.describe('最終同梱商品フロー検証', () => {
         }
       }
 
-      // ピッキング指示ボタンを強制表示
+      // ピッキング完了ボタンを強制表示
       await page.evaluate(() => {
         // 既存のボタンを修正または新しいボタンを作成
         const container = document.querySelector('.flex.gap-2, .space-x-2');
         if (container) {
           const pickingButton = document.createElement('button');
           pickingButton.className = 'px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors';
-          pickingButton.innerHTML = '選択商品をピッキング指示 (2)';
+          pickingButton.innerHTML = '選択商品をピッキング完了 (2)';
           pickingButton.onclick = () => {
-            console.log('ピッキング指示ボタンがクリックされました');
-            alert('ピッキング指示作成処理を実行します');
+            console.log('ピッキング完了ボタンがクリックされました');
+            alert('ピッキング完了作成処理を実行します');
             // 出荷管理画面に移動
             window.location.href = '/staff/shipping?status=workstation&from=picking';
           };
@@ -114,7 +114,7 @@ test.describe('最終同梱商品フロー検証', () => {
       });
 
       // 強制ボタンをクリック
-      await page.click('button:has-text("選択商品をピッキング指示")');
+      await page.click('button:has-text("選択商品をピッキング完了")');
       await page.waitForTimeout(2000);
 
       // 出荷管理画面での確認

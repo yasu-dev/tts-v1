@@ -400,7 +400,8 @@ export default function SalesPage() {
               ...order,
               ebayTitle,
               ebayImage,
-              product: ebayTitle  // productプロパティも更新
+              product: ebayTitle,  // productプロパティも更新
+              ebayPrice: order.ebayPrice || order.listingPrice || order.sellingPrice || order.totalAmount || order.amount // eBay販売価格を追加
             };
             
             return enhancedOrder;
@@ -1014,7 +1015,7 @@ export default function SalesPage() {
                           />
                         </th>
                         <th className="text-left p-4 font-medium text-nexus-text-secondary">商品</th>
-                        <th className="text-right p-4 font-medium text-nexus-text-secondary">金額</th>
+                        <th className="text-right p-4 font-medium text-nexus-text-secondary">販売価格</th>
                         <th className="text-center p-4 font-medium text-nexus-text-secondary">ステータス</th>
                         <th className="text-center p-4 font-medium text-nexus-text-secondary">ラベル</th>
                         <th className="text-left p-4 font-medium text-nexus-text-secondary">注文日</th>
@@ -1094,7 +1095,7 @@ export default function SalesPage() {
                             </td>
                             <td className="p-4 text-right">
                               <span className="font-bold text-nexus-text-primary">
-                                ¥{Number(row.totalAmount || row.amount || 0).toLocaleString()}
+                                ${Number(row.ebayPrice || row.listingPrice || row.sellingPrice || row.totalAmount || row.amount || 0).toLocaleString()}
                               </span>
                             </td>
                             <td className="p-4">

@@ -79,7 +79,36 @@ export default function ItemDetailModal({
   const [activeTab, setActiveTab] = useState<'details' | 'history' | 'notes'>('details');
   const [ebayListingInfo, setEbayListingInfo] = useState<EbayListingInfo | null>(null);
   const [loadingEbayInfo, setLoadingEbayInfo] = useState(false);
+  const [historyData, setHistoryData] = useState<any[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
   const { showToast } = useToast();
+
+  // 商品履歴を取得
+  const fetchProductHistory = async (productId: string) => {
+    setLoadingHistory(true);
+    try {
+      const response = await fetch(`/api/products/${productId}/history`);
+      if (response.ok) {
+        const data = await response.json();
+        // タイムラインデータを履歴形式に変換
+        const formattedHistory = data.timeline?.map((event: any, index: number) => ({
+          date: new Date(event.timestamp).toLocaleString('ja-JP'),
+          action: event.title,
+          details: event.metadata ? JSON.stringify(event.metadata) : '',
+          user: event.user || 'システム'
+        })) || [];
+        setHistoryData(formattedHistory);
+      } else {
+        console.error('Failed to fetch product history');
+        setHistoryData([]);
+      }
+    } catch (error) {
+      console.error('Error fetching product history:', error);
+      setHistoryData([]);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
 
   // eBay出品情報を取得
   const fetchEbayListingInfo = async (productId: string) => {
@@ -115,6 +144,13 @@ export default function ItemDetailModal({
     }
   }, [isOpen, item]);
 
+  // 履歴タブが選択されたときに履歴データを取得
+  useEffect(() => {
+    if (isOpen && item?.id && activeTab === 'history') {
+      fetchProductHistory(item.id);
+    }
+  }, [isOpen, item?.id, activeTab]);
+
   if (!isOpen || !item) return null;
 
   // メタデータから検品・撮影状況を取得
@@ -128,11 +164,6 @@ export default function ItemDetailModal({
     photographyDate: item.photographyDate || null
   });
 
-  const demoHistory = [
-            { date: '2024-12-24 10:00', action: 'ステータス変更', details: '保管作業中 → 保管中', user: '田中太郎' },
-    { date: '2024-12-23 14:30', action: 'ロケーション移動', details: 'A-1-001 → A-1-002', user: '田中太郎' },
-    { date: '2024-12-22 09:15', action: '商品登録', details: '初回登録完了', user: '佐藤花子' },
-  ];
 
   const handleEbayLinkClick = () => {
     if (ebayListingInfo?.listingUrl) {
@@ -425,36 +456,51 @@ export default function ItemDetailModal({
               <h3 className="text-lg font-semibold text-nexus-text-primary">
                 操作履歴
               </h3>
-              <div className="holo-table">
-                <table className="w-full">
-                  <thead className="holo-header">
-                    <tr>
-                      <th className="text-left py-3 px-4 text-sm font-medium">アクション</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium">詳細</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium">実行者</th>
-                      <th className="text-right py-3 px-4 text-sm font-medium">日時</th>
-                    </tr>
-                  </thead>
-                  <tbody className="holo-body">
-                {demoHistory.map((entry, index) => (
-                      <tr key={index} className="holo-row">
-                        <td className="py-3 px-4">
-                          <span className="font-medium text-nexus-text-primary">{entry.action}</span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="text-nexus-text-secondary">{entry.details}</span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="text-nexus-text-secondary">{entry.user}</span>
-                        </td>
-                        <td className="py-3 px-4 text-right">
-                          <span className="text-sm text-nexus-text-secondary">{entry.date}</span>
-                        </td>
+              {loadingHistory ? (
+                <div className="flex justify-center items-center py-8">
+                  <div className="animate-spin h-8 w-8 border-b-2 border-nexus-yellow rounded-full"></div>
+                  <span className="ml-3 text-nexus-text-secondary">履歴を読み込み中...</span>
+                </div>
+              ) : (
+                <div className="holo-table">
+                  <table className="w-full">
+                    <thead className="holo-header">
+                      <tr>
+                        <th className="text-left py-3 px-4 text-sm font-medium">アクション</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium">詳細</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium">実行者</th>
+                        <th className="text-right py-3 px-4 text-sm font-medium">日時</th>
                       </tr>
-                ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="holo-body">
+                      {historyData.length > 0 ? (
+                        historyData.map((entry, index) => (
+                          <tr key={index} className="holo-row">
+                            <td className="py-3 px-4">
+                              <span className="font-medium text-nexus-text-primary">{entry.action}</span>
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className="text-nexus-text-secondary">{entry.details}</span>
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className="text-nexus-text-secondary">{entry.user}</span>
+                            </td>
+                            <td className="py-3 px-4 text-right">
+                              <span className="text-sm text-nexus-text-secondary">{entry.date}</span>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr className="holo-row">
+                          <td colSpan={4} className="py-8 text-center">
+                            <span className="text-nexus-text-secondary">履歴データがありません</span>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           )}
 

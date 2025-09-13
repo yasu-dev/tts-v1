@@ -153,7 +153,7 @@ export async function GET(request: NextRequest) {
                   data: {
                     orderNumber: `AUTO-WORKSTATION-${Date.now()}-${includeProductId.slice(-6)}`,
                     status: 'processing',
-                    customerName: 'ピッキング指示',
+                    customerName: 'ピッキング完了',
                     totalAmount: (product as any).price || 0,
                     shippingAddress: 'ピッキングエリア',
                   }
@@ -168,7 +168,7 @@ export async function GET(request: NextRequest) {
                   status: 'workstation',
                   carrier: 'pending',
                   method: 'standard',
-                  customerName: 'ピッキング指示',
+                  customerName: 'ピッキング完了',
                   address: 'ピッキングエリア',
                   deadline: new Date(Date.now() + 3 * 60 * 60 * 1000),
                   priority: 'normal',
@@ -292,10 +292,10 @@ export async function GET(request: NextRequest) {
           displayStatus = 'workstation';  // 梱包待ち状態
           break;
         case 'picked':
-          displayStatus = 'workstation';  // ピッキング済み→梱包待ち
+          displayStatus = 'workstation';  // 梱包待ち
           break;
         case 'workstation':
-          displayStatus = 'workstation';  // ピッキング作業中→梱包待ち
+          displayStatus = 'workstation';  // 梱包待ち
           break;
         case 'ordered':
           displayStatus = 'workstation';  // 注文済み→梱包待ち
@@ -560,7 +560,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     console.log('📦 作成データ:', body);
     
-    // ピッキング指示からのShipment作成の場合
+    // ピッキング完了からのShipment作成の場合
     if (body.action === 'create_from_picking') {
       const {
         orderId,
@@ -588,11 +588,11 @@ export async function POST(request: NextRequest) {
           address: address || '住所不明',
           value: value || 0,
           deadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-          notes: notes || `ピッキング指示作成 - ${new Date().toLocaleString()}`
+          notes: notes || `ピッキング完了 - ${new Date().toLocaleString()}`
         }
       });
 
-      console.log('✅ ピッキング指示Shipmentエントリ作成成功:', shipment.id);
+      console.log('✅ ピッキング完了Shipmentエントリ作成成功:', shipment.id);
 
       return NextResponse.json({
         success: true,

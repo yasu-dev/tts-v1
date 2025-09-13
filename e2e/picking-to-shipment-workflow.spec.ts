@@ -1,21 +1,21 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * ピッキング指示作成→梱包待ちリスト表示の完全ワークフローE2Eテスト
+ * ピッキング完了作成→梱包待ちリスト表示の完全ワークフローE2Eテスト
  * 
- * このテストは「ピッキング指示を作成」操作で確実に梱包待ちリストに
+ * このテストは「ピッキング完了を作成」操作で確実に梱包待ちリストに
  * 商品が表示されることを検証します。
  */
 
-test.describe('ピッキング指示→梱包待ちリスト完全ワークフロー', () => {
+test.describe('ピッキング完了→梱包待ちリスト完全ワークフロー', () => {
   test.beforeEach(async ({ page }) => {
     // テスト用ページのアクセス準備
     await page.goto('/staff');
     await page.waitForLoadState('networkidle');
   });
 
-  test('ピッキング指示作成で確実に梱包待ちリストに表示される', async ({ page }) => {
-    console.log('🧪 [E2E] テスト開始: ピッキング指示→梱包待ちリスト');
+  test('ピッキング完了作成で確実に梱包待ちリストに表示される', async ({ page }) => {
+    console.log('🧪 [E2E] テスト開始: ピッキング完了→梱包待ちリスト');
 
     // Step 1: ロケーション管理画面に移動
     await page.goto('/staff/location');
@@ -36,21 +36,21 @@ test.describe('ピッキング指示→梱包待ちリスト完全ワークフ�
       await productCheckbox.check();
       console.log('✅ [E2E] 商品選択完了');
       
-      // Step 4: ピッキング指示作成ボタンをクリック
-      const createPickingButton = await page.locator('button:has-text("ピッキング指示を作成")');
+      // Step 4: ピッキング完了作成ボタンをクリック
+      const createPickingButton = await page.locator('button:has-text("ピッキング完了を作成")');
       await expect(createPickingButton).toBeVisible();
       await createPickingButton.click();
-      console.log('✅ [E2E] ピッキング指示作成ボタンクリック');
+      console.log('✅ [E2E] ピッキング完了作成ボタンクリック');
       
       // Step 5: 確認ダイアログで OK をクリック
       await page.waitForSelector('.modal', { timeout: 5000 });
       const confirmButton = await page.locator('button:has-text("作成")').last();
       await confirmButton.click();
-      console.log('✅ [E2E] ピッキング指示作成実行');
+      console.log('✅ [E2E] ピッキング完了作成実行');
       
       // Step 6: 成功メッセージを待機
-      await page.waitForSelector('text=ピッキング指示が正常に作成され、出荷管理に追加されました', { timeout: 10000 });
-      console.log('✅ [E2E] ピッキング指示作成成功メッセージ確認');
+      await page.waitForSelector('text=ピッキング完了が正常に作成され、出荷管理に追加されました', { timeout: 10000 });
+      console.log('✅ [E2E] ピッキング完了作成成功メッセージ確認');
       
       // Step 7: 梱包待ちリストページに移動
       await page.goto('/staff/shipping');
@@ -65,7 +65,7 @@ test.describe('ピッキング指示→梱包待ちリスト完全ワークフ�
       await expect(shippingItems).toBeVisible({ timeout: 5000 });
       console.log('✅ [E2E] 対象商品が梱包待ちリストに表示されることを確認');
       
-      console.log('🎉 [E2E] テスト成功: ピッキング指示→梱包待ちリストの完全ワークフロー動作確認');
+      console.log('🎉 [E2E] テスト成功: ピッキング完了→梱包待ちリストの完全ワークフロー動作確認');
       
     } else {
       console.log('⚠️ [E2E] 対象商品が見つからないため、別の商品でテスト');
@@ -74,14 +74,14 @@ test.describe('ピッキング指示→梱包待ちリスト完全ワークフ�
       const availableProduct = await page.locator('input[type="checkbox"]').first();
       await availableProduct.check();
       
-      const createPickingButton = await page.locator('button:has-text("ピッキング指示を作成")');
+      const createPickingButton = await page.locator('button:has-text("ピッキング完了を作成")');
       await createPickingButton.click();
       
       await page.waitForSelector('.modal');
       const confirmButton = await page.locator('button:has-text("作成")').last();
       await confirmButton.click();
       
-      await page.waitForSelector('text=ピッキング指示が正常に作成され、出荷管理に追加されました', { timeout: 10000 });
+      await page.waitForSelector('text=ピッキング完了が正常に作成され、出荷管理に追加されました', { timeout: 10000 });
       
       await page.goto('/staff/shipping');
       await page.waitForLoadState('networkidle');
@@ -94,7 +94,7 @@ test.describe('ピッキング指示→梱包待ちリスト完全ワークフ�
     }
   });
 
-  test('複数商品のピッキング指示作成テスト', async ({ page }) => {
+  test('複数商品のピッキング完了作成テスト', async ({ page }) => {
     console.log('🧪 [E2E] 複数商品テスト開始');
 
     await page.goto('/staff/location');
@@ -109,15 +109,15 @@ test.describe('ピッキング指示→梱包待ちリスト完全ワークフ�
     }
     console.log(`✅ [E2E] ${selectedCount}商品を選択完了`);
 
-    // ピッキング指示作成
-    const createButton = await page.locator('button:has-text("ピッキング指示を作成")');
+    // ピッキング完了作成
+    const createButton = await page.locator('button:has-text("ピッキング完了を作成")');
     await createButton.click();
 
     await page.waitForSelector('.modal');
     const confirmButton = await page.locator('button:has-text("作成")').last();
     await confirmButton.click();
 
-    await page.waitForSelector('text=ピッキング指示が正常に作成され、出荷管理に追加されました', { timeout: 10000 });
+    await page.waitForSelector('text=ピッキング完了が正常に作成され、出荷管理に追加されました', { timeout: 10000 });
 
     // 梱包待ちリストで確認
     await page.goto('/staff/shipping');
@@ -148,11 +148,11 @@ test.describe('ピッキング指示→梱包待ちリスト完全ワークフ�
     await page.goto('/staff/location');
     await page.waitForLoadState('networkidle');
 
-    // 1つの商品でピッキング指示作成
+    // 1つの商品でピッキング完了作成
     const checkbox = await page.locator('input[type="checkbox"]').first();
     await checkbox.check();
 
-    const createButton = await page.locator('button:has-text("ピッキング指示を作成")');
+    const createButton = await page.locator('button:has-text("ピッキング完了を作成")');
     await createButton.click();
 
     await page.waitForSelector('.modal');
