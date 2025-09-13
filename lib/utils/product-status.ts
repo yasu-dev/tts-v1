@@ -68,7 +68,7 @@ export function getInspectionPhotographyStatus(metadata: ProductMetadata): {
         : photographySkipped
           ? '検品完了（撮影スキップ）'
           : '撮影待ち'
-      : '検品待ち'
+      : '入庫待ち'
   };
 }
 
@@ -82,7 +82,7 @@ export function getInspectionPhotographyProgress(metadata: ProductMetadata): {
   const photographySkipped = isPhotographySkipped(metadata);
 
   if (!inspectionCompleted) {
-    return { percentage: 0, description: '検品待ち' };
+    return { percentage: 0, description: '入庫待ち' };
   }
 
   if (photographySkipped) {

@@ -640,7 +640,7 @@ export default function InspectionPage() {
             <nav className="-mb-px flex space-x-8" aria-label="Tabs">
               {[
                 { id: 'all', label: '全体', count: inspectionStats.total },
-                { id: 'pending_inspection', label: '検品待ち', count: inspectionStats.pending },
+                { id: 'pending_inspection', label: '入庫待ち', count: inspectionStats.pending },
                 { id: 'inspecting', label: '検品中', count: inspectionStats.inspecting },
                 { id: 'completed', label: '完了', count: inspectionStats.completed },
                 { id: 'failed', label: '不合格', count: inspectionStats.failed },
@@ -1079,7 +1079,7 @@ export default function InspectionPage() {
                                     product.status === 'failed' ? 'bg-red-50 text-red-700 border-red-200' :
                                     'bg-gray-50 text-gray-700 border-gray-200'
                                   }`}>
-                                    {product.status === 'pending_inspection' ? '検品待ち' :
+                                    {product.status === 'pending_inspection' ? '入庫待ち' :
                                      product.status === 'inspecting' ? '検品中' :
                                      product.status === 'completed' ? '完了' :
                                      product.status === 'failed' ? '不合格' : product.status}

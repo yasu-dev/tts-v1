@@ -58,7 +58,7 @@ export default function InspectionDetailModal({
   };
 
   const statusLabels: Record<string, string> = {
-    pending_inspection: '検品待ち',
+    pending_inspection: '入庫待ち',
     inspecting: '保管作業中',
     completed: '検品完了',
     failed: '検品不合格'

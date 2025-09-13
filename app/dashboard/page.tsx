@@ -264,7 +264,7 @@ export default function DashboardPage() {
               name: 'Leica M10-P ブラック',
               category: 'カメラ',
               value: 890000,
-              status: '検品待ち',
+              status: '入庫待ち',
               location: 'A-01',
 
               daysInInventory: 3

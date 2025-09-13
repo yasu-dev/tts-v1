@@ -83,7 +83,7 @@ export function getNextAction(currentStatus: ShippingStatus): string {
 export const INSPECTION_WORKFLOW_STEPS = [
   {
     id: 'pending_inspection',
-    label: '検品待ち',
+    label: '入庫待ち',
     icon: 'inspection',
     order: 1
   },
@@ -147,7 +147,7 @@ export function getInspectionWorkflowProgress(currentStatus: InspectionStatus, p
  * 検品ステータスラベルのマッピング
  */
 export const INSPECTION_STATUS_LABELS: Record<InspectionStatus, string> = {
-  'pending_inspection': '検品待ち',
+  'pending_inspection': '入庫待ち',
   'inspecting': '検品中',
   'photography': '撮影中',
   'completed': '完了',

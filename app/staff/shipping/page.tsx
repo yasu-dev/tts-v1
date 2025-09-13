@@ -1143,8 +1143,9 @@ export default function StaffShippingPage() {
                         className="rounded border-nexus-border"
                       />
                     </th>
-                    <th className="text-left p-4 font-medium text-nexus-text-secondary">商品</th>
-                    <th className="text-left p-4 font-medium text-nexus-text-secondary">注文情報</th>
+                    <th className="text-center p-4 font-medium text-nexus-text-secondary w-20">画像</th>
+                    <th className="text-left p-4 font-medium text-nexus-text-secondary">商品名</th>
+                    <th className="text-center p-4 font-medium text-nexus-text-secondary">注文日</th>
                     <th className="text-left p-4 font-medium text-nexus-text-secondary">ステータス</th>
                     <th className="text-right p-4 font-medium text-nexus-text-secondary">操作</th>
                   </tr>
@@ -1162,83 +1163,93 @@ export default function StaffShippingPage() {
                           />
                         </td>
                         <td className="p-4">
-                          <div className="flex items-center space-x-3">
-                            <div className="action-orb">
-                              {item.isBundle ? (
-                                <CubeIcon className="w-5 h-5" />
+                          <div className="flex justify-center">
+                            <div className="w-16 h-16 rounded border border-nexus-border overflow-hidden bg-nexus-bg-secondary">
+                              {item.productImages && item.productImages.length > 0 ? (
+                                <img
+                                  src={item.productImages[0]}
+                                  alt={item.productName}
+                                  className="w-full h-full object-cover"
+                                />
                               ) : (
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                                </svg>
-                              )}
-                            </div>
-                            <div 
-                              className="cursor-pointer hover:text-nexus-blue transition-colors"
-                              onClick={() => handleShowDetails(item)}
-                            >
-                              <div className="font-semibold hover:underline flex items-center gap-2 text-nexus-text-primary">
-                                {item.productName}
-                                {(item.isBundle || item.isBundled || item.isBundleItem) && (
-                                  <span className="inline-flex items-center px-3 py-1 text-xs font-bold bg-blue-600 text-white rounded-full shadow-md">
-                                    <CubeIcon className="w-3 h-3 mr-1" />
-                                    同梱対象
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-sm text-nexus-text-secondary">
-                                SKU: {item.productSku}
-                              </p>
-
-                              {/* 同梱情報の詳細表示 - ロケーション管理と同様のスタイル */}
-                              {(item.isBundled || item.isBundleItem) && (
-                                <div className="mt-2 p-3 bg-gradient-to-r from-blue-100 to-blue-200 rounded-lg border-2 border-blue-300 shadow-inner">
-                                  <div className="space-y-2">
-                                    {item.trackingNumber && (
-                                      <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
-                                        <span className="text-sm font-bold text-blue-900 flex items-center gap-1">
-                                          <ClipboardDocumentListIcon className="h-4 w-4 text-blue-600" />
-                                          追跡番号: {item.trackingNumber}
-                                        </span>
-                                      </div>
-                                    )}
-                                    {item.bundleId && (
-                                      <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                        <span className="text-sm font-semibold text-blue-800">
-                                          🔗 同梱グループ: {item.bundleId}
-                                        </span>
-                                      </div>
-                                    )}
-                                    <div className="bg-amber-100 border-l-4 border-amber-500 p-2 rounded-r">
-                                      <div className="flex items-center gap-2 text-amber-800">
-                                        <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.996-.833-2.768 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                                        </svg>
-                                        <span className="text-sm font-bold flex items-center gap-1">
-                                          <ExclamationTriangleIcon className="h-4 w-4 text-orange-500" />
-                                          同じ追跡番号の商品をまとめて処理してください
-                                        </span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-
-                              {item.isBundle && item.bundledItems && (
-                                <div className="mt-1 text-xs text-nexus-text-secondary">
-                                  含む商品: {item.bundledItems.map(bi => bi.productName).join(', ')}
+                                <div className="w-full h-full flex items-center justify-center text-nexus-text-tertiary">
+                                  {item.isBundle ? (
+                                    <CubeIcon className="w-5 h-5" />
+                                  ) : (
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                  )}
                                 </div>
                               )}
                             </div>
                           </div>
                         </td>
                         <td className="p-4">
-                          <div>
-                            <p className="font-medium text-nexus-text-primary">{item.orderNumber}</p>
-                            <p className="text-sm text-nexus-text-secondary mt-1">{item.customer}</p>
-                            <p className="text-sm text-nexus-yellow mt-1">期限: {item.dueDate}</p>
+                          <div
+                            className="cursor-pointer hover:text-nexus-blue transition-colors"
+                            onClick={() => handleShowDetails(item)}
+                          >
+                            <div className="font-semibold hover:underline flex items-center gap-2 text-nexus-text-primary">
+                              {item.productName}
+                              {(item.isBundle || item.isBundled || item.isBundleItem) && (
+                                <span className="inline-flex items-center px-3 py-1 text-xs font-bold bg-blue-600 text-white rounded-full shadow-md">
+                                  <CubeIcon className="w-3 h-3 mr-1" />
+                                  同梱対象
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-nexus-text-secondary">
+                              SKU: {item.productSku}
+                            </p>
+
+                            {/* 同梱情報の詳細表示 - ロケーション管理と同様のスタイル */}
+                            {(item.isBundled || item.isBundleItem) && (
+                              <div className="mt-2 p-3 bg-gradient-to-r from-blue-100 to-blue-200 rounded-lg border-2 border-blue-300 shadow-inner">
+                                <div className="space-y-2">
+                                  {item.trackingNumber && (
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+                                      <span className="text-sm font-bold text-blue-900 flex items-center gap-1">
+                                        <ClipboardDocumentListIcon className="h-4 w-4 text-blue-600" />
+                                        追跡番号: {item.trackingNumber}
+                                      </span>
+                                    </div>
+                                  )}
+                                  {item.bundleId && (
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                      <span className="text-sm font-semibold text-blue-800">
+                                        🔗 同梱グループ: {item.bundleId}
+                                      </span>
+                                    </div>
+                                  )}
+                                  <div className="bg-amber-100 border-l-4 border-amber-500 p-2 rounded-r">
+                                    <div className="flex items-center gap-2 text-amber-800">
+                                      <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.996-.833-2.768 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                      </svg>
+                                      <span className="text-sm font-bold flex items-center gap-1">
+                                        <ExclamationTriangleIcon className="h-4 w-4 text-orange-500" />
+                                        同じ追跡番号の商品をまとめて処理してください
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {item.isBundle && item.bundledItems && (
+                              <div className="mt-1 text-xs text-nexus-text-secondary">
+                                含む商品: {item.bundledItems.map(bi => bi.productName).join(', ')}
+                              </div>
+                            )}
                           </div>
+                        </td>
+                        <td className="p-4 text-center">
+                          <span className="text-sm text-nexus-text-primary">
+                            {new Date(item.dueDate).toLocaleDateString('ja-JP')}
+                          </span>
                         </td>
                         <td className="p-4">
                           <div className="space-y-2">
@@ -1439,7 +1450,7 @@ export default function StaffShippingPage() {
                       {/* 展開行 - ワークフロー進捗表示 */}
                       {expandedRows.includes(item.id) && (
                         <tr className="holo-row bg-nexus-bg-secondary">
-                          <td colSpan={5} className="p-6">
+                          <td colSpan={6} className="p-6">
                             <div className="space-y-4">
                               <WorkflowProgress 
                                 steps={getWorkflowProgress(item.status as ShippingStatus)}

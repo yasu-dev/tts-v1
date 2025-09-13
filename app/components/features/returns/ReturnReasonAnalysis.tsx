@@ -434,7 +434,7 @@ export function ReturnReasonAnalysis() {
               onChange={(e) => setStatusFilter(e.target.value)}
               options={[
                 { value: 'all', label: 'すべて' },
-                { value: 'pending', label: '検品待ち' },
+                { value: 'pending', label: '入庫待ち' },
                 { value: 'inspecting', label: '保管作業中' },
                 { value: 'completed', label: '完了' }
               ]}

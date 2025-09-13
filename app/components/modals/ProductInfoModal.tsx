@@ -94,7 +94,7 @@ export default function ProductInfoModal({ isOpen, onClose, product }: ProductIn
 
   // ステータスの日本語ラベル
   const statusLabels: Record<string, string> = {
-    pending_inspection: '検品待ち',
+    pending_inspection: '入庫待ち',
     inspecting: '検品中',
     storage: '保管中',
     completed: '検品完了',

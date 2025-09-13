@@ -609,7 +609,7 @@ export default function StaffDashboardPage() {
                   <h3 className="text-lg font-medium text-nexus-text-primary mb-4">本日の作業フロー</h3>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-nexus-text-secondary">検品待ち</span>
+                      <span className="text-sm text-nexus-text-secondary">入庫待ち</span>
                       <div className="flex items-center">
                         <span className="text-sm font-medium text-nexus-text-primary mr-2">{staffData.overview?.inspectionProducts || 0} / {(staffData.overview?.totalProducts || 0)}</span>
                         <div className="w-24 bg-nexus-bg-tertiary rounded-full h-2">

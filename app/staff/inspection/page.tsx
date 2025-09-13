@@ -127,7 +127,7 @@ const convertStatusToBusinessStatus = (status: string): BusinessStatus => {
     case 'inbound':
       return 'inbound';  // 入庫待ち
     case 'pending_inspection':
-      return 'inbound';  // 検品待ち
+      return 'inbound';  // 入庫待ち
     case 'inspection':
       return 'inspection';  // 保管作業中
     case 'inspecting':
@@ -722,37 +722,13 @@ export default function InspectionPage() {
         {/* 検品管理 - 統合版 */}
         <div className="intelligence-card global">
           <div className="p-8">
-            {/* フィルター部分（完全保持） */}
+            {/* 検索フィルター（検索のみ表示） */}
             <div className="p-6 mb-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <NexusSelect
-                  label="ステータス"
-                  value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value)}
-                  options={statusOptions}
-                  useCustomDropdown={true}
-                />
-
-                <NexusSelect
-                  label="検品・撮影状況"
-                  value={selectedInspectionPhotoStatus}
-                  onChange={(e) => setSelectedInspectionPhotoStatus(e.target.value)}
-                  options={inspectionPhotoStatusOptions}
-                  useCustomDropdown={true}
-                />
-
-                <NexusSelect
-                  label="カテゴリー"
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  options={categoryOptions}
-                  useCustomDropdown={true}
-                />
-
+              <div className="max-w-md">
                 <NexusInput
                   type="text"
                   label="検索"
-                  placeholder="商品名・SKU・ブランドで検索"
+                  placeholder="商品名・SKUで検索"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -765,7 +741,7 @@ export default function InspectionPage() {
               <nav className="-mb-px flex space-x-8" aria-label="Tabs">
               {[
                 { id: 'all', label: '全体', count: inspectionStats.total, color: 'blue' },
-                { id: 'pending_inspection', label: '検品待ち', count: inspectionStats.pending, color: 'yellow' },
+                { id: 'pending_inspection', label: '入庫待ち', count: inspectionStats.pending, color: 'yellow' },
                 { id: 'inspecting', label: '保管作業中', count: inspectionStats.inspecting, color: 'cyan' },
                 { id: 'completed', label: '完了', count: inspectionStats.completed, color: 'green' },
                 { id: 'failed', label: '保留中', count: inspectionStats.failed, color: 'red' },
@@ -823,7 +799,8 @@ export default function InspectionPage() {
                 <table className="holo-table">
                 <thead className="holo-header">
                   <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">商品</th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider w-20">画像</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">商品名</th>
                   <th 
                     className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('sku')}
@@ -861,16 +838,16 @@ export default function InspectionPage() {
                   <React.Fragment key={product.id}>
                     <tr className="border-b border-nexus-border hover:bg-nexus-bg-tertiary">
                       <td className="py-3 px-2 sm:px-4">
-                        <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="flex justify-center">
                           <img
                             src={(() => {
                               console.log('[DEBUG] 商品画像表示チェック:', product.name, '- metadata:', product.metadata);
-                              
+
                               // 納品プランで登録された商品画像の1枚目を優先的に表示
                               try {
                                 if (product.metadata) {
                                   let metadata = null;
-                                  
+
                                   // metadataをパース
                                   if (typeof product.metadata === 'string') {
                                     try {
@@ -881,9 +858,9 @@ export default function InspectionPage() {
                                   } else {
                                     metadata = product.metadata;
                                   }
-                                  
+
                                   console.log('[DEBUG] パース済みメタデータ:', metadata);
-                                  
+
                                   // 納品プラン情報から画像を取得
                                   if (metadata) {
                                     // deliveryPlanInfo.imagesパターン
@@ -891,13 +868,13 @@ export default function InspectionPage() {
                                       console.log('[DEBUG] deliveryPlanInfo.imagesから画像を取得:', metadata.deliveryPlanInfo.images[0]);
                                       return metadata.deliveryPlanInfo.images[0].url;
                                     }
-                                    
+
                                     // imagesパターン
                                     if (metadata.images?.length > 0) {
                                       console.log('[DEBUG] imagesから画像を取得:', metadata.images[0]);
                                       return metadata.images[0].url || metadata.images[0];
                                     }
-                                    
+
                                     // imageUrlパターン
                                     if (metadata.imageUrl) {
                                       console.log('[DEBUG] metadata.imageUrlから画像を取得:', metadata.imageUrl);
@@ -908,17 +885,17 @@ export default function InspectionPage() {
                               } catch (e) {
                                 console.warn('商品画像取得エラー:', e);
                               }
-                              
+
                               console.log('[DEBUG] デフォルト画像を使用:', product.imageUrl);
                               return product.imageUrl || '/api/placeholder/60/60';
                             })()}
                             alt={product.name}
                             className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-lg"
                           />
-                          <div className="min-w-0 flex-1">
-                            <div className="font-medium text-nexus-text-primary text-sm truncate">{product.name}</div>
-                          </div>
                         </div>
+                      </td>
+                      <td className="py-3 px-2 sm:px-4">
+                        <div className="font-medium text-nexus-text-primary text-sm truncate">{product.name}</div>
                       </td>
                       <td className="py-3 px-2 sm:px-4">
                         <span className="font-mono text-xs sm:text-sm text-nexus-text-primary">{product.sku}</span>
@@ -1082,7 +1059,7 @@ export default function InspectionPage() {
                     {/* 詳細展開行 - 出荷管理と統一されたデザイン */}
                     {expandedRows.includes(product.id) && (
                       <tr className="bg-nexus-bg-secondary">
-                        <td colSpan={6} className="p-6">
+                        <td colSpan={7} className="p-6">
                           <div className="space-y-4">
                             {/* ワークフロー進捗表示 - 統一コンポーネント使用 */}
                             <WorkflowProgress 

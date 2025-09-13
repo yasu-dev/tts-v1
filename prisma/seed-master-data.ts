@@ -135,7 +135,7 @@ async function seedMasterData() {
 
     // 検品ワークフロー
     const inspectionSteps = [
-      { workflowType: 'inspection', key: 'pending_inspection', nameJa: '検品待ち', nameEn: 'Pending Inspection', order: 1 },
+      { workflowType: 'inspection', key: 'pending_inspection', nameJa: '入庫待ち', nameEn: 'Pending Inspection', order: 1 },
       { workflowType: 'inspection', key: 'inspecting', nameJa: '検品中', nameEn: 'Inspecting', order: 2 },
       { workflowType: 'inspection', key: 'photography', nameJa: '撮影', nameEn: 'Photography', order: 3 },
       { workflowType: 'inspection', key: 'completed', nameJa: '完了', nameEn: 'Completed', order: 4 },
