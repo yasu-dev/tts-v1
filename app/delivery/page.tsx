@@ -5,9 +5,9 @@ import UnifiedPageHeader from '../components/ui/UnifiedPageHeader';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { 
-  TruckIcon, 
-  CalendarIcon, 
+import {
+  TruckIcon,
+  CalendarIcon,
   QrCodeIcon,
   DocumentTextIcon,
   PlusIcon,
@@ -24,6 +24,8 @@ import {
   ArchiveBoxIcon,
   ExclamationTriangleIcon,
   PencilIcon,
+  LightBulbIcon,
+  ClipboardDocumentListIcon,
 } from '@heroicons/react/24/outline';
 import NexusButton from '@/app/components/ui/NexusButton';
 import NexusInput from '@/app/components/ui/NexusInput';
@@ -49,7 +51,7 @@ export default function DeliveryPage() {
   const router = useRouter();
   const { showToast } = useToast();
   
-  // 🎛️ フィーチャーフラグ：階層型検品チェックリストの有効/無効
+  // フィーチャーフラグ：階層型検品チェックリストの有効/無効
   const isHierarchicalEnabled = useIsHierarchicalChecklistEnabled();
   console.log(`[DeliveryPage] 階層型検品チェックリスト: ${isHierarchicalEnabled ? '有効(新システム)' : '無効(既存システム)'}`);
   
@@ -77,7 +79,7 @@ export default function DeliveryPage() {
   const [isShippingModalOpen, setIsShippingModalOpen] = useState(false);
   const [shippingTrackingNumber, setShippingTrackingNumber] = useState('');
   
-  // 🚨 安全な取り下げ機能用の状態
+  // 安全な取り下げ機能用の状態
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [cancelConfirmStep, setCancelConfirmStep] = useState(0); // 段階的確認: 0=初期, 1=警告確認, 2=最終確認
@@ -339,7 +341,7 @@ export default function DeliveryPage() {
     );
   };
 
-  // 🚨 最大限安全な取り下げ処理
+  // 最大限安全な取り下げ処理
   const handleCancelPlan = async (planId: string) => {
     const requestId = Math.random().toString(36).substr(2, 9);
     console.log(`[CANCEL-UI-${requestId}] 取り下げ処理開始:`, { planId, cancelReason, cancelConfirmStep, selectedPlan });
@@ -398,7 +400,7 @@ export default function DeliveryPage() {
     }
   };
 
-  // 🔒 取り下げモーダルの安全なオープン
+  // 取り下げモーダルの安全なオープン
   const handleOpenCancelModal = (plan: any) => {
     console.log('[CANCEL-UI] モーダルオープン:', { planId: plan.id, status: plan.status });
     
@@ -421,7 +423,7 @@ export default function DeliveryPage() {
     setIsAnyModalOpen(true);
   };
 
-  // 🧹 取り下げモーダルの安全なクローズ
+  // 取り下げモーダルの安全なクローズ
   const handleCloseCancelModal = () => {
     setIsCancelModalOpen(false);
     setSelectedPlan(null);
@@ -432,7 +434,7 @@ export default function DeliveryPage() {
     setIsAnyModalOpen(false);
   };
 
-  // ⏭️ 取り下げ確認ステップの進行
+  // 取り下げ確認ステップの進行
   const handleCancelNextStep = () => {
     if (cancelConfirmStep === 0) {
       // Step 1: 理由入力必須チェック
@@ -461,7 +463,7 @@ export default function DeliveryPage() {
     }
   };
 
-  // ⏪ 取り下げ確認ステップの戻り
+  // 取り下げ確認ステップの戻り
   const handleCancelPrevStep = () => {
     if (cancelConfirmStep > 0) {
       setCancelConfirmStep(cancelConfirmStep - 1);
@@ -1131,7 +1133,7 @@ export default function DeliveryPage() {
                                   </span>
                                 )}
                               </div>
-                              {/* 🆕 購入価格表示 */}
+                              {/* 購入価格表示 */}
                               <div className="mt-2">
                                 {((product.purchasePrice !== undefined && product.purchasePrice > 0) || (product.estimatedValue !== undefined && product.estimatedValue > 0)) && (
                                   <div className="text-sm">
@@ -1146,10 +1148,13 @@ export default function DeliveryPage() {
 
                         </div>
 
-                        {/* 🆕 仕入・詳細情報（値が存在する項目のみ表示） */}
+                        {/* 仕入・詳細情報（値が存在する項目のみ表示） */}
                         {(product.purchaseDate || product.supplier || product.supplierDetails || product.brand || product.model || product.serialNumber || product.sku) && (
                           <div>
-                            <h6 className="font-medium text-nexus-text-primary mb-3 text-sm">📋 仕入・詳細情報</h6>
+                            <h6 className="font-medium text-nexus-text-primary mb-3 text-sm flex items-center gap-1">
+                              <ClipboardDocumentListIcon className="h-4 w-4 text-gray-500" />
+                              仕入・詳細情報
+                            </h6>
                             <div className="space-y-2 text-sm">
                               {product.purchaseDate && (
                                 <div>
@@ -1210,7 +1215,7 @@ export default function DeliveryPage() {
                         />
                       </div>
 
-                      {/* 🆕 プレミアム梱包表示（選択時のみ表示） */}
+                      {/* プレミアム梱包表示（選択時のみ表示） */}
                       {(product.premiumPacking === true || product.premiumPacking === 'true') && (
                         <div className="mt-4">
                           <div className="p-3 bg-purple-50 rounded border border-purple-200">
@@ -1218,7 +1223,10 @@ export default function DeliveryPage() {
                               <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                               </svg>
-                              <span className="font-bold text-purple-800">✅ プレミアム梱包</span>
+                              <span className="font-bold text-purple-800 flex items-center gap-1">
+                                <CheckIcon className="h-4 w-4 text-purple-600" />
+                                プレミアム梱包
+                              </span>
                             </div>
                             <p className="text-xs text-nexus-text-secondary mt-1 ml-6">
                               特別な保護材料と丁寧な梱包でお客様にお届け
@@ -1281,7 +1289,7 @@ export default function DeliveryPage() {
                           hierarchicalInspectionData: product.hierarchicalInspectionData
                         }, null, 2));
                         
-                        // 🆕 新システム優先表示: フィーチャーフラグ有効かつ新システムデータ存在
+                        // 新システム優先表示: フィーチャーフラグ有効かつ新システムデータ存在
                         if (isHierarchicalEnabled && product.hasHierarchicalInspectionData && product.hierarchicalInspectionData) {
                           return (
                             <div className="mt-3 pt-3 border-t border-gray-300">
@@ -1300,7 +1308,7 @@ export default function DeliveryPage() {
                           );
                         }
                         
-                        // 🔄 既存システム表示: フィーチャーフラグ無効 or 既存データのみ存在
+                        // 既存システム表示: フィーチャーフラグ無効 or 既存データのみ存在
                         return product.hasInspectionChecklist && product.inspectionChecklistData ? (
                         <div className="mt-3 pt-3 border-t border-gray-300">
                           <div className="flex items-center mb-3">
@@ -1316,67 +1324,79 @@ export default function DeliveryPage() {
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
                                   {/* 外観チェック項目 - チェックされた項目のみ表示 */}
                                   {product.inspectionChecklistData.exterior?.scratches && (
-                                    <div className="p-2 rounded text-center font-medium bg-red-100 text-red-800">
-                                      ✓傷: 正常
+                                    <div className="p-2 rounded text-center font-medium bg-red-100 text-red-800 flex items-center justify-center gap-1">
+                                      <CheckIcon className="h-3 w-3 text-red-600" />
+                                      傷: 正常
                                     </div>
                                   )}
                                   {product.inspectionChecklistData.exterior?.dents && (
-                                    <div className="p-2 rounded text-center font-medium bg-red-100 text-red-800">
-                                      ✓凹み: 正常
+                                    <div className="p-2 rounded text-center font-medium bg-red-100 text-red-800 flex items-center justify-center gap-1">
+                                      <CheckIcon className="h-3 w-3 text-red-600" />
+                                      凹み: 正常
                                     </div>
                                   )}
                                   {product.inspectionChecklistData.exterior?.discoloration && (
-                                    <div className="p-2 rounded text-center font-medium bg-red-100 text-red-800">
-                                      ✓スレ: 正常
+                                    <div className="p-2 rounded text-center font-medium bg-red-100 text-red-800 flex items-center justify-center gap-1">
+                                      <CheckIcon className="h-3 w-3 text-red-600" />
+                                      スレ: 正常
                                     </div>
                                   )}
                                   {product.inspectionChecklistData.exterior?.dust && (
-                                    <div className="p-2 rounded text-center font-medium bg-red-100 text-red-800">
-                                      ✓汚れ: 正常
+                                    <div className="p-2 rounded text-center font-medium bg-red-100 text-red-800 flex items-center justify-center gap-1">
+                                      <CheckIcon className="h-3 w-3 text-red-600" />
+                                      汚れ: 正常
                                     </div>
                                   )}
                                   
                                   {/* 機能チェック項目 - チェックされた項目のみ表示 */}
                                   {product.inspectionChecklistData.functionality?.powerOn && (
-                                    <div className="p-2 rounded text-center font-medium bg-green-100 text-green-800">
-                                      ✓作動: 正常
+                                    <div className="p-2 rounded text-center font-medium bg-green-100 text-green-800 flex items-center justify-center gap-1">
+                                      <CheckIcon className="h-3 w-3 text-green-600" />
+                                      作動: 正常
                                     </div>
                                   )}
                                   {product.inspectionChecklistData.functionality?.allButtonsWork && (
-                                    <div className="p-2 rounded text-center font-medium bg-red-100 text-red-800">
-                                      ✓不動: 正常
+                                    <div className="p-2 rounded text-center font-medium bg-red-100 text-red-800 flex items-center justify-center gap-1">
+                                      <CheckIcon className="h-3 w-3 text-red-600" />
+                                      不動: 正常
                                     </div>
                                   )}
                                   {product.inspectionChecklistData.functionality?.screenDisplay && (
-                                    <div className="p-2 rounded text-center font-medium bg-red-100 text-red-800">
-                                      ✓クモリ: 正常
+                                    <div className="p-2 rounded text-center font-medium bg-red-100 text-red-800 flex items-center justify-center gap-1">
+                                      <CheckIcon className="h-3 w-3 text-red-600" />
+                                      クモリ: 正常
                                     </div>
                                   )}
                                   {product.inspectionChecklistData.functionality?.connectivity && (
-                                    <div className="p-2 rounded text-center font-medium bg-red-100 text-red-800">
-                                      ✓カビ: 正常
+                                    <div className="p-2 rounded text-center font-medium bg-red-100 text-red-800 flex items-center justify-center gap-1">
+                                      <CheckIcon className="h-3 w-3 text-red-600" />
+                                      カビ: 正常
                                     </div>
                                   )}
                                   
                                   {/* 光学系チェック項目 - チェックされた項目のみ表示 */}
                                   {product.inspectionChecklistData.optical?.lensClarity && (
-                                    <div className="p-2 rounded text-center font-medium bg-red-100 text-red-800">
-                                      ✓チリホコリ: 正常
+                                    <div className="p-2 rounded text-center font-medium bg-red-100 text-red-800 flex items-center justify-center gap-1">
+                                      <CheckIcon className="h-3 w-3 text-red-600" />
+                                      チリホコリ: 正常
                                     </div>
                                   )}
                                   {product.inspectionChecklistData.optical?.aperture && (
-                                    <div className="p-2 rounded text-center font-medium bg-red-100 text-red-800">
-                                      ✓キズ: 正常
+                                    <div className="p-2 rounded text-center font-medium bg-red-100 text-red-800 flex items-center justify-center gap-1">
+                                      <CheckIcon className="h-3 w-3 text-red-600" />
+                                      キズ: 正常
                                     </div>
                                   )}
                                   {product.inspectionChecklistData.optical?.focusAccuracy && (
-                                    <div className="p-2 rounded text-center font-medium bg-green-100 text-green-800">
-                                      ✓バッテリー: 正常
+                                    <div className="p-2 rounded text-center font-medium bg-green-100 text-green-800 flex items-center justify-center gap-1">
+                                      <CheckIcon className="h-3 w-3 text-green-600" />
+                                      バッテリー: 正常
                                     </div>
                                   )}
                                   {product.inspectionChecklistData.optical?.stabilization && (
-                                    <div className="p-2 rounded text-center font-medium bg-green-100 text-green-800">
-                                      ✓ケース: 正常
+                                    <div className="p-2 rounded text-center font-medium bg-green-100 text-green-800 flex items-center justify-center gap-1">
+                                      <CheckIcon className="h-3 w-3 text-green-600" />
+                                      ケース: 正常
                                     </div>
                                   )}
                                 </div>
@@ -1409,8 +1429,9 @@ export default function DeliveryPage() {
                       {product.hasInspectionChecklist && !product.inspectionChecklistData && (
                         <div className="mt-3 pt-3 border-t border-gray-300">
                           <div className="flex items-center gap-2">
-                            <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800">
-                              ✓ 検品チェックリスト設定済み
+                            <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800 gap-1">
+                              <CheckIcon className="h-3 w-3 text-purple-600" />
+                              検品チェックリスト設定済み
                             </span>
                             <span className="text-xs text-nexus-text-secondary">
                               詳細な検品項目が設定されています（詳細データは別途確認）
@@ -1437,17 +1458,27 @@ export default function DeliveryPage() {
               
 
               {selectedPlan.status === 'Pending' && (
-                <div className="flex flex-col gap-2">
-                  <NexusButton
-                    variant="danger"
-                    onClick={() => handleOpenCancelModal(selectedPlan)}
-                    title="納品プラン取り下げ"
-                  >
-                    <XMarkIcon className="h-4 w-4 mr-2" />
-                    取り下げ
-                  </NexusButton>
-                  <div className="text-xs text-nexus-text-tertiary bg-nexus-bg-tertiary px-3 py-2 rounded border">
-                    💡 変更が必要な場合：「取り下げ」→「新規作成」をご利用ください
+                <div className="space-y-3">
+                  <div className="bg-nexus-bg-tertiary p-3 rounded-lg border border-nexus-border">
+                    <div className="flex items-start gap-3">
+                      <div className="text-xs text-nexus-text-secondary leading-relaxed">
+                        <p className="font-medium text-nexus-text-primary mb-1 flex items-center gap-1">
+                          <LightBulbIcon className="h-4 w-4 text-blue-500" />
+                          変更が必要な場合
+                        </p>
+                        <p>プランを取り下げ後、新しいプランを作成してください</p>
+                      </div>
+                      <NexusButton
+                        variant="danger"
+                        size="sm"
+                        onClick={() => handleOpenCancelModal(selectedPlan)}
+                        title="納品プラン取り下げ"
+                        className="flex-shrink-0"
+                      >
+                        <XMarkIcon className="h-4 w-4 mr-1" />
+                        取り下げ
+                      </NexusButton>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1481,7 +1512,7 @@ export default function DeliveryPage() {
                 <div><span className="font-medium">プランID:</span> {selectedPlan.id}</div>
                 <div><span className="font-medium">セラー:</span> {selectedPlan.sellerName}</div>
                 <div><span className="font-medium">商品数:</span> {selectedPlan.items}点</div>
-                <div><span className="font-medium">納品先:</span> {selectedPlan.deliveryAddress}</div>
+                <div><span className="font-medium">配送先倉庫:</span> {selectedPlan.warehouseName || '配送先倉庫不明'}</div>
               </div>
             </div>
 
@@ -1523,7 +1554,7 @@ export default function DeliveryPage() {
         )}
       </BaseModal>
 
-      {/* 🚨 最大限安全な取り下げ確認モーダル */}
+      {/* 最大限安全な取り下げ確認モーダル */}
       <BaseModal
         isOpen={isCancelModalOpen}
         onClose={handleCloseCancelModal}
@@ -1569,7 +1600,10 @@ export default function DeliveryPage() {
                 </div>
                 
                 <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <h5 className="text-sm font-medium text-blue-800 mb-2">📋 取り下げの影響</h5>
+                  <h5 className="text-sm font-medium text-blue-800 mb-2 flex items-center gap-1">
+                    <ClipboardDocumentListIcon className="h-4 w-4 text-blue-600" />
+                    取り下げの影響
+                  </h5>
                   <ul className="text-sm text-blue-700 space-y-1 list-disc list-inside">
                     <li>プランのステータスが「キャンセル済み」に変更されます</li>
                     <li>関連する在庫アイテムが非アクティブになります</li>
@@ -1588,7 +1622,10 @@ export default function DeliveryPage() {
                       <ExclamationTriangleIcon className="h-8 w-8 text-red-500" />
                     </div>
                     <div className="ml-3">
-                      <h4 className="text-lg font-medium text-red-800 mb-3">⚠️ 重要な警告</h4>
+                      <h4 className="text-lg font-medium text-red-800 mb-3 flex items-center gap-2">
+                        <ExclamationTriangleIcon className="h-5 w-5 text-red-500" />
+                        重要な警告
+                      </h4>
                       <ul className="text-sm text-red-700 space-y-2 list-disc list-inside">
                         <li><strong>この操作は完全に取り消し不可能です</strong></li>
                         <li>登録された商品データは削除されます</li>
@@ -1683,7 +1720,12 @@ export default function DeliveryPage() {
                     disabled={isCancelProcessing}
                     className="font-bold"
                   >
-                    {isCancelProcessing ? '処理中...' : '🚨 取り下げ実行'}
+                    {isCancelProcessing ? '処理中...' : (
+                      <span className="flex items-center gap-1">
+                        <ExclamationTriangleIcon className="h-4 w-4" />
+                        取り下げ実行
+                      </span>
+                    )}
                   </NexusButton>
                 )}
               </div>

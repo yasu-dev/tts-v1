@@ -93,7 +93,7 @@ export default function StaffTasksPage() {
         })) : [];
         
         setTasks(tasksData);
-        console.log(`✅ タスクデータ取得完了: ${tasksData.length}件`);
+        console.log(`[SUCCESS] タスクデータ取得完了: ${tasksData.length}件`);
       } catch (error) {
         console.error('タスクデータ取得エラー:', error);
         showToast({

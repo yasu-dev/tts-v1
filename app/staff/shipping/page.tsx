@@ -18,6 +18,8 @@ import {
   TruckIcon,
   ArchiveBoxIcon,
   DocumentArrowUpIcon,
+  ClipboardDocumentListIcon,
+  ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 
 import CarrierSelectionModal from '@/app/components/modals/CarrierSelectionModal';
@@ -165,7 +167,7 @@ export default function StaffShippingPage() {
             setTabStats(data.stats);
           }
           
-          console.log(`✅ 初回データ取得完了: ${shippingItems.length}件`);
+          console.log(`[SUCCESS] 初回データ取得完了: ${shippingItems.length}件`);
             
           // 基本統計データも設定
           setShippingData({
@@ -237,8 +239,8 @@ export default function StaffShippingPage() {
       // 統計情報を保存（APIから受信したデータと表示データが同期）
       if (data.stats) {
         console.log('📊 API統計データ:', data.stats);
-        console.log('📋 表示アイテム数:', shippingItems.length);
-        console.log('📋 表示内訳:', shippingItems.reduce((acc, item) => {
+        console.log('[INFO] 表示アイテム数:', shippingItems.length);
+        console.log('[INFO] 表示内訳:', shippingItems.reduce((acc, item) => {
           acc[item.status] = (acc[item.status] || 0) + 1;
           return acc;
         }, {} as Record<string, number>));
@@ -247,7 +249,7 @@ export default function StaffShippingPage() {
         setTabStats(data.stats);
       }
       
-      console.log(`✅ 配送データ取得完了: ${shippingItems.length}件 (ページ: ${page}/${data.pagination?.totalPages || 1})`);
+      console.log(`[SUCCESS] 配送データ取得完了: ${shippingItems.length}件 (ページ: ${page}/${data.pagination?.totalPages || 1})`);
         
       // 基本統計データも設定
       setShippingData({
@@ -278,7 +280,7 @@ export default function StaffShippingPage() {
     // 全商品を表示（フィルタリングを無効化）
     const filteredItems = items;
     
-    console.log(`📋 最終表示リスト (${activeTab}):`, {
+    console.log(`[INFO] 最終表示リスト (${activeTab}):`, {
       originalItems: items.length,
       finalDisplay: filteredItems.length,
       breakdown: filteredItems.reduce((acc, item) => {
@@ -370,7 +372,7 @@ export default function StaffShippingPage() {
         type: 'success'
       });
 
-      console.log(`✅ ステータス更新完了: ${itemId} -> ${newStatus}`);
+      console.log(`[SUCCESS] ステータス更新完了: ${itemId} -> ${newStatus}`);
       
     } catch (error) {
       console.error('ステータス更新エラー:', error);
@@ -538,13 +540,13 @@ export default function StaffShippingPage() {
           
           if (response.ok) {
             labelData = await response.json();
-            console.log(`✅ ラベル取得成功: ${orderId}`, labelData);
+            console.log(`[SUCCESS] ラベル取得成功: ${orderId}`, labelData);
             break;
           } else {
-            console.log(`❌ ラベル取得失敗: ${orderId} - ${response.status}`);
+            console.log(`[ERROR] ラベル取得失敗: ${orderId} - ${response.status}`);
           }
         } catch (fetchError) {
-          console.log(`❌ ラベル取得エラー: ${orderId}`, fetchError);
+          console.log(`[ERROR] ラベル取得エラー: ${orderId}`, fetchError);
           continue;
         }
       }
@@ -886,7 +888,7 @@ export default function StaffShippingPage() {
           }
 
           const result = await response.json();
-          console.log(`✅ 商品ステータス更新完了: ${item.productName}`);
+          console.log(`[SUCCESS] 商品ステータス更新完了: ${item.productName}`);
           return result;
         }
       });
@@ -958,9 +960,9 @@ export default function StaffShippingPage() {
         try {
           await updateItemStatus(item.id, 'ready_for_pickup');
           successCount++;
-          console.log(`✅ ${successCount}/${packedItems.length} 更新完了`);
+          console.log(`[SUCCESS] ${successCount}/${packedItems.length} 更新完了`);
         } catch (itemError) {
-          console.error(`❌ ${item.id} 更新失敗:`, itemError);
+          console.error(`[ERROR] ${item.id} 更新失敗:`, itemError);
           // 個別エラーは続行可能
         }
       }
@@ -1194,8 +1196,9 @@ export default function StaffShippingPage() {
                                     {item.trackingNumber && (
                                       <div className="flex items-center gap-2">
                                         <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
-                                        <span className="text-sm font-bold text-blue-900">
-                                          📋 追跡番号: {item.trackingNumber}
+                                        <span className="text-sm font-bold text-blue-900 flex items-center gap-1">
+                                          <ClipboardDocumentListIcon className="h-4 w-4 text-blue-600" />
+                                          追跡番号: {item.trackingNumber}
                                         </span>
                                       </div>
                                     )}
@@ -1212,8 +1215,9 @@ export default function StaffShippingPage() {
                                         <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.996-.833-2.768 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                                         </svg>
-                                        <span className="text-sm font-bold">
-                                          ⚠️ 同じ追跡番号の商品をまとめて処理してください
+                                        <span className="text-sm font-bold flex items-center gap-1">
+                                          <ExclamationTriangleIcon className="h-4 w-4 text-orange-500" />
+                                          同じ追跡番号の商品をまとめて処理してください
                                         </span>
                                       </div>
                                     </div>

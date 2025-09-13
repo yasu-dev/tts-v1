@@ -595,19 +595,19 @@ ${templateOpticsChecks.noProblem ? '<strong>No problem in the shooting.</strong>
         
         if (listingCreateResponse.ok) {
           const listingResult = await listingCreateResponse.json();
-          console.log('✅ Listingテーブルにレコードを作成し、商品ステータスを"出品中"に更新しました', listingResult);
+          console.log('[SUCCESS] Listingテーブルにレコードを作成し、商品ステータスを"出品中"に更新しました', listingResult);
           result.listingId = listingResult.data?.id;
           result.success = true;
           result.message = '出品処理が正常に完了しました';
         } else {
           const errorResult = await listingCreateResponse.json();
-          console.error('❌ Listing作成に失敗しました:', listingCreateResponse.status, errorResult);
+          console.error('[ERROR] Listing作成に失敗しました:', listingCreateResponse.status, errorResult);
           
           // エラーの場合は例外を投げて、外側のcatchでハンドリング
           throw new Error(errorResult.error || 'Listing作成に失敗しました');
         }
       } catch (error) {
-        console.error('❌ Listing作成エラー:', error);
+        console.error('[ERROR] Listing作成エラー:', error);
         // エラーを再度投げて外側のcatchでハンドリング
         throw error;
       }

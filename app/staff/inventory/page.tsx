@@ -99,7 +99,7 @@ export default function StaffInventoryPage() {
               .filter((bi: any) => bi.productId !== inventoryItem.id && bi.id !== inventoryItem.id)
               .map((bi: any) => bi.product || bi.productName);
               
-            console.log(`✅ 同梱情報統合: ${inventoryItem.name} → Bundle: ${inventoryItem.bundleId}`);
+            console.log(`[SUCCESS] 同梱情報統合: ${inventoryItem.name} → Bundle: ${inventoryItem.bundleId}`);
             break;
           }
         }
@@ -313,7 +313,7 @@ export default function StaffInventoryPage() {
         setTotalItems(paginationInfo.total || inventoryItems.length);
         setTotalPages(paginationInfo.pages || 1);
         
-        console.log(`✅ スタッフ在庫データ取得完了: ${inventoryItems.length}件 (ページ: ${currentPage}/${paginationInfo.pages || 1})`);
+        console.log(`[SUCCESS] スタッフ在庫データ取得完了: ${inventoryItems.length}件 (ページ: ${currentPage}/${paginationInfo.pages || 1})`);
         console.log('📊 ページネーション情報:', paginationInfo);
         console.log('🔍 ステータス別分布:', inventoryItems.reduce((acc: any, item) => {
           acc[item.status] = (acc[item.status] || 0) + 1;
@@ -756,7 +756,7 @@ export default function StaffInventoryPage() {
                               </span>
                               {item.bundleTrackingNumber && (
                                 <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full">
-                                  📋 {item.bundleTrackingNumber}
+                                  {item.bundleTrackingNumber}
                                 </span>
                               )}
                             </div>

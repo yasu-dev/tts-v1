@@ -119,7 +119,7 @@ export default function ShelfStorageStep({
       }
 
       const location = await response.json();
-      console.log('✅ ロケーション検証成功:', location);
+      console.log('[SUCCESS] ロケーション検証成功:', location);
       setLocationData(location);
       
       // 容量チェック
@@ -203,7 +203,7 @@ export default function ShelfStorageStep({
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: '不明なエラー' }));
-        console.error('❌ 保管完了APIエラー:', {
+        console.error('[ERROR] 保管完了APIエラー:', {
           status: response.status,
           statusText: response.statusText,
           error: errorData,
@@ -216,13 +216,13 @@ export default function ShelfStorageStep({
         
         // 詳細なエラー情報があれば表示
         if (errorData.details) {
-          console.error('📋 エラー詳細:', errorData.details);
+          console.error('[DETAILS] エラー詳細:', errorData.details);
         }
         if (errorData.code) {
-          console.error('🔧 エラーコード:', errorData.code);
+          console.error('[CODE] エラーコード:', errorData.code);
         }
         if (errorData.stack) {
-          console.error('📚 スタックトレース:', errorData.stack);
+          console.error('[STACK] スタックトレース:', errorData.stack);
         }
         
         throw new Error(errorData.error || `保管処理に失敗しました (${response.status})`);

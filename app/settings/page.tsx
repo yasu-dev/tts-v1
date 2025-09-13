@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import UnifiedPageHeader from '@/app/components/ui/UnifiedPageHeader';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { NexusSelect, NexusButton, NexusCard, NexusLoadingSpinner } from '@/app/components/ui';
 import HierarchicalChecklistFeatureToggle from '@/app/components/features/settings/HierarchicalChecklistFeatureToggle';
 
@@ -96,15 +97,15 @@ export default function SettingsPage() {
       if (response.ok) {
         setNotificationSettings(data.settings);
         setUserType(data.userRole === 'seller' ? 'seller' : 'staff');
-        console.log('✅ 通知設定取得成功:', data.settings);
+        console.log('[SUCCESS] 通知設定取得成功:', data.settings);
       } else {
-        console.error('❌ 通知設定取得エラー:', data.error);
+        console.error('[ERROR] 通知設定取得エラー:', data.error);
       }
     } catch (error) {
-      console.error('❌ 通知設定取得エラー:', error);
+      console.error('[ERROR] 通知設定取得エラー:', error);
     } finally {
       setLoadingNotifications(false);
-      console.log('🔍 通知設定取得処理完了');
+      console.log('[INFO] 通知設定取得処理完了');
     }
   };
 
@@ -254,7 +255,7 @@ export default function SettingsPage() {
                   {/* 緊急度の高い通知 */}
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                      <span className="w-5 h-5 text-red-500">⚠️</span>
+                      <ExclamationTriangleIcon className="w-5 h-5 text-red-500" />
                       緊急通知（推奨：ON）
                     </h3>
                     <p className="text-sm text-gray-600 mb-4">
