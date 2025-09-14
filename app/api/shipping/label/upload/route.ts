@@ -109,33 +109,19 @@ export async function POST(request: NextRequest) {
       const productIds = order.items.map(item => item.productId);
       console.log('対象商品ID:', productIds);
       
-      // デフォルトのピッキング用ロケーションを取得または作成
-      console.log('PICK-01ロケーション確認中...');
+      // デフォルトのピッキング用ロケーションを取得（既存のB-1-4を使用）
+      console.log('B-1-4ロケーション確認中...');
       let pickingLocation = await prisma.location.findFirst({
         where: {
-          code: 'PICK-01'
+          code: 'B-1-4'
         }
       });
-      
+
       if (!pickingLocation) {
-        console.log('PICK-01が存在しません。作成中...');
-        try {
-          pickingLocation = await prisma.location.create({
-            data: {
-              code: 'PICK-01',
-              name: 'ピッキングエリア 1',
-              zone: 'picking',
-              capacity: 1000,
-              isActive: true
-            }
-          });
-          console.log('✅ PICK-01ロケーション作成完了:', pickingLocation.id);
-        } catch (locationError) {
-          console.error('❌ PICK-01作成エラー:', locationError);
-          throw locationError;
-        }
+        console.log('❌ B-1-4ピッキングロケーションが見つかりません');
+        throw new Error('ピッキングロケーション(B-1-4)が存在しません');
       } else {
-        console.log('✅ PICK-01ロケーション既存確認:', pickingLocation.id);
+        console.log('✅ B-1-4ロケーション既存確認:', pickingLocation.id);
       }
       
       console.log('商品ステータス更新中...');

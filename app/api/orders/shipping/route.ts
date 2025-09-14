@@ -575,7 +575,7 @@ export async function GET(request: NextRequest) {
         trackingNumber: shipment.trackingNumber,
         shippingMethod: `${shipment.carrier} - ${shipment.method}`,
         value: shipment.value,
-        location: 'PICK-01',
+        location: 'B-1-4',
         isBundle: false,
         isBundled: true,
         bundleId: 'GUARANTEED-BUNDLE-001',

@@ -216,7 +216,7 @@ export async function GET(request: NextRequest) {
           productId: product.id,
           productName: product.name,
           sku: product.sku,
-          location: product.currentLocation?.code || 'PICK-01',
+          location: product.currentLocation?.code || 'B-1-4',
           quantity: 1,
           pickedQuantity: 0,
           status: 'pending',
@@ -227,6 +227,13 @@ export async function GET(request: NextRequest) {
         }]
       };
     });
+
+    // ロケーション名解決のためのマッピング
+    const legacyLocationMap = new Map([
+      ['A-01', 'A-1-1'], ['A-02', 'A-1-2'], ['A-03', 'A-1-3'],
+      ['B-01', 'A-1-4'], ['B-02', 'A-1-5'], ['C-01', 'A-1-6'],
+      ['INBOUND', 'B-1-1'], ['INSPECTION', 'B-1-2'], ['SHIPPING', 'B-1-3'],
+    ]);
 
     // 既存のピッキングタスクと動的タスクを結合
     const allTasks = [...pickingTasks.map(task => ({
@@ -243,7 +250,7 @@ export async function GET(request: NextRequest) {
         items: task.items.map(item => ({
           id: item.id,
           productName: item.productName,
-          location: item.location,
+          location: legacyLocationMap.get(item.location) || item.location, // 古いコードを新しいコードに変換
           quantity: item.quantity,
           pickedQuantity: item.pickedQuantity,
           status: item.status
