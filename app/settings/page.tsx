@@ -212,16 +212,18 @@ export default function SettingsPage() {
             >
               アカウント管理
             </button>
-            <button
-              onClick={() => setActiveTab('features')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'features'
-                  ? 'border-primary-blue text-primary-blue'
-                  : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-nexus-border'
-              }`}
-            >
-              機能管理
-            </button>
+            {userType === 'staff' && (
+              <button
+                onClick={() => setActiveTab('features')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'features'
+                    ? 'border-primary-blue text-primary-blue'
+                    : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-nexus-border'
+                }`}
+              >
+                機能管理
+              </button>
+            )}
           </nav>
         </div>
 
@@ -439,17 +441,203 @@ export default function SettingsPage() {
 
         {/* 一般設定タブ */}
         {activeTab === 'settings' && (
-          <div style={{backgroundColor: 'blue', padding: '20px', color: 'white', fontSize: '18px'}}>
-            <h2>一般設定タブ</h2>
-            <p>基本設定がここに表示されます</p>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="p-8">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">一般設定</h2>
+              
+              {/* セラー向け事業者情報 */}
+              {userType === 'seller' && (
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">事業者情報</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          事業者番号
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="T1234567890123"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          法人番号（法人の場合）
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="1234567890123"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          主要取扱カテゴリー
+                        </label>
+                        <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                          <option value="">選択してください</option>
+                          <option value="camera">カメラ・写真機材</option>
+                          <option value="watch">腕時計・アクセサリー</option>
+                          <option value="electronics">電子機器</option>
+                          <option value="fashion">ファッション</option>
+                          <option value="collectibles">コレクタブル</option>
+                          <option value="other">その他</option>
+                        </select>
+                      </div>
+                      
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          配送元住所
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="〒150-0000 東京都渋谷区..."
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="border-t pt-6">
+                    <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                      設定を保存
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              {/* スタッフ向け一般設定 */}
+              {userType === 'staff' && (
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">システム設定</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          言語
+                        </label>
+                        <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                          <option value="ja">日本語</option>
+                          <option value="en">English</option>
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          タイムゾーン
+                        </label>
+                        <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                          <option value="Asia/Tokyo">Asia/Tokyo</option>
+                          <option value="UTC">UTC</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="border-t pt-6">
+                    <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                      設定を保存
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
         {/* アカウント管理タブ */}
         {activeTab === 'account' && (
-          <div style={{backgroundColor: 'green', padding: '20px', color: 'white', fontSize: '18px'}}>
-            <h2>アカウント管理タブ</h2>
-            <p>アカウント管理がここに表示されます</p>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="p-8">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">アカウント管理</h2>
+              
+              <div className="space-y-8">
+                {/* プライバシー設定 */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">プライバシー設定</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div>
+                        <h4 className="font-medium text-gray-900">プロフィール公開設定</h4>
+                        <p className="text-sm text-gray-600">他のユーザーへのプロフィール表示</p>
+                      </div>
+                      <select className="px-3 py-1 border border-gray-300 rounded-lg">
+                        <option value="private">非公開</option>
+                        <option value="team">チームのみ</option>
+                        <option value="public">公開</option>
+                      </select>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div>
+                        <h4 className="font-medium text-gray-900">アクティビティ追跡</h4>
+                        <p className="text-sm text-gray-600">操作履歴の記録</p>
+                      </div>
+                      <input
+                        type="checkbox"
+                        defaultChecked
+                        className="w-5 h-5 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                {/* データ管理 */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">データ管理</h3>
+                  <div className="space-y-4">
+                    <button className="w-full text-left p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-medium text-gray-900">データエクスポート</h4>
+                          <p className="text-sm text-gray-600">すべてのデータをダウンロード</p>
+                        </div>
+                        <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                      </div>
+                    </button>
+                    
+                    {userType === 'seller' && (
+                      <button className="w-full text-left p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-medium text-gray-900">取引履歴ダウンロード</h4>
+                            <p className="text-sm text-gray-600">売上・支払い履歴のCSVエクスポート</p>
+                          </div>
+                          <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        </div>
+                      </button>
+                    )}
+                  </div>
+                </div>
+                
+                {/* 危険ゾーン */}
+                <div>
+                  <h3 className="text-lg font-semibold text-red-600 mb-4">危険ゾーン</h3>
+                  <div className="space-y-4 p-4 border-2 border-red-200 rounded-lg bg-red-50">
+                    <button className="w-full text-left p-4 bg-white rounded-lg hover:bg-red-100 transition-colors border border-red-300">
+                      <div>
+                        <h4 className="font-medium text-red-600">アカウント無効化</h4>
+                        <p className="text-sm text-gray-600">一時的にアカウントを無効化します</p>
+                      </div>
+                    </button>
+                    
+                    <button className="w-full text-left p-4 bg-white rounded-lg hover:bg-red-100 transition-colors border border-red-300">
+                      <div>
+                        <h4 className="font-medium text-red-600">アカウント削除</h4>
+                        <p className="text-sm text-gray-600">すべてのデータを完全に削除します（復元不可）</p>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -461,8 +649,8 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {/* 機能管理タブ */}
-        {activeTab === 'features' && (
+        {/* 機能管理タブ - スタッフのみ */}
+        {activeTab === 'features' && userType === 'staff' && (
           <div className="space-y-6">
             <div>
               <h2 className="text-xl font-bold text-nexus-text-primary">機能管理</h2>

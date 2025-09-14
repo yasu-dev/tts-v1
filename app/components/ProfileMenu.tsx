@@ -137,7 +137,6 @@ export default function ProfileMenu({ userType, isOpen, onClose, anchorRef }: Pr
             </div>
             <div>
               <h3 className="text-sm font-semibold text-gray-900">{profile.name}</h3>
-              <p className="text-xs text-gray-600">{profile.role}</p>
             </div>
           </div>
         </div>

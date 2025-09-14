@@ -68,6 +68,33 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
   const { showToast } = useToast();
   const router = useRouter();
 
+  // ロケーションコード専用ソート関数（A-1-1, A-1-2, ..., B-1-6順）
+  const sortLocationCode = (codeA: string, codeB: string): number => {
+    const parseLocationCode = (code: string) => {
+      const match = code.match(/^([A-Z])-(\d+)-(\d+)$/);
+      if (!match) return { zone: 'Z', section: 999, position: 999 }; // 無効なコードは最後に
+      return {
+        zone: match[1],
+        section: parseInt(match[2]),
+        position: parseInt(match[3])
+      };
+    };
+
+    const a = parseLocationCode(codeA);
+    const b = parseLocationCode(codeB);
+
+    // ゾーン（A, B, C...）で比較
+    if (a.zone !== b.zone) {
+      return a.zone.localeCompare(b.zone);
+    }
+    // セクション（1, 2, 3...）で比較
+    if (a.section !== b.section) {
+      return a.section - b.section;
+    }
+    // ポジション（1, 2, 3...）で比較
+    return a.position - b.position;
+  };
+
   // ソート機能のハンドラー
   const handleSort = (field: 'code' | 'name' | 'products') => {
     if (sortField === field) {
@@ -157,6 +184,10 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
         if (sortField === 'products') {
           // 数値ソート
           return sortDirection === 'asc' ? valueA - valueB : valueB - valueA;
+        } else if (sortField === 'code') {
+          // ロケーションコード専用ソート（A-1-1, A-1-2, ..., B-1-6順）
+          const comparison = sortLocationCode(valueA, valueB);
+          return sortDirection === 'asc' ? comparison : -comparison;
         } else {
           // 文字列ソート
           const comparison = valueA.localeCompare(valueB, 'ja');
@@ -299,7 +330,13 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
   const fetchShippingData = async () => {
     try {
       console.log('🔍 ピッキングデータ取得開始');
-      // ピッキングタスクデータを取得
+
+      // 1. 全てのロケーションを取得
+      const locationsResponse = await fetch('/api/locations');
+      const allLocations = locationsResponse.ok ? await locationsResponse.json() : [];
+      console.log(`📍 全ロケーション数: ${allLocations.length}`);
+
+      // 2. ピッキングタスクデータを取得
       const response = await fetch('/api/picking');
       if (response.ok) {
         const data = await response.json();
@@ -308,9 +345,9 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
           tasksLength: data.tasks?.length || 0,
           statisticsTotal: data.statistics?.total || 0
         });
-        
+
         // ピッキングタスクを出荷リスト形式に変換（同梱情報統合）
-        const pickingItems = (data.tasks || []).flatMap((task: any) => 
+        const pickingItems = (data.tasks || []).flatMap((task: any) =>
           (task.items || []).map((item: any) => {
             const safeProductId = item.productId || item.id || `pick-${item.id}`;
             console.log(`📦 ピッキングアイテム処理: ${item.productName} (${safeProductId})`);
@@ -322,7 +359,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
               customer: task.customerName,
               sellerName: item.sellerName || task.sellerName || 'セラー名不明',
               locationCode: item.location,
-              locationName: `ロケーション ${item.location}`,
+              locationName: item.locationName ? `${item.location}（${item.locationName}）` : `ロケーション ${item.location}`,
               status: 'ピッキング待ち', // 全てピッキング待ちに統一
               sku: item.sku,
               // 商品画像を追加
@@ -335,12 +372,13 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
             };
           })
         );
-        
+
         console.log(`✅ ピッキングアイテム変換完了: ${pickingItems.length}件`);
-        
-        const groupedByLocation = groupShippingDataByLocation(pickingItems);
-        console.log(`📍 ロケーション別グループ数: ${groupedByLocation.length}`);
-        
+
+        // 3. 全ロケーションとピッキングデータをマージ
+        const groupedByLocation = groupShippingDataByLocationWithAll(pickingItems, allLocations);
+        console.log(`📍 全ロケーション別グループ数: ${groupedByLocation.length}`);
+
         setShippingData(groupedByLocation);
         return;
       } else {
@@ -386,7 +424,9 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
           productImage: "/api/placeholder/64/64"
         }
       ];
-      const groupedData = groupShippingDataByLocation(mockShippingData);
+      const groupedData = allLocations.length > 0
+        ? groupShippingDataByLocationWithAll(mockShippingData, allLocations)
+        : groupShippingDataByLocation(mockShippingData);
       setShippingData(groupedData);
     } catch (error) {
       console.error('[ERROR] Fetch shipping data:', error);
@@ -417,7 +457,9 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
           productImage: "/api/placeholder/64/64"
         }
       ];
-      const groupedData = groupShippingDataByLocation(mockShippingData);
+      const groupedData = allLocations.length > 0
+        ? groupShippingDataByLocationWithAll(mockShippingData, allLocations)
+        : groupShippingDataByLocation(mockShippingData);
       setShippingData(groupedData);
     }
   };
@@ -435,8 +477,50 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
       acc[locationKey].items.push(item);
       return acc;
     }, {} as Record<string, any>);
-    
+
     return Object.values(grouped);
+  };
+
+  // 全ロケーションとピッキングデータをマージする関数
+  const groupShippingDataByLocationWithAll = (pickingItems: any[], allLocations: any[]) => {
+    console.log('🔄 全ロケーションとピッキングデータのマージ開始');
+
+    // まずピッキングデータをロケーション別にグループ化
+    const pickingGrouped = pickingItems.reduce((acc, item) => {
+      const locationKey = item.locationCode || 'NO_LOCATION';
+      if (!acc[locationKey]) {
+        acc[locationKey] = [];
+      }
+      acc[locationKey].push(item);
+      return acc;
+    }, {} as Record<string, any[]>);
+
+    console.log(`📦 ピッキングデータのロケーション数: ${Object.keys(pickingGrouped).length}`);
+
+    // 全ロケーションに対してデータを作成
+    const result = allLocations.map((location) => {
+      const locationCode = location.code;
+      const pickingItemsForLocation = pickingGrouped[locationCode] || [];
+
+      // ロケーション名の生成（APIで取得した正式名称を使用）
+      const locationName = location.name ?
+        `${locationCode}（${location.name}）` :
+        `${locationCode}（ロケーション名未設定）`;
+
+      console.log(`📍 ロケーション処理: ${locationCode} - ピッキング件数: ${pickingItemsForLocation.length}`);
+
+      return {
+        locationCode: locationCode,
+        locationName: locationName,
+        items: pickingItemsForLocation
+      };
+    });
+
+    // ロケーションコード昇順でソート
+    const sorted = result.sort((a, b) => sortLocationCode(a.locationCode, b.locationCode));
+    console.log(`✅ 全ロケーション処理完了: ${sorted.length}件`);
+
+    return sorted;
   };
 
   const getLocationTypeLabel = (zone: string) => {
@@ -926,7 +1010,7 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                     item.status === 'ピッキング待ち'
                   );
 
-                  if (activeItems.length === 0) return false;
+                  // ピッキング対象がないロケーションも表示（0件として）
                   
                   // 検索条件でフィルタリング
                   if (!searchQuery) return true;
@@ -938,6 +1022,9 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                       (item.productId?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
                       (item.sku?.toLowerCase() || '').includes(searchQuery.toLowerCase())
                     );
+                }).sort((a, b) => {
+                  // ピッキングリストでもロケーションコード昇順ソート（A-1-1, A-1-2, ..., B-1-6）
+                  return sortLocationCode(a.locationCode || '', b.locationCode || '');
                 }).map((locationGroup) => {
                   const activeItems = locationGroup.items.filter((item: any) =>
                     item.status === 'ピッキング待ち'
@@ -953,7 +1040,6 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                         {locationGroup.locationName}
-                        <span className="text-sm font-mono text-nexus-text-secondary">({locationGroup.locationCode})</span>
                       </h3>
                       <div className="flex items-center gap-4 text-sm text-nexus-text-secondary mt-1">
                         <span>

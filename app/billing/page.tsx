@@ -264,6 +264,91 @@ export default function BillingPage() {
 
 
 
+        {/* Tax Information - Intelligence Card Style */}
+        <div className="intelligence-card europa">
+          <div className="p-5">
+            <div className="mb-6">
+              <h3 className="text-2xl font-display font-bold text-nexus-text-primary">税務情報</h3>
+              <p className="text-nexus-text-secondary mt-1">税務処理に必要な情報を管理</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  消費税設定
+                </label>
+                <select className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue">
+                  <option value="taxable">課税事業者</option>
+                  <option value="tax-exempt">免税事業者</option>
+                  <option value="simplified">簡易課税</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  インボイス番号
+                </label>
+                <input
+                  type="text"
+                  placeholder="T1234567890123"
+                  className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  源泉徴収設定
+                </label>
+                <select className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue">
+                  <option value="none">なし</option>
+                  <option value="10.21">10.21%</option>
+                  <option value="20.42">20.42%（100万円超）</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  決算月
+                </label>
+                <select className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue">
+                  <option value="3">3月</option>
+                  <option value="6">6月</option>
+                  <option value="9">9月</option>
+                  <option value="12">12月</option>
+                </select>
+              </div>
+              
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  請求書送付先メールアドレス
+                </label>
+                <input
+                  type="email"
+                  placeholder="accounting@example.com"
+                  className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
+                />
+              </div>
+              
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                  税理士事務所情報（任意）
+                </label>
+                <textarea
+                  placeholder="税理士事務所名、担当者、連絡先など"
+                  rows={3}
+                  className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
+                />
+              </div>
+            </div>
+            
+            <div className="mt-6 flex justify-end">
+              <NexusButton variant="primary">
+                税務情報を保存
+              </NexusButton>
+            </div>
+          </div>
+        </div>
+
         {/* Transaction History - Holo Table Style */}
         <div className="intelligence-card oceania">
           <div className="p-5">

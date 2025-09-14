@@ -31,6 +31,10 @@ interface UserProfile {
   department?: string;
   employeeId?: string;
   profileImage?: string;
+  // セラー向け追加フィールド
+  companyName?: string;
+  businessType?: 'individual' | 'corporation';
+  representativeName?: string;
 }
 
 export default function ProfilePage() {
@@ -39,7 +43,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<UserProfile | null>(null);
-  const [userType, setUserType] = useState<'staff' | 'seller'>('staff');
+  const [userType, setUserType] = useState<'staff' | 'seller' | null>(null);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isSecurityModalOpen, setIsSecurityModalOpen] = useState(false);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
@@ -54,20 +58,150 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
-    // 実際の実装はAPIから取得
-    const mockProfile: UserProfile = {
-      id: 'user-001',
-      name: '鈴木 花子',
-      email: 'suzuki@theworlddoor.com',
-      role: 'シニアスタッフ',
-      joinDate: '2022年10月',
-      lastLogin: '2025年1月6日 08:00',
-      phone: '090-1234-5678',
-      department: '検品・撮影部',
-      employeeId: 'STF-2022-001',
+    const fetchUserProfile = async () => {
+      try {
+        // デバッグ：現在のauth-tokenを確認
+        const authToken = document.cookie
+          .split('; ')
+          .find(row => row.startsWith('auth-token='))
+          ?.split('=')[1];
+        console.log('[Profile Debug] Current auth-token:', authToken);
+        
+        // APIからユーザー情報を取得
+        const response = await fetch('/api/auth/session', {
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        console.log('[Profile Debug] API Response status:', response.status);
+        
+        if (response.ok) {
+          const result = await response.json();
+          console.log('[Profile Debug] API Result:', result);
+          
+          if (result.success && result.user) {
+            const userRole = result.user.role;
+            console.log('[Profile Debug] User role from API:', userRole);
+            
+            if (userRole === 'seller') {
+              setUserType('seller');
+              const sellerProfile: UserProfile = {
+                id: result.user.id || 'seller-001',
+                name: result.user.fullName || result.user.username || '山田 太郎',
+                email: result.user.email || 'yamada@example.com',
+                role: 'プレミアムセラー',
+                joinDate: '2023年4月',
+                lastLogin: new Date().toLocaleString('ja-JP'),
+                phone: result.user.phoneNumber || '090-9876-5432',
+                companyName: '山田商事株式会社',
+                businessType: 'corporation',
+                representativeName: result.user.fullName || '山田 太郎',
+              };
+              setProfile(sellerProfile);
+              setEditForm(sellerProfile);
+            } else {
+              setUserType('staff');
+              const staffProfile: UserProfile = {
+                id: result.user.id || 'user-001',
+                name: result.user.fullName || result.user.username || '鈴木 花子',
+                email: result.user.email || 'suzuki@theworlddoor.com',
+                role: userRole === 'admin' ? '管理者' : 'シニアスタッフ',
+                joinDate: '2022年10月',
+                lastLogin: new Date().toLocaleString('ja-JP'),
+                phone: result.user.phoneNumber || '090-1234-5678',
+                department: '検品・撮影部',
+                employeeId: 'STF-2022-001',
+              };
+              setProfile(staffProfile);
+              setEditForm(staffProfile);
+            }
+            return;
+          }
+        }
+        
+        // APIから取得できない場合はauth-tokenから判定（フォールバック）
+        console.log('[Profile Debug] Using fallback auth-token detection');
+        const authTokenFallback = document.cookie
+          .split('; ')
+          .find(row => row.startsWith('auth-token='))
+          ?.split('=')[1];
+        
+        if (authTokenFallback) {
+          console.log('[Profile Debug] Fallback token:', authTokenFallback);
+          // fixed-auth-tokenの形式を判定
+          if (authTokenFallback.includes('seller')) {
+            console.log('[Profile Debug] Detected as SELLER from token');
+            setUserType('seller');
+            const sellerProfile: UserProfile = {
+              id: 'seller-001',
+              name: '山田 太郎',
+              email: 'yamada@example.com',
+              role: 'プレミアムセラー',
+              joinDate: '2023年4月',
+              lastLogin: new Date().toLocaleString('ja-JP'),
+              phone: '090-9876-5432',
+              companyName: '山田商事株式会社',
+              businessType: 'corporation',
+              representativeName: '山田 太郎',
+            };
+            setProfile(sellerProfile);
+            setEditForm(sellerProfile);
+          } else {
+            setUserType('staff');
+            const staffProfile: UserProfile = {
+              id: 'user-001',
+              name: '鈴木 花子',
+              email: 'suzuki@theworlddoor.com',
+              role: 'シニアスタッフ',
+              joinDate: '2022年10月',
+              lastLogin: '2025年1月6日 08:00',
+              phone: '090-1234-5678',
+              department: '検品・撮影部',
+              employeeId: 'STF-2022-001',
+            };
+            setProfile(staffProfile);
+            setEditForm(staffProfile);
+          }
+        } else {
+          // デフォルトでstaffとする
+          setUserType('staff');
+          const staffProfile: UserProfile = {
+            id: 'user-001',
+            name: '鈴木 花子',
+            email: 'suzuki@theworlddoor.com',
+            role: 'シニアスタッフ',
+            joinDate: '2022年10月',
+            lastLogin: '2025年1月6日 08:00',
+            phone: '090-1234-5678',
+            department: '検品・撮影部',
+            employeeId: 'STF-2022-001',
+          };
+          setProfile(staffProfile);
+          setEditForm(staffProfile);
+        }
+      } catch (error) {
+        console.error('Failed to fetch user profile:', error);
+        // エラー時はデフォルトでstaffとする
+        setUserType('staff');
+        const staffProfile: UserProfile = {
+          id: 'user-001',
+          name: '鈴木 花子',
+          email: 'suzuki@theworlddoor.com',
+          role: 'シニアスタッフ',
+          joinDate: '2022年10月',
+          lastLogin: '2025年1月6日 08:00',
+          phone: '090-1234-5678',
+          department: '検品・撮影部',
+          employeeId: 'STF-2022-001',
+        };
+        setProfile(staffProfile);
+        setEditForm(staffProfile);
+      }
     };
-    setProfile(mockProfile);
-    setEditForm(mockProfile);
+    
+    fetchUserProfile();
   }, []);
 
   const handleEdit = () => {
@@ -417,12 +551,25 @@ export default function ProfilePage() {
                 </div>
 
 
-                <div>
-                  <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                    社員ID
-                  </label>
-                  <p className="text-nexus-text-primary">{profile.employeeId}</p>
-                </div>
+                {userType === 'staff' && (
+                  <div>
+                    {isEditing ? (
+                      <NexusInput
+                        type="text"
+                        label="社員ID"
+                        value={editForm?.employeeId || ''}
+                        onChange={(e) => handleInputChange('employeeId', e.target.value)}
+                      />
+                    ) : (
+                      <div>
+                        <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                          社員ID
+                        </label>
+                        <p className="text-nexus-text-primary">{profile.employeeId}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
@@ -433,6 +580,82 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
+
+          {/* Seller Business Information */}
+          {userType === 'seller' && (
+            <div className="intelligence-card global mt-6">
+              <div className="p-8">
+                <h3 className="text-lg font-bold text-nexus-text-primary mb-6">会社情報</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    {isEditing ? (
+                      <NexusInput
+                        type="text"
+                        label="会社名/屋号"
+                        value={editForm?.companyName || ''}
+                        onChange={(e) => handleInputChange('companyName', e.target.value)}
+                        placeholder="例: 山田商事株式会社"
+                      />
+                    ) : (
+                      <div>
+                        <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                          会社名/屋号
+                        </label>
+                        <p className="text-nexus-text-primary">{profile.companyName || '未設定'}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    {isEditing ? (
+                      <div>
+                        <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                          事業形態
+                        </label>
+                        <select 
+                          className="w-full px-3 py-2 border border-nexus-border rounded-lg focus:ring-2 focus:ring-nexus-blue"
+                          value={editForm?.businessType || 'individual'}
+                          onChange={(e) => handleInputChange('businessType', e.target.value)}
+                        >
+                          <option value="individual">個人事業主</option>
+                          <option value="corporation">法人</option>
+                        </select>
+                      </div>
+                    ) : (
+                      <div>
+                        <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                          事業形態
+                        </label>
+                        <p className="text-nexus-text-primary">
+                          {profile.businessType === 'corporation' ? '法人' : '個人事業主'}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="md:col-span-2">
+                    {isEditing ? (
+                      <NexusInput
+                        type="text"
+                        label="代表者名"
+                        value={editForm?.representativeName || ''}
+                        onChange={(e) => handleInputChange('representativeName', e.target.value)}
+                        placeholder="例: 山田 太郎"
+                      />
+                    ) : (
+                      <div>
+                        <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
+                          代表者名
+                        </label>
+                        <p className="text-nexus-text-primary">{profile.representativeName || '未設定'}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Security Settings */}
