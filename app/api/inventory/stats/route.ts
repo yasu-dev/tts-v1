@@ -45,6 +45,7 @@ export async function GET() {
                                       .replace('shipping', '出荷')
                                       .replace('delivery', '配送')
                                       .replace('sold', '売約済み')
+                                      .replace('workstation', '梱包待ち')
                                       .replace('returned', '返品');
       acc[japaneseStatus] = item._count.id;
       return acc;
