@@ -355,25 +355,9 @@ export default function ProfilePage() {
         />
 
         {/* Profile Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Profile Image & Basic Info */}
-          <div className="intelligence-card global">
-            <div className="p-8">
-              <div className="text-center">
-                <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center text-2xl font-bold text-blue-600 mx-auto mb-4">
-                  {profile.name.charAt(0)}
-                </div>
-                <h2 className="text-xl font-bold text-nexus-text-primary">{profile.name}</h2>
-                <p className="text-nexus-text-secondary">{profile.role}</p>
-                <p className="text-sm text-nexus-text-secondary mt-2">
-                  入社: {profile.joinDate}
-                </p>
-              </div>
-            </div>
-          </div>
-
+        <div className="max-w-4xl mx-auto">
           {/* Profile Details */}
-          <div className="lg:col-span-2 intelligence-card global">
+          <div className="intelligence-card global">
             <div className="p-8">
               <h3 className="text-lg font-bold text-nexus-text-primary mb-6">基本情報</h3>
               
@@ -432,23 +416,6 @@ export default function ProfilePage() {
                   )}
                 </div>
 
-                <div>
-                  {isEditing ? (
-                    <NexusInput
-                      type="text"
-                      label="部署"
-                      value={editForm?.department || ''}
-                      onChange={(e) => handleInputChange('department', e.target.value)}
-                    />
-                  ) : (
-                    <div>
-                      <label className="block text-sm font-medium text-nexus-text-secondary mb-2">
-                        部署
-                      </label>
-                      <p className="text-nexus-text-primary">{profile.department || '未設定'}</p>
-                    </div>
-                  )}
-                </div>
 
                 <div>
                   <label className="block text-sm font-medium text-nexus-text-secondary mb-2">

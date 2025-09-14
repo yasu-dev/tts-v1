@@ -118,17 +118,24 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { id, name, capacity, isActive } = body;
+    const { originalCode, code, name, capacity, isActive } = body;
 
-    if (!id) {
+    if (!originalCode) {
       return NextResponse.json(
-        { error: 'ロケーションIDが必要です' },
+        { error: '元のロケーションコードが必要です' },
+        { status: 400 }
+      );
+    }
+
+    if (!code) {
+      return NextResponse.json(
+        { error: '新しいロケーションコードが必要です' },
         { status: 400 }
       );
     }
 
     const existingLocation = await prisma.location.findUnique({
-      where: { id },
+      where: { code: originalCode },
     });
 
     if (!existingLocation) {
@@ -138,9 +145,36 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    // コードが変更された場合は重複チェック
+    if (code !== originalCode) {
+      const duplicateLocation = await prisma.location.findUnique({
+        where: { code },
+      });
+
+      if (duplicateLocation) {
+        return NextResponse.json(
+          { error: 'このロケーションコードは既に存在します' },
+          { status: 409 }
+        );
+      }
+    }
+
+    // 容量削減時の商品数チェック
+    if (capacity !== undefined && capacity < existingLocation.capacity) {
+      const currentProductCount = await prisma.product.count({
+        where: { currentLocationId: existingLocation.id }
+      });
+      if (capacity < currentProductCount) {
+        return NextResponse.json({
+          error: `容量を${currentProductCount}未満に設定できません（現在商品数: ${currentProductCount}）`
+        }, { status: 400 });
+      }
+    }
+
     const updatedLocation = await prisma.location.update({
-      where: { id },
+      where: { id: existingLocation.id },
       data: {
+        ...(code && { code }),
         ...(name && { name }),
         ...(capacity !== undefined && { capacity: capacity ? parseInt(capacity) : null }),
         ...(isActive !== undefined && { isActive }),
@@ -151,11 +185,14 @@ export async function PUT(request: NextRequest) {
     await prisma.activity.create({
       data: {
         type: 'location_update',
-        description: `ロケーション ${existingLocation.code} が更新されました`,
+        description: code !== originalCode ?
+          `ロケーション ${originalCode} のコードが ${code} に変更されました` :
+          `ロケーション ${code} が更新されました`,
         userId: user.id,
         metadata: JSON.stringify({
-          locationCode: existingLocation.code,
-          changes: { name, capacity, isActive },
+          originalCode,
+          newCode: code,
+          changes: { code, name, capacity, isActive },
         }),
       },
     });

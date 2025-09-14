@@ -7,7 +7,8 @@ import NexusButton from '@/app/components/ui/NexusButton';
 import NexusCheckbox from '@/app/components/ui/NexusCheckbox';
 import Pagination from '@/app/components/ui/Pagination';
 import { useRouter } from 'next/navigation';
-import { ClipboardDocumentListIcon, CubeIcon } from '@heroicons/react/24/outline';
+import { ClipboardDocumentListIcon, CubeIcon, PlusIcon } from '@heroicons/react/24/outline';
+import LocationCreateForm from './LocationCreateForm';
 
 interface Location {
   code: string;
@@ -47,6 +48,10 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
   const [mounted, setMounted] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [locationToDelete, setLocationToDelete] = useState<string | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingLocation, setEditingLocation] = useState<Location | null>(null);
+  const [editForm, setEditForm] = useState({ code: '', name: '', capacity: '', isActive: true });
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isPickingModalOpen, setIsPickingModalOpen] = useState(false);
   const [selectedPickingItems, setSelectedPickingItems] = useState<any[]>([]);
   const [selectedLocationName, setSelectedLocationName] = useState<string>('');
@@ -56,8 +61,47 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
 
+  // ソート状態
+  const [sortField, setSortField] = useState<'code' | 'name' | 'products' | null>('code');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
   const { showToast } = useToast();
   const router = useRouter();
+
+  // ソート機能のハンドラー
+  const handleSort = (field: 'code' | 'name' | 'products') => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  // ソートアイコンコンポーネント
+  const SortIcon = ({ field }: { field: 'code' | 'name' | 'products' }) => {
+    if (sortField !== field) {
+      return (
+        <svg className="w-4 h-4 ml-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+        </svg>
+      );
+    }
+
+    if (sortDirection === 'asc') {
+      return (
+        <svg className="w-4 h-4 ml-1 text-nexus-yellow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11l5-5m0 0l5 5m-5-5v12" />
+        </svg>
+      );
+    } else {
+      return (
+        <svg className="w-4 h-4 ml-1 text-nexus-yellow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 13l-5 5m0 0l-5-5m5 5V6" />
+        </svg>
+      );
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -84,15 +128,52 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
     }
   }, [searchQuery, locations]);
 
-  // ページネーション計算（リストビュー用）
-  const paginatedLocations = useMemo(() => {
-    if (viewMode !== 'list') {
-      return filteredLocations;
+  // ソートとページネーション計算
+  const sortedAndPaginatedLocations = useMemo(() => {
+    let sortedLocations = [...filteredLocations];
+
+    if (sortField) {
+      sortedLocations.sort((a, b) => {
+        let valueA: any, valueB: any;
+
+        switch (sortField) {
+          case 'code':
+            valueA = a.code || '';
+            valueB = b.code || '';
+            break;
+          case 'name':
+            valueA = a.name || '';
+            valueB = b.name || '';
+            break;
+          case 'products':
+            valueA = a.products?.length || 0;
+            valueB = b.products?.length || 0;
+            break;
+          default:
+            valueA = a.code || '';
+            valueB = b.code || '';
+        }
+
+        if (sortField === 'products') {
+          // 数値ソート
+          return sortDirection === 'asc' ? valueA - valueB : valueB - valueA;
+        } else {
+          // 文字列ソート
+          const comparison = valueA.localeCompare(valueB, 'ja');
+          return sortDirection === 'asc' ? comparison : -comparison;
+        }
+      });
     }
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredLocations.slice(startIndex, endIndex);
-  }, [filteredLocations, currentPage, itemsPerPage, viewMode]);
+
+    // リストビューの場合はページネーション適用
+    if (viewMode === 'list') {
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      return sortedLocations.slice(startIndex, endIndex);
+    }
+
+    return sortedLocations;
+  }, [filteredLocations, currentPage, itemsPerPage, viewMode, sortField, sortDirection]);
 
   const totalItems = viewMode === 'list' ? filteredLocations.length : 0;
   const totalPages = viewMode === 'list' ? Math.ceil(totalItems / itemsPerPage) : 0;
@@ -358,18 +439,22 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
     return Object.values(grouped);
   };
 
-  const getLocationTypeLabel = (type: string) => {
-    switch (type) {
-      case 'standard':
-        return { label: '標準保管', badge: 'info' };
-      case 'controlled':
-        return { label: '環境管理', badge: 'warning' };
-      case 'secure':
-        return { label: '高セキュリティ', badge: 'danger' };
-      case 'processing':
+  const getLocationTypeLabel = (zone: string) => {
+    switch (zone) {
+      case 'A':
+      case 'B':
+      case 'C':
+        return { label: '標準棚', badge: 'info' };
+      case 'H':
+        return { label: '防湿庫', badge: 'warning' };
+      case 'T':
+        return { label: '温度管理庫', badge: 'warning' };
+      case 'V':
+        return { label: '金庫室', badge: 'danger' };
+      case 'P':
         return { label: '作業エリア', badge: 'success' };
       default:
-        return { label: 'その他', badge: 'info' };
+        return { label: '標準棚', badge: 'info' };
     }
   };
 
@@ -424,34 +509,6 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
     }
   };
 
-  const handleUpdateLocation = async (locationId: string, updateData: any) => {
-    try {
-      const response = await fetch('/api/locations', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: locationId, ...updateData })
-      });
-      
-      if (response.ok) {
-        showToast({
-          type: 'success',
-          title: 'ロケーション更新完了',
-          message: 'ロケーション情報を更新しました',
-          duration: 3000
-        });
-        fetchLocations(); // データを再取得
-      } else {
-        throw new Error('ロケーション更新に失敗しました');
-      }
-    } catch (error) {
-      showToast({
-        type: 'error',
-        title: 'エラー',
-        message: 'ロケーション更新中にエラーが発生しました',
-        duration: 4000
-      });
-    }
-  };
 
   const handleDeleteLocation = async (locationCode: string) => {
     setLocationToDelete(locationCode);
@@ -490,6 +547,57 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
     }
   };
 
+  const handleEditLocation = async (location: Location) => {
+    setEditingLocation(location);
+    setEditForm({
+      code: location.code,
+      name: location.name,
+      capacity: location.capacity.toString(),
+      isActive: location.zone !== 'P' // 作業エリア以外はアクティブ状態を編集可能
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const confirmEditLocation = async () => {
+    if (!editingLocation) return;
+
+    try {
+      const response = await fetch('/api/locations', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          originalCode: editingLocation.code, // 元のコードで検索
+          code: editForm.code, // 新しいコード
+          name: editForm.name,
+          capacity: parseInt(editForm.capacity),
+          isActive: editForm.isActive
+        })
+      });
+
+      if (response.ok) {
+        showToast({
+          type: 'success',
+          title: 'ロケーション更新完了',
+          message: 'ロケーション情報を更新しました',
+          duration: 3000
+        });
+        fetchLocations(); // データを再取得
+        setIsEditModalOpen(false);
+        setEditingLocation(null);
+      } else {
+        const error = await response.json();
+        throw new Error(error.error || 'ロケーション更新に失敗しました');
+      }
+    } catch (error) {
+      showToast({
+        type: 'error',
+        title: 'エラー',
+        message: error instanceof Error ? error.message : 'ロケーション更新中にエラーが発生しました',
+        duration: 4000
+      });
+    }
+  };
+
   if (!mounted || loading) {
     return (
       <div className="intelligence-card global">
@@ -508,6 +616,16 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
         <div className="p-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <h2 className="text-xl font-display font-bold text-nexus-text-primary">ロケーション一覧</h2>
+
+            {/* 追加ボタン */}
+            <NexusButton
+              onClick={() => setIsAddModalOpen(true)}
+              variant="primary"
+              size="sm"
+              icon={<PlusIcon className="w-4 h-4" />}
+            >
+              新規追加
+            </NexusButton>
             
             {/* ビューモード切り替え */}
             <div className="flex gap-1 bg-nexus-bg-secondary p-1 rounded-lg">
@@ -558,8 +676,8 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
           {/* グリッドビュー */}
           {viewMode === 'grid' && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredLocations.map((location) => {
-                const typeInfo = getLocationTypeLabel(location.type);
+              {sortedAndPaginatedLocations.map((location) => {
+                const typeInfo = getLocationTypeLabel(location.zone);
                 const occupancyStatus = getOccupancyStatus(location.used, location.capacity);
                 return (
                   <div
@@ -572,9 +690,23 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                         <h3 className="font-semibold text-lg text-nexus-text-primary">{location.name}</h3>
                         <p className="text-sm text-nexus-text-secondary font-mono">{location.code}</p>
                       </div>
-                      <span className={`status-badge ${typeInfo.badge}`}>
-                        {typeInfo.label}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditLocation(location);
+                          }}
+                          className="p-2 text-nexus-text-secondary hover:text-nexus-yellow hover:bg-nexus-bg-secondary rounded-lg transition-colors"
+                          title="編集"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </button>
+                        <span className={`status-badge ${typeInfo.badge}`}>
+                          {typeInfo.label}
+                        </span>
+                      </div>
                     </div>
 
                     {/* 使用状況 */}
@@ -640,17 +772,41 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
               <table className="w-full">
                 <thead className="holo-header">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium">コード</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">名前</th>
+                    <th
+                      className="px-4 py-3 text-left text-sm font-medium cursor-pointer hover:bg-nexus-bg-secondary transition-colors"
+                      onClick={() => handleSort('code')}
+                    >
+                      <div className="flex items-center">
+                        コード
+                        <SortIcon field="code" />
+                      </div>
+                    </th>
+                    <th
+                      className="px-4 py-3 text-left text-sm font-medium cursor-pointer hover:bg-nexus-bg-secondary transition-colors"
+                      onClick={() => handleSort('name')}
+                    >
+                      <div className="flex items-center">
+                        名前
+                        <SortIcon field="name" />
+                      </div>
+                    </th>
                     <th className="px-4 py-3 text-left text-sm font-medium">タイプ</th>
                     <th className="px-4 py-3 text-left text-sm font-medium">使用状況</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium">商品数</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">環境</th>
+                    <th
+                      className="px-4 py-3 text-center text-sm font-medium cursor-pointer hover:bg-nexus-bg-secondary transition-colors"
+                      onClick={() => handleSort('products')}
+                    >
+                      <div className="flex items-center justify-center">
+                        商品数
+                        <SortIcon field="products" />
+                      </div>
+                    </th>
+                    <th className="px-4 py-3 text-center text-sm font-medium">操作</th>
                   </tr>
                 </thead>
                 <tbody className="holo-body">
-                  {paginatedLocations.map((location) => {
-                    const typeInfo = getLocationTypeLabel(location.type);
+                  {sortedAndPaginatedLocations.map((location) => {
+                    const typeInfo = getLocationTypeLabel(location.zone);
                     const occupancyStatus = getOccupancyStatus(location.used, location.capacity);
                     return (
                       <tr
@@ -687,26 +843,19 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                         <td className="px-4 py-4 text-sm text-center font-display">
                           {location.products.length}
                         </td>
-                        <td className="px-4 py-4 text-sm">
-                          <div className="flex items-center gap-2">
-                            {location.temperature && (
-                              <span className="flex items-center gap-1">
-                                <svg className="w-4 h-4 text-nexus-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 6v6l4.24 4.24a1 1 0 11-1.42 1.42L12 14h-1a5 5 0 110-10h1z" />
-                                </svg>
-                                {location.temperature}
-                              </span>
-                            )}
-                            {location.humidity && (
-                              <span className="flex items-center gap-1">
-                                <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                                </svg>
-                                {location.humidity}
-                              </span>
-                            )}
-                            {!location.temperature && !location.humidity && '-'}
-                          </div>
+                        <td className="px-4 py-4 text-sm text-center">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditLocation(location);
+                            }}
+                            className="p-2 text-nexus-text-secondary hover:text-nexus-yellow hover:bg-nexus-bg-secondary rounded-lg transition-colors"
+                            title="編集"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
                         </td>
                       </tr>
                     );
@@ -1057,8 +1206,8 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                     <div className="flex justify-between">
                       <dt className="text-nexus-text-secondary">タイプ:</dt>
                       <dd>
-                        <span className={`status-badge ${getLocationTypeLabel(selectedLocation.type).badge}`}>
-                          {getLocationTypeLabel(selectedLocation.type).label}
+                        <span className={`status-badge ${getLocationTypeLabel(selectedLocation.zone).badge}`}>
+                          {getLocationTypeLabel(selectedLocation.zone).label}
                         </span>
                       </dd>
                     </div>
@@ -1338,6 +1487,106 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
             </div>
           </div>
         </div>
+      </BaseModal>
+
+      {/* 編集モーダル */}
+      <BaseModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingLocation(null);
+        }}
+        title="ロケーション編集"
+        size="md"
+      >
+        <div>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-nexus-text-primary mb-2">
+                ロケーションコード
+              </label>
+              <input
+                type="text"
+                value={editForm.code}
+                onChange={(e) => setEditForm({ ...editForm, code: e.target.value.toUpperCase() })}
+                className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg focus:outline-none focus:border-nexus-yellow focus:ring-2 focus:ring-nexus-yellow/20 text-nexus-text-primary font-mono"
+                placeholder="例: STD-A-01"
+              />
+              <p className="text-xs text-nexus-text-secondary mt-1">
+                英数字とハイフンのみ使用可能
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-nexus-text-primary mb-2">
+                ロケーション名
+              </label>
+              <input
+                type="text"
+                value={editForm.name}
+                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg focus:outline-none focus:border-nexus-yellow focus:ring-2 focus:ring-nexus-yellow/20 text-nexus-text-primary"
+                placeholder="ロケーション名を入力"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-nexus-text-primary mb-2">
+                容量
+              </label>
+              <input
+                type="number"
+                value={editForm.capacity}
+                onChange={(e) => setEditForm({ ...editForm, capacity: e.target.value })}
+                className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg focus:outline-none focus:border-nexus-yellow focus:ring-2 focus:ring-nexus-yellow/20 text-nexus-text-primary"
+                placeholder="容量を入力"
+                min="0"
+              />
+            </div>
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="isActive"
+                checked={editForm.isActive}
+                onChange={(e) => setEditForm({ ...editForm, isActive: e.target.checked })}
+                className="w-4 h-4 text-nexus-yellow bg-nexus-bg-primary border-nexus-border rounded focus:ring-nexus-yellow focus:ring-2"
+              />
+              <label htmlFor="isActive" className="ml-2 text-sm text-nexus-text-primary">
+                アクティブ状態
+              </label>
+            </div>
+          </div>
+          <div className="flex justify-end gap-3 mt-6">
+            <NexusButton
+              onClick={() => {
+                setIsEditModalOpen(false);
+                setEditingLocation(null);
+              }}
+              variant="default"
+            >
+              キャンセル
+            </NexusButton>
+            <NexusButton
+              onClick={confirmEditLocation}
+              variant="primary"
+            >
+              更新する
+            </NexusButton>
+          </div>
+        </div>
+      </BaseModal>
+
+      {/* 追加モーダル */}
+      <BaseModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        title="新しいロケーションを追加"
+        size="lg"
+      >
+        <LocationCreateForm
+          onCreateComplete={() => {
+            setIsAddModalOpen(false);
+            fetchLocations(); // データを再取得
+          }}
+        />
       </BaseModal>
     </div>
   );
