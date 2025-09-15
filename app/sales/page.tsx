@@ -1208,7 +1208,7 @@ export default function SalesPage() {
             
             {/* ページネーション */}
             {salesData?.pagination && salesData.pagination.totalCount > 0 && (
-              <div className="mt-6 pt-4 border-t border-nexus-border">
+              <div className="mt-6 pt-6 px-6">
                 <Pagination
                   currentPage={currentPage}
                   totalPages={salesData.pagination.totalPages}

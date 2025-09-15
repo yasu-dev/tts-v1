@@ -94,10 +94,18 @@ export default function BundlePackingConfirmModal({
                         <h4 className="font-medium text-nexus-text-primary">{item.productName}</h4>
                       </div>
                       <div className="mt-2 space-y-1 text-sm text-nexus-text-secondary ml-8">
-                        <div>SKU: {item.productSku}</div>
-                        <div>注文: {item.orderNumber}</div>
-                        <div>顧客: {item.customer}</div>
-                        {item.value && <div>価値: ¥{item.value.toLocaleString()}</div>}
+                        {item.location && (
+                          <div className="font-medium text-nexus-text-primary">
+                            ロケーション: {item.location}
+                          </div>
+                        )}
+                        {item.productSku && (
+                          <div>
+                            管理番号: {item.productSku.split('-').slice(0, 3).join('-')}
+                            <span className="text-xs text-nexus-text-secondary ml-2">(ラベル記載番号)</span>
+                          </div>
+                        )}
+                        {item.value && <div>価値: ${item.value.toLocaleString()}</div>}
                       </div>
                     </div>
                     <span className="text-sm px-2 py-1 bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 rounded-full">
@@ -115,7 +123,7 @@ export default function BundlePackingConfirmModal({
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-nexus-text-primary">合計商品価値</span>
             <span className="text-lg font-semibold text-nexus-text-primary">
-              ¥{totalValue.toLocaleString()}
+              ${totalValue.toLocaleString()}
             </span>
           </div>
         </div>

@@ -1301,7 +1301,7 @@ export default function InspectionPage() {
 
             {/* ページネーション */}
             {filteredProducts.length > 0 && (
-              <div className="mt-6 pt-4 border-t border-nexus-border">
+              <div className="mt-6 pt-6 px-6">
                 <Pagination
                   currentPage={currentPage}
                   totalPages={totalPages}

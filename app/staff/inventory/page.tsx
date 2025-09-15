@@ -811,7 +811,7 @@ export default function StaffInventoryPage() {
             {/* ページネーション */}
             {/* サーバーサイドページネーション対応 */}
             {!loading && totalItems > 0 && (
-              <div className="mt-6 pt-4 border-t border-nexus-border">
+              <div className="mt-6 pt-6 px-6">
 
                 <Pagination
                   currentPage={currentPage}

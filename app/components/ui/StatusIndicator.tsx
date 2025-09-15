@@ -11,7 +11,7 @@ type BusinessStatusType =
   | 'processing' | 'delivered' | 'returned'
   | 'packed' | 'shipped' | 'ready_for_pickup'
   | 'approved' | 'rejected' | 'refunded'
-  | 'ordered' | 'shipping' | 'workstation'
+  | 'ordered' | 'shipping'
   | 'on_hold';
 
 interface StatusIndicatorProps {
@@ -72,12 +72,6 @@ const businessStatusConfig = {
   },
 
   // 【進行中】- 青・紫系
-  workstation: {
-    label: '作業台',
-    bg: 'bg-blue-600 dark:bg-blue-600',      // 進行中 - 青
-    text: 'text-white dark:text-white',
-    border: 'border-blue-600 dark:border-blue-600'
-  },
   packed: {
     label: '梱包済み',
     bg: 'bg-purple-600 dark:bg-purple-600',  // 進行中 - 紫
@@ -85,10 +79,10 @@ const businessStatusConfig = {
     border: 'border-purple-600 dark:border-purple-600'
   },
   pending: {
-    label: '未確定',
-    bg: 'bg-indigo-600 dark:bg-indigo-600',  // 進行中 - インディゴ
+    label: '梱包待ち',
+    bg: 'bg-yellow-600 dark:bg-yellow-600',  // 注意喚起 - 黄色
     text: 'text-white dark:text-white',
-    border: 'border-indigo-600 dark:border-indigo-600'
+    border: 'border-yellow-600 dark:border-yellow-600'
   },
 
   // 【完了系】- 緑系
@@ -198,9 +192,8 @@ function getIndicatorColor(status: BusinessStatusType): string {
     in_progress: 'bg-amber-400',
 
     // 【進行中】- 青・紫系
-    workstation: 'bg-blue-300',
     packed: 'bg-purple-300',
-    pending: 'bg-indigo-300',
+    pending: 'bg-yellow-300',
 
     // 【完了系】- 緑系
     shipping: 'bg-green-300',
@@ -384,13 +377,13 @@ export function BusinessStatusIndicator({
       ${config.border}
       ${className}
     `}>
-      {/* ステータスインジケーター */}
-      <div className={`
+      {/* ステータスインジケーター - 非表示 */}
+      {/* <div className={`
         ${sizing.indicator}
         rounded-full
         flex-shrink-0
         ${getIndicatorColor(status)}
-      `} />
+      `} /> */}
       
       {showLabel ? config.label : ''}
     </span>

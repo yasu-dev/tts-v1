@@ -571,9 +571,13 @@ export default function ProductRegistrationStep({
 
               {/* 撮影要望セクション */}
               <div className="mt-6 border-t pt-6">
-                <h4 className="text-lg font-medium text-nexus-text-primary mb-4 flex items-center gap-2">
+                <h4 className="text-lg font-medium text-nexus-text-primary mb-4 flex items-center gap-3">
                   <CameraIcon className="h-5 w-5" />
-                  撮影要望（必須選択）
+                  撮影要望
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
+                    <span className="w-1.5 h-1.5 bg-red-400 rounded-full mr-1.5"></span>
+                    必須選択
+                  </span>
                 </h4>
                 <p className="text-sm text-nexus-text-secondary mb-6">
                   商品の撮影方法を選択してください。いずれかの選択が必要です。

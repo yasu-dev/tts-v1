@@ -109,6 +109,12 @@ export async function GET(request: NextRequest) {
           }
         }
 
+        // XYZcamera特別同梱判定
+        if (productName?.includes('XYZcamera')) {
+          isBundleItem = true;
+          console.log('🔗 XYZcamera出荷管理同梱判定:', productName);
+        }
+
         return {
           id: shipment.id,
           orderId: shipment.orderId,

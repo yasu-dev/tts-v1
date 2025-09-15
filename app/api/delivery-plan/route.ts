@@ -127,8 +127,8 @@ export async function POST(request: NextRequest) {
         sellerId: user.id,
         sellerName: user.username || user.email,
         deliveryAddress: planData.basicInfo.deliveryAddress,
-        contactEmail: user.email,
-        phoneNumber: planData.basicInfo.phoneNumber || null,
+        contactEmail: 'info@the-world-door.com', // 固定の連絡先メール
+        phoneNumber: null, // 倉庫情報に電話番号が含まれるためnull
         totalItems: validProducts.length
       });
       
@@ -141,8 +141,8 @@ export async function POST(request: NextRequest) {
           warehouseId: planData.basicInfo.warehouseId || null,
           warehouseName: planData.basicInfo.warehouseName || null,
           deliveryAddress: planData.basicInfo.deliveryAddress,
-          contactEmail: user.email,
-          phoneNumber: planData.basicInfo.phoneNumber || null,
+          contactEmail: 'info@the-world-door.com', // 固定の連絡先メール
+          phoneNumber: null, // 倉庫情報に電話番号が含まれるためnull
           status: 'Pending', // '発送待ち'から'Pending'に変更
           totalItems: validProducts.length,
           totalValue: validProducts.reduce((sum: number, product: any) =>

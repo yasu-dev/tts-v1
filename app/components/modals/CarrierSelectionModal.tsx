@@ -188,7 +188,7 @@ export default function CarrierSelectionModal({
               <div><span className="font-medium">注文番号:</span> {item.orderNumber}</div>
               <div><span className="font-medium">配送先:</span> {item.shippingAddress}</div>
               {item.value && (
-                <div><span className="font-medium">商品価値:</span> ¥{item.value.toLocaleString()}</div>
+                <div><span className="font-medium">商品価値:</span> ${item.value.toLocaleString()}</div>
               )}
             </div>
           </div>

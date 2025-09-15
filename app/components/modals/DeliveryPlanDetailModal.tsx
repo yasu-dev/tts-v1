@@ -258,14 +258,14 @@ export default function DeliveryPlanDetailModal({
                     <EnvelopeIcon className="w-5 h-5 text-nexus-text-secondary" />
                     <div>
                       <p className="text-sm text-nexus-text-secondary">連絡先</p>
-                      <p className="font-medium">{plan.contactEmail || 'メールアドレス未設定'}</p>
+                      <p className="font-medium">info@the-world-door.com</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <PhoneIcon className="w-5 h-5 text-nexus-text-secondary" />
                     <div>
                       <p className="text-sm text-nexus-text-secondary">電話番号</p>
-                      <p className="font-medium">{plan.phoneNumber || '電話番号未設定'}</p>
+                      <p className="font-medium">03-5542-0411（倉庫直通）</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">

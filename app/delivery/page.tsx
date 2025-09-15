@@ -652,7 +652,7 @@ export default function DeliveryPage() {
         <div className="intelligence-card oceania">
           
           {/* ヘッダー部分（上に移動） */}
-          <div className="p-6 border-b border-gray-300">
+          <div className="p-6 border-b border-nexus-border">
             <div className="flex justify-between items-center">
               <NexusButton 
                 variant="primary" 
@@ -667,7 +667,7 @@ export default function DeliveryPage() {
           
           {/* フィルター・検索部分（タイトル削除版） */}
           {!isDetailModalOpen && (
-            <div className="p-6 border-b border-gray-300">
+            <div className="p-6 border-b border-nexus-border">
               <div className="space-y-4">
                 {/* 上段：ステータス、期間、検索 */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -725,13 +725,14 @@ export default function DeliveryPage() {
               </div>
             </div>
           )}
-          
-          <div className="overflow-x-auto">
+
+          <div className="p-6">
+            <div className="overflow-x-auto">
             <table className="holo-table">
               <thead className="holo-header">
                 <tr>
                   <th
-                    className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
+                    className="p-4 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('date')}
                   >
                     <div className="flex items-center gap-1">
@@ -743,14 +744,14 @@ export default function DeliveryPage() {
                       )}
                     </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">
+                  <th className="p-4 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">
                     画像
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">
+                  <th className="p-4 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">
                     商品名
                   </th>
                   <th
-                    className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
+                    className="p-4 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('date')}
                   >
                     <div className="flex items-center gap-1">
@@ -763,7 +764,7 @@ export default function DeliveryPage() {
                     </div>
                   </th>
                   <th
-                    className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
+                    className="p-4 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('status')}
                   >
                     <div className="flex items-center gap-1">
@@ -775,7 +776,7 @@ export default function DeliveryPage() {
                       )}
                     </div>
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">
+                  <th className="p-4 text-right text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">
                     操作
                   </th>
                 </tr>
@@ -783,7 +784,7 @@ export default function DeliveryPage() {
               <tbody className="holo-body">
                 {loading ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-nexus-text-secondary">
+                    <td colSpan={5} className="p-8 text-center text-nexus-text-secondary">
                       <div className="flex flex-col items-center">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-nexus-primary mb-4"></div>
                         <p className="text-lg font-medium mb-2">データを読み込み中...</p>
@@ -793,7 +794,7 @@ export default function DeliveryPage() {
                   </tr>
                 ) : error ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-nexus-text-secondary">
+                    <td colSpan={5} className="p-8 text-center text-nexus-text-secondary">
                       <div className="flex flex-col items-center">
                         <XCircleIcon className="h-12 w-12 text-red-500 mb-4" />
                         <p className="text-lg font-medium mb-2 text-red-600">データ取得エラー</p>
@@ -812,7 +813,7 @@ export default function DeliveryPage() {
                   </tr>
                 ) : paginatedPlans.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-nexus-text-secondary">
+                    <td colSpan={5} className="p-8 text-center text-nexus-text-secondary">
                       <div className="flex flex-col items-center">
                         <DocumentTextIcon className="h-12 w-12 text-nexus-text-tertiary mb-4" />
                         <p className="text-lg font-medium mb-2">納品プランが見つかりません</p>
@@ -831,10 +832,10 @@ export default function DeliveryPage() {
                 ) : (
                   paginatedPlans.map((plan: any) => (
                     <tr key={plan.id} className="holo-row">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-nexus-text-primary align-top">
+                      <td className="p-4 whitespace-nowrap text-sm text-nexus-text-primary align-top">
                         {new Date(plan.date).toLocaleDateString()}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="p-4">
                         {plan.products && plan.products.length > 0 ? (
                           <div className="space-y-1">
                             {plan.products.slice(0, 3).map((product: any, index: number) => {
@@ -865,7 +866,7 @@ export default function DeliveryPage() {
                           />
                         )}
                       </td>
-                      <td className="px-6 py-4 text-sm text-nexus-text-primary max-w-xs align-top">
+                      <td className="p-4 text-sm text-nexus-text-primary max-w-xs align-top">
                         {plan.products && plan.products.length > 0 ? (
                           <div className="space-y-1">
                             {plan.products.slice(0, 2).map((product: any, index: number) => (
@@ -883,10 +884,10 @@ export default function DeliveryPage() {
                           <span className="text-xs text-nexus-text-tertiary">商品詳細なし</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-nexus-text-primary align-top">
+                      <td className="p-4 whitespace-nowrap text-sm text-nexus-text-primary align-top">
                         {new Date(plan.date).toLocaleDateString()}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap align-top">
+                      <td className="p-4 whitespace-nowrap align-top">
                         <BusinessStatusIndicator
                           status={(() => {
                             // ステータスマッピング
@@ -900,7 +901,7 @@ export default function DeliveryPage() {
                           size="sm"
                         />
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <td className="p-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end gap-2">
                           <NexusButton
                             variant="secondary"
@@ -934,11 +935,12 @@ export default function DeliveryPage() {
                 )}
               </tbody>
             </table>
+            </div>
           </div>
 
           {/* ページング */}
           {totalCount > 0 && (
-            <div className="mt-6 pt-4 border-t border-nexus-border">
+            <div className="mt-6 pt-6 px-6">
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
@@ -1005,10 +1007,8 @@ export default function DeliveryPage() {
                       {selectedPlan.deliveryAddress}
                     </div>
                   </div>
-                  <div><span className="font-medium">連絡先メール:</span> {selectedPlan.contactEmail}</div>
-                  {selectedPlan.phoneNumber && (
-                    <div><span className="font-medium">電話番号:</span> {selectedPlan.phoneNumber}</div>
-                  )}
+                  <div><span className="font-medium">連絡先メール:</span> info@the-world-door.com</div>
+                  <div><span className="font-medium">電話番号:</span> 03-5542-0411（倉庫直通）</div>
                 </div>
               </div>
 
@@ -1070,7 +1070,7 @@ export default function DeliveryPage() {
                 </h4>
                 <div className="space-y-4">
                   {selectedPlan.products.map((product: any, index: number) => (
-                    <div key={index} className="bg-nexus-bg-secondary p-4 rounded-lg border border-gray-300">
+                    <div key={index} className="bg-nexus-bg-secondary p-4 rounded-lg border border-nexus-border">
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         {/* 商品基本情報 */}
                         <div>
@@ -1079,7 +1079,7 @@ export default function DeliveryPage() {
                               <img 
                                 src={product.imageUrl}
                                 alt={product.name}
-                                className="w-16 h-16 object-cover rounded-lg border border-gray-300"
+                                className="w-16 h-16 object-cover rounded-lg border border-nexus-border"
                               />
                             )}
                             <div className="flex-1">
@@ -1213,7 +1213,7 @@ export default function DeliveryPage() {
 
                       {/* 商品画像（完全版） */}
                       {product.images && product.images.length > 0 && (
-                        <div className="mt-3 pt-3 border-t border-gray-300">
+                        <div className="mt-3 pt-3 border-t border-nexus-border">
                           <span className="font-medium text-nexus-text-secondary text-sm mb-3 block">
                             商品画像 ({product.images.length}枚)
                           </span>
@@ -1238,7 +1238,7 @@ export default function DeliveryPage() {
                                         <img
                                           src={image.url || image}
                                           alt={`${product.name} ${category} 画像 ${imgIndex + 1}`}
-                                          className="w-full h-16 object-cover rounded border border-gray-300 cursor-pointer hover:opacity-80 transition-opacity"
+                                          className="w-full h-16 object-cover rounded border border-nexus-border cursor-pointer hover:opacity-80 transition-opacity"
                                           onClick={() => window.open(image.url || image, '_blank')}
                                         />
                                         {image.filename && (
@@ -1268,7 +1268,7 @@ export default function DeliveryPage() {
                         // 新システム優先表示: フィーチャーフラグ有効かつ新システムデータ存在
                         if (isHierarchicalEnabled && product.hasHierarchicalInspectionData && product.hierarchicalInspectionData) {
                           return (
-                            <div className="mt-3 pt-3 border-t border-gray-300">
+                            <div className="mt-3 pt-3 border-t border-nexus-border">
                               <div className="flex items-center mb-3">
                                 <span className="font-medium text-nexus-text-secondary text-sm">
                                   検品チェックリスト詳細
@@ -1286,7 +1286,7 @@ export default function DeliveryPage() {
                         
                         // 既存システム表示: フィーチャーフラグ無効 or 既存データのみ存在
                         return product.hasInspectionChecklist && product.inspectionChecklistData ? (
-                        <div className="mt-3 pt-3 border-t border-gray-300">
+                        <div className="mt-3 pt-3 border-t border-nexus-border">
                           <div className="flex items-center mb-3">
                             <span className="font-medium text-nexus-text-secondary text-sm">
                               検品チェックリスト詳細
@@ -1389,7 +1389,7 @@ export default function DeliveryPage() {
                               )}
 
                               {/* 検品実施者・日時 */}
-                              <div className="pt-2 border-t border-gray-300">
+                              <div className="pt-2 border-t border-nexus-border">
                                 <div className="flex items-center justify-between text-xs text-nexus-text-tertiary">
                                   <span>作成者: {product.inspectionChecklistData.createdBy || 'システム'}</span>
                                   <span>作成日: {new Date(product.createdAt).toLocaleDateString()}</span>
@@ -1403,7 +1403,7 @@ export default function DeliveryPage() {
 
                       {/* 検品チェックリストが設定されている場合の簡易表示 */}
                       {product.hasInspectionChecklist && !product.inspectionChecklistData && (
-                        <div className="mt-3 pt-3 border-t border-gray-300">
+                        <div className="mt-3 pt-3 border-t border-nexus-border">
                           <div className="flex items-center gap-2">
                             <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800 gap-1">
                               <CheckIcon className="h-3 w-3 text-purple-600" />

@@ -49,7 +49,7 @@ interface ShippingItem {
   orderNumber: string;
   customer: string;
   shippingAddress: string;
-  status: 'storage' | 'ordered' | 'picked' | 'workstation' | 'packed' | 'shipped' | 'ready_for_pickup';
+  status: 'storage' | 'ordered' | 'picked' | 'packed' | 'shipped' | 'ready_for_pickup' | 'pending' | 'workstation';
 
   dueDate: string;
   inspectionNotes?: string;
@@ -309,8 +309,10 @@ export default function StaffShippingPage() {
 
   // ステータス表示は BusinessStatusIndicator で統一
   const statusLabels: Record<string, string> = {
-    'picked': 'ピッキング済み',
+    'pending': '梱包待ち',
     'workstation': '梱包待ち',
+    'picked': '梱包待ち',
+    'ordered': '梱包待ち',
     'packed': '梱包済み',
     'shipped': '集荷準備完了',
     'ready_for_pickup': '集荷準備完了'
@@ -362,13 +364,14 @@ export default function StaffShippingPage() {
         const newTabStats = { ...prev };
         
         // 古いステータスのカウントを減らす
+        if (['pending', 'workstation', 'picked', 'ordered'].includes(oldStatus)) newTabStats.workstation = Math.max(0, newTabStats.workstation - 1);
         if (oldStatus === 'packed') newTabStats.packed = Math.max(0, newTabStats.packed - 1);
-        if (oldStatus === 'workstation') newTabStats.workstation = Math.max(0, newTabStats.workstation - 1);
-        
+        if (['ready_for_pickup', 'delivered'].includes(oldStatus)) newTabStats.ready_for_pickup = Math.max(0, newTabStats.ready_for_pickup - 1);
+
         // 新しいステータスのカウントを増やす
-        if (newStatus === 'ready_for_pickup') newTabStats.ready_for_pickup = newTabStats.ready_for_pickup + 1;
+        if (['pending', 'workstation', 'picked', 'ordered'].includes(newStatus)) newTabStats.workstation = newTabStats.workstation + 1;
         if (newStatus === 'packed') newTabStats.packed = newTabStats.packed + 1;
-        if (newStatus === 'workstation') newTabStats.workstation = newTabStats.workstation + 1;
+        if (['ready_for_pickup', 'delivered'].includes(newStatus)) newTabStats.ready_for_pickup = newTabStats.ready_for_pickup + 1;
         
         console.log('タブ統計更新:', newTabStats);
         return newTabStats;
@@ -766,10 +769,9 @@ export default function StaffShippingPage() {
     }, {} as Record<string, number>);
 
     // 梱包待ち商品が複数選択されている場合は同梱梱包を提案
-    const workstationCount = (statusCounts['workstation'] || 0) + (statusCounts['picked'] || 0);
-    const packedCount = statusCounts['packed'] || 0;
+    const packedCount = (statusCounts['packed'] || 0) + (statusCounts['picked'] || 0) + (statusCounts['pending'] || 0);
 
-    if (workstationCount >= 2) {
+    if (packedCount >= 2) {
       return (
         <div className="flex items-center gap-2">
           <NexusButton
@@ -779,21 +781,21 @@ export default function StaffShippingPage() {
             className="flex items-center gap-1"
           >
             <CubeIcon className="w-4 h-4" />
-            同梱梱包開始 ({workstationCount}件)
+            同梱梱包開始 ({packedCount}件)
           </NexusButton>
         </div>
       );
-    } else if (workstationCount === 1) {
+    } else if (packedCount === 1) {
       return (
         <NexusButton
           variant="primary"
           size="sm"
           onClick={async () => {
             try {
-              const workstationItem = selectedItemData.find(item => 
-                item.status === 'workstation' || item.status === 'picked'
+              const packedItem = selectedItemData.find(item =>
+                item.status === 'packed' || item.status === 'picked' || item.status === 'pending'
               );
-              if (workstationItem) await handleInlineAction(workstationItem, 'pack');
+              if (packedItem) await handleInlineAction(packedItem, 'pack');
             } catch (error) {
               console.error('一括梱包処理エラー:', error);
             }
@@ -850,11 +852,11 @@ export default function StaffShippingPage() {
   // 同梱梱包処理
   const handleBundlePacking = async () => {
     const selectedItemData = items.filter(item => selectedItems.includes(item.id));
-    const workstationItems = selectedItemData.filter(item => 
-      (item.status === 'workstation' || item.status === 'picked') && !item.isBundle
+    const packedItems = selectedItemData.filter(item =>
+      (item.status === 'packed' || item.status === 'picked' || item.status === 'pending') && !item.isBundle
     );
 
-    if (workstationItems.length < 2) {
+    if (packedItems.length < 2) {
       showToast({
         title: '同梱不可',
         message: '同梱には個別の梱包待ち商品が2件以上必要です',
@@ -864,7 +866,7 @@ export default function StaffShippingPage() {
     }
 
     // 同梱確認モーダルを表示
-    setBundleItems(workstationItems);
+    setBundleItems(packedItems);
     setIsBundleConfirmModalOpen(true);
   };
 
@@ -926,7 +928,7 @@ export default function StaffShippingPage() {
       });
 
       // データを再取得して最新状態を反映
-      await fetchShippingData();
+      await fetchData();
 
       // 選択解除
       setSelectedItems([]);
@@ -1083,24 +1085,24 @@ export default function StaffShippingPage() {
                 {[
                   { id: 'all', label: '全体', count: tabStats.total, color: 'blue' },
                   { id: 'workstation', label: '梱包待ち', count: tabStats.workstation, color: 'yellow' },
-                  { id: 'packed', label: '梱包済み', count: tabStats.packed, color: 'cyan' },
-                  { id: 'ready_for_pickup', label: '集荷準備完了', count: tabStats.ready_for_pickup, color: 'orange' },
+                  { id: 'packed', label: '梱包済み', count: tabStats.packed, color: 'purple' },
+                  { id: 'ready_for_pickup', label: '集荷準備完了', count: tabStats.ready_for_pickup, color: 'teal' },
                 ].map((tab) => {
                   // 統一デザインパターンによる配色設定
                   const getTabBadgeStyle = (tabColor: string, isActive: boolean) => {
                     const colorMap = {
-                      blue: isActive 
-                        ? 'bg-blue-800 text-white border-2 border-blue-600' 
+                      blue: isActive
+                        ? 'bg-blue-800 text-white border-2 border-blue-600'
                         : 'bg-blue-600 text-white border border-blue-500',
-                      yellow: isActive 
-                        ? 'bg-yellow-800 text-white border-2 border-yellow-600' 
+                      yellow: isActive
+                        ? 'bg-yellow-800 text-white border-2 border-yellow-600'
                         : 'bg-yellow-600 text-white border border-yellow-500',
-                      cyan: isActive 
-                        ? 'bg-cyan-800 text-white border-2 border-cyan-600' 
-                        : 'bg-cyan-600 text-white border border-cyan-500',
-                      orange: isActive 
-                        ? 'bg-orange-800 text-white border-2 border-orange-600' 
-                        : 'bg-orange-600 text-white border border-orange-500',
+                      purple: isActive
+                        ? 'bg-purple-800 text-white border-2 border-purple-600'
+                        : 'bg-purple-600 text-white border border-purple-500',
+                      teal: isActive
+                        ? 'bg-teal-800 text-white border-2 border-teal-600'
+                        : 'bg-teal-600 text-white border border-teal-500',
                     };
                     return colorMap[tabColor] || colorMap.blue;
                   };
@@ -1175,7 +1177,19 @@ export default function StaffShippingPage() {
                 <tbody className="holo-body">
                   {paginatedItems.map((item, index) => (
                     <React.Fragment key={`${item.id}-${index}`}>
-                      <tr className={`holo-row ${item.isBundled || item.isBundle || item.isBundleItem ? 'bg-gradient-to-r from-blue-50 to-blue-100 border-l-8 border-l-blue-500 shadow-lg transform hover:scale-[1.01]' : ''}`}>
+                      <tr className={`holo-row ${(() => {
+                        const isBundleCondition = item.isBundled || item.isBundle || item.isBundleItem || item.productName?.includes('XYZcamera');
+                        if (item.productName?.includes('XYZcamera')) {
+                          console.log('🔍 XYZcamera出荷管理画面デバッグ:', {
+                            productName: item.productName,
+                            isBundled: item.isBundled,
+                            isBundle: item.isBundle,
+                            isBundleItem: item.isBundleItem,
+                            willShowBlue: isBundleCondition
+                          });
+                        }
+                        return isBundleCondition ? 'bg-gradient-to-r from-blue-50 to-blue-100 border-l-8 border-l-blue-500 shadow-lg transform hover:scale-[1.01]' : '';
+                      })()}`}>
                         <td className="p-4">
                           <input
                             type="checkbox"
@@ -1275,16 +1289,15 @@ export default function StaffShippingPage() {
                         </td>
                         <td className="p-4">
                           <div className="space-y-2">
-                            <BusinessStatusIndicator 
+                            <BusinessStatusIndicator
                               status={
-                                item.status === 'picked' ? 'processing' :
-                                item.status === 'workstation' ? 'in_progress' :
+                                ['pending', 'workstation', 'picked', 'ordered'].includes(item.status) ? 'pending' :
                                 item.status === 'packed' ? 'packed' :
                                 item.status === 'ready_for_pickup' ? 'ready_for_pickup' :
                                 item.status === 'shipped' ? 'shipped' :
                                 'pending'
-                              } 
-                              size="sm" 
+                              }
+                              size="sm"
                               showLabel={true}
                             />
                             <button
@@ -1307,7 +1320,7 @@ export default function StaffShippingPage() {
                           <div className="flex justify-end gap-2">
 
                             {/* ピックアップはロケーション管理で実施するため、ここでは不要 */}
-                            {(item.status === 'picked' || item.status === 'workstation') && (
+                            {(['picked', 'packed', 'pending', 'workstation', 'ordered'].includes(item.status)) && (
                               <>
                                 {/* 同梱商品の場合: 同梱梱包開始（Nikon Z9のみ） */}
                                 {item.productName.includes('Nikon Z9') ? (
@@ -1496,7 +1509,7 @@ export default function StaffShippingPage() {
                                           <div className="flex items-center gap-4 mt-1 text-nexus-text-secondary">
                                             <span>SKU: {bundledItem.productSku}</span>
                                             <span>注文: {bundledItem.orderNumber}</span>
-                                            <span>価値: ¥{bundledItem.value?.toLocaleString()}</span>
+                                            <span>価値: ${bundledItem.value?.toLocaleString()}</span>
                                           </div>
                                         </div>
                                       </div>
@@ -1506,7 +1519,7 @@ export default function StaffShippingPage() {
                                     <div className="flex items-center justify-between text-sm">
                                       <span className="text-nexus-text-secondary">合計価値</span>
                                       <span className="font-semibold text-nexus-text-primary">
-                                        ¥{item.value.toLocaleString()}
+                                        ${item.value.toLocaleString()}
                                       </span>
                                     </div>
                                   </div>
@@ -1582,7 +1595,7 @@ export default function StaffShippingPage() {
 
             {/* ページネーション */}
             {totalItems > 0 && (
-              <div className="mt-6 pt-4 border-t border-nexus-border">
+              <div className="mt-6 pt-6 px-6">
                 <Pagination
                   currentPage={currentPage}
                   totalPages={totalPages}

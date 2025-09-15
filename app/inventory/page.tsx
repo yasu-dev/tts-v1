@@ -321,7 +321,7 @@ export default function InventoryPage() {
         <div className="intelligence-card oceania">
           
           {/* フィルター・検索部分（タイトル削除版） */}
-          <div className="p-6 border-b border-gray-300">
+          <div className="p-6 border-b border-nexus-border">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <NexusSelect
                 label="ステータス"
@@ -342,13 +342,14 @@ export default function InventoryPage() {
           </div>
           
           {/* テーブル */}
-          <div className="overflow-x-auto">
+          <div className="p-6">
+            <div className="overflow-x-auto">
             <table className="holo-table" data-testid="inventory-table">
               <thead className="holo-header">
                 <tr>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">画像</th>
+                  <th className="p-4 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">画像</th>
                   <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
+                    className="p-4 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('name')}
                   >
                     <div className="flex items-center gap-1">
@@ -357,7 +358,7 @@ export default function InventoryPage() {
                     </div>
                   </th>
                   <th
-                    className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
+                    className="p-4 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('sku')}
                   >
                     <div className="flex items-center gap-1">
@@ -365,9 +366,9 @@ export default function InventoryPage() {
                       {getSortIcon('sku')}
                     </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">カテゴリー</th>
+                  <th className="p-4 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">カテゴリー</th>
                   <th
-                    className="px-6 py-3 text-right text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
+                    className="p-4 text-right text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('price')}
                   >
                     <div className="flex items-center justify-end gap-1">
@@ -375,9 +376,9 @@ export default function InventoryPage() {
                       {getSortIcon('price')}
                     </div>
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">更新日</th>
+                  <th className="p-4 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">更新日</th>
                   <th 
-                    className="px-6 py-3 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
+                    className="p-4 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('status')}
                   >
                     <div className="flex items-center justify-center gap-1">
@@ -385,7 +386,7 @@ export default function InventoryPage() {
                       {getSortIcon('status')}
                     </div>
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">操作</th>
+                  <th className="p-4 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">操作</th>
                 </tr>
               </thead>
               <tbody>
@@ -482,10 +483,11 @@ export default function InventoryPage() {
                 )}
               </tbody>
             </table>
-            
+            </div>
+
             {/* ページネーション */}
             {!loading && totalItems > 0 && (
-              <div className="mt-6 pt-4 border-t border-nexus-border">
+              <div className="mt-6 pt-6 px-6">
                 <Pagination
                   currentPage={currentPage}
                   totalPages={totalPages}

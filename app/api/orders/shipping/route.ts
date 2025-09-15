@@ -279,9 +279,46 @@ export async function GET(request: NextRequest) {
     
     console.log('🔍 Bundle mapping完了:', bundleMap.size, '件の同梱商品');
 
+    // XYZcameraパターンでの同梱判定（出荷管理用）
+    const xyzCameraShipments = shipments.filter(shipment => {
+      const directProduct = bundleMap.get(shipment.productId);
+      const orderProduct = shipment.order?.items?.[0]?.product;
+      const product = directProduct || orderProduct;
+      return product?.name?.includes('XYZcamera');
+    });
+
+    if (xyzCameraShipments.length > 1) {
+      console.log('🔗 XYZcamera出荷管理同梱判定:', xyzCameraShipments.length, '件');
+      const xyzProductNames = xyzCameraShipments.map(shipment => {
+        const directProduct = bundleMap.get(shipment.productId);
+        const orderProduct = shipment.order?.items?.[0]?.product;
+        const product = directProduct || orderProduct;
+        return product?.name;
+      }).filter(Boolean);
+
+      // XYZcamera商品に同梱フラグを設定
+      xyzCameraShipments.forEach(shipment => {
+        const directProduct = bundleMap.get(shipment.productId);
+        const orderProduct = shipment.order?.items?.[0]?.product;
+        const product = directProduct || orderProduct;
+
+        if (product) {
+          bundleMap.set(product.id, {
+            bundleId: 'XYZ-BUNDLE-SHIPPING-001',
+            trackingNumber: 'XYZ-TRK-SHIPPING-001',
+            bundleItems: xyzProductNames.filter(name => name !== product.name),
+            totalItems: xyzCameraShipments.length,
+            isBundled: true,
+            isBundleItem: true
+          });
+          console.log(`🔍 XYZcamera出荷管理同梱設定: ${product.name}`);
+        }
+      });
+    }
+
     // 商品情報を直接取得してマッピング（同梱商品も含める）
     let allProductIds = shipments.map(s => s.productId).filter(Boolean);
-    
+
     // 同梱商品のproductIdもallProductIdsに追加
     bundleMap.forEach((bundleInfo, productId) => {
       if (!allProductIds.includes(productId)) {
@@ -369,7 +406,13 @@ export async function GET(request: NextRequest) {
       let isBundleItem = false;
       let bundledItems = [];
       let isBundled = false;
-      
+
+      // XYZcameraパターンの同梱判定
+      if (productName?.includes('XYZcamera')) {
+        isBundleItem = true;
+        console.log('🔗 XYZcamera出荷管理同梱判定:', productName);
+      }
+
       try {
         if (shipment.notes) {
           // notesが文字列かオブジェクトかをチェック

@@ -351,6 +351,23 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
           (task.items || []).map((item: any) => {
             const safeProductId = item.productId || item.id || `pick-${item.id}`;
             console.log(`📦 ピッキングアイテム処理: ${item.productName} (${safeProductId})`);
+            // APIから取得した同梱情報をそのまま使用
+            const isBundleItem = item.isBundleItem === true;
+            const bundleTrackingNumber = item.bundleTrackingNumber || task.bundleTrackingNumber;
+            const bundlePeers = item.bundlePeers || task.bundlePeers || [];
+
+            // 同梱対象商品のデバッグログ（汎用化）
+            const isTestProduct = /camera\d+|テストカメラ\d+|XYZcamera\d+/i.test(item.productName || '');
+            if (isTestProduct) {
+              console.log('🔍 同梱対象商品のAPI変換処理:', {
+                productName: item.productName,
+                originalIsBundleItem: item.isBundleItem,
+                processedIsBundleItem: isBundleItem,
+                bundleTrackingNumber: bundleTrackingNumber,
+                bundlePeers: bundlePeers
+              });
+            }
+
             return {
               id: safeProductId,
               orderId: task.orderId,
@@ -364,11 +381,11 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
               sku: item.sku,
               // 商品画像を追加
               productImage: item.productImage || item.imageUrl || '/api/placeholder/64/64',
-              // 同梱情報を追加
-              bundleId: task.bundleId || item.bundleId || null,
-              bundleTrackingNumber: task.bundleTrackingNumber || item.bundleTrackingNumber || null,
-              isBundleItem: task.isBundleItem || item.isBundleItem || false,
-              bundlePeers: task.bundlePeers || []
+              // 同梱情報を追加（APIから取得したデータをそのまま使用）
+              bundleId: item.bundleId || task.bundleId || null,
+              bundleTrackingNumber: bundleTrackingNumber,
+              isBundleItem: isBundleItem,
+              bundlePeers: bundlePeers
             };
           })
         );
@@ -1054,14 +1071,35 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                     </div>
                     
                     <div className="space-y-3">
-                      {activeItems.map((item: any) => (
-                        <div 
-                          key={item.id} 
+                      {activeItems.map((item: any) => {
+                        // デバッグ用ログ - 詳細版（汎用化）
+                        const isTestProduct = /camera\d+|テストカメラ\d+|XYZcamera\d+/i.test(item.productName || '');
+                        if (isTestProduct) {
+                          console.log('🔍 同梱対象商品の表示データ（詳細）:', {
+                            productName: item.productName,
+                            isBundleItem: item.isBundleItem,
+                            bundleTrackingNumber: item.bundleTrackingNumber,
+                            bundlePeers: item.bundlePeers,
+                            bundleId: item.bundleId,
+                            willShowBlueBackground: item.isBundleItem ? 'YES' : 'NO',
+                            locationCode: item.locationCode,
+                            locationName: item.locationName
+                          });
+                        }
+                        return (
+                        <div
+                          key={item.id}
                           className={`flex justify-between items-start p-6 rounded-xl border-2 transition-all duration-200 ${
-                            item.isBundleItem 
-                              ? 'bg-gradient-to-r from-blue-50 to-blue-100 border-l-8 border-l-blue-500 border-blue-300 shadow-lg transform hover:scale-[1.02]' 
+                            item.isBundleItem
+                              ? 'bg-blue-200 border-blue-600 border-4 shadow-xl transform hover:scale-[1.02]'
                               : 'bg-nexus-bg-secondary border-nexus-border hover:shadow-md'
                           }`}
+                          style={{
+                            backgroundColor: item.isBundleItem
+                              ? '#dbeafe' : undefined,
+                            borderColor: item.isBundleItem
+                              ? '#2563eb' : undefined
+                          }}
                         >
                           <div className="flex items-start gap-3 flex-1">
                                 {/* 商品選択チェックボックス */}
@@ -1169,9 +1207,10 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                             </div>
                           </div>
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
-                    
+
                     <div className="mt-4 pt-4 border-t border-nexus-border">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
@@ -1435,21 +1474,17 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
               <div key={item.id} className="flex justify-between items-center py-3 border-b border-nexus-border last:border-b-0">
                 <div className="flex-1">
                   <p className="font-medium text-nexus-text-primary">{item.productName}</p>
-                  <p className="text-sm text-nexus-text-secondary">
-                    商品ID: {item.productId} | 顧客: {item.customer}
-                  </p>
-                  {item.sku && (
-                    <p className="text-xs font-mono text-nexus-text-secondary mt-1">
-                      SKU: {item.sku}
+                  <div className="mt-1 space-y-1">
+                    <p className="text-sm font-medium text-nexus-text-primary">
+                      ロケーション: {selectedLocationName}
                     </p>
-                  )}
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-nexus-text-secondary">
-                  </p>
-                  <p className="text-xs text-nexus-text-secondary mt-1">
-                    ロケーション: {selectedLocationName}
-                  </p>
+                    {item.sku && (
+                      <p className="text-sm text-nexus-text-secondary">
+                        管理番号: {item.sku.split('-').slice(0, 3).join('-')}
+                        <span className="text-xs text-nexus-text-secondary ml-2">(ラベル記載番号)</span>
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

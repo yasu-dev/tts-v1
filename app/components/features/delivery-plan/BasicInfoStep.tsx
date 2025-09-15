@@ -29,8 +29,8 @@ export default function BasicInfoStep({
     warehouseId: '',
     warehouseName: '',
     deliveryAddress: '',
-    contactEmail: '',
-    phoneNumber: '',
+    contactEmail: 'info@the-world-door.com', // 固定の連絡先メール
+    phoneNumber: null, // 倉庫情報で代替するためnull
     notes: ''
   });
 
@@ -59,8 +59,8 @@ export default function BasicInfoStep({
           warehouseId: data.basicInfo?.warehouseId || '',
           warehouseName: data.basicInfo?.warehouseName || '',
           deliveryAddress: data.basicInfo?.deliveryAddress || '',
-          contactEmail: data.basicInfo?.contactEmail || userResult.user?.email || '',
-          phoneNumber: data.basicInfo?.phoneNumber || userResult.user?.phoneNumber || '',
+          contactEmail: 'info@the-world-door.com', // 固定の連絡先メール
+          phoneNumber: null, // 倉庫情報で代替するためnull
           notes: data.basicInfo?.notes || ''
         };
         setFormData(initialData);
@@ -105,16 +105,27 @@ export default function BasicInfoStep({
   };
 
   const handleNext = () => {
-    if (formData.warehouseId && formData.deliveryAddress.trim()) {
-      onNext();
-    } else {
+    if (!formData.warehouseId) {
       showToast({
         type: 'warning',
         title: '入力エラー',
         message: '配送先倉庫を選択してください。',
         duration: 3000
       });
+      return;
     }
+
+    if (!formData.deliveryAddress.trim()) {
+      showToast({
+        type: 'warning',
+        title: '入力エラー',
+        message: '選択された倉庫に住所情報が登録されていません。管理者にお問い合わせください。',
+        duration: 5000
+      });
+      return;
+    }
+
+    onNext();
   };
 
   if (loading) {
@@ -174,49 +185,74 @@ export default function BasicInfoStep({
 
         {selectedWarehouse && (
           <div className="bg-nexus-bg-tertiary p-4 rounded-lg border border-nexus-border">
-            <h4 className="text-sm font-medium text-nexus-text-primary mb-2">選択された倉庫情報</h4>
-            <div className="space-y-1 text-sm text-nexus-text-secondary">
-              <div><span className="font-medium">倉庫名:</span> {selectedWarehouse.name}</div>
-              {selectedWarehouse.phone && (
-                <div><span className="font-medium">電話:</span> {selectedWarehouse.phone}</div>
+            <h4 className="text-sm font-medium text-nexus-text-primary mb-3">選択された倉庫情報</h4>
+            <div className="space-y-2 text-sm">
+              <div>
+                <span className="font-medium text-nexus-text-secondary">倉庫名:</span>
+                <span className="ml-2 text-nexus-text-primary">{selectedWarehouse.name}</span>
+              </div>
+
+              {selectedWarehouse.address ? (
+                <div>
+                  <span className="font-medium text-nexus-text-secondary">配送先住所:</span>
+                  <div className="ml-0 mt-1 text-nexus-text-primary bg-nexus-bg-tertiary p-2 rounded text-xs">
+                    {selectedWarehouse.address}
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-yellow-50 border border-yellow-200 rounded p-2">
+                  <div className="flex items-center">
+                    <svg className="h-4 w-4 text-yellow-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-xs text-yellow-700">住所情報が未登録です。管理者にお問い合わせください。</span>
+                  </div>
+                </div>
               )}
+
+              {selectedWarehouse.phone && (
+                <div>
+                  <span className="font-medium text-nexus-text-secondary">電話:</span>
+                  <span className="ml-2 text-nexus-text-primary">{selectedWarehouse.phone}</span>
+                </div>
+              )}
+
               {selectedWarehouse.email && (
-                <div><span className="font-medium">メール:</span> {selectedWarehouse.email}</div>
+                <div>
+                  <span className="font-medium text-nexus-text-secondary">メール:</span>
+                  <span className="ml-2 text-nexus-text-primary">{selectedWarehouse.email}</span>
+                </div>
               )}
             </div>
           </div>
         )}
 
-        <NexusTextarea
-          label="配送先住所"
-          value={formData.deliveryAddress}
-          onChange={(e) => handleInputChange('deliveryAddress', e.target.value)}
-          rows={3}
-          placeholder="配送先住所を入力してください"
-          required
-          variant="nexus"
-        />
+        {/* 配送先住所は倉庫情報に統合したため、個別表示は不要 */}
+        {!selectedWarehouse && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-blue-800">
+                  配送先情報について
+                </h3>
+                <p className="text-sm text-blue-700 mt-1">
+                  上記の「配送先倉庫」を選択すると、その倉庫の住所や連絡先情報が表示されます。
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
 
 
-        <NexusInput
-          label="連絡先メール"
-          type="email"
-          value={formData.contactEmail || user?.email || ''}
-          onChange={(e) => handleInputChange('contactEmail', e.target.value)}
-          placeholder="連絡先メールアドレス"
-          required
-          variant="nexus"
-        />
+        {/* 連絡先メールの表示は不要（別の問い合わせ窓口があるため） */}
 
-        <NexusInput
-          label="電話番号（任意）"
-          type="tel"
-          value={formData.phoneNumber}
-          onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
-          placeholder="電話番号（任意）"
-          variant="nexus"
-        />
+        {/* 電話番号は倉庫情報に含まれるため入力不要 */}
 
         <NexusTextarea
           label="備考"
