@@ -190,18 +190,6 @@ export default function SettingsPage() {
             >
               通知設定
             </button>
-            {userType === 'staff' && (
-              <button
-                onClick={() => setActiveTab('warehouse')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'warehouse'
-                    ? 'border-primary-blue text-primary-blue'
-                    : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-nexus-border'
-                }`}
-              >
-                倉庫管理
-              </button>
-            )}
             <button
               onClick={() => setActiveTab('account')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
@@ -212,18 +200,6 @@ export default function SettingsPage() {
             >
               アカウント管理
             </button>
-            {userType === 'staff' && (
-              <button
-                onClick={() => setActiveTab('features')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'features'
-                    ? 'border-primary-blue text-primary-blue'
-                    : 'border-transparent text-nexus-text-secondary hover:text-nexus-text-primary hover:border-nexus-border'
-                }`}
-              >
-                機能管理
-              </button>
-            )}
           </nav>
         </div>
 

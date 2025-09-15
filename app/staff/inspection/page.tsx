@@ -108,7 +108,7 @@ interface Product {
 
 type SortField = 'name' | 'sku' | 'category' | 'receivedDate' | 'status';
 type SortDirection = 'asc' | 'desc';
-type BusinessStatus = 'inbound' | 'inspection' | 'completed' | 'rejected' | 'pending' | 'processing';
+type BusinessStatus = 'inbound' | 'inspection' | 'storage' | 'completed' | 'rejected' | 'pending' | 'processing' | 'on_hold';
 
 // *** モックデータを完全に削除 - SQLiteデータベースのみ使用 ***
 
@@ -120,6 +120,8 @@ const categoryLabels = {
 
 // ステータス変換関数（BusinessStatusIndicatorに合わせる）
 const convertStatusToBusinessStatus = (status: string): BusinessStatus => {
+  console.log(`[DEBUG] ステータス変換: ${status}`);
+
   switch (status) {
     case 'inbound':
       return 'inbound';  // 入庫待ち
@@ -130,13 +132,27 @@ const convertStatusToBusinessStatus = (status: string): BusinessStatus => {
     case 'inspecting':
       return 'inspection';  // 保管作業中（DB実際の値）
     case 'storage':
-      return 'completed';  // 完了
+      return 'storage';  // 保管中（StatusIndicatorの定義に合わせる）
+    case 'ordered':
+      return 'processing';  // 出荷準備中
+    case 'workstation':
+      return 'processing';  // 梱包作業中
+    case 'packed':
+      return 'processing';  // 梱包完了
+    case 'shipping':
+      return 'completed';  // 出荷済み（完了）
+    case 'shipped':
+      return 'completed';  // 出荷済み（完了）
+    case 'delivered':
+      return 'completed';  // 配送完了
     case 'completed':
       return 'completed';  // 完了
     case 'rejected':
       return 'rejected';  // 拒否
     case 'failed':
       return 'rejected';  // 不合格
+    case 'on_hold':
+      return 'on_hold';  // 保留中
     default:
       console.warn(`[WARN] 未定義ステータス: ${status} → inboundにフォールバック`);
       return 'inbound';
@@ -350,11 +366,29 @@ export default function InspectionPage() {
         return 'pending_inspection';
       case 'inspection':
         return 'inspecting';
+      case 'inspecting':
+        return 'inspecting';
       case 'storage':
         return 'completed';
+      case 'ordered':
+        return 'completed';  // 出荷準備完了
+      case 'workstation':
+        return 'completed';  // 梱包作業完了
+      case 'packed':
+        return 'completed';  // 梱包完了
+      case 'shipping':
+        return 'completed';  // 出荷完了
+      case 'shipped':
+        return 'completed';  // 出荷済み
+      case 'delivered':
+        return 'completed';  // 配送完了
+      case 'sold':
+        return 'completed';  // 販売完了
       case 'completed':
         return 'completed';
       case 'failed':
+        return 'failed';
+      case 'rejected':
         return 'failed';
       default:
         return 'pending_inspection';
@@ -545,21 +579,31 @@ export default function InspectionPage() {
         const result = await response.json();
         console.log(`[DEBUG] ステータス更新成功:`, result);
         
-        // 商品リストのステータスを更新
+        // 商品リストのステータスを更新（強制的な再レンダリング含む）
         setProducts(prev => {
           console.log(`[DEBUG] setProducts実行前: 対象商品のステータス=`, prev.find(p => p.id === productId)?.status);
-          
-          const updated = prev.map(product => 
-            product.id === productId 
-              ? { ...product, status: newStatus as any }
+
+          const updated = prev.map(product =>
+            product.id === productId
+              ? {
+                  ...product,
+                  status: newStatus as any,
+                  // キーを変更して強制的に再レンダリングを促す
+                  lastUpdated: new Date().toISOString()
+                }
               : product
           );
-          
+
           console.log(`[DEBUG] setProducts実行後: 対象商品のステータス=`, updated.find(p => p.id === productId)?.status);
           console.log(`[DEBUG] 変換後のBusinessStatus=`, convertStatusToBusinessStatus(newStatus));
-          
+
           return updated;
         });
+
+        // SQLiteデータベースから最新データを再取得して同期を確保
+        setTimeout(() => {
+          fetchProductsFromDatabase();
+        }, 500);
 
         showToast({
           type: 'success',
@@ -928,7 +972,8 @@ export default function InspectionPage() {
                               
                               return (
                                 <>
-                                  <BusinessStatusIndicator 
+                                  <BusinessStatusIndicator
+                                    key={`status-${product.id}-${product.status}-${product.lastUpdated || Date.now()}`}
                                     status={convertedStatus as any}
                                     size="sm"
                                   />
@@ -1200,7 +1245,8 @@ export default function InspectionPage() {
                                       console.log(`[DEBUG] モバイルUI表示: 商品=${product.name}, 元ステータス=${product.status}, 変換後=${convertedStatus}, 詳細=${statusDescription}`);
                                       
                                       return (
-                                        <BusinessStatusIndicator 
+                                        <BusinessStatusIndicator
+                                          key={`detail-status-${product.id}-${product.status}-${product.lastUpdated || Date.now()}`}
                                           status={convertedStatus as any}
                                           size="sm"
                                           showLabel={true}
