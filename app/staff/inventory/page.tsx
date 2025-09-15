@@ -667,7 +667,8 @@ export default function StaffInventoryPage() {
                     { value: 'sold', label: '購入者決定' },
                     { value: 'cancelled', label: 'キャンセル' },
                     { value: 'returned', label: '返品' },
-                    { value: 'on_hold', label: '保留中' }
+                    { value: 'on_hold', label: '保留中' },
+                    { value: 'shipping', label: '出荷済み' }
                   ]}
                   useCustomDropdown={true}
                 />

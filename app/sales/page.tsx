@@ -51,6 +51,7 @@ export default function SalesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('all');
   const [pageSize, setPageSize] = useState(20);
+  const [searchQuery, setSearchQuery] = useState('');
   
   // 同梱機能用の状態（競合回避のためsalesプレフィックス使用）
   const [salesBundleItems, setSalesBundleItems] = useState<string[]>([]);
@@ -368,6 +369,10 @@ export default function SalesPage() {
         status: statusFilter
       });
       
+      if (searchQuery.trim()) {
+        params.append('search', searchQuery);
+      }
+      
       console.log('🔍 Sales画面: /api/sales呼び出し開始', `/api/sales?${params}`);
       const response = await fetch(`/api/sales?${params}`);
       const data = await response.json();
@@ -439,7 +444,7 @@ export default function SalesPage() {
 
   useEffect(() => {
     fetchSalesData();
-  }, [currentPage, statusFilter, pageSize]);
+  }, [currentPage, statusFilter, pageSize, searchQuery]);
 
   const handleGenerateLabel = async (order: any) => {
     try {
@@ -967,7 +972,7 @@ export default function SalesPage() {
           
           {/* フィルター・検索部分（タイトル削除版） */}
           <div className="p-6 border-b border-nexus-border">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <NexusSelect
                 label="ステータス"
                 value={statusFilter}
@@ -977,6 +982,17 @@ export default function SalesPage() {
                 }}
                 options={orderStatusOptions}
                 useCustomDropdown={true}
+              />
+              
+              <NexusInput
+                type="text"
+                label="検索"
+                placeholder="商品名・注文番号・購入者名で検索"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
               />
               
               {/* 同梱機能ボタン */}

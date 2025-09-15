@@ -6,10 +6,10 @@ test.describe('各画面のバッジとプルダウン一致確認', () => {
     await page.goto('http://localhost:3002');
 
     // ログイン処理
-    await page.fill('input[name="email"]', 'test-user@example.com');
-    await page.fill('input[name="password"]', 'password123');
+    await page.fill('input[name="email"]', 'demo-seller@example.com');
+    await page.fill('input[name="password"]', 'demo');
     await page.click('button[type="submit"]');
-    await page.waitForURL('**/dashboard');
+    await page.waitForURL('**/delivery');
   });
 
   test('納品管理画面: バッジとプルダウンの一致確認', async ({ page }) => {
