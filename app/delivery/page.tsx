@@ -609,27 +609,16 @@ export default function DeliveryPage() {
     }
   };
 
-  // ステータスオプション（APIから動的取得）
+  // ステータスオプション（納品管理画面専用）
   const statusOptions = useMemo(() => {
-    if (masterDataLoading) return [{ value: 'all', label: '読み込み中...' }];
-    if (!deliveryStatuses?.parsedValue) {
-      return [
-        { value: 'all', label: '全てのステータス' },
-        { value: 'Pending', label: '出荷準備中' },
-        { value: 'Shipped', label: '出荷済み' },
-        { value: 'Cancelled', label: 'キャンセル' },
-      ];
-    }
+    // 納品管理画面で必要なステータスのみを表示
     return [
       { value: 'all', label: '全てのステータス' },
-      ...deliveryStatuses.parsedValue
-        .filter((status: any) => status.key !== 'Draft')
-        .map((status: any) => ({
-          value: status.key,
-          label: status.nameJa
-        }))
+      { value: 'processing', label: '出荷準備中' },
+      { value: 'shipped', label: '出荷済み' },
+      { value: 'cancelled', label: 'キャンセル' }
     ];
-  }, [deliveryStatuses, masterDataLoading]);
+  }, []);
 
   const dateRangeOptions = [
     { value: 'all', label: 'すべて' },

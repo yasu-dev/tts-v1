@@ -660,14 +660,10 @@ export default function StaffInventoryPage() {
                   data-testid="status-filter"
                   options={[
                     { value: 'all', label: 'すべてのステータス' },
-                    { value: 'listable', label: '出品可能' },
                     { value: 'inbound', label: '入庫待ち' },
                     { value: 'inspection', label: '保管作業中' },
                     { value: 'storage', label: '保管中' },
                     { value: 'listing', label: '出品中' },
-                    { value: 'ordered', label: '出荷準備中' },
-                    { value: 'shipping', label: '配送中' },
-                    { value: 'workstation', label: '作業台' },
                     { value: 'sold', label: '購入者決定' },
                     { value: 'cancelled', label: 'キャンセル' },
                     { value: 'returned', label: '返品' },

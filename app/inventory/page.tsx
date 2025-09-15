@@ -141,19 +141,16 @@ export default function InventoryPage() {
   }, [currentPage, itemsPerPage, selectedStatus, searchQuery]); // フィルター変更時も再取得
 
 
-  // ステータスオプション（現在表示されているバッジのみ）
+  // ステータスオプション（セラー在庫管理画面専用）
   const statusOptions = useMemo(() => {
-    // 現在表示されているバッジのステータスのみをフィルターオプションとして提供
+    // セラー在庫管理画面で必要なステータスのみをフィルターオプションとして提供
     const inventoryStatusOptions = [
       { value: 'all', label: 'すべてのステータス' },
-      { value: 'inbound', label: '入庫待ち' },
-      { value: 'inspection', label: '保管作業中' },
-      { value: 'storage', label: '保管中' },
+      { value: 'inbound', label: '入庫待ち' },  // 検品管理の入庫待ちに対応
+      { value: 'inspection', label: '保管作業中' },  // 検品管理の保管作業中・梱包完了に対応
+      { value: 'storage', label: '保管中' },  // 検品管理の保管中に対応
       { value: 'listing', label: '出品中' },
       { value: 'sold', label: '購入者決定' },
-      { value: 'ordered', label: '出荷準備中' },
-      { value: 'workstation', label: '作業台' },
-      { value: 'shipping', label: '配送中' },
       { value: 'cancelled', label: 'キャンセル' },
       { value: 'returned', label: '返品' },
       { value: 'on_hold', label: '保留中' }

@@ -297,8 +297,8 @@ export default function SalesPage() {
     { value: 'all', label: 'すべて' },
     { value: 'listing', label: '出品中' },
     { value: 'sold', label: '購入者決定' },
-    { value: 'processing', label: '出荷準備中' },
-    { value: 'shipped', label: '配送中' },
+    { value: 'processing', label: '出荷準備中' },  // 出荷管理の梱包待ち・梱包済みに対応
+    { value: 'shipped', label: '出荷済み' },  // 出荷管理の集荷準備完了に対応
     { value: 'delivered', label: '配送完了' }
   ];
 

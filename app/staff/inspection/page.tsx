@@ -721,13 +721,13 @@ export default function InspectionPage() {
 
 
 
-  // ステータス選択肢
+  // ステータス選択肢（検品管理画面専用）
   const statusOptions = [
     { value: 'all', label: 'すべてのステータス' },
-          { value: 'pending_inspection', label: '入庫待ち' },
-      { value: 'inspecting', label: '保管作業中' },
-    { value: 'completed', label: '完了' },
-    { value: 'failed', label: '保留中' }
+    { value: 'pending_inspection', label: '入庫待ち' },  // 納品管理の出荷準備中・出荷済みに対応
+    { value: 'inspecting', label: '保管作業中' },
+    { value: 'completed', label: '梱包完了' },  // ラベルを変更
+    { value: 'storage', label: '保管中' }
   ];
 
   // 検品・撮影状況選択肢（ステップベース）

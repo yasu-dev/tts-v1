@@ -99,7 +99,7 @@ const businessStatusConfig = {
     border: 'border-green-600 dark:border-green-600'
   },
   shipped: {
-    label: '配送中',
+    label: '出荷済み',
     bg: 'bg-green-700 dark:bg-green-700',    // 完了 - 濃い緑
     text: 'text-white dark:text-white',
     border: 'border-green-700 dark:border-green-700'
@@ -117,7 +117,7 @@ const businessStatusConfig = {
     border: 'border-green-800 dark:border-green-800'
   },
   completed: {
-    label: '完了',
+    label: '梱包完了',
     bg: 'bg-emerald-700 dark:bg-emerald-700', // 完了 - 濃いエメラルド
     text: 'text-white dark:text-white',
     border: 'border-emerald-700 dark:border-emerald-700'
