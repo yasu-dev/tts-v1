@@ -10,6 +10,7 @@ import { useToast } from '@/app/components/features/notifications/ToastProvider'
 import { useModal } from '../ui/ModalContext';
 import { determineBarcodeDestination } from '@/lib/utils/product-status';
 import BarcodeTestButton from '../ui/BarcodeTestButton';
+import Image from 'next/image';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -619,18 +620,28 @@ export default function DashboardLayout({
             <div className="p-4 border-b flex-shrink-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
-                    W
-                  </div>
-                  {!isSidebarCollapsed && (
-                    <div className="transition-opacity duration-200">
-                      <h2 className="text-base font-bold text-gray-900">THE WORLD DOOR</h2>
-                      <p className="text-xs text-gray-600">
-                        フルフィルメントサービス
-                      </p>
-                      <p className="text-[10px] text-gray-500 mt-0.5">
-                        {userType === 'seller' ? 'セラー管理' : 'スタッフ管理'}
-                      </p>
+                  {/* サイドバー開閉状態に応じた高品質ロゴ切り替え */}
+                  {!isSidebarCollapsed ? (
+                    <div className="flex items-center gap-3 transition-all duration-300">
+                      <Image 
+                        src="/logo.svg" 
+                        alt="THE WORLD DOOR" 
+                        width={220} 
+                        height={60} 
+                        className="h-16 w-auto object-contain"
+                        priority
+                      />
+                    </div>
+                  ) : (
+                    <div className="transition-all duration-300 hover:scale-110">
+                      <Image 
+                        src="/logo2.svg" 
+                        alt="THE WORLD DOOR" 
+                        width={56} 
+                        height={56} 
+                        className="h-12 w-12 object-contain drop-shadow-md"
+                        priority
+                      />
                     </div>
                   )}
                 </div>
