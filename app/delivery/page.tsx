@@ -637,9 +637,9 @@ export default function DeliveryPage() {
     <DashboardLayout userType="seller">
       <div className="space-y-6">
         {/* ページヘッダー */}
-        <UnifiedPageHeader 
-          title="納品管理" 
-          subtitle="納品プランの作成・管理・追跡"
+        <UnifiedPageHeader
+          title="納品管理"
+          subtitle="納品プランを作成・管理・追跡"
           userType="seller"
           iconType="delivery"
         />

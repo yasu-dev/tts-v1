@@ -629,7 +629,7 @@ export default function StaffInventoryPage() {
         {/* 統一ヘッダー */}
         <UnifiedPageHeader
           title="在庫管理"
-          subtitle="全セラーの商品を管理・操作"
+          subtitle="全セラーの商品を管理・モニタリング"
           userType="staff"
           iconType="inventory"
         />

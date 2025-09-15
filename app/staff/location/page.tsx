@@ -111,7 +111,7 @@ export default function LocationPage() {
         {/* 統一ヘッダー */}
         <UnifiedPageHeader
           title="ロケーション管理"
-          subtitle="倉庫内の商品配置を効率的に管理・最適化"
+          subtitle="倉庫内の保管位置を管理・最適化"
           userType="staff"
           iconType="location"
           actions={headerActions}

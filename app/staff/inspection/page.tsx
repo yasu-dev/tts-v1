@@ -755,7 +755,7 @@ export default function InspectionPage() {
         {/* 統一ヘッダー */}
         <UnifiedPageHeader
           title="検品管理"
-          subtitle="商品の検品状況を管理できます"
+          subtitle="商品の検品作業を管理・実施"
           userType="staff"
           iconType="inspection"
         />

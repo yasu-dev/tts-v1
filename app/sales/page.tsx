@@ -791,7 +791,7 @@ export default function SalesPage() {
         {/* 統一ヘッダー */}
         <UnifiedPageHeader
           title="販売管理"
-          subtitle="売上・受注・配送を一元管理"
+          subtitle="売上・受注・配送を管理・分析"
           userType="seller"
         />
 

@@ -1052,7 +1052,7 @@ export default function StaffShippingPage() {
         {/* 統一ヘッダー */}
         <UnifiedPageHeader
           title="出荷管理"
-          subtitle="eBayからの出荷指示を一元管理・処理"
+          subtitle="出荷作業の実施と配送管理"
           userType="staff"
           iconType="shipping"
         />
