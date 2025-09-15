@@ -295,7 +295,7 @@ export async function POST(request: NextRequest) {
       const dueDate = new Date();
       dueDate.setHours(dueDate.getHours() + 4);
 
-      const newStatus = action === 'complete_picking' ? 'shipping' :
+      const newStatus = action === 'complete_picking' ? 'workstation' :
                         action === 'create_picking_instruction' ? 'workstation' : 'ordered';
 
       // 実際に商品ステータスを更新
@@ -319,7 +319,82 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Shipmentエントリを作成（省略 - 元のコードと同じ）
+      // Shipmentエントリを作成または更新
+      if (action === 'complete_picking') {
+        for (const product of products) {
+          // 既存のShipmentを探す
+          const existingShipment = await prisma.shipment.findFirst({
+            where: {
+              productId: product.id,
+              status: { notIn: ['delivered', 'shipped'] }
+            }
+          });
+
+          if (existingShipment) {
+            // 既存のShipmentのステータスを更新
+            await prisma.shipment.update({
+              where: { id: existingShipment.id },
+              data: {
+                status: 'workstation',
+                updatedAt: new Date()
+              }
+            });
+            console.log(`✅ Shipment更新: ${existingShipment.id} -> workstation`);
+          } else {
+            // 新規Shipmentを作成
+            // まず関連するOrderを探す
+            const orderItem = await prisma.orderItem.findFirst({
+              where: { productId: product.id },
+              include: { order: true }
+            });
+
+            let orderId: string;
+            if (orderItem) {
+              orderId = orderItem.orderId;
+            } else {
+              // Orderがない場合は仮のOrderを作成
+              // システムユーザーまたはデフォルトユーザーのIDを取得
+              const systemUser = await prisma.user.findFirst({
+                where: { role: 'staff' }
+              });
+
+              if (!systemUser) {
+                console.error('スタッフユーザーが見つかりません');
+                continue; // この商品をスキップ
+              }
+
+              const tempOrder = await prisma.order.create({
+                data: {
+                  orderNumber: `PICK-${Date.now()}-${product.id.slice(-6)}`,
+                  customerId: systemUser.id,
+                  status: 'processing',
+                  totalAmount: 0,
+                  shippingAddress: '梱包エリア',
+                }
+              });
+              orderId = tempOrder.id;
+            }
+
+            // Shipmentを作成
+            const newShipment = await prisma.shipment.create({
+              data: {
+                orderId: orderId,
+                productId: product.id,
+                status: 'workstation',
+                carrier: 'pending',
+                method: 'standard',
+                customerName: 'ピッキング完了',
+                address: '梱包エリア',
+                deadline: dueDate,
+                priority: 'normal',
+                value: 0,
+                notes: 'ピッキング完了により自動作成'
+              }
+            });
+            console.log(`✅ Shipment作成: ${newShipment.id} (Product: ${product.id})`);
+          }
+        }
+      }
 
       const successMessage = action === 'complete_picking'
         ? 'ピッキング完了が正常に確認され、梱包・出荷準備に移行しました'

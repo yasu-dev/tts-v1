@@ -173,11 +173,21 @@ export async function GET(request: NextRequest) {
               if (existingOrderItem) {
                 orderId = existingOrderItem.orderId;
               } else {
+                // システムユーザーまたはデフォルトユーザーのIDを取得
+                const systemUser = await prisma.user.findFirst({
+                  where: { role: 'staff' }
+                });
+
+                if (!systemUser) {
+                  console.error('スタッフユーザーが見つかりません');
+                  throw new Error('システムユーザーが見つかりません');
+                }
+
                 const tempOrder = await prisma.order.create({
                   data: {
                     orderNumber: `AUTO-WORKSTATION-${Date.now()}-${includeProductId.slice(-6)}`,
+                    customerId: systemUser.id,
                     status: 'processing',
-                    customerName: 'ピッキング完了',
                     totalAmount: (product as any).price || 0,
                     shippingAddress: 'ピッキングエリア',
                   }
