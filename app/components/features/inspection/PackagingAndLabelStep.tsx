@@ -77,16 +77,8 @@ export default function PackagingAndLabelStep({
       }
     };
 
-    // InspectionFormから渡されたproductプロパティも確認
-    console.log('[PackagingAndLabelStep] プロパティで受け取った商品データ:', {
-      productId: product?.id,
-      hasDeliveryPlanInfo: !!(product as any)?.deliveryPlanInfo,
-      deliveryPlanInfo: (product as any)?.deliveryPlanInfo,
-      premiumPacking: (product as any)?.deliveryPlanInfo?.premiumPacking
-    });
-
     loadProductData();
-  }, [productId, product]);
+  }, [productId]); // product依存を削除して無限ループを防止
 
   const handlePackagingComplete = () => {
     setPackagingCompleted(true);
@@ -179,12 +171,8 @@ export default function PackagingAndLabelStep({
     }
     
     try {
-      console.log('[PackagingAndLabelStep] deliveryPlanInfo:', deliveryPlanInfo);
-      console.log('[PackagingAndLabelStep] premiumPacking value:', deliveryPlanInfo.premiumPacking);
-      
-      // プレミアム梱包のリクエストを確認
+      // プレミアム梱包のリクエストを確認（ログは初回のみ）
       if (deliveryPlanInfo.premiumPacking === true) {
-        console.log('[PackagingAndLabelStep] プレミアム梱包リクエスト発見');
         return {
           requested: true,
           notes: deliveryPlanInfo.packagingNotes || deliveryPlanInfo.specialNotes || ''

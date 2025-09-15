@@ -55,6 +55,18 @@ export async function GET(request: NextRequest) {
               name: true
             }
           },
+          images: {
+            select: {
+              url: true,
+              thumbnailUrl: true,
+              filename: true,
+              category: true
+            },
+            orderBy: {
+              sortOrder: 'asc'
+            },
+            take: 1 // 最初の画像のみ取得
+          },
           orderItems: {
             include: {
               order: {
@@ -140,6 +152,9 @@ export async function GET(request: NextRequest) {
           sku: product.sku,
           location: product.currentLocation?.code || 'B-1-4',
           locationName: product.currentLocation?.name || locationNameMap.get(product.currentLocation?.code || 'B-1-4') || 'B棚1段目4番',
+          // 商品画像を追加
+          productImage: product.images?.[0]?.url || null,
+          imageUrl: product.images?.[0]?.url || null,
           quantity: 1,
           pickedQuantity: 0,
           status: 'pending'

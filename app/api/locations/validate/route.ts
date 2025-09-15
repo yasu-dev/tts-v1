@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AuthService } from '@/lib/auth';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 // 有効な棚番号のパターン
 const VALID_LOCATION_PATTERNS = [
-  /^[A-Z]-\d{2}$/, // A-01, B-02 など
+  /^[A-Z]-\d{1,2}$/, // A-1, A-01, B-2, B-02 など
+  /^[A-Z]-\d{1,2}-\d{1,2}$/, // A-1-1, A-12-34 など（実際のDB形式）
   /^STD-[A-Z]-\d{2}$/, // STD-A-01 など（標準棚）
   /^HUM-\d{2}$/, // HUM-01 など（防湿庫）
   /^TEMP-\d{2}$/, // TEMP-01 など（温度管理庫）
@@ -78,22 +82,49 @@ export async function POST(request: NextRequest) {
       pattern.test(normalizedCode)
     );
 
-    const isValid = isValidPredefined || isValidPattern;
+    let isValid = isValidPredefined || isValidPattern;
+    let locationDetails = null;
+
+    // データベースで実際の棚番号をチェック
+    try {
+      const dbLocation = await prisma.location.findUnique({
+        where: { code: normalizedCode }
+      });
+
+      if (dbLocation) {
+        isValid = true;
+        locationDetails = {
+          id: dbLocation.id,
+          code: dbLocation.code,
+          name: dbLocation.name,
+          zone: dbLocation.zone || 'unknown',
+          capacity: dbLocation.capacity || 50,
+          currentCount: 0, // TODO: 実際の商品数をカウント
+          type: 'database',
+          environment: 'normal',
+          available: dbLocation.isActive
+        };
+      }
+    } catch (dbError) {
+      console.log('Database check failed, falling back to pattern matching:', dbError.message);
+    }
 
     if (!isValid) {
       return NextResponse.json(
         { 
-          error: '無効な棚番号です。正しい形式で入力してください（例: A-01, STD-A-01, HUM-01）',
+          error: '無効な棚番号です。正しい形式で入力してください（例: A-1-1, A-01, STD-A-01）',
           valid: false,
-          suggestedFormat: 'A-01',
+          suggestedFormat: 'A-1-1',
           availableLocations: PREDEFINED_LOCATIONS.slice(0, 10) // 最初の10個を提案
         },
         { status: 400 }
       );
     }
 
-    // 棚の詳細情報を取得（デモ実装）
-    const locationDetails = getLocationDetails(normalizedCode);
+    // データベースにない場合は、デモ実装を使用
+    if (!locationDetails) {
+      locationDetails = getLocationDetails(normalizedCode);
+    }
 
     return NextResponse.json({
       id: locationDetails.id,
