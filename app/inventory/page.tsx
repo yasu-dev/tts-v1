@@ -153,7 +153,8 @@ export default function InventoryPage() {
       { value: 'sold', label: '購入者決定' },
       { value: 'ordered', label: '出荷準備中' },
       { value: 'workstation', label: '作業台' },
-      { value: 'shipping', label: '出荷済み' },
+      { value: 'shipping', label: '配送中' },
+      { value: 'cancelled', label: 'キャンセル' },
       { value: 'returned', label: '返品' },
       { value: 'on_hold', label: '保留中' }
     ];

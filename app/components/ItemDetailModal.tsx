@@ -90,13 +90,36 @@ export default function ItemDetailModal({
       const response = await fetch(`/api/products/${productId}/history`);
       if (response.ok) {
         const data = await response.json();
-        // タイムラインデータを履歴形式に変換
-        const formattedHistory = data.timeline?.map((event: any, index: number) => ({
-          date: new Date(event.timestamp).toLocaleString('ja-JP'),
-          action: event.title,
-          details: event.metadata ? JSON.stringify(event.metadata) : '',
-          user: event.user || 'システム'
-        })) || [];
+        // タイムラインデータを履歴形式に変換（詳細をわかりやすく表示）
+        const formattedHistory = data.timeline?.map((event: any, index: number) => {
+          let details = '';
+          if (event.metadata) {
+            // メタデータを読みやすい形式に変換
+            if (typeof event.metadata === 'object') {
+              const metadata = event.metadata;
+              const descriptions = [];
+
+              if (metadata.location) descriptions.push(`保管場所: ${metadata.location}`);
+              if (metadata.condition) descriptions.push(`状態: ${metadata.condition}`);
+              if (metadata.price) descriptions.push(`価格: ¥${metadata.price.toLocaleString()}`);
+              if (metadata.marketplace) descriptions.push(`マーケット: ${metadata.marketplace}`);
+              if (metadata.previousPrice) descriptions.push(`旧価格: ¥${metadata.previousPrice.toLocaleString()}`);
+              if (metadata.trackingNumber) descriptions.push(`追跡番号: ${metadata.trackingNumber}`);
+              if (metadata.reason) descriptions.push(`理由: ${metadata.reason}`);
+
+              details = descriptions.join(', ') || '詳細なし';
+            } else {
+              details = event.metadata.toString();
+            }
+          }
+
+          return {
+            date: new Date(event.timestamp).toLocaleString('ja-JP'),
+            action: event.title,
+            details: details || event.description || '操作完了',
+            user: event.user || 'システム'
+          };
+        }) || [];
         setHistoryData(formattedHistory);
       } else {
         console.error('Failed to fetch product history');
@@ -246,64 +269,22 @@ export default function ItemDetailModal({
                       </label>
                       <p className="text-nexus-text-primary">{item.category}</p>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
-                        状態
-                      </label>
-                      <p className="text-nexus-text-primary">{item.condition}</p>
-                    </div>
                     <div className="col-span-2">
                       <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
-                        検品・撮影状況
+                        作業進捗
                       </label>
                       <div className="flex items-center space-x-2">
-                        <p className="text-nexus-text-primary">{inspectionPhotographyStatus.displayStatus}</p>
-                        {inspectionPhotographyStatus.canStartPhotography && (
-                          <span className="px-2 py-1 bg-orange-600 text-white text-xs rounded-full">
-                            撮影可能
-                          </span>
-                        )}
+                        <BusinessStatusIndicator
+                          status={item.status as any}
+                          size="sm"
+                        />
                       </div>
-                    </div>
-                    <div className="col-span-2">
-                      <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
-                        出品可能性
-                      </label>
-                      <div className="flex items-center space-x-2">
-                        <p className={`text-sm ${listingEligibility.canList ? 'text-green-600' : 'text-orange-600'}`}>
-                          {listingEligibility.overallReason}
-                        </p>
-                        {listingEligibility.canList && (
-                          <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                            出品可能
-                          </span>
-                        )}
-                      </div>
-                      {!listingEligibility.canList && (
-                        <div className="mt-2 space-y-1">
-                          {Object.entries(listingEligibility.requirements).map(([key, req]) => (
-                            <div key={key} className="flex items-center text-xs">
-                              <span className={`w-2 h-2 rounded-full mr-2 ${req.status === 'met' ? 'bg-green-500' : 'bg-gray-400'}`}></span>
-                              <span className={req.status === 'met' ? 'text-green-600' : 'text-gray-600'}>{req.label}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
                         価格
                       </label>
                       <p className="text-nexus-text-primary">¥{item.price.toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
-                        ステータス
-                      </label>
-                      <BusinessStatusIndicator 
-                        status={item.status as any} 
-                        size="sm" 
-                      />
                     </div>
                   </div>
                 </div>
@@ -346,108 +327,7 @@ export default function ItemDetailModal({
                 </div>
               </div>
 
-              {/* eBay出品情報セクション */}
-              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="flex items-center mb-3">
-                  <TagIcon className="w-5 h-5 text-blue-600 mr-2" />
-                  <h4 className="font-medium text-blue-900">eBay出品情報</h4>
-                </div>
-                
-                {loadingEbayInfo ? (
-                  <div className="flex items-center space-x-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                    <p className="text-sm text-blue-800">出品情報を取得中...</p>
-                  </div>
-                ) : ebayListingInfo?.hasEbayListing ? (
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-medium text-blue-700 mb-1">
-                          アイテムID
-                        </label>
-                        <p className="text-sm text-blue-900 font-mono">{ebayListingInfo.ebayItemId}</p>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-blue-700 mb-1">
-                          ステータス
-                        </label>
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          {ebayListingInfo.status === 'active' ? '出品中' : ebayListingInfo.status}
-                        </span>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-blue-700 mb-1">
-                          出品価格
-                        </label>
-                        <p className="text-sm text-blue-900">${ebayListingInfo.buyItNowPrice?.toLocaleString()}</p>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-blue-700 mb-1">
-                          出品日
-                        </label>
-                        <p className="text-sm text-blue-900">
-                          {ebayListingInfo.listedAt ? new Date(ebayListingInfo.listedAt).toLocaleDateString('ja-JP') : '-'}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-xs font-medium text-blue-700 mb-1">
-                        eBayタイトル
-                      </label>
-                      <p className="text-sm text-blue-900 break-words">{ebayListingInfo.ebayTitle}</p>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-medium text-blue-700 mb-1">
-                          商品状態
-                        </label>
-                        <p className="text-sm text-blue-900">{ebayListingInfo.ebayCondition}</p>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-blue-700 mb-1">
-                          配送日数
-                        </label>
-                        <p className="text-sm text-blue-900">{ebayListingInfo.ebayShippingTime}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="pt-2">
-                      <NexusButton
-                        onClick={handleEbayLinkClick}
-                        variant="primary"
-                        size="sm"
-                        icon={<ArrowTopRightOnSquareIcon className="w-4 h-4" />}
-                        className="w-full sm:w-auto"
-                      >
-                        eBayページを開く
-                      </NexusButton>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center space-x-2">
-                    <LinkIcon className="w-4 h-4 text-blue-600" />
-                    <p className="text-sm text-blue-800">
-                      {ebayListingInfo?.message || 'この商品はeBayに出品されていません'}
-                    </p>
-                  </div>
-                )}
-              </div>
 
-              {/* 次のステップ案内 */}
-              <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                <h4 className="font-medium text-gray-900 mb-2">次のステップ</h4>
-                <p className="text-sm text-gray-800">
-                  {item.status === 'inbound' ? '商品が入庫されました。検品を開始してください。' :
-                   item.status === 'inspection' ? '検品作業中です。品質確認後、保管へ移行します。' :
-                   item.status === 'storage' ? '保管中です。必要に応じて検品や移動を行えます。' :
-                   item.status === 'listing' ? '出品中です。販売が完了するまで待機してください。' :
-                   item.status === 'sold' ? '購入者決定です。出荷準備を行ってください。' :
-
-                   '現在のステータスに応じた作業を実行してください。'}
-                </p>
-              </div>
             </div>
           )}
 
@@ -507,13 +387,64 @@ export default function ItemDetailModal({
           {activeTab === 'notes' && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-nexus-text-primary">
-                備考・メモ
+                備考・詳細情報
               </h3>
+
+              {/* 商品メモ */}
               <div className="bg-nexus-bg-secondary rounded-lg p-4">
+                <h4 className="font-medium text-nexus-text-primary mb-2">
+                  商品メモ
+                </h4>
                 <p className="text-nexus-text-secondary">
-                  {item.notes || '備考はありません'}
+                  {item.notes || '特記事項はありません'}
                 </p>
               </div>
+
+              {/* QRコード情報 */}
+              {item.qrCode && (
+                <div className="bg-nexus-bg-secondary rounded-lg p-4">
+                  <h4 className="font-medium text-nexus-text-primary mb-2">
+                    QRコード
+                  </h4>
+                  <p className="text-nexus-text-secondary font-mono">
+                    {item.qrCode}
+                  </p>
+                </div>
+              )}
+
+              {/* メタデータ情報 */}
+              {item.metadata && (
+                <div className="bg-nexus-bg-secondary rounded-lg p-4">
+                  <h4 className="font-medium text-nexus-text-primary mb-2">
+                    システム情報
+                  </h4>
+                  <div className="text-sm text-nexus-text-secondary">
+                    {(() => {
+                      try {
+                        const metadata = typeof item.metadata === 'string'
+                          ? JSON.parse(item.metadata)
+                          : item.metadata;
+
+                        return (
+                          <div className="space-y-1">
+                            {metadata.deliveryPlanInfo && (
+                              <p>納品プラン: {metadata.deliveryPlanInfo.planId}</p>
+                            )}
+                            {metadata.inspectionCompleted && (
+                              <p>検品状況: 完了済み</p>
+                            )}
+                            {metadata.photographyCompleted !== undefined && (
+                              <p>撮影状況: {metadata.photographyCompleted ? '完了済み' : '未完了'}</p>
+                            )}
+                          </div>
+                        );
+                      } catch (e) {
+                        return <p>メタデータの解析に失敗しました</p>;
+                      }
+                    })()}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -43,12 +43,12 @@ export async function GET(request: NextRequest) {
             status: { in: ['draft', 'inactive', 'expired', 'pending'] }
           };
         } else if (statusFilter === 'shipped') {
-          // 出荷済み: activeでラベル生成済み
+          // 配送中: activeでラベル生成済み
           listingStatusFilter = {
             status: { in: ['active'] }
           };
         } else if (statusFilter === 'delivered') {
-          // 到着済み: soldでラベル生成済み
+          // 配送完了: soldでラベル生成済み
           listingStatusFilter = {
             status: { in: ['sold'] }
           };
@@ -236,7 +236,7 @@ export async function GET(request: NextRequest) {
           return listing.status === 'sold' && !relatedOrder?.trackingNumber;
         });
       } else if (statusFilter === 'shipped') {
-        // 出荷済み: activeでラベル生成済みまたはシッピングステータスがshipped
+        // 配送中: activeでラベル生成済みまたはシッピングステータスがshipped
         recentOrders = recentOrders.filter(order => {
           const listing = allListings.find(l => l.id === order.listingId);
           const relatedOrder = listing?.product?.orderItems?.[0]?.order;
@@ -244,7 +244,7 @@ export async function GET(request: NextRequest) {
           return listing.status === 'active' && (relatedOrder?.trackingNumber || hasShippingStatus);
         });
       } else if (statusFilter === 'delivered') {
-        // 到着済み: shippingStatusでdeliveredまたはsoldでラベル生成済み
+        // 配送完了: shippingStatusでdeliveredまたはsoldでラベル生成済み
         recentOrders = recentOrders.filter(order => {
           const listing = allListings.find(l => l.id === order.listingId);
           const relatedOrder = listing?.product?.orderItems?.[0]?.order;

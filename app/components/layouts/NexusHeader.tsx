@@ -76,7 +76,7 @@ export default function NexusHeader({
       {/* 背景シャインエフェクト */}
       <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/5 to-transparent" />
       
-      <div className="flex items-center gap-2 sm:gap-3 md:gap-4 lg:gap-6 z-10 flex-1">
+      <div className="flex items-center gap-2 sm:gap-3 md:gap-4 lg:gap-6 z-10">
         {/* モバイルハンバーガーメニューボタン */}
         <button
           id="mobile-menu-button"
@@ -102,8 +102,8 @@ export default function NexusHeader({
           <span className="hidden sm:block text-white font-bold text-sm">WORLD DOOR</span>
         </div>
         
-        {/* 検索バー - レスポンシブ対応 */}
-        <div className="flex-1 max-w-sm sm:max-w-md lg:max-w-xl">
+        {/* 検索バー - レスポンシブ対応 - 非表示化 */}
+        <div className="hidden flex-1 max-w-sm sm:max-w-md lg:max-w-xl">
           <form onSubmit={handleSearchSubmit} className="relative">
             <input
               type="text"

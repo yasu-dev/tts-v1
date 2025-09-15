@@ -49,17 +49,19 @@ interface ProductInfoModalProps {
 
 export default function ProductInfoModal({ isOpen, onClose, product }: ProductInfoModalProps) {
   
-  // 重量データを取得
+  // 重量データを取得（安全なメタデータアクセス）
   const getWeightInfo = () => {
     try {
-      const metadata = typeof product.metadata === 'string' 
-        ? JSON.parse(product.metadata) 
+      if (!product?.metadata) return null;
+
+      const metadata = typeof product.metadata === 'string'
+        ? JSON.parse(product.metadata)
         : product.metadata;
-      
+
       if (metadata?.packaging?.weight) {
-        const weight = metadata.packaging.weight;
+        const weight = parseFloat(metadata.packaging.weight);
         const unit = metadata.packaging.weightUnit || 'kg';
-        return `${weight}${unit}`;
+        return isNaN(weight) ? null : `${weight.toFixed(1)}${unit}`;
       }
     } catch (error) {
       console.warn('重量データの解析エラー:', error);
@@ -147,18 +149,23 @@ export default function ProductInfoModal({ isOpen, onClose, product }: ProductIn
     }).format(price);
   };
 
-  // 納品プランラベルダウンロード機能
+  // 納品プランラベルダウンロード機能（安全なメタデータアクセス）
   const handleDownloadDeliveryPlanLabel = async () => {
     try {
       // 商品のメタデータから納品プランIDを取得
       let planId = null;
       try {
-        const metadata = typeof product.metadata === 'string' 
-          ? JSON.parse(product.metadata) 
+        if (!product?.metadata) {
+          throw new Error('メタデータが存在しません');
+        }
+
+        const metadata = typeof product.metadata === 'string'
+          ? JSON.parse(product.metadata)
           : product.metadata;
+
         planId = metadata?.deliveryPlanInfo?.planId || metadata?.planId;
       } catch (e) {
-        console.warn('Failed to parse metadata for delivery plan ID');
+        console.warn('Failed to parse metadata for delivery plan ID:', e);
       }
 
       if (!planId) {
@@ -326,9 +333,9 @@ export default function ProductInfoModal({ isOpen, onClose, product }: ProductIn
                 </div>
               </div>
 
-              {/* 検品・保管情報 */}
+              {/* 検品・撮影・保管プロセス情報 */}
               <div className="bg-blue-50 p-4 rounded-lg">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">検品・保管情報</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">検品・撮影・保管プロセス</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {product.inspectedAt && (
                     <div>
@@ -360,6 +367,31 @@ export default function ProductInfoModal({ isOpen, onClose, product }: ProductIn
                       </div>
                     </div>
                   )}
+                  {/* 撮影情報を追加 */}
+                  {(() => {
+                    try {
+                      if (!product?.metadata) return null;
+                      const metadata = typeof product.metadata === 'string'
+                        ? JSON.parse(product.metadata)
+                        : product.metadata;
+
+                      if (metadata?.photographyDate) {
+                        return (
+                          <div>
+                            <label className="text-sm font-medium text-gray-600">撮影完了日時</label>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Calendar className="h-4 w-4 text-purple-600" />
+                              <span className="text-gray-900">{formatDate(metadata.photographyDate)}</span>
+                            </div>
+                          </div>
+                        );
+                      }
+                    } catch (e) {
+                      console.warn('撮影日時の取得に失敗:', e);
+                    }
+                    return null;
+                  })()}
+
                   {product.inspectionNotes && (
                     <div className="md:col-span-2">
                       <label className="text-sm font-medium text-gray-600">検品メモ</label>

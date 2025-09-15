@@ -278,8 +278,8 @@ export default function SalesPage() {
       'listing': '出品中',
       'sold': '購入者決定',
       'processing': '出荷準備中',
-      'shipped': '出荷済み',
-      'delivered': '到着済み'
+      'shipped': '配送中',
+      'delivered': '配送完了'
     };
     return statusNames[status] || status;
   };
@@ -298,8 +298,8 @@ export default function SalesPage() {
     { value: 'listing', label: '出品中' },
     { value: 'sold', label: '購入者決定' },
     { value: 'processing', label: '出荷準備中' },
-    { value: 'shipped', label: '出荷済み' },
-    { value: 'delivered', label: '到着済み' }
+    { value: 'shipped', label: '配送中' },
+    { value: 'delivered', label: '配送完了' }
   ];
 
   // eBayデータを取得する関数（開発環境用デモデータ）

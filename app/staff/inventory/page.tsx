@@ -666,8 +666,10 @@ export default function StaffInventoryPage() {
                     { value: 'storage', label: '保管中' },
                     { value: 'listing', label: '出品中' },
                     { value: 'ordered', label: '出荷準備中' },
-                    { value: 'shipping', label: '出荷済み' },
+                    { value: 'shipping', label: '配送中' },
+                    { value: 'workstation', label: '作業台' },
                     { value: 'sold', label: '購入者決定' },
+                    { value: 'cancelled', label: 'キャンセル' },
                     { value: 'returned', label: '返品' },
                     { value: 'on_hold', label: '保留中' }
                   ]}

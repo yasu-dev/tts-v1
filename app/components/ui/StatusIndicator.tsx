@@ -93,19 +93,19 @@ const businessStatusConfig = {
 
   // 【完了系】- 緑系
   shipping: {
-    label: '出荷済み',
+    label: '配送中',
     bg: 'bg-green-600 dark:bg-green-600',    // 完了 - 緑
     text: 'text-white dark:text-white',
     border: 'border-green-600 dark:border-green-600'
   },
   shipped: {
-    label: '出荷済み',
+    label: '配送中',
     bg: 'bg-green-700 dark:bg-green-700',    // 完了 - 濃い緑
     text: 'text-white dark:text-white',
     border: 'border-green-700 dark:border-green-700'
   },
   delivered: {
-    label: '到着済み',
+    label: '配送完了',
     bg: 'bg-emerald-600 dark:bg-emerald-600', // 完了 - エメラルド
     text: 'text-white dark:text-white',
     border: 'border-emerald-600 dark:border-emerald-600'

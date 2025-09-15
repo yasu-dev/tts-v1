@@ -127,8 +127,8 @@ export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetail
       pending: '保留中',
       confirmed: '確認済み',
       processing: '処理中',
-      shipped: '発送済み',
-      delivered: '到着済み',
+      shipped: '配送中',
+      delivered: '配送完了',
       cancelled: 'キャンセル'
     };
     return labels[status] || status;
