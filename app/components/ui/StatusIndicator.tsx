@@ -93,7 +93,7 @@ const businessStatusConfig = {
 
   // 【完了系】- 緑系
   shipping: {
-    label: '配送中',
+    label: '出荷済み',
     bg: 'bg-green-600 dark:bg-green-600',    // 完了 - 緑
     text: 'text-white dark:text-white',
     border: 'border-green-600 dark:border-green-600'

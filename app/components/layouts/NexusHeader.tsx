@@ -187,9 +187,10 @@ export default function NexusHeader({
             <div className="text-white font-semibold text-sm">
               {userType === 'staff' ? 'スタッフ' : 'セラー'}
             </div>
-            <div className="text-[11px] text-white/70">
+            {/* Phase1: 管理者テキストを非表示 */}
+            {/* <div className="text-[11px] text-white/70">
               管理者
-            </div>
+            </div> */}
           </div>
           <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />

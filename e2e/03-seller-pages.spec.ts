@@ -5,17 +5,18 @@ async function loginAsSeller(page: any) {
   await page.fill('input[name="email"]', 'seller@example.com');
   await page.fill('input[name="password"]', 'password123');
   await page.click('button[type="submit"]');
-  await expect(page).toHaveURL(/\/dashboard$/, { timeout: 15000 });
+  await expect(page).toHaveURL(/\/delivery$/, { timeout: 15000 }); // Phase1: 納品管理へリダイレクト
 }
 
 test.describe('セラーページテスト', () => {
-  test('ダッシュボードページが正しく表示される', async ({ page }) => {
-    await loginAsSeller(page);
-    
-    // ダッシュボードの基本要素が表示されることを確認
-    await expect(page.locator('body')).toBeVisible();
-    await expect(page).toHaveURL(/\/dashboard$/);
-  });
+  // Phase2で復元: ダッシュボードページテスト
+  // test('ダッシュボードページが正しく表示される', async ({ page }) => {
+  //   await loginAsSeller(page);
+  //   
+  //   // ダッシュボードの基本要素が表示されることを確認
+  //   await expect(page.locator('body')).toBeVisible();
+  //   await expect(page).toHaveURL(/\/dashboard$/);
+  // });
 
   test('納品プランページが正しく表示される', async ({ page }) => {
     await loginAsSeller(page);

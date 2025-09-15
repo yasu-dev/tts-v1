@@ -47,7 +47,8 @@ export default function LoginPage() {
           showToast({ type: 'success', title: 'ログイン成功', message: 'ダッシュボードへようこそ！' });
           
           // ログイン成功後のリダイレクト
-          const redirectPath = data.user.role === 'staff' || data.user.role === 'admin' ? '/staff/dashboard' : '/dashboard';
+          // Phase1: セラーは納品管理、スタッフは在庫管理へ直接遷移
+          const redirectPath = data.user.role === 'staff' || data.user.role === 'admin' ? '/staff/inventory' : '/delivery';
           console.log('[CLIENT] リダイレクト先:', redirectPath);
           
           router.push(redirectPath);

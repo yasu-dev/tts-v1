@@ -5,17 +5,18 @@ async function loginAsStaff(page: any) {
   await page.fill('input[name="email"]', 'staff@example.com');
   await page.fill('input[name="password"]', 'password123');
   await page.click('button[type="submit"]');
-  await expect(page).toHaveURL(/\/staff\/dashboard$/, { timeout: 15000 });
+  await expect(page).toHaveURL(/\/staff\/inventory$/, { timeout: 15000 }); // Phase1: 在庫管理へリダイレクト
 }
 
 test.describe('スタッフページテスト', () => {
-  test('スタッフダッシュボードページが正しく表示される', async ({ page }) => {
-    await loginAsStaff(page);
-    
-    // ダッシュボードの基本要素が表示されることを確認
-    await expect(page.locator('body')).toBeVisible();
-    await expect(page).toHaveURL(/\/staff\/dashboard$/);
-  });
+  // Phase2で復元: スタッフダッシュボードページテスト
+  // test('スタッフダッシュボードページが正しく表示される', async ({ page }) => {
+  //   await loginAsStaff(page);
+  //   
+  //   // ダッシュボードの基本要素が表示されることを確認
+  //   await expect(page.locator('body')).toBeVisible();
+  //   await expect(page).toHaveURL(/\/staff\/dashboard$/);
+  // });
 
   test('在庫管理ページが正しく表示される', async ({ page }) => {
     await loginAsStaff(page);

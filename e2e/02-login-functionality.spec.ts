@@ -12,10 +12,10 @@ test.describe('ログイン機能テスト', () => {
     // ログインボタンをクリック
     await page.click('button[type="submit"]');
     
-    // ダッシュボードにリダイレクトされることを確認
-    await expect(page).toHaveURL(/\/dashboard$/, { timeout: 15000 });
+    // 納品管理ページにリダイレクトされることを確認（Phase1変更）
+    await expect(page).toHaveURL(/\/delivery$/, { timeout: 15000 });
     
-    // ダッシュボードの要素が表示されることを確認
+    // 納品管理ページの要素が表示されることを確認
     await expect(page.locator('body')).toBeVisible();
   });
 
@@ -30,10 +30,10 @@ test.describe('ログイン機能テスト', () => {
     // ログインボタンをクリック
     await page.click('button[type="submit"]');
     
-    // スタッフダッシュボードにリダイレクトされることを確認
-    await expect(page).toHaveURL(/\/staff\/dashboard$/, { timeout: 15000 });
+    // スタッフ在庫管理ページにリダイレクトされることを確認（Phase1変更）
+    await expect(page).toHaveURL(/\/staff\/inventory$/, { timeout: 15000 });
     
-    // ダッシュボードの要素が表示されることを確認
+    // 在庫管理ページの要素が表示されることを確認
     await expect(page.locator('body')).toBeVisible();
   });
 

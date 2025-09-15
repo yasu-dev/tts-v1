@@ -497,11 +497,12 @@ export default function DashboardLayout({
   };
 
   const sellerMenuItems = [
-    { 
-      label: 'ダッシュボード', 
-      href: '/dashboard',
-      icon: icons.dashboard
-    },
+    // Phase2で復元: ダッシュボード
+    // { 
+    //   label: 'ダッシュボード', 
+    //   href: '/dashboard',
+    //   icon: icons.dashboard
+    // },
     { 
       label: '納品管理', 
       href: '/delivery',
@@ -520,25 +521,28 @@ export default function DashboardLayout({
       icon: icons.sales,
       badge: 12 
     },
-    { 
-      label: '返品管理', 
-      href: '/returns',
-      icon: icons.returns,
-      badge: 5 
-    },
-    { 
-      label: '請求・精算', 
-      href: '/billing',
-      icon: icons.billing
-    },
+    // Phase2で復元: 返品管理
+    // { 
+    //   label: '返品管理', 
+    //   href: '/returns',
+    //   icon: icons.returns,
+    //   badge: 5 
+    // },
+    // Phase2で復元: 請求・精算
+    // { 
+    //   label: '請求・精算', 
+    //   href: '/billing',
+    //   icon: icons.billing
+    // },
   ];
 
   const staffMenuItems = [
-    { 
-      label: 'ダッシュボード', 
-      href: '/staff/dashboard',
-      icon: icons.dashboard
-    },
+    // Phase2で復元: ダッシュボード
+    // { 
+    //   label: 'ダッシュボード', 
+    //   href: '/staff/dashboard',
+    //   icon: icons.dashboard
+    // },
     { 
       label: '在庫管理', 
       href: '/staff/inventory',
@@ -559,16 +563,18 @@ export default function DashboardLayout({
       href: '/staff/shipping',
       icon: icons.shipping
     },
-    { 
-      label: '返品管理', 
-      href: '/staff/returns',
-      icon: icons.returns
-    },
-    { 
-      label: '業務レポート', 
-      href: '/staff/reports',
-      icon: icons.reports
-    },
+    // Phase2で復元: 返品管理
+    // { 
+    //   label: '返品管理', 
+    //   href: '/staff/returns',
+    //   icon: icons.returns
+    // },
+    // Phase2で復元: 業務レポート
+    // { 
+    //   label: '業務レポート', 
+    //   href: '/staff/reports',
+    //   icon: icons.reports
+    // },
   ];
 
   const menuItems = userType === 'staff' ? staffMenuItems : sellerMenuItems;

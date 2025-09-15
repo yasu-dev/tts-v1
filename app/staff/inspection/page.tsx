@@ -738,7 +738,7 @@ export default function InspectionPage() {
     { value: 'step_2', label: '写真撮影' },
     { value: 'step_3', label: '梱包・ラベル' },
     { value: 'step_4', label: '棚保管' },
-    { value: 'completed', label: '完了' }
+    { value: 'completed', label: '梱包完了' }
   ];
 
   if (loading) {
@@ -784,7 +784,7 @@ export default function InspectionPage() {
                 { id: 'all', label: '全体', count: inspectionStats.total, color: 'blue' },
                 { id: 'pending_inspection', label: '入庫待ち', count: inspectionStats.pending, color: 'yellow' },
                 { id: 'inspecting', label: '保管作業中', count: inspectionStats.inspecting, color: 'cyan' },
-                { id: 'completed', label: '完了', count: inspectionStats.completed, color: 'green' },
+                { id: 'completed', label: '梱包完了', count: inspectionStats.completed, color: 'green' },
                 { id: 'failed', label: '保留中', count: inspectionStats.failed, color: 'red' },
               ].map((tab) => {
                 // 統一デザインパターンによる配色設定

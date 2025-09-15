@@ -87,7 +87,8 @@ export default function RootLayoutClient({ children }: RootLayoutClientProps) {
           <button className="user-nexus" aria-label="ユーザーメニュー" aria-expanded="false">
             <div className="user-orb" aria-hidden="true">WD</div>
             <div className="text-left">
-              <div className="font-semibold">管理者</div>
+              {/* Phase1: 管理者テキストを非表示 */}
+              {/* <div className="font-semibold">管理者</div> */}
               <div className="text-xs opacity-80">THE WORLD DOOR</div>
             </div>
           </button>
