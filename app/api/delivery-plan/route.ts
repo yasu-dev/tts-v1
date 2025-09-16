@@ -439,6 +439,7 @@ export async function POST(request: NextRequest) {
                   deliveryPlanId: planId,
                   deliveryPlanProductId: correspondingPlanProduct.id,
                   purchaseDate: product.purchaseDate,
+                  purchasePrice: product.purchasePrice, // 購入価格を追加
                   supplier: product.supplier,
                   supplierDetails: product.supplierDetails,
                   brand: product.brand,

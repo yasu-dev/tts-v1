@@ -28,18 +28,29 @@ export async function GET(request: NextRequest) {
       take: 50 // 最大50件まで
     });
 
-    // 商品情報を含めて返却
+    // 商品情報を含めて返却（キャンセルされた商品は除外）
     const progressWithProducts = await Promise.all(
       progressRecords.map(async (progress) => {
         const product = await prisma.product.findUnique({
-          where: { id: progress.productId },
+          where: {
+            id: progress.productId,
+            status: {
+              not: 'cancelled' // 検品管理ではキャンセル商品を除外
+            }
+          },
           select: {
             id: true,
             name: true,
             sku: true,
-            category: true
+            category: true,
+            status: true
           }
         });
+
+        // キャンセルされた商品の場合はnullを返す
+        if (!product) {
+          return null;
+        }
 
         return {
           productId: progress.productId,
@@ -50,7 +61,12 @@ export async function GET(request: NextRequest) {
       })
     );
 
-    return NextResponse.json(progressWithProducts);
+    // nullを除外してから返却
+    const filteredProgress = progressWithProducts.filter(item => item !== null);
+
+    console.log(`検品進捗取得完了: ${filteredProgress.length}件 (キャンセル商品除外済み)`);
+
+    return NextResponse.json(filteredProgress);
 
   } catch (error) {
     console.error('Get all progress error:', error);

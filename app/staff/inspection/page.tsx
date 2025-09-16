@@ -243,9 +243,12 @@ export default function InspectionPage() {
       const response = await fetch('/api/inventory?limit=100');
       if (response.ok) {
         const result = await response.json();
-        const inventoryData = result.data || [];
-        
-        console.log(`[DEBUG] 検品ページ: SQLiteから${inventoryData.length}件の商品データを取得`);
+        const allInventoryData = result.data || [];
+
+        // 検品管理ではキャンセル商品を除外
+        const inventoryData = allInventoryData.filter(product => product.status !== 'cancelled');
+
+        console.log(`[DEBUG] 検品ページ: SQLiteから${allInventoryData.length}件取得、キャンセル除外後${inventoryData.length}件`);
         
         // 在庫データを検品用データに変換
         const inspectionProducts: Product[] = inventoryData.map((item: any) => ({
@@ -522,24 +525,24 @@ export default function InspectionPage() {
       <ChevronDownIcon className="w-4 h-4" />;
   };
 
-  // 進捗ステップ表示用の関数
+  // 進捗ステップ表示用の関数（StatusIndicatorの配色ルールと統一）
   const getProgressStepDisplay = (productId: string) => {
     const progress = progressData[productId];
     if (!progress) {
-      return { label: '未開始', color: 'bg-gray-100 text-gray-800' };
+      return { label: '未開始', color: 'bg-slate-100 text-slate-800' };
     }
-    
+
     switch (progress.currentStep) {
       case 1:
-        return { label: '検品項目', color: 'bg-blue-100 text-blue-800' };
+        return { label: '検品項目', color: 'bg-cyan-100 text-cyan-800' }; // 待機・保管系 - シアン
       case 2:
-        return { label: '動画記録', color: 'bg-yellow-100 text-yellow-800' };
+        return { label: '動画記録', color: 'bg-amber-100 text-amber-800' }; // 注意喚起 - 琥珀
       case 3:
-        return { label: '写真撮影', color: 'bg-purple-100 text-purple-800' };
+        return { label: '写真撮影', color: 'bg-purple-100 text-purple-800' }; // 進行中 - 紫
       case 4:
-        return { label: '確認完了', color: 'bg-green-100 text-green-800' };
+        return { label: '確認完了', color: 'bg-green-100 text-green-800' }; // 完了系 - 緑
       default:
-        return { label: '未開始', color: 'bg-gray-100 text-gray-800' };
+        return { label: '未開始', color: 'bg-slate-100 text-slate-800' };
     }
   };
 
@@ -781,32 +784,39 @@ export default function InspectionPage() {
             <div className="border-b border-nexus-border mb-6">
               <nav className="-mb-px flex space-x-8" aria-label="Tabs">
               {[
-                { id: 'all', label: '全体', count: inspectionStats.total, color: 'blue' },
-                { id: 'pending_inspection', label: '入庫待ち', count: inspectionStats.pending, color: 'yellow' },
-                { id: 'inspecting', label: '保管作業中', count: inspectionStats.inspecting, color: 'cyan' },
-                { id: 'completed', label: '梱包完了', count: inspectionStats.completed, color: 'green' },
-                { id: 'failed', label: '保留中', count: inspectionStats.failed, color: 'red' },
+                { id: 'all', label: '全体', count: inspectionStats.total, status: 'all' },
+                { id: 'pending_inspection', label: '入庫待ち', count: inspectionStats.pending, status: 'inbound' },
+                { id: 'inspecting', label: '保管作業中', count: inspectionStats.inspecting, status: 'inspection' },
+                { id: 'completed', label: '梱包完了', count: inspectionStats.completed, status: 'completed' },
+                { id: 'failed', label: '保留中', count: inspectionStats.failed, status: 'on_hold' },
               ].map((tab) => {
-                // 統一デザインパターンによる配色設定
-                const getTabBadgeStyle = (tabColor: string, isActive: boolean) => {
-                  const colorMap = {
-                    blue: isActive 
-                      ? 'bg-blue-800 text-white border-2 border-blue-600' 
-                      : 'bg-blue-600 text-white border border-blue-500',
-                    yellow: isActive 
-                      ? 'bg-yellow-800 text-white border-2 border-yellow-600' 
-                      : 'bg-yellow-600 text-white border border-yellow-500',
-                    cyan: isActive 
-                      ? 'bg-cyan-800 text-white border-2 border-cyan-600' 
-                      : 'bg-cyan-600 text-white border border-cyan-500',
-                    green: isActive 
-                      ? 'bg-green-800 text-white border-2 border-green-600' 
-                      : 'bg-green-600 text-white border border-green-500',
-                    red: isActive 
-                      ? 'bg-red-800 text-white border-2 border-red-600' 
-                      : 'bg-red-600 text-white border border-red-500',
+                // StatusIndicatorの配色と完全に合わせる
+                const getTabBadgeStyle = (status: string, isActive: boolean) => {
+                  const statusColors = {
+                    all: {
+                      normal: 'bg-blue-600 text-white border border-blue-500',
+                      active: 'bg-blue-800 text-white border-2 border-blue-600'
+                    },
+                    inbound: {
+                      normal: 'bg-cyan-600 text-white border border-cyan-500',
+                      active: 'bg-cyan-800 text-white border-2 border-cyan-600'
+                    },
+                    inspection: {
+                      normal: 'bg-cyan-700 text-white border border-cyan-600',
+                      active: 'bg-cyan-900 text-white border-2 border-cyan-700'
+                    },
+                    completed: {
+                      normal: 'bg-emerald-700 text-white border border-emerald-600',
+                      active: 'bg-emerald-900 text-white border-2 border-emerald-700'
+                    },
+                    on_hold: {
+                      normal: 'bg-amber-600 text-white border border-amber-500',
+                      active: 'bg-amber-800 text-white border-2 border-amber-600'
+                    },
                   };
-                  return colorMap[tabColor] || colorMap.blue;
+                  return statusColors[status] ?
+                    (isActive ? statusColors[status].active : statusColors[status].normal) :
+                    statusColors.all.normal;
                 };
 
                 return (
@@ -826,7 +836,7 @@ export default function InspectionPage() {
                       ml-2 inline-flex items-center px-2.5 py-1 rounded-lg
                       text-xs font-black font-display uppercase tracking-wider
                       transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105
-                      ${getTabBadgeStyle(tab.color, activeTab === tab.id)}
+                      ${getTabBadgeStyle(tab.status, activeTab === tab.id)}
                     `}>
                       {tab.count}
                     </span>

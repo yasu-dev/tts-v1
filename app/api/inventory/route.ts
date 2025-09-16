@@ -67,10 +67,10 @@ export async function GET(request: NextRequest) {
       const statusMap: { [key: string]: string } = {
         '入庫': 'inbound',
         '入荷待ち': 'inbound',
-        '検品': 'inspection', 
+        '検品': 'inspection',
         '検品中': 'inspection',
         '保管': 'storage',
-        '保管中': 'storage', 
+        '保管中': 'storage',
         '出品': 'listing',
         '出品中': 'listing',
 
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
         '売約済み': 'sold',
         '返品': 'returned'
       };
-      
+
       const englishStatus = statusMap[status] || status;
       where.status = englishStatus;
       console.log(`[DEBUG] ステータスフィルター設定: ${status} -> ${englishStatus}`);
@@ -185,6 +185,17 @@ export async function GET(request: NextRequest) {
         }
       }
       
+      // DEMOカメラ０６の詳細ログ
+      if (product.name?.includes('DEMOカメラ０６')) {
+        console.log('API: DEMOカメラ０６の詳細データ:', {
+          name: product.name,
+          price: product.price,
+          rawMetadata: product.metadata,
+          parsedMetadata: parsedMetadata,
+          purchasePriceInMetadata: parsedMetadata?.purchasePrice
+        });
+      }
+
       return {
         id: product.id,
         name: product.name,

@@ -3,13 +3,14 @@
 import { useState, useRef, useEffect } from 'react';
 import { BaseModal, NexusButton, NexusCard, BusinessStatusIndicator } from './ui';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
-import { 
+import {
   CheckIcon,
   CameraIcon,
   ShoppingCartIcon,
   LinkIcon,
   ArrowTopRightOnSquareIcon,
-  TagIcon
+  TagIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 import { parseProductMetadata, getInspectionPhotographyStatus } from '@/lib/utils/product-status';
 import { checkListingEligibility } from '@/lib/utils/listing-eligibility';
@@ -81,7 +82,58 @@ export default function ItemDetailModal({
   const [loadingEbayInfo, setLoadingEbayInfo] = useState(false);
   const [historyData, setHistoryData] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const { showToast } = useToast();
+
+  // キャンセル確認表示
+  const handleCancelClick = () => {
+    setShowCancelConfirm(true);
+  };
+
+  // 商品キャンセル処理
+  const handleCancelConfirm = async () => {
+    if (!item) return;
+
+    setShowCancelConfirm(false);
+    setIsCancelling(true);
+
+    try {
+      const response = await fetch(`/api/products/${item.id}/cancel`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (response.ok) {
+        showToast({
+          type: 'success',
+          title: 'キャンセル完了',
+          message: '商品をキャンセルしました',
+          duration: 3000
+        });
+
+        // モーダルを閉じる
+        onClose();
+
+        // 一覧を更新（親コンポーネントで処理される）
+        window.location.reload();
+      } else {
+        throw new Error('キャンセル処理に失敗しました');
+      }
+    } catch (error) {
+      console.error('キャンセルエラー:', error);
+      showToast({
+        type: 'error',
+        title: 'キャンセル失敗',
+        message: 'キャンセル処理中にエラーが発生しました',
+        duration: 5000
+      });
+    } finally {
+      setIsCancelling(false);
+    }
+  };
 
   // 商品履歴を取得
   const fetchProductHistory = async (productId: string) => {
@@ -203,6 +255,7 @@ export default function ItemDetailModal({
 
 
   return (
+    <>
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
@@ -490,9 +543,60 @@ export default function ItemDetailModal({
                 出品する
               </NexusButton>
             )}
+            {item.status === 'inbound' && (
+              <NexusButton
+                onClick={handleCancelClick}
+                variant="danger"
+                icon={<XMarkIcon className="w-4 h-4" />}
+                disabled={isCancelling}
+              >
+                {isCancelling ? 'キャンセル中...' : 'キャンセル'}
+              </NexusButton>
+            )}
           </div>
         </div>
       </div>
     </BaseModal>
+
+    {/* キャンセル確認モーダル */}
+    {showCancelConfirm && (
+      <BaseModal
+        isOpen={showCancelConfirm}
+        onClose={() => setShowCancelConfirm(false)}
+        title="商品キャンセルの確認"
+        size="sm"
+      >
+        <div className="p-6">
+          <div className="mb-6">
+            <p className="text-nexus-text-primary">
+              この商品をキャンセルしてもよろしいですか？
+            </p>
+            <p className="text-sm text-nexus-text-secondary mt-2">
+              商品名: {item?.name}
+            </p>
+            <p className="text-sm text-red-600 mt-3">
+              ※ キャンセル後は元に戻すことができません
+            </p>
+          </div>
+
+          <div className="flex justify-end gap-3">
+            <NexusButton
+              onClick={() => setShowCancelConfirm(false)}
+              variant="default"
+            >
+              戻る
+            </NexusButton>
+            <NexusButton
+              onClick={handleCancelConfirm}
+              variant="danger"
+              disabled={isCancelling}
+            >
+              キャンセル実行
+            </NexusButton>
+          </div>
+        </div>
+      </BaseModal>
+    )}
+  </>
   );
 } 
