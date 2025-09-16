@@ -7,11 +7,9 @@ import LocationList from '@/app/components/features/location/LocationList';
 import LocationRegistration from '@/app/components/features/location/LocationRegistration';
 
 
-import InventoryCountModal from '@/app/components/InventoryCountModal';
 import NexusButton from '@/app/components/ui/NexusButton';
 
 import {
-  ClipboardDocumentListIcon,
   MagnifyingGlassIcon,
   ChartBarIcon,
   PlusIcon,
@@ -29,7 +27,6 @@ interface LocationStats {
 export default function LocationPage() {
 
   const [activeTab, setActiveTab] = useState<'overview' | 'register' | 'analytics'>('overview');
-  const [isCountModalOpen, setIsCountModalOpen] = useState(false);
   const [quickSearch, setQuickSearch] = useState('');
 
   const [stats, setStats] = useState<LocationStats>({
@@ -78,29 +75,11 @@ export default function LocationPage() {
   };
 
 
-
-  const handleStartInventoryCount = () => {
-    setIsCountModalOpen(true);
-  };
-
   if (!mounted) {
     return null;
   }
 
-  const headerActions = (
-    <>
-      <NexusButton
-        onClick={handleStartInventoryCount}
-        variant="primary"
-        size="md"
-        data-testid="inventory-count-button"
-        icon={<ClipboardDocumentListIcon className="w-5 h-5" />}
-      >
-        <span className="hidden sm:inline">棚卸し</span>
-        <span className="sm:hidden">棚卸し</span>
-      </NexusButton>
-    </>
-  );
+  const headerActions = null;
 
   const occupancyRate = Math.round((stats.usedCapacity / stats.totalCapacity) * 100);
   const utilizationRate = Math.round((stats.occupiedLocations / stats.totalLocations) * 100);
@@ -247,11 +226,6 @@ export default function LocationPage() {
 
 
 
-        {/* Inventory Count Modal */}
-        <InventoryCountModal
-          isOpen={isCountModalOpen}
-          onClose={() => setIsCountModalOpen(false)}
-        />
       </div>
     </DashboardLayout>
   );

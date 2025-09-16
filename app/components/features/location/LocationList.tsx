@@ -9,6 +9,7 @@ import Pagination from '@/app/components/ui/Pagination';
 import { useRouter } from 'next/navigation';
 import { ClipboardDocumentListIcon, CubeIcon, PlusIcon } from '@heroicons/react/24/outline';
 import LocationCreateForm from './LocationCreateForm';
+import ProductImage from '@/app/components/ui/ProductImage';
 
 interface Location {
   code: string;
@@ -28,6 +29,7 @@ interface ProductInLocation {
   category: string;
   registeredAt: string;
   registeredBy: string;
+  imageUrl?: string | null;
 }
 
 
@@ -243,7 +245,8 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
             sku: product.sku,
             category: product.category,
             registeredAt: product.createdAt,
-            registeredBy: product.seller?.username || 'システム'
+            registeredBy: product.seller?.username || 'システム',
+            imageUrl: product.images?.[0]?.url || product.images?.[0]?.thumbnailUrl || null
           }))
         }));
         setLocations(fetchedLocations);
@@ -1378,11 +1381,18 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                       {selectedLocation.products.map((product) => (
                         <div key={product.id} className="holo-row p-4">
                           <div className="flex justify-between items-start">
-                            <div>
-                              <p className="font-medium text-nexus-text-primary">{product.name}</p>
-                              <p className="text-sm text-nexus-text-secondary font-mono">
-                                ID: {product.id} | SKU: {product.sku}
-                              </p>
+                            <div className="flex gap-3">
+                              <ProductImage
+                                src={product.imageUrl}
+                                alt={product.name}
+                                size="md"
+                              />
+                              <div>
+                                <p className="font-medium text-nexus-text-primary">{product.name}</p>
+                                <p className="text-sm text-nexus-text-secondary font-mono">
+                                  ID: {product.id} | SKU: {product.sku}
+                                </p>
+                              </div>
                             </div>
                             <div className="text-right">
                               <p className="text-sm font-medium">{product.registeredBy}</p>

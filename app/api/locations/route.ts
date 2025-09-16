@@ -25,6 +25,13 @@ export async function GET() {
             createdAt: true,
             seller: {
               select: { username: true }
+            },
+            images: {
+              select: {
+                url: true,
+                thumbnailUrl: true
+              },
+              take: 1
             }
           }
         }
