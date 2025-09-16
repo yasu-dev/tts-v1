@@ -726,7 +726,7 @@ export default function DeliveryPage() {
             </div>
           )}
 
-          <div className="p-6">
+          <div className="p-8">
             <div className="overflow-x-auto">
             <table className="holo-table">
               <thead className="holo-header">
@@ -848,7 +848,7 @@ export default function DeliveryPage() {
                                   key={index}
                                   src={imageUrl}
                                   alt={product.name}
-                                  size="sm"
+                                  size="lg"
                                 />
                               );
                             })}

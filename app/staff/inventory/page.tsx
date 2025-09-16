@@ -18,6 +18,7 @@ import {
 import { ContentCard, BusinessStatusIndicator, Pagination, NexusLoadingSpinner } from '@/app/components/ui';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import NexusButton from '@/app/components/ui/NexusButton';
+import ProductImage from '@/app/components/ui/ProductImage';
 import NexusSelect from '@/app/components/ui/NexusSelect';
 import NexusInput from '@/app/components/ui/NexusInput';
 import BaseModal from '@/app/components/ui/BaseModal';
