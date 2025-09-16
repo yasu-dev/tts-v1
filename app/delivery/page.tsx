@@ -1079,7 +1079,7 @@ export default function DeliveryPage() {
                               <img 
                                 src={product.imageUrl}
                                 alt={product.name}
-                                className="w-16 h-16 object-cover rounded-lg border border-nexus-border"
+                                className="w-24 h-24 object-cover rounded-lg border border-nexus-border"
                               />
                             )}
                             <div className="flex-1">

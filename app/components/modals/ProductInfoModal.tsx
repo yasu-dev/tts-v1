@@ -149,6 +149,32 @@ export default function ProductInfoModal({ isOpen, onClose, product }: ProductIn
     }).format(price);
   };
 
+  // HTMLタグとスタイル・スクリプト内容を除去してプレーンテキストとして表示するヘルパー関数
+  const stripHtmlTags = (text: string): string => {
+    // HTMLタグとその内容を除去し、HTMLエンティティをデコード
+    return text
+      // <style>から</style>までの内容を完全に除去
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+      // <script>から</script>までの内容を完全に除去
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+      // 残りのHTMLタグを除去
+      .replace(/<[^>]*>/g, '')
+      // HTMLエンティティをデコード
+      .replace(/&nbsp;/g, ' ') // &nbsp;をスペースに変換
+      .replace(/&lt;/g, '<') // &lt;を<に変換
+      .replace(/&gt;/g, '>') // &gt;を>に変換
+      .replace(/&amp;/g, '&') // &amp;を&に変換
+      .replace(/&quot;/g, '"') // &quot;を"に変換
+      .replace(/&#x27;/g, "'") // &#x27;を'に変換
+      .replace(/&#39;/g, "'") // &#39;を'に変換
+      // CSS記述の残存部分を除去（{...}の形式）
+      .replace(/\{[^}]*\}/g, '')
+      // 連続する空白・改行を1つにまとめる
+      .replace(/\s+/g, ' ')
+      // 前後の空白を除去
+      .trim();
+  };
+
   // 納品プランラベルダウンロード機能（安全なメタデータアクセス）
   const handleDownloadDeliveryPlanLabel = async () => {
     try {
@@ -397,7 +423,11 @@ export default function ProductInfoModal({ isOpen, onClose, product }: ProductIn
                       <label className="text-sm font-medium text-gray-600">検品メモ</label>
                       <div className="flex items-start gap-2 mt-1">
                         <FileText className="h-4 w-4 text-blue-600 mt-0.5" />
-                        <p className="text-gray-900 text-sm leading-relaxed">{product.inspectionNotes}</p>
+                        <div className="max-h-32 overflow-y-auto">
+                          <p className="text-gray-900 text-sm leading-relaxed whitespace-pre-wrap break-words">
+                            {stripHtmlTags(product.inspectionNotes)}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -408,7 +438,11 @@ export default function ProductInfoModal({ isOpen, onClose, product }: ProductIn
               {product.description && (
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h3 className="text-lg font-medium text-gray-900 mb-3">商品説明</h3>
-                  <p className="text-gray-700 text-sm leading-relaxed">{product.description}</p>
+                  <div className="max-h-48 overflow-y-auto">
+                    <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap break-words">
+                      {stripHtmlTags(product.description)}
+                    </p>
+                  </div>
                 </div>
               )}
 

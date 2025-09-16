@@ -1079,7 +1079,7 @@ export default function SalesPage() {
                             </td>
                             <td className="p-4">
                               <div className="flex justify-center">
-                                <div className="w-16 h-16 rounded border border-nexus-border overflow-hidden bg-nexus-bg-secondary">
+                                <div className="w-24 h-24 rounded border border-nexus-border overflow-hidden bg-nexus-bg-secondary">
                                   {row.ebayImage || row.items?.[0]?.productImage ? (
                                     <img
                                       src={row.ebayImage || row.items[0].productImage}

@@ -131,6 +131,12 @@ export default function ConfirmationStep({
             <span className="font-medium text-nexus-text-secondary">セラー名:</span>
             <span className="ml-2 text-nexus-text-primary">{user?.fullName || user?.username || '未取得'}</span>
           </div>
+          {user?.phoneNumber && (
+            <div>
+              <span className="font-medium text-nexus-text-secondary">電話番号:</span>
+              <span className="ml-2 text-nexus-text-primary">{user.phoneNumber}</span>
+            </div>
+          )}
           <div>
             <span className="font-medium text-nexus-text-secondary">連絡先メール:</span>
             <span className="ml-2 text-nexus-text-primary">{user?.email || '未取得'}</span>
@@ -140,12 +146,6 @@ export default function ConfirmationStep({
             <span className="ml-2 text-nexus-text-primary">{data.basicInfo?.warehouseName || '未選択'}</span>
           </div>
 {/* 納品先住所は配送先倉庫で明確になるため、重複を避けるため非表示 */}
-          {user?.phoneNumber && (
-            <div>
-              <span className="font-medium text-nexus-text-secondary">電話番号:</span>
-              <span className="ml-2 text-nexus-text-primary">{user.phoneNumber}</span>
-            </div>
-          )}
           {data.basicInfo?.notes && (
             <div className="md:col-span-2">
               <span className="font-medium text-nexus-text-secondary">備考:</span>

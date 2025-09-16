@@ -395,18 +395,22 @@ export default function InventoryPage() {
                     key={item.id}
                     className="border-b border-nexus-border hover:bg-nexus-bg-tertiary transition-colors"
                   >
-                    <td className="p-4 text-center">
-                      {item.images && item.images.length > 0 ? (
-                        <img 
-                          src={item.images[0].thumbnailUrl || item.images[0].url} 
-                          alt={item.name}
-                          className="w-12 h-12 object-cover rounded-lg mx-auto border border-nexus-border"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 bg-gray-100 rounded-lg mx-auto border border-nexus-border flex items-center justify-center">
-                          <span className="text-xs text-gray-400">画像なし</span>
+                    <td className="p-4">
+                      <div className="flex justify-center">
+                        <div className="w-20 h-20 overflow-hidden rounded-lg border border-nexus-border bg-gray-100">
+                          {item.images && item.images.length > 0 ? (
+                            <img
+                              src={item.images[0].thumbnailUrl || item.images[0].url}
+                              alt={item.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <span className="text-xs text-gray-400">画像なし</span>
+                            </div>
+                          )}
                         </div>
-                      )}
+                      </div>
                     </td>
                     <td className="p-4">
                       <div className="font-medium text-nexus-text-primary">

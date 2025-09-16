@@ -240,6 +240,9 @@ export default function ProductPhotographyDetails({ productId, status }: Product
     return '撮影状況を確認中';
   };
 
+  // 固定表示順序配列の定義（要求仕様通り：正面→背面→左側面→右側面→上面→詳細）
+  const displayOrder = ['正面', '背面', '左側面', '右側面', '上面', '詳細'];
+
   const categorizeImages = (images: ProductImage[], photoSlots?: PhotoSlot[]) => {
     const categories: Record<string, ProductImage[]> = {};
     
@@ -291,6 +294,27 @@ export default function ProductPhotographyDetails({ productId, status }: Product
     return categories;
   };
 
+  // 固定順序に従って画像を並び替える関数
+  const getOrderedImages = (categorizedImages: Record<string, ProductImage[]>) => {
+    const orderedImages: ProductImage[] = [];
+    
+    // 固定順序に従って画像を並び替え、登録されていない箇所は自動でスキップ
+    displayOrder.forEach(category => {
+      if (categorizedImages[category] && categorizedImages[category].length > 0) {
+        orderedImages.push(...categorizedImages[category]);
+      }
+    });
+    
+    // 固定順序にない追加カテゴリも最後に追加
+    Object.entries(categorizedImages).forEach(([category, images]) => {
+      if (!displayOrder.includes(category) && images.length > 0) {
+        orderedImages.push(...images);
+      }
+    });
+    
+    return orderedImages;
+  };
+
   if (loading) {
     return (
       <Card>
@@ -322,63 +346,60 @@ export default function ProductPhotographyDetails({ productId, status }: Product
   }
 
   const categorizedImages = categorizeImages(photographyData?.images || [], photographyData?.photoSlots);
+  const orderedImages = getOrderedImages(categorizedImages);
   
   // ===== デバッグ用ログ =====
   console.log('[🔍 FINAL DEBUG] ProductPhotographyDetails - 最終表示データ確認:', {
     productId: productId,
     categorizedImages: categorizedImages,
+    orderedImages: orderedImages,
     imageCount: Object.keys(categorizedImages).length,
-    totalImages: Object.values(categorizedImages).reduce((sum, images) => sum + images.length, 0)
+    totalImages: Object.values(categorizedImages).reduce((sum, images) => sum + images.length, 0),
+    displayOrder: displayOrder,
+    orderedCount: orderedImages.length
   });
   
-  // 各カテゴリの画像を詳細表示
-  Object.entries(categorizedImages).forEach(([category, images]) => {
-    console.log(`[🔍 CATEGORY] ${category}:`, images.length, '件');
-    images.forEach((image, index) => {
-      console.log(`  [${index + 1}] ID: ${image.id}`);
-      console.log(`      URL: ${image.url?.substring(0, 100)}${image.url?.length > 100 ? '...' : ''}`);
-      console.log(`      Type: ${image.url?.startsWith('data:image/') ? 'Base64' : image.url?.startsWith('/api/') ? 'API' : 'Unknown'}`);
-    });
+  // 表示順序の確認
+  orderedImages.forEach((image, index) => {
+    console.log(`[🔍 DISPLAY ORDER] ${index + 1}: ${image.category} - ${image.filename}`);
   });
 
   return (
     <>
       <div className="space-y-4">
-        {Object.entries(categorizedImages).length > 0 ? (
+        {orderedImages.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {/* すべての画像を順番に表示（カテゴリごとに最初の1枚ではなく、すべて表示） */}
-            {Object.entries(categorizedImages).flatMap(([category, images]) => 
-              images.map((image) => (
-                <div
-                  key={image.id}
-                  className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all"
-                  onClick={() => setSelectedImage(image.url)}
-                >
-                  {/* Base64の場合は img 要素を直接使用、そうでない場合は Next.js Image */}
-                  {image.url?.startsWith('data:image/') ? (
-                    <img
-                      src={image.url}
-                      alt={image.description || image.filename}
-                      className="absolute inset-0 w-full h-full object-cover"
-                    />
-                  ) : (
-                    <Image
-                      src={image.thumbnailUrl || image.url}
-                      alt={image.description || image.filename}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                    />
-                  )}
-                  <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all flex items-center justify-center">
-                    <EyeIcon className="w-6 h-6 text-white opacity-0 hover:opacity-100 transition-opacity" />
-                  </div>
-                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-xs p-1 text-center">
-                    <p className="truncate">{category}</p>
-                  </div>
+            {/* 固定順序に従って画像を表示（正面→背面→左側面→右側面→上面→詳細） */}
+            {orderedImages.slice(0, 12).map((image) => (
+              <div
+                key={image.id}
+                className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all"
+                onClick={() => setSelectedImage(image.url)}
+              >
+                {/* Base64の場合は img 要素を直接使用、そうでない場合は Next.js Image */}
+                {image.url?.startsWith('data:image/') ? (
+                  <img
+                    src={image.url}
+                    alt={image.description || image.filename}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                ) : (
+                  <Image
+                    src={image.thumbnailUrl || image.url}
+                    alt={image.description || image.filename}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  />
+                )}
+                <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all flex items-center justify-center">
+                  <EyeIcon className="w-6 h-6 text-white opacity-0 hover:opacity-100 transition-opacity" />
                 </div>
-              ))
-            ).slice(0, 12)} {/* 最大12枚まで表示 */}
+                <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-xs p-1 text-center">
+                  <p className="truncate">{image.category}</p>
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
           <div className="text-center py-8 text-gray-500">撮影画像がありません</div>

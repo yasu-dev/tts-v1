@@ -12,7 +12,7 @@ type BusinessStatusType =
   | 'packed' | 'shipped' | 'ready_for_pickup'
   | 'approved' | 'rejected' | 'refunded'
   | 'ordered' | 'shipping'
-  | 'on_hold';
+  | 'on_hold' | 'workstation';
 
 interface StatusIndicatorProps {
   status: StatusType;
@@ -147,6 +147,12 @@ const businessStatusConfig = {
     bg: 'bg-cyan-700 dark:bg-cyan-700',      // 作業中 - 濃いシアン
     text: 'text-white dark:text-white',
     border: 'border-cyan-700 dark:border-cyan-700'
+  },
+  workstation: {
+    label: '出荷準備中',
+    bg: 'bg-orange-600 dark:bg-orange-600',      // 出荷準備中 - オレンジ
+    text: 'text-white dark:text-white',
+    border: 'border-orange-600 dark:border-orange-600'
   },
   ready_for_pickup: {
     label: '集荷準備完了',

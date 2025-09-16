@@ -153,16 +153,16 @@ export default function BasicInfoStep({
               <span className="font-medium text-nexus-text-secondary">セラー名:</span>
               <span className="ml-2 text-nexus-text-primary">{user.fullName || user.username}</span>
             </div>
-            <div>
-              <span className="font-medium text-nexus-text-secondary">連絡先メール:</span>
-              <span className="ml-2 text-nexus-text-primary">{user.email}</span>
-            </div>
             {user.phoneNumber && (
               <div>
                 <span className="font-medium text-nexus-text-secondary">電話番号:</span>
                 <span className="ml-2 text-nexus-text-primary">{user.phoneNumber}</span>
               </div>
             )}
+            <div>
+              <span className="font-medium text-nexus-text-secondary">連絡先メール:</span>
+              <span className="ml-2 text-nexus-text-primary">{user.email}</span>
+            </div>
           </div>
         </div>
       )}

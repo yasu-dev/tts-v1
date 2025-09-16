@@ -4,7 +4,7 @@ import { AuthService } from '@/lib/auth';
 export async function GET(request: NextRequest) {
   try {
     const user = await AuthService.getUserFromRequest(request);
-    
+
     if (user) {
       return NextResponse.json({
         success: true,

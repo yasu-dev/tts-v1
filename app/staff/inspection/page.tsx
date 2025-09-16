@@ -880,59 +880,61 @@ export default function InspectionPage() {
                     <tr className="border-b border-nexus-border hover:bg-nexus-bg-tertiary">
                       <td className="py-3 px-2 sm:px-4">
                         <div className="flex justify-center">
-                          <img
-                            src={(() => {
-                              console.log('[DEBUG] 商品画像表示チェック:', product.name, '- metadata:', product.metadata);
+                          <div className="w-16 h-16 sm:w-20 sm:h-20 overflow-hidden rounded-lg border border-nexus-border bg-gray-100">
+                            <img
+                              src={(() => {
+                                console.log('[DEBUG] 商品画像表示チェック:', product.name, '- metadata:', product.metadata);
 
-                              // 納品プランで登録された商品画像の1枚目を優先的に表示
-                              try {
-                                if (product.metadata) {
-                                  let metadata = null;
+                                // 納品プランで登録された商品画像の1枚目を優先的に表示
+                                try {
+                                  if (product.metadata) {
+                                    let metadata = null;
 
-                                  // metadataをパース
-                                  if (typeof product.metadata === 'string') {
-                                    try {
-                                      metadata = JSON.parse(product.metadata);
-                                    } catch (parseError) {
-                                      console.warn('メタデータパースエラー:', parseError);
+                                    // metadataをパース
+                                    if (typeof product.metadata === 'string') {
+                                      try {
+                                        metadata = JSON.parse(product.metadata);
+                                      } catch (parseError) {
+                                        console.warn('メタデータパースエラー:', parseError);
+                                      }
+                                    } else {
+                                      metadata = product.metadata;
                                     }
-                                  } else {
-                                    metadata = product.metadata;
+
+                                    console.log('[DEBUG] パース済みメタデータ:', metadata);
+
+                                    // 納品プラン情報から画像を取得
+                                    if (metadata) {
+                                      // deliveryPlanInfo.imagesパターン
+                                      if (metadata.deliveryPlanInfo?.images?.length > 0) {
+                                        console.log('[DEBUG] deliveryPlanInfo.imagesから画像を取得:', metadata.deliveryPlanInfo.images[0]);
+                                        return metadata.deliveryPlanInfo.images[0].url;
+                                      }
+
+                                      // imagesパターン
+                                      if (metadata.images?.length > 0) {
+                                        console.log('[DEBUG] imagesから画像を取得:', metadata.images[0]);
+                                        return metadata.images[0].url || metadata.images[0];
+                                      }
+
+                                      // imageUrlパターン
+                                      if (metadata.imageUrl) {
+                                        console.log('[DEBUG] metadata.imageUrlから画像を取得:', metadata.imageUrl);
+                                        return metadata.imageUrl;
+                                      }
+                                    }
                                   }
-
-                                  console.log('[DEBUG] パース済みメタデータ:', metadata);
-
-                                  // 納品プラン情報から画像を取得
-                                  if (metadata) {
-                                    // deliveryPlanInfo.imagesパターン
-                                    if (metadata.deliveryPlanInfo?.images?.length > 0) {
-                                      console.log('[DEBUG] deliveryPlanInfo.imagesから画像を取得:', metadata.deliveryPlanInfo.images[0]);
-                                      return metadata.deliveryPlanInfo.images[0].url;
-                                    }
-
-                                    // imagesパターン
-                                    if (metadata.images?.length > 0) {
-                                      console.log('[DEBUG] imagesから画像を取得:', metadata.images[0]);
-                                      return metadata.images[0].url || metadata.images[0];
-                                    }
-
-                                    // imageUrlパターン
-                                    if (metadata.imageUrl) {
-                                      console.log('[DEBUG] metadata.imageUrlから画像を取得:', metadata.imageUrl);
-                                      return metadata.imageUrl;
-                                    }
-                                  }
+                                } catch (e) {
+                                  console.warn('商品画像取得エラー:', e);
                                 }
-                              } catch (e) {
-                                console.warn('商品画像取得エラー:', e);
-                              }
 
-                              console.log('[DEBUG] デフォルト画像を使用:', product.imageUrl);
-                              return product.imageUrl || '/api/placeholder/60/60';
-                            })()}
-                            alt={product.name}
-                            className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-lg"
-                          />
+                                console.log('[DEBUG] デフォルト画像を使用:', product.imageUrl);
+                                return product.imageUrl || '/api/placeholder/60/60';
+                              })()}
+                              alt={product.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
                         </div>
                       </td>
                       <td className="py-3 px-2 sm:px-4">

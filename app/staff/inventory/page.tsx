@@ -735,19 +735,23 @@ export default function StaffInventoryPage() {
                       key={item.id} 
                       className={item.isBundleItem ? 'bg-blue-50 border-l-4 border-l-blue-400' : ''}
                     >
-                      <td className="p-4 text-center">
-                        {(item.imageUrl || item.images?.[0]) ? (
-                          <img 
-                            src={item.imageUrl || item.images?.[0]} 
-                            alt={item.name}
-                            className="w-12 h-12 object-cover rounded-lg mx-auto border border-nexus-border"
-                            title="セラーがアップロードした画像"
-                          />
-                        ) : (
-                          <div className="w-12 h-12 bg-gray-100 rounded-lg mx-auto border border-nexus-border flex items-center justify-center">
-                            <span className="text-xs text-gray-400">画像なし</span>
+                      <td className="p-4">
+                        <div className="flex justify-center">
+                          <div className="w-20 h-20 overflow-hidden rounded-lg border border-nexus-border bg-gray-100">
+                            {(item.imageUrl || item.images?.[0]) ? (
+                              <img
+                                src={item.imageUrl || item.images?.[0]}
+                                alt={item.name}
+                                className="w-full h-full object-cover"
+                                title="セラーがアップロードした画像"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <span className="text-xs text-gray-400">画像なし</span>
+                              </div>
+                            )}
                           </div>
-                        )}
+                        </div>
                       </td>
                       <td className="p-4">
                         <div className="font-medium text-nexus-text-primary">{item.name}</div>

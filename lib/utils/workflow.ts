@@ -131,13 +131,23 @@ export function getInspectionWorkflowProgress(currentStatus: InspectionStatus, p
   const currentStep = INSPECTION_WORKFLOW_STEPS.find(step => step.id === currentStatus);
   const currentOrder = currentStep?.order || 1;
 
+  // completedステータスの場合は全てのステップを完了として表示
+  if (currentStatus === 'completed') {
+    return INSPECTION_WORKFLOW_STEPS.map(step => ({
+      id: step.id,
+      label: step.label,
+      icon: step.icon,
+      status: 'completed' as const
+    }));
+  }
+
   return INSPECTION_WORKFLOW_STEPS.map(step => ({
     id: step.id,
     label: step.label,
     icon: step.icon,
-    status: step.order < currentOrder 
+    status: step.order < currentOrder
       ? 'completed' as const
-      : step.order === currentOrder 
+      : step.order === currentOrder
       ? 'active' as const
       : 'pending' as const
   }));

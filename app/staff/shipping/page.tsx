@@ -1200,7 +1200,7 @@ export default function StaffShippingPage() {
                         </td>
                         <td className="p-4">
                           <div className="flex justify-center">
-                            <div className="w-16 h-16 rounded border border-nexus-border overflow-hidden bg-nexus-bg-secondary">
+                            <div className="w-24 h-24 rounded border border-nexus-border overflow-hidden bg-nexus-bg-secondary">
                               {item.productImages && item.productImages.length > 0 ? (
                                 <img
                                   src={item.productImages[0]}
@@ -1320,7 +1320,7 @@ export default function StaffShippingPage() {
                           <div className="flex justify-end gap-2">
 
                             {/* ピックアップはロケーション管理で実施するため、ここでは不要 */}
-                            {(['picked', 'packed', 'pending', 'workstation', 'ordered'].includes(item.status)) && (
+                            {(['picked', 'pending', 'workstation', 'ordered'].includes(item.status)) && (
                               <>
                                 {/* 同梱商品の場合: 同梱梱包開始（Nikon Z9のみ） */}
                                 {item.productName.includes('Nikon Z9') ? (
