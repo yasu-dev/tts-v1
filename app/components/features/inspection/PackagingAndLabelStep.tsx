@@ -337,7 +337,7 @@ export default function PackagingAndLabelStep({
                     step="0.1"
                     min="0"
                     max="999.9"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     小数点第一位まで入力してください（例: 1.5kg）
