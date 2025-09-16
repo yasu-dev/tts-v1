@@ -1056,9 +1056,10 @@ export default function DeliveryPage() {
             {selectedPlan.notes && (
               <div>
                 <h4 className="text-sm font-medium text-nexus-text-secondary mb-2">備考</h4>
-                <p className="text-sm text-nexus-text-primary bg-nexus-bg-secondary p-3 rounded">
-                  {selectedPlan.notes}
-                </p>
+                <div
+                  className="text-sm text-nexus-text-primary bg-nexus-bg-secondary p-3 rounded"
+                  dangerouslySetInnerHTML={{ __html: selectedPlan.notes }}
+                />
               </div>
             )}
 
@@ -1382,9 +1383,10 @@ export default function DeliveryPage() {
                               {product.inspectionChecklistData.notes && (
                                 <div>
                                   <h6 className="text-xs font-medium text-nexus-text-primary mb-2">検品メモ</h6>
-                                  <div className="bg-yellow-50 border border-yellow-200 p-2 rounded text-xs text-yellow-700">
-                                    {product.inspectionChecklistData.notes}
-                                  </div>
+                                  <div
+                                    className="bg-yellow-50 border border-yellow-200 p-2 rounded text-xs text-yellow-700"
+                                    dangerouslySetInnerHTML={{ __html: product.inspectionChecklistData.notes }}
+                                  />
                                 </div>
                               )}
 

@@ -715,9 +715,10 @@ export default function ProductInspectionDetails({ productId, status }: ProductI
           <div>
             <h4 className="font-semibold text-sm text-gray-700 mb-2">メモ</h4>
             <div className="p-3 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                {inspectionData.notes}
-              </p>
+              <div
+                className="text-sm text-gray-700"
+                dangerouslySetInnerHTML={{ __html: inspectionData.notes }}
+              />
             </div>
           </div>
         )}

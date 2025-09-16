@@ -395,9 +395,14 @@ export default function ItemDetailModal({
                 <h4 className="font-medium text-nexus-text-primary mb-2">
                   商品メモ
                 </h4>
-                <p className="text-nexus-text-secondary">
-                  {item.notes || '特記事項はありません'}
-                </p>
+                {item.notes ? (
+                  <div
+                    className="text-nexus-text-secondary"
+                    dangerouslySetInnerHTML={{ __html: item.notes }}
+                  />
+                ) : (
+                  <p className="text-nexus-text-secondary">特記事項はありません</p>
+                )}
               </div>
 
               {/* QRコード情報 */}

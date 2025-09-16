@@ -351,7 +351,7 @@ export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetail
               備考
             </label>
             <div className="p-3 bg-nexus-bg-secondary rounded border border-nexus-border text-nexus-text-primary">
-              {order.notes}
+              <div dangerouslySetInnerHTML={{ __html: order.notes }} />
             </div>
           </div>
         )}

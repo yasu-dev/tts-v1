@@ -149,7 +149,10 @@ export default function ConfirmationStep({
           {data.basicInfo?.notes && (
             <div className="md:col-span-2">
               <span className="font-medium text-nexus-text-secondary">備考:</span>
-              <span className="ml-2 text-nexus-text-primary">{data.basicInfo.notes}</span>
+              <span
+                className="ml-2 text-nexus-text-primary"
+                dangerouslySetInnerHTML={{ __html: data.basicInfo.notes }}
+              />
             </div>
           )}
         </div>
@@ -340,7 +343,10 @@ export default function ConfirmationStep({
                     {product.inspectionChecklist.notes && (
                       <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded">
                         <span className="text-xs font-medium text-yellow-800">検品メモ:</span>
-                        <p className="text-xs text-yellow-700 mt-1">{product.inspectionChecklist.notes}</p>
+                        <div
+                          className="text-xs text-yellow-700 mt-1"
+                          dangerouslySetInnerHTML={{ __html: product.inspectionChecklist.notes }}
+                        />
                       </div>
                     )}
                       </>

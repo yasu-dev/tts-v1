@@ -313,7 +313,7 @@ export default function WarehouseManagement() {
               
               {warehouse.notes && (
                 <div className="mt-3 p-2 bg-nexus-bg-tertiary rounded text-sm text-nexus-text-secondary">
-                  {warehouse.notes}
+                  <div dangerouslySetInnerHTML={{ __html: warehouse.notes }} />
                 </div>
               )}
             </div>

@@ -282,7 +282,10 @@ export default function DeliveryPlanDetailModal({
               {plan.notes && (
                 <NexusCard className="p-6">
                   <h4 className="font-medium text-nexus-text-primary mb-4">備考</h4>
-                  <p className="text-nexus-text-secondary">{plan.notes}</p>
+                  <div
+                    className="text-nexus-text-secondary"
+                    dangerouslySetInnerHTML={{ __html: plan.notes }}
+                  />
                 </NexusCard>
               )}
             </div>

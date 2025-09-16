@@ -254,9 +254,10 @@ export default function CarrierSelectionModal({
                         <h4 className="font-semibold text-nexus-text-primary text-lg">
                           {carrier.name}
                         </h4>
-                        <p className="text-sm text-nexus-text-secondary mt-1">
-                          {carrier.notes}
-                        </p>
+                        <div
+                          className="text-sm text-nexus-text-secondary mt-1"
+                          dangerouslySetInnerHTML={{ __html: carrier.notes }}
+                        />
                         <div className="flex items-center space-x-3 mt-2">
                           <div className="flex items-center space-x-1 text-xs text-nexus-text-secondary">
                             <ClockIcon className="w-4 h-4" />

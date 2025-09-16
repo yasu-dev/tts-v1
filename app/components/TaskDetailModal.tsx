@@ -214,7 +214,10 @@ export default function TaskDetailModal({ isOpen, onClose, task, onEdit, onStatu
                 備考
               </label>
               <div className="p-3 bg-nexus-bg-secondary rounded-lg">
-                <p className="text-nexus-text-primary">{task.notes}</p>
+                <div
+                  className="text-nexus-text-primary"
+                  dangerouslySetInnerHTML={{ __html: task.notes }}
+                />
               </div>
             </div>
           )}
