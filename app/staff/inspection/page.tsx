@@ -534,13 +534,13 @@ export default function InspectionPage() {
 
     switch (progress.currentStep) {
       case 1:
-        return { label: '検品項目', color: 'bg-cyan-100 text-cyan-800' }; // 待機・保管系 - シアン
+        return { label: '検品項目', color: 'bg-cyan-100 text-cyan-800' };
       case 2:
-        return { label: '動画記録', color: 'bg-amber-100 text-amber-800' }; // 注意喚起 - 琥珀
+        return { label: '動画記録', color: 'bg-amber-100 text-amber-800' };
       case 3:
-        return { label: '写真撮影', color: 'bg-purple-100 text-purple-800' }; // 進行中 - 紫
+        return { label: '写真撮影', color: 'bg-purple-100 text-purple-800' };
       case 4:
-        return { label: '確認完了', color: 'bg-green-100 text-green-800' }; // 完了系 - 緑
+        return { label: '確認完了', color: 'bg-green-100 text-green-800' };
       default:
         return { label: '未開始', color: 'bg-slate-100 text-slate-800' };
     }

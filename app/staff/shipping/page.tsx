@@ -1088,7 +1088,7 @@ export default function StaffShippingPage() {
                   { id: 'packed', label: '梱包済み', count: tabStats.packed, color: 'purple' },
                   { id: 'ready_for_pickup', label: '集荷準備完了', count: tabStats.ready_for_pickup, color: 'teal' },
                 ].map((tab) => {
-                  // 統一デザインパターンによる配色設定
+                  // セラー業務フローと統一した配色設定
                   const getTabBadgeStyle = (tabColor: string, isActive: boolean) => {
                     const colorMap = {
                       blue: isActive

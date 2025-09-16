@@ -40,13 +40,13 @@ const businessStatusConfig = {
   },
   ordered: {
     label: '出荷準備中',
-    bg: 'bg-orange-600 dark:bg-orange-600',  // 重要アクション - オレンジ
+    bg: 'bg-orange-600 dark:bg-orange-600',
     text: 'text-white dark:text-white',
     border: 'border-orange-600 dark:border-orange-600'
   },
   processing: {
     label: '出荷準備中',
-    bg: 'bg-orange-700 dark:bg-orange-700',  // 重要アクション - 濃いオレンジ
+    bg: 'bg-orange-700 dark:bg-orange-700',
     text: 'text-white dark:text-white',
     border: 'border-orange-700 dark:border-orange-700'
   },
@@ -66,7 +66,7 @@ const businessStatusConfig = {
   },
   in_progress: {
     label: '梱包待ち',
-    bg: 'bg-amber-700 dark:bg-amber-700',    // 注意 - 濃い琥珀
+    bg: 'bg-amber-700 dark:bg-amber-700',
     text: 'text-white dark:text-white',
     border: 'border-amber-700 dark:border-amber-700'
   },
@@ -74,13 +74,13 @@ const businessStatusConfig = {
   // 【進行中】- 青・紫系
   packed: {
     label: '梱包済み',
-    bg: 'bg-purple-600 dark:bg-purple-600',  // 進行中 - 紫
+    bg: 'bg-purple-600 dark:bg-purple-600',
     text: 'text-white dark:text-white',
     border: 'border-purple-600 dark:border-purple-600'
   },
   pending: {
     label: '梱包待ち',
-    bg: 'bg-yellow-600 dark:bg-yellow-600',  // 注意喚起 - 黄色
+    bg: 'bg-yellow-600 dark:bg-yellow-600',
     text: 'text-white dark:text-white',
     border: 'border-yellow-600 dark:border-yellow-600'
   },
@@ -112,7 +112,7 @@ const businessStatusConfig = {
   },
   completed: {
     label: '梱包完了',
-    bg: 'bg-emerald-700 dark:bg-emerald-700', // 完了 - 濃いエメラルド
+    bg: 'bg-emerald-700 dark:bg-emerald-700',
     text: 'text-white dark:text-white',
     border: 'border-emerald-700 dark:border-emerald-700'
   },
@@ -126,37 +126,37 @@ const businessStatusConfig = {
   // 【待機・保管系】- シアン・冷色系
   inbound: {
     label: '入庫待ち',
-    bg: 'bg-cyan-600 dark:bg-cyan-600',      // 待機 - シアン
+    bg: 'bg-cyan-600 dark:bg-cyan-600',
     text: 'text-white dark:text-white',
     border: 'border-cyan-600 dark:border-cyan-600'
   },
   storage: {
     label: '保管中',
-    bg: 'bg-teal-600 dark:bg-teal-600',      // 保管 - ティール
+    bg: 'bg-teal-600 dark:bg-teal-600',
     text: 'text-white dark:text-white',
     border: 'border-teal-600 dark:border-teal-600'
   },
   listing: {
     label: '出品中',
-    bg: 'bg-sky-600 dark:bg-sky-600',        // 待機 - スカイブルー
+    bg: 'bg-sky-600 dark:bg-sky-600',
     text: 'text-white dark:text-white',
     border: 'border-sky-600 dark:border-sky-600'
   },
   inspection: {
     label: '保管作業中',
-    bg: 'bg-cyan-700 dark:bg-cyan-700',      // 作業中 - 濃いシアン
+    bg: 'bg-cyan-700 dark:bg-cyan-700',
     text: 'text-white dark:text-white',
     border: 'border-cyan-700 dark:border-cyan-700'
   },
   workstation: {
     label: '出荷準備中',
-    bg: 'bg-orange-600 dark:bg-orange-600',      // 出荷準備中 - オレンジ
+    bg: 'bg-orange-600 dark:bg-orange-600',
     text: 'text-white dark:text-white',
     border: 'border-orange-600 dark:border-orange-600'
   },
   ready_for_pickup: {
     label: '集荷準備完了',
-    bg: 'bg-teal-700 dark:bg-teal-700',      // 準備完了 - 濃いティール
+    bg: 'bg-teal-700 dark:bg-teal-700',
     text: 'text-white dark:text-white',
     border: 'border-teal-700 dark:border-teal-700'
   },
@@ -214,6 +214,7 @@ function getIndicatorColor(status: BusinessStatusType): string {
     storage: 'bg-teal-300',
     listing: 'bg-sky-300',
     inspection: 'bg-cyan-400',
+    workstation: 'bg-orange-300',
     ready_for_pickup: 'bg-teal-400',
 
     // 【エラー・拒否系】- 赤系
@@ -366,23 +367,25 @@ export function BusinessStatusIndicator({
   const sizing = sizeConfig[size];
 
   return (
-    <span className={`
-      inline-flex items-center gap-2
-      ${sizing.padding}
-      ${sizing.text}
-      font-black font-display
-      rounded-lg
-      border-2
-      uppercase
-      tracking-widest
-      transition-all duration-300
-      whitespace-nowrap
-      hover:scale-105
-      ${config.bg}
-      ${config.text}
-      ${config.border}
-      ${className}
-    `}>
+    <span
+      className={`
+        inline-flex items-center gap-2
+        ${sizing.padding}
+        ${sizing.text}
+        font-black font-display
+        rounded-lg
+        border-2
+        uppercase
+        tracking-widest
+        transition-all duration-300
+        whitespace-nowrap
+        hover:scale-105
+        ${config.bg}
+        ${config.text}
+        ${config.border}
+        ${className}
+      `}
+    >
       {/* ステータスインジケーター - 非表示 */}
       {/* <div className={`
         ${sizing.indicator}
