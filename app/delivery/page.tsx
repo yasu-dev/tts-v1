@@ -698,7 +698,7 @@ export default function DeliveryPage() {
                     label="検索"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="プラン番号、商品名、配送先倉庫で検索..."
+                    placeholder="商品名で検索..."
                     variant="nexus"
                   />
                 </div>
@@ -751,12 +751,12 @@ export default function DeliveryPage() {
                     商品名
                   </th>
                   <th
-                    className="p-4 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
-                    onClick={() => handleSort('date')}
+                    className="p-4 text-right text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
+                    onClick={() => handleSort('value')}
                   >
-                    <div className="flex items-center gap-1">
-                      注文日
-                      {sortField === 'date' && (
+                    <div className="flex items-center justify-end gap-1">
+                      購入価格
+                      {sortField === 'value' && (
                         sortDirection === 'asc'
                           ? <ChevronUpIcon className="h-4 w-4" />
                           : <ChevronDownIcon className="h-4 w-4" />
@@ -884,8 +884,19 @@ export default function DeliveryPage() {
                           <span className="text-xs text-nexus-text-tertiary">商品詳細なし</span>
                         )}
                       </td>
-                      <td className="p-4 whitespace-nowrap text-sm text-nexus-text-primary align-top">
-                        {new Date(plan.date).toLocaleDateString()}
+                      <td className="p-4 whitespace-nowrap text-sm text-nexus-text-primary align-top text-right">
+                        <span className="font-bold">
+                          ¥{(() => {
+                            // 全商品の購入価格の合計を計算
+                            const totalPurchasePrice = plan.products && plan.products.length > 0
+                              ? plan.products.reduce((sum, product) => {
+                                  const price = product.purchasePrice || product.estimatedValue || 0;
+                                  return sum + price;
+                                }, 0)
+                              : 0;
+                            return totalPurchasePrice.toLocaleString();
+                          })()}
+                        </span>
                       </td>
                       <td className="p-4 whitespace-nowrap align-top">
                         <BusinessStatusIndicator

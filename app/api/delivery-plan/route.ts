@@ -662,11 +662,9 @@ export async function GET(request: NextRequest) {
       where.status = status;
     }
 
-    // 検索フィルター（SQLiteでは contains の代わりに contains を使用）
+    // 検索フィルター（商品名のみ）
     if (search) {
       where.OR = [
-        { planNumber: { contains: search, mode: 'insensitive' } },
-        { warehouseName: { contains: search, mode: 'insensitive' } },
         {
           products: {
             some: {
