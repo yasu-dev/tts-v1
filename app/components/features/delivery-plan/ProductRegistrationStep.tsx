@@ -99,20 +99,62 @@ export default function ProductRegistrationStep({
   const isHierarchicalEnabled = useIsHierarchicalChecklistEnabled();
   console.log(`[ProductRegistration] 階層型検品チェックリスト: ${isHierarchicalEnabled ? '有効(新システム)' : '無効(既存システム)'}`);
   
-  const defaultProducts: Product[] = [];
+  // デフォルトで1つの空商品を含む配列を作成
+  const createDefaultProduct = (): Product => ({
+    name: '',
+    condition: 'excellent',
+    purchasePrice: 0,
+    purchaseDate: '',
+    supplier: '',
+    supplierDetails: '',
+    category: 'camera',
+    images: [],
+    inspectionChecklist: {
+      exterior: {
+        scratches: false,
+        dents: false,
+        discoloration: false,
+        dust: false,
+      },
+      functionality: {
+        powerOn: false,
+        allButtonsWork: false,
+        screenDisplay: false,
+        connectivity: false,
+      },
+      optical: {
+        lensClarity: false,
+        aperture: false,
+        focusAccuracy: false,
+        stabilization: false,
+      },
+      notes: '',
+    },
+    photographyRequest: {
+      photographyType: undefined,
+      standardCount: 10,
+      premiumAddCount: undefined,
+      customRequests: '',
+      specialPhotography: false,
+      specialPhotographyItems: [],
+    },
+    premiumPacking: false,
+  });
 
-  // productsの強制初期化（E2Eテスト対応：確実に空配列から開始）
-  const [products, setProducts] = useState<Product[]>([]);
+  const defaultProducts: Product[] = [createDefaultProduct()];
+
+  // デフォルトで1つの商品フォームを表示
+  const [products, setProducts] = useState<Product[]>(defaultProducts);
   
-  console.log('[DEBUG] ProductRegistrationStep強制初期化:', {
+  console.log('[DEBUG] ProductRegistrationStep初期化:', {
     dataProducts: data.products,
-    forcedEmpty: true,
+    defaultWithOneProduct: true,
     productsLength: products.length
   });
   
   // 既存データがある場合は復元（初回レンダー後）
   useEffect(() => {
-    if (Array.isArray(data.products) && data.products.length > 0 && products.length === 0) {
+    if (Array.isArray(data.products) && data.products.length > 0) {
       console.log('[DEBUG] 既存データ復元:', data.products.length, '件');
       setProducts(data.products);
     }
@@ -427,6 +469,7 @@ export default function ProductRegistrationStep({
                   onChange={(e) => updateProduct(index, 'category', e.target.value)}
                   options={categoryOptions}
                   variant="nexus"
+                  useCustomDropdown={true}
                 />
 
                 <NexusSelect
@@ -436,6 +479,7 @@ export default function ProductRegistrationStep({
                   options={conditionOptions}
                   required
                   variant="nexus"
+                  useCustomDropdown={true}
                 />
 
                 <NexusInput

@@ -181,6 +181,7 @@ export default function BasicInfoStep({
           ]}
           required
           variant="nexus"
+          useCustomDropdown={true}
         />
 
         {selectedWarehouse && (
