@@ -429,7 +429,7 @@ export default function InventoryPage() {
                       </div>
                     </td>
                     <td className="p-4">
-                      <div className="font-medium text-nexus-text-primary">
+                      <div className="font-medium text-sm text-nexus-text-primary">
                         {item.name}
                       </div>
                     </td>
@@ -446,7 +446,7 @@ export default function InventoryPage() {
                       </span>
                     </td>
                     <td className="p-4 text-right">
-                      <span className="font-bold text-nexus-text-primary">
+                      <span className="font-bold text-sm text-nexus-text-primary">
                         ¥{(() => {
                           // DEMOカメラ０６の特別処理（一時的）
                           let purchasePrice;
