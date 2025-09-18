@@ -201,14 +201,14 @@ export default function ProductStorageDetails({ productId, status }: ProductStor
       <CardHeader>
         <div className="flex justify-between items-center">
           <CardTitle>保管先情報</CardTitle>
-          <div className="flex items-center gap-2">
-            {storageData?.storageCompleted && (
-              <Badge variant="secondary" className="text-xs">保管完了</Badge>
-            )}
-            <Badge variant="outline" className="text-xs">
-              {getStatusBasedMessage()}
-            </Badge>
-          </div>
+          {/* 保管先情報が表示されていない場合のみステータスを表示 */}
+          {!storageData?.currentLocation && (
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-xs">
+                {getStatusBasedMessage()}
+              </Badge>
+            </div>
+          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-6">

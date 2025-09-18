@@ -792,26 +792,27 @@ export default function InspectionPage() {
               ].map((tab) => {
                 // StatusIndicatorの配色と完全に合わせる
                 const getTabBadgeStyle = (status: string, isActive: boolean) => {
+                  // StatusIndicatorの統一ルールに合わせたタブバッジ配色
                   const statusColors = {
                     all: {
-                      normal: 'bg-blue-600 text-white border border-blue-500',
-                      active: 'bg-blue-800 text-white border-2 border-blue-600'
+                      normal: 'bg-gray-500 text-white border border-gray-400',
+                      active: 'bg-gray-700 text-white border-2 border-gray-600'
                     },
                     inbound: {
-                      normal: 'bg-cyan-600 text-white border border-cyan-500',
-                      active: 'bg-cyan-800 text-white border-2 border-cyan-600'
+                      normal: 'bg-cyan-500 text-white border border-cyan-400',
+                      active: 'bg-cyan-700 text-white border-2 border-cyan-600'
                     },
                     inspection: {
-                      normal: 'bg-cyan-700 text-white border border-cyan-600',
-                      active: 'bg-cyan-900 text-white border-2 border-cyan-700'
+                      normal: 'bg-cyan-600 text-white border border-cyan-500',
+                      active: 'bg-cyan-800 text-white border-2 border-cyan-700'
                     },
                     completed: {
-                      normal: 'bg-emerald-700 text-white border border-emerald-600',
-                      active: 'bg-emerald-900 text-white border-2 border-emerald-700'
+                      normal: 'bg-emerald-600 text-white border border-emerald-500',
+                      active: 'bg-emerald-800 text-white border-2 border-emerald-700'
                     },
                     on_hold: {
-                      normal: 'bg-amber-600 text-white border border-amber-500',
-                      active: 'bg-amber-800 text-white border-2 border-amber-600'
+                      normal: 'bg-yellow-500 text-black border border-yellow-400',
+                      active: 'bg-yellow-700 text-white border-2 border-yellow-600'
                     },
                   };
                   return statusColors[status] ?

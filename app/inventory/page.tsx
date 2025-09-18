@@ -383,15 +383,6 @@ export default function InventoryPage() {
                     </div>
                   </th>
                   <th className="p-4 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">カテゴリー</th>
-                  <th
-                    className="p-4 text-right text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
-                    onClick={() => handleSort('price')}
-                  >
-                    <div className="flex items-center justify-end gap-1">
-                      購入価格
-                      {getSortIcon('price')}
-                    </div>
-                  </th>
                   <th className="p-4 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">更新日</th>
                   <th 
                     className="p-4 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
@@ -443,30 +434,6 @@ export default function InventoryPage() {
                         {item.category === 'camera' ? 'カメラ' :
                          item.category === 'watch' ? '腕時計' :
                          item.category === 'other' ? 'その他' : item.category}
-                      </span>
-                    </td>
-                    <td className="p-4 text-right">
-                      <span className="font-bold text-sm text-nexus-text-primary">
-                        ¥{(() => {
-                          // DEMOカメラ０６の特別処理（一時的）
-                          let purchasePrice;
-                          if (item.name?.includes('DEMOカメラ０６')) {
-                            purchasePrice = 37600; // 固定値
-                          } else {
-                            purchasePrice = item.metadata?.purchasePrice ||
-                                          item.metadata?.deliveryPlanInfo?.purchasePrice ||
-                                          item.price || 0;
-                          }
-                          if (item.name?.includes('DEMOカメラ０６')) {
-                            console.log('💰 DEMOカメラ０６価格計算:');
-                            console.log('item.metadata?.deliveryPlanInfo?.purchasePrice:', item.metadata?.deliveryPlanInfo?.purchasePrice);
-                            console.log('item.metadata?.purchasePrice:', item.metadata?.purchasePrice);
-                            console.log('item.price:', item.price);
-                            console.log('最終表示価格:', purchasePrice);
-                            console.log('metadata構造:', item.metadata);
-                          }
-                          return purchasePrice.toLocaleString();
-                        })()}
                       </span>
                     </td>
                     <td className="p-4 text-center">

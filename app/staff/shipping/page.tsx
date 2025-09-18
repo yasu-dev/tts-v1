@@ -1088,21 +1088,21 @@ export default function StaffShippingPage() {
                   { id: 'packed', label: '梱包済み', count: tabStats.packed, color: 'purple' },
                   { id: 'ready_for_pickup', label: '集荷準備完了', count: tabStats.ready_for_pickup, color: 'teal' },
                 ].map((tab) => {
-                  // セラー業務フローと統一した配色設定
+                  // StatusIndicatorの統一ルールに合わせた配色設定
                   const getTabBadgeStyle = (tabColor: string, isActive: boolean) => {
                     const colorMap = {
                       blue: isActive
-                        ? 'bg-blue-800 text-white border-2 border-blue-600'
-                        : 'bg-blue-600 text-white border border-blue-500',
+                        ? 'bg-sky-700 text-white border-2 border-sky-600'
+                        : 'bg-sky-500 text-white border border-sky-400',
                       yellow: isActive
-                        ? 'bg-yellow-800 text-white border-2 border-yellow-600'
-                        : 'bg-yellow-600 text-white border border-yellow-500',
+                        ? 'bg-amber-700 text-white border-2 border-amber-600'
+                        : 'bg-amber-600 text-white border border-amber-500',
                       purple: isActive
-                        ? 'bg-purple-800 text-white border-2 border-purple-600'
-                        : 'bg-purple-600 text-white border border-purple-500',
+                        ? 'bg-purple-700 text-white border-2 border-purple-600'
+                        : 'bg-purple-500 text-white border border-purple-400',
                       teal: isActive
-                        ? 'bg-teal-800 text-white border-2 border-teal-600'
-                        : 'bg-teal-600 text-white border border-teal-500',
+                        ? 'bg-teal-700 text-white border-2 border-teal-600'
+                        : 'bg-teal-500 text-white border border-teal-400',
                     };
                     return colorMap[tabColor] || colorMap.blue;
                   };

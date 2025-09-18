@@ -13,7 +13,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import {
   XMarkIcon,
   CheckIcon,
-  CubeIcon
+  CubeIcon,
+  EyeIcon
 } from '@heroicons/react/24/outline';
 import { ContentCard, BusinessStatusIndicator, Pagination, NexusLoadingSpinner } from '@/app/components/ui';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
@@ -626,7 +627,7 @@ export default function StaffInventoryPage() {
 
   return (
     <DashboardLayout userType="staff">
-      <div className="space-y-6 max-w-4xl mx-auto">
+      <div className="space-y-6 max-w-7xl mx-auto">
         {/* 統一ヘッダー */}
         <UnifiedPageHeader
           title="在庫管理"
@@ -725,8 +726,8 @@ export default function StaffInventoryPage() {
                     <th className="p-4 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider whitespace-nowrap">カテゴリー</th>
                     <th className="p-4 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider whitespace-nowrap">セラー名</th>
                     <th className="p-4 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider whitespace-nowrap">保管場所</th>
-                    <th className="p-4 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider whitespace-nowrap">ステータス</th>
                     <th className="p-4 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider whitespace-nowrap">更新日</th>
+                    <th className="p-4 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider whitespace-nowrap">ステータス</th>
                     <th className="p-4 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider whitespace-nowrap">操作</th>
                   </tr>
                 </thead>
@@ -789,25 +790,26 @@ export default function StaffInventoryPage() {
                         <span className="text-sm text-nexus-text-primary">{item.location}</span>
                       </td>
                       <td className="p-4 text-center">
-                        <BusinessStatusIndicator status={item.status} size="sm" />
-                      </td>
-                      <td className="p-4 text-center">
                         <span className="text-sm text-nexus-text-secondary">
                           {new Date(item.lastModified).toLocaleDateString('ja-JP')}
                         </span>
                       </td>
                       <td className="p-4 text-center">
-                      <NexusButton 
-                        onClick={() => {
-                          setSelectedItem(item);
-                          setIsDetailModalOpen(true);
-                        }}
-                        size="sm"
-                        variant="secondary"
-                      >
-                        詳細
-                      </NexusButton>
-                    </td>
+                        <BusinessStatusIndicator status={item.status} size="sm" />
+                      </td>
+                      <td className="p-4 text-center">
+                        <NexusButton
+                          onClick={() => {
+                            setSelectedItem(item);
+                            setIsDetailModalOpen(true);
+                          }}
+                          size="sm"
+                          variant="secondary"
+                          icon={<EyeIcon className="w-4 h-4" />}
+                        >
+                          詳細
+                        </NexusButton>
+                      </td>
                   </tr>
                 ))}
               </tbody>

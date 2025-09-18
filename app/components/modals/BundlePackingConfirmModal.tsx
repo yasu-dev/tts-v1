@@ -102,7 +102,6 @@ export default function BundlePackingConfirmModal({
                         {item.productSku && (
                           <div>
                             管理番号: {item.productSku.split('-').slice(0, 3).join('-')}
-                            <span className="text-xs text-nexus-text-secondary ml-2">(ラベル記載番号)</span>
                           </div>
                         )}
                         {item.value && <div>価値: ${item.value.toLocaleString()}</div>}

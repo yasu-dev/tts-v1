@@ -1037,10 +1037,11 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                   
                   return (locationGroup.locationCode?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
                     (locationGroup.locationName?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
-                    locationGroup.items.some((item: any) => 
+                    locationGroup.items.some((item: any) =>
                       (item.productName?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
                       (item.productId?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
-                      (item.sku?.toLowerCase() || '').includes(searchQuery.toLowerCase())
+                      (item.sku?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+                      (item.sku?.split('-').slice(0, 3).join('-').toLowerCase() || '').includes(searchQuery.toLowerCase())
                     );
                 }).sort((a, b) => {
                   // ピッキングリストでもロケーションコード昇順ソート（A-1-1, A-1-2, ..., B-1-6）
@@ -1146,11 +1147,11 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                                 </h4>
                                 {item.sku && (
                                   <span className={`font-mono px-3 py-1 rounded-lg ${
-                                    item.isBundleItem 
-                                      ? 'text-sm bg-blue-200 text-blue-800 font-medium' 
+                                    item.isBundleItem
+                                      ? 'text-sm bg-blue-200 text-blue-800 font-medium'
                                       : 'text-xs bg-nexus-bg-primary text-nexus-text-secondary'
                                   }`}>
-                                    {item.sku}
+                                    {item.sku.split('-').slice(0, 3).join('-')}
                                   </span>
                                 )}
                                 {/* 同梱バッジ */}
@@ -1199,12 +1200,9 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                                 </div>
                               )}
                               
-                              <p className="text-sm text-nexus-text-secondary font-mono mt-1">
-                                商品ID: {item.productId} | 注文ID: {item.orderId}
-                              </p>
                               <div className="flex items-center gap-4 mt-2 text-sm">
-                                <span className="text-nexus-text-secondary">
-                                  セラー: <span className="font-medium text-nexus-text-primary">{item.sellerName || item.customer || 'セラー名不明'}</span>
+                                <span className="text-nexus-text-secondary font-mono">
+                                  管理番号: <span className="font-medium text-nexus-text-primary">{item.sku?.split('-').slice(0, 3).join('-') || 'N/A'}</span>
                                 </span>
                               </div>
                             </div>
@@ -1478,40 +1476,111 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
             </p>
           </div>
 
-          {/* 商品リスト */}
-          <div className="bg-nexus-bg-secondary rounded-lg p-4 mb-6 max-h-60 overflow-y-auto">
-            {selectedPickingItems.map((item) => (
-              <div key={item.id} className="flex justify-between items-center py-3 border-b border-nexus-border last:border-b-0">
-                <div className="flex-1">
-                  <p className="font-medium text-nexus-text-primary">{item.productName}</p>
-                  <div className="mt-1 space-y-1">
-                    <p className="text-sm font-medium text-nexus-text-primary">
-                      ロケーション: {selectedLocationName}
-                    </p>
-                    {item.sku && (
-                      <p className="text-sm text-nexus-text-secondary">
-                        管理番号: {item.sku.split('-').slice(0, 3).join('-')}
-                        <span className="text-xs text-nexus-text-secondary ml-2">(ラベル記載番号)</span>
-                      </p>
+          {/* 商品リスト - 視認性重視のカード形式 */}
+          <div className="space-y-4 mb-6 max-h-80 overflow-y-auto">
+            {selectedPickingItems.map((item, index) => (
+              <div
+                key={item.id}
+                className={`
+                  relative p-6 rounded-xl border-2 transition-all duration-200
+                  ${item.isBundleItem
+                    ? 'bg-blue-50 border-blue-300 shadow-lg'
+                    : 'bg-white border-green-300 shadow-md'
+                  }
+                  hover:shadow-xl hover:scale-[1.02]
+                `}
+              >
+                {/* 商品番号バッジ */}
+                <div className="absolute -top-2 -left-2 w-8 h-8 bg-nexus-yellow text-black rounded-full flex items-center justify-center font-bold text-sm shadow-lg">
+                  {index + 1}
+                </div>
+
+
+                <div className="space-y-4">
+                  {/* 商品名 - 最も重要な情報として大きく表示 */}
+                  <div>
+                    <h3 className={`text-xl font-bold leading-tight ${
+                      item.isBundleItem ? 'text-blue-900' : 'text-gray-900'
+                    }`}>
+                      {item.productName}
+                    </h3>
+                    {item.isBundleItem && (
+                      <span className="inline-flex items-center gap-1 mt-2 px-3 py-1 bg-blue-600 text-white rounded-full text-sm font-semibold">
+                        <CubeIcon className="w-4 h-4" />
+                        同梱対象商品
+                      </span>
                     )}
                   </div>
+
+                  {/* 管理番号 - ラベル照合用の重要情報 */}
+                  {item.sku && (
+                    <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded-r-lg">
+                      <div className="flex items-center gap-2">
+                        <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                        </svg>
+                        <span className="text-sm font-semibold text-yellow-800">商品ラベル記載番号</span>
+                      </div>
+                      <div className="mt-2 font-mono text-lg font-black text-yellow-900 bg-yellow-200 px-3 py-2 rounded border">
+                        {item.sku.split('-').slice(0, 3).join('-')}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ロケーション情報 */}
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span className="font-medium">
+                      ロケーション: {selectedLocationName}
+                    </span>
+                  </div>
+
+                  {/* 同梱情報（該当商品のみ） */}
+                  {item.isBundleItem && item.bundleTrackingNumber && (
+                    <div className="bg-blue-100 border border-blue-300 rounded-lg p-3">
+                      <div className="text-sm font-semibold text-blue-800 mb-1">
+                        📦 同梱追跡番号: {item.bundleTrackingNumber}
+                      </div>
+                      {item.bundlePeers && item.bundlePeers.length > 0 && (
+                        <div className="text-sm text-blue-700">
+                          同梱相手: {item.bundlePeers.join(', ')}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
           </div>
 
-          {/* 次のステップの説明 */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <div className="flex items-center gap-2 mb-2">
-              <ClipboardDocumentListIcon className="w-4 h-4 text-blue-900" />
-              <h4 className="font-semibold text-blue-900">作業フロー</h4>
+          {/* 商品ラベル照合作業の説明 */}
+          <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.996-.833-2.768 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+              <h4 className="font-bold text-amber-800">ラベル照合作業</h4>
             </div>
-            <ol className="list-decimal list-inside space-y-2 text-sm text-blue-800">
-              <li>物理的なピッキング作業の完了を確認</li>
-              <li>商品ステータスを「ピッキング完了」に更新</li>
-              <li>出荷管理画面に梱包対象として移動</li>
-              <li>梱包・出荷作業へ進行</li>
-            </ol>
+            <div className="space-y-3 text-sm text-amber-800">
+              <div className="bg-white border border-amber-200 rounded p-3">
+                <div className="font-semibold mb-2">📋 確認手順:</div>
+                <ol className="list-decimal list-inside space-y-1">
+                  <li className="font-medium">梱包された実物商品を準備</li>
+                  <li className="font-medium">商品ラベルの「管理番号」を確認</li>
+                  <li className="font-medium">上記カードの「商品ラベル記載番号」と照合</li>
+                  <li className="font-medium">商品名が一致することを確認</li>
+                </ol>
+              </div>
+              <div className="flex items-center gap-2 text-amber-700 font-medium">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                全商品の目視照合完了後、「ピッキング完了を確認」ボタンを押してください
+              </div>
+            </div>
           </div>
 
           {/* アクションボタン */}

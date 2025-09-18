@@ -29,197 +29,197 @@ interface BusinessStatusIndicatorProps {
   className?: string;
 }
 
-// 業務ステータス設定 - UI/UX最適化（同色回避・アクション重要度別配色）
+// 業務ステータス設定 - 目に優しく見分けやすい配色（同色回避・アクション重要度別配色）
 const businessStatusConfig = {
   // 【アクション重要度：高】- 目立つ暖色系（赤・オレンジ）
   sold: {
     label: '購入者決定',
-    bg: 'bg-red-600 dark:bg-red-600',    // 最重要アクション - 鮮やかな赤
+    bg: 'bg-red-500 dark:bg-red-500',    // 最重要アクション - 適度な赤
     text: 'text-white dark:text-white',
-    border: 'border-red-600 dark:border-red-600'
+    border: 'border-red-500 dark:border-red-500'
   },
   ordered: {
     label: '出荷準備中',
-    bg: 'bg-orange-600 dark:bg-orange-600',
+    bg: 'bg-orange-500 dark:bg-orange-500',
     text: 'text-white dark:text-white',
-    border: 'border-orange-600 dark:border-orange-600'
+    border: 'border-orange-500 dark:border-orange-500'
   },
   processing: {
     label: '出荷準備中',
-    bg: 'bg-orange-700 dark:bg-orange-700',
+    bg: 'bg-amber-600 dark:bg-amber-600',  // オレンジ系から琥珀系に分離
     text: 'text-white dark:text-white',
-    border: 'border-orange-700 dark:border-orange-700'
+    border: 'border-amber-600 dark:border-amber-600'
   },
 
   // 【注意喚起】- 黄・琥珀系
   on_hold: {
     label: '保留中',
-    bg: 'bg-amber-600 dark:bg-amber-600',    // 注意 - 琥珀色
-    text: 'text-white dark:text-white',
-    border: 'border-amber-600 dark:border-amber-600'
+    bg: 'bg-yellow-500 dark:bg-yellow-500',    // 明るめの黄色
+    text: 'text-black dark:text-black',
+    border: 'border-yellow-500 dark:border-yellow-500'
   },
   returned: {
     label: '返品',
-    bg: 'bg-yellow-600 dark:bg-yellow-600',  // 注意 - 黄色
-    text: 'text-black dark:text-black',
-    border: 'border-yellow-600 dark:border-yellow-600'
+    bg: 'bg-amber-500 dark:bg-amber-500',  // 琥珀色で区別
+    text: 'text-white dark:text-white',
+    border: 'border-amber-500 dark:border-amber-500'
   },
   in_progress: {
     label: '梱包待ち',
-    bg: 'bg-amber-700 dark:bg-amber-700',
+    bg: 'bg-orange-400 dark:bg-orange-400',  // 薄めのオレンジ
     text: 'text-white dark:text-white',
-    border: 'border-amber-700 dark:border-amber-700'
+    border: 'border-orange-400 dark:border-orange-400'
   },
 
   // 【進行中】- 青・紫系
   packed: {
     label: '梱包済み',
-    bg: 'bg-purple-600 dark:bg-purple-600',
+    bg: 'bg-purple-500 dark:bg-purple-500',
     text: 'text-white dark:text-white',
-    border: 'border-purple-600 dark:border-purple-600'
+    border: 'border-purple-500 dark:border-purple-500'
   },
   pending: {
     label: '梱包待ち',
-    bg: 'bg-yellow-600 dark:bg-yellow-600',
-    text: 'text-white dark:text-white',
-    border: 'border-yellow-600 dark:border-yellow-600'
+    bg: 'bg-yellow-400 dark:bg-yellow-400',  // より薄い黄色で区別
+    text: 'text-black dark:text-black',
+    border: 'border-yellow-400 dark:border-yellow-400'
   },
 
-  // 【完了系】- 緑系
+  // 【完了系】- 緑系（明度・彩度で区別）
   shipping: {
     label: '出荷済み',
-    bg: 'bg-green-600 dark:bg-green-600',    // 完了 - 緑
+    bg: 'bg-green-500 dark:bg-green-500',    // 標準緑
     text: 'text-white dark:text-white',
-    border: 'border-green-600 dark:border-green-600'
+    border: 'border-green-500 dark:border-green-500'
   },
   shipped: {
     label: '出荷済み',
-    bg: 'bg-green-700 dark:bg-green-700',    // 完了 - 濃い緑
+    bg: 'bg-lime-600 dark:bg-lime-600',    // ライム系で区別
     text: 'text-white dark:text-white',
-    border: 'border-green-700 dark:border-green-700'
+    border: 'border-lime-600 dark:border-lime-600'
   },
   delivered: {
     label: '配送完了',
-    bg: 'bg-emerald-600 dark:bg-emerald-600', // 完了 - エメラルド
+    bg: 'bg-emerald-500 dark:bg-emerald-500', // エメラルド
     text: 'text-white dark:text-white',
-    border: 'border-emerald-600 dark:border-emerald-600'
+    border: 'border-emerald-500 dark:border-emerald-500'
   },
   confirmed: {
     label: '受注確定',
-    bg: 'bg-green-800 dark:bg-green-800',    // 完了 - 深緑
+    bg: 'bg-green-600 dark:bg-green-600',    // 濃い緑
     text: 'text-white dark:text-white',
-    border: 'border-green-800 dark:border-green-800'
+    border: 'border-green-600 dark:border-green-600'
   },
   completed: {
     label: '梱包完了',
-    bg: 'bg-emerald-700 dark:bg-emerald-700',
+    bg: 'bg-emerald-600 dark:bg-emerald-600',
     text: 'text-white dark:text-white',
-    border: 'border-emerald-700 dark:border-emerald-700'
+    border: 'border-emerald-600 dark:border-emerald-600'
   },
   approved: {
     label: '承認済み',
-    bg: 'bg-emerald-800 dark:bg-emerald-800', // 完了 - 深いエメラルド
+    bg: 'bg-teal-500 dark:bg-teal-500', // ティール系で明確に区別
     text: 'text-white dark:text-white',
-    border: 'border-emerald-800 dark:border-emerald-800'
+    border: 'border-teal-500 dark:border-teal-500'
   },
 
-  // 【待機・保管系】- シアン・冷色系
+  // 【待機・保管系】- シアン・冷色系（色相で区別）
   inbound: {
     label: '入庫待ち',
-    bg: 'bg-cyan-600 dark:bg-cyan-600',
+    bg: 'bg-cyan-500 dark:bg-cyan-500',
     text: 'text-white dark:text-white',
-    border: 'border-cyan-600 dark:border-cyan-600'
+    border: 'border-cyan-500 dark:border-cyan-500'
   },
   storage: {
     label: '保管中',
-    bg: 'bg-teal-600 dark:bg-teal-600',
+    bg: 'bg-teal-600 dark:bg-teal-600',    // 濃いティール
     text: 'text-white dark:text-white',
     border: 'border-teal-600 dark:border-teal-600'
   },
   listing: {
     label: '出品中',
-    bg: 'bg-sky-600 dark:bg-sky-600',
+    bg: 'bg-sky-500 dark:bg-sky-500',      // スカイブルー
     text: 'text-white dark:text-white',
-    border: 'border-sky-600 dark:border-sky-600'
+    border: 'border-sky-500 dark:border-sky-500'
   },
   inspection: {
     label: '保管作業中',
-    bg: 'bg-cyan-700 dark:bg-cyan-700',
+    bg: 'bg-cyan-600 dark:bg-cyan-600',    // 濃いシアン
     text: 'text-white dark:text-white',
-    border: 'border-cyan-700 dark:border-cyan-700'
+    border: 'border-cyan-600 dark:border-cyan-600'
   },
   workstation: {
     label: '出荷準備中',
-    bg: 'bg-orange-600 dark:bg-orange-600',
+    bg: 'bg-orange-600 dark:bg-orange-600',  // 他と区別するため濃いオレンジ
     text: 'text-white dark:text-white',
     border: 'border-orange-600 dark:border-orange-600'
   },
   ready_for_pickup: {
     label: '集荷準備完了',
-    bg: 'bg-teal-700 dark:bg-teal-700',
+    bg: 'bg-indigo-500 dark:bg-indigo-500', // インディゴで明確に区別
     text: 'text-white dark:text-white',
-    border: 'border-teal-700 dark:border-teal-700'
+    border: 'border-indigo-500 dark:border-indigo-500'
   },
 
-  // 【エラー・拒否系】- 赤系（アクション重要度と区別）
+  // 【エラー・拒否系】- 赤系（明度で区別）
   cancelled: {
     label: 'キャンセル',
-    bg: 'bg-red-800 dark:bg-red-800',        // エラー - 深い赤
+    bg: 'bg-red-600 dark:bg-red-600',        // 濃い赤
     text: 'text-white dark:text-white',
-    border: 'border-red-800 dark:border-red-800'
+    border: 'border-red-600 dark:border-red-600'
   },
   rejected: {
     label: '不合格',
-    bg: 'bg-red-700 dark:bg-red-700',        // エラー - 濃い赤
+    bg: 'bg-rose-500 dark:bg-rose-500',      // ローズ系で区別
     text: 'text-white dark:text-white',
-    border: 'border-red-700 dark:border-red-700'
+    border: 'border-rose-500 dark:border-rose-500'
   },
 
   // 【その他】- グレー系
   refunded: {
     label: '返金済み',
-    bg: 'bg-slate-600 dark:bg-slate-600',    // その他 - スレート
+    bg: 'bg-slate-500 dark:bg-slate-500',    // 明るめのスレート
     text: 'text-white dark:text-white',
-    border: 'border-slate-600 dark:border-slate-600'
+    border: 'border-slate-500 dark:border-slate-500'
   }
 };
 
-// インジケーター色を取得するヘルパー関数 - 配色最適化版
+// インジケーター色を取得するヘルパー関数 - 目に優しい配色版
 function getIndicatorColor(status: BusinessStatusType): string {
   const colorMap: Record<BusinessStatusType, string> = {
-    // 【アクション重要度：高】- 目立つ暖色
+    // 【アクション重要度：高】- 目立つ暖色（薄め）
     sold: 'bg-red-300',
     ordered: 'bg-orange-300',
-    processing: 'bg-orange-400',
+    processing: 'bg-amber-300',
 
-    // 【注意喚起】- 黄・琥珀系
-    on_hold: 'bg-amber-300',
-    returned: 'bg-yellow-300',
-    in_progress: 'bg-amber-400',
+    // 【注意喚起】- 黄・琥珀系（薄め）
+    on_hold: 'bg-yellow-300',
+    returned: 'bg-amber-300',
+    in_progress: 'bg-orange-200',
 
     // 【進行中】- 青・紫系
     packed: 'bg-purple-300',
-    pending: 'bg-yellow-300',
+    pending: 'bg-yellow-200',
 
-    // 【完了系】- 緑系
+    // 【完了系】- 緑系（色相で区別）
     shipping: 'bg-green-300',
-    shipped: 'bg-green-400',
+    shipped: 'bg-lime-300',
     delivered: 'bg-emerald-300',
-    confirmed: 'bg-green-500',
+    confirmed: 'bg-green-400',
     completed: 'bg-emerald-400',
-    approved: 'bg-emerald-500',
+    approved: 'bg-teal-300',
 
-    // 【待機・保管系】- シアン・冷色系
+    // 【待機・保管系】- シアン・冷色系（色相で区別）
     inbound: 'bg-cyan-300',
-    storage: 'bg-teal-300',
+    storage: 'bg-teal-400',
     listing: 'bg-sky-300',
     inspection: 'bg-cyan-400',
-    workstation: 'bg-orange-300',
-    ready_for_pickup: 'bg-teal-400',
+    workstation: 'bg-orange-400',
+    ready_for_pickup: 'bg-indigo-300',
 
-    // 【エラー・拒否系】- 赤系
-    cancelled: 'bg-red-500',
-    rejected: 'bg-red-400',
+    // 【エラー・拒否系】- 赤系（色相で区別）
+    cancelled: 'bg-red-400',
+    rejected: 'bg-rose-300',
 
     // 【その他】- グレー系
     refunded: 'bg-slate-300'
