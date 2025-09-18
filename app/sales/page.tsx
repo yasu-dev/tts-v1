@@ -406,7 +406,8 @@ export default function SalesPage() {
               ebayTitle,
               ebayImage,
               product: ebayTitle,  // productプロパティも更新
-              ebayPrice: order.ebayPrice || order.listingPrice || order.sellingPrice || order.totalAmount || order.amount // eBay販売価格を追加
+              ebayPrice: order.ebayPrice || order.listingPrice || order.sellingPrice || order.totalAmount || order.amount, // eBay販売価格を追加
+              labelGenerated: order.labelGenerated || order.status === 'shipped' || order.status === 'delivered' // ラベル生成状態を設定
             };
             
             return enhancedOrder;

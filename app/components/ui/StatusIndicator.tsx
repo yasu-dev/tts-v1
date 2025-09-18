@@ -80,9 +80,9 @@ const businessStatusConfig = {
   },
   pending: {
     label: '梱包待ち',
-    bg: 'bg-yellow-400 dark:bg-yellow-400',  // より薄い黄色で区別
-    text: 'text-black dark:text-black',
-    border: 'border-yellow-400 dark:border-yellow-400'
+    bg: 'bg-orange-500 dark:bg-orange-500',  // オレンジでタブと統一
+    text: 'text-white dark:text-white',
+    border: 'border-orange-500 dark:border-orange-500'
   },
 
   // 【完了系】- 緑系（明度・彩度で区別）
@@ -155,10 +155,10 @@ const businessStatusConfig = {
     border: 'border-orange-600 dark:border-orange-600'
   },
   ready_for_pickup: {
-    label: '集荷準備完了',
-    bg: 'bg-indigo-500 dark:bg-indigo-500', // インディゴで明確に区別
+    label: '配送完了',
+    bg: 'bg-emerald-500 dark:bg-emerald-500', // エメラルドでタブと統一
     text: 'text-white dark:text-white',
-    border: 'border-indigo-500 dark:border-indigo-500'
+    border: 'border-emerald-500 dark:border-emerald-500'
   },
 
   // 【エラー・拒否系】- 赤系（明度で区別）

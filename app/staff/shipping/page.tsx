@@ -1084,19 +1084,22 @@ export default function StaffShippingPage() {
               <nav className="-mb-px flex space-x-8" aria-label="Tabs">
                 {[
                   { id: 'all', label: '全体', count: tabStats.total, color: 'blue' },
-                  { id: 'workstation', label: '梱包待ち', count: tabStats.workstation, color: 'yellow' },
+                  { id: 'workstation', label: '梱包待ち', count: tabStats.workstation, color: 'amber' },
                   { id: 'packed', label: '梱包済み', count: tabStats.packed, color: 'purple' },
-                  { id: 'ready_for_pickup', label: '集荷準備完了', count: tabStats.ready_for_pickup, color: 'teal' },
+                  { id: 'ready_for_pickup', label: '配送完了', count: tabStats.ready_for_pickup, color: 'emerald' },
                 ].map((tab) => {
                   // StatusIndicatorの統一ルールに合わせた配色設定
                   const getTabBadgeStyle = (tabColor: string, isActive: boolean) => {
                     const colorMap = {
                       blue: isActive
-                        ? 'bg-sky-700 text-white border-2 border-sky-600'
-                        : 'bg-sky-500 text-white border border-sky-400',
-                      yellow: isActive
+                        ? 'bg-blue-700 text-white border-2 border-blue-600'
+                        : 'bg-blue-500 text-white border border-blue-400',
+                      amber: isActive
                         ? 'bg-amber-700 text-white border-2 border-amber-600'
                         : 'bg-amber-600 text-white border border-amber-500',
+                      emerald: isActive
+                        ? 'bg-emerald-700 text-white border-2 border-emerald-600'
+                        : 'bg-emerald-500 text-white border border-emerald-400',
                       purple: isActive
                         ? 'bg-purple-700 text-white border-2 border-purple-600'
                         : 'bg-purple-500 text-white border border-purple-400',

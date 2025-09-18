@@ -57,7 +57,7 @@ export default function PickingHistory() {
         {
           id: '2',
           orderId: 'ORD-2024-003',
-          customerName: '鈴木花子',
+          customerName: '佐藤花子',
           completedBy: 'スタッフB',
           startedAt: '2024-06-28T10:30:00',
           completedAt: '2024-06-28T10:50:00',

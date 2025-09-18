@@ -28,7 +28,14 @@ export default function ProfileMenu({ userType, isOpen, onClose, anchorRef }: Pr
   const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
+  const [isProfilePage, setIsProfilePage] = useState(false);
   const { showToast } = useToast();
+
+  // 現在のページがプロフィール設定ページかどうかを判定
+  useEffect(() => {
+    const currentPath = window.location.pathname;
+    setIsProfilePage(currentPath === '/profile');
+  }, []);
 
   // ユーザープロフィールデータ（実際の実装では API から取得）
   useEffect(() => {
@@ -42,7 +49,7 @@ export default function ProfileMenu({ userType, isOpen, onClose, anchorRef }: Pr
       });
     } else {
       setProfile({
-        name: '鈴木 花子',
+        name: '佐藤 花子',
         email: 'suzuki@theworlddoor.com',
         role: 'シニアスタッフ',
         joinDate: '2022年10月',
@@ -133,10 +140,12 @@ export default function ProfileMenu({ userType, isOpen, onClose, anchorRef }: Pr
         <div className="bg-gray-50 border-b border-gray-200 p-4">
           <div className="flex items-center space-x-3">
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-lg font-bold text-blue-600">
-              {profile.name.charAt(0)}
+              {isProfilePage ? 'P' : profile.name.charAt(0)}
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-gray-900">{profile.name}</h3>
+              <h3 className="text-sm font-semibold text-gray-900">
+                {isProfilePage ? 'プロフィール設定' : profile.name}
+              </h3>
             </div>
           </div>
         </div>

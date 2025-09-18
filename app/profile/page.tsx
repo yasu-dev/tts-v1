@@ -58,6 +58,36 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
+    // URLパスやreferrerからユーザータイプを判定（セラー画面からアクセスされた場合）
+    const referrer = document.referrer;
+    const isFromSellerArea = referrer.includes('/dashboard') ||
+                            referrer.includes('/inventory') ||
+                            referrer.includes('/sales') ||
+                            localStorage.getItem('currentUserType') === 'seller';
+
+    console.log('[Profile Debug] Referrer:', referrer);
+    console.log('[Profile Debug] Is from seller area:', isFromSellerArea);
+
+    if (isFromSellerArea) {
+      console.log('[Profile Debug] Setting user type as seller from referrer');
+      setUserType('seller');
+      const sellerProfile: UserProfile = {
+        id: 'seller-001',
+        name: '山田 太郎',
+        email: 'yamada@example.com',
+        role: 'プレミアムセラー',
+        joinDate: '2023年4月',
+        lastLogin: new Date().toLocaleString('ja-JP'),
+        phone: '090-9876-5432',
+        companyName: '山田商事株式会社',
+        businessType: 'corporation',
+        representativeName: '山田 太郎',
+      };
+      setProfile(sellerProfile);
+      setEditForm(sellerProfile);
+      return;
+    }
+
     const fetchUserProfile = async () => {
       try {
         // デバッグ：現在のauth-tokenを確認
@@ -105,7 +135,7 @@ export default function ProfilePage() {
               setUserType('staff');
               const staffProfile: UserProfile = {
                 id: result.user.id || 'user-001',
-                name: result.user.fullName || result.user.username || '鈴木 花子',
+                name: result.user.fullName || result.user.username || '佐藤 花子',
                 email: result.user.email || 'suzuki@theworlddoor.com',
                 role: userRole === 'admin' ? '管理者' : 'シニアスタッフ',
                 joinDate: '2022年10月',
@@ -152,7 +182,7 @@ export default function ProfilePage() {
             setUserType('staff');
             const staffProfile: UserProfile = {
               id: 'user-001',
-              name: '鈴木 花子',
+              name: '佐藤 花子',
               email: 'suzuki@theworlddoor.com',
               role: 'シニアスタッフ',
               joinDate: '2022年10月',
@@ -169,7 +199,7 @@ export default function ProfilePage() {
           setUserType('staff');
           const staffProfile: UserProfile = {
             id: 'user-001',
-            name: '鈴木 花子',
+            name: '佐藤 花子',
             email: 'suzuki@theworlddoor.com',
             role: 'シニアスタッフ',
             joinDate: '2022年10月',
@@ -187,7 +217,7 @@ export default function ProfilePage() {
         setUserType('staff');
         const staffProfile: UserProfile = {
           id: 'user-001',
-          name: '鈴木 花子',
+          name: '佐藤 花子',
           email: 'suzuki@theworlddoor.com',
           role: 'シニアスタッフ',
           joinDate: '2022年10月',
@@ -200,7 +230,7 @@ export default function ProfilePage() {
         setEditForm(staffProfile);
       }
     };
-    
+
     fetchUserProfile();
   }, []);
 
