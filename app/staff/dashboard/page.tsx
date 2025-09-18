@@ -789,8 +789,8 @@ export default function StaffDashboardPage() {
                   <tr className="border-b border-nexus-border">
                     <th className="text-left p-4 font-medium text-nexus-text-secondary w-[35%]">タスク情報</th>
                     <th className="text-left p-4 font-medium text-nexus-text-secondary w-[20%]">担当者/期限</th>
-                    <th className="text-left p-4 font-medium text-nexus-text-secondary w-[20%]">ステータス</th>
-                    <th className="text-right p-4 font-medium text-nexus-text-secondary w-[25%]">アクション</th>
+                    <th className="text-center p-4 font-medium text-nexus-text-secondary w-[20%]">ステータス</th>
+                    <th className="text-center p-4 font-medium text-nexus-text-secondary w-[25%]">アクション</th>
                   </tr>
                 </thead>
                 <tbody>

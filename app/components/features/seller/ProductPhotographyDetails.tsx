@@ -164,27 +164,33 @@ export default function ProductPhotographyDetails({ productId, status }: Product
             // メタデータに写真が含まれている場合、アップロードされた画像をそのまま表示
             if (metadata.photos && Array.isArray(metadata.photos)) {
               console.log('[DEBUG] ProductPhotographyDetails - metadata写真データ:', metadata.photos.length);
-              
+
+              // 撮影位置のマッピング定義（正面→背面→左側面→右側面→上面→詳細）
+              const photoPositionLabels = ['正面', '背面', '左側面', '右側面', '上面', '詳細'];
+
               // アップロードされた画像をそのまま画像リストに追加（スロットへの自動配置はしない）
               metadata.photos.forEach((photo: any, index: number) => {
                 // Base64データかファイルパスかを判別
                 const photoUrl = typeof photo === 'string' ? photo : photo.url;
-                
+
                 console.log('[DEBUG] ProductPhotographyDetails - 画像URL:', photoUrl.substring(0, 100));
-                
+
+                // インデックスに基づいて撮影位置ラベルを決定（6枚目以降は「詳細」）
+                const positionLabel = index < photoPositionLabels.length ? photoPositionLabels[index] : photoPositionLabels[5];
+
                 const photoItem = {
                   id: `metadata_${index}`,
                   url: photoUrl, // Base64データまたはファイルパスそのまま使用
-                  filename: typeof photo === 'string' ? `撮影画像_${index + 1}` : (photo.filename || `撮影画像_${index + 1}`),
-                  category: 'photography',
-                  description: `撮影画像 ${index + 1}`,
+                  filename: typeof photo === 'string' ? `${positionLabel}_${index + 1}` : (photo.filename || `${positionLabel}_${index + 1}`),
+                  category: positionLabel,
+                  description: `${positionLabel}撮影`,
                   sortOrder: index,
                   createdAt: photographyDate || new Date().toISOString(),
                 };
-                
+
                 images.push(photoItem);
               });
-              
+
               console.log('[DEBUG] ProductPhotographyDetails - metadata.photosから追加した画像数:', images.length);
             }
           } catch (metadataError) {

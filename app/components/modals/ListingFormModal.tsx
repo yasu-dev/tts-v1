@@ -874,7 +874,6 @@ ${templateOpticsChecks.noProblem ? '<strong>No problem in the shooting.</strong>
 
               {uploadMethod === 'photography' && selectedPhotographyImages.length > 0 && (
                 <div className="mt-4">
-                  <p className="text-sm text-gray-600 mb-2">選択された画像のプレビュー:</p>
                   <div className="grid grid-cols-6 gap-2 max-h-32 overflow-y-auto">
                     {selectedPhotographyImages.map((imageUrl, index) => (
                       <div key={index} className="aspect-square bg-gray-100 rounded border relative">

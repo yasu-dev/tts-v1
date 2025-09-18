@@ -485,7 +485,7 @@ export default function InspectionPage() {
       case 1:
         return { label: '検品項目', color: 'bg-blue-100 text-blue-800' };
       case 2:
-        return { label: '動画記録', color: 'bg-yellow-100 text-yellow-800' };
+        return { label: '動画記録', color: 'bg-amber-100 text-amber-800' };
       case 3:
         return { label: '写真撮影', color: 'bg-purple-100 text-purple-800' };
       case 4:

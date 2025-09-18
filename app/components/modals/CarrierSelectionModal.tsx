@@ -270,7 +270,7 @@ export default function CarrierSelectionModal({
                           <div className={`px-2 py-1 rounded-full text-xs font-medium ${
                             carrier.id === 'fedex' 
                               ? 'bg-green-100 text-green-800'
-                              : 'bg-yellow-100 text-yellow-800'
+                              : 'bg-amber-100 text-amber-800'
                           }`}>
                             {carrier.id === 'fedex' ? 'API連携' : '手動生成'}
                           </div>

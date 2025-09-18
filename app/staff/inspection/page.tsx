@@ -811,7 +811,7 @@ export default function InspectionPage() {
                       active: 'bg-emerald-800 text-white border-2 border-emerald-700'
                     },
                     on_hold: {
-                      normal: 'bg-yellow-500 text-black border border-yellow-400',
+                      normal: 'bg-yellow-600 text-white border border-yellow-500',
                       active: 'bg-yellow-700 text-white border-2 border-yellow-600'
                     },
                   };

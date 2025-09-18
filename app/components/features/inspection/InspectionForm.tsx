@@ -1093,11 +1093,6 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
                     </p>
                   </div>
                 )}
-                {product.deliveryPlanInfo.images && product.deliveryPlanInfo.images.length > 0 && (
-                  <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded inline-block">
-                    ✓ 商品画像 {product.deliveryPlanInfo.images.length}枚登録済み
-                  </div>
-                )}
               </div>
             )}
           </div>

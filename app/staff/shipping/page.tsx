@@ -1084,8 +1084,8 @@ export default function StaffShippingPage() {
               <nav className="-mb-px flex space-x-8" aria-label="Tabs">
                 {[
                   { id: 'all', label: '全体', count: tabStats.total, color: 'blue' },
-                  { id: 'workstation', label: '梱包待ち', count: tabStats.workstation, color: 'amber' },
-                  { id: 'packed', label: '梱包済み', count: tabStats.packed, color: 'purple' },
+                  { id: 'workstation', label: '梱包待ち', count: tabStats.workstation, color: 'purple' },
+                  { id: 'packed', label: '梱包済み', count: tabStats.packed, color: 'blue' },
                   { id: 'ready_for_pickup', label: '配送完了', count: tabStats.ready_for_pickup, color: 'emerald' },
                 ].map((tab) => {
                   // StatusIndicatorの統一ルールに合わせた配色設定
@@ -1173,8 +1173,8 @@ export default function StaffShippingPage() {
                     <th className="text-center p-4 font-medium text-nexus-text-secondary w-20">画像</th>
                     <th className="text-left p-4 font-medium text-nexus-text-secondary">商品名</th>
                     <th className="text-center p-4 font-medium text-nexus-text-secondary">注文日</th>
-                    <th className="text-left p-4 font-medium text-nexus-text-secondary">ステータス</th>
-                    <th className="text-right p-4 font-medium text-nexus-text-secondary">操作</th>
+                    <th className="text-center p-4 font-medium text-nexus-text-secondary">ステータス</th>
+                    <th className="text-center p-4 font-medium text-nexus-text-secondary">操作</th>
                   </tr>
                 </thead>
                 <tbody className="holo-body">

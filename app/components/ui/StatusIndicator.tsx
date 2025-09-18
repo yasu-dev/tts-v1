@@ -54,9 +54,9 @@ const businessStatusConfig = {
   // 【注意喚起】- 黄・琥珀系
   on_hold: {
     label: '保留中',
-    bg: 'bg-yellow-500 dark:bg-yellow-500',    // 明るめの黄色
-    text: 'text-black dark:text-black',
-    border: 'border-yellow-500 dark:border-yellow-500'
+    bg: 'bg-yellow-600 dark:bg-yellow-600',    // 濃い黄色で白テキストが見やすく
+    text: 'text-white dark:text-white',
+    border: 'border-yellow-600 dark:border-yellow-600'
   },
   returned: {
     label: '返品',
@@ -74,15 +74,15 @@ const businessStatusConfig = {
   // 【進行中】- 青・紫系
   packed: {
     label: '梱包済み',
-    bg: 'bg-purple-500 dark:bg-purple-500',
+    bg: 'bg-blue-500 dark:bg-blue-500',
     text: 'text-white dark:text-white',
-    border: 'border-purple-500 dark:border-purple-500'
+    border: 'border-blue-500 dark:border-blue-500'
   },
   pending: {
     label: '梱包待ち',
-    bg: 'bg-orange-500 dark:bg-orange-500',  // オレンジでタブと統一
+    bg: 'bg-purple-500 dark:bg-purple-500',  // 紫でタブと統一
     text: 'text-white dark:text-white',
-    border: 'border-orange-500 dark:border-orange-500'
+    border: 'border-purple-500 dark:border-purple-500'
   },
 
   // 【完了系】- 緑系（明度・彩度で区別）
@@ -198,8 +198,8 @@ function getIndicatorColor(status: BusinessStatusType): string {
     in_progress: 'bg-orange-200',
 
     // 【進行中】- 青・紫系
-    packed: 'bg-purple-300',
-    pending: 'bg-yellow-200',
+    packed: 'bg-blue-300',
+    pending: 'bg-purple-200',
 
     // 【完了系】- 緑系（色相で区別）
     shipping: 'bg-green-300',

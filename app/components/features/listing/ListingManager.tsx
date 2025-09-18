@@ -235,11 +235,11 @@ export default function ListingManager() {
                   />
                 </th>
                 <th className="text-left">商品情報</th>
-                <th className="text-left">カテゴリー</th>
+                <th className="text-center">カテゴリー</th>
                 <th className="text-left">価格</th>
                 <th className="text-left">コンディション</th>
-                <th className="text-left">ステータス</th>
-                <th className="text-right">アクション</th>
+                <th className="text-center">ステータス</th>
+                <th className="text-center">アクション</th>
               </tr>
             </thead>
           <tbody className="holo-body">
