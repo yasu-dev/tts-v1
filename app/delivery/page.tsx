@@ -744,11 +744,14 @@ export default function DeliveryPage() {
                       )}
                     </div>
                   </th>
-                  <th className="p-4 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">
+                  <th className="p-4 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">
                     画像
                   </th>
                   <th className="p-4 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">
                     商品名
+                  </th>
+                  <th className="p-4 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">
+                    カテゴリー
                   </th>
                   <th
                     className="p-4 text-right text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
@@ -764,10 +767,10 @@ export default function DeliveryPage() {
                     </div>
                   </th>
                   <th
-                    className="p-4 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
+                    className="p-4 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('status')}
                   >
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center justify-center gap-1">
                       ステータス
                       {sortField === 'status' && (
                         sortDirection === 'asc'
@@ -776,7 +779,7 @@ export default function DeliveryPage() {
                       )}
                     </div>
                   </th>
-                  <th className="p-4 text-right text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">
+                  <th className="p-4 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">
                     操作
                   </th>
                 </tr>
@@ -813,7 +816,7 @@ export default function DeliveryPage() {
                   </tr>
                 ) : paginatedPlans.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="p-8 text-center text-nexus-text-secondary">
+                    <td colSpan={6} className="p-8 text-center text-nexus-text-secondary">
                       <div className="flex flex-col items-center">
                         <DocumentTextIcon className="h-12 w-12 text-nexus-text-tertiary mb-4" />
                         <p className="text-lg font-medium mb-2">納品プランが見つかりません</p>
@@ -882,6 +885,38 @@ export default function DeliveryPage() {
                           </div>
                         ) : (
                           <span className="text-xs text-nexus-text-tertiary">商品詳細なし</span>
+                        )}
+                      </td>
+                      <td className="p-4 text-center text-sm text-nexus-text-primary align-top">
+                        {plan.products && plan.products.length > 0 ? (
+                          <div className="space-y-1">
+                            {(() => {
+                              // ユニークなカテゴリを取得
+                              const uniqueCategories = [...new Set(
+                                plan.products.map((product: any) => product.category || 'その他')
+                              )];
+                              
+                              return uniqueCategories.slice(0, 2).map((category: string, index: number) => (
+                                <div key={index} className="text-sm text-nexus-text-primary">
+                                  {category === 'camera' ? 'カメラ' :
+                                   category === 'watch' ? '腕時計' :
+                                   category === 'other' ? 'その他' : category}
+                                </div>
+                              ));
+                            })()}
+                            {(() => {
+                              const uniqueCategories = [...new Set(
+                                plan.products.map((product: any) => product.category || 'その他')
+                              )];
+                              return uniqueCategories.length > 2 && (
+                                <div className="text-xs text-nexus-text-tertiary">
+                                  +{uniqueCategories.length - 2}種類
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-nexus-text-tertiary">-</span>
                         )}
                       </td>
                       <td className="p-4 whitespace-nowrap text-sm text-nexus-text-primary align-top text-right">

@@ -714,27 +714,27 @@ export default function StaffInventoryPage() {
           </div>
           
           {/* テーブル部分 */}
-          <div className="p-8">
-            <div className="holo-table">
-              <table className="w-full">
+          <div className="p-6">
+            <div className="overflow-x-auto">
+              <table className="holo-table">
                               <thead className="holo-header">
                   <tr>
-                    <th className="text-center p-4 font-medium text-nexus-text-secondary">画像</th>
-                    <th className="text-left p-4 font-medium text-nexus-text-secondary">商品名</th>
-                    <th className="text-left p-4 font-medium text-nexus-text-secondary">SKU</th>
-                    <th className="text-left p-4 font-medium text-nexus-text-secondary">カテゴリー</th>
-                    <th className="text-left p-4 font-medium text-nexus-text-secondary">セラー名</th>
-                    <th className="text-left p-4 font-medium text-nexus-text-secondary">保管場所</th>
-                    <th className="text-center p-4 font-medium text-nexus-text-secondary">ステータス</th>
-                    <th className="text-left p-4 font-medium text-nexus-text-secondary">更新日</th>
-                    <th className="text-center p-4 font-medium text-nexus-text-secondary">操作</th>
+                    <th className="p-4 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider whitespace-nowrap">画像</th>
+                    <th className="p-4 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider">商品名</th>
+                    <th className="p-4 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider whitespace-nowrap">SKU</th>
+                    <th className="p-4 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider whitespace-nowrap">カテゴリー</th>
+                    <th className="p-4 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider whitespace-nowrap">セラー名</th>
+                    <th className="p-4 text-left text-xs font-medium text-nexus-text-secondary uppercase tracking-wider whitespace-nowrap">保管場所</th>
+                    <th className="p-4 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider whitespace-nowrap">ステータス</th>
+                    <th className="p-4 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider whitespace-nowrap">更新日</th>
+                    <th className="p-4 text-center text-xs font-medium text-nexus-text-secondary uppercase tracking-wider whitespace-nowrap">操作</th>
                   </tr>
                 </thead>
-                              <tbody className="holo-body">
+                              <tbody>
                   {paginatedItems.map((item) => (
                     <tr 
                       key={item.id} 
-                      className={item.isBundleItem ? 'bg-blue-50 border-l-4 border-l-blue-400' : ''}
+                      className={`border-b border-nexus-border hover:bg-nexus-bg-tertiary transition-colors ${item.isBundleItem ? 'bg-blue-50 border-l-4 border-l-blue-400' : ''}`}
                     >
                       <td className="p-4">
                         <div className="flex justify-center">
@@ -755,7 +755,7 @@ export default function StaffInventoryPage() {
                         </div>
                       </td>
                       <td className="p-4">
-                        <div className="font-medium text-nexus-text-primary">{item.name}</div>
+                        <div className="font-medium text-sm text-nexus-text-primary">{item.name}</div>
                         {item.isBundleItem && (
                           <div className="mt-1 space-y-1">
                             <div className="flex items-center gap-1 text-xs">
@@ -779,7 +779,7 @@ export default function StaffInventoryPage() {
                       <td className="p-4">
                         <span className="font-mono text-sm text-nexus-text-primary">{item.sku}</span>
                       </td>
-                      <td className="p-4">
+                      <td className="p-4 text-center">
                         <span className="text-sm text-nexus-text-primary">{item.category}</span>
                       </td>
                       <td className="p-4">
@@ -791,19 +791,19 @@ export default function StaffInventoryPage() {
                       <td className="p-4 text-center">
                         <BusinessStatusIndicator status={item.status} size="sm" />
                       </td>
-                      <td className="p-4">
+                      <td className="p-4 text-center">
                         <span className="text-sm text-nexus-text-secondary">
                           {new Date(item.lastModified).toLocaleDateString('ja-JP')}
                         </span>
                       </td>
-                      <td className="text-center p-4">
+                      <td className="p-4 text-center">
                       <NexusButton 
                         onClick={() => {
                           setSelectedItem(item);
                           setIsDetailModalOpen(true);
                         }}
                         size="sm"
-                        variant="primary"
+                        variant="secondary"
                       >
                         詳細
                       </NexusButton>
@@ -812,12 +812,12 @@ export default function StaffInventoryPage() {
                 ))}
               </tbody>
             </table>
-            
+            </div>
+
             {/* ページネーション */}
             {/* サーバーサイドページネーション対応 */}
             {!loading && totalItems > 0 && (
               <div className="mt-6 pt-6 px-6">
-
                 <Pagination
                   currentPage={currentPage}
                   totalPages={totalPages}
@@ -828,7 +828,6 @@ export default function StaffInventoryPage() {
                 />
               </div>
             )}
-            </div>
           </div>
         </div>
 
