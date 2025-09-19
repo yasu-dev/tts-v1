@@ -54,17 +54,26 @@ export default function BasicInfoStep({
           setWarehouses(warehouseResult);
         }
 
+        // デフォルト倉庫設定
+        const defaultWarehouseId = 'warehouse-002'; // 株式会社THE WORLD DOOR 営業倉庫
+        const defaultWarehouse = warehouseResult.find(w => w.id === defaultWarehouseId);
+
         // フォームの初期化
         const initialData = {
-          warehouseId: data.basicInfo?.warehouseId || '',
-          warehouseName: data.basicInfo?.warehouseName || '',
-          deliveryAddress: data.basicInfo?.deliveryAddress || '',
+          warehouseId: data.basicInfo?.warehouseId || defaultWarehouseId,
+          warehouseName: data.basicInfo?.warehouseName || (defaultWarehouse?.name || ''),
+          deliveryAddress: data.basicInfo?.deliveryAddress || (defaultWarehouse?.address || ''),
           contactEmail: 'info@the-world-door.com', // 固定の連絡先メール
           phoneNumber: null, // 倉庫情報で代替するためnull
           notes: data.basicInfo?.notes || ''
         };
         setFormData(initialData);
         onUpdate({ basicInfo: initialData });
+
+        // デフォルト倉庫を選択状態に設定
+        if (defaultWarehouse && !data.basicInfo?.warehouseId) {
+          setSelectedWarehouse(defaultWarehouse);
+        }
         
       } catch (error) {
         console.error('[ERROR] 初期データの取得に失敗しました:', error);
@@ -109,7 +118,7 @@ export default function BasicInfoStep({
       showToast({
         type: 'warning',
         title: '入力エラー',
-        message: '配送先倉庫を選択してください。',
+        message: '配送先倉庫が選択されていません。',
         duration: 3000
       });
       return;
@@ -172,13 +181,10 @@ export default function BasicInfoStep({
           label="配送先倉庫"
           value={formData.warehouseId}
           onChange={(e) => handleWarehouseChange(e.target.value)}
-          options={[
-            { value: '', label: '配送先倉庫を選択してください' },
-            ...warehouses.map(warehouse => ({
-              value: warehouse.id,
-              label: warehouse.name
-            }))
-          ]}
+          options={warehouses.map(warehouse => ({
+            value: warehouse.id,
+            label: warehouse.name
+          }))}
           required
           variant="nexus"
           useCustomDropdown={true}
