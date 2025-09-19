@@ -164,7 +164,11 @@ export async function POST(request: NextRequest) {
               deliveryPlanId: planId,
               name: product.name,
               category: product.category || 'camera',
-              estimatedValue: Math.min(product.purchasePrice || 0, 2147483647), // INT最大値制限
+              estimatedValue: (() => {
+                const price = product.purchasePrice || 0;
+                // 安全な整数範囲内に収める（PostgreSQLのINT型制限）
+                return Math.max(0, Math.min(price, 2147483647));
+              })(),
               description: JSON.stringify({
                 condition: product.condition,
                 supplierDetails: product.supplierDetails,
@@ -794,7 +798,15 @@ export async function GET(request: NextRequest) {
               description: planProduct.description,
               // 実際のProduct情報
               sku: relatedProduct?.sku,
-              purchasePrice: planProduct.estimatedValue, // 購入価格として保存されたestimatedValue
+              purchasePrice: (() => {
+                // originalPurchasePriceがあればそれを使用、なければestimatedValueを使用
+                try {
+                  const originalPrice = productMetadata.originalPurchasePrice;
+                  return originalPrice !== undefined ? originalPrice : planProduct.estimatedValue;
+                } catch (e) {
+                  return planProduct.estimatedValue;
+                }
+              })(),
               condition: relatedProduct?.condition || productMetadata.condition,
               imageUrl: relatedProduct?.imageUrl,
               // メタデータから詳細情報を取得

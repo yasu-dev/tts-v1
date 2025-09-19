@@ -654,13 +654,13 @@ export default function DeliveryPage() {
           {/* ヘッダー部分（上に移動） */}
           <div className="p-6 border-b border-nexus-border">
             <div className="flex justify-between items-center">
-              <NexusButton 
-                variant="primary" 
+              <NexusButton
+                variant="primary"
                 onClick={handleCreatePlan}
                 className="flex items-center gap-2"
               >
                 <PlusIcon className="h-4 w-4" />
-                新規作成
+                納品プラン作成
               </NexusButton>
             </div>
           </div>
@@ -827,7 +827,7 @@ export default function DeliveryPage() {
                           className="flex items-center gap-2"
                         >
                           <PlusIcon className="h-4 w-4" />
-                          新規作成
+                          納品プラン作成
                         </NexusButton>
                       </div>
                     </td>
@@ -1274,30 +1274,41 @@ export default function DeliveryPage() {
                                 return groups;
                               }, {});
 
-                              return Object.entries(groupedImages).map(([category, images]: [string, any]) => (
-                                <div key={category} className="space-y-2">
-                                  <h6 className="text-xs font-medium text-nexus-text-primary bg-nexus-bg-tertiary px-2 py-1 rounded">
-                                    {category} ({images.length}枚)
-                                  </h6>
-                                  <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
-                                    {images.map((image: any, imgIndex: number) => (
-                                      <div key={imgIndex} className="relative group">
-                                        <img
-                                          src={image.url || image}
-                                          alt={`${product.name} ${category} 画像 ${imgIndex + 1}`}
-                                          className="w-full h-16 object-cover rounded border border-nexus-border cursor-pointer hover:opacity-80 transition-opacity"
-                                          onClick={() => window.open(image.url || image, '_blank')}
-                                        />
-                                        {image.filename && (
-                                          <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-xs px-1 py-0.5 truncate">
-                                            {image.filename}
-                                          </div>
-                                        )}
-                                      </div>
-                                    ))}
+                              const categoryKeys = Object.keys(groupedImages);
+                              const isMultipleCategories = categoryKeys.length > 1;
+
+                              return Object.entries(groupedImages).map(([category, images]: [string, any]) => {
+                                // カテゴリー表示名を決定
+                                let displayCategory = category;
+                                if (!isMultipleCategories && category === 'その他') {
+                                  displayCategory = '商品画像';
+                                }
+
+                                return (
+                                  <div key={category} className="space-y-2">
+                                    <h6 className="text-xs font-medium text-nexus-text-primary bg-nexus-bg-tertiary px-2 py-1 rounded">
+                                      {displayCategory} ({images.length}枚)
+                                    </h6>
+                                    <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                                      {images.map((image: any, imgIndex: number) => (
+                                        <div key={imgIndex} className="relative group">
+                                          <img
+                                            src={image.url || image}
+                                            alt={`${product.name} ${displayCategory} 画像 ${imgIndex + 1}`}
+                                            className="w-full h-16 object-cover rounded border border-nexus-border cursor-pointer hover:opacity-80 transition-opacity"
+                                            onClick={() => window.open(image.url || image, '_blank')}
+                                          />
+                                          {image.filename && (
+                                            <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-xs px-1 py-0.5 truncate">
+                                              {image.filename}
+                                            </div>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
                                   </div>
-                                </div>
-                              ));
+                                );
+                              });
                             })()}
                           </div>
                         </div>

@@ -165,11 +165,8 @@ export default function ConfirmationStep({
           <div className="space-y-4">
             {data.products.map((product: any, index: number) => (
               <NexusCard key={index} className="p-4 border-l-4 border-primary-blue bg-nexus-bg-tertiary">
-                <div className="flex justify-between items-start mb-2">
+                <div className="mb-2">
                   <h4 className="font-medium text-nexus-text-primary">{product.name}</h4>
-                  <span className="text-lg font-bold text-primary-blue">
-                    ¥{product.purchasePrice?.toLocaleString() || '0'}
-                  </span>
                 </div>
                 
                 {/* 商品基本情報 */}
@@ -216,7 +213,7 @@ export default function ConfirmationStep({
                             className="w-full h-20 object-cover"
                           />
                           <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-xs p-1 text-center">
-                            {image.category === 'product' ? '本体' :
+                            {image.category === 'product' ? '商品画像' :
                              image.category === 'package' ? '箱' :
                              image.category === 'accessory' ? '付属品' :
                              image.category === 'document' ? '書類' : 'その他'}
