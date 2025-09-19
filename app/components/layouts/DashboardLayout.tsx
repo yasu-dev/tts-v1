@@ -612,7 +612,7 @@ export default function DashboardLayout({
         <aside className={`
           ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} 
           lg:translate-x-0 fixed lg:relative z-40 lg:z-0 
-          ${isSidebarCollapsed ? 'w-16' : 'w-64'} 
+          ${isSidebarCollapsed ? 'w-16' : 'w-48'} 
           h-full bg-white shadow-xl transition-all duration-300 ease-in-out flex flex-col
         `}>
           <div className="h-full flex flex-col">
@@ -623,26 +623,25 @@ export default function DashboardLayout({
                   {/* サイドバー開閉状態に応じた高品質ロゴ切り替え */}
                   {!isSidebarCollapsed ? (
                     <div className="flex items-center gap-3 transition-all duration-300">
-                      <Image 
-                        src="/logo.svg" 
-                        alt="THE WORLD DOOR" 
-                        width={220} 
-                        height={60} 
-                        className="h-16 w-auto object-contain"
+                      <Image
+                        src="/fulfilment-logo.png"
+                        alt="Fulfilment by THE WORLD DOOR"
+                        width={180}
+                        height={45}
+                        className="h-12 w-auto object-contain"
                         priority
                       />
                     </div>
                   ) : (
-                    <div className="transition-all duration-300 hover:scale-110">
-                      <Image 
-                        src="/logo2.svg" 
-                        alt="THE WORLD DOOR" 
-                        width={56} 
-                        height={56} 
-                        className="h-12 w-12 object-contain drop-shadow-md"
-                        priority
-                      />
-                    </div>
+                    <button
+                      onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                      className="transition-all duration-300 hover:scale-110 flex items-center justify-center w-12 h-12 hover:bg-gray-100 rounded-lg"
+                      title="サイドバーを展開"
+                    >
+                      <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
                   )}
                 </div>
                 <div className="flex items-center gap-1">

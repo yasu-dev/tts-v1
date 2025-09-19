@@ -6,6 +6,7 @@ import NexusButton from '@/app/components/ui/NexusButton';
 import NexusInput from '@/app/components/ui/NexusInput';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import NexusCheckbox from '@/app/components/ui/NexusCheckbox';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -114,13 +115,35 @@ export default function LoginPage() {
       </div>
 
       <div className="relative z-10 min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
+        <div className="max-w-md w-full">
           {/* Logo and Title */}
           <div className="text-center">
-            <h2 className="text-4xl font-black text-nexus-text-primary mb-2 font-display">THE WORLD DOOR</h2>
-            <p className="text-lg text-nexus-text-secondary">
-              フルフィルメントサービス
-            </p>
+            <div className="flex justify-center">
+              <div
+                className="p-6 rounded-xl"
+                style={{
+                  backgroundColor: '#F8FAFE',
+                  background: `
+                    radial-gradient(circle at 15% 85%, rgba(0, 100, 210, 0.08) 0%, transparent 40%),
+                    radial-gradient(circle at 85% 15%, rgba(229, 50, 56, 0.06) 0%, transparent 40%),
+                    radial-gradient(circle at 35% 65%, rgba(255, 206, 0, 0.04) 0%, transparent 40%),
+                    radial-gradient(circle at 65% 35%, rgba(134, 184, 23, 0.05) 0%, transparent 40%),
+                    radial-gradient(circle at 25% 25%, rgba(123, 31, 162, 0.03) 0%, transparent 40%),
+                    radial-gradient(circle at 75% 75%, rgba(0, 188, 212, 0.07) 0%, transparent 40%),
+                    #F8FAFE
+                  `
+                }}
+              >
+                <Image
+                  src="/fulfilment-logo.png"
+                  alt="Fulfilment by THE WORLD DOOR"
+                  width={300}
+                  height={70}
+                  className="h-16 w-auto object-contain mix-blend-multiply"
+                  priority
+                />
+              </div>
+            </div>
           </div>
 
           {/* Login Form */}
