@@ -10,8 +10,10 @@ import {
   LinkIcon,
   ArrowTopRightOnSquareIcon,
   TagIcon,
-  XMarkIcon
+  XMarkIcon,
+  PhotoIcon
 } from '@heroicons/react/24/outline';
+import { Download } from 'lucide-react';
 import { parseProductMetadata, getInspectionPhotographyStatus } from '@/lib/utils/product-status';
 import { checkListingEligibility } from '@/lib/utils/listing-eligibility';
 
@@ -85,6 +87,13 @@ export default function ItemDetailModal({
   const [isCancelling, setIsCancelling] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const { showToast } = useToast();
+  const [inspectionNotesFresh, setInspectionNotesFresh] = useState<string | null>(null);
+
+  // 画像ダウンロード関連のstate
+  const [availableImages, setAvailableImages] = useState<any[]>([]);
+  const [loadingImages, setLoadingImages] = useState(false);
+  const [downloadingImages, setDownloadingImages] = useState(false);
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
 
   // キャンセル確認表示
   const handleCancelClick = () => {
@@ -216,6 +225,8 @@ export default function ItemDetailModal({
   useEffect(() => {
     if (isOpen && item) {
       fetchEbayListingInfo(item.id);
+      fetchAvailableImages(item.id);
+      setSelectedImages([]); // モーダルが開くたびに選択をリセット
     }
   }, [isOpen, item]);
 
@@ -225,6 +236,23 @@ export default function ItemDetailModal({
       fetchProductHistory(item.id);
     }
   }, [isOpen, item?.id, activeTab]);
+
+  // 最新の備考を補正
+  useEffect(() => {
+    let aborted = false;
+    const fetchLatest = async () => {
+      try {
+        if (isOpen && item?.id) {
+          const res = await fetch(`/api/products/${item.id}`);
+          if (!res.ok) return;
+          const data = await res.json();
+          if (!aborted) setInspectionNotesFresh(data?.inspectionNotes ?? null);
+        }
+      } catch {}
+    };
+    fetchLatest();
+    return () => { aborted = true; };
+  }, [isOpen, item?.id]);
 
   if (!isOpen || !item) return null;
 
@@ -248,6 +276,163 @@ export default function ItemDetailModal({
         title: 'eBayページを開きました',
         message: '新しいタブでeBay出品ページが開きます',
         duration: 3000
+      });
+    }
+  };
+
+  // 画像一覧を取得
+  const fetchAvailableImages = async (productId: string) => {
+    setLoadingImages(true);
+    try {
+      const response = await fetch('/api/images/download', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ productId }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setAvailableImages(data.images || []);
+        console.log(`[DEBUG] 利用可能な画像: ${data.availableImages}/${data.totalImages}件`);
+      } else {
+        console.error('画像一覧の取得に失敗しました');
+        setAvailableImages([]);
+      }
+    } catch (error) {
+      console.error('画像一覧取得エラー:', error);
+      setAvailableImages([]);
+    } finally {
+      setLoadingImages(false);
+    }
+  };
+
+  // 画像選択の切り替え
+  const toggleImageSelection = (imageId: string) => {
+    setSelectedImages(prev =>
+      prev.includes(imageId)
+        ? prev.filter(id => id !== imageId)
+        : [...prev, imageId]
+    );
+  };
+
+  // 全選択/全解除
+  const toggleSelectAll = () => {
+    const availableImageIds = availableImages.filter(img => img.hasData).map(img => img.id);
+    if (selectedImages.length === availableImageIds.length) {
+      setSelectedImages([]);
+    } else {
+      setSelectedImages(availableImageIds);
+    }
+  };
+
+  // ZIP形式で画像をダウンロード
+  const handleDownloadImages = async (imageIds?: string[]) => {
+    if (!item) return;
+
+    // 指定されたimageIdsを使用、なければ選択された画像を使用、それもなければ全ての画像を使用
+    const targetImageIds = imageIds || (selectedImages.length > 0 ? selectedImages : availableImages.filter(img => img.hasData).map(img => img.id));
+
+    if (targetImageIds.length === 0) {
+      showToast({
+        type: 'warning',
+        title: 'ダウンロード不可',
+        message: 'ダウンロードする画像が選択されていません',
+        duration: 3000
+      });
+      return;
+    }
+
+    setDownloadingImages(true);
+    try {
+      // URLを構築：productIdsと選択された画像IDsを含める
+      let url = `/api/images/download?productIds=${item.id}`;
+      if (targetImageIds.length < availableImages.filter(img => img.hasData).length) {
+        // 全画像ではなく特定の画像が選択されている場合のみimageIdsパラメータを追加
+        url += `&imageIds=${targetImageIds.join(',')}`;
+      }
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${item.name}_images.zip`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        showToast({
+          type: 'success',
+          title: 'ダウンロード完了',
+          message: `${targetImageIds.length}件の画像をZIPファイルでダウンロードしました`,
+          duration: 3000
+        });
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'ダウンロードに失敗しました');
+      }
+    } catch (error) {
+      console.error('画像ダウンロードエラー:', error);
+      showToast({
+        type: 'error',
+        title: 'ダウンロード失敗',
+        message: error instanceof Error ? error.message : '画像のダウンロード中にエラーが発生しました',
+        duration: 5000
+      });
+    } finally {
+      setDownloadingImages(false);
+    }
+  };
+
+  // 単一画像のダウンロード
+  const handleDownloadSingleImage = async (imageId: string, filename: string) => {
+    if (!item) return;
+
+    try {
+      const response = await fetch(`/api/images/download?productId=${item.id}&imageId=${imageId}`, {
+        method: 'GET',
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        // 画像の出典情報を取得
+        const image = availableImages.find(img => img.id === imageId);
+        const sourceText = image?.source === 'seller' ? 'セラー画像' : 'スタッフ撮影画像';
+
+        showToast({
+          type: 'success',
+          title: 'ダウンロード完了',
+          message: `${sourceText} ${filename} をダウンロードしました`,
+          duration: 3000
+        });
+      } else {
+        throw new Error('画像のダウンロードに失敗しました');
+      }
+    } catch (error) {
+      console.error('単一画像ダウンロードエラー:', error);
+      showToast({
+        type: 'error',
+        title: 'ダウンロード失敗',
+        message: '画像のダウンロード中にエラーが発生しました',
+        duration: 5000
       });
     }
   };
@@ -380,6 +565,182 @@ export default function ItemDetailModal({
                 </div>
               </div>
 
+              {/* Image Section */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-nexus-text-primary">
+                  商品画像
+                </h3>
+
+                {loadingImages ? (
+                  <div className="flex justify-center items-center py-8">
+                    <div className="animate-spin h-8 w-8 border-b-2 border-nexus-blue rounded-full"></div>
+                    <span className="ml-3 text-nexus-text-secondary">画像を読み込み中...</span>
+                  </div>
+                ) : availableImages.length > 0 ? (
+                  <div className="space-y-4">
+                    {/* 全選択チェックボックス */}
+                    <div className="flex items-center justify-between">
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selectedImages.length === availableImages.filter(img => img.hasData).length && availableImages.filter(img => img.hasData).length > 0}
+                          onChange={toggleSelectAll}
+                          className="w-4 h-4 text-nexus-blue focus:ring-nexus-blue border-gray-300 rounded"
+                        />
+                        <span className="text-sm text-nexus-text-secondary">
+                          すべて選択 ({selectedImages.length}/{availableImages.filter(img => img.hasData).length})
+                        </span>
+                      </label>
+                      {selectedImages.length > 0 && (
+                        <NexusButton
+                          onClick={() => handleDownloadImages(selectedImages)}
+                          variant="primary"
+                          size="sm"
+                          icon={<Download className="w-4 h-4" />}
+                          disabled={downloadingImages}
+                        >
+                          選択した画像をダウンロード ({selectedImages.length})
+                        </NexusButton>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {availableImages.map((image, index) => (
+                        <div
+                          key={image.id}
+                          className={`relative group rounded-lg border-2 overflow-hidden ${
+                            image.hasData
+                              ? selectedImages.includes(image.id)
+                                ? 'border-nexus-blue bg-nexus-blue/10'
+                                : 'border-nexus-border hover:border-nexus-blue'
+                              : 'border-red-300 bg-gray-100'
+                          }`}
+                        >
+                          {image.hasData ? (
+                            <>
+                              {/* チェックボックス */}
+                              <div className="absolute top-2 left-2 z-10">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedImages.includes(image.id)}
+                                  onChange={() => toggleImageSelection(image.id)}
+                                  className="w-4 h-4 text-nexus-blue focus:ring-nexus-blue border-gray-300 rounded"
+                                />
+                              </div>
+
+                              <div className="aspect-square">
+                                {image.previewUrl ? (
+                                  <img
+                                    src={image.previewUrl}
+                                    alt={`商品画像 ${index + 1}`}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none';
+                                      e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                    }}
+                                  />
+                                ) : null}
+                                <div className={`${image.previewUrl ? 'hidden' : ''} w-full h-full bg-gray-100 flex items-center justify-center`}>
+                                  <div className="text-center">
+                                    <PhotoIcon className="w-12 h-12 mx-auto text-gray-400 mb-2" />
+                                    <p className="text-xs text-gray-600">{image.filename}</p>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* ダウンロードボタン */}
+                              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center">
+                                <NexusButton
+                                  onClick={() => handleDownloadSingleImage(image.id, image.filename)}
+                                  variant="primary"
+                                  size="sm"
+                                  icon={<Download className="w-4 h-4" />}
+                                  className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                                >
+                                  ダウンロード
+                                </NexusButton>
+                              </div>
+
+                              {/* カテゴリと出典バッジ */}
+                              <div className="absolute top-2 right-2 space-y-1">
+                                {image.source && (
+                                  <div>
+                                    <span className={`px-2 py-1 text-xs rounded ${
+                                      image.source === 'seller'
+                                        ? 'bg-green-500 text-white'
+                                        : 'bg-blue-500 text-white'
+                                    }`}>
+                                      {image.source === 'seller' ? 'セラー' : 'スタッフ撮影'}
+                                    </span>
+                                  </div>
+                                )}
+                                {image.category && image.category !== 'seller' && image.category !== 'photography' && (
+                                  <div>
+                                    <span className="bg-nexus-blue text-white px-2 py-1 text-xs rounded">
+                                      {image.category}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* ファイル情報 */}
+                              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-2">
+                                <p className="text-white text-xs truncate">
+                                  {image.filename}
+                                </p>
+                                {image.size && (
+                                  <p className="text-gray-300 text-xs">
+                                    {(image.size / 1024).toFixed(1)}KB
+                                  </p>
+                                )}
+                              </div>
+                            </>
+                          ) : (
+                            <div className="aspect-square flex items-center justify-center">
+                              <div className="text-center">
+                                <PhotoIcon className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+                                <p className="text-xs text-gray-500">ファイル未検出</p>
+                                <p className="text-xs text-gray-400 truncate">{image.filename}</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="bg-nexus-bg-secondary rounded-lg p-3">
+                      <div className="text-sm">
+                        <div className="space-y-1">
+                          <span className="block text-nexus-text-secondary">
+                            利用可能な画像: {availableImages.filter(img => img.hasData).length}/{availableImages.length}件
+                          </span>
+                          <div className="flex space-x-4 text-xs">
+                            <span className="text-green-600">
+                              セラー: {availableImages.filter(img => img.hasData && img.source === 'seller').length}件
+                            </span>
+                            <span className="text-blue-600">
+                              スタッフ撮影: {availableImages.filter(img => img.hasData && img.source === 'staff').length}件
+                            </span>
+                          </div>
+                          {selectedImages.length > 0 && (
+                            <span className="block text-nexus-blue font-medium">
+                              選択中: {selectedImages.length}件
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <PhotoIcon className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                    <p className="text-nexus-text-secondary">登録されている画像がありません</p>
+                    <p className="text-sm text-nexus-text-secondary mt-1">
+                      商品の写真撮影が完了していない可能性があります
+                    </p>
+                  </div>
+                )}
+              </div>
 
             </div>
           )}
@@ -439,79 +800,10 @@ export default function ItemDetailModal({
 
           {activeTab === 'notes' && (
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-nexus-text-primary">
-                備考・詳細情報
-              </h3>
-
-              {/* 商品メモ */}
-              <div className="bg-nexus-bg-secondary rounded-lg p-4">
-                <h4 className="font-medium text-nexus-text-primary mb-2">
-                  商品メモ
-                </h4>
-                {item.notes ? (
-                  <div
-                    className="text-nexus-text-secondary"
-                    dangerouslySetInnerHTML={{ __html: item.notes }}
-                  />
-                ) : (
-                  <p className="text-nexus-text-secondary">特記事項はありません</p>
-                )}
-              </div>
-
-              {/* 検品備考 */}
-              {item.inspectionNotes && (
-                <div className="bg-red-100 border border-red-300 p-4 rounded-lg">
-                  <h4 className="font-medium text-red-800 mb-2">
-                    検品備考
-                  </h4>
-                  <div className="text-red-700 whitespace-pre-wrap break-words">
-                    {item.inspectionNotes}
-                  </div>
-                </div>
-              )}
-
-              {/* QRコード情報 */}
-              {item.qrCode && (
+              {(inspectionNotesFresh || item.inspectionNotes) && (
                 <div className="bg-nexus-bg-secondary rounded-lg p-4">
-                  <h4 className="font-medium text-nexus-text-primary mb-2">
-                    QRコード
-                  </h4>
-                  <p className="text-nexus-text-secondary font-mono">
-                    {item.qrCode}
-                  </p>
-                </div>
-              )}
-
-              {/* メタデータ情報 */}
-              {item.metadata && (
-                <div className="bg-nexus-bg-secondary rounded-lg p-4">
-                  <h4 className="font-medium text-nexus-text-primary mb-2">
-                    システム情報
-                  </h4>
-                  <div className="text-sm text-nexus-text-secondary">
-                    {(() => {
-                      try {
-                        const metadata = typeof item.metadata === 'string'
-                          ? JSON.parse(item.metadata)
-                          : item.metadata;
-
-                        return (
-                          <div className="space-y-1">
-                            {metadata.deliveryPlanInfo && (
-                              <p>納品プラン: {metadata.deliveryPlanInfo.planId}</p>
-                            )}
-                            {metadata.inspectionCompleted && (
-                              <p>検品状況: 完了済み</p>
-                            )}
-                            {metadata.photographyCompleted !== undefined && (
-                              <p>撮影状況: {metadata.photographyCompleted ? '完了済み' : '未完了'}</p>
-                            )}
-                          </div>
-                        );
-                      } catch (e) {
-                        return <p>メタデータの解析に失敗しました</p>;
-                      }
-                    })()}
+                  <div className="text-nexus-text-secondary whitespace-pre-wrap break-words">
+                    {inspectionNotesFresh || item.inspectionNotes}
                   </div>
                 </div>
               )}

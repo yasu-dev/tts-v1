@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       }
       
       // 関連する注文を探す
-      const relatedOrder = await prisma.order.findFirst({
+      let relatedOrder = await prisma.order.findFirst({
         where: {
           items: {
             some: { productId: product.id }

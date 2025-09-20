@@ -429,16 +429,7 @@ export default function InventoryPage() {
                       <div className="font-medium text-sm text-nexus-text-primary">
                         {item.name}
                       </div>
-                      {item.inspectionNotes && (
-                        <div className="mt-1">
-                          <div className="bg-red-100 border border-red-300 px-2 py-1 rounded text-xs">
-                            <span className="text-red-800 font-medium">検品備考:</span>
-                            <div className="text-red-700 mt-1 whitespace-pre-wrap break-words">
-                              {item.inspectionNotes}
-                            </div>
-                          </div>
-                        </div>
-                      )}
+                      {/* 一覧では備考は表示しない */}
                     </td>
                     <td className="p-4">
                       <span className="font-mono text-sm text-nexus-text-primary">

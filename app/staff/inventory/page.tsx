@@ -14,7 +14,9 @@ import {
   XMarkIcon,
   CheckIcon,
   CubeIcon,
-  EyeIcon
+  EyeIcon,
+  ArrowDownTrayIcon,
+  PhotoIcon
 } from '@heroicons/react/24/outline';
 import { ContentCard, BusinessStatusIndicator, Pagination, NexusLoadingSpinner } from '@/app/components/ui';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
@@ -127,6 +129,9 @@ export default function StaffInventoryPage() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // 一括画像ダウンロード用のstate
+  const [bulkDownloading, setBulkDownloading] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
   const [isBarcodeScannerOpen, setIsBarcodeScannerOpen] = useState(false);
@@ -609,6 +614,100 @@ export default function StaffInventoryPage() {
     setIsQRModalOpen(true);
   };
 
+  // 選択した商品の画像を一括ダウンロード
+  const handleBulkDownload = async () => {
+    if (selectedItems.length === 0) {
+      showToast({
+        type: 'warning',
+        title: '商品未選択',
+        message: 'ダウンロードする商品を選択してください',
+        duration: 3000
+      });
+      return;
+    }
+
+    setBulkDownloading(true);
+
+    try {
+      let totalFiles = 0;
+      let successCount = 0;
+
+      // 各商品の画像を順次ダウンロード
+      for (const productId of selectedItems) {
+        try {
+          const product = items.find(item => item.id === productId);
+          if (!product) continue;
+
+          const response = await fetch('/api/images/download', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              productId: productId,
+              downloadType: 'zip',
+              includeMetadata: true
+            }),
+          });
+
+          if (response.ok) {
+            const blob = await response.blob();
+
+            // ファイルサイズをチェック（空でないか）
+            if (blob.size > 100) { // 100バイト以上なら有効なZIPファイルとみなす
+              const url = window.URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = `${product.name}_images.zip`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              window.URL.revokeObjectURL(url);
+
+              successCount++;
+              totalFiles++;
+
+              // ダウンロード間隔を設ける（ブラウザの制限回避）
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
+          }
+        } catch (error) {
+          console.error(`商品 ${productId} の画像ダウンロードエラー:`, error);
+        }
+      }
+
+      if (successCount > 0) {
+        showToast({
+          type: 'success',
+          title: '一括ダウンロード完了',
+          message: `${successCount}件の商品画像をダウンロードしました`,
+          duration: 3000
+        });
+      } else {
+        showToast({
+          type: 'warning',
+          title: 'ダウンロード対象なし',
+          message: '選択した商品にダウンロード可能な画像がありませんでした',
+          duration: 3000
+        });
+      }
+
+      // 選択をクリア
+      setSelectedItems([]);
+
+    } catch (error) {
+      console.error('一括ダウンロードエラー:', error);
+      showToast({
+        type: 'error',
+        title: 'ダウンロード失敗',
+        message: '一括ダウンロード中にエラーが発生しました',
+        duration: 5000
+      });
+    } finally {
+      setBulkDownloading(false);
+    }
+  };
+
 
 
 
@@ -712,6 +811,37 @@ export default function StaffInventoryPage() {
           
           {/* テーブル部分 */}
           <div className="p-6">
+            {/* 一括アクション */}
+            {selectedItems.length > 0 && (
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <span className="text-sm font-medium text-blue-900">
+                      {selectedItems.length}件の商品を選択中
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <NexusButton
+                      onClick={handleBulkDownload}
+                      disabled={bulkDownloading}
+                      variant="secondary"
+                      size="sm"
+                      icon={<ArrowDownTrayIcon className="w-4 h-4" />}
+                    >
+                      {bulkDownloading ? '画像取得中...' : '画像一括ダウンロード'}
+                    </NexusButton>
+                    <NexusButton
+                      onClick={() => setSelectedItems([])}
+                      variant="outline"
+                      size="sm"
+                      icon={<XMarkIcon className="w-4 h-4" />}
+                    >
+                      選択解除
+                    </NexusButton>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="overflow-x-auto">
               <table className="holo-table">
                               <thead className="holo-header">
@@ -753,16 +883,6 @@ export default function StaffInventoryPage() {
                       </td>
                       <td className="p-4">
                         <div className="font-medium text-sm text-nexus-text-primary">{item.name}</div>
-                        {item.inspectionNotes && (
-                          <div className="mt-1">
-                            <div className="bg-red-100 border border-red-300 px-2 py-1 rounded text-xs">
-                              <span className="text-red-800 font-medium">検品備考:</span>
-                              <div className="text-red-700 mt-1 whitespace-pre-wrap break-words">
-                                {item.inspectionNotes}
-                              </div>
-                            </div>
-                          </div>
-                        )}
                         {item.isBundleItem && (
                           <div className="mt-1 space-y-1">
                             <div className="flex items-center gap-1 text-xs">

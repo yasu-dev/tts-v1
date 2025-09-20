@@ -96,8 +96,8 @@ export async function GET() {
     const errorInfo = {
       status: 'error',
       message: 'データベース接続またはクエリでエラーが発生しました',
-      error: error.message,
-      stack: error.stack,
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
       databaseUrl: process.env.DATABASE_URL || 'file:./dev.db'
     };
 

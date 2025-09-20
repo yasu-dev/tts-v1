@@ -53,15 +53,10 @@ test.describe('備考表示の正確な確認', () => {
             fullPage: true
           });
 
-          // 備考内容が表示されているか確認
-          const notesContent = page.locator('text=これは一般的なメモです');
-          const descriptionContent = page.locator('text=これは備考テスト用の商品です');
-          const inspectionContent = page.locator('text=これは検品メモです');
-
-          console.log('✅ セラー備考タブ表示確認済み');
-          console.log(`  - 一般メモ表示: ${await notesContent.isVisible()}`);
-          console.log(`  - 商品説明表示: ${await descriptionContent.isVisible()}`);
-          console.log(`  - 検品メモ表示: ${await inspectionContent.isVisible()}`);
+          // 自動文言「納品プラン ... からの入庫予定商品。」が出ていないこと
+          const autoPhrase = page.locator('text=納品プラン').filter({ hasText: 'からの入庫予定商品' });
+          expect(await autoPhrase.count()).toBe(0);
+          console.log('✅ セラー備考タブ: 自動文言が表示されていないことを確認');
         } else {
           console.log('❌ セラー: 備考タブが見つからない');
         }
@@ -120,7 +115,10 @@ test.describe('備考表示の正確な確認', () => {
           fullPage: true
         });
 
-        console.log('✅ スタッフ備考タブ表示確認済み');
+        // 自動文言が出ていないこと
+        const autoPhrase2 = page.locator('text=納品プラン').filter({ hasText: 'からの入庫予定商品' });
+        expect(await autoPhrase2.count()).toBe(0);
+        console.log('✅ スタッフ備考タブ: 自動文言が表示されていないことを確認');
       } else {
         console.log('❌ スタッフ: 備考タブが見つからない');
       }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { X, Package, MapPin, Calendar, User, FileText, Tag, Download, ArrowRight } from 'lucide-react';
+import { X, Package, MapPin, Calendar, User, FileText, Tag, Download, ArrowRight, ArrowDown } from 'lucide-react';
 import { useModal } from '@/app/components/ui/ModalContext';
 import NexusButton from '@/app/components/ui/NexusButton';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
@@ -51,6 +51,9 @@ interface ProductInfoModalProps {
 
 export default function ProductInfoModal({ isOpen, onClose, product, onMove }: ProductInfoModalProps) {
   
+  // 商品説明（検品メモの再掲）表示フラグ：重複回避のため既定で非表示
+  const SHOW_PRODUCT_DESCRIPTION_FROM_INSPECTION_NOTES = false;
+
   // 重量データを取得（安全なメタデータアクセス）
   const getWeightInfo = () => {
     try {
@@ -84,6 +87,110 @@ export default function ProductInfoModal({ isOpen, onClose, product, onMove }: P
     // クリーンアップ
     return () => setIsAnyModalOpen(false);
   }, [isOpen, setIsAnyModalOpen]);
+
+  const [inspectionNotesFresh, setInspectionNotesFresh] = useState<string | null>(null);
+
+  // 画像ダウンロード関連のstate
+  const [availableImages, setAvailableImages] = useState<any[]>([]);
+  const [loadingImages, setLoadingImages] = useState(false);
+  const [downloadingImages, setDownloadingImages] = useState(false);
+
+  useEffect(() => {
+    let aborted = false;
+    const fetchLatest = async () => {
+      try {
+        if (isOpen && product?.id) {
+          const res = await fetch(`/api/products/${product.id}`);
+          if (!res.ok) return;
+          const data = await res.json();
+          if (!aborted) setInspectionNotesFresh(data?.inspectionNotes ?? null);
+        }
+      } catch {}
+    };
+    fetchLatest();
+    return () => { aborted = true; };
+  }, [isOpen, product?.id]);
+
+  // 画像一覧を取得
+  const fetchAvailableImages = async (productId: string) => {
+    setLoadingImages(true);
+    try {
+      const response = await fetch(`/api/images/download?productId=${productId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setAvailableImages(data.images || []);
+        console.log(`[DEBUG] 利用可能な画像: ${data.availableImages}/${data.totalImages}件`);
+      } else {
+        console.error('画像一覧の取得に失敗しました');
+        setAvailableImages([]);
+      }
+    } catch (error) {
+      console.error('画像一覧取得エラー:', error);
+      setAvailableImages([]);
+    } finally {
+      setLoadingImages(false);
+    }
+  };
+
+  // 画像取得useEffect
+  useEffect(() => {
+    if (isOpen && product?.id) {
+      fetchAvailableImages(product.id);
+    }
+  }, [isOpen, product?.id]);
+
+  // ZIP形式で画像をダウンロード
+  const handleDownloadImages = async (imageIds?: string[]) => {
+    if (!product) return;
+
+    setDownloadingImages(true);
+    try {
+      const response = await fetch('/api/images/download', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productId: product.id,
+          imageIds: imageIds,
+          downloadType: 'zip',
+          includeMetadata: true
+        }),
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${product.name}_images.zip`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        showToast({
+          type: 'success',
+          title: 'ダウンロード完了',
+          message: '画像をZIPファイルでダウンロードしました',
+          duration: 3000
+        });
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'ダウンロードに失敗しました');
+      }
+    } catch (error) {
+      console.error('画像ダウンロードエラー:', error);
+      showToast({
+        type: 'error',
+        title: 'ダウンロード失敗',
+        message: error instanceof Error ? error.message : '画像のダウンロード中にエラーが発生しました',
+        duration: 5000
+      });
+    } finally {
+      setDownloadingImages(false);
+    }
+  };
 
   if (!isOpen || !product) return null;
 
@@ -318,6 +425,35 @@ export default function ProductInfoModal({ isOpen, onClose, product, onMove }: P
                     ))}
                   </div>
                 )}
+
+                {/* 画像ダウンロードボタン */}
+                <div className="space-y-2">
+                  {loadingImages ? (
+                    <div className="flex justify-center py-2">
+                      <div className="animate-spin h-4 w-4 border-b-2 border-blue-600 rounded-full"></div>
+                    </div>
+                  ) : availableImages.length > 0 ? (
+                    <div className="space-y-2">
+                      <NexusButton
+                        onClick={() => handleDownloadImages()}
+                        disabled={downloadingImages}
+                        variant="secondary"
+                        size="sm"
+                        className="w-full"
+                        icon={<ArrowDown className="h-4 w-4" />}
+                      >
+                        {downloadingImages ? 'ダウンロード中...' : `画像をダウンロード (${availableImages.filter(img => img.available).length}件)`}
+                      </NexusButton>
+                      <p className="text-xs text-gray-500 text-center">
+                        ZIP形式で全画像をダウンロードします
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-500 text-center">
+                      ダウンロード可能な画像がありません
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -444,13 +580,13 @@ export default function ProductInfoModal({ isOpen, onClose, product, onMove }: P
                 </div>
               </div>
 
-              {/* 商品説明（もしあれば） */}
-              {product.description && (
+              {/* 商品説明（内装梱包の備考を表示） - 重複回避のため既定で非表示 */}
+              {SHOW_PRODUCT_DESCRIPTION_FROM_INSPECTION_NOTES && (inspectionNotesFresh || product.inspectionNotes) && (
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h3 className="text-lg font-medium text-gray-900 mb-3">商品説明</h3>
                   <div className="max-h-48 overflow-y-auto">
                     <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap break-words">
-                      {stripHtmlTags(product.description)}
+                      {stripHtmlTags(inspectionNotesFresh || product.inspectionNotes!)}
                     </p>
                   </div>
                 </div>

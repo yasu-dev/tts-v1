@@ -171,6 +171,9 @@ export default function DeliveryPage() {
     });
   }, []);
 
+  // 商品画像（完全版）セクションの表示フラグ（重複回避のため既定で非表示）
+  const SHOW_PRODUCT_IMAGES_IN_DETAIL = false;
+
   // 納品プランデータを取得
   useEffect(() => {
     fetchDeliveryPlans().catch(error => {
@@ -1264,7 +1267,7 @@ export default function DeliveryPage() {
                       )}
 
                       {/* 商品画像（完全版） */}
-                      {product.images && product.images.length > 0 && (
+                      {SHOW_PRODUCT_IMAGES_IN_DETAIL && product.images && product.images.length > 0 && (
                         <div className="mt-3 pt-3 border-t border-nexus-border">
                           <span className="font-medium text-nexus-text-secondary text-sm mb-3 block">
                             商品画像 ({product.images.length}枚)

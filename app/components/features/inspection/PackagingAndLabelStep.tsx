@@ -95,6 +95,19 @@ export default function PackagingAndLabelStep({
       };
       localStorage.setItem(`packaging_${productId}`, JSON.stringify(state));
       
+      // 備考が入力されていれば即時保存
+      if (notes && notes.trim()) {
+        try {
+          await fetch(`/api/products/${productId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ inspectionNotes: notes.trim() })
+          });
+        } catch (e) {
+          console.warn('[PackagingAndLabelStep] packagingComplete save notes failed:', e);
+        }
+      }
+
       showToast({
         type: 'success',
         title: '梱包完了',
@@ -114,6 +127,19 @@ export default function PackagingAndLabelStep({
   const handleLabelGeneration = async () => {
     setIsGeneratingLabel(true);
     try {
+      // 先に備考を保存（ある場合）
+      if (notes && notes.trim()) {
+        try {
+          await fetch(`/api/products/${productId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ inspectionNotes: notes.trim() })
+          });
+        } catch (e) {
+          console.warn('[PackagingAndLabelStep] labelGeneration save notes failed:', e);
+        }
+      }
+
       const response = await fetch(`/api/products/${productId}/label`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

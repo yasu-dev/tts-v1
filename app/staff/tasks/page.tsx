@@ -19,7 +19,7 @@ import {
   UserGroupIcon,
 } from '@heroicons/react/24/outline';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
-import { useSystemSetting, useTaskCategories } from '@/lib/hooks/useMasterData';
+import { useSystemSetting } from '@/lib/hooks/useMasterData';
 
 interface Task {
   id: string;
@@ -42,7 +42,8 @@ export default function StaffTasksPage() {
   
   // マスタデータの取得
   const { setting: taskStatuses } = useSystemSetting('task_statuses');
-  const { categories: taskCategories, loading: categoriesLoading } = useTaskCategories();
+  // const { categories: taskCategoriesFromHook, loading: categoriesLoading } = useTaskCategories();
+  const categoriesLoading = false;
   const [filter, setFilter] = useState<'all' | 'pending' | 'in_progress' | 'completed'>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [assigneeFilter, setAssigneeFilter] = useState<string>('all');

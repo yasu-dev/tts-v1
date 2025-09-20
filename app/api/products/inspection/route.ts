@@ -116,25 +116,34 @@ export async function POST(request: NextRequest) {
     
     let updatedProduct;
     try {
+      // 既存の検品備考を空文字で上書きしないよう、更新データを組み立て
+      const updateData: any = {
+        inspectedAt: new Date(),
+        inspectedBy: user.username,
+        metadata: JSON.stringify(updatedMetadata),
+        status: locationId ? 'storage' : 'inspection', // locationIdがある場合はstorageステータスに
+      };
+
+      // 検品備考が入力されている場合のみ更新（空文字やundefinedなら保持）
+      if (typeof inspectionNotes === 'string' && inspectionNotes.trim() !== '') {
+        updateData.inspectionNotes = inspectionNotes;
+      }
+
+      // コンディションが渡された場合のみ更新
+      if (condition) {
+        updateData.condition = condition
+          .replace('新品', 'new')
+          .replace('新品同様', 'like_new')
+          .replace('極美品', 'excellent')
+          .replace('美品', 'very_good')
+          .replace('良品', 'good')
+          .replace('中古美品', 'fair')
+          .replace('中古', 'poor');
+      }
+
       updatedProduct = await prisma.product.update({
         where: { id: product.id },
-        data: {
-          inspectedAt: new Date(),
-          inspectedBy: user.username,
-          inspectionNotes,
-          metadata: JSON.stringify(updatedMetadata),
-          ...(condition && {
-            condition: condition.replace('新品', 'new')
-                              .replace('新品同様', 'like_new')
-                              .replace('極美品', 'excellent')
-                              .replace('美品', 'very_good')
-                              .replace('良品', 'good')
-                              .replace('中古美品', 'fair')
-                              .replace('中古', 'poor'),
-          }),
-          status: locationId ? 'storage' : 'inspection', // locationIdがある場合はstorageステータスに
-          // currentLocationIdの更新は一旦削除（外部キー制約エラー回避）
-        },
+        data: updateData,
       });
       console.log('[DEBUG] Product updated successfully');
     } catch (updateError) {

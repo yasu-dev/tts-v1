@@ -75,28 +75,31 @@ async function generateS3SignedUrl(s3Path: string): Promise<string> {
     return mockVideoUrls[index];
   }
 
-  // 本番環境での実装例
-  try {
-    const AWS = require('aws-sdk');
-    const s3 = new AWS.S3({
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-      region: process.env.AWS_REGION
-    });
+  // 本番環境での実装例（現在はモック実装）
+  // try {
+  //   const AWS = require('aws-sdk');
+  //   const s3 = new AWS.S3({
+  //     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  //     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  //     region: process.env.AWS_REGION
+  //   });
 
-    const params = {
-      Bucket: process.env.AWS_S3_BUCKET_NAME,
-      Key: s3Path,
-      Expires: 3600, // 1時間有効
-      ResponseContentType: 'video/mp4'
-    };
+  //   const params = {
+  //     Bucket: process.env.AWS_S3_BUCKET_NAME,
+  //     Key: s3Path,
+  //     Expires: 3600, // 1時間有効
+  //     ResponseContentType: 'video/mp4'
+  //   };
 
-    const signedUrl = await s3.getSignedUrlPromise('getObject', params);
-    return signedUrl;
-  } catch (error) {
-    console.error('AWS S3 error:', error);
-    throw new Error('S3 Signed URL生成に失敗しました');
-  }
+  //   const signedUrl = await s3.getSignedUrlPromise('getObject', params);
+  //   return signedUrl;
+  // } catch (error) {
+  //   console.error('AWS S3 error:', error);
+  //   throw new Error('S3 Signed URL生成に失敗しました');
+  // }
+
+  // モック実装を返す
+  return `https://demo-s3-bucket.s3.amazonaws.com/${s3Path}?expires=3600`;
 }
 
 /**
@@ -147,22 +150,26 @@ async function checkVideoExists(s3Path: string): Promise<boolean> {
     return true;
   }
 
-  try {
-    const AWS = require('aws-sdk');
-    const s3 = new AWS.S3({
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-      region: process.env.AWS_REGION
-    });
+  // AWS SDKのモック実装
+  // try {
+  //   const AWS = require('aws-sdk');
+  //   const s3 = new AWS.S3({
+  //     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  //     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  //     region: process.env.AWS_REGION
+  //   });
 
-    await s3.headObject({
-      Bucket: process.env.AWS_S3_BUCKET_NAME,
-      Key: s3Path
-    }).promise();
+  //   await s3.headObject({
+  //     Bucket: process.env.AWS_S3_BUCKET_NAME,
+  //     Key: s3Path
+  //   }).promise();
 
-    return true;
-  } catch (error) {
-    console.error('S3 head object error:', error);
-    return false;
-  }
+  //   return true;
+  // } catch (error) {
+  //   console.error('S3 head object error:', error);
+  //   return false;
+  // }
+
+  // モック実装: 常にtrueを返す
+  return true;
 } 

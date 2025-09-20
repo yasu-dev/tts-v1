@@ -832,9 +832,24 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
         inspectionStatus = 'inspection';  // 要確認は検品継続
       }
 
+      // PackagingAndLabelStep のローカル保存を最優先で取り込み
+      let packagingNotesFromLocal = '';
+      try {
+        const savedPackaging = localStorage.getItem(`packaging_${productId}`);
+        if (savedPackaging) {
+          const parsed = JSON.parse(savedPackaging);
+          if (parsed && typeof parsed.notes === 'string' && parsed.notes.trim() !== '') {
+            packagingNotesFromLocal = parsed.notes.trim();
+          }
+        }
+      } catch (e) {
+        console.warn('[InspectionForm] Failed to read packaging notes from localStorage:', e);
+      }
+
       const finalData = {
         productId,
-        inspectionNotes: inspectionData.notes || '',
+        // 内装梱包の備考のみを唯一のソースとして優先採用
+        inspectionNotes: packagingNotesFromLocal || inspectionData.notes || '',
         // コンディションは納品プラン作成時の値を保持（検品結果で変更しない）
         // condition: null, // conditionパラメータを除去
         status: inspectionStatus,

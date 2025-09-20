@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/database';
 import { AuthService } from '@/lib/auth';
 
-const prisma = new PrismaClient();
+// 共有Prismaインスタンスを使用（SQLiteのロック回避と接続管理の一元化）
 
 export async function GET(
   request: NextRequest,
@@ -341,10 +341,14 @@ export async function PATCH(
       product: updatedProduct,
       message: '商品の移動が完了しました',
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error moving product:', error);
     return NextResponse.json(
-      { error: '商品の移動に失敗しました' },
+      { 
+        error: '商品の移動に失敗しました',
+        details: error?.message || String(error),
+        ...(process.env.NODE_ENV !== 'production' && { stack: error?.stack })
+      },
       { status: 500 }
     );
   }
