@@ -301,19 +301,53 @@ export default function ProductPhotographyDetails({ productId, status }: Product
 
   // 全選択/全解除
   const toggleSelectAll = () => {
-    const availableImageIds = availableImages.filter(img => img.hasData).map(img => img.id);
-    if (selectedImages.length === availableImageIds.length) {
+    const categorizedImages = categorizeImages(photographyData?.images || [], photographyData?.photoSlots);
+    const orderedImages = getOrderedImages(categorizedImages);
+    const allImageIds = orderedImages.slice(0, 12).map(img => {
+      const availableImage = availableImages.find(availImg =>
+        availImg.filename === img.filename ||
+        availImg.id === img.id ||
+        (img.url && availImg.previewUrl && img.url.includes(availImg.id))
+      );
+      return availableImage?.id || img.id;
+    });
+
+    if (selectedImages.length === allImageIds.length) {
       setSelectedImages([]);
     } else {
-      setSelectedImages(availableImageIds);
+      setSelectedImages(allImageIds);
     }
   };
 
-  // ZIP形式で画像をダウンロード
+  // 複数画像を個別にダウンロード
   const handleDownloadImages = async (imageIds?: string[]) => {
-    const targetImageIds = imageIds || (selectedImages.length > 0 ? selectedImages : availableImages.filter(img => img.hasData).map(img => img.id));
+    const categorizedImages = categorizeImages(photographyData?.images || [], photographyData?.photoSlots);
+    const orderedImages = getOrderedImages(categorizedImages);
 
-    if (targetImageIds.length === 0) {
+    // 選択された画像、または選択がない場合は全画像を対象にする
+    const targetImages = imageIds
+      ? orderedImages.filter(img => {
+          const availableImage = availableImages.find(availImg =>
+            availImg.filename === img.filename ||
+            availImg.id === img.id ||
+            (img.url && availImg.previewUrl && img.url.includes(availImg.id))
+          );
+          const imageId = availableImage?.id || img.id;
+          return imageIds.includes(imageId);
+        })
+      : (selectedImages.length > 0
+          ? orderedImages.filter(img => {
+              const availableImage = availableImages.find(availImg =>
+                availImg.filename === img.filename ||
+                availImg.id === img.id ||
+                (img.url && availImg.previewUrl && img.url.includes(availImg.id))
+              );
+              const imageId = availableImage?.id || img.id;
+              return selectedImages.includes(imageId);
+            })
+          : orderedImages);
+
+    if (targetImages.length === 0) {
       showToast({
         type: 'warning',
         title: 'ダウンロード不可',
@@ -325,39 +359,44 @@ export default function ProductPhotographyDetails({ productId, status }: Product
 
     setDownloadingImages(true);
     try {
-      let url = `/api/images/download?productIds=${productId}`;
-      if (targetImageIds.length < availableImages.filter(img => img.hasData).length) {
-        url += `&imageIds=${targetImageIds.join(',')}`;
+      // 各画像を個別にダウンロード
+      for (let i = 0; i < targetImages.length; i++) {
+        const image = targetImages[i];
+        if (image.url && image.url.startsWith('data:image/')) {
+          // Base64データから画像をダウンロード
+          const base64Data = image.url.split(',')[1];
+          const mimeType = image.url.split(';')[0].split(':')[1];
+          const extension = mimeType.split('/')[1] || 'jpg';
+
+          // バイナリデータに変換
+          const byteCharacters = atob(base64Data);
+          const byteNumbers = new Array(byteCharacters.length);
+          for (let j = 0; j < byteCharacters.length; j++) {
+            byteNumbers[j] = byteCharacters.charCodeAt(j);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          const blob = new Blob([byteArray], { type: mimeType });
+
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `${image.category || `画像${i + 1}`}.${extension}`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+
+          // ダウンロード間隔を設ける
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
       }
 
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      showToast({
+        type: 'success',
+        title: 'ダウンロード完了',
+        message: `${targetImages.length}件の画像をダウンロードしました`,
+        duration: 3000
       });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `商品画像_${productId}.zip`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-
-        showToast({
-          type: 'success',
-          title: 'ダウンロード完了',
-          message: `${targetImageIds.length}件の画像をZIPファイルでダウンロードしました`,
-          duration: 3000
-        });
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'ダウンロードに失敗しました');
-      }
     } catch (error) {
       console.error('画像ダウンロードエラー:', error);
       showToast({
@@ -374,36 +413,59 @@ export default function ProductPhotographyDetails({ productId, status }: Product
   // 単一画像のダウンロード
   const handleDownloadSingleImage = async (imageId: string, filename: string) => {
     try {
-      const response = await fetch(`/api/images/download?productId=${productId}&imageId=${imageId}`, {
-        method: 'GET',
+      const categorizedImages = categorizeImages(photographyData?.images || [], photographyData?.photoSlots);
+      const orderedImages = getOrderedImages(categorizedImages);
+
+      // 対象の画像を見つける
+      const targetImage = orderedImages.find(img => {
+        const availableImage = availableImages.find(availImg =>
+          availImg.filename === img.filename ||
+          availImg.id === img.id ||
+          (img.url && availImg.previewUrl && img.url.includes(availImg.id))
+        );
+        const id = availableImage?.id || img.id;
+        return id === imageId;
       });
 
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-
-        showToast({
-          type: 'success',
-          title: 'ダウンロード完了',
-          message: `${filename} をダウンロードしました`,
-          duration: 3000
-        });
-      } else {
-        throw new Error('画像のダウンロードに失敗しました');
+      if (!targetImage || !targetImage.url || !targetImage.url.startsWith('data:image/')) {
+        throw new Error('画像データが見つかりません');
       }
+
+      // Base64データから画像をダウンロード
+      const base64Data = targetImage.url.split(',')[1];
+      const mimeType = targetImage.url.split(';')[0].split(':')[1];
+      const extension = mimeType.split('/')[1] || 'jpg';
+
+      // バイナリデータに変換
+      const byteCharacters = atob(base64Data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: mimeType });
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${targetImage.category || filename}.${extension}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      showToast({
+        type: 'success',
+        title: 'ダウンロード完了',
+        message: `${targetImage.category || filename} をダウンロードしました`,
+        duration: 3000
+      });
     } catch (error) {
       console.error('単一画像ダウンロードエラー:', error);
       showToast({
         type: 'error',
         title: 'ダウンロード失敗',
-        message: '画像のダウンロード中にエラーが発生しました',
+        message: error instanceof Error ? error.message : '画像のダウンロード中にエラーが発生しました',
         duration: 5000
       });
     }
@@ -457,12 +519,12 @@ export default function ProductPhotographyDetails({ productId, status }: Product
             <label className="flex items-center space-x-2 cursor-pointer">
               <input
                 type="checkbox"
-                checked={selectedImages.length === availableImages.filter(img => img.hasData).length && availableImages.filter(img => img.hasData).length > 0}
+                checked={selectedImages.length === orderedImages.length && orderedImages.length > 0}
                 onChange={toggleSelectAll}
-                className="w-4 h-4 text-blue-500 focus:ring-blue-500 border-gray-300 rounded"
+                className="w-4 h-4 text-nexus-blue focus:ring-nexus-blue border-gray-300 rounded"
               />
-              <span className="text-sm text-gray-600">
-                すべて選択 ({selectedImages.length}/{availableImages.filter(img => img.hasData).length})
+              <span className="text-sm text-nexus-text-secondary">
+                すべて選択 ({selectedImages.length}/{orderedImages.length})
               </span>
             </label>
             {selectedImages.length > 0 && (
@@ -486,30 +548,29 @@ export default function ProductPhotographyDetails({ productId, status }: Product
                 (image.url && img.previewUrl && image.url.includes(img.id))
               );
               const imageId = availableImage?.id || image.id;
+              const hasData = availableImage?.hasData ?? true; // デフォルトでtrueに設定
 
               return (
                 <div
                   key={image.id}
                   className={`relative group aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer transition-all ${
-                    availableImage?.hasData && selectedImages.includes(imageId)
-                      ? 'ring-2 ring-blue-500 bg-blue-50'
-                      : 'hover:ring-2 hover:ring-blue-500'
+                    selectedImages.includes(imageId)
+                      ? 'ring-2 ring-nexus-blue bg-nexus-blue/10'
+                      : 'hover:ring-2 hover:ring-nexus-blue'
                   }`}
                 >
                   {/* チェックボックス */}
-                  {availableImage?.hasData && (
-                    <div className="absolute top-2 left-2 z-10">
-                      <input
-                        type="checkbox"
-                        checked={selectedImages.includes(imageId)}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          toggleImageSelection(imageId);
-                        }}
-                        className="w-4 h-4 text-blue-500 focus:ring-blue-500 border-gray-300 rounded"
-                      />
-                    </div>
-                  )}
+                  <div className="absolute top-2 left-2 z-10">
+                    <input
+                      type="checkbox"
+                      checked={selectedImages.includes(imageId)}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        toggleImageSelection(imageId);
+                      }}
+                      className="w-4 h-4 text-nexus-blue focus:ring-nexus-blue border-gray-300 rounded"
+                    />
+                  </div>
 
                   <div
                     className="w-full h-full"
@@ -530,29 +591,19 @@ export default function ProductPhotographyDetails({ productId, status }: Product
                         sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                       />
                     )}
-                    <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center">
-                      <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedImage(image.url);
-                          }}
-                          className="bg-white bg-opacity-80 hover:bg-opacity-100 text-gray-800 rounded-full p-2 transition-all"
-                        >
-                          <EyeIcon className="w-4 h-4" />
-                        </button>
-                        {availableImage?.hasData && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDownloadSingleImage(imageId, image.filename);
-                            }}
-                            className="bg-blue-500 bg-opacity-80 hover:bg-opacity-100 text-white rounded-full p-2 transition-all"
-                          >
-                            <Download className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
+                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center">
+                      <NexusButton
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDownloadSingleImage(imageId, image.filename);
+                        }}
+                        variant="primary"
+                        size="sm"
+                        icon={<Download className="w-4 h-4" />}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                      >
+                        ダウンロード
+                      </NexusButton>
                     </div>
                     <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-xs p-1 text-center">
                       <p className="truncate">{image.category}</p>
@@ -564,10 +615,10 @@ export default function ProductPhotographyDetails({ productId, status }: Product
           </div>
 
           {/* 画像情報表示エリア */}
-          <div className="bg-gray-50 rounded-lg p-3">
+          <div className="bg-nexus-bg-secondary rounded-lg p-3">
             <div className="text-sm">
               <div className="space-y-1">
-                <span className="block text-gray-600">
+                <span className="block text-nexus-text-secondary">
                   利用可能な画像: {availableImages.filter(img => img.hasData).length}/{availableImages.length || orderedImages.length}件
                 </span>
                 <div className="flex space-x-4 text-xs">
@@ -579,7 +630,7 @@ export default function ProductPhotographyDetails({ productId, status }: Product
                   </span>
                 </div>
                 {selectedImages.length > 0 && (
-                  <span className="block text-blue-600 font-medium">
+                  <span className="block text-nexus-blue font-medium">
                     選択中: {selectedImages.length}件
                   </span>
                 )}
