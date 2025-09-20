@@ -66,35 +66,39 @@ export async function POST(
       product = demoProduct;
     }
 
-    // ラベルデータ
+    // ラベルデータ（拡張版：追跡番号、コンディション、検品日を追加）
     const labelData = {
       productId: product.id,
       sku: product.sku,
       name: product.name,
       brand: 'Unknown',
       model: 'Unknown',
+      condition: product.condition || 'Unknown',
       price: typeof product.price === 'number' ? product.price : undefined,
       generatedBy: user.username,
       sellerName: product.seller?.fullName || product.seller?.username || 'Unknown',
       sellerUsername: product.seller?.username || 'Unknown',
       locationName: product.currentLocation?.name || '未設定',
       entryDate: product.entryDate ? new Date(product.entryDate).toLocaleDateString('ja-JP') : '',
+      inspectionDate: product.updatedAt ? new Date(product.updatedAt).toLocaleDateString('ja-JP') : '',
       notes: body.notes || '',
     };
 
-    // 商品ラベルPDFを生成
+    // 商品ラベルPDFを生成（拡張版フィールド追加）
     const pdfBlob = await PDFGenerator.generateProductLabel({
       productId: labelData.productId,
       sku: labelData.sku,
       name: labelData.name,
       brand: labelData.brand,
       model: labelData.model,
+      condition: labelData.condition,
       price: labelData.price,
       generatedBy: labelData.generatedBy,
       sellerName: labelData.sellerName,
       sellerUsername: labelData.sellerUsername,
       locationName: labelData.locationName,
       entryDate: labelData.entryDate,
+      inspectionDate: labelData.inspectionDate,
       notes: labelData.notes,
     });
 

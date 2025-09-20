@@ -444,19 +444,28 @@ export async function GET(request: NextRequest) {
 
 function getEbayCondition(condition: string): string {
   const conditionMap: Record<string, string> = {
-    'new': '1000', // New
-    'like_new': '1500', // New other
-    'excellent': '2000', // Manufacturer refurbished
+    'unused': '1000', // New
+    'top_mint': '1500', // New other
+    'mint': '1750', // Open Box
+    'near_mint': '2000', // Manufacturer refurbished
+    'excellent': '2500', // Used - Excellent
     'very_good': '3000', // Used
-    'good': '3000', // Used
-    'fair': '3000', // Used
-    'poor': '7000', // For parts or not working
+    'as_is': '4000', // Used - Acceptable
+    'for_parts': '7000', // For parts or not working
+    'clad': '2000', // Manufacturer refurbished
+    'other': '3000', // Used
+    // 旧形式との互換性
+    'new': '1000',
+    'like_new': '1500',
+    'good': '3000',
+    'fair': '3000',
+    'poor': '7000',
     'New': '1000',
     'Used': '3000',
     'Open Box': '1750',
     'Refurbished': '2000',
     'For Parts': '7000'
   };
-  
+
   return conditionMap[condition] || '3000';
 }

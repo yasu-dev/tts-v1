@@ -23,14 +23,20 @@ type SortDirection = 'asc' | 'desc';
 // 品質ランクバッジを生成する関数
 const getConditionBadge = (condition: string) => {
   const conditionConfig: Record<string, { bg: string; text: string; label: string }> = {
-    excellent: { bg: 'bg-green-800', text: 'text-white', label: '最高品質' },
-    good: { bg: 'bg-blue-800', text: 'text-white', label: '高品質' },
-    fair: { bg: 'bg-yellow-700', text: 'text-white', label: '標準品質' },
-    poor: { bg: 'bg-red-800', text: 'text-white', label: '要注意' }
+    unused: { bg: 'bg-emerald-800', text: 'text-white', label: '新品' },
+    top_mint: { bg: 'bg-green-800', text: 'text-white', label: 'ほぼ新品' },
+    mint: { bg: 'bg-green-700', text: 'text-white', label: 'ほぼ新品' },
+    near_mint: { bg: 'bg-blue-800', text: 'text-white', label: '極美品' },
+    excellent: { bg: 'bg-blue-700', text: 'text-white', label: '美品' },
+    very_good: { bg: 'bg-indigo-700', text: 'text-white', label: '良品' },
+    as_is: { bg: 'bg-yellow-700', text: 'text-white', label: '現状品' },
+    for_parts: { bg: 'bg-red-800', text: 'text-white', label: 'ジャンク' },
+    clad: { bg: 'bg-purple-800', text: 'text-white', label: '整備済み' },
+    other: { bg: 'bg-gray-700', text: 'text-white', label: 'その他' }
   };
 
-  const config = conditionConfig[condition] || conditionConfig.fair;
-  
+  const config = conditionConfig[condition] || conditionConfig.other;
+
   return (
     <span className={`
       inline-flex items-center
@@ -423,6 +429,16 @@ export default function InventoryPage() {
                       <div className="font-medium text-sm text-nexus-text-primary">
                         {item.name}
                       </div>
+                      {item.inspectionNotes && (
+                        <div className="mt-1">
+                          <div className="bg-red-100 border border-red-300 px-2 py-1 rounded text-xs">
+                            <span className="text-red-800 font-medium">検品備考:</span>
+                            <div className="text-red-700 mt-1 whitespace-pre-wrap break-words">
+                              {item.inspectionNotes}
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </td>
                     <td className="p-4">
                       <span className="font-mono text-sm text-nexus-text-primary">

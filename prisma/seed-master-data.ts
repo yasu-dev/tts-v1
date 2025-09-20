@@ -54,15 +54,16 @@ async function seedMasterData() {
     // 商品状態
     console.log('商品状態をシード中...');
     const productConditions = [
-      { key: 'new', nameJa: '新品', nameEn: 'New', sortOrder: 1 },
-      { key: 'like_new', nameJa: '新品同様', nameEn: 'Like New', sortOrder: 2 },
-      { key: 'excellent', nameJa: '極美品', nameEn: 'Excellent', sortOrder: 3 },
-      { key: 'very_good', nameJa: '美品', nameEn: 'Very Good', sortOrder: 4 },
-      { key: 'good', nameJa: '良品', nameEn: 'Good', sortOrder: 5 },
-      { key: 'fair', nameJa: '中古美品', nameEn: 'Fair', sortOrder: 6 },
-      { key: 'poor', nameJa: '中古', nameEn: 'Poor', sortOrder: 7 },
-      { key: 'unknown', nameJa: '状態不明', nameEn: 'Unknown', sortOrder: 8 },
-      { key: 'parts_only', nameJa: 'ジャンク品', nameEn: 'Parts Only', sortOrder: 9 },
+      { key: 'unused', nameJa: 'Unused（新品）', nameEn: 'Unused', sortOrder: 1 },
+      { key: 'top_mint', nameJa: 'Top Mint（ほぼ新品で箱や付属品付き）', nameEn: 'Top Mint', sortOrder: 2 },
+      { key: 'mint', nameJa: 'Mint（ほぼ新品）', nameEn: 'Mint', sortOrder: 3 },
+      { key: 'near_mint', nameJa: 'Near Mint（とてもきれいな外観、動作、光学系とも問題ないもの）', nameEn: 'Near Mint', sortOrder: 4 },
+      { key: 'excellent', nameJa: 'Excellent（外観は概ねきれい、動作、光学系とも問題ないもの）', nameEn: 'Excellent', sortOrder: 5 },
+      { key: 'very_good', nameJa: 'Very Good（使用はできるが、カビがひどい、強いクモリがあるなど）', nameEn: 'Very Good', sortOrder: 6 },
+      { key: 'as_is', nameJa: 'As-Is（撮影はできるが、何らかの機能が不良）', nameEn: 'As-Is', sortOrder: 7 },
+      { key: 'for_parts', nameJa: 'For Parts or For Repair（いわゆるジャンク品、パーツで使うもの）', nameEn: 'For Parts or For Repair', sortOrder: 8 },
+      { key: 'clad', nameJa: 'CLAD\'d（整備済み）', nameEn: 'CLAD\'d', sortOrder: 9 },
+      { key: 'other', nameJa: 'その他', nameEn: 'Other', sortOrder: 10 },
     ];
 
     for (const condition of productConditions) {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { X, Package, MapPin, Calendar, User, FileText, Tag, Download } from 'lucide-react';
+import { X, Package, MapPin, Calendar, User, FileText, Tag, Download, ArrowRight } from 'lucide-react';
 import { useModal } from '@/app/components/ui/ModalContext';
 import NexusButton from '@/app/components/ui/NexusButton';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
@@ -22,6 +22,7 @@ interface ProductInfo {
   inspectedAt?: string;
   inspectedBy?: string;
   inspectionNotes?: string;
+  notes?: string;
   currentLocation?: {
     id: string;
     code: string;
@@ -45,9 +46,10 @@ interface ProductInfoModalProps {
   isOpen: boolean;
   onClose: () => void;
   product: ProductInfo | null;
+  onMove?: (productId: string) => void;
 }
 
-export default function ProductInfoModal({ isOpen, onClose, product }: ProductInfoModalProps) {
+export default function ProductInfoModal({ isOpen, onClose, product, onMove }: ProductInfoModalProps) {
   
   // 重量データを取得（安全なメタデータアクセス）
   const getWeightInfo = () => {
@@ -95,7 +97,7 @@ export default function ProductInfoModal({ isOpen, onClose, product }: ProductIn
   // ステータスの日本語ラベル
   const statusLabels: Record<string, string> = {
     pending_inspection: '入庫待ち',
-    inspecting: '検品中',
+    inspecting: '検査中',
     storage: '保管中',
     completed: '検品完了',
     failed: '検品不合格',
@@ -251,6 +253,12 @@ export default function ProductInfoModal({ isOpen, onClose, product }: ProductIn
         message: error instanceof Error ? error.message : 'ラベルのダウンロードに失敗しました',
         duration: 5000
       });
+    }
+  };
+
+  const handleMoveProduct = () => {
+    if (product && onMove) {
+      onMove(product.id);
     }
   };
 
@@ -421,12 +429,14 @@ export default function ProductInfoModal({ isOpen, onClose, product }: ProductIn
                   {product.inspectionNotes && (
                     <div className="md:col-span-2">
                       <label className="text-sm font-medium text-gray-600">検品メモ</label>
-                      <div className="flex items-start gap-2 mt-1">
-                        <FileText className="h-4 w-4 text-blue-600 mt-0.5" />
-                        <div className="max-h-32 overflow-y-auto">
-                          <p className="text-gray-900 text-sm leading-relaxed whitespace-pre-wrap break-words">
-                            {stripHtmlTags(product.inspectionNotes)}
-                          </p>
+                      <div className="bg-red-100 border border-red-300 p-3 rounded-lg mt-1">
+                        <div className="flex items-start gap-2">
+                          <FileText className="h-4 w-4 text-red-600 mt-0.5" />
+                          <div className="max-h-32 overflow-y-auto">
+                            <p className="text-red-800 text-sm leading-relaxed whitespace-pre-wrap break-words font-medium">
+                              {stripHtmlTags(product.inspectionNotes)}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -441,6 +451,18 @@ export default function ProductInfoModal({ isOpen, onClose, product }: ProductIn
                   <div className="max-h-48 overflow-y-auto">
                     <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap break-words">
                       {stripHtmlTags(product.description)}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* 一般メモ（もしあれば） */}
+              {product.notes && (
+                <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                  <h3 className="text-lg font-medium text-gray-900 mb-3">メモ</h3>
+                  <div className="max-h-48 overflow-y-auto">
+                    <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap break-words">
+                      {stripHtmlTags(product.notes)}
                     </p>
                   </div>
                 </div>
@@ -482,18 +504,31 @@ export default function ProductInfoModal({ isOpen, onClose, product }: ProductIn
         {/* フッター */}
         <div className="border-t border-gray-200 p-6 bg-gray-50">
           <div className="flex justify-between">
-            {/* 納品プランラベルダウンロードボタン */}
-            {product.status === 'completed' && (
-              <NexusButton
-                onClick={handleDownloadDeliveryPlanLabel}
-                variant="primary"
-                icon={<Download className="h-4 w-4" />}
-                size="sm"
-              >
-                納品プランラベルDL
-              </NexusButton>
-            )}
-            <div className="flex gap-2 ml-auto">
+            <div className="flex gap-2">
+              {/* 納品プランラベルダウンロードボタン */}
+              {product.status === 'completed' && (
+                <NexusButton
+                  onClick={handleDownloadDeliveryPlanLabel}
+                  variant="primary"
+                  icon={<Download className="h-4 w-4" />}
+                  size="sm"
+                >
+                  納品プランラベルDL
+                </NexusButton>
+              )}
+              {/* 商品移動ボタン - 棚保管完了後の商品（検品完了済み）に表示 */}
+              {onMove && product && (product.status === 'completed' || product.status === 'storage' || product.status === 'inspecting') && (
+                <NexusButton
+                  onClick={handleMoveProduct}
+                  variant="secondary"
+                  icon={<ArrowRight className="h-4 w-4" />}
+                  size="sm"
+                >
+                  ロケーション移動
+                </NexusButton>
+              )}
+            </div>
+            <div className="flex gap-2">
               <button
                 onClick={onClose}
                 className="px-4 py-2 text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"

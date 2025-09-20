@@ -458,6 +458,18 @@ export default function ItemDetailModal({
                 )}
               </div>
 
+              {/* 検品備考 */}
+              {item.inspectionNotes && (
+                <div className="bg-red-100 border border-red-300 p-4 rounded-lg">
+                  <h4 className="font-medium text-red-800 mb-2">
+                    検品備考
+                  </h4>
+                  <div className="text-red-700 whitespace-pre-wrap break-words">
+                    {item.inspectionNotes}
+                  </div>
+                </div>
+              )}
+
               {/* QRコード情報 */}
               {item.qrCode && (
                 <div className="bg-nexus-bg-secondary rounded-lg p-4">
@@ -522,7 +534,7 @@ export default function ItemDetailModal({
                 variant="primary"
                 icon={<CheckIcon className="w-4 h-4" />}
               >
-                検品開始
+                {item.status === 'storage' ? 'ロケーション移動' : '検品開始'}
               </NexusButton>
             )}
             {onStartPhotography && inspectionPhotographyStatus.canStartPhotography && (

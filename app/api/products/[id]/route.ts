@@ -249,3 +249,103 @@ export async function PUT(
     );
   }
 }
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    // デモ環境: 認証をスキップしてデモユーザーを使用
+    const user = {
+      id: 'demo-staff',
+      username: 'デモスタッフ',
+      role: 'staff'
+    };
+
+    const productId = params.id;
+    const body = await request.json();
+
+    console.log(`[API] 商品移動 PATCH: ${productId}`, body);
+
+    // 商品の存在確認
+    const existingProduct = await prisma.product.findUnique({
+      where: { id: productId },
+    });
+
+    if (!existingProduct) {
+      return NextResponse.json(
+        { error: '商品が見つかりません' },
+        { status: 404 }
+      );
+    }
+
+    // 移動先ロケーション確認
+    let newLocationId = null;
+    if (body.location) {
+      const location = await prisma.location.findUnique({
+        where: { code: body.location }
+      });
+
+      if (!location) {
+        return NextResponse.json(
+          { error: `移動先ロケーション ${body.location} が見つかりません` },
+          { status: 400 }
+        );
+      }
+      newLocationId = location.id;
+    }
+
+    // 商品情報を部分更新
+    const updateData: any = {};
+    if (body.location && newLocationId) {
+      updateData.currentLocationId = newLocationId;
+    }
+    if (body.lastModified) {
+      updateData.updatedAt = new Date(body.lastModified);
+    }
+    // 検品備考の更新をサポート
+    if (body.inspectionNotes !== undefined) {
+      updateData.inspectionNotes = body.inspectionNotes;
+      console.log(`[API] 検品備考を更新: "${body.inspectionNotes}"`);
+    }
+
+    const updatedProduct = await prisma.product.update({
+      where: { id: productId },
+      data: updateData,
+      include: {
+        currentLocation: true,
+      },
+    });
+
+    // 移動ログを記録
+    if (body.moveReason) {
+      await prisma.activity.create({
+        data: {
+          type: 'product_move',
+          description: body.moveReason,
+          userId: null, // デモ環境では認証なしなのでnull
+          productId: updatedProduct.id,
+          metadata: JSON.stringify({
+            fromLocation: existingProduct.currentLocationId,
+            toLocation: newLocationId,
+            toLocationCode: body.location,
+          }),
+        },
+      });
+    }
+
+    console.log(`[API] 商品移動完了: ${updatedProduct.name} → ${body.location}`);
+
+    return NextResponse.json({
+      success: true,
+      product: updatedProduct,
+      message: '商品の移動が完了しました',
+    });
+  } catch (error) {
+    console.error('Error moving product:', error);
+    return NextResponse.json(
+      { error: '商品の移動に失敗しました' },
+      { status: 500 }
+    );
+  }
+}

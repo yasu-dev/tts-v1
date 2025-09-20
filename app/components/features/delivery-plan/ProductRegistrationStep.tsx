@@ -11,6 +11,7 @@ import HierarchicalInspectionChecklistInput from '@/app/components/features/insp
 import { useIsHierarchicalChecklistEnabled } from '@/lib/hooks/useHierarchicalChecklistFeature';
 import EnhancedImageUploader from '@/app/components/features/EnhancedImageUploader';
 import { PlusIcon, TrashIcon, PhotoIcon, CameraIcon } from '@heroicons/react/24/outline';
+import { useProductConditions } from '@/lib/hooks/useMasterData';
 
 interface ProductImage {
   id: string;
@@ -61,13 +62,7 @@ const categoryOptions = [
   { value: 'other', label: 'その他' }
 ];
 
-const conditionOptions = [
-  { value: 'excellent', label: '優良' },
-  { value: 'very_good', label: '美品' },
-  { value: 'good', label: '良好' },
-  { value: 'fair', label: '普通' },
-  { value: 'poor', label: '要修理' }
-];
+// コンディション選択肢はuseProductConditionsフックから動的に取得
 
 const imageCategoryOptions = [
   { value: 'product', label: '商品本体' },
@@ -85,24 +80,31 @@ const specialPhotographyOptions = [
   { value: 'accessories_individual', label: '付属品個別撮影' }
 ];
 
-export default function ProductRegistrationStep({ 
-  data, 
-  onUpdate, 
-  onNext, 
+export default function ProductRegistrationStep({
+  data,
+  onUpdate,
+  onNext,
   onPrev,
   isFirstStep,
   isLastStep
 }: ProductRegistrationStepProps) {
   const { showToast } = useToast();
-  
+  const { conditions: productConditions, loading: conditionsLoading } = useProductConditions();
+
   // 🎛️ フィーチャーフラグ：階層型検品チェックリストの有効/無効
   const isHierarchicalEnabled = useIsHierarchicalChecklistEnabled();
   console.log(`[ProductRegistration] 階層型検品チェックリスト: ${isHierarchicalEnabled ? '有効(新システム)' : '無効(既存システム)'}`);
-  
+
+  // コンディション選択肢をフォーマット
+  const conditionOptions = productConditions.map(condition => ({
+    value: condition.key,
+    label: condition.nameJa
+  }));
+
   // デフォルトで1つの空商品を含む配列を作成
   const createDefaultProduct = (): Product => ({
     name: '',
-    condition: 'excellent',
+    condition: 'unused',
     purchasePrice: 0,
     purchaseDate: '',
     supplier: '',
@@ -166,7 +168,7 @@ export default function ProductRegistrationStep({
     console.log('[DEBUG] 商品追加開始 - 現在の商品数:', products.length);
     const newProduct: Product = {
       name: '',
-      condition: 'excellent',
+      condition: 'unused',
       purchasePrice: 0,
       purchaseDate: '',
       supplier: '',

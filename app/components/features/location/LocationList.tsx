@@ -7,7 +7,7 @@ import NexusButton from '@/app/components/ui/NexusButton';
 import NexusCheckbox from '@/app/components/ui/NexusCheckbox';
 import Pagination from '@/app/components/ui/Pagination';
 import { useRouter } from 'next/navigation';
-import { ClipboardDocumentListIcon, CubeIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { ClipboardDocumentListIcon, CubeIcon, PlusIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import LocationCreateForm from './LocationCreateForm';
 import ProductImage from '@/app/components/ui/ProductImage';
 
@@ -36,9 +36,10 @@ interface ProductInLocation {
 
 interface LocationListProps {
   searchQuery?: string;
+  onProductMove?: (productId: string, productName: string) => void;
 }
 
-export default function LocationList({ searchQuery = '' }: LocationListProps) {
+export default function LocationList({ searchQuery = '', onProductMove }: LocationListProps) {
   const modalScrollRef = useRef<HTMLDivElement>(null);
   const [locations, setLocations] = useState<Location[]>([]);
 
@@ -1392,15 +1393,27 @@ export default function LocationList({ searchQuery = '' }: LocationListProps) {
                                 </p>
                               </div>
                             </div>
-                            <div className="text-right">
-                              <p className="text-sm font-medium">{product.registeredBy}</p>
-                              <p className="text-sm text-nexus-text-secondary">
-                                {new Date(product.registeredAt).toLocaleDateString('ja-JP', {
-                                  year: 'numeric',
-                                  month: '2-digit',
-                                  day: '2-digit'
-                                })}
-                              </p>
+                            <div className="flex items-center gap-3">
+                              <div className="text-right">
+                                <p className="text-sm font-medium">{product.registeredBy}</p>
+                                <p className="text-sm text-nexus-text-secondary">
+                                  {new Date(product.registeredAt).toLocaleDateString('ja-JP', {
+                                    year: 'numeric',
+                                    month: '2-digit',
+                                    day: '2-digit'
+                                  })}
+                                </p>
+                              </div>
+                              {onProductMove && product.category && !product.category.includes('shipping') && !product.category.includes('processing') && (
+                                <NexusButton
+                                  onClick={() => onProductMove(product.id, product.name)}
+                                  variant="secondary"
+                                  size="sm"
+                                  icon={<ArrowRightIcon className="h-4 w-4" />}
+                                >
+                                  移動
+                                </NexusButton>
+                              )}
                             </div>
                           </div>
                         </div>

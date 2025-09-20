@@ -212,6 +212,7 @@ export async function GET(request: NextRequest) {
         seller: product.seller,
         description: product.description,
         inspectedAt: product.inspectedAt,
+        inspectionNotes: product.inspectionNotes, // 検品備考を追加
         metadata: parsedMetadata, // 解析済みのデータを返す
         createdAt: product.createdAt.toISOString(),
         updatedAt: product.updatedAt.toISOString(),

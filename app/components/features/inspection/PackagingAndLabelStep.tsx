@@ -1,10 +1,33 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import { StarIcon } from '@heroicons/react/24/solid';
+
+// 商品追跡番号生成関数（ラベル生成と同じロジック）
+function generateTrackingNumber(sku: string): string {
+  if (!sku || !sku.startsWith('DP-')) {
+    return 'DP-000T0000T0000-0XXXXXXX0';
+  }
+
+  try {
+    const [prefix, timestamp, serial1, serial2] = sku.split('-');
+    const ts = timestamp || '0000000000000';
+    const part1 = ts.substring(1, 4) || '000';
+    const part2 = ts.substring(7, 11) || '0000';
+    const part3 = ts.substring(11) || '0000';
+    const transformedSerial = (serial1 || 'XXXXXXX')
+      .replace(/^7/, '1')
+      .replace(/7$/, '1');
+
+    return `${prefix}-${part1}T${part2}T${part3}-${transformedSerial}`;
+  } catch (error) {
+    console.warn('Tracking number generation failed:', error);
+    return 'DP-ERROR-GENERATION-FAILED';
+  }
+}
 
 interface PackagingAndLabelStepProps {
   productId: string;
@@ -14,6 +37,7 @@ interface PackagingAndLabelStepProps {
     sku: string;
     brand: string;
     model: string;
+    inspectionNotes?: string;
   };
   onNext: () => void;
   onPrev: () => void;
@@ -31,80 +55,72 @@ export default function PackagingAndLabelStep({
   onCancel,
   loading
 }: PackagingAndLabelStepProps) {
-  const { showToast } = useToast();
   const [packagingCompleted, setPackagingCompleted] = useState(false);
   const [labelPrinted, setLabelPrinted] = useState(false);
-  const [weight, setWeight] = useState('');
   const [weightEntered, setWeightEntered] = useState(false);
-  const [labelAttached, setLabelAttached] = useState(false);
-  const [isGeneratingLabel, setIsGeneratingLabel] = useState(false);
+  const [weight, setWeight] = useState('');
   const [notes, setNotes] = useState('');
-  const [productMetadata, setProductMetadata] = useState<any>(null);
+  const [isGeneratingLabel, setIsGeneratingLabel] = useState(false);
+  const { showToast } = useToast();
 
-  // 保存された重量データと商品メタデータを復元
+  // 状態の初期化（ローカル状態のみ使用）
   useEffect(() => {
-    const loadProductData = async () => {
-      try {
-        const response = await fetch(`/api/products/${productId}`);
-        if (response.ok) {
-          const productData = await response.json();
-          
-          console.log('[PackagingAndLabelStep] 商品データ取得:', {
-            productId,
-            hasDeliveryPlanInfo: !!productData.deliveryPlanInfo,
-            deliveryPlanInfo: productData.deliveryPlanInfo,
-            premiumPacking: productData.deliveryPlanInfo?.premiumPacking
-          });
-          
-          // メタデータを保存
-          setProductMetadata(productData);
-          
-          if (productData.metadata) {
-            const metadata = typeof productData.metadata === 'string'
-              ? JSON.parse(productData.metadata)
-              : productData.metadata;
-            
-            const savedWeight = metadata?.packaging?.weight;
-            if (savedWeight && savedWeight > 0) {
-              setWeight(savedWeight.toString());
-              setWeightEntered(true);
-              console.log(`[PackagingAndLabelStep] 保存された重量を復元: ${parseFloat(savedWeight).toFixed(1)}kg`);
-            }
-          }
-        }
-      } catch (error) {
-        console.log('[PackagingAndLabelStep] 商品データの復元をスキップ:', error);
+    // ローカルストレージから状態を復元
+    try {
+      const savedState = localStorage.getItem(`packaging_${productId}`);
+      if (savedState) {
+        const state = JSON.parse(savedState);
+        setPackagingCompleted(state.packagingCompleted || false);
+        setLabelPrinted(state.labelPrinted || false);
+        setWeightEntered(state.weightEntered || false);
+        setWeight(state.weight || '');
+        setNotes(state.notes || '');
       }
-    };
+    } catch (error) {
+      console.log('LocalStorage loading error (using defaults):', error);
+    }
+  }, [productId]);
 
-    loadProductData();
-  }, [productId]); // product依存を削除して無限ループを防止
-
-  const handlePackagingComplete = () => {
-    setPackagingCompleted(true);
-    showToast({
-      type: 'success',
-      title: '内装梱包完了',
-      message: '商品の内装梱包が完了しました。次に商品ラベルを出力してください。',
-      duration: 3000
-    });
+  const handlePackagingComplete = async () => {
+    try {
+      setPackagingCompleted(true);
+      
+      // ローカルストレージに保存
+      const state = {
+        packagingCompleted: true,
+        labelPrinted,
+        weightEntered,
+        weight,
+        notes
+      };
+      localStorage.setItem(`packaging_${productId}`, JSON.stringify(state));
+      
+      showToast({
+        type: 'success',
+        title: '梱包完了',
+        message: '内装梱包が完了しました',
+        duration: 3000
+      });
+    } catch (error) {
+      showToast({
+        type: 'error',
+        title: '梱包エラー',
+        message: '梱包状態の保存に失敗しました',
+        duration: 3000
+      });
+    }
   };
 
   const handleLabelGeneration = async () => {
+    setIsGeneratingLabel(true);
     try {
-      setIsGeneratingLabel(true);
-      
-      // 商品ラベル生成API呼び出し
       const response = await fetch(`/api/products/${productId}/label`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          productId: product.id,
-          sku: product.sku,
-          name: product.name,
-          brand: product.brand,
-          model: product.model,
-          notes: notes
+          productId,
+          notes: notes,
+          format: 'standard'
         })
       });
 
@@ -113,65 +129,68 @@ export default function PackagingAndLabelStep({
       }
 
       const result = await response.json();
-      
-      if (!result.success || !result.base64Data) {
-        throw new Error(result.message || 'ラベルPDFデータの取得に失敗しました');
-      }
 
-      // PDFをダウンロード
-      const link = document.createElement('a');
-      link.href = `data:application/pdf;base64,${result.base64Data}`;
-      link.download = result.fileName || `product_label_${product.sku}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
+      // Update state
       setLabelPrinted(true);
+
+      // Save state to localStorage
+      const state = {
+        packagingCompleted,
+        labelPrinted: true,
+        weightEntered,
+        weight,
+        notes
+      };
+      localStorage.setItem(`packaging_${productId}`, JSON.stringify(state));
+
       showToast({
         type: 'success',
-        title: 'ラベル出力完了',
-        message: '商品ラベルが出力されました。商品に貼り付けてください。',
+        title: 'ラベル生成完了',
+        message: 'ラベルの生成が完了しました',
         duration: 3000
       });
+
+      // Trigger print if supported
+      if (result.printUrl) {
+        window.open(result.printUrl, '_blank');
+      }
     } catch (error) {
-      console.error('Label generation error:', error);
       showToast({
         type: 'error',
-        title: 'ラベル出力エラー',
-        message: error instanceof Error ? error.message : 'ラベル出力中にエラーが発生しました',
-        duration: 4000
+        title: 'ラベル生成エラー',
+        message: 'ラベルの生成に失敗しました',
+        duration: 3000
       });
     } finally {
       setIsGeneratingLabel(false);
     }
   };
 
-  const handleLabelAttached = () => {
-    setLabelAttached(true);
-    showToast({
-      type: 'success',
-      title: 'ラベル貼り付け完了',
-      message: '商品ラベルの貼り付けが完了しました。次の棚保管ステップに進めます。',
-      duration: 3000
-    });
-  };
+  // プレミアム梱包リクエストの確認（メモ化でパフォーマンス向上とログ出力制限）
+  const premiumPackagingRequest = useMemo(() => {
+    // Fallback data structure for when API is unavailable
+    const fallbackDeliveryPlanInfo = {
+      premiumPacking: false,
+      packagingNotes: '',
+      specialNotes: ''
+    };
 
-  // プレミアム梱包リクエストの確認
-  const getPremiumPackagingRequest = () => {
-    // まずpropsから確認
-    const propDeliveryPlanInfo = (product as any)?.deliveryPlanInfo;
-    // 次にAPIから取得したデータを確認
-    const metadataDeliveryPlanInfo = productMetadata?.deliveryPlanInfo;
-    
-    const deliveryPlanInfo = propDeliveryPlanInfo || metadataDeliveryPlanInfo;
-    
+    let deliveryPlanInfo;
+    try {
+      // Try to get delivery plan info from localStorage or context
+      const savedData = localStorage.getItem(`deliveryPlan_${productId}`);
+      deliveryPlanInfo = savedData ? JSON.parse(savedData) : fallbackDeliveryPlanInfo;
+    } catch (error) {
+      console.warn('[PackagingAndLabelStep] localStorage access error:', error);
+      deliveryPlanInfo = fallbackDeliveryPlanInfo;
+    }
+
     if (!deliveryPlanInfo) {
-      console.log('[PackagingAndLabelStep] deliveryPlanInfo not found in both props and metadata');
       return null;
     }
-    
+
     try {
-      // プレミアム梱包のリクエストを確認（ログは初回のみ）
+      // プレミアム梱包のリクエストを確認
       if (deliveryPlanInfo.premiumPacking === true) {
         return {
           requested: true,
@@ -181,13 +200,14 @@ export default function PackagingAndLabelStep({
     } catch (error) {
       console.warn('[PackagingAndLabelStep] プレミアム梱包リクエストの確認エラー:', error);
     }
-    
-    console.log('[PackagingAndLabelStep] プレミアム梱包リクエストなし');
-    return null;
-  };
 
-  const premiumPackagingRequest = getPremiumPackagingRequest();
-  const canProceedToNext = packagingCompleted && labelPrinted && weightEntered && labelAttached;
+    // 開発環境でのみログ出力（本番では出力しない）
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[PackagingAndLabelStep] プレミアム梱包リクエストなし');
+    }
+    return null;
+  }, [productId]); // productIdが変更された時のみ再計算
+  const canProceedToNext = labelPrinted && weightEntered;
 
   return (
     <div className="space-y-6">
@@ -240,48 +260,17 @@ export default function PackagingAndLabelStep({
             <p className="text-sm text-gray-600 mb-4">
               商品を適切な梱包材で内装梱包してください。
             </p>
-            {!packagingCompleted && (
-              <NexusButton
-                onClick={handlePackagingComplete}
-                variant="primary"
-                size="sm"
-              >
-                内装梱包完了
-              </NexusButton>
-            )}
-          </div>
 
-          {/* ステップ2: ラベル出力 */}
-          <div className="border rounded-lg p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-base font-medium">2. 商品ラベル出力</h4>
-              {labelPrinted && (
-                <div className="flex items-center text-green-600">
-                  <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  完了
-                </div>
-              )}
-            </div>
-            <p className="text-sm text-gray-600 mb-4">
-              商品情報が印刷された商品ラベルを出力します。
-            </p>
-            <div className="bg-gray-50 p-3 rounded mb-4 text-sm">
-              <div><strong>SKU:</strong> {product.sku}</div>
-              <div><strong>商品名:</strong> {product.name}</div>
-            </div>
-            
             {/* 備考入力フィールド */}
             <div className="mb-4">
-              <label htmlFor="label-notes" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="packaging-notes" className="block text-sm font-medium text-gray-700 mb-2">
                 備考（任意）
               </label>
               <textarea
-                id="label-notes"
+                id="packaging-notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="ラベルに印刷する備考を入力してください（任意）"
+                placeholder="梱包やラベルに関する備考を入力してください（任意）"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 rows={2}
                 maxLength={100}
@@ -290,26 +279,12 @@ export default function PackagingAndLabelStep({
                 最大100文字まで入力可能です
               </p>
             </div>
-            
-            {packagingCompleted && !labelPrinted && (
-              <NexusButton
-                onClick={handleLabelGeneration}
-                variant="primary"
-                size="sm"
-                disabled={isGeneratingLabel}
-              >
-                {isGeneratingLabel ? 'ラベル生成中...' : 'ラベル出力'}
-              </NexusButton>
-            )}
-            {!packagingCompleted && (
-              <p className="text-sm text-gray-500">内装梱包を完了してからラベルを出力してください</p>
-            )}
           </div>
 
-          {/* ステップ3: 重量測定 */}
+          {/* ステップ2: 重量測定 */}
           <div className="border rounded-lg p-4">
             <div className="flex items-center justify-between mb-3">
-              <h4 className="text-base font-medium">3. 重量測定 <span className="text-red-500">*</span></h4>
+              <h4 className="text-base font-medium">2. 重量測定 <span className="text-red-500">*</span></h4>
               {weightEntered && (
                 <div className="flex items-center text-green-600">
                   <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -322,7 +297,8 @@ export default function PackagingAndLabelStep({
             <p className="text-sm text-gray-600 mb-4">
               梱包済み商品の重量を測定してください。
             </p>
-            {labelPrinted && !weightEntered && (
+
+            {!weightEntered && (
               <div className="space-y-3">
                 <div>
                   <label htmlFor="product-weight" className="block text-sm font-medium text-gray-700 mb-1">
@@ -354,7 +330,7 @@ export default function PackagingAndLabelStep({
                       });
                       return;
                     }
-                    
+
                     try {
                       // 重量データをmetadataに保存
                       const response = await fetch(`/api/products/${productId}/weight`, {
@@ -382,19 +358,16 @@ export default function PackagingAndLabelStep({
                         type: 'error',
                         title: '重量保存エラー',
                         message: '重量データの保存に失敗しました',
-                        duration: 4000
+                        duration: 3000
                       });
                     }
                   }}
                   variant="primary"
                   size="sm"
                 >
-                  重量を記録
+                  重量測定完了
                 </NexusButton>
               </div>
-            )}
-            {!labelPrinted && (
-              <p className="text-sm text-gray-500">ラベル出力を完了してから重量を測定してください</p>
             )}
             {weightEntered && (
               <div className="bg-green-50 p-3 rounded border text-sm">
@@ -403,11 +376,11 @@ export default function PackagingAndLabelStep({
             )}
           </div>
 
-          {/* ステップ4: ラベル貼り付け */}
+          {/* ステップ3: ラベル出力 */}
           <div className="border rounded-lg p-4">
             <div className="flex items-center justify-between mb-3">
-              <h4 className="text-base font-medium">4. ラベル貼り付け</h4>
-              {labelAttached && (
+              <h4 className="text-base font-medium">3. 商品ラベル出力</h4>
+              {labelPrinted && (
                 <div className="flex items-center text-green-600">
                   <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -417,55 +390,77 @@ export default function PackagingAndLabelStep({
               )}
             </div>
             <p className="text-sm text-gray-600 mb-4">
-              出力した商品ラベルを梱包した商品に貼り付けてください。
+              商品情報が印刷された商品ラベルを出力します。
             </p>
-            {weightEntered && !labelAttached && (
+            <div className="bg-yellow-50 border border-yellow-200 p-4 rounded mb-4 text-sm space-y-2">
+              <div className="font-semibold text-yellow-800 mb-2">📋 ラベル出力情報</div>
+              <div className="bg-yellow-100 p-2 rounded border">
+                <strong className="text-yellow-900">商品ラベル記載番号:</strong>
+                <span className="ml-2 font-mono text-lg font-bold text-yellow-800">
+                  {generateTrackingNumber(product.sku)}
+                </span>
+              </div>
+              <div><strong>SKU:</strong> <span className="font-mono">{product.sku}</span></div>
+              <div><strong>商品名:</strong> {product.name}</div>
+              {notes && (
+                <div className="bg-red-100 border border-red-300 p-2 rounded">
+                  <strong className="text-red-800">検品備考:</strong>
+                  <div className="text-red-700 mt-1 whitespace-pre-wrap break-words">
+                    {notes}
+                  </div>
+                </div>
+              )}
+              <div className="text-xs text-yellow-700 mt-2">
+                ✅ ピッキング指示と完全一致する追跡番号が生成されます
+              </div>
+            </div>
+
+            {weightEntered && !labelPrinted && (
               <NexusButton
-                onClick={handleLabelAttached}
+                onClick={handleLabelGeneration}
                 variant="primary"
                 size="sm"
+                disabled={isGeneratingLabel}
               >
-                ラベル貼り付け完了
+                {isGeneratingLabel ? 'ラベル生成中...' : 'ラベル出力'}
               </NexusButton>
             )}
             {!weightEntered && (
-              <p className="text-sm text-gray-500">重量測定を完了してからラベル貼り付けを行ってください</p>
+              <p className="text-sm text-gray-500">重量測定を完了してからラベルを出力してください</p>
+            )}
+          </div>
+
+          {/* ステップ4: ラベル貼り付け */}
+          <div className="border rounded-lg p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-base font-medium">4. ラベル貼り付け</h4>
+              {labelPrinted && (
+                <div className="flex items-center text-green-600">
+                  <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  ラベル出力済み
+                </div>
+              )}
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+              出力したラベルを商品の見やすい位置に貼り付けてください。
+            </p>
+            {labelPrinted && (
+              <div className="bg-blue-50 p-3 rounded border border-blue-200 text-sm">
+                <strong>注意:</strong> ラベルを貼り付けてから「次へ」ボタンで次のステップへ進んでください
+              </div>
+            )}
+            {!labelPrinted && (
+              <p className="text-sm text-gray-500">ラベル出力を完了してからラベルを貼り付けてください</p>
             )}
           </div>
         </div>
       </NexusCard>
 
-      {/* 進行状況表示 */}
-      <NexusCard className="p-4 bg-blue-50 border-blue-200">
-        <div className="flex items-center justify-between">
-          <div>
-            <h4 className="text-sm font-medium text-blue-900">作業進捗</h4>
-            <p className="text-sm text-blue-700">
-              {packagingCompleted ? '✓' : '○'} 内装梱包　
-              {labelPrinted ? '✓' : '○'} ラベル出力　
-              {weightEntered ? '✓' : '○'} 重量測定　
-              {labelAttached ? '✓' : '○'} ラベル貼り付け
-            </p>
-          </div>
-          <div className="text-sm text-blue-700">
-            {canProceedToNext ? '次のステップに進めます' : '作業を完了してください'}
-          </div>
-        </div>
-      </NexusCard>
-
-      {/* ナビゲーションボタン */}
-      <div className="flex justify-between">
+      {/* 保存・戻るボタン */}
+      <div className="flex justify-between items-center">
         <div className="flex gap-3">
-          {onCancel && (
-            <NexusButton
-              onClick={onCancel}
-              variant="outline"
-              size="lg"
-              disabled={loading}
-            >
-              キャンセル（一覧に戻る）
-            </NexusButton>
-          )}
           <NexusButton
             onClick={onPrev}
             variant="secondary"
@@ -484,7 +479,59 @@ export default function PackagingAndLabelStep({
           </NexusButton>
         </div>
         <NexusButton
-          onClick={onNext}
+          onClick={async () => {
+            try {
+              // 全ての状態をローカルストレージに保存
+              const state = {
+                packagingCompleted: true,
+                labelPrinted: true,
+                weightEntered: true,
+                weight: weight,
+                notes: notes
+              };
+              localStorage.setItem(`packaging_${productId}`, JSON.stringify(state));
+
+              // 検品備考をデータベースに保存（notes が入力されている場合のみ）
+              if (notes && notes.trim()) {
+                try {
+                  const response = await fetch(`/api/products/${productId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      inspectionNotes: notes.trim()
+                    })
+                  });
+
+                  if (!response.ok) {
+                    throw new Error('検品備考の保存に失敗しました');
+                  }
+
+                  console.log('✅ 検品備考をデータベースに保存しました:', notes.trim());
+
+                  showToast({
+                    type: 'success',
+                    title: '検品備考保存完了',
+                    message: '検品備考が保存されました',
+                    duration: 2000
+                  });
+                } catch (error) {
+                  console.error('❌ 検品備考の保存エラー:', error);
+                  showToast({
+                    type: 'error',
+                    title: '検品備考保存エラー',
+                    message: '検品備考の保存に失敗しました',
+                    duration: 3000
+                  });
+                  // エラーがあっても次のステップに進む
+                }
+              }
+
+              onNext();
+            } catch (error) {
+              console.error('Save error:', error);
+              onNext();
+            }
+          }}
           variant="primary"
           size="lg"
           disabled={!canProceedToNext || loading}

@@ -5,9 +5,11 @@ import DashboardLayout from '@/app/components/layouts/DashboardLayout';
 import UnifiedPageHeader from '@/app/components/ui/UnifiedPageHeader';
 import LocationList from '@/app/components/features/location/LocationList';
 import LocationRegistration from '@/app/components/features/location/LocationRegistration';
+import ProductMoveModal from '@/app/components/ProductMoveModal';
 
 
 import NexusButton from '@/app/components/ui/NexusButton';
+import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 import {
   MagnifyingGlassIcon,
@@ -25,9 +27,12 @@ interface LocationStats {
 }
 
 export default function LocationPage() {
+  const { showToast } = useToast();
 
   const [activeTab, setActiveTab] = useState<'overview' | 'register' | 'analytics'>('overview');
   const [quickSearch, setQuickSearch] = useState('');
+  const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
+  const [selectedProductForMove, setSelectedProductForMove] = useState<any>(null);
 
   const [stats, setStats] = useState<LocationStats>({
     totalLocations: 0,
@@ -74,6 +79,50 @@ export default function LocationPage() {
     }
   };
 
+  const handleMove = async (itemId: string, newLocation: string, reason: string) => {
+    try {
+      // 商品の棚移動API呼び出し
+      const response = await fetch(`/api/products/${itemId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          location: newLocation,
+          lastModified: new Date().toISOString(),
+          moveReason: reason
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('商品の移動に失敗しました');
+      }
+
+      console.log(`商品移動完了: ${itemId} → ${newLocation} (理由: ${reason})`);
+
+      showToast({
+        type: 'success',
+        title: '商品移動完了',
+        message: `商品を${newLocation}に移動しました`,
+        duration: 3000
+      });
+
+      // モーダルを閉じる
+      setIsMoveModalOpen(false);
+      setSelectedProductForMove(null);
+
+      // ロケーション情報を再取得
+      fetchLocationStats();
+    } catch (error) {
+      console.error('商品移動エラー:', error);
+      showToast({
+        type: 'error',
+        title: '移動エラー',
+        message: '商品の移動に失敗しました',
+        duration: 3000
+      });
+    }
+  };
 
   if (!mounted) {
     return null;
@@ -154,7 +203,44 @@ export default function LocationPage() {
         <div className="min-h-[60vh]">
           {activeTab === 'overview' && (
             <div className="space-y-6">
-              <LocationList searchQuery={quickSearch} />
+              <LocationList
+                searchQuery={quickSearch}
+                onProductMove={async (productId, productName) => {
+                  try {
+                    // 商品詳細情報を取得
+                    const response = await fetch(`/api/products/${productId}`);
+                    if (response.ok) {
+                      const productData = await response.json();
+
+                      // ProductMoveModalで使用する形式に変換
+                      const productForMove = {
+                        id: productData.id,
+                        name: productData.name,
+                        sku: productData.sku,
+                        category: productData.category,
+                        status: productData.status,
+                        location: productData.currentLocation?.code || 'N/A',
+                        price: productData.price || 0,
+                        condition: productData.condition,
+                        imageUrl: productData.imageUrl,
+                        entryDate: productData.entryDate,
+                        assignedStaff: productData.assignedStaff,
+                        lastModified: productData.updatedAt,
+                        notes: productData.description
+                      };
+
+                      setSelectedProductForMove(productForMove);
+                      setIsMoveModalOpen(true);
+                    } else {
+                      console.error('商品情報の取得に失敗しました');
+                      alert('商品情報の取得に失敗しました');
+                    }
+                  } catch (error) {
+                    console.error('商品情報取得エラー:', error);
+                    alert('商品情報の取得中にエラーが発生しました');
+                  }
+                }}
+              />
             </div>
           )}
 
@@ -225,6 +311,17 @@ export default function LocationPage() {
 
 
 
+
+        {/* Product Move Modal */}
+        <ProductMoveModal
+          isOpen={isMoveModalOpen}
+          onClose={() => {
+            setIsMoveModalOpen(false);
+            setSelectedProductForMove(null);
+          }}
+          item={selectedProductForMove}
+          onMove={handleMove}
+        />
 
       </div>
     </DashboardLayout>

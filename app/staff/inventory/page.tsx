@@ -52,6 +52,7 @@ interface InventoryItem {
   inspectedAt?: string; // 検品日時を追加
   photographyDate?: string; // 撮影日時を追加
   seller?: { id: string; username: string; email: string }; // セラー情報を追加
+  inspectionNotes?: string; // 検品備考を追加
   // 同梱情報フィールド追加
   bundleId?: string;
   isBundleItem?: boolean;
@@ -271,14 +272,8 @@ export default function StaffInventoryPage() {
                             .replace('on_hold', '保留中'),
           location: item.location || '未設定',
           price: item.price || 0,
-          condition: item.condition.replace('new', '新品')
-                                  .replace('like_new', '新品同様')
-                                  .replace('excellent', '極美品')
-                                  .replace('very_good', '美品')
-                                  .replace('good', '良品')
-                                  .replace('fair', '中古美品')
-                                  .replace('poor', '中古')
-                                  .replace('unknown', '状態不明'),
+          condition: item.condition,
+          conditionDisplay: getNameByKey(productConditions, item.condition),
           entryDate: item.entryDate || item.createdAt?.split('T')[0] || '2024-01-01',
           assignedStaff: item.seller?.username || '担当者未設定',
           seller: item.seller ? {
@@ -295,6 +290,7 @@ export default function StaffInventoryPage() {
           photographyDate: item.photographyDate || null,
           imageUrl: item.imageUrl || item.images?.[0] || null, // セラーがアップロードした画像を優先
           images: item.images || [], // セラーがアップロードした全画像
+          inspectionNotes: item.inspectionNotes || null, // 検品備考を追加
           // 同梱情報フィールド（初期値）
           bundleId: item.bundleId || null,
           isBundleItem: item.isBundleItem || false,
@@ -757,6 +753,16 @@ export default function StaffInventoryPage() {
                       </td>
                       <td className="p-4">
                         <div className="font-medium text-sm text-nexus-text-primary">{item.name}</div>
+                        {item.inspectionNotes && (
+                          <div className="mt-1">
+                            <div className="bg-red-100 border border-red-300 px-2 py-1 rounded text-xs">
+                              <span className="text-red-800 font-medium">検品備考:</span>
+                              <div className="text-red-700 mt-1 whitespace-pre-wrap break-words">
+                                {item.inspectionNotes}
+                              </div>
+                            </div>
+                          </div>
+                        )}
                         {item.isBundleItem && (
                           <div className="mt-1 space-y-1">
                             <div className="flex items-center gap-1 text-xs">
@@ -918,6 +924,16 @@ export default function StaffInventoryPage() {
           isOpen={isProductInfoModalOpen}
           onClose={handleCloseProductInfoModal}
           product={selectedProductForInfo}
+          onMove={(productId) => {
+            // ProductInfoModalを閉じる
+            handleCloseProductInfoModal();
+            // 移動対象商品を設定してMoveModalを開く
+            const productForMove = items.find(item => item.id === productId);
+            if (productForMove) {
+              setSelectedItem(productForMove);
+              setIsMoveModalOpen(true);
+            }
+          }}
         />
 
         {/* Barcode Scanner Modal */}

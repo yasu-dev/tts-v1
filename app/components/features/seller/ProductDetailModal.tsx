@@ -229,25 +229,30 @@ export default function ProductDetailModal({ isOpen, onClose, product, onOpenLis
   };
 
   const tabs = [
-    { 
-      id: 'basic', 
-      label: '基本情報', 
+    {
+      id: 'basic',
+      label: '基本情報',
       icon: <DocumentTextIcon className="w-5 h-5" />
     },
-    { 
-      id: 'inspection', 
-      label: '検品項目', 
+    {
+      id: 'inspection',
+      label: '検品項目',
       icon: <CheckCircleIcon className="w-5 h-5" />
     },
-    { 
-      id: 'photography', 
-      label: '撮影画像', 
+    {
+      id: 'photography',
+      label: '撮影画像',
       icon: <CameraIcon className="w-5 h-5" />
     },
-    { 
-      id: 'storage', 
-      label: '保管先', 
+    {
+      id: 'storage',
+      label: '保管先',
       icon: <BuildingStorefrontIcon className="w-5 h-5" />
+    },
+    {
+      id: 'notes',
+      label: '備考',
+      icon: <DocumentTextIcon className="w-5 h-5" />
     },
   ];
 
@@ -408,6 +413,61 @@ export default function ProductDetailModal({ isOpen, onClose, product, onOpenLis
               productId={product.id}
               status={product.status}
             />
+          )}
+
+          {activeTab === 'notes' && (
+            <div className="space-y-6">
+              <div className="border rounded-lg p-6">
+                <h4 className="font-bold text-nexus-text-primary mb-4">商品備考</h4>
+
+                {/* 商品説明 */}
+                {product.description && (
+                  <div className="mb-6">
+                    <h5 className="font-medium text-nexus-text-secondary mb-2">商品説明</h5>
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <div
+                        className="text-nexus-text-primary whitespace-pre-wrap"
+                        dangerouslySetInnerHTML={{ __html: product.description }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* 検品メモ */}
+                {product.inspectionNotes && (
+                  <div className="mb-6">
+                    <h5 className="font-medium text-nexus-text-secondary mb-2">検品メモ</h5>
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                      <div
+                        className="text-nexus-text-primary whitespace-pre-wrap"
+                        dangerouslySetInnerHTML={{ __html: product.inspectionNotes }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* 一般メモ */}
+                {product.notes && (
+                  <div className="mb-6">
+                    <h5 className="font-medium text-nexus-text-secondary mb-2">メモ</h5>
+                    <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                      <div
+                        className="text-nexus-text-primary whitespace-pre-wrap"
+                        dangerouslySetInnerHTML={{ __html: product.notes }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* 備考が何もない場合 */}
+                {!product.description && !product.inspectionNotes && !product.notes && (
+                  <div className="text-center py-8 text-nexus-text-secondary">
+                    <DocumentTextIcon className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p>備考情報はありません</p>
+                  </div>
+                )}
+              </div>
+            </div>
           )}
         </div>
       </div>

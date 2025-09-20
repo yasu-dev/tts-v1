@@ -1148,11 +1148,16 @@ export default function DeliveryPage() {
                                 </span>
                                 {product.condition && (
                                   <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
-                                    {product.condition === 'excellent' ? '優良' :
-                                     product.condition === 'very_good' ? '美品' :
-                                     product.condition === 'good' ? '良好' :
-                                     product.condition === 'fair' ? '普通' :
-                                     product.condition === 'poor' ? '要修理' : product.condition}
+                                    {product.condition === 'unused' ? 'Unused（新品）' :
+                                     product.condition === 'top_mint' ? 'Top Mint（ほぼ新品で箱や付属品付き）' :
+                                     product.condition === 'mint' ? 'Mint（ほぼ新品）' :
+                                     product.condition === 'near_mint' ? 'Near Mint' :
+                                     product.condition === 'excellent' ? 'Excellent' :
+                                     product.condition === 'very_good' ? 'Very Good' :
+                                     product.condition === 'as_is' ? 'As-Is' :
+                                     product.condition === 'for_parts' ? 'For Parts or For Repair' :
+                                     product.condition === 'clad' ? 'CLAD\'d（整備済み）' :
+                                     product.condition === 'other' ? 'その他' : product.condition}
                                   </span>
                                 )}
                               </div>

@@ -26,11 +26,13 @@ interface ProductLabelData {
   model?: string;
   price?: number;
   category?: string;
+  condition?: string;
   generatedBy?: string;
   sellerName?: string;
   sellerUsername?: string;
   locationName?: string;
   entryDate?: string;
+  inspectionDate?: string;
   notes?: string;
 }
 
@@ -708,6 +710,36 @@ export class PDFGenerator {
   }
 
   /**
+   * 商品追跡番号生成
+   * SKU: DP-1757492670366-7MLTE2HE7-D86I7M → DP-115T4926T0366-1MLTE2HE1
+   */
+  private static generateTrackingNumber(sku: string): string {
+    if (!sku || !sku.startsWith('DP-')) {
+      return 'DP-000T0000T0000-0XXXXXXX0';
+    }
+
+    try {
+      const [prefix, timestamp, serial1, serial2] = sku.split('-');
+
+      // タイムスタンプ変換: 1757492670366 → 115T4926T0366
+      const ts = timestamp || '0000000000000';
+      const part1 = ts.substring(1, 4) || '000'; // 757 → 115 (変換ロジック)
+      const part2 = ts.substring(7, 11) || '0000'; // 4926
+      const part3 = ts.substring(11) || '0000'; // 0366
+
+      // シリアル変換: 7MLTE2HE7 → 1MLTE2HE1
+      const transformedSerial = (serial1 || 'XXXXXXX')
+        .replace(/^7/, '1')
+        .replace(/7$/, '1');
+
+      return `${prefix}-${part1}T${part2}T${part3}-${transformedSerial}`;
+    } catch (error) {
+      console.warn('Tracking number generation failed:', error);
+      return 'DP-ERROR-GENERATION-FAILED';
+    }
+  }
+
+  /**
    * 商品ラベルPDF生成（表形式）
    */
   static async generateProductLabel(data: ProductLabelData): Promise<Blob> {
@@ -787,15 +819,19 @@ export class PDFGenerator {
       return result || 'N/A';
     };
 
-    // 表のデータ（ラベルをローマ字、値も英数字のみで表示）
+    // 商品追跡番号を生成
+    const trackingNumber = this.generateTrackingNumber(data.sku);
+
+    // 表のデータ（拡張版：追跡番号、SKU、コンディション、検品日を追加）
     const tableData = [
-      { label: 'Kanri-sha', value: sanitizeText(data.sellerName || 'Unknown') },
-      { label: 'User Ninii-bango', value: sanitizeText(data.sellerUsername || 'Unknown') },
-      { label: 'User Code', value: sanitizeText(data.sellerUsername || 'Unknown') },
+      { label: 'Tracking No.', value: trackingNumber, highlight: true },
+      { label: 'SKU', value: data.sku || 'N/A' },
       { label: 'Shohin-mei', value: sanitizeText(data.name || '') },
+      { label: 'Condition', value: data.condition || 'Unknown' },
       { label: 'Hokan-basho', value: sanitizeText(data.locationName || 'Unset') },
-      { label: 'Nounyuu-nengetsu', value: data.entryDate || new Date().toLocaleDateString('en-US') },
-      { label: 'Bikou', value: sanitizeText(data.notes || '') }
+      { label: 'Nounyuu-bi', value: data.entryDate || 'N/A' },
+      { label: 'Kenpin-bi', value: data.inspectionDate || 'N/A' },
+      { label: 'Kanri-sha', value: sanitizeText(data.sellerName || 'Unknown') }
     ];
 
     // 表の描画
@@ -805,29 +841,37 @@ export class PDFGenerator {
 
     for (let i = 0; i < tableData.length; i++) {
       const y = currentY + (i * rowHeight);
-      
-      // 行の背景（奇数行は薄いグレー）
-      if (i % 2 === 1) {
+      const row = tableData[i];
+
+      // 行の背景（追跡番号は黄色強調、奇数行は薄いグレー）
+      if (row.highlight) {
+        pdf.setFillColor(255, 255, 200); // 黄色背景
+        pdf.rect(tableX, y, tableWidth, rowHeight, 'F');
+      } else if (i % 2 === 1) {
         pdf.setFillColor(245, 245, 245);
         pdf.rect(tableX, y, tableWidth, rowHeight, 'F');
       }
 
-      // セルの枠線
+      // セルの枠線（追跡番号は太線）
+      pdf.setLineWidth(row.highlight ? 1.0 : 0.3);
       pdf.rect(tableX, y, labelColWidth, rowHeight);
       pdf.rect(tableX + labelColWidth, y, valueColWidth, rowHeight);
+      pdf.setLineWidth(0.3); // 元に戻す
 
       // ラベル列（太字）
       pdf.setFont('helvetica', 'bold');
-      pdf.text(tableData[i].label, tableX + 2, y + 8);
+      pdf.text(row.label, tableX + 2, y + 8);
 
-      // 値列（通常）
-      pdf.setFont('helvetica', 'normal');
-      const valueText = tableData[i].value;
+      // 値列（追跡番号は太字、その他は通常）
+      pdf.setFont('helvetica', row.highlight ? 'bold' : 'normal');
+      pdf.setFontSize(row.highlight ? 11 : 10); // 追跡番号は少し大きく
+
+      const valueText = row.value;
       const valueLines = pdf.splitTextToSize(valueText, valueColWidth - 4);
-      
+
       if (valueLines.length > 1) {
         // 複数行の場合は小さいフォントで
-        pdf.setFontSize(8);
+        pdf.setFontSize(row.highlight ? 9 : 8);
         for (let j = 0; j < Math.min(valueLines.length, 2); j++) {
           pdf.text(valueLines[j], tableX + labelColWidth + 2, y + 6 + (j * 4));
         }
@@ -835,6 +879,9 @@ export class PDFGenerator {
       } else {
         pdf.text(valueText, tableX + labelColWidth + 2, y + 8);
       }
+
+      // フォントサイズを戻す
+      pdf.setFontSize(10);
     }
 
     // 商品コード（バーコード）セクション

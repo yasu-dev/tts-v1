@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { BaseModal, NexusButton, NexusInput, NexusSelect, NexusTextarea, BusinessStatusIndicator } from './ui';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
-import { 
-  PencilIcon, 
+import { useProductConditions } from '@/lib/hooks/useMasterData';
+import {
+  PencilIcon,
   TagIcon,
   MapPinIcon,
   CurrencyYenIcon,
@@ -138,13 +139,13 @@ export default function ProductEditModal({
     { value: 'アクセサリ', label: 'アクセサリ' }
   ];
 
-  const conditionOptions = [
-    { value: '新品', label: '新品' },
-    { value: '美品', label: '美品' },
-    { value: '良品', label: '良品' },
-    { value: '可', label: '可' },
-    { value: '要修理', label: '要修理' }
-  ];
+  const { conditions: productConditions, loading: conditionsLoading } = useProductConditions();
+
+  // コンディション選択肢をフォーマット
+  const conditionOptions = productConditions.map(condition => ({
+    value: condition.key,
+    label: condition.nameJa
+  }));
 
   const locationOptions = [
     { value: 'A区画', label: 'A区画' },
