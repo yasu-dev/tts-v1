@@ -106,9 +106,16 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { productId, platform, templateId, customSettings, productUpdates } = body;
+    const { productId, platform, templateId, customSettings, productUpdates, computerImages, photographyImageUrls } = body;
 
-    console.log('🚀 /api/listing POST: 出品処理開始', { productId, platform, customSettings, productUpdates });
+    console.log('🚀 /api/listing POST: 出品処理開始', {
+      productId,
+      platform,
+      customSettings,
+      productUpdates,
+      computerImagesCount: computerImages?.length || 0,
+      photographyImagesCount: photographyImageUrls?.length || 0
+    });
 
     // 商品情報を取得
     const product = await prisma.product.findUnique({
@@ -177,6 +184,34 @@ export async function POST(request: NextRequest) {
 
       console.log('✅ Listing作成完了:', newListing.id);
 
+      // 画像処理: コンピューター画像とスタッフ撮影画像を統合
+      const allImageUrls: string[] = [];
+
+      // スタッフ撮影画像のURLを追加
+      if (photographyImageUrls && photographyImageUrls.length > 0) {
+        allImageUrls.push(...photographyImageUrls);
+        console.log('📸 スタッフ撮影画像を追加:', photographyImageUrls.length, '枚');
+      }
+
+      // コンピューター画像のBase64データを処理（必要に応じて保存）
+      if (computerImages && computerImages.length > 0) {
+        console.log('💻 コンピューター画像を処理:', computerImages.length, '枚');
+        // Note: computerImagesはBase64データとして送信されているため、
+        // 実際のeBay API連携時にはこれらの画像をアップロード処理する必要があります
+        allImageUrls.push(...computerImages);
+      }
+
+      // リスティングに画像情報を更新
+      if (allImageUrls.length > 0) {
+        await tx.listing.update({
+          where: { id: newListing.id },
+          data: {
+            images: JSON.stringify(allImageUrls)
+          }
+        });
+        console.log('🖼️ リスティング画像を更新:', allImageUrls.length, '枚');
+      }
+
       // テンプレートの使用回数を更新
       if (template) {
         await tx.listingTemplate.update({
@@ -185,14 +220,16 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      return { listing: newListing, product: updatedProduct };
+      return { listing: newListing, product: updatedProduct, imageCount: allImageUrls.length };
     });
 
     console.log('🎉 出品処理完了');
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       data: result.listing,
-      product: result.product 
+      product: result.product,
+      imageCount: result.imageCount || 0,
+      message: `出品が完了しました。${result.imageCount || 0}枚の画像が含まれています。`
     }, { status: 201 });
   } catch (error) {
     console.error('[ERROR] POST /api/listing:', error);

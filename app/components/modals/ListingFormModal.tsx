@@ -280,13 +280,15 @@ export default function ListingFormModal({
   const [photos, setPhotos] = useState<File[]>([]);
   const [video, setVideo] = useState<File | null>(null);
   
-  // Image Upload Methods
-  const [uploadMethod, setUploadMethod] = useState<'computer' | 'photography'>('computer');
+  // Image Upload Methods - 統合選択用
   const [photographyImages, setPhotographyImages] = useState<string[]>([]);
   const [selectedPhotographyImages, setSelectedPhotographyImages] = useState<string[]>([]);
   const [loadingPhotography, setLoadingPhotography] = useState(false);
   const [photographyError, setPhotographyError] = useState<string | null>(null);
-  
+  const [allSelectedImages, setAllSelectedImages] = useState<Array<{url: string, source: 'computer' | 'photography', file?: File}>>([]);
+  const [mainDisplayImage, setMainDisplayImage] = useState<string | null>(null);
+  const [previewMainImage, setPreviewMainImage] = useState<string | null>(null);
+
   // Title
   const [itemTitle, setItemTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
@@ -407,6 +409,20 @@ ${templateOpticsChecks.noProblem ? '<strong>No problem in the shooting.</strong>
     }
   }, [templateOpticsChecks, templateOpticsAdditionalComment, useTemplate]);
 
+  // メイン表示画像を設定
+  useEffect(() => {
+    if (photographyImages.length > 0 && !mainDisplayImage) {
+      setMainDisplayImage(photographyImages[0]);
+    }
+  }, [photographyImages, mainDisplayImage]);
+
+  // プレビューのメイン画像を設定
+  useEffect(() => {
+    if (showPreview && allSelectedImages.length > 0) {
+      setPreviewMainImage(allSelectedImages[0].url);
+    }
+  }, [showPreview, allSelectedImages]);
+
   // 撮影済み画像を取得
   const fetchPhotographyImages = async (productId: string) => {
     try {
@@ -432,31 +448,85 @@ ${templateOpticsChecks.noProblem ? '<strong>No problem in the shooting.</strong>
 
   const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
+
+    // 統合選択リストに追加
+    const newImages = files.map(file => ({
+      url: URL.createObjectURL(file),
+      source: 'computer' as const,
+      file: file
+    }));
+
+    setAllSelectedImages(prev => [...prev, ...newImages].slice(0, 24));
     setPhotos(prev => [...prev, ...files].slice(0, 24));
   };
 
-  // 撮影済み画像の選択処理
-  const handlePhotographyImageSelect = (imageUrl: string) => {
-    setSelectedPhotographyImages(prev => {
-      const isSelected = prev.includes(imageUrl);
+  // 統合画像選択処理
+  const handleImageSelect = (imageUrl: string, source: 'computer' | 'photography', file?: File) => {
+    setAllSelectedImages(prev => {
+      const isSelected = prev.some(img => img.url === imageUrl);
       if (isSelected) {
-        return prev.filter(url => url !== imageUrl);
+        return prev.filter(img => img.url !== imageUrl);
       } else {
         // 最大24枚まで選択可能
         if (prev.length >= 24) {
           return prev;
         }
-        return [...prev, imageUrl];
+        return [...prev, { url: imageUrl, source, file }];
       }
     });
+
+    // 撮影画像の場合は既存のstateも更新
+    if (source === 'photography') {
+      setSelectedPhotographyImages(prev => {
+        const isSelected = prev.includes(imageUrl);
+        if (isSelected) {
+          return prev.filter(url => url !== imageUrl);
+        } else {
+          if (prev.length >= 24) {
+            return prev;
+          }
+          return [...prev, imageUrl];
+        }
+      });
+    }
+  };
+
+  // 撮影済み画像の選択処理（後方互換性のため）
+  const handlePhotographyImageSelect = (imageUrl: string) => {
+    handleImageSelect(imageUrl, 'photography');
+  };
+
+  // サムネイルクリックで大きな画像を表示
+  const handleThumbnailClick = (imageUrl: string) => {
+    console.log('🖼️ handleThumbnailClick 呼び出し:', imageUrl);
+    console.log('🔍 現在のmainDisplayImage:', mainDisplayImage);
+    setMainDisplayImage(imageUrl);
+    console.log('✅ setMainDisplayImage 実行完了');
+  };
+
+  // プレビューサムネイルクリックでメイン画像を変更
+  const handlePreviewThumbnailClick = (imageUrl: string) => {
+    console.log('🎯 プレビューサムネイルクリック:', imageUrl);
+    setPreviewMainImage(imageUrl);
+    console.log('✅ プレビューメイン画像を更新:', imageUrl);
   };
 
   // 撮影済み画像を全選択/全解除
   const handleSelectAllPhotography = () => {
-    if (selectedPhotographyImages.length === photographyImages.length) {
-      setSelectedPhotographyImages([]);
+    const photographySelected = allSelectedImages.filter(img => img.source === 'photography');
+    if (photographySelected.length === photographyImages.length) {
+      // 撮影画像を全解除（他のソースの画像は保持）
+      setAllSelectedImages(prev => prev.filter(img => img.source !== 'photography'));
     } else {
-      setSelectedPhotographyImages(photographyImages.slice(0, 24));
+      // 撮影画像を全選択
+      const newPhotographyImages = photographyImages.slice(0, 24).map(url => ({
+        url,
+        source: 'photography' as const
+      }));
+      setAllSelectedImages(prev => [
+        ...prev.filter(img => img.source !== 'photography'),
+        ...newPhotographyImages
+      ]);
     }
   };
 
@@ -502,16 +572,16 @@ ${templateOpticsChecks.noProblem ? '<strong>No problem in the shooting.</strong>
     setError(null);
 
     try {
-      // 撮影済み画像をFileオブジェクトに変換（必要に応じて）
-      const allImages = uploadMethod === 'computer' ? photos : [];
-      const photographyImageUrls = uploadMethod === 'photography' ? selectedPhotographyImages : [];
+      // 統合画像選択から画像を分類
+      const computerImages = allSelectedImages.filter(img => img.source === 'computer' && img.file).map(img => img.file!);
+      const photographyImageUrls = allSelectedImages.filter(img => img.source === 'photography').map(img => img.url);
 
       const listingData = {
         productId: product.id,
-        // Photos & Video
-        photos: allImages,
+        // Photos & Video - 統合選択対応
+        photos: computerImages,
         photographyImages: photographyImageUrls,
-        uploadMethod: uploadMethod,
+        allSelectedImages: allSelectedImages, // 統合選択データも送信
         video: video,
         // Title
         title: itemTitle,
@@ -715,65 +785,50 @@ ${templateOpticsChecks.noProblem ? '<strong>No problem in the shooting.</strong>
             {/* PHOTOS & VIDEO */}
             <section>
               <h3 className="text-lg font-semibold mb-2">{t.photosVideo}</h3>
-              <p className="text-sm text-gray-600 mb-4">{t.photosVideoDesc}</p>
-              
-              {/* Upload Method Tabs */}
-              <div className="mb-4">
-                <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
-                  <button
-                    onClick={() => setUploadMethod('computer')}
-                    className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all ${
-                      uploadMethod === 'computer'
-                        ? 'bg-white text-blue-600 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    <svg className="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    ローカルPCから
-                  </button>
-                  <button
-                    onClick={() => setUploadMethod('photography')}
-                    className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all ${
-                      uploadMethod === 'photography'
-                        ? 'bg-white text-blue-600 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    <svg className="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    撮影済み画像から
-                  </button>
-                </div>
-              </div>
+              <p className="text-sm text-gray-600 mb-4">
+                ローカルPCからアップロードまたは撮影済み画像から選択（最大24枚）
+                <span className="ml-2 text-blue-600 font-medium">
+                  選択済み: {allSelectedImages.length}/24
+                </span>
+              </p>
 
-              {/* Computer Upload */}
-              {uploadMethod === 'computer' && (
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                  <PhotoIcon className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                  <p className="text-gray-600 mb-2">{photos.length}/24</p>
-                  <p className="text-gray-500 mb-4">{t.dragDropFiles}</p>
-                  <label className="inline-block">
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*,video/*"
-                      onChange={handlePhotoUpload}
-                      className="hidden"
-                    />
-                    <span className="px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
-                      {t.uploadFromComputer}
-                    </span>
-                  </label>
+              {/* Computer Upload Section */}
+              <div className="space-y-4">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-md font-medium text-gray-700">ローカルPCから画像をアップロード</h4>
+                  </div>
+                  <div className="text-center">
+                    <PhotoIcon className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+                    <p className="text-gray-500 mb-4 text-sm">{t.dragDropFiles}</p>
+                    <label className="inline-block">
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*,video/*"
+                        onChange={handlePhotoUpload}
+                        className="hidden"
+                      />
+                      <span className="px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 text-sm">
+                        ファイルを選択
+                      </span>
+                    </label>
+                  </div>
                 </div>
-              )}
 
-              {/* Photography Images Selection */}
-              {uploadMethod === 'photography' && (
+                {/* Photography Images Section */}
                 <div className="border-2 border-gray-300 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-md font-medium text-gray-700">撮影済み画像から選択</h4>
+                    {photographyImages.length > 0 && (
+                      <button
+                        onClick={handleSelectAllPhotography}
+                        className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50"
+                      >
+                        {allSelectedImages.filter(img => img.source === 'photography').length === photographyImages.length ? '全解除' : '全選択'}
+                      </button>
+                    )}
+                  </div>
                   {loadingPhotography ? (
                     <div className="text-center py-8">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
@@ -802,92 +857,119 @@ ${templateOpticsChecks.noProblem ? '<strong>No problem in the shooting.</strong>
                       <p className="text-gray-500 text-sm mt-1">撮影工程で商品の撮影を完了してください</p>
                     </div>
                   ) : (
-                    <>
-                      <div className="flex justify-between items-center mb-4">
-                        <p className="text-gray-600">
-                          撮影済み画像: {photographyImages.length}枚 
-                          <span className="ml-2 text-blue-600">
-                            （選択済み: {selectedPhotographyImages.length}枚）
-                          </span>
-                        </p>
-                        <button
-                          onClick={handleSelectAllPhotography}
-                          className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50"
-                        >
-                          {selectedPhotographyImages.length === photographyImages.length ? '全解除' : '全選択'}
-                        </button>
-                      </div>
-                      <div className="grid grid-cols-4 md:grid-cols-6 gap-3 max-h-64 overflow-y-auto">
-                        {photographyImages.map((imageUrl, index) => {
-                          const isSelected = selectedPhotographyImages.includes(imageUrl);
-                          return (
-                            <div
-                              key={index}
-                              onClick={() => handlePhotographyImageSelect(imageUrl)}
-                              className={`aspect-square relative cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
-                                isSelected 
-                                  ? 'border-blue-500 ring-2 ring-blue-200' 
+                    <div className="space-y-4">
+                      {/* Main Image Display */}
+                      {mainDisplayImage && (
+                        <div className="bg-gray-50 rounded-lg p-4">
+                          <h5 className="text-sm font-medium text-gray-700 mb-2">画像プレビュー（現在: {mainDisplayImage ? mainDisplayImage.substring(mainDisplayImage.lastIndexOf('/') + 1, mainDisplayImage.lastIndexOf('/') + 10) + '...' : 'なし'}）</h5>
+                          <div className="aspect-square max-w-sm mx-auto">
+                            <img
+                              src={mainDisplayImage}
+                              alt="メイン表示画像"
+                              className="w-full h-full object-cover rounded-lg border-2 border-gray-200"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Thumbnail Grid */}
+                      <div>
+                        <h5 className="text-sm font-medium text-gray-700 mb-2">サムネイル一覧（クリックでプレビューを変更）</h5>
+                        <div className="grid grid-cols-4 md:grid-cols-6 gap-3 max-h-64 overflow-y-auto">
+                      {photographyImages.map((imageUrl, index) => {
+                        const isSelected = allSelectedImages.some(img => img.url === imageUrl);
+                        return (
+                          <div
+                            key={index}
+                            onClick={() => {
+                              console.log('🔥 親divクリック:', imageUrl);
+                              handleThumbnailClick(imageUrl);
+                            }}
+                            className={`aspect-square relative cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
+                              isSelected
+                                ? 'border-blue-500 ring-2 ring-blue-200'
+                                : mainDisplayImage === imageUrl
+                                  ? 'border-yellow-500 ring-2 ring-yellow-200'
                                   : 'border-gray-200 hover:border-blue-300'
-                              }`}
+                            }`}
+                          >
+                            <img
+                              src={imageUrl}
+                              alt={`撮影画像 ${index + 1}`}
+                              className="w-full h-full object-cover cursor-pointer bg-red-100"
+                              onClick={(e) => {
+                                console.log('🖼️ 画像直接クリック:', imageUrl);
+                                e.stopPropagation();
+                                handleThumbnailClick(imageUrl);
+                              }}
+                            />
+                            {/* Selection checkbox overlay */}
+                            <div
+                              className="absolute top-1 left-1 w-5 h-5 bg-white bg-opacity-90 rounded border-2 border-gray-300 hover:border-blue-500 cursor-pointer flex items-center justify-center z-10"
+                              onClick={(e) => {
+                                console.log('☑️ チェックボックスクリック:', imageUrl);
+                                e.stopPropagation();
+                                handleImageSelect(imageUrl, 'photography');
+                              }}
                             >
-                              <img
-                                src={imageUrl}
-                                alt={`撮影画像 ${index + 1}`}
-                                className="w-full h-full object-cover"
-                              />
                               {isSelected && (
-                                <div className="absolute top-1 right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                  </svg>
-                                </div>
+                                <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
                               )}
                             </div>
-                          );
-                        })}
+                            <div className="absolute bottom-1 right-1 bg-black bg-opacity-60 text-white text-xs px-1 rounded pointer-events-none">
+                              撮影
+                            </div>
+                          </div>
+                        );
+                      })}
+                        </div>
                       </div>
-                    </>
+                    </div>
                   )}
                 </div>
-              )}
+              </div>
 
-              {/* Selected Images Preview */}
-              {uploadMethod === 'computer' && photos.length > 0 && (
-                <div className="mt-4 grid grid-cols-6 gap-2">
-                  {photos.map((photo, index) => (
-                    <div key={index} className="aspect-square bg-gray-100 rounded border relative">
-                      <img
-                        src={URL.createObjectURL(photo)}
-                        alt={`Photo ${index + 1}`}
-                        className="w-full h-full object-cover rounded"
-                      />
-                      <button
-                        onClick={() => setPhotos(prev => prev.filter((_, i) => i !== index))}
-                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs hover:bg-red-600"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {uploadMethod === 'photography' && selectedPhotographyImages.length > 0 && (
-                <div className="mt-4">
-                  <div className="grid grid-cols-6 gap-2 max-h-32 overflow-y-auto">
-                    {selectedPhotographyImages.map((imageUrl, index) => (
-                      <div key={index} className="aspect-square bg-gray-100 rounded border relative">
+              {/* Selected Images Preview - All Sources */}
+              {allSelectedImages.length > 0 && (
+                <div className="mt-4 border-2 border-gray-300 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-md font-medium text-gray-700">
+                      選択済み画像 ({allSelectedImages.length}/24)
+                    </h4>
+                    <button
+                      onClick={() => setAllSelectedImages([])}
+                      className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 text-red-600"
+                    >
+                      全て削除
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-6 gap-2 max-h-48 overflow-y-auto">
+                    {allSelectedImages.map((image, index) => (
+                      <div key={index} className="aspect-square bg-gray-100 rounded border relative group">
                         <img
-                          src={imageUrl}
+                          src={image.url}
                           alt={`選択画像 ${index + 1}`}
                           className="w-full h-full object-cover rounded"
                         />
                         <button
-                          onClick={() => handlePhotographyImageSelect(imageUrl)}
-                          className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs hover:bg-red-600"
+                          onClick={() => {
+                            setAllSelectedImages(prev => prev.filter((_, i) => i !== index));
+                            // 撮影画像の場合は別のstateからも削除
+                            if (image.source === 'photography') {
+                              setSelectedPhotographyImages(prev => prev.filter(url => url !== image.url));
+                            } else {
+                              setPhotos(prev => prev.filter(file => URL.createObjectURL(file) !== image.url));
+                            }
+                          }}
+                          className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           ×
                         </button>
+                        <div className="absolute bottom-1 left-1 bg-black bg-opacity-60 text-white text-xs px-1 rounded">
+                          {image.source === 'computer' ? 'PC' : '撮影'}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -1810,9 +1892,15 @@ ${conditionDescription ? `・${conditionDescription}` : ''}
                 {/* 画像セクション */}
                 <div>
                   <div className="aspect-square bg-gray-100 rounded-lg mb-4">
-                    {photos.length > 0 ? (
+                    {previewMainImage ? (
                       <img
-                        src={URL.createObjectURL(photos[0])}
+                        src={previewMainImage}
+                        alt="Product"
+                        className="w-full h-full object-contain rounded-lg"
+                      />
+                    ) : allSelectedImages.length > 0 ? (
+                      <img
+                        src={allSelectedImages[0].url}
                         alt="Product"
                         className="w-full h-full object-contain rounded-lg"
                       />
@@ -1828,17 +1916,38 @@ ${conditionDescription ? `・${conditionDescription}` : ''}
                       </div>
                     )}
                   </div>
-                  {photos.length > 1 && (
-                    <div className="grid grid-cols-6 gap-2">
-                      {photos.slice(0, 6).map((photo, index) => (
-                        <div key={index} className="aspect-square bg-gray-100 rounded">
-                          <img
-                            src={URL.createObjectURL(photo)}
-                            alt={`Thumbnail ${index + 1}`}
-                            className="w-full h-full object-cover rounded"
-                          />
-                        </div>
-                      ))}
+                  {allSelectedImages.length > 1 && (
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm text-gray-600">
+                          全 {allSelectedImages.length} 枚の画像
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-6 gap-2 max-h-48 overflow-y-auto">
+                        {allSelectedImages.map((image, index) => (
+                          <div
+                            key={index}
+                            className={`aspect-square bg-gray-100 rounded relative cursor-pointer border-2 transition-all ${
+                              previewMainImage === image.url
+                                ? 'border-blue-500 ring-2 ring-blue-200'
+                                : 'border-gray-200 hover:border-blue-300'
+                            }`}
+                            onClick={() => handlePreviewThumbnailClick(image.url)}
+                          >
+                            <img
+                              src={image.url}
+                              alt={`Thumbnail ${index + 1}`}
+                              className="w-full h-full object-cover rounded"
+                            />
+                            <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-60 text-white text-xs px-1 text-center">
+                              {index + 1}
+                            </div>
+                            <div className="absolute top-1 left-1 bg-black bg-opacity-60 text-white text-xs px-1 rounded">
+                              {image.source === 'computer' ? 'PC' : '撮影'}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>

@@ -408,6 +408,7 @@ model Listing {
   description    String?
   price          Int
   status         String    @default("draft")
+  images         String?
   listedAt       DateTime?
   soldAt         DateTime?
   createdAt      DateTime  @default(now())
