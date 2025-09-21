@@ -195,7 +195,7 @@ export default function UnifiedProductFlow({
           step.tasks.forEach(task => {
             switch (task.id) {
               case 'receive':
-                task.count = data.statusStats['入庫'] || 0;
+                task.count = (data.statusStats['入庫待ち'] || 0) + (data.statusStats['入庫'] || 0);
                 break;
               case 'inspection':
                 task.count = data.statusStats['検品'] || 0;

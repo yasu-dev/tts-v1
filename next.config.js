@@ -1,8 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // 出力設定
-  output: 'standalone',
-  
   // 実験的機能
   experimental: {
     serverComponentsExternalPackages: ['prisma', '@prisma/client'],

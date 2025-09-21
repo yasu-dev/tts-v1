@@ -665,11 +665,11 @@ export default function StaffTasksPage() {
                   onChange={(e) => setDueDateFilter(e.target.value)}
                   className="w-full px-3 py-2 bg-nexus-bg-secondary border border-nexus-border rounded-lg text-sm text-nexus-text-primary"
                 >
-                  <option value="all">すべて</option>
-                  <option value="today">今日</option>
-                  <option value="tomorrow">明日</option>
-                  <option value="week">今週</option>
-                  <option value="overdue">期限超過</option>
+                  <option key="all" value="all">すべて</option>
+                  <option key="today" value="today">今日</option>
+                  <option key="tomorrow" value="tomorrow">明日</option>
+                  <option key="week" value="week">今週</option>
+                  <option key="overdue" value="overdue">期限超過</option>
                 </select>
               </div>
             </div>

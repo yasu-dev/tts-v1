@@ -75,6 +75,73 @@ export async function GET() {
       products = `エラー: ${productError}`;
     }
 
+    // 6. Activityテーブルの詳細分析
+    let activityAnalysis = null;
+    try {
+      const activityCount = await prisma.activity.count();
+      const activityByType = await prisma.activity.groupBy({
+        by: ['type'],
+        _count: { id: true },
+        orderBy: { _count: { id: 'desc' } }
+      });
+      const recentActivities = await prisma.activity.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        include: {
+          user: { select: { username: true } },
+          product: { select: { name: true, sku: true } },
+          order: { select: { orderNumber: true } }
+        }
+      });
+      
+      activityAnalysis = {
+        totalCount: activityCount,
+        byType: activityByType,
+        recentActivities: recentActivities.map(a => ({
+          id: a.id,
+          type: a.type,
+          description: a.description,
+          productName: a.product?.name,
+          userName: a.user?.username,
+          createdAt: a.createdAt
+        }))
+      };
+      console.log('📊 Activity分析完了');
+    } catch (activityError) {
+      console.error('❌ Activity分析エラー:', activityError);
+      activityAnalysis = `エラー: ${activityError}`;
+    }
+
+    // 7. InventoryMovementテーブルの確認
+    let movementAnalysis = null;
+    try {
+      const movementCount = await prisma.inventoryMovement.count();
+      const recentMovements = await prisma.inventoryMovement.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 3,
+        include: {
+          product: { select: { name: true, sku: true } },
+          fromLocation: { select: { code: true } },
+          toLocation: { select: { code: true } }
+        }
+      });
+      
+      movementAnalysis = {
+        totalCount: movementCount,
+        recentMovements: recentMovements.map(m => ({
+          id: m.id,
+          productName: m.product.name,
+          fromLocation: m.fromLocation?.code,
+          toLocation: m.toLocation?.code,
+          createdAt: m.createdAt
+        }))
+      };
+      console.log('📍 InventoryMovement分析完了');
+    } catch (movementError) {
+      console.error('❌ InventoryMovement分析エラー:', movementError);
+      movementAnalysis = `エラー: ${movementError}`;
+    }
+
     const debugInfo = {
       status: 'success',
       databaseConnection: '✅ 接続成功',
@@ -83,6 +150,10 @@ export async function GET() {
         orders: recentOrders,
         users,
         products
+      },
+      detailedAnalysis: {
+        activities: activityAnalysis,
+        movements: movementAnalysis
       },
       prismaVersion: '不明',
       databaseUrl: process.env.DATABASE_URL || 'file:./dev.db'

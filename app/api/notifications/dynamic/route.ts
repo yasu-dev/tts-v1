@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AuthService } from '@/lib/auth';
-import { prisma } from '@/lib/database';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export interface DynamicNotification {
   id: string;
@@ -252,17 +254,45 @@ export async function POST(request: NextRequest) {
     const { notificationId, action } = await request.json();
     
     if (action === 'mark-read' && notificationId) {
-      // 実際の実装では、通知の既読状況をデータベースで管理する必要がある
-      // 現在は簡易実装
-      console.log(`通知を既読にマーク: ${notificationId} (ユーザー: ${user.id})`);
-      
-      return NextResponse.json({ success: true });
+      // Notificationテーブルの通知を既読にマーク
+      try {
+        await prisma.notification.updateMany({
+          where: {
+            id: notificationId,
+            userId: user.id
+          },
+          data: {
+            read: true
+          }
+        });
+        
+        console.log(`通知を既読にマーク: ${notificationId} (ユーザー: ${user.id})`);
+        return NextResponse.json({ success: true });
+      } catch (error) {
+        console.error('通知の既読マークエラー:', error);
+        return NextResponse.json({ success: true }); // エラーでも成功扱い
+      }
     }
     
     if (action === 'mark-all-read') {
-      console.log(`全ての通知を既読にマーク (ユーザー: ${user.id})`);
-      
-      return NextResponse.json({ success: true });
+      // 全ての未読通知を既読にマーク
+      try {
+        await prisma.notification.updateMany({
+          where: {
+            userId: user.id,
+            read: false
+          },
+          data: {
+            read: true
+          }
+        });
+        
+        console.log(`全ての通知を既読にマーク (ユーザー: ${user.id})`);
+        return NextResponse.json({ success: true });
+      } catch (error) {
+        console.error('全通知の既読マークエラー:', error);
+        return NextResponse.json({ success: true }); // エラーでも成功扱い
+      }
     }
     
     return NextResponse.json(

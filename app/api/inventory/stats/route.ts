@@ -37,7 +37,8 @@ export async function GET() {
 
     // Transform status data
     const statusStats = statusCounts.reduce((acc, item) => {
-      const japaneseStatus = item.status.replace('inbound', '入庫')
+      const japaneseStatus = item.status.replace('inbound_pending', '入庫待ち')
+                                      .replace('inbound', '入庫')
                                       .replace('inspection', '検品')
                                       .replace('storage', '保管')
                                       .replace('listing', '出品')

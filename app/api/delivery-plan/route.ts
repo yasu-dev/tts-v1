@@ -576,6 +576,55 @@ export async function POST(request: NextRequest) {
       createdInventoryItems: deliveryPlan.createdInventoryItems.length
     });
 
+    // スタッフに納品プラン作成通知を送信
+    try {
+      const staffUsers = await prisma.user.findMany({
+        where: { role: 'staff' }
+      });
+
+      for (const staff of staffUsers) {
+        const notification = await prisma.notification.create({
+          data: {
+            type: 'info',
+            title: '📦 新規納品プラン作成',
+            message: `セラー「${user.fullName || user.username}」が納品プラン（${planData.products.length}点）を作成しました。入庫作業の準備をお願いします。`,
+            userId: staff.id,
+            read: false,
+            priority: 'medium',
+            notificationType: 'delivery_plan_created',
+            action: 'inbound',
+            metadata: JSON.stringify({
+              planId: planId,
+              sellerId: user.id,
+              sellerName: user.fullName || user.username,
+              productCount: planData.products.length,
+              totalValue: deliveryPlan.totalValue,
+              deliveryAddress: planData.basicInfo.deliveryAddress
+            })
+          }
+        });
+        console.log(`[INFO] スタッフ通知作成成功: ${staff.id} → ${notification.id}`);
+      }
+
+      // アクティビティログに通知送信を記録
+      await prisma.activity.create({
+        data: {
+          type: 'notification_sent',
+          description: `納品プラン作成通知をスタッフに送信しました（プランID: ${planId}）`,
+          userId: user.id,
+          metadata: JSON.stringify({
+            planId: planId,
+            productCount: planData.products.length,
+            notificationType: 'delivery_plan_created',
+            sentToStaffCount: staffUsers.length
+          })
+        }
+      });
+
+    } catch (notificationError) {
+      console.error('[ERROR] スタッフ通知送信エラー（処理は継続）:', notificationError);
+    }
+
     return NextResponse.json({
       success: true,
       planId,

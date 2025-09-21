@@ -82,19 +82,22 @@ export async function GET(
       );
     }
 
-    // Build timeline events
+    // Build timeline events from real data
     const timelineEvents: any[] = [];
 
-    // Add activity events
+    // Add activity events with proper mapping
     product.activities.forEach(activity => {
+      const activityMetadata = activity.metadata ? JSON.parse(activity.metadata) : {};
+      
       timelineEvents.push({
         id: `activity-${activity.id}`,
         type: 'activity',
         timestamp: activity.createdAt,
-        title: activity.description,
+        title: getActivityTitle(activity.type, activity.description),
         status: activity.type,
         user: activity.user?.username || 'システム',
-        metadata: activity.metadata
+        description: activity.description,
+        metadata: activityMetadata
       });
     });
 
@@ -107,7 +110,12 @@ export async function GET(
         title: `ロケーション移動: ${movement.fromLocation?.code || '未設定'} → ${movement.toLocation?.code || '未設定'}`,
         status: 'movement',
         user: movement.movedBy,
-        notes: movement.notes
+        description: movement.notes || 'ロケーションが変更されました',
+        metadata: {
+          fromLocation: movement.fromLocation?.code,
+          toLocation: movement.toLocation?.code,
+          notes: movement.notes
+        }
       });
     });
 
@@ -121,9 +129,12 @@ export async function GET(
         timestamp: order.orderDate,
         title: `注文受付: ${order.orderNumber}`,
         status: 'ordered',
+        description: `商品が注文されました`,
+        user: 'システム',
         metadata: {
           orderNumber: order.orderNumber,
-          status: order.status
+          status: order.status,
+          totalAmount: order.totalAmount
         }
       });
 
@@ -134,8 +145,12 @@ export async function GET(
           timestamp: order.shippedAt,
           title: `出荷完了: ${order.orderNumber}`,
           status: 'shipped',
+          description: '商品が出荷されました',
+          user: 'システム',
           metadata: {
-            orderNumber: order.orderNumber
+            orderNumber: order.orderNumber,
+            trackingNumber: order.trackingNumber,
+            carrier: order.carrier
           }
         });
       }
@@ -147,6 +162,8 @@ export async function GET(
           timestamp: order.deliveredAt,
           title: `配送完了: ${order.orderNumber}`,
           status: 'delivered',
+          description: '商品が配送完了しました',
+          user: 'システム',
           metadata: {
             orderNumber: order.orderNumber
           }
@@ -157,124 +174,19 @@ export async function GET(
     // Sort events by timestamp
     timelineEvents.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
-    // モック履歴データ
-    const mockHistory: HistoryEvent[] = [
-      {
-        id: 'event-001',
-        timestamp: '2024-01-05T09:00:00Z',
-        type: 'received',
-        title: '商品入庫',
-        description: 'セラーから商品を受領しました',
-        user: '受付担当: 山田太郎',
-        metadata: {
-          location: 'A-01-01',
-          condition: '新品同様'
-        }
-      },
-      {
-        id: 'event-002',
-        timestamp: '2024-01-05T14:30:00Z',
-        type: 'inspected',
-        title: '検品完了',
-        description: '動作確認、外観チェック、付属品確認を完了',
-        user: '検品担当: 佐藤花子',
-        metadata: {
-          condition: 'A (新品同様)'
-        }
-      },
-      {
-        id: 'event-003',
-        timestamp: '2024-01-06T10:00:00Z',
-        type: 'listed',
-        title: '出品開始',
-        description: 'eBayとメルカリに出品しました',
-        user: '出品担当: 鈴木一郎',
-        metadata: {
-          price: 450000,
-          marketplace: 'eBay, メルカリ'
-        }
-      },
-      {
-        id: 'event-004',
-        timestamp: '2024-01-10T15:00:00Z',
-        type: 'price_changed',
-        title: '価格変更',
-        description: '市場動向を考慮して価格を調整しました',
-        user: 'システム自動調整',
-        metadata: {
-          previousPrice: 450000,
-          price: 430000
-        }
-      },
-      {
-        id: 'event-005',
-        timestamp: '2024-01-15T11:00:00Z',
-        type: 'sold',
-        title: '販売成立',
-        description: 'eBayで購入されました',
-        user: '販売担当: 田中次郎',
-        metadata: {
-          price: 430000,
-          marketplace: 'eBay'
-        }
-      },
-      {
-        id: 'event-006',
-        timestamp: '2024-01-15T16:00:00Z',
-        type: 'shipped',
-        title: '発送完了',
-        description: '梱包・発送を完了しました',
-        user: '発送担当: 高橋三郎',
-        metadata: {
-          trackingNumber: 'JP123456789',
-          location: 'B-02-15'
-        }
-      },
-      {
-        id: 'event-007',
-        timestamp: '2024-01-25T10:00:00Z',
-        type: 'returned',
-        title: '返品受付',
-        description: '商品説明と異なるとの理由で返品されました',
-        user: 'CS担当: 渡辺四郎',
-        metadata: {
-          reason: '商品説明と異なる',
-          condition: 'A- (若干の使用感あり)'
-        }
-      },
-      {
-        id: 'event-008',
-        timestamp: '2024-01-26T14:00:00Z',
-        type: 'inspected',
-        title: '再検品完了',
-        description: '返品商品の状態を確認しました',
-        user: '検品担当: 佐藤花子',
-        metadata: {
-          condition: 'A- (若干の使用感あり)',
-          location: 'C-03-08'
-        }
-      },
-      {
-        id: 'event-009',
-        timestamp: '2024-01-27T10:00:00Z',
-        type: 'relisted',
-        title: '再出品',
-        description: '価格を調整して再出品しました',
-        user: '出品担当: 鈴木一郎',
-        metadata: {
-          price: 380000,
-          marketplace: 'ヤフオク, メルカリ'
-        }
-      }
-    ];
-
-    // タイムライン用のデータ形式に変換
-    const timelineData = mockHistory.map(event => ({
-      ...event,
+    // Convert real timeline events to the expected format
+    const timelineData = timelineEvents.map(event => ({
+      id: event.id,
+      timestamp: event.timestamp,
+      type: mapEventTypeToHistoryType(event.type, event.status),
+      title: event.title,
+      description: event.description,
+      user: event.user,
+      metadata: event.metadata,
       start: event.timestamp,
       content: event.title,
-      className: `timeline-${event.type}`,
-      group: getGroupByType(event.type)
+      className: `timeline-${mapEventTypeToHistoryType(event.type, event.status)}`,
+      group: getGroupByEventType(event.type, event.status)
     }));
 
     return NextResponse.json({
@@ -307,9 +219,9 @@ export async function GET(
       },
       timeline: timelineData,
       summary: {
-        totalEvents: mockHistory.length,
-        currentStatus: getLatestStatus(mockHistory),
-        daysInInventory: calculateDaysInInventory(mockHistory)
+        totalEvents: timelineData.length,
+        currentStatus: getLatestStatusFromRealData(timelineData),
+        daysInInventory: calculateDaysInInventoryFromRealData(timelineData)
       }
     });
   } catch (error) {
@@ -322,7 +234,53 @@ export async function GET(
 }
 
 // ヘルパー関数
-function getGroupByType(type: HistoryEventType): string {
+function getActivityTitle(activityType: string, description: string): string {
+  const titleMap: { [key: string]: string } = {
+    'product_registered': '商品登録',
+    'product_received': '商品入庫',
+    'inspection_started': '検品開始',
+    'inspection_completed': '検品完了',
+    'photography_started': '撮影開始',
+    'photography_completed': '撮影完了',
+    'listing_started': '出品開始',
+    'listing_completed': '出品完了',
+    'price_updated': '価格変更',
+    'status_updated': 'ステータス更新',
+    'location_moved': 'ロケーション移動',
+    'order_received': '注文受付',
+    'order_shipped': '発送完了',
+    'order_delivered': '配送完了',
+    'order_returned': '返品受付',
+    'product_cancelled': '商品キャンセル'
+  };
+  
+  return titleMap[activityType] || description || 'システム操作';
+}
+
+// Map event types to history event types for display consistency
+function mapEventTypeToHistoryType(eventType: string, status?: string): HistoryEventType {
+  if (eventType === 'activity') {
+    const activityMap: { [key: string]: HistoryEventType } = {
+      'product_received': 'received',
+      'inspection_completed': 'inspected',
+      'listing_started': 'listed',
+      'listing_completed': 'listed',
+      'price_updated': 'price_changed',
+      'product_returned': 'returned'
+    };
+    return activityMap[status || ''] || 'received';
+  }
+  
+  if (eventType === 'movement') return 'received';
+  if (eventType === 'order') return 'sold';
+  if (eventType === 'shipping') return 'shipped';
+  if (eventType === 'delivery') return 'shipped';
+  
+  return 'received';
+}
+
+function getGroupByEventType(eventType: string, status?: string): string {
+  const mappedType = mapEventTypeToHistoryType(eventType, status);
   const groupMap = {
     'received': 'inventory',
     'inspected': 'quality',
@@ -333,11 +291,11 @@ function getGroupByType(type: HistoryEventType): string {
     'returned': 'customer',
     'relisted': 'sales'
   };
-  return groupMap[type] || 'other';
+  return groupMap[mappedType] || 'other';
 }
 
-function getLatestStatus(events: HistoryEvent[]): string {
-  if (events.length === 0) return 'unknown';
+function getLatestStatusFromRealData(events: any[]): string {
+  if (events.length === 0) return '未登録';
   
   const latestEvent = events[events.length - 1];
   const statusMap = {
@@ -351,18 +309,18 @@ function getLatestStatus(events: HistoryEvent[]): string {
     'relisted': '再出品中'
   };
   
-  return statusMap[latestEvent.type] || '不明';
+  return statusMap[latestEvent.type] || '処理中';
 }
 
-function calculateDaysInInventory(events: HistoryEvent[]): number {
+function calculateDaysInInventoryFromRealData(events: any[]): number {
   const receivedEvent = events.find(e => e.type === 'received');
   const soldEvent = events.find(e => e.type === 'sold');
   
-  if (!receivedEvent || !soldEvent) return 0;
+  if (!receivedEvent) return 0;
   
-  const received = new Date(receivedEvent.timestamp);
-  const sold = new Date(soldEvent.timestamp);
-  const diffTime = Math.abs(sold.getTime() - received.getTime());
+  const endDate = soldEvent ? new Date(soldEvent.timestamp) : new Date();
+  const startDate = new Date(receivedEvent.timestamp);
+  const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   
   return diffDays;

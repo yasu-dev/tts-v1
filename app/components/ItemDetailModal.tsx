@@ -163,10 +163,17 @@ export default function ItemDetailModal({
               if (metadata.location) descriptions.push(`保管場所: ${metadata.location}`);
               if (metadata.condition) descriptions.push(`状態: ${metadata.condition}`);
               if (metadata.price) descriptions.push(`価格: ¥${metadata.price.toLocaleString()}`);
+              if (metadata.newPrice) descriptions.push(`新価格: ¥${metadata.newPrice.toLocaleString()}`);
               if (metadata.marketplace) descriptions.push(`マーケット: ${metadata.marketplace}`);
               if (metadata.previousPrice) descriptions.push(`旧価格: ¥${metadata.previousPrice.toLocaleString()}`);
               if (metadata.trackingNumber) descriptions.push(`追跡番号: ${metadata.trackingNumber}`);
               if (metadata.reason) descriptions.push(`理由: ${metadata.reason}`);
+              if (metadata.fromLocation) descriptions.push(`移動元: ${metadata.fromLocation}`);
+              if (metadata.toLocation) descriptions.push(`移動先: ${metadata.toLocation}`);
+              if (metadata.orderNumber) descriptions.push(`注文番号: ${metadata.orderNumber}`);
+              if (metadata.carrier) descriptions.push(`配送業者: ${metadata.carrier}`);
+              if (metadata.previousStatus) descriptions.push(`旧ステータス: ${metadata.previousStatus}`);
+              if (metadata.newStatus) descriptions.push(`新ステータス: ${metadata.newStatus}`);
 
               details = descriptions.join(', ') || '詳細なし';
             } else {
@@ -178,17 +185,31 @@ export default function ItemDetailModal({
             date: new Date(event.timestamp).toLocaleString('ja-JP'),
             action: event.title,
             details: details || event.description || '操作完了',
-            user: event.user || 'システム'
+            user: event.user || 'システム',
+            type: event.type || 'unknown'
           };
         }) || [];
         setHistoryData(formattedHistory);
       } else {
-        console.error('Failed to fetch product history');
+        const errorData = await response.json().catch(() => ({ error: 'データの取得に失敗しました' }));
+        console.error('Failed to fetch product history:', errorData);
         setHistoryData([]);
+        showToast({
+          type: 'warning',
+          title: '履歴取得エラー',
+          message: errorData.error || '商品履歴の取得に失敗しました',
+          duration: 5000
+        });
       }
     } catch (error) {
       console.error('Error fetching product history:', error);
       setHistoryData([]);
+      showToast({
+        type: 'error',
+        title: '履歴取得エラー',
+        message: 'ネットワークエラーまたは予期しないエラーが発生しました',
+        duration: 5000
+      });
     } finally {
       setLoadingHistory(false);
     }
@@ -253,6 +274,24 @@ export default function ItemDetailModal({
     fetchLatest();
     return () => { aborted = true; };
   }, [isOpen, item?.id]);
+
+  // イベントタイプに基づく色分け
+  const getTypeColor = (type: string): string => {
+    const colorMap: { [key: string]: string } = {
+      'received': 'bg-blue-500',
+      'inspected': 'bg-green-500',
+      'listed': 'bg-purple-500',
+      'price_changed': 'bg-orange-500',
+      'sold': 'bg-emerald-500',
+      'shipped': 'bg-indigo-500',
+      'returned': 'bg-red-500',
+      'relisted': 'bg-yellow-500',
+      'movement': 'bg-cyan-500',
+      'order': 'bg-pink-500',
+      'delivery': 'bg-teal-500'
+    };
+    return colorMap[type] || 'bg-gray-500';
+  };
 
   if (!isOpen || !item) return null;
 
@@ -771,10 +810,13 @@ export default function ItemDetailModal({
                         historyData.map((entry, index) => (
                           <tr key={index} className="holo-row">
                             <td className="py-3 px-4">
-                              <span className="font-medium text-nexus-text-primary">{entry.action}</span>
+                              <div className="flex items-center space-x-2">
+                                <span className={`inline-block w-2 h-2 rounded-full ${getTypeColor(entry.type)}`}></span>
+                                <span className="font-medium text-nexus-text-primary">{entry.action}</span>
+                              </div>
                             </td>
                             <td className="py-3 px-4">
-                              <span className="text-nexus-text-secondary">{entry.details}</span>
+                              <span className="text-nexus-text-secondary text-sm">{entry.details}</span>
                             </td>
                             <td className="py-3 px-4">
                               <span className="text-nexus-text-secondary">{entry.user}</span>
@@ -787,7 +829,13 @@ export default function ItemDetailModal({
                       ) : (
                         <tr className="holo-row">
                           <td colSpan={4} className="py-8 text-center">
-                            <span className="text-nexus-text-secondary">履歴データがありません</span>
+                            <div className="flex flex-col items-center">
+                              <svg className="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                              <span className="text-nexus-text-secondary">履歴データがありません</span>
+                              <span className="text-xs text-nexus-text-secondary mt-1">商品の操作が行われると履歴が表示されます</span>
+                            </div>
                           </td>
                         </tr>
                       )}

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/database';
 import { AuthService } from '@/lib/auth';
 import { ActivityLogger } from '@/lib/activity-logger';
+import { ActivityRecorder } from '@/lib/utils/activity-recorder';
 
 // 共有Prismaインスタンスを使用（SQLiteのロック回避と接続管理の一元化）
 
@@ -243,7 +244,7 @@ export async function PUT(
     // 詳細な変更履歴を記録
     const metadata = ActivityLogger.extractMetadataFromRequest(request);
     
-    // 個別の変更内容を記録
+    // 個別の変更内容を記録（新しいActivityRecorderを併用）
     for (const field of changedFields) {
       if (field === 'price') {
         await ActivityLogger.logProductPriceChange(
@@ -253,6 +254,14 @@ export async function PUT(
           user.id,
           { ...metadata, updatedBy: user.username }
         );
+        // 新しいActivity記録も作成
+        await ActivityRecorder.recordPriceUpdated(
+          productId,
+          user.id,
+          oldValues[field],
+          newValues[field],
+          { updatedBy: user.username }
+        );
       } else if (field === 'status') {
         await ActivityLogger.logProductStatusChange(
           productId,
@@ -260,6 +269,14 @@ export async function PUT(
           newValues[field],
           user.id,
           { ...metadata, updatedBy: user.username }
+        );
+        // 新しいActivity記録も作成
+        await ActivityRecorder.recordStatusUpdated(
+          productId,
+          user.id,
+          oldValues[field],
+          newValues[field],
+          { updatedBy: user.username }
         );
       } else {
         await ActivityLogger.logDataChange(
