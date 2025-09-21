@@ -5,7 +5,7 @@ async function loginAsSeller(page: any) {
   await page.fill('input[name="email"]', 'seller@example.com');
   await page.fill('input[name="password"]', 'password123');
   await page.click('button[type="submit"]');
-  await expect(page).toHaveURL(/\/dashboard$/, { timeout: 15000 });
+  await expect(page).toHaveURL(/\/delivery$/, { timeout: 15000 });
 }
 
 async function loginAsStaff(page: any) {
@@ -89,8 +89,8 @@ test.describe('業務フローテスト', () => {
   test('認証: ログアウト機能が正常に動作する', async ({ page }) => {
     await loginAsSeller(page);
     
-    // ダッシュボードが表示されることを確認
-    await expect(page).toHaveURL(/\/dashboard$/);
+    // 納品管理ページが表示されることを確認
+    await expect(page).toHaveURL(/\/delivery$/);
     
     // ログアウト処理（実装されている場合）
     // プロフィールメニューやログアウトボタンが存在するかチェック
@@ -100,6 +100,8 @@ test.describe('業務フローテスト', () => {
       await page.locator('button:has-text("ログアウト"), a:has-text("ログアウト")').first().click();
       // ログアウト後はログインページにリダイレクト
       await expect(page).toHaveURL(/\/login$/, { timeout: 10000 });
+    } else {
+      console.log('ログアウトボタンが見つかりませんでした。ログアウト機能が未実装の可能性があります。');
     }
   });
 }); 

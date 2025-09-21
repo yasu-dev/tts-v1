@@ -48,8 +48,8 @@ test.describe('ログイン機能テスト', () => {
     // ログインボタンをクリック
     await page.click('button[type="submit"]');
     
-    // エラーメッセージが表示されることを確認
-    await expect(page.getByText('メールアドレスまたはパスワードが間違っています')).toBeVisible({ timeout: 15000 });
+    // エラーメッセージが表示されることを確認（最初の要素を指定）
+    await expect(page.getByText('メールアドレスまたはパスワードが間違っています').first()).toBeVisible({ timeout: 15000 });
     
     // ログインページに留まることを確認
     await expect(page).toHaveURL(/\/login$/, { timeout: 15000 });
