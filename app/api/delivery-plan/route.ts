@@ -712,6 +712,35 @@ export async function GET(request: NextRequest) {
     ]);
 
     // 関連するProductテーブルのデータも取得
+    const uploadsRoot = path.join(process.cwd(), 'uploads');
+    const getUrl = (img: any) => typeof img === 'string' ? img : (img?.url || img?.thumbnailUrl || '');
+    const isHttp = (u: string) => /^https?:\/\//.test(u || '');
+    const isValidImageUrl = async (url: string): Promise<boolean> => {
+      if (!url) return false;
+      if (url.startsWith('data:') || isHttp(url)) return true;
+      try {
+        let relative = '';
+        if (url.startsWith('/api/images/')) relative = url.replace('/api/images/', '');
+        else if (url.startsWith('/uploads/')) relative = url.replace('/uploads/', '');
+        else if (/^product-/.test(url)) relative = url;
+        else return true;
+        await fs.access(path.join(uploadsRoot, relative));
+        return true;
+      } catch { return false; }
+    };
+
+    const score = (u: string) => u.startsWith('data:') ? 3 : (isHttp(u) ? 2 : ((u.startsWith('/api/images/') || /^product-/.test(u)) ? 1 : 0));
+    const filterAndSortImages = async (images: any[]) => {
+      const validImages = [];
+      for (const img of images) {
+        if (await isValidImageUrl(getUrl(img))) {
+          validImages.push(img);
+        }
+      }
+      validImages.sort((a, b) => score(getUrl(b)) - score(getUrl(a)));
+      return validImages;
+    };
+
     const formattedPlansWithDetails = await Promise.all(
       deliveryPlans.map(async (plan) => {
         // 各プランに関連するProductテーブルのデータを取得
@@ -755,7 +784,7 @@ export async function GET(request: NextRequest) {
           createdAt: plan.createdAt.toISOString(),
           updatedAt: plan.updatedAt.toISOString(),
           // 詳細な商品情報（DeliveryPlanProductとProduct両方の情報を統合）
-          products: plan.products.map(planProduct => {
+          products: await Promise.all(plan.products.map(async planProduct => {
             // 対応するProduct情報を検索
             const relatedProduct = relatedProducts.find(p => {
               try {
@@ -830,12 +859,45 @@ export async function GET(request: NextRequest) {
               // 🆕 プレミアム梱包オプション
               premiumPacking: planProduct.premiumPacking || false,
               // 商品画像
-              images: planProduct.images?.map(img => ({
-                id: img.id,
-                url: img.url,
-                filename: img.filename,
-                category: img.category || 'product'
-              })) || [],
+              images: await (async () => {
+                const allImages: any[] = [];
+                
+                // ProductImageテーブルからの画像
+                if (planProduct.images && planProduct.images.length > 0) {
+                  allImages.push(...planProduct.images.map((img: any) => ({
+                    id: img.id,
+                    url: img.url,
+                    thumbnailUrl: img.url,
+                    filename: img.filename,
+                    source: 'product_table',
+                    uploadedAt: img.createdAt.toISOString()
+                  })));
+                }
+                
+                // メタデータ内のBase64画像（スタッフ撮影画像）
+                if (productMetadata.photos && Array.isArray(productMetadata.photos)) {
+                  allImages.push(...productMetadata.photos.map((photo: any, index: number) => ({
+                    id: `metadata_${index}`,
+                    url: photo.dataUrl,
+                    thumbnailUrl: photo.dataUrl,
+                    filename: photo.filename || `photo_${index}.jpg`,
+                    source: 'metadata'
+                  })));
+                }
+                
+                // メタデータ内の画像配列（納品プラン由来）
+                if (productMetadata.images && Array.isArray(productMetadata.images)) {
+                  allImages.push(...productMetadata.images.map((img: any, index: number) => ({
+                    id: `delivery_${index}`,
+                    url: img.url || img,
+                    thumbnailUrl: img.url || img,
+                    filename: img.filename || `delivery_${index}.jpg`,
+                    source: 'delivery_plan'
+                  })));
+                }
+                
+                return filterAndSortImages(allImages);
+              })(),
               // 検品チェックリスト
               hasInspectionChecklist: !!planProduct.inspectionChecklist,
               inspectionChecklistData: planProduct.inspectionChecklist ? {
@@ -883,63 +945,11 @@ export async function GET(request: NextRequest) {
                 verifiedAt: planProduct.hierarchicalInspectionChecklist.verifiedAt?.toISOString()
               } : null,
               
-              // 商品画像を統合的に処理（無効ファイル除外＋Base64優先）
-              images: (() => {
-                const uploadsRoot = process.cwd() + '/uploads';
-                const getUrl = (img: any) => typeof img === 'string' ? img : (img?.url || img?.thumbnailUrl || '');
-                const isHttp = (u: string) => /^https?:\/\//.test(u);
-                const exists = (u: string) => {
-                  try {
-                    if (!u) return false;
-                    if (u.startsWith('data:') || isHttp(u)) return true;
-                    let rel = '';
-                    if (u.startsWith('/api/images/')) rel = u.replace('/api/images/', '');
-                    else if (u.startsWith('/uploads/')) rel = u.replace('/uploads/', '');
-                    else if (/^product-/.test(u)) rel = u; else return true;
-                    require('fs').accessSync(require('path').join(uploadsRoot, rel));
-                    return true;
-                  } catch { return false; }
-                };
-                const score = (u: string) => u.startsWith('data:') ? 3 : (isHttp(u) ? 2 : ((u.startsWith('/api/images/') || /^product-/.test(u)) ? 1 : 0));
-
-                const allImages: any[] = [];
-                if (planProduct.images && planProduct.images.length > 0) {
-                  allImages.push(...planProduct.images.map((img: any) => ({
-                    id: img.id,
-                    url: img.url,
-                    thumbnailUrl: img.url,
-                    filename: img.filename,
-                    source: 'product_table',
-                    uploadedAt: img.createdAt.toISOString()
-                  })));
-                }
-                if (productMetadata.photos && Array.isArray(productMetadata.photos)) {
-                  allImages.push(...productMetadata.photos.map((photo: any, index: number) => ({
-                    id: `metadata_${index}`,
-                    url: photo.dataUrl,
-                    thumbnailUrl: photo.dataUrl,
-                    filename: photo.filename || `photo_${index}.jpg`,
-                    source: 'metadata'
-                  })));
-                }
-                if (productMetadata.images && Array.isArray(productMetadata.images)) {
-                  allImages.push(...productMetadata.images.map((img: any, index: number) => ({
-                    id: `delivery_${index}`,
-                    url: img.url || img,
-                    thumbnailUrl: img.url || img,
-                    filename: img.filename || `delivery_${index}.jpg`,
-                    source: 'delivery_plan'
-                  })));
-                }
-                const filtered = allImages.filter(x => exists(getUrl(x)));
-                filtered.sort((a, b) => score(getUrl(b)) - score(getUrl(a)));
-                return filtered;
-              })(),
               // 作成・更新日時
               createdAt: planProduct.createdAt.toISOString(),
               updatedAt: planProduct.updatedAt.toISOString()
             };
-          })
+          }))
         };
       })
     );
