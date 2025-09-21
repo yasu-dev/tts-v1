@@ -183,6 +183,24 @@ export async function GET(request: NextRequest) {
           }
         }
         
+        // 画像フォールバック（metadata.photosを優先 -> Product.images -> imageUrl）
+        const buildImage = () => {
+          try {
+            if (listing.product?.metadata) {
+              const md = typeof listing.product.metadata === 'string' ? JSON.parse(listing.product.metadata) : listing.product.metadata;
+              if (md?.photos && Array.isArray(md.photos) && md.photos.length > 0) {
+                const p = md.photos[0];
+                if (p?.dataUrl) return p.dataUrl;
+              }
+              if (md?.images && Array.isArray(md.images) && md.images.length > 0) {
+                const im = md.images[0];
+                return (im?.url || im) || listing.product?.images?.[0]?.url || listing.product?.imageUrl || 'https://via.placeholder.com/300';
+              }
+            }
+          } catch {}
+          return listing.product?.images?.[0]?.url || listing.product?.imageUrl || 'https://via.placeholder.com/300';
+        };
+
         return {
           id: relatedOrder?.id || listing.id, // 注文IDが優先、なければListing ID
           listingId: listing.id, // 出品IDも保持
@@ -190,7 +208,7 @@ export async function GET(request: NextRequest) {
           customer: relatedOrder?.customerName || listing.platform,
           product: listing.title,
           ebayTitle: listing.title,
-          ebayImage: listing.product?.images?.[0]?.url || listing.product?.imageUrl || 'https://via.placeholder.com/300',
+          ebayImage: buildImage(),
           totalAmount: relatedOrder?.totalAmount || listing.price,
           status: displayStatus,
           itemCount: relatedOrder?.items?.length || 1,
@@ -205,7 +223,7 @@ export async function GET(request: NextRequest) {
             category: listing.product?.category || 'その他',
             quantity: 1,
             price: relatedOrder?.totalAmount || listing.price,
-            productImage: listing.product?.images?.[0]?.url || listing.product?.imageUrl || 'https://via.placeholder.com/300'
+            productImage: buildImage()
           }],
           labelGenerated: isLabelGenerated,
           trackingNumber: relatedOrder?.trackingNumber || null,

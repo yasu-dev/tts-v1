@@ -1086,6 +1086,8 @@ export default function SalesPage() {
                                       src={row.ebayImage || row.items[0].productImage}
                                       alt={row.product}
                                       className="w-full h-full object-cover"
+                                      loading="lazy"
+                                      onError={(e) => { e.currentTarget.src = '/api/placeholder/96/96'; }}
                                     />
                                   ) : (
                                     <div className="w-full h-full flex items-center justify-center text-nexus-text-tertiary">

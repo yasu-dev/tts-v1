@@ -139,7 +139,7 @@ export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetail
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title="注文詳細"
+      title={order.status === 'listing' ? '出品詳細' : '注文詳細'}
       size="lg"
     >
       <div className="space-y-6">
@@ -198,6 +198,24 @@ export default function OrderDetailModal({ isOpen, onClose, order }: OrderDetail
                 showLabel={true}
               />
             </div>
+
+            {order.status === 'listing' && (
+              <div>
+                <label className="flex items-center gap-2 text-sm font-medium text-nexus-text-secondary mb-2">
+                  <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+                  eBay商品ページ
+                </label>
+                <a
+                  href={`https://www.ebay.com/itm/${order.listingId || order.id || '123456789012'}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline"
+                >
+                  商品を確認
+                  <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+                </a>
+              </div>
+            )}
 
             {order.shippingAddress && (
               <div>

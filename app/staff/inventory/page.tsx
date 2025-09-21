@@ -872,6 +872,8 @@ export default function StaffInventoryPage() {
                                 alt={item.name}
                                 className="w-full h-full object-cover"
                                 title="商品画像"
+                                loading="lazy"
+                                onError={(e) => { e.currentTarget.src = '/api/placeholder/80/80'; }}
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">

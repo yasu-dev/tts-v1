@@ -416,6 +416,8 @@ export default function InventoryPage() {
                               src={item.imageUrl || item.images[0].url || item.images[0].thumbnailUrl || item.images[0]}
                               alt={item.name}
                               className="w-full h-full object-cover"
+                              loading="lazy"
+                              onError={(e) => { e.currentTarget.src = '/api/placeholder/80/80'; }}
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">

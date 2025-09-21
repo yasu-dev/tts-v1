@@ -466,7 +466,37 @@ export async function GET(request: NextRequest) {
         shippingMethod: `${shipment.carrier} - ${shipment.method}`,
         value: shipment.value,
         location: product?.currentLocationId ? `LOC-${product.currentLocationId.slice(-4)}` : 'A1-01',
-        productImages: product?.imageUrl ? [product.imageUrl] : [],
+        productImages: (() => {
+          const images = [];
+          
+          // 基本のimageUrl
+          if (product?.imageUrl) {
+            images.push(product.imageUrl);
+          }
+          
+          // メタデータ内のBase64画像
+          try {
+            if (product?.metadata) {
+              const metadata = typeof product.metadata === 'string' 
+                ? JSON.parse(product.metadata) 
+                : product.metadata;
+              
+              // スタッフ撮影画像（Base64）
+              if (metadata.photos && Array.isArray(metadata.photos)) {
+                images.push(...metadata.photos.map((photo: any) => photo.dataUrl).filter(Boolean));
+              }
+              
+              // 納品プラン由来画像
+              if (metadata.images && Array.isArray(metadata.images)) {
+                images.push(...metadata.images.map((img: any) => img.url || img).filter(Boolean));
+              }
+            }
+          } catch (e) {
+            console.warn('配送管理画像データ解析エラー:', e);
+          }
+          
+          return images;
+        })(),
         inspectionImages: [],
         inspectionNotes: shipment.notes || `優先度: ${shipment.priority}`,
         trackingNumber: shipment.trackingNumber || undefined,
@@ -508,7 +538,37 @@ export async function GET(request: NextRequest) {
             shippingMethod: 'Bundle Shipping',
             value: 0,
             location: product.currentLocationId ? `LOC-${product.currentLocationId.slice(-4)}` : 'BUNDLE',
-            productImages: product.imageUrl ? [product.imageUrl] : [],
+            productImages: (() => {
+          const images = [];
+          
+          // 基本のimageUrl
+          if (product?.imageUrl) {
+            images.push(product.imageUrl);
+          }
+          
+          // メタデータ内のBase64画像
+          try {
+            if (product?.metadata) {
+              const metadata = typeof product.metadata === 'string' 
+                ? JSON.parse(product.metadata) 
+                : product.metadata;
+              
+              // スタッフ撮影画像（Base64）
+              if (metadata.photos && Array.isArray(metadata.photos)) {
+                images.push(...metadata.photos.map((photo: any) => photo.dataUrl).filter(Boolean));
+              }
+              
+              // 納品プラン由来画像
+              if (metadata.images && Array.isArray(metadata.images)) {
+                images.push(...metadata.images.map((img: any) => img.url || img).filter(Boolean));
+              }
+            }
+          } catch (e) {
+            console.warn('配送管理画像データ解析エラー:', e);
+          }
+          
+          return images;
+        })(),
             inspectionImages: [],
             inspectionNotes: `同梱商品 - Bundle ID: ${bundleInfo.bundleId}`,
             trackingNumber: bundleInfo.trackingNumber || undefined,

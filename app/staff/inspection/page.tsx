@@ -103,6 +103,7 @@ interface Product {
   receivedDate: string;
 
   imageUrl?: string;
+  images?: any[]; // 統合された画像データ配列
   metadata?: string; // メタデータフィールド追加
 }
 
@@ -259,6 +260,7 @@ export default function InspectionPage() {
           status: convertInventoryStatusToInspectionStatus(item.status),
           receivedDate: item.entryDate,
           imageUrl: item.imageUrl || '/api/placeholder/150/150',
+          images: item.images || [], // 統合された画像データを追加
           metadata: item.metadata
         }));
         
@@ -905,6 +907,8 @@ export default function InspectionPage() {
                               })()}
                               alt={product.name}
                               className="w-full h-full object-cover"
+                              loading="lazy"
+                              onError={(e) => { e.currentTarget.src = '/api/placeholder/60/60'; }}
                             />
                           </div>
                         </div>

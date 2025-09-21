@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { AuthService } from '@/lib/auth';
+import { promises as fs } from 'fs';
+import path from 'path';
 
 
 const prisma = new PrismaClient();
@@ -137,8 +139,60 @@ export async function GET(request: NextRequest) {
       })));
     }
 
+    // 画像の有効性チェックと優先順位付けのヘルパー
+    const uploadsRoot = path.join(process.cwd(), 'uploads');
+    const getUrlFromImageObj = (img: any): string => {
+      if (!img) return '';
+      if (typeof img === 'string') return img;
+      return img.url || img.thumbnailUrl || '';
+    };
+
+    const isValidLocalImageUrl = async (url: string): Promise<boolean> => {
+      if (!url) return false;
+      if (url.startsWith('data:')) return true; // Base64 は常にOK
+      if (/^https?:\/\//.test(url)) return true; // リモートURLはそのまま許可
+      try {
+        let relativePath = '';
+        if (url.startsWith('/api/images/')) {
+          relativePath = url.replace('/api/images/', '');
+        } else if (/^product-/.test(url)) {
+          relativePath = url;
+        } else if (url.startsWith('/uploads/')) {
+          relativePath = url.replace('/uploads/', '');
+        } else {
+          // その他の形式は有効とみなす
+          return true;
+        }
+        const fullPath = path.join(uploadsRoot, relativePath);
+        await fs.access(fullPath);
+        return true;
+      } catch {
+        return false;
+      }
+    };
+
+    const filterAndPrioritizeImages = async (images: any[]): Promise<any[]> => {
+      const kept: any[] = [];
+      for (const img of images) {
+        const url = getUrlFromImageObj(img);
+        if (!url) continue;
+        if (await isValidLocalImageUrl(url)) {
+          kept.push(typeof img === 'string' ? img : { ...img, url });
+        }
+      }
+      const score = (u: string) => u.startsWith('data:') ? 3 : (/^https?:\/\//.test(u) ? 2 : ((u.startsWith('/api/images/') || /^product-/.test(u)) ? 1 : 0));
+      kept.sort((a, b) => score(getUrlFromImageObj(b)) - score(getUrlFromImageObj(a)));
+      return kept;
+    };
+
+    const resolvePrimaryImage = async (candidate: string | null | undefined, images: any[]): Promise<string | null> => {
+      if (candidate && await isValidLocalImageUrl(candidate)) return candidate;
+      const first = images.length > 0 ? getUrlFromImageObj(images[0]) : '';
+      return first || null;
+    };
+
     // Transform to match UI expectations - データベース値をそのまま返す（フロントエンドで変換）
-    const inventoryData = products.map((product, index) => {
+    const inventoryData = await Promise.all(products.map(async (product, index) => {
       // メタデータを安全に解析
       let parsedMetadata = null;
       try {
@@ -197,7 +251,7 @@ export async function GET(request: NextRequest) {
       }
 
       // 画像データを統合的に処理
-      const allImages = [];
+      const allImages: any[] = [];
       
       // ProductImageテーブルからの画像
       if (product.images && product.images.length > 0) {
@@ -232,6 +286,12 @@ export async function GET(request: NextRequest) {
         })));
       }
 
+      // 無効なローカルファイルパス画像を除外し、Base64優先に並び替え
+      const validImages = await filterAndPrioritizeImages(allImages);
+
+      // imageUrl が無効なら最初の有効画像へフォールバック
+      const primaryImageUrl = await resolvePrimaryImage(product.imageUrl, validImages);
+
       return {
         id: product.id,
         name: product.name,
@@ -242,8 +302,8 @@ export async function GET(request: NextRequest) {
         price: product.price,
         condition: product.condition, // 英語のまま返す
         entryDate: product.entryDate ? product.entryDate.toISOString().split('T')[0] : product.createdAt.toISOString().split('T')[0],
-        imageUrl: product.imageUrl,
-        images: allImages, // 統合された画像データ
+        imageUrl: primaryImageUrl,
+        images: validImages, // 統合された有効画像データ
         currentLocation: product.currentLocation, // ロケーション情報も追加
         seller: product.seller,
         description: product.description,
@@ -253,7 +313,7 @@ export async function GET(request: NextRequest) {
         createdAt: product.createdAt.toISOString(),
         updatedAt: product.updatedAt.toISOString(),
       };
-    });
+    }));
 
     console.log(`✅ 在庫データ取得完了: ${inventoryData.length}件 (ユーザー: ${user.role}${user.role === 'seller' ? ' - 自分の商品のみ' : ' - 全商品'})`);
 
