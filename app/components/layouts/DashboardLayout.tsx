@@ -497,27 +497,6 @@ export default function DashboardLayout({
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
-  const [inventoryStats, setInventoryStats] = useState<any>({});
-
-  // 在庫統計データ取得
-  useEffect(() => {
-    const fetchInventoryStats = async () => {
-      try {
-        const response = await fetch('/api/inventory/stats');
-        const data = await response.json();
-        setInventoryStats(data);
-      } catch (error) {
-        console.error('在庫統計データ取得エラー:', error);
-      }
-    };
-
-    fetchInventoryStats();
-    
-    // 30秒ごとに更新
-    const interval = setInterval(fetchInventoryStats, 30 * 1000);
-    return () => clearInterval(interval);
-  }, []);
-
   const sellerMenuItems = [
     // Phase2で復元: ダッシュボード
     // { 
@@ -528,27 +507,23 @@ export default function DashboardLayout({
     { 
       label: '納品管理', 
       href: '/delivery',
-      icon: icons.delivery,
-      badge: (inventoryStats.statusStats?.['入庫待ち'] || 0) + (inventoryStats.statusStats?.['入庫'] || 0)
+      icon: icons.delivery
     },
     { 
       label: '在庫管理', 
       href: '/inventory',
-      icon: icons.inventory,
-      badge: inventoryStats.totalItems || 0
+      icon: icons.inventory
     },
     { 
       label: '販売管理', 
       href: '/sales',
-      icon: icons.sales,
-      badge: (inventoryStats.statusStats?.['出品'] || 0) + (inventoryStats.statusStats?.['受注'] || 0)
+      icon: icons.sales
     },
     // Phase2で復元: 返品管理
     // { 
     //   label: '返品管理', 
     //   href: '/returns',
-    //   icon: icons.returns,
-    //   badge: inventoryStats.statusStats?.['返品'] || 0
+    //   icon: icons.returns
     // },
     // Phase2で復元: 請求・精算
     // { 
@@ -568,33 +543,28 @@ export default function DashboardLayout({
     { 
       label: '在庫管理', 
       href: '/staff/inventory',
-      icon: icons.inventory,
-      badge: inventoryStats.totalItems || 0
+      icon: icons.inventory
     },
     { 
       label: '検品管理', 
       href: '/staff/inspection',
-      icon: icons.inspection,
-      badge: (inventoryStats.statusStats?.['入庫'] || 0) + (inventoryStats.statusStats?.['検品'] || 0)
+      icon: icons.inspection
     },
     { 
       label: 'ロケーション管理', 
       href: '/staff/location',
-      icon: icons.location,
-      badge: inventoryStats.statusStats?.['保管'] || 0
+      icon: icons.location
     },
     { 
       label: '出荷管理', 
       href: '/staff/shipping',
-      icon: icons.shipping,
-      badge: (inventoryStats.statusStats?.['出荷'] || 0) + (inventoryStats.statusStats?.['梱包待ち'] || 0)
+      icon: icons.shipping
     },
     // Phase2で復元: 返品管理
     // { 
     //   label: '返品管理', 
     //   href: '/staff/returns',
-    //   icon: icons.returns,
-    //   badge: inventoryStats.statusStats?.['返品'] || 0
+    //   icon: icons.returns
     // },
     // Phase2で復元: 業務レポート
     // { 
@@ -707,7 +677,7 @@ export default function DashboardLayout({
                     onClick={() => setIsMobileMenuOpen(false)}
                     title={isSidebarCollapsed ? item.label : undefined}
                     className={`
-                      flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 relative
+                      flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200
                       ${isSidebarCollapsed ? 'justify-center' : ''} 
                       ${pathname === item.href
                         ? 'bg-blue-50 text-blue-600'
@@ -719,21 +689,9 @@ export default function DashboardLayout({
                       {item.icon}
                     </div>
                     {!isSidebarCollapsed && (
-                      <>
-                        <span className="font-medium text-sm flex-1 overflow-hidden text-ellipsis">
-                          {item.label}
-                        </span>
-                        {item.badge && item.badge > 0 && (
-                          <span className="px-2 py-1 bg-red-500 text-white text-xs rounded-full min-w-[20px] text-center">
-                            {item.badge}
-                          </span>
-                        )}
-                      </>
-                    )}
-                    {isSidebarCollapsed && item.badge && item.badge > 0 && (
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                        {item.badge > 99 ? '99+' : item.badge}
-                      </div>
+                      <span className="font-medium text-sm flex-1 overflow-hidden text-ellipsis">
+                        {item.label}
+                      </span>
                     )}
                   </Link>
                 ))}
