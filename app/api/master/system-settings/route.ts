@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { AuthService } from '@/lib/auth';
+import { ActivityLogger } from '@/lib/activity-logger';
 
 const prisma = new PrismaClient();
 
@@ -93,6 +95,7 @@ export async function GET(request: NextRequest) {
 // POST: システム設定作成
 export async function POST(request: NextRequest) {
   try {
+    const user = await AuthService.requireRole(request, ['admin']);
     const body = await request.json();
     const { key, value, description, type } = body;
 
@@ -134,6 +137,29 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // システム設定作成の履歴を記録
+    const metadata = ActivityLogger.extractMetadataFromRequest(request);
+    await ActivityLogger.logDataChange(
+      'setting',
+      'create',
+      setting.id,
+      user.id,
+      {
+        oldValue: null,
+        newValue: {
+          key,
+          value: stringValue,
+          type: type || 'string',
+          description,
+        },
+      },
+      {
+        ...metadata,
+        createdBy: user.username,
+        settingKey: key,
+      }
+    );
+
     return NextResponse.json({
       success: true,
       data: setting,
@@ -152,6 +178,7 @@ export async function POST(request: NextRequest) {
 // PUT: システム設定更新
 export async function PUT(request: NextRequest) {
   try {
+    const user = await AuthService.requireRole(request, ['admin']);
     const body = await request.json();
     const { id, key, value, description, type, isActive } = body;
 
@@ -211,6 +238,34 @@ export async function PUT(request: NextRequest) {
       },
     });
 
+    // システム設定更新の履歴を記録
+    const metadata = ActivityLogger.extractMetadataFromRequest(request);
+    await ActivityLogger.logSystemSettingChange(
+      existing.key,
+      existing.value,
+      stringValue,
+      user.id,
+      {
+        ...metadata,
+        updatedBy: user.username,
+        settingId: id,
+        oldData: {
+          key: existing.key,
+          value: existing.value,
+          description: existing.description,
+          type: existing.type,
+          isActive: existing.isActive,
+        },
+        newData: {
+          key: key || existing.key,
+          value: stringValue,
+          description: description !== undefined ? description : existing.description,
+          type: type || existing.type,
+          isActive: isActive !== undefined ? isActive : existing.isActive,
+        },
+      }
+    );
+
     return NextResponse.json({
       success: true,
       data: setting,
@@ -229,6 +284,7 @@ export async function PUT(request: NextRequest) {
 // DELETE: システム設定削除（論理削除）
 export async function DELETE(request: NextRequest) {
   try {
+    const user = await AuthService.requireRole(request, ['admin']);
     const body = await request.json();
     const { id } = body;
 
@@ -239,10 +295,49 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
+    // 削除前の設定情報を取得
+    const existingSetting = await prisma.systemSetting.findUnique({
+      where: { id },
+    });
+
+    if (!existingSetting) {
+      return NextResponse.json(
+        { success: false, error: 'システム設定が見つかりません' },
+        { status: 404 }
+      );
+    }
+
     const setting = await prisma.systemSetting.update({
       where: { id },
       data: { isActive: false },
     });
+
+    // システム設定削除の履歴を記録
+    const metadata = ActivityLogger.extractMetadataFromRequest(request);
+    await ActivityLogger.logDataChange(
+      'setting',
+      'delete',
+      id,
+      user.id,
+      {
+        oldValue: {
+          key: existingSetting.key,
+          value: existingSetting.value,
+          isActive: true,
+        },
+        newValue: {
+          key: existingSetting.key,
+          value: existingSetting.value,
+          isActive: false,
+        },
+      },
+      {
+        ...metadata,
+        deletedBy: user.username,
+        settingKey: existingSetting.key,
+        action: 'logical_delete',
+      }
+    );
 
     return NextResponse.json({
       success: true,

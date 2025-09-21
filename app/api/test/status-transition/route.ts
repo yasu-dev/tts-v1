@@ -143,6 +143,48 @@ export async function POST(request: NextRequest) {
     } catch (error) {
       console.warn('🧪 [TEST API] アクティビティログ作成失敗（続行）:', error);
     }
+
+    // 購入確定時（listing→sold）の場合、ラベル生成依頼通知を送信
+    if (fromStatus === 'listing' && toStatus === 'sold' && product.sellerId) {
+      try {
+        console.log('🧪 [TEST API] ラベル生成依頼通知作成開始');
+        
+        // セラーに通知
+        const notification = await prisma.notification.create({
+          data: {
+            type: 'order_ready_for_label',
+            title: '📦 ラベル生成依頼',
+            message: `商品「${product.name}」が売れました！配送ラベルを生成してください。`,
+            userId: product.sellerId,
+            read: false,
+            priority: 'high',
+            notificationType: 'product_sold',
+            action: 'sales'
+          }
+        });
+        
+        console.log('🧪 [TEST API] ラベル生成依頼通知作成完了:', notification.id);
+
+        // アクティビティログに通知送信を記録
+        await prisma.activity.create({
+          data: {
+            type: 'notification_sent',
+            description: `ラベル生成依頼通知をセラーに送信しました`,
+            userId: 'system',
+            productId: product.id,
+            metadata: JSON.stringify({
+              notificationId: notification.id,
+              notificationType: 'order_ready_for_label',
+              sellerId: product.sellerId
+            })
+          }
+        });
+        
+        console.log('🧪 [TEST API] 通知送信ログ作成完了');
+      } catch (notificationError) {
+        console.warn('🧪 [TEST API] 通知送信失敗（続行）:', notificationError);
+      }
+    }
     
     console.log('🧪 [TEST API] ステータス遷移成功完了 - レスポンス返却');
     

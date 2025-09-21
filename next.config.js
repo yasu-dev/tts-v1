@@ -6,6 +6,7 @@ const nextConfig = {
   // 実験的機能
   experimental: {
     serverComponentsExternalPackages: ['prisma', '@prisma/client'],
+    serverMinification: false,
   },
   
   // 画像最適化設定
@@ -68,10 +69,20 @@ const nextConfig = {
   },
   
   // Webpack設定
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, dev }) => {
     // Prisma Client の設定
     if (isServer) {
       config.externals.push('@prisma/client');
+    }
+    
+    // React Server Components bundler の問題を修正
+    if (dev) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      };
     }
     
     return config;

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { AuthService } from '@/lib/auth';
 import { notificationService } from '@/lib/services/notification.service';
+import { ActivityLogger } from '@/lib/activity-logger';
 
 const prisma = new PrismaClient();
 
@@ -136,16 +137,34 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // アクティビティログを作成
-    await prisma.activity.create({
-      data: {
-        type: 'order_created',
-        description: `新規注文 ${orderNumber} が作成されました`,
-        userId: user.id,
-        orderId: order.id,
-        metadata: JSON.stringify({ totalAmount, itemCount: items.length })
+    // 詳細な注文作成履歴を記録
+    const metadata = ActivityLogger.extractMetadataFromRequest(request);
+    await ActivityLogger.logDataChange(
+      'order',
+      'create',
+      order.id,
+      user.id,
+      {
+        oldValue: null,
+        newValue: {
+          orderNumber,
+          customerId,
+          totalAmount,
+          itemCount: items.length,
+          status: 'pending',
+        },
+      },
+      {
+        ...metadata,
+        createdBy: user.username,
+        customerEmail: order.customer.email,
+        items: items.map((item: any) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          price: item.price,
+        })),
       }
-    });
+    );
 
     // セラーに商品購入通知を送信
     try {
@@ -198,6 +217,23 @@ export async function PUT(request: NextRequest) {
     
     const { orderId, status, notes } = body;
     
+    // 変更前の注文情報を取得
+    const existingOrder = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        items: {
+          include: { product: true }
+        }
+      }
+    });
+
+    if (!existingOrder) {
+      return NextResponse.json(
+        { error: '注文が見つかりません' },
+        { status: 404 }
+      );
+    }
+    
     // 注文ステータスを更新
     const updatedOrder = await prisma.order.update({
       where: { id: orderId },
@@ -243,16 +279,45 @@ export async function PUT(request: NextRequest) {
       });
     }
 
-    // アクティビティログを作成
-    await prisma.activity.create({
-      data: {
-        type: 'order_updated',
-        description: `注文 ${updatedOrder.orderNumber} のステータスが ${status} に更新されました`,
-        userId: user.id,
-        orderId: updatedOrder.id,
-        metadata: JSON.stringify({ newStatus: status })
-      }
-    });
+    // 注文ステータス変更の詳細な履歴を記録
+    const metadata = ActivityLogger.extractMetadataFromRequest(request);
+    
+    if (existingOrder.status !== status) {
+      await ActivityLogger.logOrderStatusChange(
+        orderId,
+        existingOrder.status,
+        status,
+        user.id,
+        {
+          ...metadata,
+          updatedBy: user.username,
+          orderNumber: updatedOrder.orderNumber,
+          notes,
+          shippedAt: status === 'shipped' ? updatedOrder.shippedAt?.toISOString() : undefined,
+          deliveredAt: status === 'delivered' ? updatedOrder.deliveredAt?.toISOString() : undefined,
+        }
+      );
+    }
+
+    // 備考の変更も記録
+    if (existingOrder.notes !== notes) {
+      await ActivityLogger.logDataChange(
+        'order',
+        'update',
+        orderId,
+        user.id,
+        {
+          oldValue: { notes: existingOrder.notes },
+          newValue: { notes },
+        },
+        {
+          ...metadata,
+          field: 'notes',
+          updatedBy: user.username,
+          orderNumber: updatedOrder.orderNumber,
+        }
+      );
+    }
 
     return NextResponse.json(updatedOrder);
   } catch (error) {

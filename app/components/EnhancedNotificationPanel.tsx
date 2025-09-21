@@ -322,7 +322,7 @@ export default function EnhancedNotificationPanel({
         </div>
       </div>
 
-      <div className="max-h-60 overflow-y-auto">
+      <div className="max-h-60 overflow-y-auto" data-testid="notification-list">
         {loading ? (
           <div className="p-4">
             <div className="space-y-2">
@@ -343,16 +343,30 @@ export default function EnhancedNotificationPanel({
                 key={notification.id}
                 onClick={() => handleNotificationClick(notification)}
                 className={`p-3 cursor-pointer transition-colors hover:bg-gray-50 ${!notification.read ? 'bg-blue-50' : ''}`}
+                data-testid="notification-item"
+                data-read={notification.read}
+                data-type={notification.type}
+                data-priority={notification.priority}
+                data-action={notification.action}
               >
                 <div className="flex items-start gap-2">
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-medium truncate ${!notification.read ? 'text-gray-900' : 'text-gray-700'}`}>
+                    <p 
+                      className={`text-sm font-medium truncate ${!notification.read ? 'text-gray-900' : 'text-gray-700'}`}
+                      data-testid="notification-title"
+                    >
                       {notification.title}
                     </p>
-                    <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                    <p 
+                      className="text-xs text-gray-500 mt-1 line-clamp-2"
+                      data-testid="notification-message"
+                    >
                       {notification.message}
                     </p>
-                    <p className="text-xs text-gray-400 mt-1">
+                    <p 
+                      className="text-xs text-gray-400 mt-1"
+                      data-testid="notification-time"
+                    >
                       {formatTimestamp(notification.timestamp)}
                     </p>
                   </div>

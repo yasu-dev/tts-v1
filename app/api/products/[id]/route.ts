@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/database';
 import { AuthService } from '@/lib/auth';
+import { ActivityLogger } from '@/lib/activity-logger';
 
 // 共有Prismaインスタンスを使用（SQLiteのロック回避と接続管理の一元化）
 
@@ -207,6 +208,22 @@ export async function PUT(
       );
     }
 
+    // 変更内容を記録するため、変更前の値を保存
+    const oldValues: any = {};
+    const newValues: any = {};
+    const changedFields: string[] = [];
+
+    // 変更される各フィールドをチェック
+    const fieldsToCheck = ['name', 'category', 'price', 'condition', 'description', 'imageUrl', 'status', 'currentLocationId', 'metadata'];
+    
+    for (const field of fieldsToCheck) {
+      if (body[field] !== undefined && body[field] !== existingProduct[field as keyof typeof existingProduct]) {
+        oldValues[field] = existingProduct[field as keyof typeof existingProduct];
+        newValues[field] = body[field];
+        changedFields.push(field);
+      }
+    }
+
     // 商品情報を更新
     const updatedProduct = await prisma.product.update({
       where: { id: productId },
@@ -223,18 +240,55 @@ export async function PUT(
       },
     });
 
-    // アクティビティログを記録
-    await prisma.activity.create({
-      data: {
+    // 詳細な変更履歴を記録
+    const metadata = ActivityLogger.extractMetadataFromRequest(request);
+    
+    // 個別の変更内容を記録
+    for (const field of changedFields) {
+      if (field === 'price') {
+        await ActivityLogger.logProductPriceChange(
+          productId,
+          oldValues[field],
+          newValues[field],
+          user.id,
+          { ...metadata, updatedBy: user.username }
+        );
+      } else if (field === 'status') {
+        await ActivityLogger.logProductStatusChange(
+          productId,
+          oldValues[field],
+          newValues[field],
+          user.id,
+          { ...metadata, updatedBy: user.username }
+        );
+      } else {
+        await ActivityLogger.logDataChange(
+          'product',
+          'update',
+          productId,
+          user.id,
+          { oldValue: { [field]: oldValues[field] }, newValue: { [field]: newValues[field] } },
+          { ...metadata, field, updatedBy: user.username }
+        );
+      }
+    }
+
+    // 全体的な更新ログも記録
+    if (changedFields.length > 0) {
+      await ActivityLogger.log({
         type: 'product_update',
-        description: `商品 ${updatedProduct.name} が更新されました`,
+        description: `商品 ${updatedProduct.name} が更新されました (変更項目: ${changedFields.join(', ')})`,
         userId: user.id,
         productId: updatedProduct.id,
-        metadata: JSON.stringify({
-          updatedFields: Object.keys(body),
-        }),
-      },
-    });
+        metadata: {
+          ...metadata,
+          changedFields,
+          oldValues,
+          newValues,
+          updatedBy: user.username,
+        },
+      });
+    }
 
     return NextResponse.json({
       success: true,
@@ -318,20 +372,41 @@ export async function PATCH(
     });
 
     // 移動ログを記録
-    if (body.moveReason) {
-      await prisma.activity.create({
-        data: {
-          type: 'product_move',
-          description: body.moveReason,
-          userId: null, // デモ環境では認証なしなのでnull
-          productId: updatedProduct.id,
-          metadata: JSON.stringify({
-            fromLocation: existingProduct.currentLocationId,
-            toLocation: newLocationId,
-            toLocationCode: body.location,
-          }),
+    if (body.location && newLocationId) {
+      const metadata = ActivityLogger.extractMetadataFromRequest(request);
+      await ActivityLogger.logInventoryMovement(
+        productId,
+        existingProduct.currentLocationId,
+        newLocationId,
+        user.id,
+        {
+          ...metadata,
+          fromLocationCode: existingProduct.currentLocation?.code || null,
+          toLocationCode: body.location,
+          moveReason: body.moveReason || '場所移動',
+          movedBy: user.username,
+        }
+      );
+    }
+
+    // 検品備考の変更ログを記録
+    if (body.inspectionNotes !== undefined && body.inspectionNotes !== existingProduct.inspectionNotes) {
+      const metadata = ActivityLogger.extractMetadataFromRequest(request);
+      await ActivityLogger.logDataChange(
+        'product',
+        'update',
+        productId,
+        user.id,
+        {
+          oldValue: { inspectionNotes: existingProduct.inspectionNotes },
+          newValue: { inspectionNotes: body.inspectionNotes },
         },
-      });
+        {
+          ...metadata,
+          field: 'inspectionNotes',
+          updatedBy: user.username,
+        }
+      );
     }
 
     console.log(`[API] 商品移動完了: ${updatedProduct.name} → ${body.location}`);

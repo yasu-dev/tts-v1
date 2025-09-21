@@ -181,6 +181,64 @@ export async function POST(request: NextRequest) {
         }
       });
 
+      // ラベル生成完了時、スタッフにピッキング依頼通知を送信
+      console.log('📦 [Label Upload] ピッキング依頼通知作成開始');
+      
+      // ピッキング担当スタッフを取得
+      const pickingStaff = await prisma.user.findMany({
+        where: { 
+          role: 'staff',
+          // 現在はすべてのスタッフに通知（将来的に department フィールドで絞り込み可能）
+        }
+      });
+
+      // 各スタッフに通知を送信
+      for (const staff of pickingStaff) {
+        try {
+          const notification = await prisma.notification.create({
+            data: {
+              type: 'picking_request',
+              title: '📋 ピッキング依頼',
+              message: `注文 ${order.orderNumber} の商品（${productIds.length}点）のピッキングを開始してください。`,
+              userId: staff.id,
+              read: false,
+              priority: 'high',
+              notificationType: 'picking_request',
+              action: 'shipping',
+              metadata: JSON.stringify({
+                orderNumber: order.orderNumber,
+                productIds,
+                trackingNumber: trackingNumber?.trim() || null,
+                carrier: carrier?.trim() || null,
+                location: pickingLocation.name
+              })
+            }
+          });
+          
+          console.log('📦 [Label Upload] ピッキング依頼通知作成完了:', notification.id, 'スタッフ:', staff.username);
+
+          // アクティビティログに通知送信を記録
+          await prisma.activity.create({
+            data: {
+              type: 'notification_sent',
+              description: `ピッキング依頼通知を${staff.username}に送信しました（注文: ${order.orderNumber}）`,
+              userId: 'system',
+              orderId: order.id,
+              metadata: JSON.stringify({
+                notificationId: notification.id,
+                notificationType: 'picking_request',
+                staffId: staff.id,
+                orderNumber: order.orderNumber
+              })
+            }
+          });
+        } catch (notificationError) {
+          console.warn('📦 [Label Upload] スタッフ通知送信失敗（続行）:', staff.username, notificationError);
+        }
+      }
+      
+      console.log('📦 [Label Upload] 全スタッフへの通知送信完了:', pickingStaff.length, '名');
+
       // ログ記録
       console.log('Shipping label uploaded and status updated:', {
         orderId: order.id,

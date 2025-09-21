@@ -634,3 +634,20 @@ model HierarchicalInspectionResponse {
   @@unique([checklistId, categoryId, itemId])
   @@map("hierarchical_inspection_responses")
 }
+
+model Notification {
+  id               String   @id @default(cuid())
+  type             String
+  title            String
+  message          String
+  userId           String
+  read             Boolean  @default(false)
+  priority         String   @default("medium")
+  notificationType String?
+  action           String?
+  metadata         String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("notifications")
+}

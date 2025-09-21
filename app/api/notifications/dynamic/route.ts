@@ -95,8 +95,36 @@ export async function GET(request: NextRequest) {
       take: 20
     });
 
+    // 既存のNotificationテーブルから未読通知も取得
+    const unreadNotifications = await prisma.notification.findMany({
+      where: {
+        userId: userId,
+        read: false,
+        createdAt: {
+          gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // 24時間以内
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 10
+    });
+
     // アクティビティを通知に変換
     const dynamicNotifications: DynamicNotification[] = [];
+    
+    // Notificationテーブルからの通知を追加
+    for (const notification of unreadNotifications) {
+      dynamicNotifications.push({
+        id: notification.id,
+        type: notification.type as 'success' | 'warning' | 'error' | 'info',
+        title: notification.title,
+        message: notification.message,
+        timestamp: notification.createdAt.toISOString(),
+        read: notification.read,
+        notificationType: notification.notificationType || undefined,
+        metadata: notification.metadata,
+        userId
+      });
+    }
     
     for (const activity of activities) {
       let notification: DynamicNotification | null = null;

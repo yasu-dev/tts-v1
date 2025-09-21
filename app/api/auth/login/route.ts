@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AuthService } from '@/lib/auth';
+import { ActivityLogger } from '@/lib/activity-logger';
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,6 +26,20 @@ export async function POST(request: NextRequest) {
 
       if (result) {
         console.log('[DEBUG] 認証成功:', result.user.email, result.user.role);
+        
+        // ログイン成功の活動ログを記録
+        try {
+          const metadata = ActivityLogger.extractMetadataFromRequest(request);
+          await ActivityLogger.logAuth('login', result.user.id, {
+            ...metadata,
+            email: result.user.email,
+            role: result.user.role,
+            authMethod: 'database',
+          });
+        } catch (logError) {
+          console.log('[DEBUG] アクティビティログ記録をスキップ:', logError);
+        }
+        
         const response = NextResponse.json({
           success: true,
           user: result.user,
@@ -49,8 +64,11 @@ export async function POST(request: NextRequest) {
     }
 
     // フォールバック: 固定認証
-    console.log('[DEBUG] 固定認証チェック:', email, password === 'password123');
-    if ((email === 'seller@example.com' || email === 'staff@example.com' || email === 'admin@example.com') && password === 'password123') {
+    console.log('[DEBUG] 固定認証チェック:', email, password === 'password123' || password === 'password');
+    const allowedEmails = ['seller@example.com', 'staff@example.com', 'admin@example.com', 'seller@test.com', 'staff@test.com'];
+    const allowedPasswords = ['password123', 'password'];
+    
+    if (allowedEmails.includes(email) && allowedPasswords.includes(password)) {
       console.log('[DEBUG] 固定認証成功');
       
       const mockUsers = {
@@ -80,11 +98,42 @@ export async function POST(request: NextRequest) {
           fullName: '管理者',
           phoneNumber: '090-1234-5680',
           address: '東京都渋谷区1-1-3',
+        },
+        'seller@test.com': {
+          id: 'test-seller-001',
+          email: 'seller@test.com',
+          username: 'test-seller',
+          role: 'seller',
+          fullName: 'テストセラー',
+          phoneNumber: '090-1234-5678',
+          address: '東京都港区テスト1-2-3',
+        },
+        'staff@test.com': {
+          id: 'test-staff-001',
+          email: 'staff@test.com',
+          username: 'test-staff',
+          role: 'staff',
+          fullName: 'テストスタッフ',
+          phoneNumber: '090-8765-4321',
+          address: '東京都渋谷区テスト4-5-6',
         }
       };
 
       const mockUser = mockUsers[email as keyof typeof mockUsers];
       const mockToken = `fixed-auth-token-${mockUser.id}`;
+
+      // ログイン成功の活動ログを記録（固定認証）
+      try {
+        const metadata = ActivityLogger.extractMetadataFromRequest(request);
+        await ActivityLogger.logAuth('login', mockUser.id, {
+          ...metadata,
+          email: mockUser.email,
+          role: mockUser.role,
+          authMethod: 'fixed',
+        });
+      } catch (logError) {
+        console.log('[DEBUG] アクティビティログ記録をスキップ:', logError);
+      }
 
       const response = NextResponse.json({
         success: true,
@@ -104,6 +153,19 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[DEBUG] 全ての認証方法が失敗');
+    
+    // ログイン失敗の活動ログを記録
+    try {
+      const metadata = ActivityLogger.extractMetadataFromRequest(request);
+      await ActivityLogger.logAuth('login_failed', null, {
+        ...metadata,
+        email,
+        reason: 'invalid_credentials',
+      });
+    } catch (logError) {
+      console.log('[DEBUG] アクティビティログ記録をスキップ:', logError);
+    }
+    
     return NextResponse.json(
       { success: false, error: 'メールアドレスまたはパスワードが間違っています' },
       { status: 401 }
