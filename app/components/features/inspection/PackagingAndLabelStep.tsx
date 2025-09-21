@@ -176,9 +176,20 @@ export default function PackagingAndLabelStep({
         duration: 3000
       });
 
-      // Trigger print if supported
-      if (result.printUrl) {
-        window.open(result.printUrl, '_blank');
+      // Download PDF from base64 data
+      if (result.base64Data) {
+        const blob = new Blob(
+          [Uint8Array.from(atob(result.base64Data), c => c.charCodeAt(0))], 
+          { type: 'application/pdf' }
+        );
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = result.fileName || `product_label_${productId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
       }
     } catch (error) {
       showToast({

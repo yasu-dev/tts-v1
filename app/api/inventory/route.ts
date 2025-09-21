@@ -196,6 +196,42 @@ export async function GET(request: NextRequest) {
         });
       }
 
+      // 画像データを統合的に処理
+      const allImages = [];
+      
+      // ProductImageテーブルからの画像
+      if (product.images && product.images.length > 0) {
+        allImages.push(...product.images.map(img => ({
+          id: img.id,
+          url: img.url,
+          thumbnailUrl: img.url,
+          filename: img.filename,
+          source: 'product_table'
+        })));
+      }
+      
+      // メタデータ内のBase64画像（スタッフ撮影画像）
+      if (parsedMetadata?.photos && Array.isArray(parsedMetadata.photos)) {
+        allImages.push(...parsedMetadata.photos.map((photo, index) => ({
+          id: `metadata_${index}`,
+          url: photo.dataUrl,
+          thumbnailUrl: photo.dataUrl,
+          filename: photo.filename || `photo_${index}.jpg`,
+          source: 'metadata'
+        })));
+      }
+      
+      // メタデータ内の画像配列（納品プラン由来）
+      if (parsedMetadata?.images && Array.isArray(parsedMetadata.images)) {
+        allImages.push(...parsedMetadata.images.map((img, index) => ({
+          id: `delivery_${index}`,
+          url: img.url || img,
+          thumbnailUrl: img.url || img,
+          filename: img.filename || `delivery_${index}.jpg`,
+          source: 'delivery_plan'
+        })));
+      }
+
       return {
         id: product.id,
         name: product.name,
@@ -207,7 +243,7 @@ export async function GET(request: NextRequest) {
         condition: product.condition, // 英語のまま返す
         entryDate: product.entryDate ? product.entryDate.toISOString().split('T')[0] : product.createdAt.toISOString().split('T')[0],
         imageUrl: product.imageUrl,
-        images: product.images || [], // 商品画像リレーションを追加
+        images: allImages, // 統合された画像データ
         currentLocation: product.currentLocation, // ロケーション情報も追加
         seller: product.seller,
         description: product.description,

@@ -866,12 +866,12 @@ export default function StaffInventoryPage() {
                       <td className="p-4">
                         <div className="flex justify-center">
                           <div className="w-20 h-20 overflow-hidden rounded-lg border border-nexus-border bg-gray-100">
-                            {(item.imageUrl || item.images?.[0]) ? (
+                            {(item.imageUrl || (item.images && item.images.length > 0)) ? (
                               <img
-                                src={item.imageUrl || item.images?.[0]}
+                                src={item.imageUrl || item.images[0].url || item.images[0].thumbnailUrl || item.images[0]}
                                 alt={item.name}
                                 className="w-full h-full object-cover"
-                                title="セラーがアップロードした画像"
+                                title="商品画像"
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
