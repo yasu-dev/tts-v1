@@ -4,6 +4,9 @@ import { AuthService } from '@/lib/auth';
 
 const prisma = new PrismaClient();
 
+// プリズマコネクションプールの問題を回避
+prisma.$connect();
+
 export async function GET(request: NextRequest) {
   try {
     console.log('Get all progress called - デモ環境対応');

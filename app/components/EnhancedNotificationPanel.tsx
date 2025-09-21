@@ -19,13 +19,15 @@ interface EnhancedNotificationPanelProps {
   onClose: () => void;
   userType: 'staff' | 'seller';
   anchorRef?: React.RefObject<HTMLButtonElement>;
+  onNotificationUpdate?: (unreadCount: number) => void;
 }
 
 export default function EnhancedNotificationPanel({ 
   isOpen, 
   onClose, 
   userType,
-  anchorRef 
+  anchorRef,
+  onNotificationUpdate
 }: EnhancedNotificationPanelProps) {
   const router = useRouter();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -34,29 +36,42 @@ export default function EnhancedNotificationPanel({
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
   const [panelPosition, setPanelPosition] = useState({ top: 0, right: 0 });
 
+  // 通知を取得する関数
+  const fetchNotifications = async () => {
+    try {
+      setLoading(true);
+      
+      // セラーもテスト用エンドポイントを使用（統一のため）
+      const endpoint = `/api/notifications/test?role=${userType}`;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      
+      const response = await fetch(endpoint, {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      setNotifications(Array.isArray(data) ? data : []);
+      console.log('[DEBUG] 通知パネル更新:', data?.length || 0, '件 (エンドポイント:', endpoint, ')');
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error);
+      // エラー時は空配列を設定
+      setNotifications([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // 通知を取得
   useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`/api/notifications?role=${userType}`);
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        setNotifications(data || []);
-      } catch (error) {
-        console.error('Failed to fetch notifications:', error);
-        // エラー時は空配列を設定
-        setNotifications([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (isOpen) {
+    if (isOpen && userType) {
       fetchNotifications();
     }
   }, [isOpen, userType]);
@@ -98,48 +113,66 @@ export default function EnhancedNotificationPanel({
 
   const handleNotificationClick = async (notification: Notification) => {
     try {
-      // 1. 通知を既読にマーク
+      console.log('📱 通知クリック開始:', notification);
+      
+      // 1. 即座にローカル状態を更新（既読にする）
       if (!notification.read) {
-        await fetch('/api/notifications', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            action: 'mark-read', 
-            notificationId: notification.id,
-            role: userType 
-          })
-        });
+        console.log('📱 既読処理開始:', notification.id);
         
-        // 本地の状態を更新
-        setNotifications(prev => 
-          prev.map(notif => 
+        setNotifications(prev => {
+          const updated = prev.map(notif => 
             notif.id === notification.id 
               ? { ...notif, read: true }
               : notif
-          )
-        );
+          );
+          const newUnreadCount = updated.filter(n => !n.read).length;
+          console.log('📱 未読数更新:', newUnreadCount);
+          onNotificationUpdate?.(newUnreadCount);
+          return updated;
+        });
+        
+        // バックグラウンドでDBも更新（統一してテスト用エンドポイントを使用）
+        const endpoint = '/api/notifications/test';
+        const method = 'POST';
+        const body = JSON.stringify({ notificationId: notification.id });
+        
+        console.log('[DEBUG] 既読リクエスト:', { endpoint, method, body });
+        
+        fetch(endpoint, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body
+        }).then(response => {
+          console.log('[DEBUG] 既読レスポンス:', response.status);
+          return response.json();
+        }).then(data => {
+          console.log('[DEBUG] 既読結果:', data);
+          
+          // 既読処理成功後、通知リストを再取得して状態を同期
+          if (data.success) {
+            setTimeout(() => {
+              fetchNotifications();
+            }, 500);
+          }
+        }).catch(error => {
+          console.error('DB既読更新エラー:', error);
+        });
       }
       
-      // 2. パネルを閉じる
-      onClose();
-      
-      // 3. 通知タイプに応じた画面に遷移
+      // 2. 通知タイプに応じた画面に遷移
       const navigationPath = getNavigationPath(notification);
       
+      console.log(`📱 通知クリック: ${notification.title} -> ${navigationPath}`);
+      
       if (navigationPath) {
-        console.log(`📱 通知クリック: ${notification.title} -> ${navigationPath}`);
-        
-        // 少し遅延を入れてパネルが完全に閉じてから遷移
-        setTimeout(() => {
-          router.push(navigationPath);
-        }, 100);
-      } else {
-        console.log(`📱 通知クリック: ${notification.title} (遷移先なし)`);
+        router.push(navigationPath);
       }
+      
+      // 3. パネルを閉じる
+      onClose();
       
     } catch (error) {
       console.error('通知クリック処理エラー:', error);
-      // エラーがあってもパネルは閉じる
       onClose();
     }
   };
@@ -205,6 +238,22 @@ export default function EnhancedNotificationPanel({
         case 'inspection_complete':
           return userType === 'staff' ? '/staff/inspection' : '/inventory';
           
+        // 納品プラン関連
+        case 'delivery_plan_created':
+          return userType === 'staff' ? '/staff/inspection' : '/inventory';
+          
+        // 保管完了関連
+        case 'storage_complete':
+          return userType === 'staff' ? '/staff/inventory' : '/inventory';
+          
+        // 商品購入関連
+        case 'product_purchased':
+          return userType === 'staff' ? '/staff/orders' : '/orders';
+          
+        // 出荷完了関連
+        case 'shipping_complete':
+          return userType === 'staff' ? '/staff/shipping' : '/tracking';
+          
         // レポート関連
         case 'report_ready':
         case 'monthly_summary':
@@ -256,9 +305,12 @@ export default function EnhancedNotificationPanel({
         body: JSON.stringify({ action: 'mark-all-read', role: userType })
       });
       
-      setNotifications(prev => 
-        prev.map(notif => ({ ...notif, read: true }))
-      );
+      setNotifications(prev => {
+        const updated = prev.map(notif => ({ ...notif, read: true }));
+        // 全て既読にしたので未読数は0
+        onNotificationUpdate?.(0);
+        return updated;
+      });
     } catch (error) {
       console.error('Failed to mark all notifications as read:', error);
     }
@@ -277,6 +329,61 @@ export default function EnhancedNotificationPanel({
       return `${Math.floor(diffInMinutes / 60)}時間前`;
     } else {
       return date.toLocaleDateString('ja-JP');
+    }
+  };
+
+  /**
+   * 通知タイプに応じたアイコンを取得
+   */
+  const getNotificationIcon = (notification: Notification) => {
+    const { type, notificationType } = notification as any;
+    
+    // delivery_plan_created の場合は青い箱アイコン
+    if (notificationType === 'delivery_plan_created') {
+      return (
+        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+          <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+        </div>
+      );
+    }
+    
+    // その他のタイプに基づくアイコン
+    switch (type) {
+      case 'success':
+        return (
+          <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+        );
+      case 'warning':
+        return (
+          <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+        );
+      case 'error':
+        return (
+          <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </div>
+        );
+      case 'info':
+      default:
+        return (
+          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        );
     }
   };
 
@@ -349,7 +456,8 @@ export default function EnhancedNotificationPanel({
                 data-priority={notification.priority}
                 data-action={notification.action}
               >
-                <div className="flex items-start gap-2">
+                <div className="flex items-start gap-3">
+                  {getNotificationIcon(notification)}
                   <div className="flex-1 min-w-0">
                     <p 
                       className={`text-sm font-medium truncate ${!notification.read ? 'text-gray-900' : 'text-gray-700'}`}

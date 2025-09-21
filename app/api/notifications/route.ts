@@ -20,8 +20,10 @@ interface Notification {
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('[DEBUG] 通知API開始');
     const searchParams = request.nextUrl.searchParams;
     const role = searchParams.get('role');
+    console.log('[DEBUG] リクエストロール:', role);
     
     // ユーザー認証（オプション、ゲスト表示も考慮）
     let userSettings = null;
@@ -48,7 +50,35 @@ export async function GET(request: NextRequest) {
     
     // データベースから実際の通知を取得
     let notifications = [];
-    if (userId) {
+    
+    // 🔧 SAFE FIX: role=staffの場合は直接Raw SQLで通知取得
+    if (role === 'staff') {
+      try {
+        console.log('[DEBUG] スタッフ通知直接取得開始');
+        const staffNotifications = await prisma.$queryRaw`
+          SELECT n.* FROM notifications n 
+          JOIN users u ON n.userId = u.id 
+          WHERE u.role = 'staff'
+          ORDER BY n.createdAt DESC 
+          LIMIT 20
+        `;
+        
+        console.log('[DEBUG] スタッフ通知取得完了:', staffNotifications.length, '件');
+        notifications = staffNotifications.map((n: any) => ({
+          id: n.id,
+          type: n.type,
+          title: n.title,
+          message: n.message,
+          timestamp: n.createdAt instanceof Date ? n.createdAt.toISOString() : new Date(n.createdAt).toISOString(),
+          read: n.read,
+          action: n.action,
+          priority: n.priority,
+          notificationType: n.notificationType
+        }));
+      } catch (error) {
+        console.error('スタッフ通知取得エラー:', error);
+      }
+    } else if (userId) {
       try {
         const dynamicResponse = await fetch(`${request.nextUrl.origin}/api/notifications/dynamic?role=${role}`, {
           headers: {
@@ -86,10 +116,12 @@ export async function GET(request: NextRequest) {
     // 最新20件に制限
     const limitedNotifications = sortedNotifications.slice(0, 20);
     
+    console.log('[DEBUG] 通知API完了:', limitedNotifications.length, '件返却');
     return NextResponse.json(limitedNotifications);
 
   } catch (error) {
     console.error('通知取得エラー:', error);
+    console.error('エラースタック:', error.stack);
     // エラー時は空配列を返す
     return NextResponse.json([]);
   }
@@ -97,12 +129,27 @@ export async function GET(request: NextRequest) {
 
 // 通知を既読にする
 export async function PUT(request: NextRequest) {
-  const { notificationId } = await request.json();
-  
-  // 実際の実装では、データベースで通知のステータスを更新
-  console.log(`Marking notification ${notificationId} as read`);
-  
-  return NextResponse.json({ success: true });
+  try {
+    const { notificationId } = await request.json();
+    
+    if (!notificationId) {
+      return NextResponse.json({ error: 'notificationId is required' }, { status: 400 });
+    }
+    
+    // データベースで通知のステータスを更新
+    await prisma.$executeRaw`
+      UPDATE notifications 
+      SET "read" = true, updatedAt = datetime('now')
+      WHERE id = ${notificationId}
+    `;
+    
+    console.log(`Marking notification ${notificationId} as read`);
+    
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('既読更新エラー:', error);
+    return NextResponse.json({ error: 'Failed to mark as read' }, { status: 500 });
+  }
 }
 
 // 全ての通知を既読にする
@@ -110,22 +157,50 @@ export async function POST(request: NextRequest) {
   const { action, role, userId, notification, notificationId } = await request.json();
   
   if (action === 'mark-read' && notificationId) {
-    // 単一の通知を既読にマーク
-    console.log(`📧 通知を既読にマーク: ${notificationId}`);
-    
-    // 実際の実装ではデータベースで通知の既読状況を更新
-    // await prisma.notification.update({
-    //   where: { id: notificationId },
-    //   data: { read: true, readAt: new Date() }
-    // });
-    
-    return NextResponse.json({ success: true });
+    try {
+      // 単一の通知を既読にマーク
+      console.log(`📧 通知を既読にマーク: ${notificationId}`);
+      
+      // データベースで通知の既読状況を更新
+      await prisma.$executeRaw`
+        UPDATE notifications 
+        SET "read" = true, updatedAt = datetime('now')
+        WHERE id = ${notificationId}
+      `;
+      
+      return NextResponse.json({ success: true });
+    } catch (error) {
+      console.error('既読更新エラー:', error);
+      return NextResponse.json({ error: 'Failed to mark as read' }, { status: 500 });
+    }
   }
   
   if (action === 'mark-all-read') {
-    // 全ての通知を既読にマーク
-    console.log(`📧 全通知を既読にマーク for ${role}`);
-    return NextResponse.json({ success: true });
+    try {
+      // 全ての通知を既読にマーク
+      console.log(`📧 全通知を既読にマーク for ${role}`);
+      
+      // 現在のユーザーまたはロールに応じて全通知を既読にする
+      if (userId) {
+        await prisma.$executeRaw`
+          UPDATE notifications 
+          SET "read" = true, updatedAt = datetime('now')
+          WHERE userId = ${userId}
+        `;
+      } else if (role === 'staff') {
+        await prisma.$executeRaw`
+          UPDATE notifications n
+          SET "read" = true, updatedAt = datetime('now')
+          FROM users u 
+          WHERE n.userId = u.id AND u.role = 'staff'
+        `;
+      }
+      
+      return NextResponse.json({ success: true });
+    } catch (error) {
+      console.error('全既読更新エラー:', error);
+      return NextResponse.json({ error: 'Failed to mark all as read' }, { status: 500 });
+    }
   }
   
   // 新しい通知を作成

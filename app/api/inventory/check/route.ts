@@ -82,13 +82,13 @@ export async function POST(request: NextRequest) {
         let message = '';
         
         if (outOfStockProducts.length > 0 && lowStockProducts.length > 0) {
-          title = '⚠️ 在庫切れ・低在庫アラート';
+          title = '在庫切れ・低在庫アラート';
           message = `在庫切れ商品: ${outOfStockProducts.length}件、低在庫商品: ${lowStockProducts.length}件があります。早急に在庫補充をご検討ください。`;
         } else if (outOfStockProducts.length > 0) {
-          title = '🔴 在庫切れアラート';
+          title = '在庫切れアラート';
           message = `在庫切れ商品が${outOfStockProducts.length}件あります。早急に在庫補充が必要です。`;
         } else {
-          title = '🟡 低在庫アラート';
+          title = '低在庫アラート';
           message = `低在庫商品が${lowStockProducts.length}件あります。在庫補充をご検討ください。`;
         }
         
@@ -202,7 +202,7 @@ export async function PUT(request: NextRequest) {
     }
     
     // 在庫アラートを送信
-    const title = alertType === 'out_of_stock' ? '🔴 在庫切れアラート' : '🟡 低在庫アラート';
+    const title = alertType === 'out_of_stock' ? '在庫切れアラート' : '低在庫アラート';
     const message = `商品「${product.name}」の${alertType === 'out_of_stock' ? '在庫が切れています' : '在庫が少なくなっています'}。`;
     
     const result = await notificationService.sendNotification({

@@ -601,36 +601,27 @@ export async function POST(request: NextRequest) {
       }
 
       for (const staff of staffUsers) {
-        // 🔧 SAFE FIX: Prismaの代わりにRaw SQLで通知作成（後戻り可能）
-        try {
-          const notificationId = `safe-delivery-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
-          const title = '新規納品プラン作成';
-          const message = `セラー「${user.fullName || user.username}」が納品プラン（${planData.products.length}点）を作成しました。入庫作業の準備をお願いします。`;
-          const metadata = JSON.stringify({
-            planId: planId,
-            sellerId: user.id,
-            sellerName: user.fullName || user.username,
-            productCount: planData.products.length,
-            totalValue: deliveryPlan.totalValue,
-            deliveryAddress: planData.basicInfo.deliveryAddress
-          });
-
-          await prisma.$executeRaw`
-            INSERT INTO notifications (
-              id, type, title, message, userId, "read", priority, 
-              notificationType, action, metadata, createdAt, updatedAt
-            ) VALUES (
-              ${notificationId}, 'info', ${title}, ${message}, ${staff.id},
-              false, 'medium', 'delivery_plan_created', 'inbound', ${metadata},
-              datetime('now'), datetime('now')
-            )
-          `;
-          
-          console.log(`[INFO] スタッフ通知作成成功(Raw SQL): ${staff.id} → ${notificationId}`);
-        } catch (sqlError) {
-          console.error(`[ERROR] Raw SQL通知作成失敗: ${staff.id}`, sqlError);
-          // 個別の通知作成失敗でも処理を継続
-        }
+        const notification = await prisma.notification.create({
+          data: {
+            type: 'info',
+            title: '📦 新規納品プラン作成',
+            message: `セラー「${user.fullName || user.username}」が納品プラン（${planData.products.length}点）を作成しました。入庫作業の準備をお願いします。`,
+            userId: staff.id,
+            read: false,
+            priority: 'medium',
+            notificationType: 'delivery_plan_created',
+            action: 'inbound',
+            metadata: JSON.stringify({
+              planId: planId,
+              sellerId: user.id,
+              sellerName: user.fullName || user.username,
+              productCount: planData.products.length,
+              totalValue: deliveryPlan.totalValue,
+              deliveryAddress: planData.basicInfo.deliveryAddress
+            })
+          }
+        });
+        console.log(`[INFO] スタッフ通知作成成功: ${staff.id} → ${notification.id}`);
       }
 
       // アクティビティログに通知送信を記録

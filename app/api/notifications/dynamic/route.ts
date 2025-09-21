@@ -4,6 +4,9 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// プリズマ接続を初期化
+prisma.$connect();
+
 export interface DynamicNotification {
   id: string;
   type: 'success' | 'warning' | 'error' | 'info';
@@ -31,6 +34,7 @@ export async function GET(request: NextRequest) {
     try {
       const user = await AuthService.requireRole(request, ['seller', 'staff', 'admin']);
       userId = user.id;
+      console.log('[DEBUG] 動的通知: 認証成功 =', user.email, '|', userId);
       
       // ユーザーの通知設定を取得
       const userData = await prisma.user.findUnique({
@@ -42,7 +46,7 @@ export async function GET(request: NextRequest) {
         userSettings = JSON.parse(userData.notificationSettings);
       }
     } catch (error) {
-      console.log('動的通知取得時の認証エラー:', error);
+      console.log('[ERROR] 動的通知取得時の認証エラー:', error.message);
       return NextResponse.json([]);
     }
     
@@ -97,24 +101,25 @@ export async function GET(request: NextRequest) {
       take: 20
     });
 
-    // 既存のNotificationテーブルから未読通知も取得
-    const unreadNotifications = await prisma.notification.findMany({
-      where: {
-        userId: userId,
-        read: false,
-        createdAt: {
-          gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // 24時間以内
-        }
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 10
-    });
+    // 🔧 SAFE FIX: Raw SQLで通知取得（Prismaクライアント問題回避）
+    console.log('[DEBUG] 動的通知: ユーザーID =', userId);
+    const unreadNotifications = await prisma.$queryRaw`
+      SELECT * FROM notifications 
+      WHERE userId = ${userId} 
+        AND "read" = false 
+        AND createdAt >= datetime('now', '-24 hours')
+      ORDER BY createdAt DESC 
+      LIMIT 10
+    `;
+    console.log('[DEBUG] 動的通知: 取得件数 =', unreadNotifications.length);
 
     // アクティビティを通知に変換
     const dynamicNotifications: DynamicNotification[] = [];
     
     // Notificationテーブルからの通知を追加
+    console.log('[DEBUG] 動的通知: 通知変換開始');
     for (const notification of unreadNotifications) {
+      console.log('[DEBUG] 動的通知: 変換中:', notification.id, '|', notification.title);
       dynamicNotifications.push({
         id: notification.id,
         type: notification.type as 'success' | 'warning' | 'error' | 'info',
@@ -127,6 +132,7 @@ export async function GET(request: NextRequest) {
         userId
       });
     }
+    console.log('[DEBUG] 動的通知: 変換後配列サイズ =', dynamicNotifications.length);
     
     for (const activity of activities) {
       let notification: DynamicNotification | null = null;
@@ -273,6 +279,7 @@ export async function GET(request: NextRequest) {
       new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
     
+    console.log('[DEBUG] 動的通知: 最終結果配列サイズ =', sortedNotifications.length);
     return NextResponse.json(sortedNotifications);
 
   } catch (error) {
@@ -292,15 +299,12 @@ export async function POST(request: NextRequest) {
     if (action === 'mark-read' && notificationId) {
       // Notificationテーブルの通知を既読にマーク
       try {
-        await prisma.notification.updateMany({
-          where: {
-            id: notificationId,
-            userId: user.id
-          },
-          data: {
-            read: true
-          }
-        });
+        // 🔧 SAFE FIX: Raw SQLで通知更新（Prismaクライアント問題回避）
+        await prisma.$executeRaw`
+          UPDATE notifications 
+          SET "read" = true, updatedAt = datetime('now')
+          WHERE id = ${notificationId} AND userId = ${user.id}
+        `;
         
         console.log(`通知を既読にマーク: ${notificationId} (ユーザー: ${user.id})`);
         return NextResponse.json({ success: true });
@@ -313,15 +317,12 @@ export async function POST(request: NextRequest) {
     if (action === 'mark-all-read') {
       // 全ての未読通知を既読にマーク
       try {
-        await prisma.notification.updateMany({
-          where: {
-            userId: user.id,
-            read: false
-          },
-          data: {
-            read: true
-          }
-        });
+        // 🔧 SAFE FIX: Raw SQLで全通知更新（Prismaクライアント問題回避）
+        await prisma.$executeRaw`
+          UPDATE notifications 
+          SET "read" = true, updatedAt = datetime('now')
+          WHERE userId = ${user.id} AND "read" = false
+        `;
         
         console.log(`全ての通知を既読にマーク (ユーザー: ${user.id})`);
         return NextResponse.json({ success: true });

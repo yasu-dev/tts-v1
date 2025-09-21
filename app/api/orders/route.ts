@@ -177,7 +177,7 @@ export async function POST(request: NextRequest) {
         
         await notificationService.sendNotification({
           type: 'product_sold',
-          title: '🎉 商品が売れました！',
+          title: '商品が売れました',
           message: `商品「${sellerItemNames}」が売れました。合計金額: ¥${sellerTotal.toLocaleString()}`,
           userId: sellerId,
           metadata: {
@@ -277,6 +277,39 @@ export async function PUT(request: NextRequest) {
         where: { id: item.productId },
         data: { status: productStatus }
       });
+    }
+
+    // 出荷完了時にセラーに通知を送信
+    if (status === 'shipped' && existingOrder.status !== 'shipped') {
+      try {
+        const uniqueSellerIds = [...new Set(updatedOrder.items.map(item => item.product.sellerId))];
+        
+        for (const sellerId of uniqueSellerIds) {
+          const sellerItems = updatedOrder.items.filter(item => item.product.sellerId === sellerId);
+          const sellerItemNames = sellerItems.map(item => item.product.name).join(', ');
+          
+          await notificationService.sendNotification({
+            type: 'shipping_complete',
+            title: '出荷完了',
+            message: `注文${updatedOrder.orderNumber}の商品「${sellerItemNames}」の出荷が完了しました。`,
+            userId: sellerId,
+            metadata: {
+              orderId: updatedOrder.id,
+              orderNumber: updatedOrder.orderNumber,
+              shippedAt: updatedOrder.shippedAt?.toISOString(),
+              items: sellerItems.map(item => ({
+                productName: item.product.name,
+                quantity: item.quantity,
+                price: item.price
+              }))
+            }
+          });
+        }
+        
+        console.log(`📧 出荷完了通知送信完了: ${uniqueSellerIds.length}名のセラーに送信`);
+      } catch (notificationError) {
+        console.error('出荷完了通知送信エラー:', notificationError);
+      }
     }
 
     // 注文ステータス変更の詳細な履歴を記録

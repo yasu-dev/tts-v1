@@ -6,7 +6,11 @@ import SearchModal from '../SearchModal';
 import UnifiedProductFlow from '../features/flow-nav/UnifiedProductFlow';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useToast } from '@/app/components/features/notifications/ToastProvider';
+import dynamic from 'next/dynamic';
+
+// Import ToastProvider normally since it's already a client component
+import { ToastProvider, useToast } from '@/app/components/features/notifications/ToastProvider';
+
 import { useModal } from '../ui/ModalContext';
 import { determineBarcodeDestination } from '@/lib/utils/product-status';
 import BarcodeTestButton from '../ui/BarcodeTestButton';

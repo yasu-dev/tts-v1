@@ -2,10 +2,13 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import EnhancedNotificationPanel from '../EnhancedNotificationPanel';
+import dynamic from 'next/dynamic';
 import ProfileMenu from '../ProfileMenu';
 
-interface NexusHeaderProps {
+// Import normally since both components are client-side
+import EnhancedNotificationPanel from '../EnhancedNotificationPanel';
+
+interface SafeNexusHeaderProps {
   userType: 'seller' | 'staff';
   onSearchSubmit?: (query: string) => void;
   onNotificationClick?: () => void;
@@ -19,7 +22,7 @@ interface NexusHeaderProps {
   isMobileMenuOpen?: boolean;
 }
 
-export default function NexusHeader({
+export default function SafeNexusHeader({
   userType,
   onSearchSubmit,
   onNotificationClick,
@@ -28,26 +31,32 @@ export default function NexusHeader({
   currentTime = { utc: '14:23', jst: '23:23' },
   onMobileMenuToggle,
   isMobileMenuOpen = false
-}: NexusHeaderProps) {
+}: SafeNexusHeaderProps) {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
+  const [isClient, setIsClient] = useState(false);
   const notificationRef = useRef<HTMLButtonElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
   
-  // ユーザータイプ切り替えのためのrouter
   const router = useRouter();
 
-  // 通知数を取得
+  // クライアントサイドのみで実行
   useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // 通知数を取得 - クライアントサイドのみ
+  useEffect(() => {
+    if (!isClient || !userType) return;
+
     let isMounted = true;
     let interval: NodeJS.Timeout;
 
     const fetchNotificationCount = async () => {
       try {
-        // 🔧 TEMP FIX: テスト用エンドポイントを使用
         const endpoint = userType === 'staff' ? '/api/notifications/test' : `/api/notifications?role=${userType}`;
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -72,16 +81,13 @@ export default function NexusHeader({
       } catch (error) {
         if (isMounted) {
           console.error('Failed to fetch notification count:', error);
-          setNotificationCount(0); // エラー時は0にリセット
+          setNotificationCount(0);
         }
       }
     };
 
-    if (userType) {
-      fetchNotificationCount();
-      // 定期的に通知数を更新
-      interval = setInterval(fetchNotificationCount, 60000); // 1分ごと
-    }
+    fetchNotificationCount();
+    interval = setInterval(fetchNotificationCount, 60000);
 
     return () => {
       isMounted = false;
@@ -89,7 +95,7 @@ export default function NexusHeader({
         clearInterval(interval);
       }
     };
-  }, [userType]);
+  }, [userType, isClient]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,10 +104,46 @@ export default function NexusHeader({
     }
   };
 
+  // ユーザータイプ切り替え
   const handleUserTypeSwitch = () => {
     const targetPath = userType === 'staff' ? '/dashboard' : '/staff/dashboard';
     router.push(targetPath);
   };
+
+  // 外部クリックでメニューを閉じる
+  useEffect(() => {
+    if (!isClient) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+        setIsNotificationOpen(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isClient]);
+
+  // SSR時は最小限のヘッダーを表示
+  if (!isClient) {
+    return (
+      <header className="bg-gradient-to-r from-primary-blue via-blue-600 to-blue-800 text-white shadow-xl border-b border-blue-500/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-4">
+              <h1 className="text-xl font-bold">THE WORLD DOOR</h1>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="text-sm text-white/80">Loading...</div>
+            </div>
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="nexus-header flex items-center justify-between relative overflow-hidden">
@@ -141,12 +183,12 @@ export default function NexusHeader({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="商品を検索..."
-              className="w-full px-3 py-1.5 sm:px-4 sm:py-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg text-white placeholder-white/50 focus:bg-white/20 focus:border-white/40 transition-all duration-200 text-sm"
+              placeholder="商品名・SKU・バーコードで検索..."
+              className="w-full pl-10 pr-4 py-2.5 bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-transparent transition-all duration-200 text-sm"
             />
-            <button 
-              type="submit" 
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-white/10 rounded transition-colors"
+            <button
+              type="submit"
+              className="absolute inset-y-0 left-0 pl-3 flex items-center text-white/70 hover:text-white transition-colors cursor-pointer"
             >
               <svg className="w-4 h-4 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -223,10 +265,6 @@ export default function NexusHeader({
             <div className="text-white font-semibold text-sm">
               {userType === 'staff' ? 'スタッフ' : 'セラー'}
             </div>
-            {/* Phase1: 管理者テキストを非表示 */}
-            {/* <div className="text-[11px] text-white/70">
-              管理者
-            </div> */}
           </div>
           <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -253,8 +291,6 @@ export default function NexusHeader({
           userType={userType}
           isOpen={isProfileOpen}
           onClose={() => setIsProfileOpen(false)}
-          onSettingsClick={onSettingsClick}
-          onLogout={onLogout}
           anchorRef={profileRef}
         />
       )}
