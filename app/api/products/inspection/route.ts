@@ -201,7 +201,7 @@ export async function POST(request: NextRequest) {
       // デモユーザーが存在することを確認済みなので、安全にActivity作成
       await prisma.activity.create({
         data: {
-          type: 'inspection',
+          type: 'inspection_complete',
           description: `商品 ${product.name} の検品が完了しました`,
           userId: user.id,
           productId: product.id,
@@ -219,6 +219,57 @@ export async function POST(request: NextRequest) {
     } catch (activityError) {
       console.error('[ERROR] Activity creation failed:', activityError);
       // Activity作成に失敗しても検品処理は継続
+    }
+
+    // セラーに検品完了通知を送信
+    if (product.sellerId) {
+      try {
+        const statusText = locationId ? '保管完了' : '検品完了';
+        const notification = await prisma.notification.create({
+          data: {
+            type: 'success',
+            title: '✅ ' + statusText,
+            message: `商品「${product.name}」の${statusText}しました。${locationId ? '商品は保管場所に配置されました。' : '次のステップに進む準備ができています。'}`,
+            userId: product.sellerId,
+            read: false,
+            priority: 'medium',
+            notificationType: 'inspection_complete',
+            action: 'inventory',
+            metadata: JSON.stringify({
+              productId: product.id,
+              productName: product.name,
+              sku: product.sku,
+              condition: condition,
+              inspectionNotes: inspectionNotes,
+              inspectedBy: user.username,
+              inspectedAt: new Date().toISOString(),
+              hasLocation: !!locationId,
+              status: locationId ? 'storage' : 'inspection'
+            })
+          }
+        });
+        console.log(`[INFO] セラー通知作成成功: ${product.sellerId} → ${notification.id}`);
+
+        // アクティビティログに通知送信を記録
+        await prisma.activity.create({
+          data: {
+            type: 'notification_sent',
+            description: `検品完了通知をセラーに送信しました（商品: ${product.name}）`,
+            userId: user.id,
+            productId: product.id,
+            metadata: JSON.stringify({
+              notificationId: notification.id,
+              sellerId: product.sellerId,
+              notificationType: 'inspection_complete',
+              productName: product.name,
+              sku: product.sku
+            })
+          }
+        });
+
+      } catch (notificationError) {
+        console.error('[ERROR] セラー通知送信エラー（処理は継続）:', notificationError);
+      }
     }
 
     return NextResponse.json({ 

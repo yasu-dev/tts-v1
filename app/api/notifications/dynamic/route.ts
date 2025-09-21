@@ -197,15 +197,51 @@ export async function GET(request: NextRequest) {
           
         case 'inspection_complete':
           if (activity.product && activity.product.sellerId === userId) {
+            const metadata = activity.metadata ? JSON.parse(activity.metadata) : {};
+            const statusText = metadata.status === 'storage' ? '保管完了' : '検品完了';
             notification = {
               id: `activity-${activity.id}`,
               type: 'success',
-              title: '✅ 検品完了',
-              message: `商品「${activity.product.name}」の検品が完了しました`,
+              title: `✅ ${statusText}`,
+              message: `商品「${activity.product.name}」の${statusText}しました。${metadata.hasLocation ? '商品は保管場所に配置されました。' : '次のステップに進む準備ができています。'}`,
               timestamp: activity.createdAt.toISOString(),
               read: false,
               notificationType: 'inspection_complete',
-              metadata: activity.metadata ? JSON.parse(activity.metadata) : null,
+              metadata: metadata,
+              userId
+            };
+          }
+          break;
+
+        case 'storage_complete':
+          if (activity.product && activity.product.sellerId === userId) {
+            const metadata = activity.metadata ? JSON.parse(activity.metadata) : {};
+            notification = {
+              id: `activity-${activity.id}`,
+              type: 'success',
+              title: '✅ 保管完了',
+              message: `商品「${activity.product.name}」が${metadata.locationName || '保管場所'}に保管されました。出品準備が整いました。`,
+              timestamp: activity.createdAt.toISOString(),
+              read: false,
+              notificationType: 'storage_complete',
+              metadata: metadata,
+              userId
+            };
+          }
+          break;
+
+        case 'shipment_complete':
+          if (activity.product && activity.product.sellerId === userId) {
+            const metadata = activity.metadata ? JSON.parse(activity.metadata) : {};
+            notification = {
+              id: `activity-${activity.id}`,
+              type: 'success',
+              title: '🚚 出荷完了',
+              message: `商品「${activity.product.name}」が出荷されました。追跡番号: ${metadata.trackingNumber || 'N/A'}`,
+              timestamp: activity.createdAt.toISOString(),
+              read: false,
+              notificationType: 'shipment_complete',
+              metadata: metadata,
               userId
             };
           }

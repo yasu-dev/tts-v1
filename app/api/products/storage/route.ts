@@ -197,7 +197,7 @@ export async function POST(request: NextRequest) {
     // アクティビティログを記録
     await prisma.activity.create({
       data: {
-        type: 'storage',
+        type: 'storage_complete',
         description: `商品 ${product.name} (${product.sku}) が ${location.name} に保管されました`,
         userId: user.id,
         productId: product.id,
@@ -208,6 +208,55 @@ export async function POST(request: NextRequest) {
         }),
       },
     });
+
+    // セラーに保管完了通知を送信
+    if (product.sellerId) {
+      try {
+        const notification = await prisma.notification.create({
+          data: {
+            type: 'success',
+            title: '✅ 保管完了',
+            message: `商品「${product.name}」が${location.name}に保管されました。出品準備が整いました。`,
+            userId: product.sellerId,
+            read: false,
+            priority: 'medium',
+            notificationType: 'storage_complete',
+            action: 'inventory',
+            metadata: JSON.stringify({
+              productId: product.id,
+              productName: product.name,
+              sku: product.sku,
+              locationCode: location.code,
+              locationName: location.name,
+              storedBy: user.username,
+              storedAt: new Date().toISOString()
+            })
+          }
+        });
+        console.log(`[INFO] セラー保管完了通知作成成功: ${product.sellerId} → ${notification.id}`);
+
+        // アクティビティログに通知送信を記録
+        await prisma.activity.create({
+          data: {
+            type: 'notification_sent',
+            description: `保管完了通知をセラーに送信しました（商品: ${product.name}）`,
+            userId: user.id,
+            productId: product.id,
+            metadata: JSON.stringify({
+              notificationId: notification.id,
+              sellerId: product.sellerId,
+              notificationType: 'storage_complete',
+              productName: product.name,
+              sku: product.sku,
+              locationCode: location.code
+            })
+          }
+        });
+
+      } catch (notificationError) {
+        console.error('[ERROR] セラー保管完了通知送信エラー（処理は継続）:', notificationError);
+      }
+    }
 
     // 検品進捗を完了状態に更新
     try {

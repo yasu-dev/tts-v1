@@ -3,76 +3,27 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// 商品履歴のイベントタイプ
-type HistoryEventType = 
-  | 'received'      // 入庫
-  | 'inspected'     // 検品
-  | 'listed'        // 出品
-  | 'price_changed' // 価格変更
-  | 'sold'          // 販売
-  | 'shipped'       // 発送
-  | 'returned'      // 返品
-  | 'relisted';     // 再出品
-
-interface HistoryEvent {
-  id: string;
-  timestamp: string;
-  type: HistoryEventType;
-  title: string;
-  description: string;
-  user: string;
-  metadata?: {
-    price?: number;
-    previousPrice?: number;
-    condition?: string;
-    location?: string;
-    marketplace?: string;
-    trackingNumber?: string;
-    reason?: string;
-  };
-}
-
+/**
+ * 商品履歴API - 実データ版
+ * パフォーマンス測定用の実装
+ */
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const startTime = Date.now();
+  
   try {
     const productId = params.id;
+    const searchParams = request.nextUrl.searchParams;
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '50');
+    const offset = (page - 1) * limit;
 
-    // Get product with all related activities
+    // 商品存在チェック
     const product = await prisma.product.findUnique({
       where: { id: productId },
-      include: {
-        activities: {
-          include: {
-            user: {
-              select: { id: true, username: true, email: true }
-            }
-          },
-          orderBy: { createdAt: 'asc' }
-        },
-        movements: {
-          include: {
-            fromLocation: true,
-            toLocation: true
-          },
-          orderBy: { createdAt: 'asc' }
-        },
-        orderItems: {
-          include: {
-            order: {
-              select: {
-                id: true,
-                orderNumber: true,
-                status: true,
-                orderDate: true,
-                shippedAt: true,
-                deliveredAt: true
-              }
-            }
-          }
-        }
-      }
+      select: { id: true, name: true, sku: true }
     });
 
     if (!product) {
@@ -82,246 +33,314 @@ export async function GET(
       );
     }
 
-    // Build timeline events from real data
-    const timelineEvents: any[] = [];
+    // 商品履歴データの取得（実データ版）
+    // 複数のテーブルから履歴データを収集
+    const [
+      activities,
+      inventoryMovements,
+      orderHistory,
+      listingHistory,
+      shipmentHistory,
+      totalActivities
+    ] = await Promise.all([
+      // 1. アクティビティログ
+      prisma.activity.findMany({
+        where: { productId },
+        include: {
+          user: {
+            select: { id: true, username: true, fullName: true }
+          }
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: offset,
+        take: limit
+      }),
 
-    // Add activity events with proper mapping
-    product.activities.forEach(activity => {
-      const activityMetadata = activity.metadata ? JSON.parse(activity.metadata) : {};
-      
-      timelineEvents.push({
+      // 2. 在庫移動履歴
+      prisma.inventoryMovement.findMany({
+        where: { productId },
+        include: {
+          fromLocation: {
+            select: { code: true, name: true }
+          },
+          toLocation: {
+            select: { code: true, name: true }
+          }
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: offset,
+        take: limit
+      }),
+
+      // 3. 注文履歴
+      prisma.orderItem.findMany({
+        where: { productId },
+        include: {
+          order: {
+            select: {
+              id: true,
+              orderNumber: true,
+              status: true,
+              orderDate: true,
+              customer: {
+                select: { username: true, fullName: true }
+              }
+            }
+          }
+        },
+        orderBy: { order: { createdAt: 'desc' } },
+        skip: offset,
+        take: limit
+      }),
+
+      // 4. 出品履歴
+      prisma.listing.findMany({
+        where: { productId },
+        select: {
+          id: true,
+          platform: true,
+          title: true,
+          price: true,
+          status: true,
+          listedAt: true,
+          soldAt: true,
+          createdAt: true
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: offset,
+        take: limit
+      }),
+
+      // 5. 配送履歴
+      prisma.shipment.findMany({
+        where: {
+          order: {
+            items: {
+              some: { productId }
+            }
+          }
+        },
+        select: {
+          id: true,
+          trackingNumber: true,
+          carrier: true,
+          status: true,
+          shippedAt: true,
+          deliveredAt: true,
+          createdAt: true
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: offset,
+        take: limit
+      }),
+
+      // 総件数（ページネーション用）
+      prisma.activity.count({
+        where: { productId }
+      })
+    ]);
+
+    // データ統合と整形
+    const historyItems = [];
+
+    // アクティビティを履歴アイテムに変換
+    activities.forEach(activity => {
+      let metadata: any = {};
+      try {
+        metadata = activity.metadata ? JSON.parse(activity.metadata) : {};
+      } catch (e) {
+        console.warn('メタデータ解析エラー:', e);
+      }
+
+      historyItems.push({
         id: `activity-${activity.id}`,
         type: 'activity',
-        timestamp: activity.createdAt,
-        title: getActivityTitle(activity.type, activity.description),
-        status: activity.type,
-        user: activity.user?.username || 'システム',
+        action: getActionLabel(activity.type),
         description: activity.description,
-        metadata: activityMetadata
+        user: activity.user?.fullName || activity.user?.username || 'システム',
+        timestamp: activity.createdAt.toISOString(),
+        metadata: {
+          activityType: activity.type,
+          details: metadata
+        }
       });
     });
 
-    // Add movement events
-    product.movements.forEach(movement => {
-      timelineEvents.push({
+    // 在庫移動を履歴アイテムに変換
+    inventoryMovements.forEach(movement => {
+      const fromLocation = movement.fromLocation?.name || '不明';
+      const toLocation = movement.toLocation?.name || '不明';
+      
+      historyItems.push({
         id: `movement-${movement.id}`,
-        type: 'movement',
-        timestamp: movement.createdAt,
-        title: `ロケーション移動: ${movement.fromLocation?.code || '未設定'} → ${movement.toLocation?.code || '未設定'}`,
-        status: 'movement',
+        type: 'inventory_movement',
+        action: '在庫移動',
+        description: `${fromLocation} → ${toLocation}`,
         user: movement.movedBy,
-        description: movement.notes || 'ロケーションが変更されました',
+        timestamp: movement.createdAt.toISOString(),
         metadata: {
-          fromLocation: movement.fromLocation?.code,
-          toLocation: movement.toLocation?.code,
+          fromLocationCode: movement.fromLocation?.code,
+          toLocationCode: movement.toLocation?.code,
           notes: movement.notes
         }
       });
     });
 
-    // Add order events
-    product.orderItems.forEach(orderItem => {
+    // 注文履歴を履歴アイテムに変換
+    orderHistory.forEach(orderItem => {
       const order = orderItem.order;
       
-      timelineEvents.push({
+      historyItems.push({
         id: `order-${order.id}`,
         type: 'order',
-        timestamp: order.orderDate,
-        title: `注文受付: ${order.orderNumber}`,
-        status: 'ordered',
-        description: `商品が注文されました`,
-        user: 'システム',
+        action: '注文',
+        description: `注文番号: ${order.orderNumber} (${getOrderStatusLabel(order.status)})`,
+        user: order.customer?.fullName || order.customer?.username || '顧客',
+        timestamp: order.orderDate.toISOString(),
         metadata: {
           orderNumber: order.orderNumber,
-          status: order.status,
-          totalAmount: order.totalAmount
+          quantity: orderItem.quantity,
+          price: orderItem.price,
+          status: order.status
         }
       });
-
-      if (order.shippedAt) {
-        timelineEvents.push({
-          id: `shipped-${order.id}`,
-          type: 'shipping',
-          timestamp: order.shippedAt,
-          title: `出荷完了: ${order.orderNumber}`,
-          status: 'shipped',
-          description: '商品が出荷されました',
-          user: 'システム',
-          metadata: {
-            orderNumber: order.orderNumber,
-            trackingNumber: order.trackingNumber,
-            carrier: order.carrier
-          }
-        });
-      }
-
-      if (order.deliveredAt) {
-        timelineEvents.push({
-          id: `delivered-${order.id}`,
-          type: 'delivery',
-          timestamp: order.deliveredAt,
-          title: `配送完了: ${order.orderNumber}`,
-          status: 'delivered',
-          description: '商品が配送完了しました',
-          user: 'システム',
-          metadata: {
-            orderNumber: order.orderNumber
-          }
-        });
-      }
     });
 
-    // Sort events by timestamp
-    timelineEvents.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    // 出品履歴を履歴アイテムに変換
+    listingHistory.forEach(listing => {
+      historyItems.push({
+        id: `listing-${listing.id}`,
+        type: 'listing',
+        action: '出品',
+        description: `${listing.platform}: ${listing.title}`,
+        user: 'システム',
+        timestamp: listing.createdAt.toISOString(),
+        metadata: {
+          platform: listing.platform,
+          price: listing.price,
+          status: listing.status,
+          listedAt: listing.listedAt,
+          soldAt: listing.soldAt
+        }
+      });
+    });
 
-    // Convert real timeline events to the expected format
-    const timelineData = timelineEvents.map(event => ({
-      id: event.id,
-      timestamp: event.timestamp,
-      type: mapEventTypeToHistoryType(event.type, event.status),
-      title: event.title,
-      description: event.description,
-      user: event.user,
-      metadata: event.metadata,
-      start: event.timestamp,
-      content: event.title,
-      className: `timeline-${mapEventTypeToHistoryType(event.type, event.status)}`,
-      group: getGroupByEventType(event.type, event.status)
-    }));
+    // 配送履歴を履歴アイテムに変換
+    shipmentHistory.forEach(shipment => {
+      historyItems.push({
+        id: `shipment-${shipment.id}`,
+        type: 'shipment',
+        action: '配送',
+        description: `${shipment.carrier} - ${getShipmentStatusLabel(shipment.status)}`,
+        user: 'システム',
+        timestamp: shipment.createdAt.toISOString(),
+        metadata: {
+          trackingNumber: shipment.trackingNumber,
+          carrier: shipment.carrier,
+          status: shipment.status,
+          shippedAt: shipment.shippedAt,
+          deliveredAt: shipment.deliveredAt
+        }
+      });
+    });
 
-    return NextResponse.json({
+    // 時系列でソート
+    historyItems.sort((a, b) => 
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+
+    // レスポンス生成
+    const endTime = Date.now();
+    const processingTime = endTime - startTime;
+
+    const response = {
       product: {
         id: product.id,
         name: product.name,
-        sku: product.sku,
-        category: product.category.replace('camera_body', 'カメラ本体')
-                                 .replace('lens', 'レンズ')
-                                 .replace('watch', '腕時計')
-                                 .replace('accessory', 'アクセサリ'),
-        status: product.status.replace('inbound', '入庫')
-                             .replace('inspection', '検品')
-                             .replace('storage', '保管')
-                             .replace('listing', '出品')
-                             .replace('ordered', '受注')
-                             .replace('shipping', '出荷')
-                             .replace('delivery', '配送')
-                             .replace('sold', '売約済み')
-                             .replace('returned', '返品'),
-        condition: product.condition.replace('new', '新品')
-                                   .replace('like_new', '新品同様')
-                                   .replace('excellent', '極美品')
-                                   .replace('very_good', '美品')
-                                   .replace('good', '良品')
-                                   .replace('fair', '中古美品')
-                                   .replace('poor', '中古'),
-        price: product.price,
-        imageUrl: product.imageUrl
+        sku: product.sku
       },
-      timeline: timelineData,
-      summary: {
-        totalEvents: timelineData.length,
-        currentStatus: getLatestStatusFromRealData(timelineData),
-        daysInInventory: calculateDaysInInventoryFromRealData(timelineData)
+      history: historyItems,
+      pagination: {
+        page,
+        limit,
+        total: totalActivities,
+        totalPages: Math.ceil(totalActivities / limit),
+        hasMore: page * limit < totalActivities
+      },
+      performance: {
+        processingTime,
+        itemCount: historyItems.length,
+        queryCount: 6, // 実行したクエリ数
+        cacheHit: false
       }
-    });
+    };
+
+    // パフォーマンスヘッダーを追加
+    const headers = new Headers();
+    headers.set('X-Processing-Time', processingTime.toString());
+    headers.set('X-Item-Count', historyItems.length.toString());
+    headers.set('X-Query-Count', '6');
+
+    return NextResponse.json(response, { headers });
+
   } catch (error) {
-    console.error('Product history error:', error);
+    console.error('商品履歴取得エラー:', error);
+    
+    const endTime = Date.now();
+    const processingTime = endTime - startTime;
+    
     return NextResponse.json(
-      { error: '商品履歴の取得中にエラーが発生しました' },
+      { 
+        error: '履歴データの取得に失敗しました',
+        performance: { processingTime, error: true }
+      },
       { status: 500 }
     );
   }
 }
 
 // ヘルパー関数
-function getActivityTitle(activityType: string, description: string): string {
-  const titleMap: { [key: string]: string } = {
-    'product_registered': '商品登録',
-    'product_received': '商品入庫',
+function getActionLabel(activityType: string): string {
+  const labels: Record<string, string> = {
+    'product_created': '商品登録',
+    'product_updated': '情報更新',
     'inspection_started': '検品開始',
     'inspection_completed': '検品完了',
-    'photography_started': '撮影開始',
     'photography_completed': '撮影完了',
-    'listing_started': '出品開始',
-    'listing_completed': '出品完了',
-    'price_updated': '価格変更',
-    'status_updated': 'ステータス更新',
-    'location_moved': 'ロケーション移動',
+    'listing_created': '出品',
     'order_received': '注文受付',
-    'order_shipped': '発送完了',
-    'order_delivered': '配送完了',
-    'order_returned': '返品受付',
-    'product_cancelled': '商品キャンセル'
+    'payment_received': '入金確認',
+    'shipping_started': '出荷準備',
+    'shipped': '出荷完了',
+    'delivered': '配送完了',
+    'storage_started': '保管開始',
+    'storage_complete': '保管完了',
+    'shipment_complete': '発送完了'
   };
   
-  return titleMap[activityType] || description || 'システム操作';
+  return labels[activityType] || activityType;
 }
 
-// Map event types to history event types for display consistency
-function mapEventTypeToHistoryType(eventType: string, status?: string): HistoryEventType {
-  if (eventType === 'activity') {
-    const activityMap: { [key: string]: HistoryEventType } = {
-      'product_received': 'received',
-      'inspection_completed': 'inspected',
-      'listing_started': 'listed',
-      'listing_completed': 'listed',
-      'price_updated': 'price_changed',
-      'product_returned': 'returned'
-    };
-    return activityMap[status || ''] || 'received';
-  }
-  
-  if (eventType === 'movement') return 'received';
-  if (eventType === 'order') return 'sold';
-  if (eventType === 'shipping') return 'shipped';
-  if (eventType === 'delivery') return 'shipped';
-  
-  return 'received';
-}
-
-function getGroupByEventType(eventType: string, status?: string): string {
-  const mappedType = mapEventTypeToHistoryType(eventType, status);
-  const groupMap = {
-    'received': 'inventory',
-    'inspected': 'quality',
-    'listed': 'sales',
-    'price_changed': 'sales',
-    'sold': 'sales',
-    'shipped': 'logistics',
-    'returned': 'customer',
-    'relisted': 'sales'
-  };
-  return groupMap[mappedType] || 'other';
-}
-
-function getLatestStatusFromRealData(events: any[]): string {
-  if (events.length === 0) return '未登録';
-  
-  const latestEvent = events[events.length - 1];
-  const statusMap = {
-    'received': '入庫済み',
-    'inspected': '検品済み',
-    'listed': '出品中',
-    'price_changed': '出品中',
-    'sold': '販売済み',
-    'shipped': '発送済み',
-    'returned': '返品処理中',
-    'relisted': '再出品中'
+function getOrderStatusLabel(status: string): string {
+  const labels: Record<string, string> = {
+    'pending': '処理中',
+    'confirmed': '確認済み',
+    'shipped': '出荷済み',
+    'delivered': '配送完了',
+    'cancelled': 'キャンセル'
   };
   
-  return statusMap[latestEvent.type] || '処理中';
+  return labels[status] || status;
 }
 
-function calculateDaysInInventoryFromRealData(events: any[]): number {
-  const receivedEvent = events.find(e => e.type === 'received');
-  const soldEvent = events.find(e => e.type === 'sold');
+function getShipmentStatusLabel(status: string): string {
+  const labels: Record<string, string> = {
+    'pending': '準備中',
+    'picked': 'ピッキング完了',
+    'packed': '梱包完了',
+    'shipped': '出荷完了',
+    'delivered': '配送完了'
+  };
   
-  if (!receivedEvent) return 0;
-  
-  const endDate = soldEvent ? new Date(soldEvent.timestamp) : new Date();
-  const startDate = new Date(receivedEvent.timestamp);
-  const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
-  return diffDays;
+  return labels[status] || status;
 }

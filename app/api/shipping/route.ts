@@ -232,10 +232,20 @@ export async function PUT(request: NextRequest) {
     // ready_for_pickup（集荷準備完了）ステータス更新時にセラー販売管理も連携更新
     if (status === 'ready_for_pickup' || status === 'delivered') {
       try {
-        // Shipmentから直接ProductIdを取得してListingを更新
+        // Shipmentから関連データを取得
         const shipment = await prisma.shipment.findUnique({
           where: { id: shipmentId },
-          select: { productId: true }
+          include: {
+            order: {
+              include: {
+                items: {
+                  include: {
+                    product: true
+                  }
+                }
+              }
+            }
+          }
         });
 
         if (shipment?.productId) {
@@ -256,13 +266,59 @@ export async function PUT(request: NextRequest) {
           }
 
           // Productのステータスも「shipping」に更新（在庫管理画面用）
-          await prisma.product.update({
+          const updatedProduct = await prisma.product.update({
             where: { id: shipment.productId },
             data: {
               status: 'shipping'
             }
           });
           console.log(`✅ Product更新: ${shipment.productId} -> shipping`);
+
+          // セラーに出荷完了通知を送信
+          if (updatedProduct.sellerId && status === 'ready_for_pickup') {
+            try {
+              const notification = await prisma.notification.create({
+                data: {
+                  type: 'success',
+                  title: '🚚 出荷完了',
+                  message: `商品「${updatedProduct.name}」が出荷されました。追跡番号: ${updatedShipment.trackingNumber}`,
+                  userId: updatedProduct.sellerId,
+                  read: false,
+                  priority: 'medium',
+                  notificationType: 'shipment_complete',
+                  action: 'shipping',
+                  metadata: JSON.stringify({
+                    productId: updatedProduct.id,
+                    productName: updatedProduct.name,
+                    sku: updatedProduct.sku,
+                    shipmentId: shipmentId,
+                    trackingNumber: updatedShipment.trackingNumber,
+                    orderNumber: shipment.order?.orderNumber,
+                    shippedAt: new Date().toISOString()
+                  })
+                }
+              });
+              console.log(`[INFO] セラー出荷完了通知作成成功: ${updatedProduct.sellerId} → ${notification.id}`);
+
+              // アクティビティログに記録
+              await prisma.activity.create({
+                data: {
+                  type: 'shipment_complete',
+                  description: `商品 ${updatedProduct.name} が出荷されました（追跡番号: ${updatedShipment.trackingNumber}）`,
+                  userId: 'system', // システム処理として記録
+                  productId: updatedProduct.id,
+                  metadata: JSON.stringify({
+                    shipmentId: shipmentId,
+                    trackingNumber: updatedShipment.trackingNumber,
+                    notificationId: notification.id
+                  })
+                }
+              });
+
+            } catch (notificationError) {
+              console.error('[ERROR] セラー出荷完了通知送信エラー（処理は継続）:', notificationError);
+            }
+          }
 
           console.log(`✅ セラー販売管理連携完了: shipmentId=${shipmentId}, productId=${shipment.productId} -> shipped`);
         } else {
