@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { promises as fs } from 'fs';
+import path from 'path';
 
 const prisma = new PrismaClient();
 
@@ -161,7 +163,49 @@ export async function GET(request: NextRequest) {
         'pending': 'processing'       // 保留中 → 出荷準備中
       };
       
-      let recentOrders = allListings.map(listing => {
+      const uploadsRoot = path.join(process.cwd(), 'uploads');
+      const isHttp = (u: string) => /^https?:\/\//.test(u || '');
+      const isValidLocalImageUrl = async (url: string): Promise<boolean> => {
+        if (!url) return false;
+        if (url.startsWith('data:') || isHttp(url)) return true;
+        try {
+          let relative = '';
+          if (url.startsWith('/api/images/')) relative = url.replace('/api/images/', '');
+          else if (url.startsWith('/uploads/')) relative = url.replace('/uploads/', '');
+          else if (/^product-/.test(url)) relative = url; else return true;
+          const full = path.join(uploadsRoot, relative);
+          await fs.access(full);
+          return true;
+        } catch { return false; }
+      };
+
+      const pickBestImage = async (listing: any): Promise<string> => {
+        // 候補を列挙（Base64/HTTP優先）
+        const candidates: string[] = [];
+        try {
+          if (listing.product?.metadata) {
+            const md = typeof listing.product.metadata === 'string' ? JSON.parse(listing.product.metadata) : listing.product.metadata;
+            if (Array.isArray(md?.photos) && md.photos.length > 0) {
+              const p = md.photos[0];
+              if (p?.dataUrl) candidates.push(p.dataUrl);
+            }
+            if (Array.isArray(md?.images) && md.images.length > 0) {
+              const im = md.images[0];
+              candidates.push((im?.url || im) as string);
+            }
+          }
+        } catch {}
+        candidates.push(
+          listing.product?.images?.[0]?.url,
+          listing.product?.imageUrl
+        );
+        for (const c of candidates) {
+          if (c && await isValidLocalImageUrl(c)) return c;
+        }
+        return '/api/placeholder/96/96';
+      };
+
+      let recentOrders = await Promise.all(allListings.map(async (listing) => {
         // 関連する注文データを取得
         const relatedOrder = listing.product?.orderItems?.[0]?.order;
         const isLabelGenerated = relatedOrder?.trackingNumber ? true : false;
@@ -183,23 +227,7 @@ export async function GET(request: NextRequest) {
           }
         }
         
-        // 画像フォールバック（metadata.photosを優先 -> Product.images -> imageUrl）
-        const buildImage = () => {
-          try {
-            if (listing.product?.metadata) {
-              const md = typeof listing.product.metadata === 'string' ? JSON.parse(listing.product.metadata) : listing.product.metadata;
-              if (md?.photos && Array.isArray(md.photos) && md.photos.length > 0) {
-                const p = md.photos[0];
-                if (p?.dataUrl) return p.dataUrl;
-              }
-              if (md?.images && Array.isArray(md.images) && md.images.length > 0) {
-                const im = md.images[0];
-                return (im?.url || im) || listing.product?.images?.[0]?.url || listing.product?.imageUrl || 'https://via.placeholder.com/300';
-              }
-            }
-          } catch {}
-          return listing.product?.images?.[0]?.url || listing.product?.imageUrl || 'https://via.placeholder.com/300';
-        };
+        const bestImage = await pickBestImage(listing);
 
         return {
           id: relatedOrder?.id || listing.id, // 注文IDが優先、なければListing ID
@@ -208,7 +236,7 @@ export async function GET(request: NextRequest) {
           customer: relatedOrder?.customerName || listing.platform,
           product: listing.title,
           ebayTitle: listing.title,
-          ebayImage: buildImage(),
+          ebayImage: bestImage,
           totalAmount: relatedOrder?.totalAmount || listing.price,
           status: displayStatus,
           itemCount: relatedOrder?.items?.length || 1,
@@ -223,7 +251,7 @@ export async function GET(request: NextRequest) {
             category: listing.product?.category || 'その他',
             quantity: 1,
             price: relatedOrder?.totalAmount || listing.price,
-            productImage: buildImage()
+            productImage: bestImage
           }],
           labelGenerated: isLabelGenerated,
           trackingNumber: relatedOrder?.trackingNumber || null,
@@ -234,7 +262,7 @@ export async function GET(request: NextRequest) {
           realProductId: listing.productId, // 実際の商品ID（テスト機能用）
           shippingAddress: relatedOrder?.shippingAddress || '住所未設定'
         };
-      });
+      }));
       
       // フィルターに応じてラベル生成状況で絞り込み
       if (statusFilter === 'listing') {

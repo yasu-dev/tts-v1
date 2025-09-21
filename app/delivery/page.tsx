@@ -845,9 +845,11 @@ export default function DeliveryPage() {
                         {plan.products && plan.products.length > 0 ? (
                           <div className="space-y-1">
                             {plan.products.slice(0, 3).map((product: any, index: number) => {
-                              // 画像URLを取得（imageUrl または images配列の最初の画像）
-                              const imageUrl = product.imageUrl ||
-                                             (product.images && product.images.length > 0 ? product.images[0].url : null);
+                              // 画像は統合配列を優先（Base64やHTTPを優先し、無効なローカルファイルを回避）
+                              const first = (product.images && product.images.length > 0)
+                                ? (product.images[0].url || product.images[0].thumbnailUrl || product.images[0])
+                                : null;
+                              const imageUrl = first || product.imageUrl || null;
 
                               return (
                                 <ProductImage

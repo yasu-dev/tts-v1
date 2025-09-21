@@ -41,7 +41,7 @@ export default function ProductImage({
         <div className="absolute inset-0 bg-nexus-bg-tertiary animate-pulse"></div>
       )}
       <Image
-        src={src}
+        src={src.startsWith('/api/images/') ? src + '?v=skip-opt' : src}
         alt={alt}
         fill
         sizes="80px"
