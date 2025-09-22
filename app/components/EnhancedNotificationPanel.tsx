@@ -43,8 +43,10 @@ export default function EnhancedNotificationPanel({
         setLoading(true);
       }
       
-      // セラーもテスト用エンドポイントを使用（統一のため）
-      const endpoint = `/api/notifications/test?role=${userType}`;
+      // セラーは本番用エンドポイント、スタッフはテスト用エンドポイントを使用
+      const endpoint = userType === 'seller'
+        ? `/api/notifications?role=${userType}`
+        : `/api/notifications/test?role=${userType}`;
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
       
@@ -144,8 +146,10 @@ export default function EnhancedNotificationPanel({
           return updated;
         });
         
-        // バックグラウンドでDBも更新（統一してテスト用エンドポイントを使用）
-        const endpoint = '/api/notifications/test';
+        // バックグラウンドでDBも更新（セラーとスタッフで異なるエンドポイントを使用）
+        const endpoint = userType === 'seller'
+          ? '/api/notifications/mark-as-read'
+          : '/api/notifications/test';
         const method = 'POST';
         const body = JSON.stringify({ notificationId: notification.id });
         
@@ -160,12 +164,10 @@ export default function EnhancedNotificationPanel({
           return response.json();
         }).then(data => {
           console.log('[DEBUG] 既読結果:', data);
-          
-          // 既読処理成功後、通知リストを再取得して状態を同期
+
+          // 既読処理成功 - ローカル状態は既に更新済みなので再取得は不要
           if (data.success) {
-            setTimeout(() => {
-              fetchNotifications(false); // ローディング状態にしない
-            }, 500);
+            console.log('[DEBUG] 既読処理成功 - DB更新完了');
           }
         }).catch(error => {
           console.error('DB既読更新エラー:', error);

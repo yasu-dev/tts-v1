@@ -429,13 +429,29 @@ export default function InspectionPage() {
     }
   }, [products]);
 
-  // 統計データ計算
+  // 統計データ計算（検索・追加フィルタを反映）
+  const matchesSearch = (p: Product) => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      p.name?.toLowerCase().includes(q) ||
+      p.sku?.toLowerCase().includes(q)
+    );
+  };
+
+  const matchesExtraStatus = (p: Product) => {
+    // 追加のセレクトなどがある場合に備えた拡張（現状は全件）
+    return selectedStatus === 'all' || p.status === selectedStatus;
+  };
+
+  const baseForCounts = products.filter(p => matchesSearch(p) && matchesExtraStatus(p));
+
   const inspectionStats = {
-    total: products.length,
-    pending: products.filter(p => p.status === 'pending_inspection').length,
-    inspecting: products.filter(p => p.status === 'inspecting').length,
-    completed: products.filter(p => p.status === 'completed').length,
-    failed: products.filter(p => p.status === 'failed').length,
+    total: baseForCounts.length,
+    pending: baseForCounts.filter(p => p.status === 'pending_inspection').length,
+    inspecting: baseForCounts.filter(p => p.status === 'inspecting').length,
+    completed: baseForCounts.filter(p => p.status === 'completed').length,
+    failed: baseForCounts.filter(p => p.status === 'failed').length,
   };
 
   // タブごとのフィルタリング

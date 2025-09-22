@@ -155,12 +155,11 @@ export default function ItemDetailModal({
         const formattedHistory = (data.timeline || data.history || []).map((event: any, index: number) => {
           let details = '';
           if (event.metadata) {
-            // メタデータを読みやすい形式に変換
             if (typeof event.metadata === 'object') {
               const metadata = event.metadata;
-              const descriptions = [];
+              const descriptions: string[] = [];
 
-              // 共通キーを日本語で整形
+              // 実行者は詳細に含めない（「実行者」列で表示）
               if (metadata.previousStatus) descriptions.push(`旧ステータス: ${metadata.previousStatus}`);
               if (metadata.newStatus) descriptions.push(`新ステータス: ${metadata.newStatus}`);
               if (metadata.fromLocation || metadata.fromLocationCode) descriptions.push(`移動元: ${metadata.fromLocation || metadata.fromLocationCode}`);
@@ -174,25 +173,8 @@ export default function ItemDetailModal({
               if (metadata.orderNumber) descriptions.push(`注文番号: ${metadata.orderNumber}`);
               if (metadata.carrier) descriptions.push(`配送業者: ${metadata.carrier}`);
 
-              if (metadata.userRole === 'system') descriptions.push('実行者: システム');
-              if (metadata.userRole === 'seller') descriptions.push('実行者: セラー');
-              if (metadata.userRole === 'staff') descriptions.push('実行者: スタッフ');
-              if (metadata.location) descriptions.push(`保管場所: ${metadata.location}`);
-              if (metadata.condition) descriptions.push(`状態: ${metadata.condition}`);
-              if (metadata.price) descriptions.push(`価格: ¥${metadata.price.toLocaleString()}`);
-              if (metadata.newPrice) descriptions.push(`新価格: ¥${metadata.newPrice.toLocaleString()}`);
-              if (metadata.marketplace) descriptions.push(`マーケット: ${metadata.marketplace}`);
-              if (metadata.previousPrice) descriptions.push(`旧価格: ¥${metadata.previousPrice.toLocaleString()}`);
-              if (metadata.trackingNumber) descriptions.push(`追跡番号: ${metadata.trackingNumber}`);
-              if (metadata.reason) descriptions.push(`理由: ${metadata.reason}`);
-              if (metadata.fromLocation) descriptions.push(`移動元: ${metadata.fromLocation}`);
-              if (metadata.toLocation) descriptions.push(`移動先: ${metadata.toLocation}`);
-              if (metadata.orderNumber) descriptions.push(`注文番号: ${metadata.orderNumber}`);
-              if (metadata.carrier) descriptions.push(`配送業者: ${metadata.carrier}`);
-              if (metadata.previousStatus) descriptions.push(`旧ステータス: ${metadata.previousStatus}`);
-              if (metadata.newStatus) descriptions.push(`新ステータス: ${metadata.newStatus}`);
-
-              details = descriptions.join(', ') || '詳細なし';
+              // 重複を除去
+              details = Array.from(new Set(descriptions)).join(', ') || '詳細なし';
             } else {
               details = event.metadata.toString();
             }

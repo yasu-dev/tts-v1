@@ -114,7 +114,10 @@ export async function POST(request: NextRequest) {
         carrier: 'ヤマト運輸',
         method: 'standard',
         status: 'shipped',
-        shippedAt: addMinutes(now, -10)
+        shippedAt: addMinutes(now, -10),
+        customerName: 'テスト購入者',
+        address: '〒150-0001 東京都渋谷区神宮前1-1-1 テストビル101',
+        value: product.price || 10000
       }
     });
 
@@ -178,6 +181,30 @@ export async function POST(request: NextRequest) {
         description: 'ステータスを変更しました',
         userId: staff.id,
         metadata: { previousStatus: 'inspection', newStatus: 'storage' }
+      },
+      {
+        type: 'order_received',
+        description: '注文を受け付けました',
+        userId: null,
+        metadata: { orderNumber: order.orderNumber, userRole: 'system', price: product.price || 10000 }
+      },
+      {
+        type: 'payment_received',
+        description: '入金を確認しました',
+        userId: null,
+        metadata: { orderNumber: order.orderNumber, userRole: 'system' }
+      },
+      {
+        type: 'shipping_started',
+        description: '出荷準備を開始しました',
+        userId: staff.id,
+        metadata: { userRole: 'staff' }
+      },
+      {
+        type: 'shipped',
+        description: '出荷完了しました',
+        userId: staff.id,
+        metadata: { trackingNumber: `TRK-${Date.now()}`, carrier: 'ヤマト運輸', userRole: 'staff' }
       },
       {
         type: 'listing',

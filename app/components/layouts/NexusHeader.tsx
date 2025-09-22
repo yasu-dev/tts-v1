@@ -89,6 +89,10 @@ export default function NexusHeader({
         clearInterval(interval);
       }
     };
+    // クリックや他関数からも参照できるようにwindowへ一時的に公開（開発用）
+    // @ts-ignore
+    (window as any).__fetchNotificationCount = fetchNotificationCount;
+
   }, [userType]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -178,7 +182,15 @@ export default function NexusHeader({
         {/* 通知ボタン - レスポンシブ対応 */}
         <button
           ref={notificationRef}
-          onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+          onClick={() => {
+            setIsNotificationOpen(!isNotificationOpen);
+            // 通知パネルを開く時に最新の通知数を取得
+            if (!isNotificationOpen && userType) {
+              // useEffectスコープ外からはwindow経由で呼ぶ
+              // @ts-ignore
+              (window as any).__fetchNotificationCount?.();
+            }
+          }}
           className="relative p-1.5 sm:p-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg text-white hover:bg-white/20 transition-all duration-200"
           aria-label="通知"
           data-testid="notification-bell"
@@ -238,7 +250,14 @@ export default function NexusHeader({
       {isNotificationOpen && notificationRef.current && (
         <EnhancedNotificationPanel
           isOpen={isNotificationOpen}
-          onClose={() => setIsNotificationOpen(false)}
+          onClose={() => {
+            setIsNotificationOpen(false);
+            // パネルを閉じたときに通知数を再取得
+            if (userType) {
+              // @ts-ignore
+              (window as any).__fetchNotificationCount?.();
+            }
+          }}
           userType={userType}
           anchorRef={notificationRef}
           onNotificationUpdate={(unreadCount) => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   ShoppingCartIcon,
   DocumentTextIcon,
@@ -95,6 +95,9 @@ export default function ProductDetailModal({ isOpen, onClose, product, onOpenLis
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const { showToast } = useToast();
   const [inspectionNotesFresh, setInspectionNotesFresh] = useState<string | null>(null);
+  const [historyData, setHistoryData] = useState<any[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // 備考の最新値を取得（在庫リストの古いスナップショットを補正）
   useEffect(() => {
@@ -112,6 +115,75 @@ export default function ProductDetailModal({ isOpen, onClose, product, onOpenLis
     fetchLatest();
     return () => { aborted = true; };
   }, [isOpen, product?.id]);
+
+  // 履歴取得（スタッフと同仕様）
+  const fetchProductHistory = async (productId: string) => {
+    setLoadingHistory(true);
+    try {
+      const response = await fetch(`/api/products/${productId}/history`);
+      if (response.ok) {
+        const data = await response.json();
+        const formattedHistory = (data.timeline || data.history || []).map((event: any) => {
+          let details = '';
+          if (event.metadata) {
+            if (typeof event.metadata === 'object') {
+              const metadata = event.metadata;
+              const descriptions: string[] = [];
+              if (metadata.userRole === 'system') descriptions.push('実行者: システム');
+              if (metadata.userRole === 'seller') descriptions.push('実行者: セラー');
+              if (metadata.userRole === 'staff') descriptions.push('実行者: スタッフ');
+              if (metadata.location || metadata.locationName) descriptions.push(`保管場所: ${metadata.location || metadata.locationName}`);
+              if (metadata.condition) descriptions.push(`状態: ${metadata.condition}`);
+              if (metadata.price) descriptions.push(`価格: ¥${Number(metadata.price).toLocaleString()}`);
+              if (metadata.newPrice) descriptions.push(`新価格: ¥${Number(metadata.newPrice).toLocaleString()}`);
+              if (metadata.previousPrice) descriptions.push(`旧価格: ¥${Number(metadata.previousPrice).toLocaleString()}`);
+              if (metadata.trackingNumber) descriptions.push(`追跡番号: ${metadata.trackingNumber}`);
+              if (metadata.reason) descriptions.push(`理由: ${metadata.reason}`);
+              if (metadata.fromLocation || metadata.fromLocationCode) descriptions.push(`移動元: ${metadata.fromLocation || metadata.fromLocationCode}`);
+              if (metadata.toLocation || metadata.toLocationCode) descriptions.push(`移動先: ${metadata.toLocation || metadata.toLocationCode}`);
+              if (metadata.orderNumber) descriptions.push(`注文番号: ${metadata.orderNumber}`);
+
+              details = descriptions.join(', ') || '詳細なし';
+            } else {
+              details = event.metadata.toString();
+            }
+          }
+
+        const role = (() => {
+          const r = (event.metadata && event.metadata.userRole) || '';
+          if (r === 'system') return 'システム';
+          if (r === 'seller') return 'セラー';
+          if (r === 'staff') return 'スタッフ';
+          if (!event.user || event.user === 'システム') return 'システム';
+          return 'スタッフ';
+        })();
+
+          return {
+            date: new Date(event.timestamp).toLocaleString('ja-JP'),
+            action: event.title,
+            details: details || event.description || '詳細なし',
+            user: event.user || 'システム',
+            type: event.type || 'unknown',
+            role
+          };
+        }) || [];
+        setHistoryData(formattedHistory);
+      } else {
+        setHistoryData([]);
+      }
+    } catch (error) {
+      setHistoryData([]);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  // 履歴タブが開かれたら取得
+  useEffect(() => {
+    if (isOpen && product?.id && activeTab === 'history') {
+      fetchProductHistory(product.id);
+    }
+  }, [isOpen, product?.id, activeTab]);
 
   if (!product) return null;
 
@@ -268,6 +340,11 @@ export default function ProductDetailModal({ isOpen, onClose, product, onOpenLis
       icon: <BuildingStorefrontIcon className="w-5 h-5" />
     },
     {
+      id: 'history',
+      label: '履歴',
+      icon: <DocumentTextIcon className="w-5 h-5" />
+    },
+    {
       id: 'notes',
       label: '備考',
       icon: <DocumentTextIcon className="w-5 h-5" />
@@ -306,7 +383,7 @@ export default function ProductDetailModal({ isOpen, onClose, product, onOpenLis
         </div>
 
         {/* タブコンテンツ */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto" ref={scrollContainerRef}>
           {activeTab === 'basic' && (
             <div className="space-y-6">
               {/* 基本情報 */}
@@ -351,7 +428,20 @@ export default function ProductDetailModal({ isOpen, onClose, product, onOpenLis
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                       <span className="font-medium text-nexus-text-secondary">購入価格</span>
                       <span className="font-bold text-nexus-text-primary">
-                        ¥{product.price ? product.price.toLocaleString() : '0'}
+                        {(() => {
+                          try {
+                            const md = typeof product.metadata === 'string' ? JSON.parse(product.metadata) : (product.metadata || {});
+                            const value = (typeof md.purchasePrice === 'number' && md.purchasePrice > 0)
+                              ? md.purchasePrice
+                              : (md.deliveryPlanInfo && typeof md.deliveryPlanInfo.purchasePrice === 'number' && md.deliveryPlanInfo.purchasePrice > 0)
+                                ? md.deliveryPlanInfo.purchasePrice
+                                : (typeof product.price === 'number' ? product.price : 0);
+                            return `¥${Number(value).toLocaleString()}`;
+                          } catch {
+                            const fallback = typeof product.price === 'number' ? product.price : 0;
+                            return `¥${fallback.toLocaleString()}`;
+                          }
+                        })()}
                       </span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
@@ -431,6 +521,64 @@ export default function ProductDetailModal({ isOpen, onClose, product, onOpenLis
               productId={product.id}
               status={product.status}
             />
+          )}
+
+          {activeTab === 'history' && (
+            <div className="space-y-4">
+              <h4 className="font-bold text-nexus-text-primary">操作履歴</h4>
+              {loadingHistory ? (
+                <div className="flex justify-center items-center py-8 text-nexus-text-secondary">履歴を読み込み中...</div>
+              ) : (
+                <div className="holo-table overflow-y-auto max-h-[60vh]">
+                  <table className="w-full">
+                    <thead className="holo-header">
+                      <tr>
+                        <th className="text-left py-3 px-4 text-sm font-medium">日時</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium">アクション</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium">詳細</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium">実行者</th>
+                      </tr>
+                    </thead>
+                    <tbody className="holo-body">
+                      {historyData.length > 0 ? (
+                        historyData.map((entry, index) => (
+                          <tr key={index} className="holo-row">
+                            <td className="py-3 px-4 text-nexus-text-secondary text-sm">{entry.date}</td>
+                            <td className="py-3 px-4">
+                              <span className="font-medium text-nexus-text-primary">{entry.action}</span>
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className="text-nexus-text-secondary text-sm">{(() => {
+                                if (!entry.details) return '詳細なし';
+                                // 実行者の重複記載を避ける
+                                return String(entry.details)
+                                  .replace('実行者: システム', '')
+                                  .replace('実行者: セラー', '')
+                                  .replace('実行者: スタッフ', '')
+                                  .replace(/^,\s*/,'')
+                                  .replace(/,\s*,/g, ', ')
+                                  .trim() || '詳細なし';
+                              })()}</span>
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className="text-nexus-text-secondary">{entry.role}</span>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr className="holo-row">
+                          <td colSpan={4} className="py-8 text-center">
+                            <div className="flex flex-col items-center text-nexus-text-secondary">
+                              履歴データがありません
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           )}
 
           {activeTab === 'notes' && (

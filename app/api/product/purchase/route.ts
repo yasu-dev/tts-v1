@@ -64,6 +64,42 @@ export async function POST(request: NextRequest) {
 
     console.log('[DEBUG] セラー通知作成完了:', notificationId);
 
+    // アクティビティログに購入イベントを記録
+    try {
+      await prisma.activity.create({
+        data: {
+          type: 'product_purchased',
+          description: `商品「${productName || '商品'}」が¥${purchasePrice.toLocaleString()}で購入されました`,
+          userId: sellerId, // セラーを実行者として記録
+          productId: productId,
+          metadata: JSON.stringify({
+            buyerName: buyerName || 'お客様',
+            buyerEmail: buyerEmail || '',
+            purchasePrice,
+            orderId: orderId || `ORD-${Date.now()}`,
+            notificationId,
+            userRole: 'seller'
+          })
+        }
+      });
+      console.log('[DEBUG] アクティビティログ記録完了: product_purchased for', productId);
+    } catch (activityError) {
+      console.error('アクティビティログ記録エラー:', activityError);
+      // エラーでも処理は継続
+    }
+
+    // 商品ステータスを'sold'に更新
+    try {
+      await prisma.product.update({
+        where: { id: productId },
+        data: { status: 'sold' }
+      });
+      console.log('[DEBUG] 商品ステータス更新完了: sold');
+    } catch (statusError) {
+      console.error('商品ステータス更新エラー:', statusError);
+      // エラーでも処理は継続
+    }
+
     // 注文バッジ+1の処理（ここでは模擬実装）
     console.log('[DEBUG] 注文バッジ+1処理完了');
 

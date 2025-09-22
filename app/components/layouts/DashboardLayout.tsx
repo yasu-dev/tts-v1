@@ -777,8 +777,8 @@ export default function DashboardLayout({
         query={searchQuery}
       />
       
-      {/* バーコードテスター（開発中のみ） */}
-      {process.env.NODE_ENV === 'development' && (
+      {/* バーコードテスター（明示的に有効化されたときのみ表示） */}
+      {process.env.NEXT_PUBLIC_ENABLE_BARCODE_TESTER === 'true' && (
         <BarcodeTestButton />
       )}
     </div>

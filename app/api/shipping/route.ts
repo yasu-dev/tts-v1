@@ -226,8 +226,74 @@ export async function PUT(request: NextRequest) {
         ...(status === 'packed' && { packedAt: new Date() }),
         ...(status === 'shipped' && { shippedAt: new Date() }),
         ...(status === 'delivered' && { deliveredAt: new Date() }),
+      },
+      include: {
+        order: {
+          include: {
+            items: {
+              include: {
+                product: true
+              }
+            }
+          }
+        }
       }
     });
+
+    // 各ステータス変更時にアクティビティログを記録
+    if (updatedShipment.productId || updatedShipment.order?.items?.[0]?.productId) {
+      const productId = updatedShipment.productId || updatedShipment.order?.items?.[0]?.productId;
+      const productName = updatedShipment.order?.items?.[0]?.product?.name || '商品';
+
+      try {
+        let activityType = '';
+        let activityDescription = '';
+
+        switch (status) {
+          case 'picked':
+            activityType = 'order_picked';
+            activityDescription = `商品 ${productName} のピッキングが完了しました`;
+            break;
+          case 'packed':
+            activityType = 'order_packed';
+            activityDescription = `商品 ${productName} の梱包が完了しました`;
+            break;
+          case 'shipped':
+            activityType = 'order_shipped';
+            activityDescription = `商品 ${productName} が出荷されました`;
+            break;
+          case 'ready_for_pickup':
+            activityType = 'ready_for_pickup';
+            activityDescription = `商品 ${productName} が集荷準備完了しました`;
+            break;
+          case 'delivered':
+            activityType = 'order_delivered';
+            activityDescription = `商品 ${productName} が配達完了しました`;
+            break;
+        }
+
+        if (activityType && productId) {
+          await prisma.activity.create({
+            data: {
+              type: activityType,
+              description: activityDescription,
+              userId: 'system', // システム処理として記録
+              productId: productId,
+              metadata: JSON.stringify({
+                shipmentId: shipmentId,
+                trackingNumber: updatedShipment.trackingNumber,
+                status: status,
+                notes: notes
+              })
+            }
+          });
+          console.log(`✅ アクティビティログ記録: ${activityType} for product ${productId}`);
+        }
+      } catch (activityError) {
+        console.error('アクティビティログ記録エラー:', activityError);
+        // エラーでも処理は継続
+      }
+    }
 
     // ready_for_pickup（集荷準備完了）ステータス更新時にセラー販売管理も連携更新
     if (status === 'ready_for_pickup' || status === 'delivered') {
