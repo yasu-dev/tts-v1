@@ -37,9 +37,11 @@ export default function EnhancedNotificationPanel({
   const [panelPosition, setPanelPosition] = useState({ top: 0, right: 0 });
 
   // 通知を取得する関数
-  const fetchNotifications = async () => {
+  const fetchNotifications = async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) {
+        setLoading(true);
+      }
       
       // セラーもテスト用エンドポイントを使用（統一のため）
       const endpoint = `/api/notifications/test?role=${userType}`;
@@ -57,15 +59,24 @@ export default function EnhancedNotificationPanel({
       }
       
       const data = await response.json();
+      const notificationData = Array.isArray(data) ? data : [];
       
-      setNotifications(Array.isArray(data) ? data : []);
-      console.log('[DEBUG] 通知パネル更新:', data?.length || 0, '件 (エンドポイント:', endpoint, ')');
+      setNotifications(notificationData);
+      
+      // バッジ数も更新
+      const unreadCount = notificationData.filter(n => !n.read).length;
+      onNotificationUpdate?.(unreadCount);
+      
+      console.log('[DEBUG] 通知パネル更新:', notificationData.length, '件, 未読:', unreadCount, '件 (エンドポイント:', endpoint, ')');
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
       // エラー時は空配列を設定
       setNotifications([]);
+      onNotificationUpdate?.(0);
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   };
 
@@ -126,7 +137,9 @@ export default function EnhancedNotificationPanel({
               : notif
           );
           const newUnreadCount = updated.filter(n => !n.read).length;
-          console.log('📱 未読数更新:', newUnreadCount);
+          console.log('📱 ローカル状態更新 - 未読数:', newUnreadCount, '(通知ID:', notification.id, ')');
+          
+          // バッジ数を即座に更新
           onNotificationUpdate?.(newUnreadCount);
           return updated;
         });
@@ -151,7 +164,7 @@ export default function EnhancedNotificationPanel({
           // 既読処理成功後、通知リストを再取得して状態を同期
           if (data.success) {
             setTimeout(() => {
-              fetchNotifications();
+              fetchNotifications(false); // ローディング状態にしない
             }, 500);
           }
         }).catch(error => {
