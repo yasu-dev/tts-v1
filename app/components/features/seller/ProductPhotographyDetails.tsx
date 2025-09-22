@@ -277,6 +277,9 @@ export default function ProductPhotographyDetails({ productId, status }: Product
       });
       if (response.ok) {
         const data = await response.json();
+        console.log('🖼️ 取得した画像データ:', data.images);
+        console.log('📸 セラー画像:', data.images?.filter(img => img.source === 'seller'));
+        console.log('📸 スタッフ画像:', data.images?.filter(img => img.source === 'staff'));
         setAvailableImages(data.images || []);
       } else {
         console.error('画像一覧の取得に失敗しました');
@@ -301,51 +304,26 @@ export default function ProductPhotographyDetails({ productId, status }: Product
 
   // 全選択/全解除
   const toggleSelectAll = () => {
-    const categorizedImages = categorizeImages(photographyData?.images || [], photographyData?.photoSlots);
-    const orderedImages = getOrderedImages(categorizedImages);
-    const allImageIds = orderedImages.slice(0, 12).map(img => {
-      const availableImage = availableImages.find(availImg =>
-        availImg.filename === img.filename ||
-        availImg.id === img.id ||
-        (img.url && availImg.previewUrl && img.url.includes(availImg.id))
-      );
-      return availableImage?.id || img.id;
-    });
+    const allAvailableImageIds = availableImages
+      .filter(img => img.hasData)
+      .slice(0, 12)
+      .map(img => img.id);
 
-    if (selectedImages.length === allImageIds.length) {
+    if (selectedImages.length === allAvailableImageIds.length) {
       setSelectedImages([]);
     } else {
-      setSelectedImages(allImageIds);
+      setSelectedImages(allAvailableImageIds);
     }
   };
 
   // 複数画像を個別にダウンロード
   const handleDownloadImages = async (imageIds?: string[]) => {
-    const categorizedImages = categorizeImages(photographyData?.images || [], photographyData?.photoSlots);
-    const orderedImages = getOrderedImages(categorizedImages);
-
-    // 選択された画像、または選択がない場合は全画像を対象にする
+    // availableImagesから直接画像を選択
     const targetImages = imageIds
-      ? orderedImages.filter(img => {
-          const availableImage = availableImages.find(availImg =>
-            availImg.filename === img.filename ||
-            availImg.id === img.id ||
-            (img.url && availImg.previewUrl && img.url.includes(availImg.id))
-          );
-          const imageId = availableImage?.id || img.id;
-          return imageIds.includes(imageId);
-        })
+      ? availableImages.filter(img => img.hasData && imageIds.includes(img.id))
       : (selectedImages.length > 0
-          ? orderedImages.filter(img => {
-              const availableImage = availableImages.find(availImg =>
-                availImg.filename === img.filename ||
-                availImg.id === img.id ||
-                (img.url && availImg.previewUrl && img.url.includes(availImg.id))
-              );
-              const imageId = availableImage?.id || img.id;
-              return selectedImages.includes(imageId);
-            })
-          : orderedImages);
+          ? availableImages.filter(img => img.hasData && selectedImages.includes(img.id))
+          : availableImages.filter(img => img.hasData));
 
     if (targetImages.length === 0) {
       showToast({
@@ -362,10 +340,11 @@ export default function ProductPhotographyDetails({ productId, status }: Product
       // 各画像を個別にダウンロード
       for (let i = 0; i < targetImages.length; i++) {
         const image = targetImages[i];
-        if (image.url && image.url.startsWith('data:image/')) {
+        const imageUrl = image.previewUrl || image.url;
+        if (imageUrl && imageUrl.startsWith('data:image/')) {
           // Base64データから画像をダウンロード
-          const base64Data = image.url.split(',')[1];
-          const mimeType = image.url.split(';')[0].split(':')[1];
+          const base64Data = imageUrl.split(',')[1];
+          const mimeType = imageUrl.split(';')[0].split(':')[1];
           const extension = mimeType.split('/')[1] || 'jpg';
 
           // バイナリデータに変換
@@ -380,7 +359,8 @@ export default function ProductPhotographyDetails({ productId, status }: Product
           const url = window.URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;
-          link.download = `${image.category || `画像${i + 1}`}.${extension}`;
+          const categoryName = image.source === 'staff' ? 'スタッフ撮影' : (image.category || 'セラー撮影');
+          link.download = `${categoryName}_${i + 1}.${extension}`;
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
@@ -413,21 +393,20 @@ export default function ProductPhotographyDetails({ productId, status }: Product
   // 単一画像のダウンロード
   const handleDownloadSingleImage = async (imageId: string, filename: string) => {
     try {
-      const categorizedImages = categorizeImages(photographyData?.images || [], photographyData?.photoSlots);
-      const orderedImages = getOrderedImages(categorizedImages);
+      // availableImagesから直接対象画像を探す
+      const targetAvailableImage = availableImages.find(img => img.id === imageId);
 
-      // 対象の画像を見つける
-      const targetImage = orderedImages.find(img => {
-        const availableImage = availableImages.find(availImg =>
-          availImg.filename === img.filename ||
-          availImg.id === img.id ||
-          (img.url && availImg.previewUrl && img.url.includes(availImg.id))
-        );
-        const id = availableImage?.id || img.id;
-        return id === imageId;
-      });
+      if (!targetAvailableImage || !targetAvailableImage.previewUrl) {
+        throw new Error('画像データが見つかりません');
+      }
 
-      if (!targetImage || !targetImage.url || !targetImage.url.startsWith('data:image/')) {
+      const targetImage = {
+        url: targetAvailableImage.previewUrl,
+        category: targetAvailableImage.source === 'staff' ? 'スタッフ撮影' : (targetAvailableImage.category || 'セラー撮影'),
+        filename: targetAvailableImage.filename
+      };
+
+      if (!targetImage.url || !targetImage.url.startsWith('data:image/')) {
         throw new Error('画像データが見つかりません');
       }
 
@@ -512,19 +491,19 @@ export default function ProductPhotographyDetails({ productId, status }: Product
 
   return (
     <div className="space-y-4">
-      {orderedImages.length > 0 ? (
+      {availableImages.filter(img => img.hasData).length > 0 ? (
         <div className="space-y-4">
           {/* 全選択チェックボックス */}
           <div className="flex items-center justify-between">
             <label className="flex items-center space-x-2 cursor-pointer">
               <input
                 type="checkbox"
-                checked={selectedImages.length === orderedImages.length && orderedImages.length > 0}
+                checked={selectedImages.length === availableImages.filter(img => img.hasData).length && availableImages.filter(img => img.hasData).length > 0}
                 onChange={toggleSelectAll}
                 className="w-4 h-4 text-nexus-blue focus:ring-nexus-blue border-gray-300 rounded"
               />
               <span className="text-sm text-nexus-text-secondary">
-                すべて選択 ({selectedImages.length}/{orderedImages.length})
+                すべて選択 ({selectedImages.length}/{availableImages.filter(img => img.hasData).length})
               </span>
             </label>
             {selectedImages.length > 0 && (
@@ -541,14 +520,28 @@ export default function ProductPhotographyDetails({ productId, status }: Product
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {orderedImages.slice(0, 12).map((image) => {
-              const availableImage = availableImages.find(img =>
-                img.filename === image.filename ||
-                img.id === image.id ||
-                (image.url && img.previewUrl && image.url.includes(img.id))
-              );
-              const imageId = availableImage?.id || image.id;
-              const hasData = availableImage?.hasData ?? true; // デフォルトでtrueに設定
+            {/* availableImagesに基づいて画像を表示 */}
+            {availableImages.filter(img => img.hasData).slice(0, 12).map((availableImage, index) => {
+              const imageId = availableImage.id;
+
+              console.log(`📍 画像 ${index + 1}:`, {
+                id: availableImage.id,
+                source: availableImage.source,
+                filename: availableImage.filename,
+                hasData: availableImage.hasData,
+                previewUrl: availableImage.previewUrl?.substring(0, 50)
+              });
+
+              // availableImageの情報を直接使用（特にスタッフ撮影画像の場合）
+              const image = {
+                id: availableImage.id,
+                url: availableImage.previewUrl || availableImage.url,
+                filename: availableImage.filename,
+                category: availableImage.source === 'staff' ? 'スタッフ撮影' : (availableImage.category || 'セラー撮影'),
+                description: availableImage.description || availableImage.filename,
+                sortOrder: 0,
+                createdAt: availableImage.createdAt || new Date().toISOString()
+              };
 
               return (
                 <div
