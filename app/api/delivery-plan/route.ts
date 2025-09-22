@@ -482,6 +482,26 @@ export async function POST(request: NextRequest) {
             sku: createdProduct.sku
           });
 
+          // 🆕 Activity記録（新規商品作成）: 既存商品に影響を与えず、新規商品のみ対象
+          try {
+            await tx.activity.create({
+              data: {
+                type: 'product_created',
+                description: `納品プラン ${planId} から商品 ${createdProduct.name} を登録しました`,
+                userId: user.id,
+                productId: createdProduct.id,
+                metadata: JSON.stringify({
+                  deliveryPlanId: planId,
+                  deliveryPlanProductId: correspondingPlanProduct.id,
+                  source: 'delivery_plan'
+                })
+              }
+            });
+            console.log('[INFO] Activity記録成功: product_created');
+          } catch (activityError) {
+            console.warn('[WARN] Activity記録失敗（処理は継続）:', activityError);
+          }
+
           // 検品チェックリストがある場合は、ProductのIDも関連付け
           if (product.inspectionChecklist && correspondingPlanProduct) {
             try {

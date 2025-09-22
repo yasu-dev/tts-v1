@@ -17,13 +17,13 @@ export async function GET(
     const productId = params.id;
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const limit = parseInt(searchParams.get('limit') || '200');
     const offset = (page - 1) * limit;
 
     // 商品存在チェック
     const product = await prisma.product.findUnique({
       where: { id: productId },
-      select: { id: true, name: true, sku: true }
+      select: { id: true, name: true, sku: true, category: true, status: true, condition: true, price: true }
     });
 
     if (!product) {
@@ -48,7 +48,7 @@ export async function GET(
         where: { productId },
         include: {
           user: {
-            select: { id: true, username: true, fullName: true }
+            select: { id: true, username: true, fullName: true, role: true }
           }
         },
         orderBy: { createdAt: 'desc' },
@@ -152,6 +152,11 @@ export async function GET(
         console.warn('メタデータ解析エラー:', e);
       }
 
+      // 実行者ロールを判定
+      const actorRole = !activity.user
+        ? 'system'
+        : (activity.user.role === 'seller' ? 'seller' : 'staff');
+
       historyItems.push({
         id: `activity-${activity.id}`,
         type: 'activity',
@@ -161,7 +166,9 @@ export async function GET(
         timestamp: activity.createdAt.toISOString(),
         metadata: {
           activityType: activity.type,
-          details: metadata
+          // UIが詳細を生成しやすいようにフラット化
+          ...metadata,
+          userRole: actorRole
         }
       });
     });
@@ -206,21 +213,22 @@ export async function GET(
       });
     });
 
-    // 出品履歴を履歴アイテムに変換
+    // 出品履歴を履歴アイテムに変換（実行者はセラー扱い）
     listingHistory.forEach(listing => {
       historyItems.push({
         id: `listing-${listing.id}`,
         type: 'listing',
         action: '出品',
         description: `${listing.platform}: ${listing.title}`,
-        user: 'システム',
+        user: 'セラー',
         timestamp: listing.createdAt.toISOString(),
         metadata: {
           platform: listing.platform,
           price: listing.price,
           status: listing.status,
           listedAt: listing.listedAt,
-          soldAt: listing.soldAt
+          soldAt: listing.soldAt,
+          userRole: 'seller'
         }
       });
     });
@@ -257,9 +265,28 @@ export async function GET(
       product: {
         id: product.id,
         name: product.name,
-        sku: product.sku
+        sku: product.sku,
+        category: product.category,
+        status: product.status,
+        condition: product.condition,
+        price: product.price
       },
       history: historyItems,
+      // 🆕 後方互換: 旧UIが期待するtimeline/title構造を併記
+      timeline: historyItems.map(item => ({
+        id: item.id,
+        type: item.type,
+        title: item.action,
+        description: item.description,
+        user: item.user,
+        timestamp: item.timestamp,
+        metadata: item.metadata
+      })),
+      // 🆕 サマリー情報（テスト用、後方互換）
+      summary: {
+        totalEvents: historyItems.length,
+        currentStatus: product.status
+      },
       pagination: {
         page,
         limit,
@@ -306,16 +333,38 @@ function getActionLabel(activityType: string): string {
     'product_updated': '情報更新',
     'inspection_started': '検品開始',
     'inspection_completed': '検品完了',
+    'inspection_complete': '検品完了',
     'photography_completed': '撮影完了',
     'listing_created': '出品',
+    'listing': '出品',
+    'label_generated': 'ラベル生成',
+    'weight_recorded': '重量記録',
     'order_received': '注文受付',
     'payment_received': '入金確認',
     'shipping_started': '出荷準備',
     'shipped': '出荷完了',
     'delivered': '配送完了',
+    'shipping': '出荷',
+    'delivery': '配送',
     'storage_started': '保管開始',
     'storage_complete': '保管完了',
-    'shipment_complete': '発送完了'
+    'shipment_complete': '発送完了',
+    'status_change': 'ステータス変更',
+    'notification_sent': '通知送信',
+    'inbound': '入庫',
+    'inventory_check': '在庫点検',
+    'manual_inventory_alert': '在庫アラート',
+    'label_uploaded': 'ラベルアップロード',
+    'shipping_integration': '配送連携',
+    'workflow_update': 'ワークフロー更新',
+    'batch_processing': 'バッチ処理',
+    'report': 'レポート',
+    'ebay_tracking_notification': 'eBay追跡通知',
+    'cancel': 'キャンセル',
+    'return': '返品',
+    'return_processing': '返品処理',
+    'test_status_transition': 'テスト: ステータス変更',
+    'test_status_reset': 'テスト: リセット'
   };
   
   return labels[activityType] || activityType;

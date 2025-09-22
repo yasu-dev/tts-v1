@@ -152,7 +152,7 @@ export default function ItemDetailModal({
       if (response.ok) {
         const data = await response.json();
         // タイムラインデータを履歴形式に変換（詳細をわかりやすく表示）
-        const formattedHistory = data.timeline?.map((event: any, index: number) => {
+        const formattedHistory = (data.timeline || data.history || []).map((event: any, index: number) => {
           let details = '';
           if (event.metadata) {
             // メタデータを読みやすい形式に変換
@@ -160,6 +160,23 @@ export default function ItemDetailModal({
               const metadata = event.metadata;
               const descriptions = [];
 
+              // 共通キーを日本語で整形
+              if (metadata.previousStatus) descriptions.push(`旧ステータス: ${metadata.previousStatus}`);
+              if (metadata.newStatus) descriptions.push(`新ステータス: ${metadata.newStatus}`);
+              if (metadata.fromLocation || metadata.fromLocationCode) descriptions.push(`移動元: ${metadata.fromLocation || metadata.fromLocationCode}`);
+              if (metadata.toLocation || metadata.toLocationCode) descriptions.push(`移動先: ${metadata.toLocation || metadata.toLocationCode}`);
+              if (metadata.location || metadata.locationName) descriptions.push(`保管場所: ${metadata.location || metadata.locationName}`);
+              if (metadata.price) descriptions.push(`価格: ¥${Number(metadata.price).toLocaleString()}`);
+              if (metadata.newPrice) descriptions.push(`新価格: ¥${Number(metadata.newPrice).toLocaleString()}`);
+              if (metadata.previousPrice) descriptions.push(`旧価格: ¥${Number(metadata.previousPrice).toLocaleString()}`);
+              if (metadata.trackingNumber) descriptions.push(`追跡番号: ${metadata.trackingNumber}`);
+              if (metadata.reason) descriptions.push(`理由: ${metadata.reason}`);
+              if (metadata.orderNumber) descriptions.push(`注文番号: ${metadata.orderNumber}`);
+              if (metadata.carrier) descriptions.push(`配送業者: ${metadata.carrier}`);
+
+              if (metadata.userRole === 'system') descriptions.push('実行者: システム');
+              if (metadata.userRole === 'seller') descriptions.push('実行者: セラー');
+              if (metadata.userRole === 'staff') descriptions.push('実行者: スタッフ');
               if (metadata.location) descriptions.push(`保管場所: ${metadata.location}`);
               if (metadata.condition) descriptions.push(`状態: ${metadata.condition}`);
               if (metadata.price) descriptions.push(`価格: ¥${metadata.price.toLocaleString()}`);
@@ -181,12 +198,23 @@ export default function ItemDetailModal({
             }
           }
 
+          // 実行者ロール（システム/セラー/スタッフ）
+          const role = (() => {
+            const r = (event.metadata && event.metadata.userRole) || '';
+            if (r === 'system') return 'システム';
+            if (r === 'seller') return 'セラー';
+            if (r === 'staff') return 'スタッフ';
+            if (!event.user || event.user === 'システム') return 'システム';
+            return 'スタッフ';
+          })();
+
           return {
             date: new Date(event.timestamp).toLocaleString('ja-JP'),
             action: event.title,
-            details: details || event.description || '操作完了',
+            details: details || event.description || '詳細なし',
             user: event.user || 'システム',
-            type: event.type || 'unknown'
+            type: event.type || 'unknown',
+            role
           };
         }) || [];
         setHistoryData(formattedHistory);
@@ -518,7 +546,7 @@ export default function ItemDetailModal({
         </div>
 
         {/* Content */}
-        <div className="overflow-y-auto max-h-96" ref={scrollContainerRef}>
+        <div className="overflow-y-auto max-h-[70vh]" ref={scrollContainerRef}>
           {activeTab === 'details' && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -795,23 +823,23 @@ export default function ItemDetailModal({
                   <span className="ml-3 text-nexus-text-secondary">履歴を読み込み中...</span>
                 </div>
               ) : (
-                <div className="holo-table">
+                <div className="holo-table overflow-y-auto max-h-[60vh]">
                   <table className="w-full">
                     <thead className="holo-header">
                       <tr>
+                        <th className="text-left py-3 px-4 text-sm font-medium">日時</th>
                         <th className="text-left py-3 px-4 text-sm font-medium">アクション</th>
                         <th className="text-left py-3 px-4 text-sm font-medium">詳細</th>
                         <th className="text-left py-3 px-4 text-sm font-medium">実行者</th>
-                        <th className="text-right py-3 px-4 text-sm font-medium">日時</th>
                       </tr>
                     </thead>
                     <tbody className="holo-body">
                       {historyData.length > 0 ? (
                         historyData.map((entry, index) => (
                           <tr key={index} className="holo-row">
+                            <td className="py-3 px-4 text-nexus-text-secondary text-sm">{entry.date}</td>
                             <td className="py-3 px-4">
                               <div className="flex items-center space-x-2">
-                                <span className={`inline-block w-2 h-2 rounded-full ${getTypeColor(entry.type)}`}></span>
                                 <span className="font-medium text-nexus-text-primary">{entry.action}</span>
                               </div>
                             </td>
@@ -819,10 +847,7 @@ export default function ItemDetailModal({
                               <span className="text-nexus-text-secondary text-sm">{entry.details}</span>
                             </td>
                             <td className="py-3 px-4">
-                              <span className="text-nexus-text-secondary">{entry.user}</span>
-                            </td>
-                            <td className="py-3 px-4 text-right">
-                              <span className="text-sm text-nexus-text-secondary">{entry.date}</span>
+                              <span className="text-nexus-text-secondary">{entry.role}</span>
                             </td>
                           </tr>
                         ))
