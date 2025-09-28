@@ -80,6 +80,31 @@ export async function POST(request: NextRequest) {
 
     console.log('[DEBUG] セラー通知作成完了:', notificationId);
 
+    // アクティビティログに配送準備完了を記録
+    if (productId) {
+      try {
+        await prisma.activity.create({
+          data: {
+            type: 'shipping_prepared',
+            description: `商品 ${productName || '商品'} の配送準備が完了しました`,
+            userId: user.id,
+            productId: productId,
+            metadata: JSON.stringify({
+              orderId,
+              trackingNumber,
+              shippingCarrier: shippingCarrier || 'ヤマト運輸',
+              staffId: user.id,
+              staffName: user.name || 'スタッフ',
+              userRole: 'staff'
+            })
+          }
+        });
+        console.log('[DEBUG] 配送準備完了の履歴を記録しました');
+      } catch (activityError) {
+        console.error('[ERROR] 履歴記録エラー:', activityError);
+      }
+    }
+
     // 追跡番号提供の処理（ここでは模擬実装）
     console.log('[DEBUG] 追跡番号提供処理完了:', trackingNumber);
 

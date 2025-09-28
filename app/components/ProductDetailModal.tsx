@@ -383,7 +383,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                           <span className="font-medium text-nexus-blue">{item.action}</span>
                         </td>
                         <td className="py-3 px-4">
-                          <span className="text-nexus-text-primary">{item.details}</span>
+                          <span className="text-nexus-text-primary">{item.details === '詳細なし' ? '' : item.details}</span>
                         </td>
                         <td className="py-3 px-4">
                           <span className="text-nexus-text-secondary">{item.user}</span>

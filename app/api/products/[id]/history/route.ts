@@ -348,6 +348,7 @@ function getActionLabel(activityType: string): string {
     'delivery': '配送',
     'storage_started': '保管開始',
     'storage_complete': '保管完了',
+    'inventory_movement': '在庫移動',
     'shipment_complete': '発送完了',
     'status_change': 'ステータス変更',
     'notification_sent': '通知送信',
@@ -370,7 +371,16 @@ function getActionLabel(activityType: string): string {
     'picking_completed': 'ピッキング完了',
     'packing_completed': '梱包完了',
     'label_attached': 'ラベル貼付',
-    'shipping_prepared': '配送準備完了'
+    'shipping_prepared': '配送準備完了',
+    'product_price_update': '価格更新',
+    'storage': '保管',
+    'inspection': '検品',
+    'product_move': '棚移動',
+    'product_moved': '商品移動',
+    'order_shipped': '注文発送',
+    'order_created': '注文作成',
+    'product_inspected': '商品検品',
+    'sales_bundle_created': '販売同梱設定'
   };
   
   return labels[activityType] || activityType;

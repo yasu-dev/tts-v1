@@ -889,7 +889,7 @@ export default function DeliveryPage() {
                             )}
                           </div>
                         ) : (
-                          <span className="text-xs text-nexus-text-tertiary">商品詳細なし</span>
+                          <span className="text-xs text-nexus-text-tertiary"></span>
                         )}
                       </td>
                       <td className="p-4 text-center text-sm text-nexus-text-primary align-top">

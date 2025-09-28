@@ -300,7 +300,7 @@ export async function POST(request: NextRequest) {
     // Log activity
     await prisma.activity.create({
       data: {
-        type: 'listing',
+        type: 'listing_created',
         description: `商品 ${product.name} をeBayに出品しました`,
         userId: user.id,
         productId: product.id,

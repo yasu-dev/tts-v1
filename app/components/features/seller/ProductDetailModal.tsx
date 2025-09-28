@@ -143,7 +143,7 @@ export default function ProductDetailModal({ isOpen, onClose, product, onOpenLis
               if (metadata.toLocation || metadata.toLocationCode) descriptions.push(`移動先: ${metadata.toLocation || metadata.toLocationCode}`);
               if (metadata.orderNumber) descriptions.push(`注文番号: ${metadata.orderNumber}`);
 
-              details = descriptions.join(', ') || '詳細なし';
+              details = descriptions.join(', ') || '';
             } else {
               details = event.metadata.toString();
             }
@@ -161,7 +161,7 @@ export default function ProductDetailModal({ isOpen, onClose, product, onOpenLis
           return {
             date: new Date(event.timestamp).toLocaleString('ja-JP'),
             action: event.title,
-            details: details || event.description || '詳細なし',
+            details: details || event.description || '',
             user: event.user || 'システム',
             type: event.type || 'unknown',
             role
@@ -546,15 +546,20 @@ export default function ProductDetailModal({ isOpen, onClose, product, onOpenLis
                             </td>
                             <td className="py-3 px-4">
                               <span className="text-nexus-text-secondary text-sm">{(() => {
-                                if (!entry.details) return '詳細なし';
-                                // 実行者の重複記載を避ける
-                                return String(entry.details)
-                                  .replace('実行者: システム', '')
-                                  .replace('実行者: セラー', '')
-                                  .replace('実行者: スタッフ', '')
-                                  .replace(/^,\s*/,'')
-                                  .replace(/,\s*,/g, ', ')
-                                  .trim() || '詳細なし';
+                                const cleanedDetails = (() => {
+                                  if (!entry.details) return '';
+                                  // 実行者の重複記載を避ける
+                                  return String(entry.details)
+                                    .replace('実行者: システム', '')
+                                    .replace('実行者: セラー', '')
+                                    .replace('実行者: スタッフ', '')
+                                    .replace(/^,\s*/,'')
+                                    .replace(/,\s*,/g, ', ')
+                                    .trim() || '';
+                                })();
+                                // 「詳細なし」テキストを空白に変更（スタッフと同様）
+                                if (cleanedDetails === '詳細なし') return '';
+                                return cleanedDetails;
                               })()}</span>
                             </td>
                             <td className="py-3 px-4">

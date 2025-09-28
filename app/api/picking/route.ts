@@ -539,6 +539,39 @@ export async function POST(request: NextRequest) {
               }
             });
             console.log(`✅ Activity作成成功: product=${product.id}`);
+
+            // 梱包完了の履歴も追加
+            await prisma.activity.create({
+              data: {
+                type: 'packing_completed',
+                description: `商品 ${product.name} の梱包が完了しました`,
+                userId: user.id === 'system' ? null : user.id,
+                productId: product.id,
+                metadata: JSON.stringify({
+                  taskId: pickingTaskId,
+                  shipmentId: `SHIP-${Date.now()}`,
+                  userRole: user.role
+                })
+              }
+            });
+
+            // ラベル貼付の履歴も追加
+            await prisma.activity.create({
+              data: {
+                type: 'label_attached',
+                description: `商品 ${product.name} にラベル貼付が完了し、集荷準備が整いました`,
+                userId: user.id === 'system' ? null : user.id,
+                productId: product.id,
+                metadata: JSON.stringify({
+                  taskId: pickingTaskId,
+                  shipmentId: `SHIP-${Date.now()}`,
+                  trackingNumber: `TRK-${Date.now()}`,
+                  userRole: user.role
+                })
+              }
+            });
+
+            console.log(`✅ 梱包・ラベル貼付履歴も作成: product=${product.id}`);
           } catch (activityError) {
             console.error(`❌ Activity作成エラー for product ${product.id}:`, activityError);
             // アクティビティ作成エラーでも処理は継続

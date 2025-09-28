@@ -68,8 +68,8 @@ export async function POST(request: NextRequest) {
     try {
       await prisma.activity.create({
         data: {
-          type: 'product_purchased',
-          description: `商品「${productName || '商品'}」が¥${purchasePrice.toLocaleString()}で購入されました`,
+          type: 'purchase_decision',
+          description: `購入者が決定しました（注文番号: ${orderId || `ORD-${Date.now()}`}、1点、¥${purchasePrice.toLocaleString()}）`,
           userId: sellerId, // セラーを実行者として記録
           productId: productId,
           metadata: JSON.stringify({

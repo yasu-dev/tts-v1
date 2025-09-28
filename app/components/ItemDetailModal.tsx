@@ -174,7 +174,7 @@ export default function ItemDetailModal({
               if (metadata.carrier) descriptions.push(`配送業者: ${metadata.carrier}`);
 
               // 重複を除去
-              details = Array.from(new Set(descriptions)).join(', ') || '詳細なし';
+              details = Array.from(new Set(descriptions)).join(', ') || '';
             } else {
               details = event.metadata.toString();
             }
@@ -193,7 +193,7 @@ export default function ItemDetailModal({
           return {
             date: new Date(event.timestamp).toLocaleString('ja-JP'),
             action: event.title,
-            details: details || event.description || '詳細なし',
+            details: details || event.description || '',
             user: event.user || 'システム',
             type: event.type || 'unknown',
             role

@@ -396,6 +396,11 @@ export async function PATCH(
       updateData.inspectionNotes = body.inspectionNotes;
       console.log(`[API] 検品備考を更新: "${body.inspectionNotes}"`);
     }
+    // 価格の更新をサポート
+    if (body.price !== undefined) {
+      updateData.price = body.price;
+      console.log(`[API] 価格を更新: ${existingProduct.price} → ${body.price}`);
+    }
 
     const updatedProduct = await prisma.product.update({
       where: { id: productId },
@@ -441,6 +446,52 @@ export async function PATCH(
           updatedBy: user.username,
         }
       );
+    }
+
+    // 価格の変更ログを記録
+    if (body.price !== undefined && body.price !== existingProduct.price) {
+      try {
+        console.log(`[API] 価格変更ログ記録開始: ${existingProduct.price} → ${body.price}`);
+
+        const metadata = ActivityLogger.extractMetadataFromRequest(request);
+        await ActivityLogger.logProductPriceChange(
+          productId,
+          existingProduct.price,
+          body.price,
+          user.id,
+          { ...metadata, updatedBy: user.username }
+        );
+
+        // 直接activityテーブルにも記録
+        const activityResult = await prisma.activity.create({
+          data: {
+            type: 'product_price_update',
+            description: `商品 ${existingProduct.name} の価格が変更されました (¥${existingProduct.price} → ¥${body.price})`,
+            userId: user.id === 'demo-staff' ? null : user.id,
+            productId: productId,
+            metadata: JSON.stringify({
+              oldPrice: existingProduct.price,
+              newPrice: body.price,
+              updatedBy: user.username,
+              userRole: 'staff'
+            })
+          }
+        });
+
+        console.log(`[API] Activity作成成功: ${activityResult.id}`);
+
+        // キャッシュクリアのため強制的に履歴APIを一度呼び出し
+        try {
+          const historyResponse = await fetch(`http://localhost:3002/api/products/${productId}/history?t=${Date.now()}`);
+          console.log(`[API] 履歴キャッシュクリア: ${historyResponse.status}`);
+        } catch (cacheError) {
+          console.warn('[API] 履歴キャッシュクリアエラー:', cacheError);
+        }
+
+        console.log(`[API] 価格変更ログ記録完了: ${existingProduct.price} → ${body.price}`);
+      } catch (logError) {
+        console.error(`[API] 価格変更ログ記録エラー:`, logError);
+      }
     }
 
     console.log(`[API] 商品移動完了: ${updatedProduct.name} → ${body.location}`);
