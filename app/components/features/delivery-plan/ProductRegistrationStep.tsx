@@ -523,10 +523,10 @@ export default function ProductRegistrationStep({
                 />
 
               <NexusInput
-                label="シリアルナンバー"
+                label="シリアル番号"
                 value={product.serialNumber || ''}
                 onChange={(e) => updateProduct(index, 'serialNumber', e.target.value)}
-                placeholder="シリアルナンバーを入力（任意）"
+                placeholder="シリアル番号を入力（任意）"
                 variant="nexus"
                 maxLength={64}
               />

@@ -245,7 +245,7 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
                 const serial = md?.serialNumber || md?.deliveryPlanInfo?.serialNumber;
                 return serial ? (
                   <p className="text-sm text-nexus-text-secondary mt-1">
-                    シリアルナンバー: <span className="font-mono">{serial}</span>
+                    シリアル番号: <span className="font-mono">{serial}</span>
                   </p>
                 ) : null;
               } catch {

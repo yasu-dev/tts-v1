@@ -405,7 +405,7 @@ export default function ProductDetailModal({ isOpen, onClose, product, onOpenLis
                         const serial = md?.serialNumber || md?.deliveryPlanInfo?.serialNumber;
                         return serial ? (
                           <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                            <span className="font-medium text-nexus-text-secondary">シリアルナンバー</span>
+                            <span className="font-medium text-nexus-text-secondary">シリアル番号</span>
                             <span className="font-mono text-nexus-text-primary">{serial}</span>
                           </div>
                         ) : null;

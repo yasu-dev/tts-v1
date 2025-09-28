@@ -479,7 +479,7 @@ export default function ProductInfoModal({ isOpen, onClose, product, onMove }: P
                       console.log('[DEBUG] ProductInfoModal シリアル確認:', { metadata: md, serial, productId: product.id });
                       return serial ? (
                         <div className="md:col-span-2">
-                          <label className="text-sm font-medium text-gray-600">シリアルナンバー</label>
+                          <label className="text-sm font-medium text-gray-600">シリアル番号</label>
                           <p className="text-gray-900 font-mono">{serial}</p>
                         </div>
                       ) : null;

@@ -578,7 +578,7 @@ export default function ItemDetailModal({
                             return showSerial ? (
                               <div className="col-span-2">
                                 <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
-                                  シリアルナンバー
+                                  シリアル番号
                                 </label>
                                 <p className="text-nexus-text-primary font-mono">{showSerial}</p>
                               </div>

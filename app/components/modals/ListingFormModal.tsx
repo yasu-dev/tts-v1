@@ -371,11 +371,24 @@ export default function ListingFormModal({
       setCondition(product.condition);
       setDescription(product.description || '');
       
+      // メタデータからシリアル番号を取得
+      let productSerialNumber = product.sku; // デフォルトはSKU
+      try {
+        const metadata = product.metadata ? 
+          (typeof product.metadata === 'string' ? JSON.parse(product.metadata) : product.metadata) : {};
+        const serial = metadata?.serialNumber || metadata?.deliveryPlanInfo?.serialNumber;
+        if (serial) {
+          productSerialNumber = serial;
+        }
+      } catch (err) {
+        console.error('シリアル番号取得エラー:', err);
+      }
+      
       // テンプレートフィールドを商品情報で初期化
       setTemplateFields({
         ...defaultTemplateFields,
         itemTitle: product.name,
-        serialNumber: product.sku
+        serialNumber: productSerialNumber
       });
       
       // 撮影済み画像を取得
