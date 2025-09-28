@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // コンパイラ設定（本番でconsole出力を除去）
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
   // 実験的機能
   experimental: {
     serverComponentsExternalPackages: ['prisma', '@prisma/client'],

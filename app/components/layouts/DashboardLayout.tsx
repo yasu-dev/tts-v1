@@ -13,7 +13,6 @@ import { ToastProvider, useToast } from '@/app/components/features/notifications
 
 import { useModal } from '../ui/ModalContext';
 import { determineBarcodeDestination } from '@/lib/utils/product-status';
-import BarcodeTestButton from '../ui/BarcodeTestButton';
 import Image from 'next/image';
 
 interface DashboardLayoutProps {
@@ -777,10 +776,7 @@ export default function DashboardLayout({
         query={searchQuery}
       />
       
-      {/* バーコードテスター（明示的に有効化されたときのみ表示） */}
-      {process.env.NEXT_PUBLIC_ENABLE_BARCODE_TESTER === 'true' && (
-        <BarcodeTestButton />
-      )}
+      {/* バーコードテスターは本番で無効化（完全削除） */}
     </div>
   );
 }
