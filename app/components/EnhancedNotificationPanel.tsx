@@ -29,6 +29,8 @@ export default function EnhancedNotificationPanel({
   anchorRef,
   onNotificationUpdate
 }: EnhancedNotificationPanelProps) {
+  // ベル廃止に伴い、将来的な再有効化に備えつつ無効化
+  const PANEL_DISABLED = true;
   const router = useRouter();
   const panelRef = useRef<HTMLDivElement>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -38,6 +40,12 @@ export default function EnhancedNotificationPanel({
 
   // 通知を取得する関数
   const fetchNotifications = async (showLoading = true) => {
+    if (PANEL_DISABLED) {
+      setNotifications([]);
+      onNotificationUpdate?.(0);
+      setLoading(false);
+      return;
+    }
     try {
       if (showLoading) {
         setLoading(true);
@@ -409,7 +417,7 @@ export default function EnhancedNotificationPanel({
   const unreadCount = notifications.filter(n => !n.read).length;
 
   // 表示条件を厳格化
-  if (!isOpen || !anchorRef?.current) return null;
+  if (PANEL_DISABLED || !isOpen || !anchorRef?.current) return null;
 
   return (
     <div

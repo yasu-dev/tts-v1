@@ -194,6 +194,17 @@ export default function UnifiedProductFlow({
         steps.forEach(step => {
           step.tasks.forEach(task => {
             switch (task.id) {
+              // 準備フェーズ
+              case 'sourcing':
+                task.count = 0; // 商品仕入れは機能未実装のため0
+                break;
+              case 'plan':
+                task.count = data.statusStats['納品プラン作成'] || 0;
+                break;
+              case 'shipping':
+                task.count = data.statusStats['倉庫発送'] || 0;
+                break;
+              // 入庫フェーズ
               case 'receive':
                 task.count = (data.statusStats['入庫待ち'] || 0) + (data.statusStats['入庫'] || 0);
                 break;
@@ -203,29 +214,45 @@ export default function UnifiedProductFlow({
               case 'register':
                 task.count = data.statusStats['保管'] || 0;
                 break;
+              // 販売フェーズ
               case 'listing':
                 task.count = data.statusStats['出品'] || 0;
                 break;
               case 'order':
                 task.count = data.statusStats['受注'] || 0;
                 break;
+              case 'process':
+                task.count = data.statusStats['受注処理'] || 0;
+                break;
+              // 出荷フェーズ
               case 'picking':
                 task.count = data.statusStats['出荷'] || 0;
                 break;
-              case 'delivery':
-                task.count = data.statusStats['配送'] || 0;
+              case 'packing':
+                task.count = data.statusStats['梱包・発送'] || 0;
                 break;
+              case 'delivery':
+                task.count = data.statusStats['購入者受取'] || 0;
+                break;
+              // 完了フェーズ
               case 'calculation':
                 task.count = data.statusStats['売約済み'] || 0;
                 break;
+              case 'settlement':
+                task.count = 0; // 精算確認は機能未実装のため0
+                break;
+              case 'next':
+                task.count = 0; // 次回仕入れは機能未実装のため0
+                break;
+              // 返品フェーズ
               case 'return-receive':
-                task.count = Math.floor((data.statusStats['返品'] || 0) * 0.4);
+                task.count = data.statusStats['返品受付'] || 0;
                 break;
               case 'return-inspect':
-                task.count = Math.floor((data.statusStats['返品'] || 0) * 0.4);
+                task.count = data.statusStats['返品検品'] || 0;
                 break;
               case 'return-process':
-                task.count = Math.floor((data.statusStats['返品'] || 0) * 0.2);
+                task.count = data.statusStats['再出品・廃棄'] || 0;
                 break;
               default:
                 task.count = 0;

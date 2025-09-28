@@ -52,6 +52,50 @@ export async function GET() {
       return acc;
     }, {} as Record<string, number>);
 
+    // 準備フェーズ: 納品プラン作成・倉庫発送のカウント
+    const planStats = await prisma.deliveryPlan.groupBy({
+      by: ['status'],
+      _count: { _all: true }
+    });
+
+    // 納品プラン作成数（Pendingステータス）
+    statusStats['納品プラン作成'] = planStats
+      .filter(p => p.status === 'Pending')
+      .reduce((sum, p) => sum + p._count._all, 0);
+
+    // 倉庫発送数（Shippedステータス）
+    statusStats['倉庫発送'] = planStats
+      .filter(p => p.status === 'Shipped')
+      .reduce((sum, p) => sum + p._count._all, 0);
+
+    // 販売フェーズ: 受注処理のカウント
+    const processingOrders = await prisma.order.count({
+      where: { status: 'processing' }
+    });
+    statusStats['受注処理'] = processingOrders;
+
+    // 出荷フェーズ: 梱包・発送のカウント
+    const packingShipments = await prisma.shipment.count({
+      where: { status: 'packed' }
+    });
+    statusStats['梱包・発送'] = packingShipments;
+
+    // 購入者受取は既存の配送ステータスを利用
+    statusStats['購入者受取'] = statusStats['配送'] || 0;
+
+    // 返品フェーズ: 返品受付・検品・再出品のカウント
+    const returnStats = await prisma.return.groupBy({
+      by: ['status'],
+      _count: { _all: true }
+    });
+
+    statusStats['返品受付'] = returnStats
+      .find(r => r.status === 'pending')?._count._all || 0;
+    statusStats['返品検品'] = returnStats
+      .find(r => r.status === 'inspecting')?._count._all || 0;
+    statusStats['再出品・廃棄'] = returnStats
+      .find(r => r.status === 'approved')?._count._all || 0;
+
     // Transform category data
     const categoryStats = categoryCounts.reduce((acc, item) => {
       const japaneseCategory = item.category.replace('camera_body', 'カメラ本体')
