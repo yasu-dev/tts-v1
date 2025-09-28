@@ -52,6 +52,7 @@ export default function ProductEditModal({
     assignedStaff: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [staffOptions, setStaffOptions] = useState<{ value: string; label: string }[]>([{ value: '', label: '未設定' }]);
 
   useEffect(() => {
     if (item) {
@@ -67,6 +68,24 @@ export default function ProductEditModal({
       });
     }
   }, [item]);
+
+  // スタッフ一覧をAPIから取得（担当者選択に利用）
+  useEffect(() => {
+    let mounted = true;
+    const loadStaff = async () => {
+      try {
+        const res = await fetch('/api/user/staff', { credentials: 'include' });
+        if (!mounted || !res.ok) return;
+        const data = await res.json();
+        if (data?.success && Array.isArray(data.staff)) {
+          const opts = [{ value: '', label: '未設定' }, ...data.staff.map((s: any) => ({ value: s.name, label: s.name }))];
+          setStaffOptions(opts);
+        }
+      } catch {}
+    };
+    if (isOpen) loadStaff();
+    return () => { mounted = false; };
+  }, [isOpen]);
 
   if (!isOpen || !item) return null;
 
@@ -154,11 +173,7 @@ export default function ProductEditModal({
     { value: 'メンテナンス室', label: 'メンテナンス室' }
   ];
 
-  const staffOptions = [
-    { value: '山本 達也', label: '山本 達也' },
-    { value: '田中 太郎', label: '田中 太郎' },
-    { value: '佐藤 花子', label: '佐藤 花子' }
-  ];
+  
 
   return (
     <BaseModal

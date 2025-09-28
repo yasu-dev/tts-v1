@@ -215,7 +215,7 @@ export default function ShippingDetailModal({
       date: '2024-12-25 14:30', 
       action: 'ステータス変更', 
       details: `${statusLabels[item.status]}に更新`, 
-      user: '田中スタッフ' 
+      user: 'スタッフ' 
     },
     { 
       date: '2024-12-25 10:15', 
@@ -227,7 +227,7 @@ export default function ShippingDetailModal({
       date: '2024-12-24 16:45', 
       action: '商品割当', 
       details: `SKU: ${item.productSku}`, 
-      user: '佐藤スタッフ' 
+      user: 'スタッフ' 
     }
   ];
 

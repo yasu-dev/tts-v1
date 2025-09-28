@@ -17,6 +17,28 @@ export default function EditModal({ isOpen, onClose, type, title, data }: EditMo
   const [formData, setFormData] = useState(data);
   const [isLoading, setIsLoading] = useState(false);
   const { showToast } = useToast();
+  const [staffOptions, setStaffOptions] = useState<{ value: string; label: string }[]>([
+    { value: '', label: '選択してください' }
+  ]);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadStaff = async () => {
+      try {
+        const res = await fetch('/api/user/staff', { credentials: 'include' });
+        if (!mounted || !res.ok) return;
+        const data = await res.json();
+        if (data?.success && Array.isArray(data.staff)) {
+          setStaffOptions([
+            { value: '', label: '選択してください' },
+            ...data.staff.map((s: any) => ({ value: s.id, label: s.name }))
+          ]);
+        }
+      } catch {}
+    };
+    loadStaff();
+    return () => { mounted = false; };
+  }, []);
 
   // スクロール位置のリセット
   useEffect(() => {
@@ -210,13 +232,7 @@ export default function EditModal({ isOpen, onClose, type, title, data }: EditMo
           label="担当者"
           value={formData.assignee || ''}
           onChange={(e) => handleInputChange('assignee', e.target.value)}
-          options={[
-            { value: "", label: "選択してください" },
-            { value: "田中", label: "田中" },
-            { value: "佐藤", label: "佐藤" },
-            { value: "山田", label: "山田" },
-            { value: "鈴木", label: "鈴木" }
-          ]}
+          options={staffOptions}
         />
         <NexusInput
           label="期限"

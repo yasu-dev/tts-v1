@@ -251,7 +251,7 @@ export default function ProductDetailModal({ isOpen, onClose, product, onOpenLis
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer fixed-auth-token-seller-1', // デモ認証トークン
+          // 認証はCookieセッションで行う
         },
         body: JSON.stringify({
           productId: product.id,

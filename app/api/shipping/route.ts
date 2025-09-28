@@ -185,17 +185,51 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { orderId, carrier, method, priority, customerName, address, value, notes } = body;
+    const { orderId, carrier, method, priority, customerName, address, value, notes, productId } = body;
+
+    // 注文が指定されていない、もしくは存在しない場合は安全に作成
+    let ensuredOrderId = orderId as string | undefined;
+    if (!ensuredOrderId) {
+      const systemUser = await prisma.user.findFirst({ where: { role: 'staff' } });
+      if (!systemUser) throw new Error('システムユーザーが見つかりません');
+      const createdOrder = await prisma.order.create({
+        data: {
+          orderNumber: `AUTO-${Date.now()}`,
+          customerId: systemUser.id,
+          status: 'processing',
+          totalAmount: Number(value) || 0,
+          shippingAddress: address || ''
+        }
+      });
+      ensuredOrderId = createdOrder.id;
+    } else {
+      const existing = await prisma.order.findUnique({ where: { id: ensuredOrderId } });
+      if (!existing) {
+        const systemUser = await prisma.user.findFirst({ where: { role: 'staff' } });
+        if (!systemUser) throw new Error('システムユーザーが見つかりません');
+        const createdOrder = await prisma.order.create({
+          data: {
+            orderNumber: ensuredOrderId,
+            customerId: systemUser.id,
+            status: 'processing',
+            totalAmount: Number(value) || 0,
+            shippingAddress: address || ''
+          }
+        });
+        ensuredOrderId = createdOrder.id;
+      }
+    }
 
     const newShipment = await prisma.shipment.create({
       data: {
-        orderId,
+        orderId: ensuredOrderId,
+        productId: productId || undefined,
         carrier: carrier || 'ヤマト運輸',
         method: method || 'Standard',
         priority: priority || 'normal',
         customerName,
         address,
-        value: value || 0,
+        value: Number(value) || 0,
         notes,
         status: 'pending',
         trackingNumber: `TRK${Date.now()}${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
@@ -203,10 +237,11 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(newShipment, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     console.error('[ERROR] POST /api/shipping:', error);
+    const details = process.env.NODE_ENV !== 'production' ? (error?.message || String(error)) : undefined;
     return NextResponse.json(
-      { error: 'Failed to create shipment' },
+      { error: 'Failed to create shipment', details },
       { status: 500 }
     );
   }

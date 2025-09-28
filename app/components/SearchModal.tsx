@@ -37,7 +37,7 @@ export default function SearchModal({ isOpen, onClose, query }: SearchModalProps
 
           {
             id: '3',
-            title: '山田太郎',
+            title: '顧客',
             type: 'customer' as const,
             description: '顧客 - 注文: ORD-2024-001',
             url: '/dashboard',

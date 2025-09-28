@@ -676,13 +676,13 @@ export async function GET(request: NextRequest) {
         shipmentId: shipment.id,
         productId: shipment.productId,
         productName: shipment.productId === 'cmf7v0jtc0002elm9gn4dxx2c' 
-          ? 'テスト商品 - soldステータス確認用'
-          : 'Nikon Z9 - excellent',
-        productSku: shipment.productId === 'cmf7v0jtc0002elm9gn4dxx2c' ? 'TEST-001' : 'CAMERA-005',
+          ? (shipment.customerName || `商品 #${shipment.productId?.slice(-6)}`)
+          : (shipment.customerName || `商品 #${shipment.productId?.slice(-6)}`),
+        productSku: `SKU-${shipment.productId?.slice(-6) || 'UNKNOWN'}`,
         orderNumber: 'GUARANTEED-ORDER-001',
-        customer: shipment.customerName || 'テスト顧客',
-        sellerName: 'テストセラー',
-        shippingAddress: shipment.address || 'テスト住所',
+        customer: shipment.customerName || '顧客名不明',
+        sellerName: shipment.orderId ? 'セラー名不明' : 'セラー名不明',
+        shippingAddress: shipment.address || '住所不明',
         status: 'workstation',
         dueDate: new Date().toISOString().split('T')[0],
         trackingNumber: shipment.trackingNumber,

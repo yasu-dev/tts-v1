@@ -1,4 +1,50 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { AuthService } from '@/lib/auth';
+
+export async function POST(request: NextRequest) {
+  try {
+    // セラー/スタッフのみ許可（セッションで認証）
+    const user = await AuthService.requireRole(request, ['seller', 'staff', 'admin']);
+    if (!user) {
+      return NextResponse.json({ error: '認証が必要です' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { productId, shippingInfo } = body || {};
+    if (!productId || !shippingInfo) {
+      return NextResponse.json({ error: '必須パラメータが不足しています' }, { status: 400 });
+    }
+
+    // 既存の /api/shipping に委譲（仕様を統一）
+    const base = new URL(request.url);
+    const delegateUrl = `${base.origin}/api/shipping`;
+    const res = await fetch(delegateUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        orderId: `AUTO-${productId}-${Date.now()}`,
+        carrier: shippingInfo.carrier,
+        method: shippingInfo.service,
+        customerName: user.fullName || user.username || user.email,
+        address: shippingInfo.shippingAddress,
+        value: 0,
+        notes: `seller_shipping_request: productId=${productId}`
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      return NextResponse.json({ error: err.error || '出荷指示に失敗しました' }, { status: 500 });
+    }
+
+    const created = await res.json();
+    return NextResponse.json({ success: true, message: '出荷指示を受け付けました', shipment: created });
+  } catch (error: any) {
+    return NextResponse.json({ error: error?.message || 'エラーが発生しました' }, { status: 500 });
+  }
+}
+
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/database';
 
 export async function POST(request: NextRequest) {

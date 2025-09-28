@@ -177,8 +177,9 @@ export class AuthService {
       return null;
     }
 
-    // 一時的な固定トークン認証
-    if (token.startsWith('fixed-auth-token-')) {
+    // 一時的な固定トークン認証（環境フラグで制御）
+    const allowFixed = process.env.ALLOW_FIXED_AUTH === 'true';
+    if (allowFixed && token.startsWith('fixed-auth-token-')) {
       const tokenMap = {
         'fixed-auth-token-seller-1': {
           id: 'cme5ew5p300003j7w124ifkpy',

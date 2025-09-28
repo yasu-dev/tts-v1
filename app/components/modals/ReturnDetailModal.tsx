@@ -238,8 +238,8 @@ export default function ReturnDetailModal({
               <div className="space-y-3">
                 {[
                   { date: '2024-07-05 14:30', user: 'システム', action: '返品申請を受付' },
-                  { date: '2024-07-05 15:15', user: '田中スタッフ', action: '初期確認完了' },
-                  { date: '2024-07-05 16:00', user: '佐藤マネージャー', action: '承認済み' },
+                  { date: '2024-07-05 15:15', user: 'スタッフ', action: '初期確認完了' },
+                  { date: '2024-07-05 16:00', user: 'スタッフ', action: '承認済み' },
                   { date: '2024-07-05 16:30', user: 'システム', action: '返品ラベル発行' }
                 ].map((event, index) => (
                   <div key={index} className="flex space-x-3">

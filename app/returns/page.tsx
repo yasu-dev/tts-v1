@@ -50,7 +50,7 @@ export default function ReturnsPage() {
       reason: '商品不良', 
       status: 'pending', 
       date: '2024-01-15',
-      customerName: '山田太郎',
+      customerName: '顧客',
       amount: '¥450,000',
       description: '商品到着時に外装に傷があり、動作にも不具合が見られます。'
     },
@@ -61,7 +61,7 @@ export default function ReturnsPage() {
       reason: 'イメージ違い', 
       status: 'approved', 
       date: '2024-01-14',
-      customerName: '佐藤花子',
+      customerName: '顧客',
       amount: '¥280,000',
       description: '商品説明と実際の商品が異なっていました。'
     },
@@ -72,7 +72,7 @@ export default function ReturnsPage() {
       reason: '破損', 
       status: 'processing', 
       date: '2024-01-13',
-      customerName: '田中一郎',
+      customerName: '顧客',
       amount: '¥1,200,000',
       description: '配送中に破損したと思われます。'
     },

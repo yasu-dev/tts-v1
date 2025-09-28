@@ -45,7 +45,7 @@ export default function PickingHistory() {
         {
           id: '1',
           orderId: 'ORD-2024-001',
-          customerName: '田中太郎',
+          customerName: '顧客',
           completedBy: 'スタッフA',
           startedAt: '2024-06-28T09:00:00',
           completedAt: '2024-06-28T09:15:00',
@@ -57,7 +57,7 @@ export default function PickingHistory() {
         {
           id: '2',
           orderId: 'ORD-2024-003',
-          customerName: '佐藤花子',
+          customerName: '顧客',
           completedBy: 'スタッフB',
           startedAt: '2024-06-28T10:30:00',
           completedAt: '2024-06-28T10:50:00',
@@ -69,7 +69,7 @@ export default function PickingHistory() {
         {
           id: '3',
           orderId: 'ORD-2024-004',
-          customerName: '佐藤次郎',
+          customerName: '顧客',
           completedBy: 'スタッフC',
           startedAt: '2024-06-28T11:00:00',
           completedAt: '2024-06-28T11:12:00',
@@ -81,7 +81,7 @@ export default function PickingHistory() {
         {
           id: '4',
           orderId: 'ORD-2024-006',
-          customerName: '山田花子',
+          customerName: '顧客',
           completedBy: 'スタッフA',
           startedAt: '2024-06-28T13:00:00',
           completedAt: '2024-06-28T13:25:00',
@@ -93,7 +93,7 @@ export default function PickingHistory() {
         {
           id: '5',
           orderId: 'ORD-2024-007',
-          customerName: '高橋太郎',
+          customerName: '顧客',
           completedBy: 'スタッフD',
           startedAt: '2024-06-28T14:00:00',
           completedAt: '2024-06-28T14:18:00',

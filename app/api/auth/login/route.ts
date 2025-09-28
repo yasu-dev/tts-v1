@@ -63,12 +63,14 @@ export async function POST(request: NextRequest) {
       console.log('[DEBUG] フォールバック認証を試行中...');
     }
 
-    // フォールバック: 固定認証
+    // フォールバック: 固定認証（環境フラグで制御）
+    const allowFixed = process.env.ALLOW_FIXED_AUTH === 'true';
+    console.log('[DEBUG] 固定認証許可:', allowFixed);
     console.log('[DEBUG] 固定認証チェック:', email, password === 'password123' || password === 'password');
     const allowedEmails = ['seller@example.com', 'staff@example.com', 'admin@example.com', 'seller@test.com', 'staff@test.com'];
     const allowedPasswords = ['password123', 'password'];
     
-    if (allowedEmails.includes(email) && allowedPasswords.includes(password)) {
+    if (allowFixed && allowedEmails.includes(email) && allowedPasswords.includes(password)) {
       console.log('[DEBUG] 固定認証成功');
       
       const mockUsers = {

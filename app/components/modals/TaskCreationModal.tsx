@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BaseModal, NexusButton, NexusInput, NexusSelect, NexusTextarea } from '../ui';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
@@ -23,6 +23,10 @@ export default function TaskCreationModal({ isOpen, onClose, onSubmit }: TaskCre
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { showToast } = useToast();
+  const [staffOptions, setStaffOptions] = useState<{ value: string; label: string }[]>([
+    { value: '', label: '未割り当て' }
+  ]);
+  const [loadingStaff, setLoadingStaff] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +52,10 @@ export default function TaskCreationModal({ isOpen, onClose, onSubmit }: TaskCre
         ...formData,
         status: 'pending',
         createdAt: new Date().toISOString(),
-        assignedToName: getStaffName(formData.assignedTo)
+        assignedToName: (() => {
+          const found = staffOptions.find(o => o.value === formData.assignedTo);
+          return found?.label || '未割り当て';
+        })()
       };
 
       // 成功メッセージを表示
@@ -100,16 +107,30 @@ export default function TaskCreationModal({ isOpen, onClose, onSubmit }: TaskCre
     }));
   };
 
-  // スタッフ名を取得するヘルパー関数
-  const getStaffName = (staffId: string) => {
-    const staffMap: { [key: string]: string } = {
-      'staff001': '田中太郎',
-      'staff002': '佐藤花子',
-      'staff003': '山田次郎',
-      'staff004': '鈴木美香'
+  // スタッフ一覧の読み込み（API連携／安全フォールバック）
+  useEffect(() => {
+    let mounted = true;
+    const loadStaff = async () => {
+      try {
+        setLoadingStaff(true);
+        const res = await fetch('/api/user/staff', { credentials: 'include' });
+        if (!res.ok) return; // フォールバック：既定の未割り当てのみ
+        const data = await res.json();
+        if (!data?.success || !Array.isArray(data.staff)) return;
+        const options = [
+          { value: '', label: '未割り当て' },
+          ...data.staff.map((s: any) => ({ value: s.id, label: s.name }))
+        ];
+        if (mounted) setStaffOptions(options);
+      } catch {
+        // 失敗時は既定（未割り当て）のみ
+      } finally {
+        if (mounted) setLoadingStaff(false);
+      }
     };
-    return staffMap[staffId] || '未割り当て';
-  };
+    if (isOpen) loadStaff();
+    return () => { mounted = false; };
+  }, [isOpen]);
 
   return (
     <BaseModal
@@ -174,14 +195,11 @@ export default function TaskCreationModal({ isOpen, onClose, onSubmit }: TaskCre
                 value={formData.assignedTo}
                 onChange={handleChange}
                 disabled={isSubmitting}
-                options={[
-                  { value: "", label: "未割り当て" },
-                  { value: "staff001", label: "スタッフA" },
-                  { value: "staff002", label: "スタッフB" },
-                  { value: "staff003", label: "スタッフC" },
-                  { value: "staff004", label: "スタッフD" }
-                ]}
+                options={staffOptions}
               />
+              {loadingStaff && (
+                <div className="text-xs text-gray-500 mt-1">担当者を読み込み中...</div>
+              )}
             </div>
           </div>
 

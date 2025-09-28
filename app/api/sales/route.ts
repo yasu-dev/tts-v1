@@ -523,7 +523,7 @@ export async function GET(request: NextRequest) {
         {
           id: 'ORD-2024-COMP-0008',
           orderNumber: 'ORD-2024-COMP-0008',
-          customer: '田中太郎',
+          customer: '顧客',
           product: 'Canon EOS R5 Full Frame Mirrorless Camera Body - Excellent Condition',
           totalAmount: 450000,
           status: 'delivered',
@@ -537,7 +537,7 @@ export async function GET(request: NextRequest) {
         {
           id: 'ORD-2024-COMP-0007',
           orderNumber: 'ORD-2024-COMP-0007',
-          customer: '佐藤花子',
+          customer: '顧客',
           product: 'Sony Alpha a7R IV Mirrorless Camera - 61MP Full Frame',
           totalAmount: 398000,
           status: 'shipped',
@@ -551,7 +551,7 @@ export async function GET(request: NextRequest) {
         {
           id: 'ORD-2024-COMP-0006',
           orderNumber: 'ORD-2024-COMP-0006',
-          customer: '鈴木一郎',
+          customer: '顧客',
           product: 'Rolex Submariner Date 41mm Stainless Steel - Mint Condition',
           totalAmount: 1200000,
           status: 'cancelled',
@@ -563,7 +563,7 @@ export async function GET(request: NextRequest) {
         {
           id: 'ORD-2024-COMP-0005',
           orderNumber: 'ORD-2024-COMP-0005',
-          customer: '山田次郎',
+          customer: '顧客',
           product: 'Nikon D850 DSLR Camera with 24-120mm Lens Kit - Professional Grade',
           totalAmount: 280000,
           status: 'processing',
@@ -577,7 +577,7 @@ export async function GET(request: NextRequest) {
         {
           id: 'ORD-2024-COMP-0004',
           orderNumber: 'ORD-2024-COMP-0004',
-          customer: '高橋美咲',
+          customer: '顧客',
           product: 'TAG Heuer Carrera Calibre 16 Chronograph - Steel & Rose Gold',
           totalAmount: 350000,
           status: 'processing',
@@ -590,7 +590,7 @@ export async function GET(request: NextRequest) {
         {
           id: 'ORD-2024-COMP-0003',
           orderNumber: 'ORD-2024-COMP-0003',
-          customer: '伊藤健太',
+          customer: '顧客',
           product: 'IWC Portugieser Automatic 40mm Stainless Steel - Blue Dial',
           totalAmount: 680000,
           status: 'processing',
@@ -604,7 +604,7 @@ export async function GET(request: NextRequest) {
         {
           id: 'ORD-2024-COMP-0002',
           orderNumber: 'ORD-2024-COMP-0002',
-          customer: '渡辺雄二',
+          customer: '顧客',
           product: 'Fujifilm X-T4 Mirrorless Camera with 18-55mm Lens - Black',
           totalAmount: 220000,
           status: 'processing',
@@ -616,7 +616,7 @@ export async function GET(request: NextRequest) {
         {
           id: 'ORD-2024-COMP-0001',
           orderNumber: 'ORD-2024-COMP-0001',
-          customer: '中村麗子',
+          customer: '顧客',
           product: 'Panasonic Lumix GH5 4K Video Camera - Content Creator Special',
           totalAmount: 598000,
           status: 'delivered',

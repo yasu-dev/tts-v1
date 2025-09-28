@@ -58,181 +58,63 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
-    // URLパスやreferrerからユーザータイプを判定（セラー画面からアクセスされた場合）
-    const referrer = document.referrer;
-    const isFromSellerArea = referrer.includes('/dashboard') ||
-                            referrer.includes('/inventory') ||
-                            referrer.includes('/sales') ||
-                            localStorage.getItem('currentUserType') === 'seller';
-
-    console.log('[Profile Debug] Referrer:', referrer);
-    console.log('[Profile Debug] Is from seller area:', isFromSellerArea);
-
-    if (isFromSellerArea) {
-      console.log('[Profile Debug] Setting user type as seller from referrer');
-      setUserType('seller');
-      const sellerProfile: UserProfile = {
-        id: 'seller-001',
-        name: '山田 太郎',
-        email: 'yamada@example.com',
-        role: 'プレミアムセラー',
-        joinDate: '2023年4月',
-        lastLogin: new Date().toLocaleString('ja-JP'),
-        phone: '090-9876-5432',
-        companyName: '山田商事株式会社',
-        businessType: 'corporation',
-        representativeName: '山田 太郎',
-      };
-      setProfile(sellerProfile);
-      setEditForm(sellerProfile);
-      return;
-    }
-
+    let mounted = true;
     const fetchUserProfile = async () => {
       try {
-        // デバッグ：現在のauth-tokenを確認
-        const authToken = document.cookie
-          .split('; ')
-          .find(row => row.startsWith('auth-token='))
-          ?.split('=')[1];
-        console.log('[Profile Debug] Current auth-token:', authToken);
-        
-        // APIからユーザー情報を取得
         const response = await fetch('/api/auth/session', {
           credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json'
-          }
+          headers: { 'Content-Type': 'application/json' }
         });
-        
-        console.log('[Profile Debug] API Response status:', response.status);
-        
-        if (response.ok) {
-          const result = await response.json();
-          console.log('[Profile Debug] API Result:', result);
-          
-          if (result.success && result.user) {
-            const userRole = result.user.role;
-            console.log('[Profile Debug] User role from API:', userRole);
-            
-            if (userRole === 'seller') {
-              setUserType('seller');
-              const sellerProfile: UserProfile = {
-                id: result.user.id || 'seller-001',
-                name: result.user.fullName || result.user.username || '山田 太郎',
-                email: result.user.email || 'yamada@example.com',
-                role: 'プレミアムセラー',
-                joinDate: '2023年4月',
-                lastLogin: new Date().toLocaleString('ja-JP'),
-                phone: result.user.phoneNumber || '090-9876-5432',
-                companyName: '山田商事株式会社',
-                businessType: 'corporation',
-                representativeName: result.user.fullName || '山田 太郎',
-              };
-              setProfile(sellerProfile);
-              setEditForm(sellerProfile);
-            } else {
-              setUserType('staff');
-              const staffProfile: UserProfile = {
-                id: result.user.id || 'user-001',
-                name: result.user.fullName || result.user.username || '佐藤 花子',
-                email: result.user.email || 'suzuki@theworlddoor.com',
-                role: userRole === 'admin' ? '管理者' : 'シニアスタッフ',
-                joinDate: '2022年10月',
-                lastLogin: new Date().toLocaleString('ja-JP'),
-                phone: result.user.phoneNumber || '090-1234-5678',
-                department: '検品・撮影部',
-                employeeId: 'STF-2022-001',
-              };
-              setProfile(staffProfile);
-              setEditForm(staffProfile);
-            }
-            return;
-          }
+        if (!mounted) return;
+        if (!response.ok) {
+          router.push('/login');
+          return;
         }
-        
-        // APIから取得できない場合はauth-tokenから判定（フォールバック）
-        console.log('[Profile Debug] Using fallback auth-token detection');
-        const authTokenFallback = document.cookie
-          .split('; ')
-          .find(row => row.startsWith('auth-token='))
-          ?.split('=')[1];
-        
-        if (authTokenFallback) {
-          console.log('[Profile Debug] Fallback token:', authTokenFallback);
-          // fixed-auth-tokenの形式を判定
-          if (authTokenFallback.includes('seller')) {
-            console.log('[Profile Debug] Detected as SELLER from token');
+        const result = await response.json();
+        if (result?.success && result?.user) {
+          const userRole = result.user.role;
+          if (userRole === 'seller') {
             setUserType('seller');
             const sellerProfile: UserProfile = {
-              id: 'seller-001',
-              name: '山田 太郎',
-              email: 'yamada@example.com',
+              id: result.user.id,
+              name: result.user.fullName || result.user.username || result.user.email,
+              email: result.user.email,
               role: 'プレミアムセラー',
-              joinDate: '2023年4月',
+              joinDate: new Date(result.user.createdAt || Date.now()).toLocaleDateString('ja-JP'),
               lastLogin: new Date().toLocaleString('ja-JP'),
-              phone: '090-9876-5432',
-              companyName: '山田商事株式会社',
-              businessType: 'corporation',
-              representativeName: '山田 太郎',
+              phone: result.user.phoneNumber,
+              companyName: undefined,
+              businessType: undefined,
+              representativeName: result.user.fullName || undefined,
             };
             setProfile(sellerProfile);
             setEditForm(sellerProfile);
           } else {
             setUserType('staff');
             const staffProfile: UserProfile = {
-              id: 'user-001',
-              name: '佐藤 花子',
-              email: 'suzuki@theworlddoor.com',
-              role: 'シニアスタッフ',
-              joinDate: '2022年10月',
-              lastLogin: '2025年1月6日 08:00',
-              phone: '090-1234-5678',
-              department: '検品・撮影部',
-              employeeId: 'STF-2022-001',
+              id: result.user.id,
+              name: result.user.fullName || result.user.username || result.user.email,
+              email: result.user.email,
+              role: userRole === 'admin' ? '管理者' : 'シニアスタッフ',
+              joinDate: new Date(result.user.createdAt || Date.now()).toLocaleDateString('ja-JP'),
+              lastLogin: new Date().toLocaleString('ja-JP'),
+              phone: result.user.phoneNumber,
+              department: undefined,
+              employeeId: undefined,
             };
             setProfile(staffProfile);
             setEditForm(staffProfile);
           }
         } else {
-          // デフォルトでstaffとする
-          setUserType('staff');
-          const staffProfile: UserProfile = {
-            id: 'user-001',
-            name: '佐藤 花子',
-            email: 'suzuki@theworlddoor.com',
-            role: 'シニアスタッフ',
-            joinDate: '2022年10月',
-            lastLogin: '2025年1月6日 08:00',
-            phone: '090-1234-5678',
-            department: '検品・撮影部',
-            employeeId: 'STF-2022-001',
-          };
-          setProfile(staffProfile);
-          setEditForm(staffProfile);
+          router.push('/login');
         }
-      } catch (error) {
-        console.error('Failed to fetch user profile:', error);
-        // エラー時はデフォルトでstaffとする
-        setUserType('staff');
-        const staffProfile: UserProfile = {
-          id: 'user-001',
-          name: '佐藤 花子',
-          email: 'suzuki@theworlddoor.com',
-          role: 'シニアスタッフ',
-          joinDate: '2022年10月',
-          lastLogin: '2025年1月6日 08:00',
-          phone: '090-1234-5678',
-          department: '検品・撮影部',
-          employeeId: 'STF-2022-001',
-        };
-        setProfile(staffProfile);
-        setEditForm(staffProfile);
+      } catch {
+        router.push('/login');
       }
     };
-
     fetchUserProfile();
-  }, []);
+    return () => { mounted = false; };
+  }, [router]);
 
   const handleEdit = () => {
     setIsEditing(true);

@@ -83,12 +83,7 @@ export default function SettingsPage() {
       console.log('🔍 通知設定取得開始');
       setLoadingNotifications(true);
       
-      const response = await fetch('/api/user/notification-settings', {
-        headers: {
-          'Authorization': 'Bearer fixed-auth-token-seller-1',
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await fetch('/api/user/notification-settings');
       
       console.log('🔍 通知設定API応答:', response.status, response.statusText);
       const data = await response.json();
@@ -120,10 +115,7 @@ export default function SettingsPage() {
     try {
       const response = await fetch('/api/user/notification-settings', {
         method: 'PUT',
-        headers: { 
-          'Authorization': 'Bearer fixed-auth-token-seller-1',
-          'Content-Type': 'application/json' 
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ settings: notificationSettings }),
       });
 
