@@ -239,6 +239,19 @@ export default function ProductDetailModal({ isOpen, onClose, product }: Product
             <p className="text-sm text-nexus-text-secondary">
               SKU: {product.sku || '不明'}
             </p>
+            {(() => {
+              try {
+                const md = (product as any).metadata ? (typeof (product as any).metadata === 'string' ? JSON.parse((product as any).metadata) : (product as any).metadata) : {};
+                const serial = md?.serialNumber || md?.deliveryPlanInfo?.serialNumber;
+                return serial ? (
+                  <p className="text-sm text-nexus-text-secondary mt-1">
+                    シリアルナンバー: <span className="font-mono">{serial}</span>
+                  </p>
+                ) : null;
+              } catch {
+                return null;
+              }
+            })()}
         </div>
 
         {/* Tabs */}

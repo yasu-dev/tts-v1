@@ -88,6 +88,7 @@ export default function ItemDetailModal({
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const { showToast } = useToast();
   const [inspectionNotesFresh, setInspectionNotesFresh] = useState<string | null>(null);
+  const [serialNumber, setSerialNumber] = useState<string | null>(null);
 
   // 画像ダウンロード関連のstate
   const [availableImages, setAvailableImages] = useState<any[]>([]);
@@ -278,6 +279,19 @@ export default function ItemDetailModal({
           if (!res.ok) return;
           const data = await res.json();
           if (!aborted) setInspectionNotesFresh(data?.inspectionNotes ?? null);
+          try {
+            const meta = data?.metadata ? (typeof data.metadata === 'string' ? JSON.parse(data.metadata) : data.metadata) : {};
+            const serial = meta?.serialNumber || meta?.deliveryPlanInfo?.serialNumber || null;
+            console.log('[DEBUG] ItemDetailModal シリアル取得:', {
+              metadata: data?.metadata,
+              parsedMeta: meta,
+              serialNumber: serial,
+              productId: item?.id
+            });
+            if (!aborted) setSerialNumber(serial);
+          } catch (err) {
+            console.error('[DEBUG] ItemDetailModal シリアルパースエラー:', err);
+          }
         }
       } catch {}
     };
@@ -550,6 +564,29 @@ export default function ItemDetailModal({
                       </label>
                       <p className="text-nexus-text-primary">{item.sku}</p>
                     </div>
+                        {(() => {
+                          try {
+                            const fallbackMd = typeof item.metadata === 'string' ? JSON.parse(item.metadata) : (item.metadata || {});
+                            const fallbackSerial = fallbackMd?.serialNumber || fallbackMd?.deliveryPlanInfo?.serialNumber;
+                            const showSerial = serialNumber || fallbackSerial || null;
+                            console.log('[DEBUG] ItemDetailModal シリアル表示:', {
+                              serialNumber,
+                              fallbackSerial,
+                              showSerial,
+                              itemMetadata: item.metadata
+                            });
+                            return showSerial ? (
+                              <div className="col-span-2">
+                                <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
+                                  シリアルナンバー
+                                </label>
+                                <p className="text-nexus-text-primary font-mono">{showSerial}</p>
+                              </div>
+                            ) : null;
+                          } catch {
+                            return null;
+                          }
+                        })()}
                     <div>
                       <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
                         カテゴリ

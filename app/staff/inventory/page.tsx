@@ -407,6 +407,7 @@ export default function StaffInventoryPage() {
         seller: productData.seller,
         images: productData.images,
         updatedAt: productData.updatedAt,
+        metadata: productData.metadata,
       };
 
       setSelectedProductForInfo(formattedProduct);

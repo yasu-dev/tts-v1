@@ -40,6 +40,7 @@ interface Product {
   purchaseDate: string;
   supplier: string;
   supplierDetails: string;
+  serialNumber?: string;
   category?: string;
   images?: ProductImage[]; // 商品画像
   inspectionChecklist?: InspectionChecklistData;
@@ -109,6 +110,7 @@ export default function ProductRegistrationStep({
     purchaseDate: '',
     supplier: '',
     supplierDetails: '',
+    serialNumber: '',
     category: 'camera',
     images: [],
     inspectionChecklist: {
@@ -173,6 +175,7 @@ export default function ProductRegistrationStep({
       purchaseDate: '',
       supplier: '',
       supplierDetails: '',
+      serialNumber: '',
       category: 'camera',
       images: [], // 画像配列を初期化
       inspectionChecklist: {
@@ -518,6 +521,15 @@ export default function ProductRegistrationStep({
                   placeholder="仕入先を入力"
                   variant="nexus"
                 />
+
+              <NexusInput
+                label="シリアルナンバー"
+                value={product.serialNumber || ''}
+                onChange={(e) => updateProduct(index, 'serialNumber', e.target.value)}
+                placeholder="シリアルナンバーを入力（任意）"
+                variant="nexus"
+                maxLength={64}
+              />
 
                 <div className="md:col-span-2">
                   <NexusTextarea

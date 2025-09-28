@@ -23,6 +23,7 @@ interface ProductInfo {
   inspectedBy?: string;
   inspectionNotes?: string;
   notes?: string;
+  metadata?: any;
   currentLocation?: {
     id: string;
     code: string;
@@ -471,6 +472,22 @@ export default function ProductInfoModal({ isOpen, onClose, product, onMove }: P
                     <label className="text-sm font-medium text-gray-600">SKU</label>
                     <p className="text-gray-900 font-mono">{product.sku}</p>
                   </div>
+                  {(() => {
+                    try {
+                      const md = product.metadata ? (typeof product.metadata === 'string' ? JSON.parse(product.metadata) : product.metadata) : {};
+                      const serial = md?.serialNumber || md?.deliveryPlanInfo?.serialNumber;
+                      console.log('[DEBUG] ProductInfoModal シリアル確認:', { metadata: md, serial, productId: product.id });
+                      return serial ? (
+                        <div className="md:col-span-2">
+                          <label className="text-sm font-medium text-gray-600">シリアルナンバー</label>
+                          <p className="text-gray-900 font-mono">{serial}</p>
+                        </div>
+                      ) : null;
+                    } catch (e) {
+                      console.log('[DEBUG] ProductInfoModal シリアル解析エラー:', e);
+                      return null;
+                    }
+                  })()}
                   <div>
                     <label className="text-sm font-medium text-gray-600">カテゴリ</label>
                     <div className="flex items-center gap-2 mt-1">

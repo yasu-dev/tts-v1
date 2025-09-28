@@ -181,6 +181,14 @@ export async function GET(
             console.log('[DEBUG] Final enrichedProduct.deliveryPlanInfo:', JSON.stringify(enrichedProduct.deliveryPlanInfo, null, 2));
           }
         }
+
+        // 🆕 互換性のため、トップレベルにもシリアルナンバーを露出（UI側の取得を簡易化）
+        try {
+          const md = typeof product.metadata === 'string' ? JSON.parse(product.metadata) : (product.metadata as any);
+          if (md?.serialNumber && typeof md.serialNumber === 'string') {
+            (enrichedProduct as any).serialNumber = md.serialNumber;
+          }
+        } catch {}
       } catch (e) {
         console.warn('Product metadata parse error:', e);
         // メタデータのパースエラーは無視して続行
