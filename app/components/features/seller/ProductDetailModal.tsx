@@ -431,15 +431,12 @@ export default function ProductDetailModal({ isOpen, onClose, product, onOpenLis
                         {(() => {
                           try {
                             const md = typeof product.metadata === 'string' ? JSON.parse(product.metadata) : (product.metadata || {});
-                            const value = (typeof md.purchasePrice === 'number' && md.purchasePrice > 0)
-                              ? md.purchasePrice
-                              : (md.deliveryPlanInfo && typeof md.deliveryPlanInfo.purchasePrice === 'number' && md.deliveryPlanInfo.purchasePrice > 0)
-                                ? md.deliveryPlanInfo.purchasePrice
-                                : (typeof product.price === 'number' ? product.price : 0);
+                            const fromMetadata = (typeof md.purchasePrice === 'number' && md.purchasePrice > 0) ? md.purchasePrice : undefined;
+                            const fromDeliveryPlanInfo = (md.deliveryPlanInfo && typeof md.deliveryPlanInfo.purchasePrice === 'number' && md.deliveryPlanInfo.purchasePrice > 0) ? md.deliveryPlanInfo.purchasePrice : undefined;
+                            const value = (fromMetadata !== undefined) ? fromMetadata : (fromDeliveryPlanInfo !== undefined ? fromDeliveryPlanInfo : 0);
                             return `¥${Number(value).toLocaleString()}`;
                           } catch {
-                            const fallback = typeof product.price === 'number' ? product.price : 0;
-                            return `¥${fallback.toLocaleString()}`;
+                            return `¥0`;
                           }
                         })()}
                       </span>

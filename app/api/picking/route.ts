@@ -347,13 +347,20 @@ export async function POST(request: NextRequest) {
   const timestamp = new Date().toISOString();
   console.log(`=== POST /api/picking 開始 [${timestamp}] ===`);
   try {
-    // 認証チェック（スタッフのみ） - 一時的にスキップ
-    console.log('[STEP 1] 認証チェック開始（デモモード）');
-    const user = {
-      id: 'demo-staff-001',
-      username: 'デモスタッフ',
-      role: 'staff'
-    };
+    // 認証チェック（スタッフのみ） - 実際のユーザーを取得
+    console.log('[STEP 1] 認証チェック開始');
+    let user = await prisma.user.findFirst({
+      where: { role: 'staff' }
+    });
+
+    if (!user) {
+      // スタッフユーザーが存在しない場合はシステムユーザーとして記録
+      user = {
+        id: 'system',
+        username: 'システム',
+        role: 'staff'
+      };
+    }
 
     const { productIds, action, locationCode, locationName } = await request.json();
 
@@ -505,6 +512,36 @@ export async function POST(request: NextRequest) {
               }
             });
             console.log(`✅ Shipment作成: ${newShipment.id} (Product: ${product.id})`);
+          }
+        }
+      }
+
+      // ピッキング完了のアクティビティ履歴を記録
+      if (action === 'complete_picking') {
+        // 各商品に対してActivity記録を作成
+        for (const product of products) {
+          try {
+            console.log(`📝 Activity作成中: product=${product.id}, user=${user.id}`);
+            await prisma.activity.create({
+              data: {
+                type: 'picking_completed',
+                description: `ピッキング作業を完了しました（${products.length}点）`,
+                userId: user.id === 'system' ? null : user.id, // systemの場合はnullに設定
+                productId: product.id, // 商品IDを追加
+                metadata: JSON.stringify({
+                  taskId: pickingTaskId,
+                  productIds: validProductIds,
+                  productNames: products.map(p => p.name),
+                  completedBy: user.username,
+                  locationCodes: products.map(p => p.currentLocation?.code).filter(Boolean),
+                  itemCount: products.length,
+                })
+              }
+            });
+            console.log(`✅ Activity作成成功: product=${product.id}`);
+          } catch (activityError) {
+            console.error(`❌ Activity作成エラー for product ${product.id}:`, activityError);
+            // アクティビティ作成エラーでも処理は継続
           }
         }
       }

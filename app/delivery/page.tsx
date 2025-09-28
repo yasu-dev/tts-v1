@@ -927,10 +927,10 @@ export default function DeliveryPage() {
                       <td className="p-4 whitespace-nowrap text-sm text-nexus-text-primary align-top text-right">
                         <span className="font-bold">
                           ¥{(() => {
-                            // 全商品の購入価格の合計を計算
+                            // 全商品の購入価格の合計（セラー入力値のみ）
                             const totalPurchasePrice = plan.products && plan.products.length > 0
                               ? plan.products.reduce((sum, product) => {
-                                  const price = product.purchasePrice || product.estimatedValue || 0;
+                                  const price = typeof product.purchasePrice === 'number' ? product.purchasePrice : 0;
                                   return sum + price;
                                 }, 0)
                               : 0;
@@ -1166,12 +1166,12 @@ export default function DeliveryPage() {
                                   </span>
                                 )}
                               </div>
-                              {/* 購入価格表示 */}
+                              {/* 購入価格表示（セラー入力値のみ） */}
                               <div className="mt-2">
-                                {((product.purchasePrice !== undefined && product.purchasePrice > 0) || (product.estimatedValue !== undefined && product.estimatedValue > 0)) && (
+                                {(typeof product.purchasePrice === 'number' && product.purchasePrice > 0) && (
                                   <div className="text-sm">
                                     <span className="font-medium text-nexus-text-secondary">購入価格:</span>
-                                    <span className="ml-2 text-nexus-text-primary font-bold text-base">¥{(product.purchasePrice || product.estimatedValue).toLocaleString()}</span>
+                                    <span className="ml-2 text-nexus-text-primary font-bold text-base">¥{Number(product.purchasePrice).toLocaleString()}</span>
                                   </div>
                                 )}
                               </div>

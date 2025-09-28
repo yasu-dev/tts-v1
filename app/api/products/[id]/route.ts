@@ -139,12 +139,29 @@ export async function GET(
               console.warn('[DEBUG] 階層型検品チェックリスト取得エラー:', error);
             }
 
-            // deliveryPlanInfoを構築
+            // deliveryPlanInfoを構築（購入価格はセラー入力値を厳密に優先）
+            const originalPurchasePriceFromDP = (() => {
+              try {
+                if (deliveryPlanProduct.description) {
+                  const desc = JSON.parse(deliveryPlanProduct.description);
+                  const v = desc?.originalPurchasePrice;
+                  return typeof v === 'number' ? v : undefined;
+                }
+              } catch (e) {}
+              return undefined;
+            })();
+
+            const normalizedPurchasePrice = (() => {
+              if (typeof metadata.purchasePrice === 'number') return metadata.purchasePrice;
+              if (originalPurchasePriceFromDP !== undefined) return originalPurchasePriceFromDP;
+              return 0; // フォールバックで販売価格等は使用しない
+            })();
+
             enrichedProduct.deliveryPlanInfo = {
               deliveryPlanId: metadata.deliveryPlanId,
               deliveryPlanProductId: metadata.deliveryPlanProductId,
               condition: product.condition, // 常に商品テーブルの正確なコンディションを使用
-              purchasePrice: metadata.purchasePrice || product.price,
+              purchasePrice: normalizedPurchasePrice,
               purchaseDate: metadata.purchaseDate,
               supplier: metadata.supplier,
               supplierDetails: metadata.supplierDetails,

@@ -364,7 +364,13 @@ function getActionLabel(activityType: string): string {
     'return': '返品',
     'return_processing': '返品処理',
     'test_status_transition': 'テスト: ステータス変更',
-    'test_status_reset': 'テスト: リセット'
+    'test_status_reset': 'テスト: リセット',
+    'delivery_plan_created': '納品プラン作成',
+    'purchase_decision': '購入者決定',
+    'picking_completed': 'ピッキング完了',
+    'packing_completed': '梱包完了',
+    'label_attached': 'ラベル貼付',
+    'shipping_prepared': '配送準備完了'
   };
   
   return labels[activityType] || activityType;

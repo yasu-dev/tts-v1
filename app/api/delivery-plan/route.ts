@@ -145,9 +145,15 @@ export async function POST(request: NextRequest) {
           phoneNumber: null, // 倉庫情報に電話番号が含まれるためnull
           status: 'Pending', // '発送待ち'から'Pending'に変更
           totalItems: validProducts.length,
-          totalValue: validProducts.reduce((sum: number, product: any) =>
-            sum + (product.estimatedValue || 0), 0
-          ),
+          // セラー入力の購入価格合計を保存（INT範囲にクリップ）
+          totalValue: (() => {
+            const total = validProducts.reduce((sum: number, product: any) => {
+              const price = typeof product.purchasePrice === 'number' ? product.purchasePrice : 0;
+              return sum + price;
+            }, 0);
+            // INT最大値制限
+            return Math.max(0, Math.min(total, 2147483647));
+          })(),
           notes: planData.confirmation?.notes
         }
       });
@@ -668,6 +674,23 @@ export async function POST(request: NextRequest) {
         }
       });
 
+      // 納品プラン作成自体のアクティビティログを記録
+      await prisma.activity.create({
+        data: {
+          type: 'delivery_plan_created',
+          description: `納品プラン（${planData.products.length}点）を作成しました`,
+          userId: user.id,
+          metadata: JSON.stringify({
+            planId: planId,
+            planNumber: planId,
+            productCount: planData.products.length,
+            totalValue: deliveryPlan.totalValue,
+            deliveryAddress: planData.basicInfo.deliveryAddress,
+            createdProducts: deliveryPlan.createdInventoryItems.map(p => p.id)
+          })
+        }
+      });
+
     } catch (notificationError) {
       console.error('[ERROR] スタッフ通知送信エラー（処理は継続）:', notificationError);
     }
@@ -924,13 +947,17 @@ export async function GET(request: NextRequest) {
               // 実際のProduct情報
               sku: relatedProduct?.sku,
               purchasePrice: (() => {
-                // originalPurchasePriceがあればそれを使用、なければestimatedValueを使用
+                // セラー入力値を厳密に優先: originalPurchasePrice（DP保存時の元値）→ Product.metadata.purchasePrice → 0
                 try {
                   const originalPrice = productMetadata.originalPurchasePrice;
-                  return originalPrice !== undefined ? originalPrice : planProduct.estimatedValue;
-                } catch (e) {
-                  return planProduct.estimatedValue;
-                }
+                  if (typeof originalPrice === 'number') return originalPrice;
+                } catch (e) {}
+                try {
+                  const related = relatedProduct?.metadata ? JSON.parse(relatedProduct.metadata) : null;
+                  const metaPrice = related?.purchasePrice;
+                  if (typeof metaPrice === 'number') return metaPrice;
+                } catch (e) {}
+                return 0;
               })(),
               condition: relatedProduct?.condition || productMetadata.condition,
               imageUrl: relatedProduct?.imageUrl,

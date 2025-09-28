@@ -166,6 +166,28 @@ export async function POST(request: NextRequest) {
       }
     );
 
+    // 購入決定のアクティビティ履歴を記録
+    await prisma.activity.create({
+      data: {
+        type: 'purchase_decision',
+        description: `購入者が決定しました（注文番号: ${orderNumber}、${items.length}点、¥${totalAmount.toLocaleString()}）`,
+        userId: user.id,
+        metadata: JSON.stringify({
+          orderId: order.id,
+          orderNumber,
+          customerId,
+          totalAmount,
+          itemCount: items.length,
+          customerEmail: order.customer.email,
+          items: items.map((item: any) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            price: item.price,
+          })),
+        })
+      }
+    });
+
     // セラーに商品購入通知を送信
     try {
       const uniqueSellerIds = [...new Set(order.items.map(item => item.product.sellerId))];

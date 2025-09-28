@@ -255,16 +255,16 @@ export async function PUT(request: NextRequest) {
             activityDescription = `商品 ${productName} のピッキングが完了しました`;
             break;
           case 'packed':
-            activityType = 'order_packed';
+            activityType = 'packing_completed';
             activityDescription = `商品 ${productName} の梱包が完了しました`;
             break;
           case 'shipped':
-            activityType = 'order_shipped';
-            activityDescription = `商品 ${productName} が出荷されました`;
+            activityType = 'shipping_prepared';
+            activityDescription = `商品 ${productName} の配送準備が完了しました`;
             break;
           case 'ready_for_pickup':
-            activityType = 'ready_for_pickup';
-            activityDescription = `商品 ${productName} が集荷準備完了しました`;
+            activityType = 'label_attached';
+            activityDescription = `商品 ${productName} にラベル貼付が完了し、集荷準備が整いました`;
             break;
           case 'delivered':
             activityType = 'order_delivered';
