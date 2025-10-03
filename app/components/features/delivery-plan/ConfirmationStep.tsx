@@ -107,7 +107,7 @@ export default function ConfirmationStep({
       showToast({
         type: 'warning',
         title: '同意が必要',
-        message: '利用規約に同意してください'
+        message: '利用規約とプライバシーポリシーに同意してください'
       });
       return;
     }
@@ -403,9 +403,9 @@ export default function ConfirmationStep({
         </div>
       </NexusCard>
 
-      {/* 利用規約同意 */}
+      {/* 規約同意 */}
       <NexusCard className="p-6 bg-yellow-50 border-yellow-200">
-        <h3 className="text-lg font-medium text-nexus-text-primary mb-4">利用規約</h3>
+        <h3 className="text-lg font-medium text-nexus-text-primary mb-4">利用規約・プライバシーポリシーへの同意</h3>
         <div className="space-y-4">
           <div className="flex items-center">
             <input
@@ -416,7 +416,16 @@ export default function ConfirmationStep({
             />
             <label className="ml-3 text-sm text-nexus-text-primary leading-relaxed">
               <span className="text-red-500">*</span> 
-              THE WORLD DOORの利用規約および
+              THE WORLD DOORの
+              <Link 
+                href="/terms" 
+                target="_blank" 
+                className="text-primary-blue hover:text-blue-700 underline inline-flex items-center mx-1"
+              >
+                利用規約
+                <ExternalLink className="w-3 h-3 ml-1" />
+              </Link>
+              および
               <Link 
                 href="/privacy-policy" 
                 target="_blank" 

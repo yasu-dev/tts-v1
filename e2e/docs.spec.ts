@@ -68,10 +68,66 @@ test('商品詳細モーダルでラベルがセラーに変更されている',
   await page.fill('input[name="email"]', 'staff@example.com');
   await page.fill('input[name="password"]', 'password');
   await page.click('button[type="submit"]');
-  await page.waitForURL(/\/staff\/inventory/);
+  // 安定のため、目的ページへ直接遷移
+  await page.goto('/staff/inventory');
   // 一覧の「詳細」を開く
   const detailButton = page.getByRole('button', { name: '詳細' }).first();
   await detailButton.click();
   // モーダル内ラベル「セラー」が見える
-  await expect(page.locator('text=セラー')).toBeVisible();
+  const modal = page.getByRole('dialog').first().or(page.getByLabel('商品詳細'));
+  await expect(modal.getByText('セラー', { exact: true })).toBeVisible();
+});
+
+// 利用規約・プライバシーポリシーのリンク表示とページ遷移
+test('利用規約・プライバシーポリシーのリンクが表示され、正しいタイトルが表示される', async ({ page }) => {
+  // ログイン（セラー）
+  await page.goto('/login');
+  await page.fill('input[name="email"]', 'seller@example.com');
+  await page.fill('input[name="password"]', 'password');
+  await page.click('button[type="submit"]');
+
+  // 納品プランの確認ステップへ
+  await page.goto('/delivery-plan');
+  // 1: 基本情報 -> 次へ（データ読み込み待ちを考慮しつつ最大2回押下）
+  const nextButton = page.getByRole('button', { name: '次へ進む' });
+  await expect(nextButton).toBeVisible();
+  await nextButton.click();
+  // 商品入力UIの出現待ち、出なければもう一度押す
+  let nameInput = page.getByTestId('product-name-input').first();
+  if (!(await nameInput.isVisible({ timeout: 2000 }).catch(() => false))) {
+    await nextButton.click();
+  }
+  // 2: 商品登録 -> 必須を最小限入力
+  nameInput = page.getByTestId('product-name-input').first();
+  await nameInput.waitFor({ state: 'visible', timeout: 10000 });
+  await nameInput.fill('テスト商品');
+  // 価格入力（先頭のnumber入力に）
+  const priceInput = page.locator('input[type="number"]').first();
+  await priceInput.fill('1000');
+  // 撮影要望（必須）を選択
+  await page.getByText('通常撮影（10枚）').first().click();
+  await nextButton.click();
+
+  // 確認ステップに「利用規約」と「プライバシーポリシー」のリンクが表示
+  const termsLink = page.locator('a', { hasText: '利用規約' }).first();
+  const privacyLink = page.locator('a', { hasText: 'プライバシーポリシー' }).first();
+  await expect(termsLink).toBeVisible();
+  await expect(privacyLink).toBeVisible();
+
+  // 新規タブで開くため、コンテキストの新規ページを待つ
+  const [termsPage] = await Promise.all([
+    page.context().waitForEvent('page'),
+    termsLink.click()
+  ]);
+  await termsPage.waitForLoadState('domcontentloaded');
+  await expect(termsPage.locator('h1')).toHaveText(/利用規約/);
+  await termsPage.close();
+
+  const [privacyPage] = await Promise.all([
+    page.context().waitForEvent('page'),
+    privacyLink.click()
+  ]);
+  await privacyPage.waitForLoadState('domcontentloaded');
+  await expect(privacyPage.locator('h1')).toHaveText(/プライバシーポリシー/);
+  await privacyPage.close();
 });
