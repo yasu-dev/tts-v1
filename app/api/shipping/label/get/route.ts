@@ -1,4 +1,82 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const orderId = searchParams.get('orderId');
+    if (!orderId) {
+      return NextResponse.json({ error: 'orderId は必須です' }, { status: 400 });
+    }
+
+    // 注文を検索（id または orderNumber）
+    const order = await prisma.order.findFirst({
+      where: {
+        OR: [
+          { id: orderId },
+          { orderNumber: orderId }
+        ]
+      },
+      include: {
+        activities: true,
+        shipments: true,
+      }
+    });
+
+    if (!order) {
+      return NextResponse.json({ error: '対象の注文が見つかりません' }, { status: 404 });
+    }
+
+    // 1) activities から最新のラベルイベントを探索
+    const labelActivities = (order.activities || []).filter(a =>
+      a.type === 'label_generated' || a.type === 'label_uploaded'
+    );
+    labelActivities.sort((a, b) => (new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+
+    for (const act of labelActivities) {
+      try {
+        const meta = act.metadata ? JSON.parse(act.metadata) : {};
+        const fileName = meta.fileName;
+        const carrier = meta.carrier || (act.type === 'label_generated' ? 'fedex' : (meta.carrier || 'other'));
+        if (fileName) {
+          // public/labels 直配信が基本。download 経由URLも将来考慮
+          const url = fileName.startsWith('http') || fileName.startsWith('/')
+            ? (fileName.startsWith('/labels/') ? fileName.replace('/labels/', '/labels/') : `/labels/${fileName}`)
+            : `/labels/${fileName}`;
+          const provider = act.type === 'label_uploaded' ? 'seller' : 'seller';
+          return NextResponse.json({ url, fileName, provider, carrier });
+        }
+      } catch {}
+    }
+
+    // 2) shipments.notes から保管された labelFileUrl を探索（同梱ケース等）
+    const shipments = order.shipments || [];
+    shipments.sort((a, b) => (new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+    for (const s of shipments) {
+      try {
+        if (s.notes) {
+          const notes = JSON.parse(s.notes);
+          if (notes && notes.labelFileUrl) {
+            const fileUrl = notes.labelFileUrl as string;
+            const fileName = (notes.fileName as string) || fileUrl.split('/').pop();
+            const carrier = (s.carrier || 'other').toLowerCase();
+            return NextResponse.json({ url: fileUrl, fileName, provider: 'seller', carrier });
+          }
+        }
+      } catch {}
+    }
+
+    // 見つからない
+    return NextResponse.json({ error: '配送ラベルが見つかりません' }, { status: 404 });
+  } catch (error) {
+    console.error('[ERROR] label/get:', error);
+    return NextResponse.json({ error: 'ラベル取得中にエラーが発生しました' }, { status: 500 });
+  }
+}
+
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {

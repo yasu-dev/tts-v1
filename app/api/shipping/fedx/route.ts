@@ -580,7 +580,7 @@ export async function POST(request: NextRequest) {
           data: {
             status: 'processing',
             trackingNumber: labelResult.trackingNumber,
-            carrier: 'fedx'
+            carrier: 'fedex'
           }
         });
         console.log('FedX - 注文ステータス更新完了:', order.id);
@@ -629,12 +629,12 @@ export async function POST(request: NextRequest) {
         await prisma.activity.create({
           data: {
             type: 'label_generated',
-            description: `FedX配送ラベルが生成されました（追跡番号: ${labelResult.trackingNumber}）`,
+            description: `FedEx配送ラベルが生成されました（追跡番号: ${labelResult.trackingNumber}）`,
             userId: user.id,
             orderId: order.id,
             metadata: JSON.stringify({
-              carrier: 'fedx',
-              carrierName: 'FedX',
+              carrier: 'fedex',
+              carrierName: 'FedEx',
               service,
               trackingNumber: labelResult.trackingNumber,
               fileName,
@@ -663,7 +663,7 @@ export async function POST(request: NextRequest) {
       const shipmentData: any = {
         orderId: order.id,
         status: 'pending',
-        carrier: 'fedx',
+        carrier: 'fedex',
         method: service,
         trackingNumber: labelResult.trackingNumber,
         customerName: order.customerName || 'Unknown Customer',
@@ -722,7 +722,7 @@ export async function POST(request: NextRequest) {
         });
         
         shipmentData.productId = productIds[0];
-        shipmentData.notes = `FedX配送ラベル生成済み - Service: ${service}`;
+        shipmentData.notes = `FedEx配送ラベル生成済み - Service: ${service}`;
         
         console.log(`📝 [FedX] 単品Shipment作成:`, {
           productId: productIds[0],
@@ -741,6 +741,43 @@ export async function POST(request: NextRequest) {
         notesContainsSalesBundle: createdShipment.notes?.includes('sales_bundle') || false,
         isBundle: !!(item.bundleItems && item.bundleItems.length > 0)
       });
+
+      // ラベル生成後、スタッフにピッキング依頼通知を送信（アップロード時と同等）
+      try {
+        const pickingStaff = await prisma.user.findMany({ where: { role: 'staff' } });
+        for (const staff of pickingStaff) {
+          const notification = await prisma.notification.create({
+            data: {
+              type: 'picking_request',
+              title: '📋 ピッキング依頼',
+              message: `注文 ${order.orderNumber} の商品（${order.items.length}点）のピッキングを開始してください。`,
+              userId: staff.id,
+              read: false,
+              priority: 'high',
+              notificationType: 'picking_request',
+              action: 'shipping',
+              metadata: JSON.stringify({
+                orderNumber: order.orderNumber,
+                productIds: order.items.map(i => i.productId),
+                trackingNumber: labelResult.trackingNumber,
+                carrier: 'fedex',
+                location: 'B-1-4'
+              })
+            }
+          });
+          await prisma.activity.create({
+            data: {
+              type: 'notification_sent',
+              description: `ピッキング依頼通知を${staff.username}に送信しました（注文: ${order.orderNumber}）`,
+              userId: 'system',
+              orderId: order.id,
+              metadata: JSON.stringify({ notificationId: notification.id, notificationType: 'picking_request', staffId: staff.id, orderNumber: order.orderNumber })
+            }
+          });
+        }
+      } catch (notifyError) {
+        console.warn('[FedEx] スタッフ通知送信失敗（続行）:', notifyError);
+      }
       
       console.log('ラベル保存、ステータス更新、Shipment作成完了:', {
         orderId: order.id,
@@ -761,8 +798,8 @@ export async function POST(request: NextRequest) {
             orderId: order.id,
             orderNumber: order.orderNumber,
             trackingNumber: labelResult.trackingNumber,
-            carrier: 'fedx',
-            shippingMethod: 'FedX International Shipping',
+            carrier: 'fedex',
+            shippingMethod: 'FedEx International Shipping',
             estimatedDelivery: labelResult.estimatedDelivery
           })
         });
@@ -783,12 +820,12 @@ export async function POST(request: NextRequest) {
         fileUrl: labelFileUrl,
         orderId: order.id,
         productsUpdated: productIds.length,
-        carrier: 'fedx',
+        carrier: 'fedex',
         bundleId: item.bundleId || null,
         isBundle: !!(item.bundleItems && item.bundleItems.length > 0),
         message: item.bundleItems && item.bundleItems.length > 0
           ? `同梱ラベルが生成されました（${item.bundleItems.length}件）`
-          : 'FedX配送ラベルが生成され、購入者にも追跡番号が通知されました'
+          : 'FedEx配送ラベルが生成され、購入者にも追跡番号が通知されました'
       });
 
     } catch (dbError) {

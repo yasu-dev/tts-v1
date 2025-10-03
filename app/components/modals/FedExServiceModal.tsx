@@ -10,7 +10,10 @@ import {
   CurrencyYenIcon,
   CheckCircleIcon,
   CheckIcon,
-  InformationCircleIcon
+  InformationCircleIcon,
+  UserGroupIcon,
+  PrinterIcon,
+  DocumentCheckIcon
 } from '@heroicons/react/24/outline';
 
 interface FedExService {
@@ -377,6 +380,43 @@ export default function FedExServiceModal({
                     <li>配送時間は営業日ベースです（土日祝日除く）</li>
                     <li>選択後にラベル生成処理が開始されます</li>
                   </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* この後の流れ（統一ガイダンス） */}
+            <div className="p-4 bg-gradient-to-r from-nexus-primary/20 to-blue-100/50 rounded-lg border-2 border-nexus-primary/40 ring-1 ring-nexus-primary/20 shadow-sm">
+              <div className="flex items-center gap-2 mb-3">
+                <CheckCircleIcon className="w-5 h-5 text-nexus-primary" />
+                <p className="text-sm font-bold text-nexus-text-primary">この後の流れ</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="bg-white/80 rounded-lg border-2 border-nexus-border p-3 flex items-start gap-3 ring-1 ring-nexus-primary/10 shadow-sm">
+                  <div className="p-2 rounded-md bg-nexus-primary/20 text-nexus-primary">
+                    <DocumentCheckIcon className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-nexus-text-primary">ラベル自動生成</p>
+                    <p className="text-xs text-nexus-text-secondary">選択したサービスでFedExラベルを即時作成</p>
+                  </div>
+                </div>
+                <div className="bg-white/80 rounded-lg border-2 border-nexus-border p-3 flex items-start gap-3 ring-1 ring-nexus-primary/10 shadow-sm">
+                  <div className="p-2 rounded-md bg-nexus-primary/20 text-nexus-primary">
+                    <UserGroupIcon className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-nexus-text-primary">スタッフに自動共有</p>
+                    <p className="text-xs text-nexus-text-secondary">倉庫チームに通知・業務キューへ登録</p>
+                  </div>
+                </div>
+                <div className="bg-white/80 rounded-lg border-2 border-nexus-border p-3 flex items-start gap-3 ring-1 ring-nexus-primary/10 shadow-sm">
+                  <div className="p-2 rounded-md bg-nexus-primary/20 text-nexus-primary">
+                    <PrinterIcon className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-nexus-text-primary">印刷・出荷はスタッフ</p>
+                    <p className="text-xs text-nexus-text-secondary">ラベル印刷〜集荷手配まで一貫対応</p>
+                  </div>
                 </div>
               </div>
             </div>

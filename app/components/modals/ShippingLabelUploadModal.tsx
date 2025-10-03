@@ -194,6 +194,12 @@ export default function ShippingLabelUploadModal({
       size="md"
     >
       <div className="space-y-6">
+        {/* 統一ガイダンス */}
+        <div className="p-3 bg-nexus-bg-tertiary border border-nexus-border rounded">
+          <p className="text-sm text-nexus-text-secondary">
+            アップロード後はスタッフに自動通知され、以降の印刷・出荷はスタッフが対応します。
+          </p>
+        </div>
         {/* 配送業者情報 */}
         {carrier && carrier !== 'other' && (
           <div className="bg-nexus-bg-secondary p-4 rounded-lg border border-nexus-border mb-4">
@@ -219,7 +225,7 @@ export default function ShippingLabelUploadModal({
             variant="nexus"
           />
           <p className="text-sm text-nexus-text-secondary mt-1">
-            追跡番号を入力すると、購入者にeBayで自動通知されます
+            追跡番号を入力すると購入者へeBayで自動通知されます。アップロード後はスタッフに共有されます。
           </p>
         </div>
 

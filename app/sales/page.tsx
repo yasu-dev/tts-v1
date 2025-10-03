@@ -417,7 +417,7 @@ export default function SalesPage() {
         title: 'ラベル生成中',
         message: selectedOrder.isBundleGroup 
           ? `${selectedOrder.bundleItems.length}件の同梱ラベルを生成中...`
-          : 'FedXの配送ラベルを生成しています...',
+          : 'FedExの配送ラベルを生成しています...',
         type: 'info'
       });
 
@@ -493,7 +493,7 @@ export default function SalesPage() {
         
         showToast({
           title: '同梱ラベル生成完了',
-          message: `${selectedOrder.bundleItems.length}件の商品をまとめて処理しました。追跡番号: ${result.trackingNumber}`,
+          message: `${selectedOrder.bundleItems.length}件の商品をまとめて処理しました。ラベルはスタッフに自動共有され、以降の印刷・出荷はスタッフが対応します。 追跡番号: ${result.trackingNumber}`,
           type: 'success'
         });
         
@@ -510,7 +510,7 @@ export default function SalesPage() {
         
         showToast({
           title: 'FedExラベル生成完了',
-          message: `追跡番号: ${result.trackingNumber}`,
+          message: `ラベルはスタッフに自動共有され、以降の印刷・出荷はスタッフが対応します。 追跡番号: ${result.trackingNumber}`,
           type: 'success'
         });
       }
@@ -859,13 +859,14 @@ export default function SalesPage() {
                             <td className="p-4">
                               <div className="flex justify-center">
                                 {row.labelGenerated ? (
-                                  <span className="status-badge success">
-                                    生成済み
-                                  </span>
+                                  <div className="flex flex-col items-center gap-1">
+                                    <span className="status-badge success">生成済み</span>
+                                    {row.status === 'processing' && (
+                                      <span className="text-[11px] text-nexus-text-secondary">スタッフに共有済み</span>
+                                    )}
+                                  </div>
                                 ) : (
-                                  <span className="status-badge info">
-                                    未生成
-                                  </span>
+                                  <span className="status-badge info">未生成</span>
                                 )}
                               </div>
                             </td>
@@ -905,7 +906,7 @@ export default function SalesPage() {
                                   </NexusButton>
                                 )}
                                 {/* 梱包済み商品のラベルダウンロード */}
-                                {(row.status === 'packed' || row.status === 'completed' || row.labelGenerated) && (
+                                {(row.status === 'packed' || row.status === 'completed') && (
                                   <NexusButton
                                     onClick={() => handleDownloadLabel(row)}
                                     size="sm"
