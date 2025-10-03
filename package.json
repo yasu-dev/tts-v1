@@ -15,7 +15,8 @@
     "test:unit": "jest",
     "test:unit:watch": "jest --watch",
     "test:unit:coverage": "jest --coverage",
-    "e2e:start": "next build && next start -p 3001"
+    "e2e:start": "next build && next start -p 3001",
+    "docs:generate": "node scripts/md-to-html.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.500.0",

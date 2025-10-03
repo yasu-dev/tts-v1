@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>環境切り替え対応</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --bg-light: #f8fafc;
+            --bg-white: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --code-bg: #1e293b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif, 'Noto Sans JP';
+            line-height: 1.8;
+            color: var(--text-primary);
+            background-color: var(--bg-light);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--bg-white);
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        h3 {
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        h4 {
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+
+        h5, h6 {
+            color: var(--text-primary);
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin-bottom: 15px;
+            line-height: 1.8;
+        }
+
+        a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        ul, ol {
+            margin-bottom: 15px;
+            padding-left: 30px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        code {
+            background: var(--bg-light);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #d63384;
+        }
+
+        pre {
+            background: var(--code-bg);
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        pre code {
+            background: transparent;
+            padding: 0;
+            color: inherit;
+            font-size: 0.95em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background: var(--bg-light);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        hr {
+            border: none;
+            border-top: 2px solid var(--border-color);
+            margin: 30px 0;
+        }
+
+        strong {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        em {
+            font-style: italic;
+        }
+
+        blockquote {
+            border-left: 4px solid var(--primary-color);
+            padding-left: 20px;
+            margin: 20px 0;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            background: #1d4ed8;
+            text-decoration: none;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            .container {
+                box-shadow: none;
+                padding: 20px;
+            }
+            .back-link {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← 引き継ぎ資料トップに戻る</a>
+        <h1>環境切り替え対応ドキュメント</h1>
+
+<p>
+<strong>最終更新日</strong>: 2025年10月3日
+</p>
+
+<h2>概要</h2>
+
+<p>
+THE WORLD DOORシステムは、開発環境と本番環境で異なるサービスを透過的に切り替えることができるように設計・実装されています。
+</p>
+
+<h2>実装済み機能</h2>
+
+<h3>1. eBay API連携 ⚠️ 部分実装</h3>
+<ul>
+<li><strong>開発環境</strong>: 簡易実装（<code>/api/ebay/*</code>）</li></ul>
+
+<ul>
+<li><strong>本番環境</strong>: 実際のeBay API連携（未実装）</li></ul>
+
+<ul>
+<li><strong>切り替え方法</strong>: 環境変数による制御（現在は未使用）</li></ul>
+
+<ul>
+<li><strong>実装状況</strong>: カスタムアダプター（<code>lib/services/adapters/ebay.adapter.ts</code>）は存在するが、実際のeBay API連携は未完成</li></ul>
+
+
+<h3>2. 配送業者API連携 ⚠️ 準備中</h3>
+<ul>
+<li><strong>開発環境</strong>: 簡易実装（<code>/api/shipping/*</code>）</li></ul>
+
+<ul>
+<li><strong>本番環境</strong>: FedEx、ヤマト運輸、佐川急便API（未実装）</li></ul>
+
+<ul>
+<li><strong>切り替え方法</strong>: 環境変数による制御（未実装）</li></ul>
+
+<ul>
+<li><strong>実装状況</strong>: FedExアダプター（<code>lib/services/adapters/fedex.adapter.ts</code>）は存在するが、実際のAPI連携は未完成</li></ul>
+
+
+<h3>3. メール送信 ✅ 実装済み</h3>
+<ul>
+<li><strong>開発環境</strong>: SendGrid（@sendgrid/mail 8.1.3）</li></ul>
+
+<ul>
+<li><strong>本番環境</strong>: SendGrid</li></ul>
+
+<ul>
+<li><strong>切り替え方法</strong>: 環境変数で API Key を設定</li></ul>
+
+<ul>
+<li><strong>実装状況</strong>: メールアダプター（<code>lib/services/adapters/email.adapter.ts</code>）で実装、2要素認証メール対応</li></ul>
+
+
+<h3>4. ファイルストレージ ⚠️ ローカルのみ実装</h3>
+<ul>
+<li><strong>開発環境</strong>: ローカルファイルシステム（<code>uploads/</code>）</li></ul>
+
+<ul>
+<li><strong>本番環境</strong>: AWS S3（@aws-sdk/client-s3 3.500.0インストール済みだが未使用）</li></ul>
+
+<ul>
+<li><strong>切り替え方法</strong>: 未実装（環境変数も未設定）</li></ul>
+
+<ul>
+<li><strong>実装状況</strong>:</li></ul>
+
+<p>
+- 画像: ローカルファイルシステムに保存 (<code>process.cwd()/uploads/</code>)
+- 動画: モックURL（公開サンプル動画へのリンク）
+- AWS SDK コードは全てコメントアウト
+- <strong>AWSアカウント未設定</strong>
+</p>
+
+<h3>5. 認証システム ✅ 実装済み</h3>
+<ul>
+<li><strong>開発環境</strong>: JWT認証（jsonwebtoken 9.0.2）+ 簡易認証モード</li></ul>
+
+<ul>
+<li><strong>本番環境</strong>: JWT + 2要素認証（メールベース）</li></ul>
+
+<ul>
+<li><strong>切り替え方法</strong>: 環境変数 FIXED<em>AUTH</em>ENABLED で簡易認証モードを制御</li></ul>
+
+<ul>
+<li><strong>実装状況</strong>:</li></ul>
+
+<p>
+- JWT + bcryptjs によるセキュアな認証
+- 2要素認証システム（TwoFactorAuth model）
+- ロールベースアクセス制御（seller/staff/admin）
+- セッション管理（Session model）
+</p>
+
+<h3>6. バーコードスキャン ✅ 実装済み</h3>
+<ul>
+<li><strong>開発環境</strong>: キーボードエミュレーション</li></ul>
+
+<ul>
+<li><strong>本番環境</strong>: 実機バーコードスキャナー対応</li></ul>
+
+<ul>
+<li><strong>実装状況</strong>: 商品バーコード、ロケーションバーコード検索機能</li></ul>
+
+
+<h3>7. 動画管理システム ✅ 実装済み</h3>
+<ul>
+<li><strong>開発環境</strong>: ローカルファイル保存</li></ul>
+
+<ul>
+<li><strong>本番環境</strong>: S3ストリーミング</li></ul>
+
+<ul>
+<li><strong>実装状況</strong>: WebRTC、MediaRecorder API、メタデータ管理</li></ul>
+
+
+<h3>8. 決済処理 🗓️ 計画中</h3>
+<ul>
+<li><strong>予定</strong>: Stripe連携</li></ul>
+
+<ul>
+<li><strong>現状</strong>: モック実装のみ</li></ul>
+
+
+<h2>実装方法</h2>
+
+<h3>サービスアダプターパターン</h3>
+
+<p>
+``<code>typescript
+// lib/services/adapters/ebay.adapter.ts
+export class EbayAdapter {
+async createListing(data: EbayListingData): Promise<EbayListingResponse> {
+const endpoint = getApiEndpoint('ebay', '/listing');
+// 環境に応じてモックまたは実APIを呼び出し
+}
+}
+</code>`<code>
+</p>
+
+<h3>環境変数設定</h3>
+
+<p>
+</code>`<code>env
+</p>
+<h1>.env.local (開発環境)</h1>
+<p>
+USE<em>MOCK</em>SERVICES=true
+NODE_ENV=development
+</p>
+
+<h1>.env.production (本番環境)</h1>
+<p>
+USE<em>MOCK</em>SERVICES=false
+NODE_ENV=production
+EBAY<em>API</em>URL=https://api.ebay.com/v1
+EBAY<em>APP</em>ID=your-app-id
+</p>
+<h1>... その他の本番環境設定</h1>
+<p>
+</code>`<code>
+</p>
+
+<h2>新機能追加</h2>
+
+<h3>1. バーコードスキャン対応</h3>
+<ul>
+<li>キーボードエミュレーション型スキャナーに対応</li></ul>
+
+<ul>
+<li>商品バーコード（JAN/EAN/UPC）とロケーションバーコードの検証</li></ul>
+
+<ul>
+<li>自動フォーカスと高速入力検知</li></ul>
+
+
+<h3>2. 動画管理システム</h3>
+<ul>
+<li>作業動画のメタデータ管理</li></ul>
+
+<ul>
+<li>S3連携準備済み（本番環境）</li></ul>
+
+<ul>
+<li>検品・梱包・出荷の作業証跡として利用</li></ul>
+
+
+<h3>3. 2段階認証（メール認証）</h3>
+<ul>
+<li>環境変数 </code>TWO<em>FACTOR</em>AUTH_ENABLED<code> で有効/無効切り替え</li></ul>
+
+<ul>
+<li>開発環境ではコンソールに認証コード出力</li></ul>
+
+<ul>
+<li>本番環境ではSendGrid経由でメール送信</li></ul>
+
+
+<h2>データベースモデル追加</h2>
+
+<p>
+</code>`<code>prisma
+// 動画記録
+model VideoRecord {
+id          String   @id @default(cuid())
+productId   String?
+orderId     String?
+type        String   // inspection, packing, shipping, etc.
+fileName    String
+fileUrl     String
+// ...
+}
+</p>
+
+<p>
+// 2段階認証
+model TwoFactorAuth {
+id          String   @id @default(cuid())
+userId      String
+code        String
+expiresAt   DateTime
+verified    Boolean  @default(false)
+// ...
+}
+</p>
+
+<p>
+// 外部サービスログ
+model ExternalService {
+id          String   @id @default(cuid())
+service     String   // ebay, yamato, sagawa, stripe, etc.
+type        String   // api_call, webhook, etc.
+// ...
+}
+</p>
+
+<p>
+// バーコードスキャナー
+model BarcodeScanner {
+id          String   @id @default(cuid())
+locationId  String
+deviceName  String
+// ...
+}
+</code>`<code>
+</p>
+
+<h2>使用方法</h2>
+
+<h3>開発環境でのテスト</h3>
+
+<p>
+</code>`<code>bash
+</p>
+<h1>環境変数を設定</h1>
+<p>
+cp .env.example .env.local
+</p>
+
+<h1>Prismaマイグレーション実行</h1>
+<p>
+npm run db:migrate
+</p>
+
+<h1>開発サーバー起動</h1>
+<p>
+npm run dev
+</code>``
+</p>
+
+<h3>本番環境への移行</h3>
+
+<ul>
+<li>環境変数を本番用に設定</li></ul>
+
+<ul>
+<li>外部サービスのAPIキーを設定</li></ul>
+
+<ul>
+<li>PostgreSQLデータベースを設定</li></ul>
+
+<ul>
+<li>S3バケットを作成・設定</li></ul>
+
+<ul>
+<li>SendGridアカウントを設定</li></ul>
+
+
+<h2>注意事項</h2>
+
+<h3>開発環境</h3>
+<ul>
+<li>全ての外部サービスがモックされ、ローカルで完全に動作します</li></ul>
+
+<ul>
+<li>SQLiteデータベースで軽量かつ高速な開発環境を提供</li></ul>
+
+<ul>
+<li>2要素認証はデフォルトで無効化</li></ul>
+
+
+<h3>本番環境</h3>
+<ul>
+<li>全ての外部サービスが実際のAPIと連携</li></ul>
+
+<ul>
+<li>PostgreSQLで本格的なデータ管理</li></ul>
+
+<ul>
+<li>2要素認証が有効化されセキュリティが強化</li></ul>
+
+
+<h3>テスト戦略</h3>
+<ul>
+<li>E2EテストでUI動作を必ず確認（Playwright）</li></ul>
+
+<ul>
+<li>モックサービスで外部依存を排除したテスト</li></ul>
+
+<ul>
+<li>ステージング環境で本番同等のテストを実施</li></ul>
+
+
+<h3>メンテナンス</h3>
+<ul>
+<li>環境切り替えロジックの中央集中管理</li></ul>
+
+<ul>
+<li>モックレスポンスの定期的な更新</li></ul>
+
+<ul>
+<li>ログ監視とエラーハンドリングの充実</li></ul>
+
+
+<hr>
+
+<p>
+<strong>更新履歴</strong>
+</p>
+<ul>
+<li>2024-06-21: 初版作成</li></ul>
+
+<ul>
+<li>2025-01-13: 実装状況に合わせて全面更新、実装済み機能を明記 </li></ul>
+
+    </div>
+</body>
+</html>

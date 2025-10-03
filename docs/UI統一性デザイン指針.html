@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI統一性デザイン指針</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --bg-light: #f8fafc;
+            --bg-white: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --code-bg: #1e293b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif, 'Noto Sans JP';
+            line-height: 1.8;
+            color: var(--text-primary);
+            background-color: var(--bg-light);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--bg-white);
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        h3 {
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        h4 {
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+
+        h5, h6 {
+            color: var(--text-primary);
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin-bottom: 15px;
+            line-height: 1.8;
+        }
+
+        a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        ul, ol {
+            margin-bottom: 15px;
+            padding-left: 30px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        code {
+            background: var(--bg-light);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #d63384;
+        }
+
+        pre {
+            background: var(--code-bg);
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        pre code {
+            background: transparent;
+            padding: 0;
+            color: inherit;
+            font-size: 0.95em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background: var(--bg-light);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        hr {
+            border: none;
+            border-top: 2px solid var(--border-color);
+            margin: 30px 0;
+        }
+
+        strong {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        em {
+            font-style: italic;
+        }
+
+        blockquote {
+            border-left: 4px solid var(--primary-color);
+            padding-left: 20px;
+            margin: 20px 0;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            background: #1d4ed8;
+            text-decoration: none;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            .container {
+                box-shadow: none;
+                padding: 20px;
+            }
+            .back-link {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← 引き継ぎ資料トップに戻る</a>
+        <h1>UI/UX統一性デザイン指針</h1>
+
+<h2>概要</h2>
+<p>
+FBT-v1アプリケーションにおけるUI/UX統一性を確保するためのデザイン指針と実装ガイドライン
+</p>
+
+<h2>🎯 統一性の原則</h2>
+
+<h3>1. コンポーネント優先原則</h3>
+<ul>
+<li><strong>CSS クラス直接使用 → React コンポーネント使用</strong></li></ul>
+
+<ul>
+<li>再利用性と保守性を重視</li></ul>
+
+<ul>
+<li>TypeScript による型安全性確保</li></ul>
+
+
+<h3>2. レスポンシブファースト</h3>
+<ul>
+<li>モバイル・タブレット・デスクトップ対応</li></ul>
+
+<ul>
+<li>タッチターゲット最小44px</li></ul>
+
+<ul>
+<li>適切な余白とフォントサイズ</li></ul>
+
+
+<h3>3. アクセシビリティ準拠</h3>
+<ul>
+<li>ARIA属性の適切な使用</li></ul>
+
+<ul>
+<li>キーボードナビゲーション対応</li></ul>
+
+<ul>
+<li>色覚障害者への配慮</li></ul>
+
+
+<h2>📋 統一ルール</h2>
+
+<h3>ページヘッダー</h3>
+<p>
+``<code>tsx
+// ✅ 正しい実装
+<PageHeader
+title="ページタイトル"
+subtitle="サブタイトル（任意）"
+icon={<IconComponent />}
+actions={<>アクションボタン</>}
+region="global" // americas, europe, asia, africa, oceania
+/>
+</p>
+
+<p>
+// ❌ 避けるべき実装
+</p>
+<div className="intelligence-card global">
+<div className="p-8">
+<h1>ページタイトル</h1>
+</div>
+</div>
+<p>
+</code>`<code>
+</p>
+
+<h3>ボタンコンポーネント</h3>
+<p>
+</code>`<code>tsx
+// ✅ 正しい実装
+<NexusButton
+variant="primary" // default, primary, secondary, danger
+size="md" // sm, md, lg
+onClick={handleClick}
+icon={<IconComponent />}
+>
+ボタンテキスト
+</NexusButton>
+</p>
+
+<p>
+// ❌ 避けるべき実装
+<button className="nexus-button primary">
+ボタンテキスト
+</button>
+</code>`<code>
+</p>
+
+<h3>カードコンポーネント</h3>
+<p>
+</code>`<code>tsx
+// ✅ 正しい実装
+<NexusCard
+region="global" // americas, europe, asia, africa, oceania
+title="カードタイトル"
+subtitle="サブタイトル"
+gradient={true}
+>
+</p>
+<div>カードコンテンツ</div>
+<p>
+</NexusCard>
+</p>
+
+<p>
+// ❌ 避けるべき実装
+</p>
+<div className="intelligence-card global">
+<div className="p-6">
+<h3>カードタイトル</h3>
+<div>カードコンテンツ</div>
+</div>
+</div>
+<p>
+</code>`<code>
+</p>
+
+<h3>モーダルコンポーネント</h3>
+<p>
+</code>`<code>tsx
+// ✅ 正しい実装
+<BaseModal
+isOpen={isOpen}
+onClose={onClose}
+title="モーダルタイトル"
+size="md" // sm, md, lg, xl, full
+>
+</p>
+<div className="p-6">
+<p>
+モーダルコンテンツ
+</div>
+</BaseModal>
+</p>
+
+<p>
+// ❌ 避けるべき実装
+</p>
+<div className="fixed inset-0 bg-gray-500 bg-opacity-30 z-50">
+<div className="bg-white p-6 rounded-2xl">
+<p>
+独自モーダル実装
+</div>
+</div>
+</code>`<code>
+</p>
+
+<h2>🎨 カラーパレット</h2>
+
+<h3>地域別カラーリング</h3>
+<ul>
+<li><strong>Global</strong>: </code>#7B1FA2<code> (Purple)</li></ul>
+
+<ul>
+<li><strong>Americas</strong>: </code>#0064D2<code> (Blue)</li></ul>
+
+<ul>
+<li><strong>Europe</strong>: </code>#E53238<code> (Red)</li></ul>
+
+<ul>
+<li><strong>Asia</strong>: </code>#FFCE00<code> (Yellow)</li></ul>
+
+<ul>
+<li><strong>Africa</strong>: </code>#86B817<code> (Green)</li></ul>
+
+<ul>
+<li><strong>Oceania</strong>: </code>#00BCD4<code> (Cyan)</li></ul>
+
+
+<h3>ステータスカラー</h3>
+<ul>
+<li><strong>Success</strong>: </code>#86B817<code></li></ul>
+
+<ul>
+<li><strong>Warning</strong>: </code>#FFCE00<code></li></ul>
+
+<ul>
+<li><strong>Error</strong>: </code>#E53238<code></li></ul>
+
+<ul>
+<li><strong>Info</strong>: </code>#00BCD4<code></li></ul>
+
+
+<h3>ニュートラルカラー</h3>
+<ul>
+<li><strong>Primary Text</strong>: </code>#1A1A1A<code></li></ul>
+
+<ul>
+<li><strong>Secondary Text</strong>: </code>#666666<code></li></ul>
+
+<ul>
+<li><strong>Muted Text</strong>: </code>#999999<code></li></ul>
+
+<ul>
+<li><strong>Background</strong>: </code>#F8FAFE<code></li></ul>
+
+<ul>
+<li><strong>Surface</strong>: </code>rgba(255, 255, 255, 0.97)<code></li></ul>
+
+
+<h2>📱 レスポンシブ対応</h2>
+
+<h3>ブレークポイント</h3>
+<ul>
+<li><strong>Mobile</strong>: </code>< 768px<code></li></ul>
+
+<ul>
+<li><strong>Tablet</strong>: </code>768px - 1024px<code></li></ul>
+
+<ul>
+<li><strong>Laptop</strong>: </code>1024px - 1440px<code></li></ul>
+
+<ul>
+<li><strong>Desktop</strong>: </code>> 1440px<code></li></ul>
+
+
+<h3>タッチターゲット</h3>
+<ul>
+<li><strong>最小サイズ</strong>: 44px × 44px</li></ul>
+
+<ul>
+<li><strong>推奨サイズ</strong>: 48px × 48px</li></ul>
+
+<ul>
+<li><strong>間隔</strong>: 8px以上</li></ul>
+
+
+<h3>フォントサイズ</h3>
+<ul>
+<li><strong>Mobile</strong>: 基本14px、見出し16px</li></ul>
+
+<ul>
+<li><strong>Tablet</strong>: 基本15px、見出し18px</li></ul>
+
+<ul>
+<li><strong>Desktop</strong>: 基本16px、見出し20px</li></ul>
+
+
+<h2>🔧 実装チェックリスト</h2>
+
+<h3>ページレベル</h3>
+<ul>
+<li>[ ] PageHeaderコンポーネント使用</li></ul>
+
+<ul>
+<li>[ ] NexusButtonコンポーネント使用</li></ul>
+
+<ul>
+<li>[ ] NexusCardコンポーネント使用</li></ul>
+
+<ul>
+<li>[ ] BaseModalコンポーネント使用</li></ul>
+
+<ul>
+<li>[ ] レスポンシブ対応完了</li></ul>
+
+<ul>
+<li>[ ] アクセシビリティ対応完了</li></ul>
+
+
+<h3>コンポーネントレベル</h3>
+<ul>
+<li>[ ] TypeScript型定義</li></ul>
+
+<ul>
+<li>[ ] props validation</li></ul>
+
+<ul>
+<li>[ ] デフォルト値設定</li></ul>
+
+<ul>
+<li>[ ] エラーハンドリング</li></ul>
+
+<ul>
+<li>[ ] ローディング状態対応</li></ul>
+
+
+<h3>スタイリングレベル</h3>
+<ul>
+<li>[ ] 地域別カラーリング適用</li></ul>
+
+<ul>
+<li>[ ] ホバーエフェクト実装</li></ul>
+
+<ul>
+<li>[ ] トランジション効果</li></ul>
+
+<ul>
+<li>[ ] シャドウ効果</li></ul>
+
+<ul>
+<li>[ ] グラデーション効果</li></ul>
+
+
+<h2>🚀 移行計画</h2>
+
+<h3>Phase 1: コアコンポーネント統一</h3>
+<ul>
+<li>全ページでPageHeaderコンポーネント使用</li></ul>
+
+<ul>
+<li>ボタンをNexusButtonに統一</li></ul>
+
+<ul>
+<li>カードをNexusCardに統一</li></ul>
+
+<ul>
+<li>モーダルをBaseModalに統一</li></ul>
+
+
+<h3>Phase 2: 詳細調整</h3>
+<ul>
+<li>レスポンシブ対応の完全実装</li></ul>
+
+<ul>
+<li>アクセシビリティ改善</li></ul>
+
+<ul>
+<li>アニメーション効果統一</li></ul>
+
+<ul>
+<li>エラーハンドリング統一</li></ul>
+
+
+<h3>Phase 3: 品質保証</h3>
+<ul>
+<li>E2Eテスト実装</li></ul>
+
+<ul>
+<li>ユーザビリティテスト</li></ul>
+
+<ul>
+<li>パフォーマンス最適化</li></ul>
+
+<ul>
+<li>ドキュメント整備</li></ul>
+
+
+<h2>📊 品質指標</h2>
+
+<h3>統一性指標</h3>
+<ul>
+<li>コンポーネント使用率: 95%以上</li></ul>
+
+<ul>
+<li>CSS直接使用率: 5%以下</li></ul>
+
+<ul>
+<li>レスポンシブ対応率: 100%</li></ul>
+
+<ul>
+<li>アクセシビリティスコア: A級</li></ul>
+
+
+<h3>パフォーマンス指標</h3>
+<ul>
+<li>ページ読み込み時間: 2秒以下</li></ul>
+
+<ul>
+<li>インタラクション遅延: 100ms以下</li></ul>
+
+<ul>
+<li>CLS (Cumulative Layout Shift): 0.1以下</li></ul>
+
+<ul>
+<li>FCP (First Contentful Paint): 1.5秒以下</li></ul>
+
+
+<h2>🔍 検証方法</h2>
+
+<h3>自動検証</h3>
+<p>
+</code>`<code>bash
+</p>
+<h1>ESLint + Prettier</h1>
+<p>
+npm run lint
+</p>
+
+<h1>TypeScript型チェック</h1>
+<p>
+npm run type-check
+</p>
+
+<h1>E2Eテスト</h1>
+<p>
+npm run test:e2e
+</p>
+
+<h1>アクセシビリティテスト</h1>
+<p>
+npm run test:a11y
+</code>`<code>
+</p>
+
+<h3>手動検証</h3>
+<ul>
+<li>各ブレークポイントでのレイアウト確認</li></ul>
+
+<ul>
+<li>タッチデバイスでの操作確認</li></ul>
+
+<ul>
+<li>キーボードナビゲーション確認</li></ul>
+
+<ul>
+<li>スクリーンリーダー対応確認</li></ul>
+
+
+<h2>📚 参考資料</h2>
+
+<ul>
+<li><a href="https://material.io/design">Material Design Guidelines</a></li></ul>
+
+<ul>
+<li><a href="https://www.w3.org/WAI/WCAG21/quickref/">WCAG 2.1 Guidelines</a></li></ul>
+
+<ul>
+<li><a href="https://react-typescript-cheatsheet.netlify.app/">React Component Design Patterns</a></li></ul>
+
+<ul>
+<li><a href="https://tailwindcss.com/docs/best-practices">Tailwind CSS Best Practices</a></li></ul>
+
+
+<hr>
+
+<p>
+<strong>最終更新</strong>: 2025年10月3日
+<strong>バージョン</strong>: 2.0.0
+<strong>責任者</strong>: Development Team
+</p>
+
+<h2>📝 重要な変更点（v2.0）</h2>
+
+<h3>実装状況の反映</h3>
+<ul>
+<li>現在、本プロジェクトではNexusデザインシステムは<strong>部分的に実装</strong>されています</li></ul>
+
+<ul>
+<li>カスタムコンポーネントは </code>app/components/<code> に配置されています</li></ul>
+
+<ul>
+<li>Tailwind CSSを直接使用する箇所も多く存在します</li></ul>
+
+
+<h3>実際の実装パターン</h3>
+<p>
+</code>`<code>tsx
+// 現在の主な実装パターン
+import { Button } from '@/app/components/ui/Button';
+</p>
+
+<p>
+// Tailwind CSS直接使用も許容されています
+</p>
+<div className="bg-white rounded-lg shadow-md p-6">
+<h2 className="text-xl font-bold mb-4">タイトル</h2>
+<p>
+<Button variant="primary">アクション</Button>
+</div>
+</code>``
+</p>
+
+<h3>移行中の状態</h3>
+<p>
+このドキュメントは理想的なデザインガイドラインを示していますが、実際の実装は段階的に移行中です。新規機能開発時は可能な限りこのガイドラインに従うことを推奨します。
+</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,1599 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Production Deployment Guide</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --bg-light: #f8fafc;
+            --bg-white: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --code-bg: #1e293b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif, 'Noto Sans JP';
+            line-height: 1.8;
+            color: var(--text-primary);
+            background-color: var(--bg-light);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--bg-white);
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        h3 {
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        h4 {
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+
+        h5, h6 {
+            color: var(--text-primary);
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin-bottom: 15px;
+            line-height: 1.8;
+        }
+
+        a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        ul, ol {
+            margin-bottom: 15px;
+            padding-left: 30px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        code {
+            background: var(--bg-light);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #d63384;
+        }
+
+        pre {
+            background: var(--code-bg);
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        pre code {
+            background: transparent;
+            padding: 0;
+            color: inherit;
+            font-size: 0.95em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background: var(--bg-light);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        hr {
+            border: none;
+            border-top: 2px solid var(--border-color);
+            margin: 30px 0;
+        }
+
+        strong {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        em {
+            font-style: italic;
+        }
+
+        blockquote {
+            border-left: 4px solid var(--primary-color);
+            padding-left: 20px;
+            margin: 20px 0;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            background: #1d4ed8;
+            text-decoration: none;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            .container {
+                box-shadow: none;
+                padding: 20px;
+            }
+            .back-link {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← 引き継ぎ資料トップに戻る</a>
+        <h1>本番運用に必要な構成要素と対処方法</h1>
+
+<p>
+<strong>最終更新日</strong>: 2025年10月3日
+<strong>ステータス</strong>: 📋 計画書（本番環境未構築）
+</p>
+
+<h2>⚠️ 重要な注意事項</h2>
+
+<p>
+このドキュメントは本番環境への移行計画書です。現在は開発環境（SQLite + モックサービス）で稼働しており、本番環境への移行は未実施です。
+</p>
+
+<p>
+本番環境構築時には、このドキュメントに記載された手順に従って段階的に移行を行ってください。
+</p>
+
+<h2>目次</h2>
+<ul>
+<li><a href="#概要">概要</a></li></ul>
+
+<ul>
+<li><a href="#現状の開発環境の制限事項">現状の開発環境の制限事項</a></li></ul>
+
+<ul>
+<li><a href="#本番環境への移行に必要な構成要素">本番環境への移行に必要な構成要素</a></li></ul>
+
+<ul>
+<li><a href="#段階的移行計画">段階的移行計画</a></li></ul>
+
+<ul>
+<li><a href="#詳細な対処方法">詳細な対処方法</a></li></ul>
+
+<ul>
+<li><a href="#チェックリスト">チェックリスト</a></li></ul>
+
+
+<h2>概要</h2>
+
+<p>
+本ドキュメントは、FBT-v1（The World Door）プロジェクトを開発環境から本番環境へ移行するために必要な構成要素と具体的な対処方法を詳細に記載したものです。現在の開発環境では、モックデータとローカルデータベース（SQLite）を使用しており、外部サービスとの連携もすべてモック化されています。本番運用では、これらをすべて実際のサービスに置き換える必要があります。
+</p>
+
+<h2>現状の開発環境の制限事項</h2>
+
+<h3>1. データベース層の制限</h3>
+
+<h4>現在の構成</h4>
+<ul>
+<li><strong>データベース</strong>: SQLite（ファイルベース）</li></ul>
+
+<p>
+- ファイルパス: <code>prisma/dev.db</code>
+- 同時接続数: 制限あり（デフォルト5接続）
+- トランザクション: 基本的なACIDサポートのみ
+- パフォーマンス: 小規模データには十分だが、大規模運用には不適
+</p>
+
+<h4>制限事項</h4>
+<ul>
+<li>複数サーバーからの同時アクセス不可</li></ul>
+
+<ul>
+<li>レプリケーション機能なし</li></ul>
+
+<ul>
+<li>高度なクエリ最適化機能の欠如</li></ul>
+
+<ul>
+<li>バックアップ・リストアの制限</li></ul>
+
+<ul>
+<li>JSON型やArray型などの高度なデータ型のサポート不足</li></ul>
+
+
+<h3>2. 外部サービス連携の制限</h3>
+
+<h4>eBay API</h4>
+<ul>
+<li><strong>現状</strong>: モックAPI（<code>/api/mock/ebay/*</code>）</li></ul>
+
+<ul>
+<li><strong>制限事項</strong>:</li></ul>
+
+<p>
+- 固定レスポンスのみ返却
+- 実際の商品出品不可
+- 在庫同期機能なし
+- 注文情報の取得不可
+</p>
+
+<h4>配送サービス（FedEx、ヤマト運輸、佐川急便）</h4>
+<ul>
+<li><strong>現状</strong>: すべてモックAPI</li></ul>
+
+<ul>
+<li><strong>制限事項</strong>:</li></ul>
+
+<p>
+- 実際のラベル生成不可
+- トラッキング情報の取得不可
+- 料金計算の精度不足
+- 配送ステータスの更新なし
+</p>
+
+<h4>メール送信（SendGrid）</h4>
+<ul>
+<li><strong>現状</strong>: コンソール出力のみ</li></ul>
+
+<ul>
+<li><strong>制限事項</strong>:</li></ul>
+
+<p>
+- 実際のメール送信不可
+- バウンス・苦情処理なし
+- 開封率・クリック率の追跡不可
+</p>
+
+<h4>ファイルストレージ</h4>
+<ul>
+<li><strong>現状</strong>: ローカルファイルシステム（<code>uploads/</code>ディレクトリ）</li></ul>
+
+<ul>
+<li><strong>制限事項</strong>:</li></ul>
+
+<p>
+- スケーラビリティの欠如
+- CDN配信不可
+- 冗長性なし
+- アクセス制御の制限
+</p>
+
+<h3>3. セキュリティ関連の制限</h3>
+
+<h4>認証・認可</h4>
+<ul>
+<li><strong>現状</strong>:</li></ul>
+
+<p>
+- 固定パスワード（<code>password123</code>）
+- 2段階認証無効
+- JWT秘密鍵が固定値（<code>dev-secret-key</code>）
+</p>
+<ul>
+<li><strong>制限事項</strong>:</li></ul>
+
+<p>
+- セキュリティリスクが高い
+- 本番環境での使用は不可
+</p>
+
+<h4>セッション管理</h4>
+<ul>
+<li><strong>現状</strong>: インメモリセッション（24時間有効）</li></ul>
+
+<ul>
+<li><strong>制限事項</strong>:</li></ul>
+
+<p>
+- サーバー再起動でセッション消失
+- 複数サーバー間でのセッション共有不可
+</p>
+
+<h3>4. パフォーマンス・スケーラビリティの制限</h3>
+
+<ul>
+<li><strong>キャッシュ</strong>: なし（本番環境ではRedis使用予定）</li></ul>
+
+<ul>
+<li><strong>レート制限</strong>: なし</li></ul>
+
+<ul>
+<li><strong>負荷分散</strong>: 非対応</li></ul>
+
+<ul>
+<li><strong>監視・ログ</strong>: 基本的なコンソールログのみ</li></ul>
+
+
+<h2>本番環境への移行に必要な構成要素</h2>
+
+<h3>1. インフラストラクチャ</h3>
+
+<h4>1.1 アプリケーションサーバー</h4>
+<ul>
+<li><strong>推奨構成</strong>:</li></ul>
+
+<p>
+- AWS EC2 / Google Compute Engine / Azure VM
+- 最小構成: 2vCPU, 4GB RAM × 2インスタンス
+- 推奨構成: 4vCPU, 8GB RAM × 3インスタンス以上
+- Auto Scaling設定
+</p>
+
+<h4>1.2 ロードバランサー</h4>
+<ul>
+<li><strong>選択肢</strong>:</li></ul>
+
+<p>
+- AWS Application Load Balancer
+- Google Cloud Load Balancer
+- Azure Load Balancer
+</p>
+<ul>
+<li><strong>設定項目</strong>:</li></ul>
+
+<p>
+- SSL終端
+- ヘルスチェック（<code>/api/health</code>）
+- セッションアフィニティ
+</p>
+
+<h4>1.3 データベースサーバー</h4>
+<ul>
+<li><strong>推奨</strong>: PostgreSQL 14以上</li></ul>
+
+<ul>
+<li><strong>最小構成</strong>:</li></ul>
+
+<p>
+- AWS RDS db.t3.medium
+- 100GB SSD
+- 自動バックアップ有効
+</p>
+<ul>
+<li><strong>推奨構成</strong>:</li></ul>
+
+<p>
+- AWS RDS db.m5.large
+- 500GB SSD
+- マルチAZ配置
+- リードレプリカ × 1
+</p>
+
+<h4>1.4 キャッシュサーバー</h4>
+<ul>
+<li><strong>推奨</strong>: Redis 6.2以上</li></ul>
+
+<ul>
+<li><strong>構成</strong>:</li></ul>
+
+<p>
+- AWS ElastiCache redis.t3.micro（最小）
+- AWS ElastiCache redis.m5.large（推奨）
+- クラスターモード有効
+</p>
+
+<h4>1.5 ファイルストレージ</h4>
+<ul>
+<li><strong>推奨</strong>: AWS S3</li></ul>
+
+<ul>
+<li><strong>バケット構成</strong>:</li></ul>
+
+<p>
+``<code>
+fbt-production/
+├── product-images/
+├── shipping-labels/
+├── inspection-videos/
+├── documents/
+└── temp/
+</code>`<code>
+</p>
+<ul>
+<li><strong>設定</strong>:</li></ul>
+
+<p>
+- バージョニング有効
+- ライフサイクルポリシー設定
+- CloudFront CDN連携
+</p>
+
+<h3>2. 外部サービス連携</h3>
+
+<h4>2.1 eBay API統合</h4>
+<ul>
+<li><strong>必要な認証情報</strong>:</li></ul>
+
+<p>
+</code>`<code>
+EBAY<em>CLIENT</em>ID=<Production App ID>
+EBAY<em>CLIENT</em>SECRET=<Production Cert ID>
+EBAY<em>OAUTH</em>REFRESH_TOKEN=<OAuth Refresh Token>
+EBAY_ENVIRONMENT=PRODUCTION
+</code>`<code>
+</p>
+<ul>
+<li><strong>APIスコープ</strong>:</li></ul>
+
+<p>
+- sell.inventory
+- sell.fulfillment
+- sell.analytics
+- sell.marketing
+</p>
+
+<h4>2.2 FedEx API統合</h4>
+<ul>
+<li><strong>必要な認証情報</strong>:</li></ul>
+
+<p>
+</code>`<code>
+FEDEX<em>ACCOUNT</em>NUMBER=<アカウント番号>
+FEDEX<em>METER</em>NUMBER=<メーター番号>
+FEDEX_KEY=<認証キー>
+FEDEX_PASSWORD=<パスワード>
+FEDEX_ENVIRONMENT=production
+</code>`<code>
+</p>
+<ul>
+<li><strong>必要なサービス</strong>:</li></ul>
+
+<p>
+- Ship Service
+- Track Service
+- Rate Service
+</p>
+
+<h4>2.3 SendGrid（メール送信）</h4>
+<ul>
+<li><strong>必要な設定</strong>:</li></ul>
+
+<p>
+</code>`<code>
+SENDGRID<em>API</em>KEY=<APIキー>
+SENDGRID<em>FROM</em>EMAIL=noreply@yourcompany.com
+SENDGRID<em>FROM</em>NAME=The World Door
+</code>`<code>
+</p>
+<ul>
+<li><strong>テンプレート設定</strong>:</li></ul>
+
+<p>
+- ウェルカムメール
+- パスワードリセット
+- 2段階認証コード
+- 注文確認
+- 配送通知
+</p>
+
+<h4>2.4 AWS S3（ファイルストレージ）</h4>
+<ul>
+<li><strong>必要な設定</strong>:</li></ul>
+
+<p>
+</code>`<code>
+AWS<em>ACCESS</em>KEY_ID=<アクセスキー>
+AWS<em>SECRET</em>ACCESS_KEY=<シークレットキー>
+AWS_REGION=ap-northeast-1
+AWS<em>S3</em>BUCKET=fbt-production
+</code>`<code>
+</p>
+<ul>
+<li><strong>IAMポリシー</strong>:</li></ul>
+
+<p>
+</code>`<code>json
+{
+"Version": "2012-10-17",
+"Statement": [
+{
+"Effect": "Allow",
+"Action": [
+"s3:PutObject",
+"s3:GetObject",
+"s3:DeleteObject",
+"s3:ListBucket"
+],
+"Resource": [
+"arn:aws:s3:::fbt-production/*",
+"arn:aws:s3:::fbt-production"
+]
+}
+]
+}
+</code>`<code>
+</p>
+
+<h4>2.5 OpenAI API（AI機能）</h4>
+<ul>
+<li><strong>必要な設定</strong>:</li></ul>
+
+<p>
+</code>`<code>
+OPENAI<em>API</em>KEY=<APIキー>
+OPENAI_MODEL=gpt-4
+</code>`<code>
+</p>
+
+<h3>3. セキュリティ設定</h3>
+
+<h4>3.1 SSL/TLS証明書</h4>
+<ul>
+<li><strong>推奨</strong>: Let's Encrypt（無料）またはAWS Certificate Manager</li></ul>
+
+<ul>
+<li><strong>設定</strong>:</li></ul>
+
+<p>
+- 強制HTTPS
+- HSTS有効化
+- TLS 1.2以上
+</p>
+
+<h4>3.2 環境変数管理</h4>
+<ul>
+<li><strong>推奨ツール</strong>:</li></ul>
+
+<p>
+- AWS Secrets Manager
+- HashiCorp Vault
+- Azure Key Vault
+</p>
+<ul>
+<li><strong>管理対象</strong>:</li></ul>
+
+<p>
+- データベース接続情報
+- API認証情報
+- JWT秘密鍵
+- 暗号化キー
+</p>
+
+<h4>3.3 セキュリティヘッダー</h4>
+<p>
+</code>`<code>typescript
+// next.config.js
+const securityHeaders = [
+{
+key: 'X-DNS-Prefetch-Control',
+value: 'on'
+},
+{
+key: 'Strict-Transport-Security',
+value: 'max-age=63072000; includeSubDomains; preload'
+},
+{
+key: 'X-Frame-Options',
+value: 'SAMEORIGIN'
+},
+{
+key: 'X-Content-Type-Options',
+value: 'nosniff'
+},
+{
+key: 'X-XSS-Protection',
+value: '1; mode=block'
+},
+{
+key: 'Referrer-Policy',
+value: 'origin-when-cross-origin'
+},
+{
+key: 'Content-Security-Policy',
+value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline';"
+}
+]
+</code>`<code>
+</p>
+
+<h3>4. 監視・ログ管理</h3>
+
+<h4>4.1 アプリケーション監視</h4>
+<ul>
+<li><strong>Sentry（エラー監視）</strong>:</li></ul>
+
+<p>
+</code>`<code>
+SENTRY_DSN=<Sentry DSN>
+SENTRY_ENVIRONMENT=production
+</code>`<code>
+</p>
+<ul>
+<li><strong>設定項目</strong>:</li></ul>
+
+<p>
+- エラー通知
+- パフォーマンス監視
+- リリース追跡
+</p>
+
+<h4>4.2 インフラ監視</h4>
+<ul>
+<li><strong>Datadog / CloudWatch / Azure Monitor</strong>:</li></ul>
+
+<p>
+- CPU/メモリ使用率
+- ディスク使用率
+- ネットワークトラフィック
+- データベース接続数
+- レスポンスタイム
+</p>
+
+<h4>4.3 ログ管理</h4>
+<ul>
+<li><strong>推奨構成</strong>:</li></ul>
+
+<p>
+</code>`<code>
+アプリケーション → CloudWatch Logs → S3（長期保存）
+↓
+Elasticsearch（検索・分析）
+</code>`<code>
+</p>
+<ul>
+<li><strong>ログレベル</strong>: production環境では</code>info<code>以上</li></ul>
+
+
+<h3>5. バックアップ・災害復旧</h3>
+
+<h4>5.1 データベースバックアップ</h4>
+<ul>
+<li><strong>自動バックアップ</strong>:</li></ul>
+
+<p>
+- 日次フルバックアップ
+- 5分ごとのトランザクションログ
+- 30日間保持
+</p>
+<ul>
+<li><strong>手動バックアップ</strong>:</li></ul>
+
+<p>
+- リリース前後
+- 大規模データ変更前
+</p>
+
+<h4>5.2 ファイルバックアップ</h4>
+<ul>
+<li><strong>S3設定</strong>:</li></ul>
+
+<p>
+- バージョニング有効
+- クロスリージョンレプリケーション
+- Glacier移行（90日以降）
+</p>
+
+<h4>5.3 災害復旧計画</h4>
+<ul>
+<li><strong>RTO（目標復旧時間）</strong>: 4時間</li></ul>
+
+<ul>
+<li><strong>RPO（目標復旧時点）</strong>: 1時間</li></ul>
+
+<ul>
+<li><strong>復旧手順書の作成</strong></li></ul>
+
+
+<h2>段階的移行計画</h2>
+
+<h3>Phase 1: 開発環境の準備（1週間）</h3>
+<ul>
+<li>本番用環境変数の準備</li></ul>
+
+<ul>
+<li>外部サービスアカウントの作成</li></ul>
+
+<ul>
+<li>SSL証明書の取得</li></ul>
+
+<ul>
+<li>ドメイン設定</li></ul>
+
+
+<h3>Phase 2: ステージング環境構築（2週間）</h3>
+<ul>
+<li>インフラ構築（最小構成）</li></ul>
+
+<ul>
+<li>データベース移行</li></ul>
+
+<ul>
+<li>外部サービス連携テスト</li></ul>
+
+<ul>
+<li>セキュリティ設定</li></ul>
+
+
+<h3>Phase 3: 本番環境構築（1週間）</h3>
+<ul>
+<li>本番インフラ構築</li></ul>
+
+<ul>
+<li>負荷テスト</li></ul>
+
+<ul>
+<li>セキュリティ監査</li></ul>
+
+<ul>
+<li>バックアップ設定</li></ul>
+
+
+<h3>Phase 4: データ移行（3日間）</h3>
+<ul>
+<li>マスターデータ投入</li></ul>
+
+<ul>
+<li>初期ユーザー作成</li></ul>
+
+<ul>
+<li>権限設定</li></ul>
+
+<ul>
+<li>動作確認</li></ul>
+
+
+<h3>Phase 5: 切り替え（1日）</h3>
+<ul>
+<li>DNSの切り替え</li></ul>
+
+<ul>
+<li>監視開始</li></ul>
+
+<ul>
+<li>本番稼働</li></ul>
+
+
+<h2>詳細な対処方法</h2>
+
+<h3>1. データベース移行手順</h3>
+
+<h4>1.1 PostgreSQL環境準備</h4>
+<p>
+</code>`<code>bash
+</p>
+<h1>1. PostgreSQLのインストール（ローカル開発用）</h1>
+<p>
+sudo apt-get update
+sudo apt-get install postgresql postgresql-contrib
+</p>
+
+<h1>2. データベースとユーザーの作成</h1>
+<p>
+sudo -u postgres psql
+CREATE DATABASE fbt_production;
+CREATE USER fbt<em>user WITH ENCRYPTED PASSWORD 'your</em>secure_password';
+GRANT ALL PRIVILEGES ON DATABASE fbt<em>production TO fbt</em>user;
+</code>`<code>
+</p>
+
+<h4>1.2 Prismaスキーマの更新</h4>
+<p>
+</code>`<code>prisma
+// prisma/schema.prisma
+datasource db {
+provider = "postgresql"  // SQLiteから変更
+url      = env("DATABASE_URL")
+}
+</p>
+
+<p>
+// PostgreSQL特有の機能を活用
+model Product {
+id          String   @id @default(uuid()) // UUIDを使用
+data        Json     // JSON型を活用
+tags        String[] // 配列型を使用
+// ...
+}
+</code>`<code>
+</p>
+
+<h4>1.3 データ移行スクリプト</h4>
+<p>
+</code>`<code>typescript
+// scripts/migrate-to-postgres.ts
+import { PrismaClient as SqliteClient } from '@prisma/client'
+import { PrismaClient as PostgresClient } from './generated/postgres-client'
+</p>
+
+<p>
+async function migrateData() {
+const sqlite = new SqliteClient({
+datasources: { db: { url: 'file:./dev.db' } }
+})
+</p>
+
+<p>
+const postgres = new PostgresClient({
+datasources: { db: { url: process.env.DATABASE_URL } }
+})
+</p>
+
+<p>
+// トランザクションで移行
+await postgres.$transaction(async (tx) => {
+// Users
+const users = await sqlite.user.findMany()
+await tx.user.createMany({ data: users })
+</p>
+
+<p>
+// Products
+const products = await sqlite.product.findMany()
+await tx.product.createMany({ data: products })
+</p>
+
+<p>
+// ... 他のテーブルも同様に
+})
+}
+</code>`<code>
+</p>
+
+<h3>2. APIルートの本番対応</h3>
+
+<h4>2.1 環境による分岐の実装</h4>
+<p>
+</code>`<code>typescript
+// lib/config/index.ts
+export function getConfig() {
+const env = process.env.NODE_ENV || 'development'
+</p>
+
+<p>
+if (env === 'production') {
+return productionConfig
+}
+</p>
+
+<p>
+return developmentConfig
+}
+</p>
+
+<p>
+// API routeでの使用例
+// app/api/products/route.ts
+import { getConfig } from '@/lib/config'
+</p>
+
+<p>
+export async function GET() {
+const config = getConfig()
+</p>
+
+<p>
+if (config.dataSource === 'prisma') {
+try {
+const products = await prisma.product.findMany()
+return NextResponse.json(products)
+} catch (error) {
+// 本番環境ではエラーをSentryに送信
+captureException(error)
+return NextResponse.json(
+{ error: 'Internal Server Error' },
+{ status: 500 }
+)
+}
+}
+</p>
+
+<p>
+// 開発環境のみモックデータ
+return NextResponse.json(mockProducts)
+}
+</code>`<code>
+</p>
+
+<h4>2.2 外部サービスアダプターの本番対応</h4>
+<p>
+</code>`<code>typescript
+// lib/services/adapters/ebay.adapter.ts
+export class EbayAdapter {
+private client: any
+</p>
+
+<p>
+constructor() {
+const config = getConfig()
+</p>
+
+<p>
+if (config.ebay.useMock) {
+this.client = new MockEbayClient()
+} else {
+this.client = new EbayClient({
+clientId: process.env.EBAY<em>CLIENT</em>ID,
+clientSecret: process.env.EBAY<em>CLIENT</em>SECRET,
+refreshToken: process.env.EBAY<em>OAUTH</em>REFRESH_TOKEN,
+environment: process.env.EBAY_ENVIRONMENT
+})
+}
+}
+</p>
+
+<p>
+async createListing(product: Product) {
+try {
+const listing = await this.client.inventory.createOrReplaceInventoryItem({
+sku: product.sku,
+product: {
+title: product.title,
+description: product.description,
+imageUrls: product.images,
+aspects: this.mapProductAspects(product)
+},
+condition: product.condition,
+availability: {
+shipToLocationAvailability: {
+quantity: product.quantity
+}
+}
+})
+</p>
+
+<p>
+return listing
+} catch (error) {
+// エラーハンドリング
+throw new EbayApiError('Failed to create listing', error)
+}
+}
+}
+</code>`<code>
+</p>
+
+<h3>3. セキュリティ強化の実装</h3>
+
+<h4>3.1 JWT認証の強化</h4>
+<p>
+</code>`<code>typescript
+// lib/auth.ts
+import jwt from 'jsonwebtoken'
+import { randomBytes } from 'crypto'
+</p>
+
+<p>
+// 本番環境では環境変数から取得
+const JWT<em>SECRET = process.env.JWT</em>SECRET || generateSecureKey()
+</p>
+
+<p>
+function generateSecureKey() {
+if (process.env.NODE_ENV === 'production') {
+throw new Error('JWT_SECRET must be set in production')
+}
+return randomBytes(64).toString('hex')
+}
+</p>
+
+<p>
+export async function createToken(userId: string) {
+const config = getConfig()
+</p>
+
+<p>
+return jwt.sign(
+{
+userId,
+iat: Date.now(),
+exp: Date.now() + config.security.sessionExpiry
+},
+JWT_SECRET,
+{ algorithm: 'HS512' }
+)
+}
+</code>`<code>
+</p>
+
+<h4>3.2 2段階認証の実装</h4>
+<p>
+</code>`<code>typescript
+// lib/services/two-factor-auth.service.ts
+import { authenticator } from 'otplib'
+import QRCode from 'qrcode'
+</p>
+
+<p>
+export class TwoFactorAuthService {
+async generateSecret(user: User) {
+const secret = authenticator.generateSecret()
+const otpauth = authenticator.keyuri(
+user.email,
+'The World Door',
+secret
+)
+</p>
+
+<p>
+const qrCode = await QRCode.toDataURL(otpauth)
+</p>
+
+<p>
+return { secret, qrCode }
+}
+</p>
+
+<p>
+async verifyToken(secret: string, token: string) {
+return authenticator.verify({
+token,
+secret
+})
+}
+}
+</code>`<code>
+</p>
+
+<h4>3.3 レート制限の実装</h4>
+<p>
+</code>`<code>typescript
+// middleware/rate-limit.ts
+import { Redis } from 'ioredis'
+import { NextRequest, NextResponse } from 'next/server'
+</p>
+
+<p>
+const redis = new Redis(process.env.REDIS_URL)
+</p>
+
+<p>
+export async function rateLimit(req: NextRequest) {
+const ip = req.ip || req.headers.get('x-forwarded-for')
+const key = </code>rate-limit:${ip}<code>
+</p>
+
+<p>
+const current = await redis.incr(key)
+</p>
+
+<p>
+if (current === 1) {
+await redis.expire(key, 900) // 15分
+}
+</p>
+
+<p>
+if (current > 100) {
+return NextResponse.json(
+{ error: 'Too many requests' },
+{ status: 429 }
+)
+}
+</p>
+
+<p>
+return NextResponse.next()
+}
+</code>`<code>
+</p>
+
+<h3>4. 監視・ログ設定</h3>
+
+<h4>4.1 Sentry設定</h4>
+<p>
+</code>`<code>typescript
+// app/layout.tsx
+import * as Sentry from '@sentry/nextjs'
+</p>
+
+<p>
+if (process.env.NODE_ENV === 'production') {
+Sentry.init({
+dsn: process.env.SENTRY_DSN,
+environment: process.env.SENTRY_ENVIRONMENT,
+tracesSampleRate: 0.1,
+beforeSend(event) {
+// 機密情報のフィルタリング
+if (event.request?.cookies) {
+delete event.request.cookies
+}
+return event
+}
+})
+}
+</code>`<code>
+</p>
+
+<h4>4.2 構造化ログの実装</h4>
+<p>
+</code>`<code>typescript
+// lib/logger.ts
+import winston from 'winston'
+import { CloudWatchTransport } from 'winston-cloudwatch'
+</p>
+
+<p>
+const logger = winston.createLogger({
+format: winston.format.combine(
+winston.format.timestamp(),
+winston.format.errors({ stack: true }),
+winston.format.json()
+),
+defaultMeta: {
+service: 'fbt-api',
+environment: process.env.NODE_ENV
+},
+transports: [
+new winston.transports.Console({
+level: process.env.LOG_LEVEL || 'info'
+})
+]
+})
+</p>
+
+<p>
+if (process.env.NODE_ENV === 'production') {
+logger.add(new CloudWatchTransport({
+logGroupName: '/aws/elasticbeanstalk/fbt-production',
+logStreamName: process.env.HOSTNAME || 'default',
+awsRegion: process.env.AWS_REGION
+}))
+}
+</p>
+
+<p>
+export { logger }
+</code>`<code>
+</p>
+
+<h3>5. デプロイメント設定</h3>
+
+<h4>5.1 Docker設定</h4>
+<p>
+</code>`<code>dockerfile
+</p>
+<h1>Dockerfile</h1>
+<p>
+FROM node:18-alpine AS deps
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --only=production
+</p>
+
+<p>
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
+RUN npx prisma generate
+RUN npm run build
+</p>
+
+<p>
+FROM node:18-alpine AS runner
+WORKDIR /app
+</p>
+
+<p>
+ENV NODE_ENV production
+</p>
+
+<p>
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+</p>
+
+<p>
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/prisma ./prisma
+</p>
+
+<p>
+USER nextjs
+</p>
+
+<p>
+EXPOSE 3000
+</p>
+
+<p>
+ENV PORT 3000
+</p>
+
+<p>
+CMD ["node", "server.js"]
+</code>`<code>
+</p>
+
+<h4>5.2 CI/CDパイプライン（GitHub Actions）</h4>
+<p>
+</code>`<code>yaml
+</p>
+<h1>.github/workflows/deploy.yml</h1>
+<p>
+name: Deploy to Production
+</p>
+
+<p>
+on:
+push:
+branches: [main]
+</p>
+
+<p>
+jobs:
+test:
+runs-on: ubuntu-latest
+steps:
+- uses: actions/checkout@v3
+- uses: actions/setup-node@v3
+with:
+node-version: 18
+- run: npm ci
+- run: npm run test
+- run: npm run e2e:headless
+</p>
+
+<p>
+deploy:
+needs: test
+runs-on: ubuntu-latest
+steps:
+- uses: actions/checkout@v3
+</p>
+
+<p>
+- name: Configure AWS credentials
+uses: aws-actions/configure-aws-credentials@v2
+with:
+aws-access-key-id: ${{ secrets.AWS<em>ACCESS</em>KEY_ID }}
+aws-secret-access-key: ${{ secrets.AWS<em>SECRET</em>ACCESS_KEY }}
+aws-region: ap-northeast-1
+</p>
+
+<p>
+- name: Login to Amazon ECR
+id: login-ecr
+uses: aws-actions/amazon-ecr-login@v1
+</p>
+
+<p>
+- name: Build and push Docker image
+env:
+ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+ECR_REPOSITORY: fbt-production
+IMAGE_TAG: ${{ github.sha }}
+run: |
+docker build -t $ECR<em>REGISTRY/$ECR</em>REPOSITORY:$IMAGE_TAG .
+docker push $ECR<em>REGISTRY/$ECR</em>REPOSITORY:$IMAGE_TAG
+</p>
+
+<p>
+- name: Update ECS service
+run: |
+aws ecs update-service \
+--cluster fbt-production \
+--service fbt-api \
+--force-new-deployment
+</code>`<code>
+</p>
+
+<h3>6. 本番環境のnext.config.js</h3>
+<p>
+</code>`<code>javascript
+// next.config.js
+/<em>* @type {import('next').NextConfig} </em>/
+const nextConfig = {
+output: 'standalone',
+</p>
+
+<p>
+images: {
+domains: [
+'fbt-production.s3.amazonaws.com',
+'i.ebayimg.com'
+],
+},
+</p>
+
+<p>
+async headers() {
+return [
+{
+source: '/:path*',
+headers: securityHeaders,
+},
+]
+},
+</p>
+
+<p>
+async rewrites() {
+return [
+{
+source: '/api/:path*',
+destination: process.env.API_URL || 'http://localhost:3000/api/:path*',
+},
+]
+},
+</p>
+
+<p>
+env: {
+NEXT<em>PUBLIC</em>API<em>URL: process.env.API</em>URL,
+NEXT<em>PUBLIC</em>ENVIRONMENT: process.env.NODE_ENV,
+},
+</p>
+
+<p>
+experimental: {
+instrumentationHook: true,
+},
+</p>
+
+<p>
+webpack: (config, { isServer }) => {
+if (isServer) {
+config.externals.push('@prisma/client')
+}
+return config
+},
+}
+</p>
+
+<p>
+module.exports = nextConfig
+</code>``
+</p>
+
+<h2>チェックリスト</h2>
+
+<h3>事前準備</h3>
+<ul>
+<li>[ ] 本番用ドメインの取得</li></ul>
+
+<ul>
+<li>[ ] SSL証明書の取得</li></ul>
+
+<ul>
+<li>[ ] AWSアカウントの作成</li></ul>
+
+<ul>
+<li>[ ] 各種外部サービスアカウントの作成</li></ul>
+
+
+<h3>インフラ構築</h3>
+<ul>
+<li>[ ] VPCとサブネットの構成</li></ul>
+
+<ul>
+<li>[ ] セキュリティグループの設定</li></ul>
+
+<ul>
+<li>[ ] EC2インスタンスの起動</li></ul>
+
+<ul>
+<li>[ ] RDS（PostgreSQL）の構築</li></ul>
+
+<ul>
+<li>[ ] ElastiCache（Redis）の構築</li></ul>
+
+<ul>
+<li>[ ] S3バケットの作成</li></ul>
+
+<ul>
+<li>[ ] CloudFrontの設定</li></ul>
+
+<ul>
+<li>[ ] Route 53のDNS設定</li></ul>
+
+
+<h3>アプリケーション設定</h3>
+<ul>
+<li>[ ] 環境変数の設定（Secrets Manager）</li></ul>
+
+<ul>
+<li>[ ] データベースマイグレーション</li></ul>
+
+<ul>
+<li>[ ] 初期データの投入</li></ul>
+
+<ul>
+<li>[ ] 管理者アカウントの作成</li></ul>
+
+
+<h3>外部サービス連携</h3>
+<ul>
+<li>[ ] eBay API認証設定</li></ul>
+
+<ul>
+<li>[ ] FedEx API認証設定</li></ul>
+
+<ul>
+<li>[ ] SendGrid設定とテンプレート作成</li></ul>
+
+<ul>
+<li>[ ] OpenAI API設定</li></ul>
+
+
+<h3>セキュリティ</h3>
+<ul>
+<li>[ ] JWT秘密鍵の生成と設定</li></ul>
+
+<ul>
+<li>[ ] 2段階認証の有効化</li></ul>
+
+<ul>
+<li>[ ] レート制限の設定</li></ul>
+
+<ul>
+<li>[ ] セキュリティヘッダーの確認</li></ul>
+
+<ul>
+<li>[ ] CORS設定の確認</li></ul>
+
+
+<h3>監視・運用</h3>
+<ul>
+<li>[ ] Sentryの設定</li></ul>
+
+<ul>
+<li>[ ] CloudWatchアラームの設定</li></ul>
+
+<ul>
+<li>[ ] バックアップ設定の確認</li></ul>
+
+<ul>
+<li>[ ] ログローテーション設定</li></ul>
+
+
+<h3>テスト</h3>
+<ul>
+<li>[ ] ステージング環境での総合テスト</li></ul>
+
+<ul>
+<li>[ ] 負荷テストの実施</li></ul>
+
+<ul>
+<li>[ ] セキュリティ監査</li></ul>
+
+<ul>
+<li>[ ] 災害復旧テスト</li></ul>
+
+
+<h3>本番切り替え</h3>
+<ul>
+<li>[ ] DNSの切り替え</li></ul>
+
+<ul>
+<li>[ ] 監視の開始</li></ul>
+
+<ul>
+<li>[ ] 初期動作確認</li></ul>
+
+<ul>
+<li>[ ] パフォーマンス確認</li></ul>
+
+
+<h3>事後作業</h3>
+<ul>
+<li>[ ] 開発環境の無効化</li></ul>
+
+<ul>
+<li>[ ] ドキュメントの更新</li></ul>
+
+<ul>
+<li>[ ] 運用手順書の作成</li></ul>
+
+<ul>
+<li>[ ] 引き継ぎ</li></ul>
+
+
+<h2>まとめ</h2>
+
+<p>
+本ドキュメントに記載された手順に従って段階的に移行を進めることで、開発環境から本番環境への安全な移行が可能です。特に重要なのは：
+</p>
+
+<ul>
+<li><strong>データベースの移行</strong>: SQLiteからPostgreSQLへの移行は慎重に行う</li></ul>
+
+<ul>
+<li><strong>外部サービス連携</strong>: 各サービスのAPI認証情報を事前に準備</li></ul>
+
+<ul>
+<li><strong>セキュリティ</strong>: 本番環境では必ず強固なセキュリティ設定を行う</li></ul>
+
+<ul>
+<li><strong>監視体制</strong>: 問題を早期発見できる監視体制を構築</li></ul>
+
+<ul>
+<li><strong>バックアップ</strong>: データ損失に備えた確実なバックアップ体制</li></ul>
+
+
+<p>
+移行作業は計画的に進め、各フェーズでの確認を怠らないことが成功の鍵となります。
+</p>
+    </div>
+</body>
+</html>

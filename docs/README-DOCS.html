@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>README DOCS</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --bg-light: #f8fafc;
+            --bg-white: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --code-bg: #1e293b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif, 'Noto Sans JP';
+            line-height: 1.8;
+            color: var(--text-primary);
+            background-color: var(--bg-light);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--bg-white);
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        h3 {
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        h4 {
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+
+        h5, h6 {
+            color: var(--text-primary);
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin-bottom: 15px;
+            line-height: 1.8;
+        }
+
+        a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        ul, ol {
+            margin-bottom: 15px;
+            padding-left: 30px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        code {
+            background: var(--bg-light);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #d63384;
+        }
+
+        pre {
+            background: var(--code-bg);
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        pre code {
+            background: transparent;
+            padding: 0;
+            color: inherit;
+            font-size: 0.95em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background: var(--bg-light);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        hr {
+            border: none;
+            border-top: 2px solid var(--border-color);
+            margin: 30px 0;
+        }
+
+        strong {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        em {
+            font-style: italic;
+        }
+
+        blockquote {
+            border-left: 4px solid var(--primary-color);
+            padding-left: 20px;
+            margin: 20px 0;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            background: #1d4ed8;
+            text-decoration: none;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            .container {
+                box-shadow: none;
+                padding: 20px;
+            }
+            .back-link {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← 引き継ぎ資料トップに戻る</a>
+        <h1>📚 引き継ぎ資料ドキュメント</h1>
+
+<p>
+<strong>最終更新日</strong>: 2025年10月3日
+</p>
+
+<h2>📖 概要</h2>
+
+<p>
+このディレクトリには、THE WORLD DOORフルフィルメントシステムの引き継ぎ用ドキュメントが含まれています。すべてのMarkdownファイルはHTML形式でも提供されており、ブラウザで見やすく表示できます。
+</p>
+
+<h2>🌐 HTMLドキュメントの表示方法</h2>
+
+<h3>1. メイン引き継ぎ資料を開く</h3>
+
+<p>
+``<code>bash
+</p>
+<h1>ブラウザで以下のファイルを開く</h1>
+<p>
+docs/index.html
+</code>`<code>
+</p>
+
+<p>
+または、プロジェクトルートから：
+</p>
+
+<p>
+</code>`<code>bash
+open docs/index.html        # macOS
+start docs/index.html       # Windows
+xdg-open docs/index.html    # Linux
+</code>`<code>
+</p>
+
+<h3>2. HTMLファイルの再生成</h3>
+
+<p>
+MarkdownファイルからHTMLを再生成する場合：
+</p>
+
+<p>
+</code>`<code>bash
+npm run docs:generate
+</code>`<code>
+</p>
+
+<h2>📂 ドキュメント一覧</h2>
+
+<h3>必読ドキュメント（⭐）</h3>
+
+<ul>
+<li><strong>index.html</strong> - 引き継ぎ資料メインページ</li></ul>
+
+<p>
+- プロジェクト概要
+- 技術スタック一覧
+- 全ドキュメントへのリンク
+- クイックスタートガイド
+</p>
+
+<ul>
+<li><strong>README.html</strong> - プロジェクト概要書</li></ul>
+
+<p>
+- システム概要
+- セットアップ手順
+- 主要機能の説明
+</p>
+
+<ul>
+<li><strong>技術スタック一覧.html</strong> - 技術仕様書（v3.0）</li></ul>
+
+<p>
+- 使用技術の詳細
+- ライブラリバージョン
+- 実装済み機能
+- ディレクトリ構成
+</p>
+
+<ul>
+<li><strong>要件定義書.html</strong> - システム要件書（v8.0）</li></ul>
+
+<p>
+- ビジネス要件
+- ユーザーストーリー
+- システム仕様
+</p>
+
+<h3>開発ドキュメント</h3>
+
+<ul>
+<li><strong>開発作業規則.html</strong> - 必須開発ルール</li></ul>
+
+<p>
+- ClaudeCode/Cursor使用時のルール
+- 真実性の確保
+- UIテストの必須実施
+</p>
+
+<ul>
+<li><strong>UI統一性デザイン指針.html</strong> - UIガイドライン（v2.0）</li></ul>
+
+<p>
+- デザインシステム
+- コンポーネント設計
+- カラーパレット
+- レスポンシブ対応
+</p>
+
+<ul>
+<li><strong>Web_アプリ開発フロー.html</strong> - 開発ワークフロー</li></ul>
+
+<p>
+- 開発プロセス
+- テスト戦略
+- デプロイメント
+</p>
+
+<ul>
+<li><strong>環境切り替え対応.html</strong> - 環境管理</li></ul>
+
+<p>
+- 開発環境 vs 本番環境
+- モックサービス
+- 環境変数管理
+</p>
+
+<h3>分析・計画書</h3>
+
+<ul>
+<li><strong>performance-analysis.html</strong> - パフォーマンス分析</li></ul>
+
+<p>
+- 最適化結果
+- 実装状況
+- ベンチマーク
+</p>
+
+<ul>
+<li><strong>production-deployment-guide.html</strong> - 本番環境構築計画</li></ul>
+
+<p>
+- 本番環境移行手順
+- インフラ構成
+- 段階的移行計画
+</p>
+
+<h2>🎯 引き継ぎ時の推奨読む順序</h2>
+
+<h3>初回引き継ぎ（プロジェクト概要把握）</h3>
+
+<ul>
+<li><strong>index.html</strong> - まずはメインページで全体像を把握</li></ul>
+
+<ul>
+<li><strong>README.html</strong> - プロジェクト概要とセットアップ</li></ul>
+
+<ul>
+<li><strong>技術スタック一覧.html</strong> - 技術詳細を理解</li></ul>
+
+
+<h3>開発開始前</h3>
+
+<ul>
+<li><strong>開発作業規則.html</strong> - 必須ルールを確認</li></ul>
+
+<ul>
+<li><strong>Web_アプリ開発フロー.html</strong> - 開発プロセスを理解</li></ul>
+
+<ul>
+<li><strong>UI統一性デザイン指針.html</strong> - UIルールを確認</li></ul>
+
+
+<h3>機能開発時</h3>
+
+<ul>
+<li><strong>要件定義書.html</strong> - ビジネス要件を確認</li></ul>
+
+<ul>
+<li><strong>環境切り替え対応.html</strong> - 環境設定を理解</li></ul>
+
+
+<h3>本番移行準備</h3>
+
+<ul>
+<li><strong>performance-analysis.html</strong> - パフォーマンス要件確認</li></ul>
+
+<ul>
+<li><strong>production-deployment-guide.html</strong> - 本番環境構築計画</li></ul>
+
+
+<h2>🔄 ドキュメント更新フロー</h2>
+
+<h3>Markdownファイルを更新した場合</h3>
+
+<ul>
+<li></code>.md<code> ファイルを編集</li></ul>
+
+<ul>
+<li>HTMLを再生成：</li></ul>
+
+<p>
+</code>`<code>bash
+npm run docs:generate
+</code>`<code>
+</p>
+<ul>
+<li>更新内容をコミット：</li></ul>
+
+<p>
+</code>`<code>bash
+git add docs/
+git commit -m "docs: ドキュメント更新"
+</code>`<code>
+</p>
+
+<h3>新しいドキュメントを追加する場合</h3>
+
+<ul>
+<li></code>docs/<code> ディレクトリに </code>.md<code> ファイルを作成</li></ul>
+
+<ul>
+<li>HTMLを生成：</li></ul>
+
+<p>
+</code>`<code>bash
+npm run docs:generate
+</code>`<code>
+</p>
+<ul>
+<li></code>index.html<code> に新しいドキュメントへのリンクを追加</li></ul>
+
+
+<h2>📋 HTMLドキュメントの特徴</h2>
+
+<ul>
+<li><strong>レスポンシブデザイン</strong>: モバイル・タブレット・デスクトップ対応</li></ul>
+
+<ul>
+<li><strong>印刷対応</strong>: 印刷用のスタイル調整済み</li></ul>
+
+<ul>
+<li><strong>ナビゲーション</strong>: 各ページから index.html に戻るリンク</li></ul>
+
+<ul>
+<li><strong>シンタックスハイライト</strong>: コードブロックの見やすい表示</li></ul>
+
+<ul>
+<li><strong>テーブル対応</strong>: Markdownテーブルを綺麗にレンダリング</li></ul>
+
+
+<h2>🛠️ トラブルシューティング</h2>
+
+<h3>HTMLが正しく表示されない</h3>
+
+<p>
+</code>`<code>bash
+</p>
+<h1>HTMLを再生成</h1>
+<p>
+npm run docs:generate
+</p>
+
+<h1>ブラウザのキャッシュをクリアしてリロード</h1>
+<h1>Chrome: Ctrl+Shift+R (Windows) / Cmd+Shift+R (Mac)</h1>
+<p>
+</code>`<code>
+</p>
+
+<h3>リンクが動作しない</h3>
+
+<ul>
+<li>ファイルパスが正しいか確認</li></ul>
+
+<ul>
+<li>HTMLファイルが生成されているか確認：</li></ul>
+
+<p>
+</code>`<code>bash
+ls docs/*.html
+</code>`<code>
+</p>
+
+<h3>スタイルが適用されない</h3>
+
+<ul>
+<li>ブラウザの開発者ツールでエラーを確認</li></ul>
+
+<ul>
+<li>インラインCSSなので外部CSSファイルは不要</li></ul>
+
+
+<h2>📝 ドキュメント管理のベストプラクティス</h2>
+
+<ul>
+<li><strong>常に最新化</strong>: コード変更時はドキュメントも更新</li></ul>
+
+<ul>
+<li><strong>日付記載</strong>: 各ドキュメントに最終更新日を記載</li></ul>
+
+<ul>
+<li><strong>バージョン管理</strong>: 重要なドキュメントはバージョン番号を付与</li></ul>
+
+<ul>
+<li><strong>HTML再生成</strong>: Markdown更新後は必ず </code>npm run docs:generate<code> を実行</li></ul>
+
+
+<h2>🚀 次のステップ</h2>
+
+<ul>
+<li></code>docs/index.html<code> をブラウザで開く</li></ul>
+
+<ul>
+<li>プロジェクト概要を把握</li></ul>
+
+<ul>
+<li>必要なドキュメントを順次確認</li></ul>
+
+<ul>
+<li>開発環境をセットアップ（README.html参照）</li></ul>
+
+<ul>
+<li>開発作業規則を確認してコーディング開始</li></ul>
+
+
+<hr>
+
+<p>
+<strong>ヘルプが必要な場合</strong>
+</p>
+
+<ul>
+<li>技術的な質問: </code>技術スタック一覧.html<code> を参照</li></ul>
+
+<ul>
+<li>開発プロセス: </code>Web_アプリ開発フロー.html<code> を参照</li></ul>
+
+<ul>
+<li>UI/UX: </code>UI統一性デザイン指針.html` を参照</li></ul>
+
+
+<hr>
+
+<p>
+© 2024-2025 THE WORLD DOOR Inc. All rights reserved.
+</p>
+
+    </div>
+</body>
+</html>

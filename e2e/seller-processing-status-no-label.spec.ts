@@ -134,6 +134,13 @@ test.describe('セラー販売管理：出荷準備中ステータスのラベ�
   });
 });
 
+// ドキュメントの存在検証（引き継ぎ資料の嘘検知対策）
+test('docs/index.html が表示できる', async ({ page }) => {
+  await page.goto('/docs/index.html');
+  await expect(page.locator('header h1, h1')).toContainText('THE WORLD DOOR');
+  await expect(page.locator('text=プロジェクト概要')).toBeVisible();
+});
+
 
 
 

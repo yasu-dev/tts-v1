@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>README</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --bg-light: #f8fafc;
+            --bg-white: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --code-bg: #1e293b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif, 'Noto Sans JP';
+            line-height: 1.8;
+            color: var(--text-primary);
+            background-color: var(--bg-light);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--bg-white);
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        h3 {
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        h4 {
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+
+        h5, h6 {
+            color: var(--text-primary);
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin-bottom: 15px;
+            line-height: 1.8;
+        }
+
+        a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        ul, ol {
+            margin-bottom: 15px;
+            padding-left: 30px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        code {
+            background: var(--bg-light);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #d63384;
+        }
+
+        pre {
+            background: var(--code-bg);
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        pre code {
+            background: transparent;
+            padding: 0;
+            color: inherit;
+            font-size: 0.95em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background: var(--bg-light);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        hr {
+            border: none;
+            border-top: 2px solid var(--border-color);
+            margin: 30px 0;
+        }
+
+        strong {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        em {
+            font-style: italic;
+        }
+
+        blockquote {
+            border-left: 4px solid var(--primary-color);
+            padding-left: 20px;
+            margin: 20px 0;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            background: #1d4ed8;
+            text-decoration: none;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            .container {
+                box-shadow: none;
+                padding: 20px;
+            }
+            .back-link {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← 引き継ぎ資料トップに戻る</a>
+        <h1>The World Door - Fulfillment Business Terminal</h1>
+
+<p>
+最終更新日: 2025年10月3日
+</p>
+
+<p>
+高級中古品販売のための統合型フルフィルメント管理システム
+</p>
+
+<h2>概要</h2>
+
+<p>
+The World Doorは、高級中古品の入荷から販売までの全プロセスを管理する統合システムです。Next.js 14（App Router）を使用したフルスタックアプリケーションとして構築されています。
+</p>
+
+<h2>主な機能</h2>
+
+<ul>
+<li><strong>商品管理</strong>: 入荷 → 検品 → 保管 → 出品 → 受注 → ピッキング → 梱包 → ラベル貼付 → 出荷 → 配送までの完全なライフサイクル管理</li>
+<li><strong>在庫管理</strong>: バーコードスキャンによるロケーション管理（Zone-Row-Shelf形式）</li>
+<li><strong>階層的検品システム</strong>: カテゴリ別検品チェックリスト、画像・動画記録機能</li>
+<li><strong>出品・販売管理</strong>: eBay連携による自動出品、テンプレート管理</li>
+<li><strong>配送・物流管理</strong>: 納品プラン作成、FedEx連携、複数配送業者対応</li>
+<li><strong>アクティビティログ</strong>: 全操作履歴の記録・追跡</li>
+<li><strong>リアルタイム通知</strong>: Socket.ioによるステータス変更通知、メール通知</li>
+<li><strong>スタッフ管理</strong>: ロールベースアクセス制御（seller/staff/admin）</li>
+<li><strong>2要素認証</strong>: メールベースの確認コードによるセキュアログイン</li>
+<li><strong>分析・レポート</strong>: KPIダッシュボード、各種レポート生成</li>
+<li><strong>機能フラグ管理</strong>: 段階的機能展開対応</li>
+</ul>
+
+<h2>技術スタック</h2>
+
+<ul>
+<li><strong>フレームワーク</strong>: Next.js 14.2.5 (App Router)</li>
+<li><strong>言語</strong>: TypeScript 5</li>
+<li><strong>スタイリング</strong>: Tailwind CSS 3.4.1</li>
+<li><strong>データベース</strong>: Prisma 5.7.0 + SQLite (開発環境)</li>
+<li><strong>認証</strong>: JWT + bcryptjs</li>
+<li><strong>テスト</strong>: Playwright 1.54.2, Jest 29.7.0</li>
+<li><strong>リアルタイム通信</strong>: Socket.io 4.7.5</li>
+<li><strong>ファイルストレージ</strong>: AWS S3 (@aws-sdk/client-s3 3.500.0)</li>
+<li><strong>メール送信</strong>: SendGrid (@sendgrid/mail 8.1.3)</li>
+<li><strong>画像処理</strong>: Sharp 0.34.4, Jimp 1.6.0, html2canvas 1.4.1</li>
+<li><strong>PDF生成</strong>: jsPDF 3.0.1, PDFKit 0.17.1, pdfmake 0.2.20</li>
+<li><strong>動画処理</strong>: fluent-ffmpeg 2.1.3, Puppeteer 24.12.0</li>
+</ul>
+
+<h2>セットアップ</h2>
+
+<h3>1. 依存関係のインストール</h3>
+
+<p>
+<strong>CODE<em>BLOCK</em>0</strong>
+</p>
+
+<h3>2. 環境変数の設定</h3>
+
+<p>
+<code>.env.local</code>ファイルを作成し、以下の変数を設定:
+</p>
+
+<p>
+<strong>CODE<em>BLOCK</em>1</strong>
+</p>
+
+<h3>3. データベースのセットアップ</h3>
+
+<p>
+<strong>CODE<em>BLOCK</em>2</strong>
+</p>
+
+<h3>4. 開発サーバーの起動</h3>
+
+<p>
+<strong>CODE<em>BLOCK</em>3</strong>
+</p>
+
+<p>
+アプリケーションは http://localhost:3002 で起動します。
+</p>
+
+<h2>主要なスクリプト</h2>
+
+<p>
+<strong>CODE<em>BLOCK</em>4</strong>
+</p>
+
+<h2>ディレクトリ構成</h2>
+
+<p>
+<strong>CODE<em>BLOCK</em>5</strong>
+</p>
+
+<h2>開発ルール</h2>
+
+<p>
+開発作業を行う際は、<a href="./開発作業規則.md">開発作業規則</a>を必ず確認してください。特に以下の点が重要です：
+</p>
+
+<ul>
+<li><strong>真実性の確保</strong>: すべてのレポートは事実に基づく</li>
+<li><strong>UIテストの必須実施</strong>: Playwrightによる動作確認を必ず実施</li>
+</ul>
+
+<h2>テスト</h2>
+
+<h3>E2Eテスト</h3>
+
+<p>
+<strong>CODE<em>BLOCK</em>6</strong>
+</p>
+
+<h3>ユニットテスト</h3>
+
+<p>
+<strong>CODE<em>BLOCK</em>7</strong>
+</p>
+
+<h2>ライセンス</h2>
+
+<p>
+プロプライエタリ - 無断複製・配布を禁じます
+</p>
+
+    </div>
+</body>
+</html>

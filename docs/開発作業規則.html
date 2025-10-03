@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>開発作業規則</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --bg-light: #f8fafc;
+            --bg-white: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --code-bg: #1e293b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif, 'Noto Sans JP';
+            line-height: 1.8;
+            color: var(--text-primary);
+            background-color: var(--bg-light);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--bg-white);
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        h3 {
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        h4 {
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+
+        h5, h6 {
+            color: var(--text-primary);
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin-bottom: 15px;
+            line-height: 1.8;
+        }
+
+        a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        ul, ol {
+            margin-bottom: 15px;
+            padding-left: 30px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        code {
+            background: var(--bg-light);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #d63384;
+        }
+
+        pre {
+            background: var(--code-bg);
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        pre code {
+            background: transparent;
+            padding: 0;
+            color: inherit;
+            font-size: 0.95em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background: var(--bg-light);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        hr {
+            border: none;
+            border-top: 2px solid var(--border-color);
+            margin: 30px 0;
+        }
+
+        strong {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        em {
+            font-style: italic;
+        }
+
+        blockquote {
+            border-left: 4px solid var(--primary-color);
+            padding-left: 20px;
+            margin: 20px 0;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            background: #1d4ed8;
+            text-decoration: none;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            .container {
+                box-shadow: none;
+                padding: 20px;
+            }
+            .back-link {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← 引き継ぎ資料トップに戻る</a>
+        <h1>開発作業規則</h1>
+
+<p>
+最終更新日: 2025年10月3日
+</p>
+
+<h2>概要</h2>
+
+<p>
+本文書は、ClaudeCodeおよびCursorエディターを使用した開発作業における必須ルールと推奨事項を定義します。
+</p>
+
+<h2>必須ルール</h2>
+
+<h3>1. 真実性の確保</h3>
+
+<p>
+<strong>決して嘘偽りないレポートを提示すること</strong>
+</p>
+
+<ul>
+<li>すべてのレポート、ドキュメント、コード解析結果は事実に基づいたものでなければならない</li></ul>
+
+<ul>
+<li>推測や仮定を含む場合は、明確にその旨を記載する</li></ul>
+
+<ul>
+<li>エラーや問題が発生した場合は、正確に報告する</li></ul>
+
+<ul>
+<li>実装状況や機能の動作確認結果は、実際のテスト結果に基づいて報告する</li></ul>
+
+
+<h3>2. UIテストの必須実施</h3>
+
+<p>
+<strong>UIテストを実施して、ソースコードベースのチェックだけではなく、UI操作をしたチェックを必ず、Playwrightにて確認すること</strong>
+</p>
+
+<ul>
+<li>すべてのUI変更には、対応するPlaywrightテストを作成または更新する</li></ul>
+
+<ul>
+<li>以下の項目を必ずテストで確認する：</li></ul>
+
+<p>
+- ユーザーインタラクション（クリック、入力、選択など）
+- 画面遷移とルーティング
+- レスポンシブデザインの動作
+- エラー処理とユーザーフィードバック
+- アクセシビリティ要件
+</p>
+
+<h3>3. ドキュメントの同期更新</h3>
+
+<p>
+<strong>ソースコードの変更と合わせて、docsディレクトリのドキュメントも必ず更新すること</strong>
+</p>
+
+<ul>
+<li>以下の変更が発生した場合、該当するドキュメントを即座に更新する：</li></ul>
+
+<p>
+- <strong>仕様変更</strong>: 要件定義書.md、技術スタック一覧.md
+- <strong>構成変更</strong>: system-architecture.drawio、README.md
+- <strong>技術スタック変更</strong>: 技術スタック一覧.md、package.json の依存関係
+- <strong>ステータスフロー変更</strong>: product-status-flow.drawio、要件定義書.md
+- <strong>データベーススキーマ変更</strong>: database-er-diagram.drawio、prisma/schema.prisma
+- <strong>API追加・変更</strong>: README.md、system-architecture.drawio
+- <strong>環境設定変更</strong>: 環境切り替え対応.md、.env.example
+</p>
+
+<ul>
+<li>ドキュメント更新後は、必ずHTMLドキュメントを再生成する：</li></ul>
+
+<p>
+``<code>bash
+npm run docs:generate
+</code>`<code>
+</p>
+
+<ul>
+<li>ドキュメントの陳腐化を防ぐため、以下のチェックリストを使用：</li></ul>
+
+<p>
+- [ ] ソースコードとドキュメントの内容が一致しているか
+- [ ] バージョン番号や日付が最新か
+- [ ] drawio図が実装と一致しているか
+- [ ] HTMLドキュメントが再生成されているか
+</p>
+
+<h2>推奨事項</h2>
+
+<h3>コード品質</h3>
+
+<ul>
+<li><strong>既存ファイルの優先編集</strong></li></ul>
+
+<p>
+- 新規ファイル作成より既存ファイルの編集を優先する
+- 必要な場合のみ新規ファイルを作成する
+</p>
+
+<ul>
+<li><strong>ドキュメンテーション</strong></li></ul>
+
+<p>
+- ドキュメントファイル（*.md）は明示的に要求された場合のみ作成する
+- コード内のコメントは最小限に抑える
+</p>
+
+<ul>
+<li><strong>環境設定の確認</strong></li></ul>
+
+<p>
+- 作業前に現在の環境設定を確認する
+- 環境変数の変更は慎重に行う
+</p>
+
+<h3>テスト戦略</h3>
+
+<ul>
+<li><strong>E2Eテストの実施</strong></li></ul>
+
+<p>
+</code>`<code>bash
+# 全テストの実行
+npm run e2e
+</p>
+
+<p>
+# 特定のテストファイルの実行
+npm run e2e <test-file-name>
+</code>`<code>
+</p>
+
+<ul>
+<li><strong>テストカバレッジ</strong></li></ul>
+
+<p>
+- 新機能には必ず対応するテストを作成
+- 既存機能の修正時は関連テストを更新
+- UI変更は視覚的な確認も含める
+</p>
+
+<ul>
+<li><strong>テスト結果の記録</strong></li></ul>
+
+<p>
+- テスト実行結果はJSONファイルに保存
+- 失敗したテストは原因を分析し、修正する
+</p>
+
+<h3>開発フロー</h3>
+
+<ul>
+<li><strong>タスク管理</strong></li></ul>
+
+<p>
+- TodoWriteツールを使用してタスクを管理
+- タスクの進捗を定期的に更新
+- 完了したタスクは速やかにマークする
+</p>
+
+<ul>
+<li><strong>コードレビュー</strong></li></ul>
+
+<p>
+- セルフレビューを実施
+- リント（</code>npm run lint<code>）とタイプチェック（</code>npm run typecheck<code>）を実行
+- テストがすべてパスすることを確認
+</p>
+
+<ul>
+<li><strong>コミット規則</strong></li></ul>
+
+<p>
+- 明確で簡潔なコミットメッセージ
+- 関連する変更をまとめてコミット
+- 機密情報を含まないことを確認
+</p>
+
+<h2>Playwrightテストの実装例</h2>
+
+<p>
+</code>`<code>typescript
+import { test, expect } from '@playwright/test';
+</p>
+
+<p>
+test.describe('機能名', () => {
+test('UIの動作確認', async ({ page }) => {
+// ページへのナビゲーション
+await page.goto('/target-page');
+</p>
+
+<p>
+// 要素の存在確認
+await expect(page.locator('selector')).toBeVisible();
+</p>
+
+<p>
+// ユーザーインタラクション
+await page.click('button[type="submit"]');
+</p>
+
+<p>
+// 結果の検証
+await expect(page.locator('.result')).toHaveText('期待される結果');
+});
+});
+</code>``
+</p>
+
+<h2>エラー処理</h2>
+
+<ul>
+<li><strong>エラーログの記録</strong></li></ul>
+
+<p>
+- すべてのエラーは適切にログに記録
+- スタックトレースを含める
+- 再現手順を記載
+</p>
+
+<ul>
+<li><strong>エラーレポート</strong></li></ul>
+
+<p>
+- エラーの原因を正確に特定
+- 修正方法を提案
+- 修正後の動作確認を実施
+</p>
+
+<h2>まとめ</h2>
+
+<p>
+これらのルールに従うことで、高品質で信頼性の高いコードベースを維持し、効率的な開発プロセスを実現できます。特に、真実性の確保とUIテストの実施は、プロジェクトの成功に不可欠な要素です。
+</p>
+    </div>
+</body>
+</html>
