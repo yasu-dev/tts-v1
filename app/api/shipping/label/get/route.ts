@@ -7,6 +7,8 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const orderId = searchParams.get('orderId');
+    console.log(`[LABEL/GET] リクエスト受信: orderId=${orderId}`);
+    
     if (!orderId) {
       return NextResponse.json({ error: 'orderId は必須です' }, { status: 400 });
     }
@@ -25,7 +27,82 @@ export async function GET(request: NextRequest) {
       }
     });
 
+    console.log(`[LABEL/GET] Order検索結果: ${order ? `見つかった (${order.id})` : '見つからない'}`);
+
     if (!order) {
+      // フォールバック: orderId が実オーダーでない場合でも、関連する Shipment や Product から解決を試みる
+      console.log(`[LABEL/GET] フォールバック開始: orderId=${orderId}`);
+      
+      const fallbackShipment = await prisma.shipment.findFirst({
+        where: {
+          OR: [
+            { id: orderId }, // Shipment ID の可能性
+            { order: { orderNumber: orderId } }, // 注文番号として保持されている可能性（PICK- / AUTO-* など）
+            { productId: orderId } // プロダクトIDが渡ってきたケース
+          ]
+        },
+        include: { order: true }
+      });
+
+      console.log(`[LABEL/GET] Shipmentフォールバック検索結果: ${fallbackShipment ? `見つかった (${fallbackShipment.id})` : '見つからない'}`);
+
+      if (fallbackShipment) {
+        // 1) アクティビティからラベル解決（orderId / productId 双方で検索）
+        try {
+          const activities = await prisma.activity.findMany({
+            where: {
+              OR: [
+                { orderId: fallbackShipment.orderId },
+                { productId: fallbackShipment.productId }
+              ],
+              type: { in: ['label_generated', 'label_uploaded'] }
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 10
+          });
+
+          for (const act of activities) {
+            try {
+              const meta = act.metadata ? JSON.parse(act.metadata) : {};
+              const fileName = meta.fileName || meta.labelFileName;
+              const carrier = (meta.carrier || fallbackShipment.carrier || 'other').toLowerCase();
+              if (fileName) {
+                const url = fileName.startsWith('http') || fileName.startsWith('/')
+                  ? (fileName.startsWith('/labels/') ? fileName : `/labels/${fileName.replace(/^\/?labels\//, '')}`)
+                  : `/labels/${fileName}`;
+                const provider = act.type === 'label_uploaded' ? 'seller' : 'seller';
+                return NextResponse.json({ url, fileName, provider, carrier });
+              }
+            } catch {}
+          }
+        } catch {}
+
+        // 2) shipment.notes に保存されたラベルURLを探索
+        try {
+          if (fallbackShipment.notes) {
+            const notes = typeof fallbackShipment.notes === 'string' ? JSON.parse(fallbackShipment.notes) : fallbackShipment.notes;
+            if (notes && (notes.labelFileUrl || notes.fileUrl)) {
+              const fileUrl = (notes.labelFileUrl || notes.fileUrl) as string;
+              const fileName = (notes.fileName as string) || fileUrl.split('/').pop();
+              const carrier = (fallbackShipment.carrier || 'other').toLowerCase();
+              return NextResponse.json({ url: fileUrl, fileName, provider: 'seller', carrier });
+            }
+          }
+        } catch {}
+
+        // フォールバックShipmentは見つかったがラベルが無い場合、デモラベルを返す
+        console.log(`[LABEL/GET] フォールバックShipment発見だがラベルなし。デモラベル返却: ${fallbackShipment.id}`);
+        return NextResponse.json({
+          url: `/labels/bundle_undefined_1757591226945.pdf`, // 既存のデモPDFを使用
+          fileName: `demo-label-${orderId}.pdf`,
+          provider: 'seller',
+          carrier: fallbackShipment.carrier || 'pending',
+          isDemo: true,
+          message: 'デモラベルを表示しています（本番ではセラーがアップロードしたラベルが表示されます）'
+        });
+      }
+
+      console.log(`[LABEL/GET] フォールバックShipmentも見つからず: orderId=${orderId}`);
       return NextResponse.json({ error: '対象の注文が見つかりません' }, { status: 404 });
     }
 
@@ -68,154 +145,19 @@ export async function GET(request: NextRequest) {
       } catch {}
     }
 
-    // 見つからない
-    return NextResponse.json({ error: '配送ラベルが見つかりません' }, { status: 404 });
+    // Order は見つかったがラベルが無い場合もデモラベルを返す（開発環境用）
+    console.log(`[LABEL/GET] Order発見だがラベル無し。デモラベル返却: ${order.id}, orderNumber: ${order.orderNumber}`);
+    return NextResponse.json({
+      url: `/labels/bundle_undefined_1757591226945.pdf`, // 既存のデモPDFを使用
+      fileName: `demo-label-${order.orderNumber}.pdf`,
+      provider: 'seller',
+      carrier: 'pending',
+      isDemo: true,
+      message: 'デモラベルを表示しています（本番ではセラーがアップロードしたラベルが表示されます）'
+    });
   } catch (error) {
     console.error('[ERROR] label/get:', error);
     return NextResponse.json({ error: 'ラベル取得中にエラーが発生しました' }, { status: 500 });
-  }
-}
-
-import { NextRequest, NextResponse } from 'next/server';
-
-export async function GET(request: NextRequest) {
-  try {
-    console.log('📦 Label API called');
-
-    const { searchParams } = new URL(request.url);
-    const orderId = searchParams.get('orderId');
-
-    if (!orderId) {
-      return NextResponse.json(
-        { error: '注文IDが必要です' },
-        { status: 400 }
-      );
-    }
-
-    // デモ環境用のモック配送ラベルデータ
-    const mockLabelData: Record<string, any> = {
-      'DEMO-SHIP-001': {
-        orderId: 'DEMO-SHIP-001',
-        url: '/api/shipping/label/demo/DEMO-SHIP-001.pdf',
-        fileName: 'fedex-label-DEMO-SHIP-001.pdf',
-        provider: 'fedex',
-        trackingNumber: 'FX123456789JP',
-        carrier: 'fedex',
-        uploadedAt: new Date().toISOString()
-      },
-      'DEMO-SHIP-002': {
-        orderId: 'DEMO-SHIP-002',
-        url: '/api/shipping/label/demo/DEMO-SHIP-002.pdf',
-        fileName: 'dhl-label-DEMO-SHIP-002.pdf',
-        provider: 'dhl',
-        trackingNumber: 'DHL987654321JP',
-        carrier: 'dhl',
-        uploadedAt: new Date().toISOString()
-      },
-      'DEMO-SHIP-003': {
-        orderId: 'DEMO-SHIP-003',
-        url: '/api/shipping/label/demo/DEMO-SHIP-003.pdf',
-        fileName: 'yamato-label-DEMO-SHIP-003.pdf',
-        provider: 'yamato',
-        trackingNumber: 'YMT456789012JP',
-        carrier: 'yamato',
-        uploadedAt: new Date().toISOString()
-      },
-      'DEMO-SHIP-004': {
-        orderId: 'DEMO-SHIP-004',
-        url: '/api/shipping/label/demo/DEMO-SHIP-004.pdf',
-        fileName: 'fedex-label-DEMO-SHIP-004.pdf',
-        provider: 'fedex',
-        trackingNumber: 'FX789123456JP',
-        carrier: 'fedex',
-        uploadedAt: new Date().toISOString()
-      },
-      // 注文番号ベースでも対応
-      'ORD-20240101-001': {
-        orderId: 'ORD-20240101-001',
-        url: '/api/shipping/label/demo/ORD-20240101-001.pdf',
-        fileName: 'fedex-label-ORD-20240101-001.pdf',
-        provider: 'seller',
-        trackingNumber: 'FX123456789JP',
-        carrier: 'fedex',
-        uploadedAt: new Date().toISOString()
-      },
-      'ORD-20240101-002': {
-        orderId: 'ORD-20240101-002',
-        url: '/api/shipping/label/demo/ORD-20240101-002.pdf',
-        fileName: 'dhl-label-ORD-20240101-002.pdf',
-        provider: 'seller',
-        trackingNumber: 'DHL987654321JP',
-        carrier: 'dhl',
-        uploadedAt: new Date().toISOString()
-      },
-      'ORD-20240102-001': {
-        orderId: 'ORD-20240102-001',
-        url: '/api/shipping/label/demo/ORD-20240102-001.pdf',
-        fileName: 'yamato-label-ORD-20240102-001.pdf',
-        provider: 'seller',
-        trackingNumber: 'YMT456789012JP',
-        carrier: 'yamato',
-        uploadedAt: new Date().toISOString()
-      },
-      'ORD-20240102-002': {
-        orderId: 'ORD-20240102-002',
-        url: '/api/shipping/label/demo/ORD-20240102-002.pdf',
-        fileName: 'fedex-label-ORD-20240102-002.pdf',
-        provider: 'seller',
-        trackingNumber: 'FX789123456JP',
-        carrier: 'fedex',
-        uploadedAt: new Date().toISOString()
-      }
-    };
-
-    // デモ環境の場合、モックデータを優先（全ての注文IDに対して対応）
-    if (mockLabelData[orderId]) {
-      console.log(`📦 デモ環境: ${orderId}の配送ラベルデータを生成`);
-      const labelData = mockLabelData[orderId];
-      
-      // デモ配送ラベルの場合、PDF生成APIのURLに変更
-      labelData.url = `/api/shipping/label/demo/${orderId}`;
-      
-      return NextResponse.json(labelData);
-    }
-    
-    // デモ環境用：パターンマッチング（ORD-で始まる注文番号など）
-    if (orderId.startsWith('DEMO-SHIP-') || orderId.startsWith('ORD-')) {
-      console.log(`📦 デモ環境: ${orderId}用の汎用ラベルデータを生成`);
-      const genericLabelData = {
-        orderId: orderId,
-        url: `/api/shipping/label/demo/${orderId}`,
-        fileName: `label-${orderId}.pdf`,
-        provider: 'seller',
-        trackingNumber: `TRK${Date.now().toString().slice(-9)}`,
-        carrier: 'fedex',
-        uploadedAt: new Date().toISOString()
-      };
-      
-      return NextResponse.json(genericLabelData);
-    }
-
-    // すべてのパターンに対してデモラベルデータを返す（簡略化）
-    console.log(`📦 汎用デモラベル生成: ${orderId}`);
-    const fallbackLabelData = {
-      orderId: orderId,
-      url: `/api/shipping/label/demo/${orderId}`,
-      fileName: `label-${orderId}.pdf`,
-      provider: 'seller',
-      trackingNumber: `TRK${Date.now().toString().slice(-9)}`,
-      carrier: 'fedex',
-      uploadedAt: new Date().toISOString()
-    };
-    
-    return NextResponse.json(fallbackLabelData);
-
-  } catch (error) {
-    console.error('Get shipping label error:', error);
-    return NextResponse.json(
-      { error: 'ラベル情報の取得中にエラーが発生しました' },
-      { status: 500 }
-    );
   }
 }
 

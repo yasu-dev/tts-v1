@@ -414,11 +414,6 @@ export default function UnifiedProductFlow({
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             {flowData.map((step, index) => {
               const isCurrentStep = getCurrentStep() === step.id;
-              const isUserRelevant = (userType === 'seller' && step.role === 'seller') || 
-                                   (userType === 'staff' && step.role === 'staff') || 
-                                   step.role === 'system';
-              const hasUserTasks = (userType === 'seller' && step.role === 'seller') || 
-                                 (userType === 'staff' && step.role === 'staff');
               const totalStepTasks = step.tasks.reduce((sum, task) => sum + task.count, 0);
               
               return (
@@ -429,15 +424,9 @@ export default function UnifiedProductFlow({
                     relative p-3 rounded-xl transition-all duration-300 text-left group
                     hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500
                     ${isCurrentStep ? 'ring-2 ring-blue-400 shadow-lg scale-105' : ''}
-                    ${hasUserTasks && totalStepTasks > 0 && step.id === 'inbound' ? 'ring-2 ring-purple-300 bg-purple-50' : ''}
-                    ${hasUserTasks && totalStepTasks > 0 && step.id === 'shipping' ? 'ring-2 ring-cyan-300 bg-cyan-50' : ''}
-                    ${hasUserTasks && totalStepTasks > 0 && !['inbound', 'shipping'].includes(step.id) ? 'ring-2 ring-orange-300 bg-orange-50' : ''}
-                    ${!isUserRelevant ? 'opacity-60' : 'opacity-100'}
                   `}
                   style={{
-                    backgroundColor: hasUserTasks && totalStepTasks > 0 && step.id === 'inbound' ? '#faf5ff' :
-                                   hasUserTasks && totalStepTasks > 0 && step.id === 'shipping' ? '#ecfeff' :
-                                   hasUserTasks && totalStepTasks > 0 ? '#fff7ed' : step.bgColor,
+                    backgroundColor: step.bgColor,
                     borderLeft: `4px solid ${step.color}`
                   }}
                 >
@@ -463,15 +452,6 @@ export default function UnifiedProductFlow({
                       {getRoleIcon(step.role)}
                       {isCurrentStep && (
                         <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                      )}
-                      {hasUserTasks && totalStepTasks > 0 && step.id === 'inbound' && (
-                        <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"></div>
-                      )}
-                      {hasUserTasks && totalStepTasks > 0 && step.id === 'shipping' && (
-                        <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce"></div>
-                      )}
-                      {hasUserTasks && totalStepTasks > 0 && !['inbound', 'shipping'].includes(step.id) && (
-                        <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce"></div>
                       )}
                     </div>
                   </div>
