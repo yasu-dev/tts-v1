@@ -1555,7 +1555,6 @@ export default function DeliveryPage() {
               <h4 className="font-medium text-nexus-text-primary mb-2">納品プラン情報</h4>
               <div className="text-sm space-y-1">
                 <div><span className="font-medium">プランID:</span> {selectedPlan.id}</div>
-                <div><span className="font-medium">セラー:</span> {selectedPlan.sellerName}</div>
                 <div><span className="font-medium">商品数:</span> {selectedPlan.items}点</div>
                 <div><span className="font-medium">配送先倉庫:</span> {selectedPlan.warehouseName || '配送先倉庫不明'}</div>
               </div>

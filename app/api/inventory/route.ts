@@ -113,7 +113,7 @@ export async function GET(request: NextRequest) {
         include: {
           currentLocation: true,
           seller: {
-            select: { id: true, username: true, email: true }
+            select: { id: true, username: true, email: true, fullName: true }
           },
           images: {
             orderBy: { sortOrder: 'asc' }

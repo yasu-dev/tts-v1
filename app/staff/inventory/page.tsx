@@ -280,11 +280,12 @@ export default function StaffInventoryPage() {
           condition: item.condition,
           conditionDisplay: getNameByKey(productConditions, item.condition),
           entryDate: item.entryDate || item.createdAt?.split('T')[0] || '2024-01-01',
-          assignedStaff: item.seller?.username || '担当者未設定',
+          assignedStaff: undefined,
           seller: item.seller ? {
             id: item.seller.id,
             username: item.seller.username,
-            email: item.seller.email
+            email: item.seller.email,
+            fullName: (item.seller as any).fullName,
           } : undefined,
           lastModified: item.updatedAt || new Date().toISOString(),
           qrCode: `QR-${item.sku}`,
@@ -913,7 +914,7 @@ export default function StaffInventoryPage() {
                         <span className="text-sm text-nexus-text-primary">{item.category}</span>
                       </td>
                       <td className="p-4">
-                        <span className="text-sm text-nexus-text-primary">{item.seller?.username || '未設定'}</span>
+                        <span className="text-sm text-nexus-text-primary">{item.seller?.fullName || item.seller?.username || item.seller?.email || '未設定'}</span>
                       </td>
                       <td className="p-4">
                         <span className="text-sm text-nexus-text-primary">{item.location}</span>

@@ -64,6 +64,7 @@ interface ItemDetailModalProps {
     metadata?: string; // メタデータフィールド追加
     inspectedAt?: string; // 検品日時
     photographyDate?: string; // 撮影日時
+    seller?: { id: string; username: string; email: string; fullName?: string };
   } | null;
   onStartInspection?: (item: any) => void;
   onStartPhotography?: (item: any) => void; // 撮影開始ハンドラー追加
@@ -616,7 +617,7 @@ export default function ItemDetailModal({
                 {/* Location and Assignment */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-nexus-text-primary">
-                    保管・担当情報
+                    保管・セラー情報
                   </h3>
                   <div className="grid grid-cols-1 gap-4">
                     <div>
@@ -627,9 +628,9 @@ export default function ItemDetailModal({
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-nexus-text-secondary mb-1">
-                        担当者
+                        セラー
                       </label>
-                      <p className="text-nexus-text-primary">{item.assignedStaff || 'なし'}</p>
+                      <p className="text-nexus-text-primary">{item.seller?.fullName || item.seller?.username || item.seller?.email || '未設定'}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-nexus-text-secondary mb-1">

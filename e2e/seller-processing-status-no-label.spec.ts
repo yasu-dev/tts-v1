@@ -7,9 +7,7 @@ test.describe('セラー販売管理：出荷準備中ステータスのラベ�
     await page.fill('input[name="email"]', 'seller@example.com');
     await page.fill('input[name="password"]', 'password');
     await page.click('button[type="submit"]');
-    await page.waitForURL('/dashboard');
-    
-    // セラー販売管理画面へ移動
+    // 成功後のリダイレクトは環境で異なるため、目的ページへ直接遷移
     await page.goto('/sales');
     await page.waitForLoadState('networkidle');
   });
