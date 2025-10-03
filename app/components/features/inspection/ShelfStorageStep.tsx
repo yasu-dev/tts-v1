@@ -5,6 +5,7 @@ import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
 import NexusInput from '@/app/components/ui/NexusInput';
 import BaseModal from '@/app/components/ui/BaseModal';
+import { ExclamationTriangleIcon, InformationCircleIcon, CheckIcon, MapPinIcon, XMarkIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 
 interface ShelfStorageStepProps {
@@ -416,10 +417,8 @@ export default function ShelfStorageStep({
         <div className="space-y-6">
           {/* 警告アイコンと重要メッセージ */}
           <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <svg className="w-8 h-8 text-yellow-600 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-              </svg>
+            <div className="flex items-center gap-3">
+              <ExclamationTriangleIcon className="w-8 h-8 text-yellow-600 flex-shrink-0" />
               <div className="flex-1">
                 <h3 className="text-lg font-bold text-yellow-900 mb-2">
                   重要：商品を確実に保管してください
@@ -435,9 +434,7 @@ export default function ShelfStorageStep({
           <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 space-y-4">
             <div className="border-b-2 border-blue-200 pb-4">
               <h4 className="text-lg font-bold text-blue-900 mb-3 flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M9 21h6" />
-                </svg>
+                <InformationCircleIcon className="w-5 h-5" />
                 商品情報
               </h4>
               <div className="space-y-2">
@@ -455,10 +452,7 @@ export default function ShelfStorageStep({
             {pendingLocationData && (
               <div>
                 <h4 className="text-lg font-bold text-green-900 mb-3 flex items-center gap-2">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
+                  <MapPinIcon className="w-5 h-5" />
                   保管先情報
                 </h4>
                 <div className="space-y-2">
@@ -481,10 +475,8 @@ export default function ShelfStorageStep({
 
           {/* 警告メッセージ */}
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <div className="flex items-start gap-2">
-              <svg className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+            <div className="flex items-center gap-2">
+              <ExclamationTriangleIcon className="w-5 h-5 text-red-600 flex-shrink-0" />
               <div className="text-sm text-red-800">
                 <p className="font-semibold mb-1">注意事項</p>
                 <p>間違った棚に保管すると、多数の在庫の中から商品を探し出すことが極めて困難になります。</p>
@@ -501,9 +493,7 @@ export default function ShelfStorageStep({
               size="lg"
               className="w-full bg-green-600 hover:bg-green-700 text-white"
             >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
+              <CheckIcon className="w-5 h-5 mr-2" />
               はい、保管しました
             </NexusButton>
             
@@ -513,9 +503,7 @@ export default function ShelfStorageStep({
               size="lg"
               className="w-full"
             >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
+              <ArrowPathIcon className="w-5 h-5 mr-2" />
               スキャンをやり直す
             </NexusButton>
             
@@ -525,9 +513,7 @@ export default function ShelfStorageStep({
               size="lg"
               className="w-full text-red-600 border-red-300 hover:bg-red-50"
             >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <XMarkIcon className="w-5 h-5 mr-2" />
               処理を中止する
             </NexusButton>
           </div>

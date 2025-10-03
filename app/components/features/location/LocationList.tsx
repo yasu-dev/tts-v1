@@ -1503,10 +1503,7 @@ export default function LocationList({ searchQuery = '', onProductMove }: Locati
                   hover:shadow-xl hover:scale-[1.02]
                 `}
               >
-                {/* 商品番号バッジ */}
-                <div className="absolute -top-2 -left-2 w-8 h-8 bg-nexus-yellow text-black rounded-full flex items-center justify-center font-bold text-sm shadow-lg">
-                  {index + 1}
-                </div>
+                {/* 商品番号バッジは非表示（UI統一のため削除） */}
 
 
                 <div className="space-y-4">
@@ -1573,13 +1570,18 @@ export default function LocationList({ searchQuery = '', onProductMove }: Locati
           <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-6">
             <div className="flex items-center gap-2 mb-3">
               <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.996-.833-2.768 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <h4 className="font-bold text-amber-800">ラベル照合作業</h4>
             </div>
             <div className="space-y-3 text-sm text-amber-800">
               <div className="bg-white border border-amber-200 rounded p-3">
-                <div className="font-semibold mb-2">📋 確認手順:</div>
+                <div className="font-semibold mb-2 flex items-center gap-2">
+                  <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>確認手順:</span>
+                </div>
                 <ol className="list-decimal list-inside space-y-1">
                   <li className="font-medium">梱包された実物商品を準備</li>
                   <li className="font-medium">商品ラベルの「管理番号」を確認</li>

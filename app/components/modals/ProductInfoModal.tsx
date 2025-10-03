@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { X, Package, MapPin, Calendar, User, FileText, Tag, Download, ArrowRight, ArrowDown } from 'lucide-react';
+import { X, Package, MapPin, Calendar, User, FileText, Tag, ArrowRight, ArrowDown } from 'lucide-react';
+import { DocumentArrowDownIcon } from '@heroicons/react/24/outline';
 import { useModal } from '@/app/components/ui/ModalContext';
 import NexusButton from '@/app/components/ui/NexusButton';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
@@ -663,7 +664,7 @@ export default function ProductInfoModal({ isOpen, onClose, product, onMove }: P
                 <NexusButton
                   onClick={handleDownloadDeliveryPlanLabel}
                   variant="primary"
-                  icon={<Download className="h-4 w-4" />}
+                  icon={<DocumentArrowDownIcon className="h-4 w-4" />}
                   size="sm"
                 >
                   納品プランラベルDL

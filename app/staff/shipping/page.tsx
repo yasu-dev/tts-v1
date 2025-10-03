@@ -19,6 +19,7 @@ import {
   TruckIcon,
   ArchiveBoxIcon,
   DocumentArrowUpIcon,
+  DocumentArrowDownIcon,
   ClipboardDocumentListIcon,
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
@@ -1376,12 +1377,12 @@ export default function StaffShippingPage() {
                             )}
                             {item.status === 'packed' && (
                               <>
-                                {/* 梱包済み商品のラベルダウンロードボタン */}
+                            {/* 梱包済み商品のラベルダウンロードボタン */}
                                 <NexusButton
                                   onClick={() => handleDownloadLabel(item)}
                                   variant="success"
                                   size="sm"
-                                  icon={<DocumentArrowUpIcon className="w-4 h-4" />}
+                              icon={<DocumentArrowDownIcon className="w-4 h-4" />}
                                   className="mr-2"
                                 >
                                   ラベル

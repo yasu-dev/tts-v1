@@ -5,6 +5,7 @@ import NexusCard from '@/app/components/ui/NexusCard';
 import NexusButton from '@/app/components/ui/NexusButton';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import { StarIcon } from '@heroicons/react/24/solid';
+import { CheckCircleIcon, ClipboardDocumentCheckIcon, InformationCircleIcon, CheckIcon } from '@heroicons/react/24/outline';
 
 // 商品追跡番号生成関数（ラベル生成と同じロジック）
 function generateTrackingNumber(sku: string): string {
@@ -259,9 +260,7 @@ export default function PackagingAndLabelStep({
           <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <div className="flex items-start">
               <div className="flex-shrink-0">
-                <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                <InformationCircleIcon className="w-5 h-5 text-blue-600 mt-0.5" />
               </div>
               <div className="ml-3 flex-1">
                 <h4 className="text-sm font-medium text-blue-800">
@@ -287,9 +286,7 @@ export default function PackagingAndLabelStep({
               <h4 className="text-base font-medium">1. 内装梱包</h4>
               {packagingCompleted && (
                 <div className="flex items-center text-green-600">
-                  <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
+                  <CheckIcon className="w-5 h-5 mr-1" />
                   完了
                 </div>
               )}
@@ -324,9 +321,7 @@ export default function PackagingAndLabelStep({
               <h4 className="text-base font-medium">2. 重量測定 <span className="text-red-500">*</span></h4>
               {weightEntered && (
                 <div className="flex items-center text-green-600">
-                  <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
+                  <CheckIcon className="w-5 h-5 mr-1" />
                   完了
                 </div>
               )}
@@ -419,9 +414,7 @@ export default function PackagingAndLabelStep({
               <h4 className="text-base font-medium">3. 商品ラベル出力</h4>
               {labelPrinted && (
                 <div className="flex items-center text-green-600">
-                  <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
+                  <CheckIcon className="w-5 h-5 mr-1" />
                   完了
                 </div>
               )}
@@ -430,7 +423,10 @@ export default function PackagingAndLabelStep({
               商品情報が印刷された商品ラベルを出力します。
             </p>
             <div className="bg-yellow-50 border border-yellow-200 p-4 rounded mb-4 text-sm space-y-2">
-              <div className="font-semibold text-yellow-800 mb-2">📋 ラベル出力情報</div>
+              <div className="font-semibold text-yellow-800 mb-2 flex items-center gap-2">
+                <ClipboardDocumentCheckIcon className="w-4 h-4" />
+                <span>ラベル出力情報</span>
+              </div>
               <div className="bg-yellow-100 p-2 rounded border">
                 <strong className="text-yellow-900">商品ラベル記載番号:</strong>
                 <span className="ml-2 font-mono text-lg font-bold text-yellow-800">
@@ -447,8 +443,9 @@ export default function PackagingAndLabelStep({
                   </div>
                 </div>
               )}
-              <div className="text-xs text-yellow-700 mt-2">
-                ✅ ピッキング指示と完全一致する追跡番号が生成されます
+              <div className="text-xs text-yellow-700 mt-2 flex items-center gap-1">
+                <CheckCircleIcon className="w-4 h-4" />
+                <span>ピッキング指示と完全一致する追跡番号が生成されます</span>
               </div>
             </div>
 
@@ -473,9 +470,7 @@ export default function PackagingAndLabelStep({
               <h4 className="text-base font-medium">4. ラベル貼り付け</h4>
               {labelPrinted && (
                 <div className="flex items-center text-green-600">
-                  <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
+                  <CheckIcon className="w-5 h-5 mr-1" />
                   ラベル出力済み
                 </div>
               )}
