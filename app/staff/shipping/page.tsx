@@ -378,6 +378,19 @@ export default function StaffShippingPage() {
         return newTabStats;
       });
       
+      // 一覧データの整合を背景で再取得（安全な最終確定）
+      try {
+        await fetchData(currentPage, itemsPerPage, activeTab);
+      } catch (refetchError) {
+        console.warn('再フェッチ警告（非致命）:', refetchError);
+      }
+      
+      // グローバルフロー等の集計に即時反映するため、軽量イベントを発火
+      if (typeof window !== 'undefined') {
+        const evt = new Event('inventory:refresh');
+        window.dispatchEvent(evt);
+      }
+      
       // トーストメッセージを表示
       showToast({
         title: 'ステータス更新',

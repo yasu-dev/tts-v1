@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { NexusLoadingSpinner } from '@/app/components/ui';
 
@@ -181,115 +181,129 @@ export default function UnifiedProductFlow({
     }
   ];
 
-  useEffect(() => {
-    const loadFlowData = async () => {
-      try {
-        const response = await fetch('/api/inventory/stats');
-        const data = await response.json();
-        
-        const steps = getFlowSteps();
-        let userActiveTasks = 0;
-        
-        // APIデータを各ステップのタスクにマッピング
-        steps.forEach(step => {
-          step.tasks.forEach(task => {
-            switch (task.id) {
-              // 準備フェーズ
-              case 'sourcing':
-                task.count = 0; // 商品仕入れは機能未実装のため0
-                break;
-              case 'plan':
-                task.count = data.statusStats['納品プラン作成'] || 0;
-                break;
-              case 'shipping':
-                task.count = data.statusStats['倉庫発送'] || 0;
-                break;
-              // 入庫フェーズ
-              case 'receive':
-                task.count = (data.statusStats['入庫待ち'] || 0) + (data.statusStats['入庫'] || 0);
-                break;
-              case 'inspection':
-                task.count = data.statusStats['検品'] || 0;
-                break;
-              case 'register':
-                task.count = data.statusStats['保管'] || 0;
-                break;
-              // 販売フェーズ
-              case 'listing':
-                task.count = data.statusStats['出品'] || 0;
-                break;
-              case 'order':
-                task.count = data.statusStats['受注'] || 0;
-                break;
-              case 'process':
-                task.count = data.statusStats['受注処理'] || 0;
-                break;
-              // 出荷フェーズ
-              case 'picking':
-                task.count = data.statusStats['出荷'] || 0;
-                break;
-              case 'packing':
-                task.count = data.statusStats['梱包・発送'] || 0;
-                break;
-              case 'delivery':
-                task.count = data.statusStats['購入者受取'] || 0;
-                break;
-              // 完了フェーズ
-              case 'calculation':
-                task.count = data.statusStats['売約済み'] || 0;
-                break;
-              case 'settlement':
-                task.count = 0; // 精算確認は機能未実装のため0
-                break;
-              case 'next':
-                task.count = 0; // 次回仕入れは機能未実装のため0
-                break;
-              // 返品フェーズ
-              case 'return-receive':
-                task.count = data.statusStats['返品受付'] || 0;
-                break;
-              case 'return-inspect':
-                task.count = data.statusStats['返品検品'] || 0;
-                break;
-              case 'return-process':
-                task.count = data.statusStats['再出品・廃棄'] || 0;
-                break;
-              default:
-                task.count = 0;
-            }
+  const loadFlowData = useCallback(async () => {
+    try {
+      const response = await fetch('/api/inventory/stats', { cache: 'no-store' });
+      const data = await response.json();
 
-            // ユーザーの担当タスクをカウント
-            if ((userType === 'seller' && step.role === 'seller') || 
-                (userType === 'staff' && step.role === 'staff')) {
-              userActiveTasks += task.count;
-            }
-          });
+      const steps = getFlowSteps();
+      let userActiveTasks = 0;
+
+      // APIデータを各ステップのタスクにマッピング
+      steps.forEach(step => {
+        step.tasks.forEach(task => {
+          switch (task.id) {
+            // 準備フェーズ
+            case 'sourcing':
+              task.count = 0; // 商品仕入れは機能未実装のため0
+              break;
+            case 'plan':
+              task.count = data.statusStats['納品プラン作成'] || 0;
+              break;
+            case 'shipping':
+              task.count = data.statusStats['倉庫発送'] || 0;
+              break;
+            // 入庫フェーズ
+            case 'receive':
+              task.count = (data.statusStats['入庫待ち'] || 0) + (data.statusStats['入庫'] || 0);
+              break;
+            case 'inspection':
+              task.count = data.statusStats['検品'] || 0;
+              break;
+            case 'register':
+              task.count = data.statusStats['保管'] || 0;
+              break;
+            // 販売フェーズ
+            case 'listing':
+              task.count = data.statusStats['出品'] || 0;
+              break;
+            case 'order':
+              task.count = data.statusStats['受注'] || 0;
+              break;
+            case 'process':
+              task.count = data.statusStats['受注処理'] || 0;
+              break;
+            // 出荷フェーズ
+            case 'picking':
+              task.count = data.statusStats['出荷'] || 0;
+              break;
+            case 'packing':
+              task.count = data.statusStats['梱包・発送'] || 0;
+              break;
+            case 'delivery':
+              task.count = data.statusStats['購入者受取'] || 0;
+              break;
+            // 完了フェーズ
+            case 'calculation':
+              task.count = data.statusStats['売約済み'] || 0;
+              break;
+            case 'settlement':
+              task.count = 0; // 精算確認は機能未実装のため0
+              break;
+            case 'next':
+              task.count = 0; // 次回仕入れは機能未実装のため0
+              break;
+            // 返品フェーズ
+            case 'return-receive':
+              task.count = data.statusStats['返品受付'] || 0;
+              break;
+            case 'return-inspect':
+              task.count = data.statusStats['返品検品'] || 0;
+              break;
+            case 'return-process':
+              task.count = data.statusStats['再出品・廃棄'] || 0;
+              break;
+            default:
+              task.count = 0;
+          }
+
+          // ユーザーの担当タスクをカウント
+          if ((userType === 'seller' && step.role === 'seller') || 
+              (userType === 'staff' && step.role === 'staff')) {
+            userActiveTasks += task.count;
+          }
         });
-        
-        setFlowData(steps);
-        
-        // 統計情報を計算
-        const total = Object.values(data.statusStats).reduce((sum: number, count: any) => sum + (count || 0), 0);
-        const inProgress = (data.statusStats['入庫'] || 0) + (data.statusStats['検品'] || 0) + (data.statusStats['出荷'] || 0);
-        const completed = data.statusStats['売約済み'] || 0;
-        const returns = data.statusStats['返品'] || 0;
-        
-        setTotalStats({ total, inProgress, completed, returns, userActiveTasks });
-        
-      } catch (error) {
-        console.error('Flow data loading error:', error);
-        setFlowData(getFlowSteps());
-      } finally {
-        setLoading(false);
-      }
-    };
+      });
 
+      setFlowData(steps);
+
+      // 統計情報を計算
+      const total = Object.values(data.statusStats).reduce((sum: number, count: any) => sum + (count || 0), 0);
+      const inProgress = (data.statusStats['入庫'] || 0) + (data.statusStats['検品'] || 0) + (data.statusStats['出荷'] || 0);
+      const completed = data.statusStats['売約済み'] || 0;
+      const returns = data.statusStats['返品'] || 0;
+
+      setTotalStats({ total, inProgress, completed, returns, userActiveTasks });
+
+    } catch (error) {
+      console.error('Flow data loading error:', error);
+      setFlowData(getFlowSteps());
+    } finally {
+      setLoading(false);
+    }
+  }, [userType]);
+
+  useEffect(() => {
     loadFlowData();
     
     // Auto-refresh every 30 seconds
     const interval = setInterval(loadFlowData, 30 * 1000);
-    return () => clearInterval(interval);
-  }, [userType]);
+
+    // 外部イベントからの即時再フェッチ（出荷・検品などの更新直後）
+    const onRefresh = () => {
+      loadFlowData();
+    };
+    if (typeof window !== 'undefined') {
+      (window as any).addEventListener('inventory:refresh', onRefresh as any);
+    }
+
+    return () => {
+      clearInterval(interval);
+      if (typeof window !== 'undefined') {
+        (window as any).removeEventListener('inventory:refresh', onRefresh as any);
+      }
+    };
+  }, [loadFlowData]);
 
   const handleStepClick = (stepId: string, taskId?: string) => {
     const baseRoute = userType === 'staff' ? '/staff' : '';
