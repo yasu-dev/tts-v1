@@ -22,8 +22,7 @@ const CATEGORY_ORDER = [
   'lens',
   'optical',
   'exposure_function',
-  'accessories',
-  'other'
+  'accessories'
 ];
 
 // カテゴリ定義（日本語表示用）
@@ -34,8 +33,7 @@ const CATEGORIES = {
   lens: 'レンズ',
   optical: '光学',
   exposure_function: '露出機能',
-  accessories: '付属品',
-  other: 'その他'
+  accessories: '付属品'
 };
 
 // アイテム定義（日本語表示用）

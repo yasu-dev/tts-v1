@@ -126,14 +126,7 @@ const HIERARCHICAL_INSPECTION_CATEGORIES = [
       { id: 'acc_lens_cap', name: 'レンズキャップ' },
     ],
   },
-  {
-    id: 'other',
-    name: 'その他',
-    items: [
-      { id: 'other_general', name: 'その他' },
-      { id: 'other_item', name: 'その他' },
-    ],
-  },
+  // トップレベル「その他」カテゴリは廃止（各セクション内のその他テキストは存続）
 ];
 
 export default function ProductInspectionDetails({ productId, status }: ProductInspectionDetailsProps) {

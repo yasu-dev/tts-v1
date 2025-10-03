@@ -116,13 +116,6 @@ const INSPECTION_CATEGORIES = [
       { id: 'acc_lens_cap', name: 'レンズキャップ', type: 'boolean' as const },
     ],
   },
-  {
-    id: 'other',
-    name: 'その他',
-    items: [
-      { id: 'other_general', name: 'その他', type: 'text_input' as const },
-    ],
-  },
 ];
 
 export default function HierarchicalInspectionChecklistInput({

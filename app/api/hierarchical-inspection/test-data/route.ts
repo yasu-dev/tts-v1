@@ -92,9 +92,6 @@ export async function POST(request: NextRequest) {
           acc_battery: { booleanValue: true },
           acc_case: { booleanValue: product.category === 'camera_body' },
           acc_manual: { booleanValue: false }
-        },
-        other: {
-          other_general: { textValue: `${product.name}の総合的なコンディション：良好。動作確認済み。` }
         }
       };
       
