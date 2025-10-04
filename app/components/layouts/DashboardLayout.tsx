@@ -151,10 +151,11 @@ export default function DashboardLayout({
     return { utc, jst };
   };
 
-  const [currentTime, setCurrentTime] = useState(getCurrentTime());
+  const [currentTime, setCurrentTime] = useState<{ utc: string; jst: string } | null>(null);
 
-  // 時刻を1分ごとに更新
+  // 時刻を1分ごとに更新（初回はマウント後に設定）
   useEffect(() => {
+    setCurrentTime(getCurrentTime());
     const interval = setInterval(() => {
       setCurrentTime(getCurrentTime());
     }, 60000);
@@ -711,7 +712,7 @@ export default function DashboardLayout({
             onSearchSubmit={handleSearchSubmit}
             onSettingsClick={handleSettingsClick}
             onLogout={handleLogout}
-            currentTime={currentTime}
+            currentTime={currentTime ?? undefined}
             onMobileMenuToggle={toggleMobileMenu}
             isMobileMenuOpen={isMobileMenuOpen}
           />

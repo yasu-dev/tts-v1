@@ -615,7 +615,12 @@ export async function GET(request: NextRequest) {
     
     console.log(`📦 Filtering results: ${uniqueShippingItems.length} -> ${displayItems.length} items`);
     
-    const stats = displayItems.reduce((acc, item) => {
+    // 表示件数とは独立したグローバル統計（フィルタリング状態に依存しない）
+    const globalStatsSource = await prisma.shipment.findMany({
+      where: getStatusFilter('all')
+    });
+
+    const stats = globalStatsSource.reduce((acc, item) => {
       const status = item.status;
       if (['workstation', 'picked', 'ordered', 'pending'].includes(status)) {
         acc.workstation = (acc.workstation || 0) + 1;
@@ -645,11 +650,11 @@ export async function GET(request: NextRequest) {
     });
     
     return NextResponse.json({ 
-      items: uniqueShippingItems,
+      items: displayItems,
       pagination: {
         currentPage: page,
-        totalPages: Math.ceil(displayItems.length / limit),
-        totalCount: displayItems.length,
+        totalPages: Math.ceil(totalCount / limit),
+        totalCount: totalCount,
         limit: limit,
       },
       stats: stats

@@ -99,7 +99,7 @@ interface Product {
   name: string;
   sku: string;
   category: string;
-  status: 'pending_inspection' | 'inspecting' | 'completed' | 'failed';
+  status: 'pending_inspection' | 'inspecting' | 'completed' | 'failed' | 'storage';
   receivedDate: string;
 
   imageUrl?: string;
@@ -149,9 +149,9 @@ const convertStatusToBusinessStatus = (status: string): BusinessStatus => {
     case 'completed':
       return 'completed';  // 完了
     case 'rejected':
-      return 'rejected';  // 拒否
+      return 'on_hold';  // 拒否も保留表示に統一
     case 'failed':
-      return 'rejected';  // 不合格
+      return 'on_hold';  // 不合格は保留中（黄）で統一表示
     case 'on_hold':
       return 'on_hold';  // 保留中
     default:
@@ -364,8 +364,8 @@ export default function InspectionPage() {
     }));
   };
 
-  // InventoryのstatusをInspectionのstatusに変換する関数
-  const convertInventoryStatusToInspectionStatus = (inventoryStatus: string): 'pending_inspection' | 'inspecting' | 'completed' | 'failed' => {
+// InventoryのstatusをInspectionのstatusに変換する関数
+  const convertInventoryStatusToInspectionStatus = (inventoryStatus: string): 'pending_inspection' | 'inspecting' | 'completed' | 'failed' | 'storage' => {
     switch (inventoryStatus) {
       case 'inbound':
         return 'pending_inspection';
@@ -374,7 +374,7 @@ export default function InspectionPage() {
       case 'inspecting':
         return 'inspecting';
       case 'storage':
-        return 'completed';
+        return 'storage';
       case 'ordered':
         return 'completed';  // 出荷準備完了
       case 'workstation':
@@ -830,7 +830,7 @@ export default function InspectionPage() {
                     },
                     on_hold: {
                       normal: 'bg-yellow-600 text-white border border-yellow-500',
-                      active: 'bg-yellow-700 text-white border-2 border-yellow-600'
+                      active: 'bg-yellow-600 text-white border-2 border-yellow-500' // アクティブでも黄色を維持
                     },
                   };
                   return statusColors[status] ?

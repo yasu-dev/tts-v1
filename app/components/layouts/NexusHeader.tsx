@@ -173,7 +173,9 @@ export default function NexusHeader({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <div>
-              <div className="font-mono text-sm font-semibold">{currentTime.jst}</div>
+              <div className="font-mono text-sm font-semibold" suppressHydrationWarning>
+                {currentTime.jst}
+              </div>
               <div className="text-[10px] opacity-80">日本時間</div>
             </div>
           </div>
@@ -181,7 +183,9 @@ export default function NexusHeader({
         
         {/* コンパクト時間表示（タブレット用） */}
         <div className="hidden md:block lg:hidden bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg px-2 py-1 text-white">
-          <div className="font-mono text-xs font-semibold">{currentTime.jst}</div>
+          <div className="font-mono text-xs font-semibold" suppressHydrationWarning>
+            {currentTime.jst}
+          </div>
         </div>
         
         {/* 通知ボタン - 無効化 */}

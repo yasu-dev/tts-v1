@@ -165,7 +165,7 @@ export default function StaffShippingPage() {
             setTotalPages(data.pagination.totalPages);
           }
           
-          // 統計情報を保存
+          // 統計情報を保存（APIが返すグローバル統計をそのまま使用）
           if (data.stats) {
             setTabStats(data.stats);
           }
@@ -239,16 +239,8 @@ export default function StaffShippingPage() {
         setTotalPages(data.pagination.totalPages);
       }
       
-      // 統計情報を保存（APIから受信したデータと表示データが同期）
+      // 統計情報はAPIのグローバル統計を使用
       if (data.stats) {
-        console.log('📊 API統計データ:', data.stats);
-        console.log('[INFO] 表示アイテム数:', shippingItems.length);
-        console.log('[INFO] 表示内訳:', shippingItems.reduce((acc, item) => {
-          acc[item.status] = (acc[item.status] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>));
-        
-        // 統計データを設定（表示データと完全同期保証）
         setTabStats(data.stats);
       }
       
