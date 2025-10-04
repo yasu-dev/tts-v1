@@ -692,7 +692,7 @@ export default function SalesPage() {
           
           {/* フィルター・検索部分（タイトル削除版） */}
           <div className="p-6 border-b border-nexus-border">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <NexusSelect
                 label="ステータス"
                 value={statusFilter}
@@ -714,19 +714,18 @@ export default function SalesPage() {
                   setCurrentPage(1);
                 }}
               />
-              
-              {/* 同梱機能ボタン */}
-              <div className="flex items-end">
-                {salesBundleItems.length >= 2 && (
-                  <NexusButton
-                    onClick={handleSalesBundle}
-                    variant="primary"
-                    icon={<CubeIcon className="w-4 h-4" />}
-                  >
-                    同梱設定 ({salesBundleItems.length}件)
-                  </NexusButton>
-                )}
-              </div>
+            </div>
+            {/* 同梱機能ボタン */}
+            <div className="mt-2 flex justify-end">
+              {salesBundleItems.length >= 2 && (
+                <NexusButton
+                  onClick={handleSalesBundle}
+                  variant="primary"
+                  icon={<CubeIcon className="w-4 h-4" />}
+                >
+                  同梱設定 ({salesBundleItems.length}件)
+                </NexusButton>
+              )}
             </div>
           </div>
 

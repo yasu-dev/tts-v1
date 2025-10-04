@@ -51,11 +51,53 @@ export async function GET(
     }
     
     if (!progressData) {
-      console.log(`[INFO] No progress data found for product ${productId}`);
-      return NextResponse.json(
-        { error: 'No progress data found' },
-        { status: 404 }
-      );
+      console.log(`[INFO] No progress data found for product ${productId} - returning default based on product status`);
+
+      // フォールバックのステップを商品ステータスから推定
+      let fallbackStep = 1;
+      let fallbackStatus: string = 'inspecting';
+      try {
+        const product = await prisma.product.findUnique({
+          where: { id: productId },
+          select: { status: true }
+        });
+
+        if (product?.status) {
+          const statusToStep: Record<string, number> = {
+            pending_inspection: 1,
+            inspection: 1,
+            inspecting: 2,
+            photography: 2,
+            packed: 3,
+            packing: 3,
+            labeled: 3,
+            storage: 4,
+            completed: 4,
+            ordered: 4,
+            shipping: 4,
+            sold: 4,
+            returned: 4
+          };
+          fallbackStep = statusToStep[product.status] ?? 1;
+          fallbackStatus = product.status;
+        }
+      } catch (e) {
+        console.warn('[WARN] Could not resolve product status for fallback progress; defaulting to step 1');
+      }
+
+      const defaultProgress = {
+        productId,
+        currentStep: fallbackStep,
+        checklist: null,
+        photos: [],
+        photoSlots: [],
+        notes: '',
+        videoId: null,
+        lastUpdated: new Date().toISOString(),
+        status: fallbackStatus
+      };
+
+      return NextResponse.json(defaultProgress);
     }
     
     console.log(`[INFO] Progress loaded from database for product ${productId}, step ${progressData.currentStep}`);

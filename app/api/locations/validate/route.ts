@@ -93,13 +93,23 @@ export async function POST(request: NextRequest) {
 
       if (dbLocation) {
         isValid = true;
+        // 実際の棚の現在数をカウントして返す（容量チェックの事前検証のため）
+        let currentCount = 0;
+        try {
+          currentCount = await prisma.product.count({
+            where: { currentLocationId: dbLocation.id }
+          });
+        } catch (countErr) {
+          console.warn('Failed to count products for location, defaulting currentCount=0', countErr);
+        }
+
         locationDetails = {
           id: dbLocation.id,
           code: dbLocation.code,
           name: dbLocation.name,
           zone: dbLocation.zone || 'unknown',
           capacity: dbLocation.capacity || 50,
-          currentCount: 0, // TODO: 実際の商品数をカウント
+          currentCount,
           type: 'database',
           environment: 'normal',
           available: dbLocation.isActive
