@@ -127,7 +127,7 @@ export default function PhotoUploader({
   };
 
   const [photoSlots, setPhotoSlots] = useState<PhotoSlot[]>(
-    initialPhotoSlots || defaultPhotoSlots
+    initialPhotoSlots && initialPhotoSlots.length > 0 ? initialPhotoSlots : defaultPhotoSlots
   );
 
   // photoSlotsが変更された時に親コンポーネントに通知（初期化時は除外）
@@ -141,9 +141,9 @@ export default function PhotoUploader({
     }
   }, [photoSlots, uploadedPhotos, isInitialized]);
 
-  // 進捗復元時にphotoSlotsを更新
+  // 進捗復元時にphotoSlotsを更新（空配列は無視してデフォルト維持）
   useEffect(() => {
-    if (initialPhotoSlots && initialPhotoSlots.length > 0) {
+    if (Array.isArray(initialPhotoSlots) && initialPhotoSlots.length > 0) {
       setPhotoSlots(initialPhotoSlots);
     }
   }, [initialPhotoSlots]);

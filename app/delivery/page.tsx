@@ -1203,8 +1203,8 @@ export default function DeliveryPage() {
                               )}
                               {product.supplierDetails && (
                                 <div>
-                                  <span className="font-medium text-nexus-text-secondary">仕入詳細:</span>
-                                  <div className="ml-0 mt-1 text-nexus-text-primary bg-nexus-bg-tertiary p-2 rounded text-xs">
+                                  <h6 className="font-medium text-nexus-text-primary text-sm">仕入詳細</h6>
+                                  <div className="mt-1 p-3 bg-nexus-bg-tertiary border border-nexus-border rounded-lg text-sm text-nexus-text-primary">
                                     {product.supplierDetails}
                                   </div>
                                 </div>

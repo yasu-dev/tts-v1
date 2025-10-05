@@ -1102,10 +1102,10 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
                 </div>
                 {product.deliveryPlanInfo.supplierDetails && (
                   <div className="mt-2">
-                    <span className="text-gray-600">仕入詳細:</span>
-                    <p className="ml-2 text-sm text-gray-700 bg-gray-50 p-2 rounded mt-1">
+                    <h6 className="text-sm font-medium text-nexus-text-primary">仕入詳細</h6>
+                    <div className="mt-1 p-3 bg-nexus-bg-tertiary border border-nexus-border rounded-lg text-sm text-nexus-text-primary">
                       {product.deliveryPlanInfo.supplierDetails}
-                    </p>
+                    </div>
                   </div>
                 )}
               </div>
