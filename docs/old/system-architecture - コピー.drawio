@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" modified="2025-10-03T00:00:00.000Z" agent="Manual" version="22.0.0">
   <diagram name="システム構成図" id="system-architecture">
-    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="1000" math="0" shadow="0">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -51,10 +51,10 @@
         <mxCell id="backend-api" value="API エンドポイント（107個）&#xa;• /api/products/&#xa;• /api/inventory/&#xa;• /api/inspection/&#xa;• /api/shipping/&#xa;• /api/delivery-plan/&#xa;• その他多数" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=10;" vertex="1" parent="backend-layer">
           <mxGeometry x="30" y="40" width="200" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="backend-services" value="ビジネスロジック&#xa;• lib/services/&#xa;• lib/repositories/&#xa;• lib/utils/&#xa;• RepositoryFactory によるデータソース切替（prisma/mock/api）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=10;" vertex="1" parent="backend-layer">
+        <mxCell id="backend-services" value="ビジネスロジック&#xa;• lib/services/&#xa;• lib/repositories/&#xa;• lib/utils/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=10;" vertex="1" parent="backend-layer">
           <mxGeometry x="280" y="40" width="200" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="backend-auth" value="認証・認可&#xa;• JWT + bcryptjs&#xa;• 2要素認証&#xa;• ロールベース制御&#xa;• 固定認証フォールバック（ALLOW_FIXED_AUTH）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=10;" vertex="1" parent="backend-layer">
+        <mxCell id="backend-auth" value="認証・認可&#xa;• JWT + bcryptjs&#xa;• 2要素認証&#xa;• ロールベース制御" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=10;" vertex="1" parent="backend-layer">
           <mxGeometry x="530" y="40" width="200" height="120" as="geometry" />
         </mxCell>
         <mxCell id="backend-activity" value="アクティビティログ&#xa;• 全操作履歴記録&#xa;• Activity model" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=10;" vertex="1" parent="backend-layer">
@@ -63,18 +63,18 @@
 
         <!-- データベース層 -->
         <mxCell id="database-layer" value="データベース層" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="700" width="480" height="180" as="geometry" />
+          <mxGeometry x="80" y="700" width="480" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="database-prisma" value="Prisma ORM 5.7.0&#xa;• SQLite（開発環境）&#xa;• 36モデル定義&#xa;• 本番: PostgreSQL想定（設定により切替）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=10;" vertex="1" parent="database-layer">
-          <mxGeometry x="30" y="40" width="420" height="120" as="geometry" />
+        <mxCell id="database-prisma" value="Prisma ORM 5.7.0&#xa;• SQLite（開発環境）&#xa;• 36モデル定義" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=10;" vertex="1" parent="database-layer">
+          <mxGeometry x="30" y="40" width="420" height="50" as="geometry" />
         </mxCell>
 
         <!-- 外部サービス層 -->
         <mxCell id="external-layer" value="外部サービス層" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="600" y="700" width="480" height="180" as="geometry" />
+          <mxGeometry x="600" y="700" width="480" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="external-services" value="• AWS S3（未使用・モックのみ）&#xa;• SendGrid（メール送信・実装済み）&#xa;• eBay API（アダプター準備中）&#xa;• FedEx API（アダプター準備中）&#xa;• Redis（キャッシュ・本番設定）&#xa;• 監視: Sentry / Datadog（本番設定）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=10;" vertex="1" parent="external-layer">
-          <mxGeometry x="30" y="40" width="420" height="120" as="geometry" />
+        <mxCell id="external-services" value="• AWS S3（未使用・モックのみ）&#xa;• SendGrid（メール送信・実装済み）&#xa;• eBay API（アダプター準備中）&#xa;• FedEx API（アダプター準備中）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=10;" vertex="1" parent="external-layer">
+          <mxGeometry x="30" y="40" width="420" height="50" as="geometry" />
         </mxCell>
 
         <!-- 矢印 -->

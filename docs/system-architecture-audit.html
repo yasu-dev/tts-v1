@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>フルフィルメント BY THE WORLD DOORプロジェクト</title>
+  <style>
+    /* 強制ライトテーマ + 高コントラスト */
+    :root { color-scheme: light; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif; line-height: 1.6; margin: 0; padding: 0; background: #f6f7f9; color: #212529; }
+    header { padding: 24px; background: #0b7285; color: #ffffff; }
+    header h1 { margin: 0 0 8px 0; font-size: 22px; }
+    header .meta { opacity: 0.9; font-size: 13px; }
+    nav.toc { padding: 12px 24px; background: #e7f5ff; border-bottom: 1px solid #d0ebff; }
+    nav.toc a { margin-right: 16px; font-size: 14px; }
+    main { padding: 24px; max-width: 1200px; margin: 0 auto; }
+    section { margin: 24px 0; }
+    h2 { font-size: 18px; margin: 0 0 12px 0; }
+    h3 { font-size: 16px; margin: 18px 0 8px 0; }
+    .card { border: 1px solid #dee2e6; border-radius: 8px; padding: 16px; background: #ffffff; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+    .grid { display: grid; gap: 12px; }
+    .grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .table-wrap { max-height: 60vh; overflow: auto; border: 1px solid #dee2e6; border-radius: 6px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { border-bottom: 1px solid #e9ecef; padding: 8px 10px; vertical-align: top; }
+    th { background: #f8f9fa; text-align: left; position: sticky; top: 0; z-index: 1; }
+    tbody tr:nth-child(odd) { background: #fcfcfd; }
+    .kbd { background: #f1f3f5; border: 1px solid #dee2e6; border-radius: 4px; padding: 2px 6px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+    pre { background: #1e1e1e; color: #e9ecef; padding: 12px; border-radius: 8px; overflow: auto; }
+    a { color: #0b7285; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .note { font-size: 13px; color: #495057; }
+    .ok { color: #2b8a3e; }
+    .warn { color: #e67700; }
+    .danger { color: #c92a2a; }
+    .back-to-top { text-align: right; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>フルフィルメント BY THE WORLD DOORプロジェクト</h1>
+    <div class="meta">最終更新: 2025-10-05 | 本ファイルは <span class="kbd">docs/system-architecture-audit.md</span> を図表化したHTML版です</div>
+  </header>
+  <nav class="toc">
+    <a href="#summary">結論</a>
+    <a href="#diagrams">図面リンク</a>
+    <a href="#datasource">データ源/シード</a>
+    <a href="#frontend-mock">フロントのモック</a>
+    <a href="#auth">認証</a>
+    <a href="#env">環境切替</a>
+    <a href="#demos">デモ/モック一覧</a>
+    <a href="#risks">リスク</a>
+    <a href="#codes">参考コード</a>
+  </nav>
+  <main>
+
+    <section id="summary" class="card">
+      <h2>要約</h2>
+      <div class="grid cols-2">
+        <div>
+          <h3>分離性</h3>
+          <ul>
+            <li>フロントは API 経由でのみデータ取得（Prisma 直参照なし）</li>
+            <li>バックエンドは Prisma 経由で DB（SQLite）アクセス</li>
+            <li>API ルート実体は <b>107</b> 本（<span class="kbd">app/api/**/route.ts</span>）</li>
+          </ul>
+        </div>
+        <div>
+          <h3>データ源</h3>
+          <ul>
+            <li>DB: <span class="kbd">prisma/schema.prisma</span> の <b>SQLite</b>（<span class="kbd">file:./dev.db</span>）</li>
+            <li>マスタは <span class="kbd">/api/master/*</span> により提供、フロントはフックで取得</li>
+          </ul>
+        </div>
+      </div>
+      <div class="grid cols-2">
+        <div>
+          <h3>認証</h3>
+          <ul>
+            <li>DBセッション/JWT実装（<span class="kbd">lib/auth.ts</span>）</li>
+            <li>フォールバック固定認証は <span class="kbd">ALLOW_FIXED_AUTH</span> で制御</li>
+          </ul>
+        </div>
+        <div>
+          <h3>外部サービス</h3>
+          <ul>
+            <li>開発: モック（<span class="kbd">/api/mock/*</span>）</li>
+            <li>本番: 実サービスURL/APIキー（SendGrid/S3/Redis/Sentry/Datadog 等）</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <div class="back-to-top"><a href="#top">▲ 上へ戻る</a></div>
+
+    <section id="diagrams" class="card">
+      <h2>関連ドキュメント（図面）</h2>
+      <div class="table-wrap"><table>
+        <thead>
+          <tr><th>ファイル</th><th>説明</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="system-architecture.drawio">docs/system-architecture.drawio</a></td>
+            <td>システム構成図（RepositoryFactory、固定認証フォールバック、PostgreSQL想定、本番監視/キャッシュを追記済み）</td>
+          </tr>
+          <tr>
+            <td><a href="product-status-flow.drawio">docs/product-status-flow.drawio</a></td>
+            <td>商品ステータスフロー（右側は Shipment ワークフロー、DBの Shipment/InventoryMovement/Activity に記録）</td>
+          </tr>
+          <tr>
+            <td><a href="database-er-diagram.drawio">docs/database-er-diagram.drawio</a></td>
+            <td>ER図（ProductImage/InspectionChecklist/Order/InventoryMovement を実スキーマに整合済み）</td>
+          </tr>
+        </tbody>
+      </table></div>
+      <p class="note">※ drawio は diagrams.net 等で開いて参照してください。</p>
+    </section>
+
+    <div class="back-to-top"><a href="#top">▲ 上へ戻る</a></div>
+
+    <section id="datasource" class="card">
+      <h2>データ源とシード</h2>
+      <div class="grid cols-2">
+        <div>
+          <h3>データソース</h3>
+          <div class="table-wrap"><table>
+            <thead>
+              <tr><th>項目</th><th>値</th><th>説明</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>DB</th>
+                <td>SQLite（<span class="kbd">prisma/schema.prisma</span> → <span class="kbd">file:./dev.db</span>）</td>
+                <td>Prismaの <span class="kbd">datasource db</span> が <span class="kbd">provider: sqlite</span> を指す。APIは <span class="kbd">prisma.&lt;model&gt;</span> でDBへアクセス。</td>
+              </tr>
+              <tr>
+                <th>マスタ API</th>
+                <td><span class="kbd">/api/master/product-statuses</span> / <span class="kbd">/api/master/categories</span> / <span class="kbd">/api/master/product-conditions</span> など</td>
+                <td>各APIはDBのマスタテーブルを参照し、<span class="kbd">findMany/create/update</span> を提供。</td>
+              </tr>
+              <tr>
+                <th>フック</th>
+                <td><span class="kbd">lib/hooks/useMasterData.ts</span></td>
+                <td>フロントからマスタAPIを取得するフック群（<span class="kbd">useCategories</span> / <span class="kbd">useProductStatuses</span> / <span class="kbd">useProductConditions</span> / <span class="kbd">useCarriers</span> / <span class="kbd">useWorkflowSteps</span> / <span class="kbd">useSystemSetting(s)</span>）。</td>
+              </tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div>
+          <h3>シード（demo/test）</h3>
+          <ul>
+            <li><span class="kbd">prisma/seed-with-images.ts</span></li>
+            <li><span class="kbd">prisma/comprehensive-seed.ts</span></li>
+            <li><span class="kbd">prisma/seed.ts</span></li>
+            <li><span class="kbd">prisma/seed-master-data.ts</span></li>
+          </ul>
+        </div>
+      </div>
+      <h3>Prisma モデル一覧（36件）</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>モデル名</th><th>備考</th></tr></thead>
+        <tbody>
+          <tr><td>User</td><td>sessions, activities などと関連</td></tr>
+          <tr><td>Session</td><td>JWTトークン/有効期限</td></tr>
+          <tr><td>Product</td><td>status, images, listings, orderItems, movements</td></tr>
+          <tr><td>Location</td><td>棚/エリア</td></tr>
+          <tr><td>InventoryMovement</td><td>from/to ロケーション、movedBy, notes</td></tr>
+          <tr><td>Order</td><td>customerId, status, carrier, trackingNumber 等</td></tr>
+          <tr><td>OrderItem</td><td>order と product の中間</td></tr>
+          <tr><td>Activity</td><td>操作履歴</td></tr>
+          <tr><td>VideoRecord</td><td>作業動画</td></tr>
+          <tr><td>TwoFactorAuth</td><td>2FAコード</td></tr>
+          <tr><td>ExternalService</td><td>外部連携ログ</td></tr>
+          <tr><td>BarcodeScanner</td><td>機器管理</td></tr>
+          <tr><td>PickingTask</td><td>ピッキングタスク</td></tr>
+          <tr><td>PickingItem</td><td>ピッキングアイテム</td></tr>
+          <tr><td>DeliveryPlan</td><td>納品プラン</td></tr>
+          <tr><td>DeliveryPlanProduct</td><td>納品プラン商品</td></tr>
+          <tr><td>DeliveryPlanProductImage</td><td>納品プラン画像</td></tr>
+          <tr><td>InspectionProgress</td><td>検品進捗</td></tr>
+          <tr><td>InspectionChecklist</td><td>Boolean項目・createdBy/verified*</td></tr>
+          <tr><td>Warehouse</td><td>倉庫</td></tr>
+          <tr><td>ListingTemplate</td><td>出品テンプレート</td></tr>
+          <tr><td>Listing</td><td>出品</td></tr>
+          <tr><td>Shipment</td><td>配送</td></tr>
+          <tr><td>Task</td><td>タスク</td></tr>
+          <tr><td>KPIMetric</td><td>KPI</td></tr>
+          <tr><td>Return</td><td>返品</td></tr>
+          <tr><td>ProductImage</td><td>url/thumbnailUrl/filename/size/mimeType/sortOrder 等</td></tr>
+          <tr><td>Category</td><td>マスタ</td></tr>
+          <tr><td>ProductStatus</td><td>マスタ</td></tr>
+          <tr><td>ProductCondition</td><td>マスタ</td></tr>
+          <tr><td>Carrier</td><td>配送業者マスタ</td></tr>
+          <tr><td>WorkflowStep</td><td>ワークフロー定義</td></tr>
+          <tr><td>SystemSetting</td><td>システム設定（JSON含む）</td></tr>
+          <tr><td>HierarchicalInspectionChecklist</td><td>階層型検品（responsesと関連）</td></tr>
+          <tr><td>HierarchicalInspectionResponse</td><td>階層型検品回答</td></tr>
+          <tr><td>Notification</td><td>通知</td></tr>
+        </tbody>
+      </table></div>
+      <p class="note">各モデルの正確なカラムは <span class="kbd">prisma/schema.prisma</span> を参照。</p>
+    </section>
+
+    <div class="back-to-top"><a href="#top">▲ 上へ戻る</a></div>
+
+    <section id="frontend-mock" class="card">
+      <h2>フロントエンドのモック/フォールバック（網羅）</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>対象</th><th>ファイル/エンドポイント</th><th>内容</th><th>説明</th></tr></thead>
+        <tbody>
+          <tr><td>返品UI</td><td><span class="kbd">app/staff/returns/page.tsx</span></td><td>API失敗時の <span class="kbd">mockReturnsData</span> フォールバック</td><td>サーバーから取得できない場合でも画面の動作確認が可能。</td></tr>
+          <tr><td>ロケーション</td><td><span class="kbd">app/components/features/location/LocationList.tsx</span></td><td>位置情報・配送集計のモックフォールバック</td><td>配送集計のグルーピング関数に対し、固定配列で代替。</td></tr>
+          <tr><td>出品フォーム</td><td><span class="kbd">app/components/modals/ListingFormModal.tsx</span></td><td>モック出品ID（<span class="kbd">MOCK-...</span>）生成</td><td>外部連携未実装時でもUIフローを実施できるように一時IDを生成。</td></tr>
+          <tr><td>検索モーダル</td><td><span class="kbd">app/components/SearchModal.tsx</span></td><td>デモ検索結果</td><td>キーワードに応じて固定的なヒットを返し、UI遷移を確認。</td></tr>
+          <tr><td>配送詳細モーダル</td><td><span class="kbd">app/components/modals/ShippingDetailModal.tsx</span></td><td>デモ履歴データ</td><td>出荷履歴の可視化UI検証のため、タイムラインの雛形を提供。</td></tr>
+          <tr><td>ピッキング履歴</td><td><span class="kbd">app/components/features/picking/PickingHistory.tsx</span></td><td>モック履歴フォールバック</td><td>ステータスや時刻フォーマットの表示検証を目的としたサンプルデータ。</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <div class="back-to-top"><a href="#top">▲ 上へ戻る</a></div>
+
+    <section id="auth" class="card">
+      <h2>認証・認可（例外分岐含む）</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>種別</th><th>ファイル/エンドポイント</th><th>内容</th><th>説明</th></tr></thead>
+        <tbody>
+          <tr><td>DBセッション</td><td><span class="kbd">lib/auth.ts</span></td><td>bcrypt/JWT/セッション管理</td><td><span class="kbd">auth-token</span> をCookieに保存。検証時に <span class="kbd">sessions</span> テーブルを参照。</td></tr>
+          <tr><td>固定認証</td><td><span class="kbd">app/api/auth/login/route.ts</span></td><td><span class="kbd">ALLOW_FIXED_AUTH</span> true時のみ許可。テスト用メール/パスワード</td><td>成功時は <span class="kbd">fixed-auth-token-*</span> をCookieに設定（Secure/SameSite=strict/HttpOnly）。</td></tr>
+          <tr><td>デモ環境バイパス</td><td><span class="kbd">app/api/inventory/route.ts</span></td><td>認証簡略化、デモユーザー代入ログ</td><td>未認証時でも参照元（<span class="kbd">/staff/</span> 含有）でスタッフ/セラーを仮定。</td></tr>
+          <tr><td>デモ環境バイパス</td><td><span class="kbd">app/api/products/[id]/route.ts</span></td><td>セラー/スタッフ用の簡略化</td><td>取得や部分更新の前にデモユーザーを前提として処理。</td></tr>
+          <tr><td>デモ環境バイパス</td><td><span class="kbd">app/api/returns/route.ts</span></td><td>未認証時に固定スタッフを使用</td><td>スタッフ権限の操作確認のために固定ユーザーを割り当て。</td></tr>
+          <tr><td>デモ環境バイパス</td><td><span class="kbd">app/api/products/storage/route.ts</span></td><td>デモユーザー作成・代入</td><td>存在しない場合は <span class="kbd">demo-user</span> を作成して以降の処理に使用。</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <div class="back-to-top"><a href="#top">▲ 上へ戻る</a></div>
+
+    <section id="env" class="card">
+      <h2>外部サービス連携と環境切替</h2>
+      <div class="grid cols-2">
+        <div>
+          <h3>開発環境（development）</h3>
+          <table>
+            <tbody>
+              <tr><th>データソース</th><td><span class="kbd">config/environments/development.ts</span> → <span class="kbd">dataSource: 'mock'</span></td></tr>
+              <tr><th>サービス</th><td><span class="kbd">services.useMock: true</span>（<span class="kbd">/api/mock/*</span>）</td></tr>
+              <tr><th>APIエンドポイント</th><td><span class="kbd">lib/services/config.ts</span> の <span class="kbd">getApiEndpoint()</span> でモックへ誘導</td></tr>
+              <tr><th>Devポート</th><td><span class="kbd">package.json</span> → <span class="kbd">next dev -p 3002</span>（e2eは 3001）</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h3>本番環境（production）</h3>
+          <table>
+            <tbody>
+              <tr><th>データソース</th><td><span class="kbd">config/environments/production.ts</span> → <span class="kbd">dataSource: 'prisma'</span></td></tr>
+              <tr><th>DB設定</th><td>provider: <span class="kbd">postgresql</span>（スキーマは現状 <span class="kbd">sqlite</span> 指定）</td></tr>
+              <tr><th>サービス</th><td>SendGrid, AWS S3, Redis, Sentry, Datadog 等のキー参照</td></tr>
+              <tr><th>切替</th><td><span class="kbd">config/index.ts</span> の <span class="kbd">getConfig()</span> / <span class="kbd">NODE_ENV</span> により選択</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <div class="back-to-top"><a href="#top">▲ 上へ戻る</a></div>
+
+    <section id="demos" class="card">
+      <h2>デモ/モック/フォールバック（API/フロント）</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>分類</th><th>ファイル/エンドポイント</th><th>要点</th></tr></thead>
+        <tbody>
+          <tr><td>履歴モック</td><td><span class="kbd">/api/products/[id]/history/mock</span></td><td>モック履歴データを返却</td></tr>
+          <tr><td>ラベルのデモ</td><td><span class="kbd">/api/shipping/label/get</span></td><td>条件によりデモPDF（<span class="kbd">/public/labels/*.pdf</span>）を返却</td></tr>
+          <tr><td>eBay関連</td><td><span class="kbd">/api/ebay/listing</span>, <span class="kbd">/api/mock/ebay/listing</span></td><td>DB更新中心、モック経由</td></tr>
+          <tr><td>FedExモック</td><td><span class="kbd">/api/shipping/fedx</span></td><td>PDF生成モック・フォールバック</td></tr>
+          <tr><td>フロントのデモ</td><td>各UI（上表参照）</td><td>API失敗時のフォールバックや表示用デモデータ</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <div class="back-to-top"><a href="#top">▲ 上へ戻る</a></div>
+
+    <section id="risks" class="card">
+      <h2>リスク/注意点（事実ベース）</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>項目</th><th>詳細</th></tr></thead>
+        <tbody>
+          <tr><td>固定認証</td><td><span class="kbd">ALLOW_FIXED_AUTH</span> 有効時はテスト用メール/PWでログイン可</td></tr>
+          <tr><td>デモ分岐の散在</td><td>認証やデータ取得の簡略化ロジックあり。本番では無効化・保護が必要</td></tr>
+          <tr><td>PrismaClientの個別生成</td><td>多数の API で <span class="kbd">new PrismaClient()</span> を直接生成（<span class="kbd">lib/database.ts</span> の共有利用推奨）</td></tr>
+          <tr><td>DB切替の差異</td><td>本番設定は PostgreSQL 想定だがスキーマは SQLite 指定のため移行対応が必要</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <div class="back-to-top"><a href="#top">▲ 上へ戻る</a></div>
+
+    <section id="codes" class="card">
+      <h2>参考コード（抜粋・事実のみ）</h2>
+      <h3>Prisma datasource（SQLite）</h3>
+      <pre><code>1:20:prisma/schema.prisma
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+</code></pre>
+      <h3>在庫API（認証簡略化とDB検索）</h3>
+      <pre><code>1:60:app/api/inventory/route.ts
+// 認証チェック - デモ環境では簡素化
+const [products, totalCount] = await Promise.all([
+  prisma.product.findMany({ ... }),
+  prisma.product.count({ where })
+]);
+</code></pre>
+      <h3>固定認証フォールバック</h3>
+      <pre><code>1:40:app/api/auth/login/route.ts
+const allowFixed = process.env.ALLOW_FIXED_AUTH === 'true';
+const allowedEmails = ['seller@example.com', 'staff@example.com', 'admin@example.com', 'seller@test.com', 'staff@test.com'];
+const allowedPasswords = ['password123', 'password'];
+</code></pre>
+      <h3>サービス設定（モック切替）</h3>
+      <pre><code>1:40:lib/services/config.ts
+export const serviceConfig = { useMockServices: true, ... }
+export const getApiEndpoint = (service, endpoint) => {
+  if (serviceConfig.useMockServices) return `/api/mock/${service}${endpoint}`;
+  // 実サービスへ
+}
+</code></pre>
+    </section>
+
+  </main>
+</body>
+</html>

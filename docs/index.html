@@ -354,7 +354,7 @@
 
         <div class="alert alert-info">
             <strong>📌 このドキュメントについて</strong><br>
-            本資料は、THE WORLD DOORフルフィルメントシステムの引き継ぎ用総合資料です。プロジェクトの概要、技術構成、開発プロセス、各種ドキュメントへのリンクを提供しています。
+            本ページは「引き継ぎに実用的な最小限の資料」に絞り込んだランディングです。詳細仕様・網羅情報は <code>docs/system-architecture-audit.html</code> と各 drawio を参照してください。
         </div>
 
         <div class="section">
@@ -452,98 +452,58 @@
         </div>
 
         <div class="section">
-            <h2>📚 ドキュメント一覧</h2>
-            <p>以下のドキュメントを参照して、プロジェクトの詳細を確認してください。</p>
+            <h2>📚 引き継ぎに必要な最小ドキュメント</h2>
+            <p>本番移行と運用開始に必要なドキュメントのみを掲載しています。</p>
 
             <div class="doc-grid">
                 <div class="doc-card">
-                    <h4>📖 README.md</h4>
-                    <p>プロジェクトの概要、セットアップ手順、主要機能の説明</p>
+                    <h4>📝 引き継ぎメモ</h4>
+                    <p>本番移行の必須改修、ブロッカー、環境変数、実装順序を集約</p>
                     <div class="doc-meta">
-                        <span>📅 2025-10-03更新</span>
+                        <span>📅 最新</span>
                         <span>⭐ 必読</span>
                     </div>
-                    <a href="README.html" target="_blank">HTMLで開く</a>
+                    <a href="引き継ぎメモ.html" target="_blank">HTMLで開く</a>
                 </div>
 
                 <div class="doc-card">
-                    <h4>🔧 技術スタック一覧.md</h4>
-                    <p>使用技術、ライブラリ、実装済み機能の詳細仕様書（v3.0）</p>
+                    <h4>🧭 system-architecture-audit.html</h4>
+                    <p>分離性/データ源/モック挙動の完全監査。表形式で実装と設定を整理</p>
                     <div class="doc-meta">
-                        <span>📅 2025-10-03更新</span>
-                        <span>⭐ 必読</span>
+                        <span>📅 最新</span>
+                        <span>📋 監査レポート</span>
                     </div>
-                    <a href="技術スタック一覧.html" target="_blank">HTMLで開く</a>
+                    <a href="system-architecture-audit.html" target="_blank">HTMLで開く</a>
                 </div>
 
                 <div class="doc-card">
-                    <h4>📋 要件定義書.md</h4>
-                    <p>システム要件、ユーザーストーリー、ビジネス仕様（v8.0）</p>
+                    <h4>🗺️ system-architecture.drawio</h4>
+                    <p>システム全体構成（RepositoryFactory/認証/DB/外部サービス）</p>
                     <div class="doc-meta">
-                        <span>📅 2025-10-03更新</span>
-                        <span>⭐ 必読</span>
+                        <span>📎 図面</span>
+                        <span>💡 参照</span>
                     </div>
-                    <a href="要件定義書.html" target="_blank">HTMLで開く</a>
+                    <a href="system-architecture.drawio" target="_blank">drawioを開く</a>
                 </div>
 
                 <div class="doc-card">
-                    <h4>⚙️ 開発作業規則.md</h4>
-                    <p>ClaudeCode/Cursor使用時の必須ルールと推奨事項</p>
+                    <h4>🔁 product-status-flow.drawio</h4>
+                    <p>商品ライフサイクル/Shipment連携（右側フロー）</p>
                     <div class="doc-meta">
-                        <span>📅 2025-10-03更新</span>
-                        <span>🔴 重要</span>
+                        <span>📎 図面</span>
+                        <span>💡 参照</span>
                     </div>
-                    <a href="開発作業規則.html" target="_blank">HTMLで開く</a>
+                    <a href="product-status-flow.drawio" target="_blank">drawioを開く</a>
                 </div>
 
                 <div class="doc-card">
-                    <h4>🎨 UI統一性デザイン指針.md</h4>
-                    <p>デザインシステム、コンポーネント設計ガイドライン（v2.0）</p>
+                    <h4>🧩 database-er-diagram.drawio</h4>
+                    <p>主要テーブル定義（ProductImage/InspectionChecklist/Order/InventoryMovement整合済み）</p>
                     <div class="doc-meta">
-                        <span>📅 2025-10-03更新</span>
-                        <span>🎯 UI開発時必読</span>
+                        <span>📎 図面</span>
+                        <span>💡 参照</span>
                     </div>
-                    <a href="UI統一性デザイン指針.html" target="_blank">HTMLで開く</a>
-                </div>
-
-                <div class="doc-card">
-                    <h4>🔄 環境切り替え対応.md</h4>
-                    <p>開発環境・本番環境の切り替え、モックサービス管理</p>
-                    <div class="doc-meta">
-                        <span>📅 2025-10-03更新</span>
-                        <span>🔧 環境構築時必読</span>
-                    </div>
-                    <a href="環境切り替え対応.html" target="_blank">HTMLで開く</a>
-                </div>
-
-                <div class="doc-card">
-                    <h4>🚀 Web_アプリ開発フロー.md</h4>
-                    <p>Next.jsフルスタック開発のワークフロー、ベストプラクティス</p>
-                    <div class="doc-meta">
-                        <span>📅 2025-10-03更新</span>
-                        <span>📘 開発フロー</span>
-                    </div>
-                    <a href="Web_アプリ開発フロー.html" target="_blank">HTMLで開く</a>
-                </div>
-
-                <div class="doc-card">
-                    <h4>📊 performance-analysis.html</h4>
-                    <p>パフォーマンス分析、最適化結果レポート</p>
-                    <div class="doc-meta">
-                        <span>📅 2025-10-03更新</span>
-                        <span>✅ 実装済み（継続改善中）</span>
-                    </div>
-                    <a href="performance-analysis.html" target="_blank">HTMLで開く</a>
-                </div>
-
-                <div class="doc-card">
-                    <h4>🏭 production-deployment-guide.html</h4>
-                    <p>本番環境構築計画、移行手順（未実施）</p>
-                    <div class="doc-meta">
-                        <span>📅 2025-10-03更新</span>
-                        <span>📋 計画書</span>
-                    </div>
-                    <a href="production-deployment-guide.html" target="_blank">HTMLで開く</a>
+                    <a href="database-er-diagram.drawio" target="_blank">drawioを開く</a>
                 </div>
             </div>
         </div>

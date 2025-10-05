@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" modified="2025-10-03T00:00:00.000Z" agent="Manual" version="22.0.0">
   <diagram name="データベースER図" id="database-er">
-    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1600" math="0" shadow="0">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -11,63 +11,63 @@
         </mxCell>
 
         <!-- User テーブル -->
-        <mxCell id="table-user" value="User&#xa;━━━━━━━━━━━━━&#xa;id: String (PK)&#xa;email: String (UNIQUE)&#xa;username: String (UNIQUE)&#xa;password: String&#xa;role: String (seller/staff/admin)&#xa;fullName: String?&#xa;phoneNumber: String?&#xa;createdAt: DateTime&#xa;updatedAt: DateTime" style="rounded=1;shape=rectangle;fontStyle=1;html=1;whiteSpace=wrap;overflow=hidden;align=left;verticalAlign=top;spacingLeft=10;spacingRight=10;spacingTop=8;spacingBottom=8;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+        <mxCell id="table-user" value="User&#xa;━━━━━━━━━━━━━&#xa;id: String (PK)&#xa;email: String (UNIQUE)&#xa;username: String (UNIQUE)&#xa;password: String&#xa;role: String (seller/staff/admin)&#xa;fullName: String?&#xa;phoneNumber: String?&#xa;createdAt: DateTime&#xa;updatedAt: DateTime" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;" vertex="1" parent="1">
           <mxGeometry x="80" y="100" width="280" height="220" as="geometry" />
         </mxCell>
 
         <!-- Product テーブル -->
-        <mxCell id="table-product" value="Product&#xa;━━━━━━━━━━━━━&#xa;id: String (PK)&#xa;sku: String (UNIQUE)&#xa;name: String&#xa;category: String&#xa;status: String (デフォルト: inbound)&#xa;price: Int&#xa;condition: String&#xa;description: String?&#xa;imageUrl: String?&#xa;sellerId: String (FK → User)&#xa;currentLocationId: String? (FK → Location)&#xa;metadata: String? (JSON)&#xa;createdAt: DateTime&#xa;updatedAt: DateTime" style="rounded=1;shape=rectangle;fontStyle=1;html=1;whiteSpace=wrap;overflow=hidden;align=left;verticalAlign=top;spacingLeft=10;spacingRight=10;spacingTop=8;spacingBottom=8;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+        <mxCell id="table-product" value="Product&#xa;━━━━━━━━━━━━━&#xa;id: String (PK)&#xa;sku: String (UNIQUE)&#xa;name: String&#xa;category: String&#xa;status: String (デフォルト: inbound)&#xa;price: Int&#xa;condition: String&#xa;description: String?&#xa;imageUrl: String?&#xa;sellerId: String (FK → User)&#xa;currentLocationId: String? (FK → Location)&#xa;metadata: String? (JSON)&#xa;createdAt: DateTime&#xa;updatedAt: DateTime" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;" vertex="1" parent="1">
           <mxGeometry x="440" y="100" width="340" height="320" as="geometry" />
         </mxCell>
 
         <!-- Activity テーブル -->
-        <mxCell id="table-activity" value="Activity&#xa;━━━━━━━━━━━━━&#xa;id: String (PK)&#xa;productId: String (FK → Product)&#xa;userId: String (FK → User)&#xa;type: String&#xa;description: String&#xa;metadata: String? (JSON)&#xa;createdAt: DateTime" style="rounded=1;shape=rectangle;fontStyle=1;html=1;whiteSpace=wrap;overflow=hidden;align=left;verticalAlign=top;spacingLeft=10;spacingRight=10;spacingTop=8;spacingBottom=8;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+        <mxCell id="table-activity" value="Activity&#xa;━━━━━━━━━━━━━&#xa;id: String (PK)&#xa;productId: String (FK → Product)&#xa;userId: String (FK → User)&#xa;type: String&#xa;description: String&#xa;metadata: String? (JSON)&#xa;createdAt: DateTime" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;" vertex="1" parent="1">
           <mxGeometry x="860" y="100" width="300" height="180" as="geometry" />
         </mxCell>
 
         <!-- Location テーブル -->
-        <mxCell id="table-location" value="Location&#xa;━━━━━━━━━━━━━&#xa;id: String (PK)&#xa;code: String (UNIQUE)&#xa;name: String&#xa;zone: String&#xa;capacity: Int?&#xa;isActive: Boolean&#xa;createdAt: DateTime&#xa;updatedAt: DateTime" style="rounded=1;shape=rectangle;fontStyle=1;html=1;whiteSpace=wrap;overflow=hidden;align=left;verticalAlign=top;spacingLeft=10;spacingRight=10;spacingTop=8;spacingBottom=8;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
+        <mxCell id="table-location" value="Location&#xa;━━━━━━━━━━━━━&#xa;id: String (PK)&#xa;code: String (UNIQUE)&#xa;name: String&#xa;zone: String&#xa;capacity: Int?&#xa;isActive: Boolean&#xa;createdAt: DateTime&#xa;updatedAt: DateTime" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;align=left;" vertex="1" parent="1">
           <mxGeometry x="80" y="360" width="280" height="200" as="geometry" />
         </mxCell>
 
         <!-- Session テーブル -->
-        <mxCell id="table-session" value="Session&#xa;━━━━━━━━━━━━━&#xa;id: String (PK)&#xa;userId: String (FK → User)&#xa;token: String (UNIQUE)&#xa;expiresAt: DateTime&#xa;createdAt: DateTime" style="rounded=1;shape=rectangle;fontStyle=1;html=1;whiteSpace=wrap;overflow=hidden;align=left;verticalAlign=top;spacingLeft=10;spacingRight=10;spacingTop=8;spacingBottom=8;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" vertex="1" parent="1">
+        <mxCell id="table-session" value="Session&#xa;━━━━━━━━━━━━━&#xa;id: String (PK)&#xa;userId: String (FK → User)&#xa;token: String (UNIQUE)&#xa;expiresAt: DateTime&#xa;createdAt: DateTime" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=left;" vertex="1" parent="1">
           <mxGeometry x="80" y="600" width="280" height="140" as="geometry" />
         </mxCell>
 
         <!-- TwoFactorAuth テーブル -->
-        <mxCell id="table-2fa" value="TwoFactorAuth&#xa;━━━━━━━━━━━━━&#xa;id: String (PK)&#xa;userId: String (FK → User)&#xa;code: String&#xa;expiresAt: DateTime&#xa;verified: Boolean&#xa;createdAt: DateTime" style="rounded=1;shape=rectangle;fontStyle=1;html=1;whiteSpace=wrap;overflow=hidden;align=left;verticalAlign=top;spacingLeft=10;spacingRight=10;spacingTop=8;spacingBottom=8;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" vertex="1" parent="1">
+        <mxCell id="table-2fa" value="TwoFactorAuth&#xa;━━━━━━━━━━━━━&#xa;id: String (PK)&#xa;userId: String (FK → User)&#xa;code: String&#xa;expiresAt: DateTime&#xa;verified: Boolean&#xa;createdAt: DateTime" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=left;" vertex="1" parent="1">
           <mxGeometry x="80" y="780" width="280" height="160" as="geometry" />
         </mxCell>
 
         <!-- ProductImage テーブル -->
-        <mxCell id="table-image" value="ProductImage&#xa;━━━━━━━━━━━━━&#xa;id: String (PK)&#xa;productId: String (FK → Product)&#xa;url: String&#xa;thumbnailUrl: String?&#xa;filename: String&#xa;size: Int&#xa;mimeType: String&#xa;category: String?&#xa;description: String?&#xa;sortOrder: Int (default 0)&#xa;createdAt: DateTime&#xa;updatedAt: DateTime" style="rounded=1;shape=rectangle;fontStyle=1;html=1;whiteSpace=wrap;overflow=hidden;align=left;verticalAlign=top;spacingLeft=10;spacingRight=10;spacingTop=8;spacingBottom=8;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="440" y="460" width="340" height="260" as="geometry" />
+        <mxCell id="table-image" value="ProductImage&#xa;━━━━━━━━━━━━━&#xa;id: String (PK)&#xa;productId: String (FK → Product)&#xa;imageUrl: String&#xa;isPrimary: Boolean&#xa;order: Int&#xa;createdAt: DateTime" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;" vertex="1" parent="1">
+          <mxGeometry x="440" y="460" width="340" height="160" as="geometry" />
         </mxCell>
 
         <!-- InspectionChecklist テーブル -->
-        <mxCell id="table-inspection" value="InspectionChecklist&#xa;━━━━━━━━━━━━━&#xa;id: String (PK)&#xa;productId: String? (FK → Product, UNIQUE)&#xa;deliveryPlanProductId: String? (UNIQUE)&#xa;hasScratches: Boolean&#xa;hasDents: Boolean&#xa;hasDiscoloration: Boolean&#xa;hasDust: Boolean&#xa;powerOn: Boolean&#xa;allButtonsWork: Boolean&#xa;screenDisplay: Boolean&#xa;connectivity: Boolean&#xa;lensClarity: Boolean&#xa;aperture: Boolean&#xa;focusAccuracy: Boolean&#xa;stabilization: Boolean&#xa;createdBy: String&#xa;verifiedBy: String?&#xa;verifiedAt: DateTime?&#xa;updatedBy: String?&#xa;notes: String?&#xa;createdAt: DateTime&#xa;updatedAt: DateTime" style="rounded=1;shape=rectangle;fontStyle=1;html=1;whiteSpace=wrap;overflow=hidden;align=left;verticalAlign=top;spacingLeft=10;spacingRight=10;spacingTop=8;spacingBottom=8;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="440" y="740" width="340" height="400" as="geometry" />
+        <mxCell id="table-inspection" value="InspectionChecklist&#xa;━━━━━━━━━━━━━&#xa;id: String (PK)&#xa;productId: String (FK → Product, UNIQUE)&#xa;data: String (JSON)&#xa;completedAt: DateTime?&#xa;createdAt: DateTime&#xa;updatedAt: DateTime" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;" vertex="1" parent="1">
+          <mxGeometry x="440" y="660" width="340" height="160" as="geometry" />
         </mxCell>
 
         <!-- Order テーブル -->
-        <mxCell id="table-order" value="Order&#xa;━━━━━━━━━━━━━&#xa;id: String (PK)&#xa;orderNumber: String (UNIQUE)&#xa;customerId: String (FK → User)&#xa;status: String&#xa;totalAmount: Int&#xa;shippingAddress: String?&#xa;paymentMethod: String?&#xa;notes: String?&#xa;carrier: String?&#xa;trackingNumber: String?&#xa;orderDate: DateTime&#xa;shippedAt: DateTime?&#xa;deliveredAt: DateTime?&#xa;createdAt: DateTime&#xa;updatedAt: DateTime" style="rounded=1;shape=rectangle;fontStyle=1;html=1;whiteSpace=wrap;overflow=hidden;align=left;verticalAlign=top;spacingLeft=10;spacingRight=10;spacingTop=8;spacingBottom=8;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="860" y="320" width="300" height="320" as="geometry" />
+        <mxCell id="table-order" value="Order&#xa;━━━━━━━━━━━━━&#xa;id: String (PK)&#xa;orderNumber: String (UNIQUE)&#xa;sellerId: String (FK → User)&#xa;status: String&#xa;totalAmount: Int&#xa;shippingAddress: String?&#xa;createdAt: DateTime&#xa;updatedAt: DateTime" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;align=left;" vertex="1" parent="1">
+          <mxGeometry x="860" y="320" width="300" height="200" as="geometry" />
         </mxCell>
 
         <!-- OrderItem テーブル -->
-        <mxCell id="table-orderitem" value="OrderItem&#xa;━━━━━━━━━━━━━&#xa;id: String (PK)&#xa;orderId: String (FK → Order)&#xa;productId: String (FK → Product)&#xa;quantity: Int&#xa;price: Int&#xa;createdAt: DateTime" style="rounded=1;shape=rectangle;fontStyle=1;html=1;whiteSpace=wrap;overflow=hidden;align=left;verticalAlign=top;spacingLeft=10;spacingRight=10;spacingTop=8;spacingBottom=8;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="860" y="980" width="300" height="160" as="geometry" />
+        <mxCell id="table-orderitem" value="OrderItem&#xa;━━━━━━━━━━━━━&#xa;id: String (PK)&#xa;orderId: String (FK → Order)&#xa;productId: String (FK → Product)&#xa;quantity: Int&#xa;price: Int&#xa;createdAt: DateTime" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;align=left;" vertex="1" parent="1">
+          <mxGeometry x="860" y="560" width="300" height="160" as="geometry" />
         </mxCell>
 
         <!-- DeliveryPlan テーブル -->
-        <mxCell id="table-delivery" value="DeliveryPlan&#xa;━━━━━━━━━━━━━&#xa;id: String (PK)&#xa;planName: String&#xa;sellerId: String (FK → User)&#xa;status: String&#xa;expectedDate: DateTime?&#xa;notes: String?&#xa;createdAt: DateTime&#xa;updatedAt: DateTime" style="rounded=1;shape=rectangle;fontStyle=1;html=1;whiteSpace=wrap;overflow=hidden;align=left;verticalAlign=top;spacingLeft=10;spacingRight=10;spacingTop=8;spacingBottom=8;fillColor=#b1ddf0;strokeColor=#10739e;fontSize=12;" vertex="1" parent="1">
+        <mxCell id="table-delivery" value="DeliveryPlan&#xa;━━━━━━━━━━━━━&#xa;id: String (PK)&#xa;planName: String&#xa;sellerId: String (FK → User)&#xa;status: String&#xa;expectedDate: DateTime?&#xa;notes: String?&#xa;createdAt: DateTime&#xa;updatedAt: DateTime" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#b1ddf0;strokeColor=#10739e;fontSize=12;align=left;" vertex="1" parent="1">
           <mxGeometry x="860" y="760" width="300" height="200" as="geometry" />
         </mxCell>
 
         <!-- InventoryMovement テーブル -->
-        <mxCell id="table-movement" value="InventoryMovement&#xa;━━━━━━━━━━━━━&#xa;id: String (PK)&#xa;productId: String (FK → Product)&#xa;fromLocationId: String? (FK → Location)&#xa;toLocationId: String? (FK → Location)&#xa;movedBy: String&#xa;notes: String?&#xa;createdAt: DateTime" style="rounded=1;shape=rectangle;fontStyle=1;html=1;whiteSpace=wrap;overflow=hidden;align=left;verticalAlign=top;spacingLeft=10;spacingRight=10;spacingTop=8;spacingBottom=8;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="440" y="1160" width="340" height="180" as="geometry" />
+        <mxCell id="table-movement" value="InventoryMovement&#xa;━━━━━━━━━━━━━&#xa;id: String (PK)&#xa;productId: String (FK → Product)&#xa;fromLocationId: String? (FK → Location)&#xa;toLocationId: String (FK → Location)&#xa;movedBy: String?&#xa;reason: String?&#xa;createdAt: DateTime" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;align=left;" vertex="1" parent="1">
+          <mxGeometry x="440" y="860" width="340" height="180" as="geometry" />
         </mxCell>
 
         <!-- リレーション -->
