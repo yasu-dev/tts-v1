@@ -271,20 +271,20 @@ export default function FedExServiceModal({
 
             {/* 選択したサービスのサマリー */}
             {selectedService && selectedServiceData && (
-              <div className="p-4 bg-gradient-to-r from-nexus-primary/10 to-blue-50/50 rounded-lg border border-nexus-primary/30">
+              <div className="p-4 bg-blue-100 rounded-lg border-2 border-blue-300">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-nexus-primary flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
                       <CheckIcon className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <p className="text-sm text-nexus-text-secondary">選択中のサービス</p>
+                      <p className="text-sm text-gray-600 font-medium">選択中のサービス</p>
                       <p className="font-bold text-nexus-text-primary">{selectedServiceData.name}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-nexus-text-secondary">配送料金</p>
-                    <p className="font-bold text-lg text-nexus-primary">{selectedServiceData.estimatedCost}</p>
+                    <p className="text-sm text-gray-600 font-medium">配送料金</p>
+                    <p className="font-bold text-lg text-nexus-text-primary">{selectedServiceData.estimatedCost}</p>
                   </div>
                 </div>
               </div>
