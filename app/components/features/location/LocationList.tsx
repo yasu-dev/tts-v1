@@ -1201,10 +1201,15 @@ export default function LocationList({ searchQuery = '', onProductMove }: Locati
                                 </div>
                               )}
                               
-                              <div className="flex items-center gap-4 mt-2 text-sm">
-                                <span className="text-nexus-text-secondary font-mono">
-                                  管理番号: <span className="font-medium text-nexus-text-primary">{item.sku?.split('-').slice(0, 3).join('-') || 'N/A'}</span>
-                                </span>
+                              <div className="mt-2 text-sm space-y-1">
+                                <div className="text-nexus-text-secondary font-mono">
+                                  商品SKU: <span className="font-medium text-nexus-text-primary">{item.sku || 'N/A'}</span>
+                                </div>
+                                {item.productId && (
+                                  <div className="text-nexus-text-secondary font-mono">
+                                    商品ID: <span className="font-medium text-nexus-text-primary">{item.productId}</span>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </div>
