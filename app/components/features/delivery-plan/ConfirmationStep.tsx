@@ -357,9 +357,14 @@ export default function ConfirmationStep({
 
                 {/* 仕入詳細 */}
                 {product.supplierDetails && (
-                  <div className="mt-2 text-sm text-nexus-text-secondary border-t pt-2">
-                    <span className="font-medium">仕入詳細:</span>
-                    <p className="mt-1">{product.supplierDetails}</p>
+                  <div className="mt-3">
+                    <h6 className="text-sm font-medium text-nexus-text-primary">仕入詳細</h6>
+                    <div
+                      className="mt-1 p-3 bg-nexus-bg-tertiary border border-nexus-border rounded-lg text-sm text-nexus-text-primary"
+                      data-testid="supplier-details-box"
+                    >
+                      {product.supplierDetails}
+                    </div>
                   </div>
                 )}
               </NexusCard>
