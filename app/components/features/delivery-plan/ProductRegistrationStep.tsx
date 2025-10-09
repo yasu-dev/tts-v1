@@ -59,8 +59,7 @@ interface ProductRegistrationStepProps {
 
 const categoryOptions = [
   { value: 'camera', label: 'カメラ' },
-  { value: 'watch', label: '腕時計' },
-  { value: 'other', label: 'その他' }
+  { value: 'watch', label: '腕時計' }
 ];
 
 // コンディション選択肢はuseProductConditionsフックから動的に取得
