@@ -6,8 +6,7 @@
 // 標準カテゴリーオプション
 export const CATEGORY_OPTIONS = [
   { value: 'camera', label: 'カメラ' },
-  { value: 'watch', label: '腕時計' },
-  { value: 'other', label: 'その他' }
+  { value: 'watch', label: '腕時計' }
 ];
 
 // カテゴリー選択用オプション（すべて含む）
@@ -19,8 +18,7 @@ export const CATEGORY_OPTIONS_WITH_ALL = [
 // カテゴリー表示用ラベル
 export const CATEGORY_LABELS: Record<string, string> = {
   camera: 'カメラ',
-  watch: '腕時計',
-  other: 'その他',
+  watch: '腕時計'
 };
 
 /**
@@ -35,6 +33,5 @@ export function getCategoryLabel(category: string): string {
  */
 export function formatCategory(category: string): string {
   return category === 'camera' ? 'カメラ' :
-         category === 'watch' ? '腕時計' :
-         category === 'other' ? 'その他' : category;
+         category === 'watch' ? '腕時計' : category;
 }

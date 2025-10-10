@@ -29,7 +29,7 @@ import BaseModal from '@/app/components/ui/BaseModal';
 import { useModal } from '@/app/components/ui/ModalContext';
 import ListingFormModal from '@/app/components/modals/ListingFormModal';
 import { checkListingEligibility, filterListableItems } from '@/lib/utils/listing-eligibility';
-import { useCategories, useProductStatuses, useProductConditions, useSystemSetting, getNameByKey, translateStatusToJapanese } from '@/lib/hooks/useMasterData';
+import { useCategories, useProductStatuses, useProductConditions, useLocations, getNameByKey, translateStatusToJapanese } from '@/lib/hooks/useMasterData';
 
 interface InventoryItem {
   id: string;
@@ -120,8 +120,6 @@ export default function StaffInventoryPage() {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
-  const [selectedStaff, setSelectedStaff] = useState<string>('all');
-  const [selectedSeller, setSelectedSeller] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'card' | 'table'>('table');
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
@@ -143,7 +141,7 @@ export default function StaffInventoryPage() {
   const { categories, loading: categoriesLoading } = useCategories();
   const { statuses: productStatuses, loading: statusesLoading } = useProductStatuses();
   const { conditions: productConditions, loading: conditionsLoading } = useProductConditions();
-  const { setting: locationZones } = useSystemSetting('default_location_zones');
+  const { locations: locationMasters, loading: locationsLoading } = useLocations();
   
   // ページネーション状態
   const [currentPage, setCurrentPage] = useState(1);
@@ -159,7 +157,6 @@ export default function StaffInventoryPage() {
         selectedStatus,
         selectedCategory,
         selectedLocation,
-        selectedStaff,
         searchQuery,
         viewMode,
         currentPage,
@@ -186,7 +183,6 @@ export default function StaffInventoryPage() {
           setSelectedStatus(state.selectedStatus || 'all');
           setSelectedCategory(state.selectedCategory || 'all');
           setSelectedLocation(state.selectedLocation || 'all');
-          setSelectedStaff(state.selectedStaff || 'all');
           setSearchQuery(state.searchQuery || '');
           setViewMode(state.viewMode || 'table');
           setCurrentPage(state.currentPage || 1);
@@ -196,7 +192,7 @@ export default function StaffInventoryPage() {
           showToast({
             type: 'info',
             title: '前回の表示状態を復元しました',
-            message: '日本語フィルター・検索条件が復元されました',
+            message: 'フィルター・検索条件が復元されました',
             duration: 3000
           });
           
@@ -260,9 +256,7 @@ export default function StaffInventoryPage() {
           name: item.name,
           sku: item.sku,
           originalCategory: item.category, // 元の英語カテゴリーを保持
-          category: item.category === 'camera' ? 'カメラ' :
-                   item.category === 'watch' ? '腕時計' :
-                   item.category === 'other' ? 'その他' : item.category,
+          category: item.category,
           status: item.status, // 英語ステータスをそのまま保持（BusinessStatusIndicator用）
           statusOriginal: item.status,
           statusDisplay: item.status.replace('inbound', '入庫待ち')
@@ -334,8 +328,11 @@ export default function StaffInventoryPage() {
       }
     };
 
-    fetchInventoryData();
-  }, [currentPage, itemsPerPage, selectedStatus, selectedCategory, searchQuery]); // フィルター変更時も再取得
+    const shouldFetch = !locationsLoading;
+    if (shouldFetch) {
+      fetchInventoryData();
+    }
+  }, [currentPage, itemsPerPage, selectedStatus, selectedCategory, searchQuery, locationsLoading]);
 
   // クライアント側でのフィルタリング（出品可能など特別なフィルターのみ）
   useEffect(() => {
@@ -347,13 +344,7 @@ export default function StaffInventoryPage() {
       setFilteredItems(filtered);
       setPaginatedItems(filtered);
     } else if (selectedLocation !== 'all') {
-      // ロケーションフィルターもクライアント側で処理（サーバーに未実装のため）
-      filtered = items.filter(item => item.location.includes(selectedLocation));
-      setFilteredItems(filtered);
-      setPaginatedItems(filtered);
-    } else if (selectedSeller !== 'all') {
-      // セラーフィルターもクライアント側で処理（サーバーに未実装のため）
-      filtered = items.filter(item => item.seller?.id === selectedSeller);
+      filtered = items.filter(item => item.location === selectedLocation);
       setFilteredItems(filtered);
       setPaginatedItems(filtered);
     } else {
@@ -366,7 +357,7 @@ export default function StaffInventoryPage() {
     if (currentPage !== 1) {
       setCurrentPage(1);
     }
-  }, [items, selectedStatus, selectedLocation, selectedSeller]);
+  }, [items, selectedStatus, selectedLocation, currentPage]);
 
   // URLパラメータから商品IDを取得して情報表示モーダルを開く
   useEffect(() => {
@@ -444,34 +435,21 @@ export default function StaffInventoryPage() {
 
   // カテゴリーオプション（納品プラン作成と統一）
   const categoryOptions = useMemo(() => {
+    if (categories.length === 0) {
+      return [
+        { value: 'all', label: 'すべてのカテゴリー' },
+        { value: 'camera', label: 'カメラ' },
+        { value: 'watch', label: '腕時計' }
+      ];
+    }
+
     return [
       { value: 'all', label: 'すべてのカテゴリー' },
-      { value: 'camera', label: 'カメラ' },
-      { value: 'watch', label: '腕時計' },
-      { value: 'other', label: 'その他' }
+      ...categories
+        .filter((category) => ['camera', 'watch'].includes(category.key))
+        .map((category) => ({ value: category.key, label: category.nameJa }))
     ];
-  }, []);
-
-  // 動的セラーオプション生成
-  const sellerOptions = useMemo(() => {
-    // 実際に存在するセラーを取得（重複排除）
-    const sellers = Array.from(new Set(
-      items
-        .map(item => item.seller)
-        .filter(Boolean) // seller情報が存在するもののみ
-        .map(seller => JSON.stringify({ id: seller!.id, username: seller!.username })) // 重複排除のため文字列化
-    )).map(str => JSON.parse(str)); // 文字列から元に戻す
-    
-    return [
-      { value: 'all', label: 'すべてのセラー' },
-      ...sellers.map(seller => ({
-        value: seller.id,
-        label: seller.username
-      }))
-    ];
-  }, [items]);
-
-
+  }, [categories]);
 
   // サーバーサイドページネーションのため、クライアント側ページング処理は不要
   // paginatedItemsはAPI取得時に直接設定される
@@ -740,14 +718,14 @@ export default function StaffInventoryPage() {
           
           {/* フィルター部分（完全保持） */}
           <div className="p-6 border-b border-gray-300">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <NexusSelect
-                  label="セラー"
-                  value={selectedSeller}
-                  onChange={(e) => setSelectedSeller(e.target.value)}
-                  options={sellerOptions}
-                  useCustomDropdown={true}
+                <NexusInput
+                  type="text"
+                  label="検索"
+                  placeholder="商品名・SKU・セラー名で検索"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
 
@@ -790,22 +768,14 @@ export default function StaffInventoryPage() {
                   onChange={(e) => setSelectedLocation(e.target.value)}
                   options={[
                     { value: 'all', label: 'すべて' },
-                    ...(locationZones?.parsedValue || []).map((zone: string) => ({
-                      value: zone,
-                      label: zone
-                    }))
+                    ...locationMasters
+                      .map((location) => ({
+                        value: location.code,
+                        label: `${location.code}（${location.name}）`
+                      }))
                   ]}
                   useCustomDropdown={true}
-                />
-              </div>
-
-              <div>
-                <NexusInput
-                  type="text"
-                  label="検索"
-                  placeholder="商品名・SKUで検索"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  disabled={locationsLoading}
                 />
               </div>
             </div>
@@ -911,7 +881,7 @@ export default function StaffInventoryPage() {
                         <span className="font-mono text-sm text-nexus-text-primary">{item.sku}</span>
                       </td>
                       <td className="p-4 text-center">
-                        <span className="text-sm text-nexus-text-primary">{item.category}</span>
+                        <span className="text-sm text-nexus-text-primary">{getNameByKey(categories, item.category) || item.category}</span>
                       </td>
                       <td className="p-4">
                         <span className="text-sm text-nexus-text-primary">{item.seller?.fullName || item.seller?.username || item.seller?.email || '未設定'}</span>
@@ -971,7 +941,7 @@ export default function StaffInventoryPage() {
               </svg>
               <h3 className="mt-2 text-sm font-medium text-nexus-text-primary">商品が見つかりません</h3>
               <p className="mt-1 text-sm text-nexus-text-secondary">
-                日本語フィルター条件を変更するか、新しい商品を登録してください。
+                フィルター条件を変更するか、新しい商品を登録してください。
               </p>
             </div>
           </div>

@@ -95,7 +95,7 @@ export default function SearchModal({ isOpen, onClose, query }: SearchModalProps
       case 'customer':
         return '顧客';
       default:
-        return 'その他';
+        return 'カテゴリ未設定';
     }
   };
 

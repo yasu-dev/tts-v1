@@ -15,6 +15,7 @@ import { useToast } from '@/app/components/features/notifications/ToastProvider'
 import ConfirmationModal from '@/app/components/ui/ConfirmationModal';
 import PhotographyRequestDisplay from '@/app/components/features/photography/PhotographyRequestDisplay';
 import { ArchiveBoxIcon } from '@heroicons/react/24/outline';
+import { getCategoryLabel } from '@/lib/utils/category';
 
 export interface InspectionFormProps {
   productId: string;
@@ -1037,9 +1038,7 @@ export default function InspectionForm({ productId }: InspectionFormProps) {
               <div>
                 <span className="text-gray-600">カテゴリ:</span>
                 <span className="ml-2 font-medium">
-                  {product.category === 'camera' ? 'カメラ' :
-                   product.category === 'watch' ? '腕時計' :
-                   product.category === 'other' ? 'その他' : product.category}
+                  {getCategoryLabel(product.category)}
                 </span>
               </div>
             </div>

@@ -10,6 +10,7 @@ import HierarchicalChecklistDisplay from './HierarchicalChecklistDisplay';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import { useIsHierarchicalChecklistEnabled } from '@/lib/hooks/useHierarchicalChecklistFeature';
 import { ExternalLink } from 'lucide-react';
+import { getCategoryLabel } from '@/lib/utils/category';
 
 interface ConfirmationStepProps {
   data: any;
@@ -173,8 +174,7 @@ export default function ConfirmationStep({
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm text-nexus-text-secondary mb-4">
                   <div>
                     <span className="font-medium">カテゴリ:</span> 
-                    {product.category === 'camera' ? 'カメラ' :
-                     product.category === 'watch' ? '腕時計' : 'その他'}
+                    {getCategoryLabel(product.category)}
                   </div>
                   <div>
                     <span className="font-medium">コンディション:</span> 
@@ -216,7 +216,7 @@ export default function ConfirmationStep({
                             {image.category === 'product' ? '商品画像' :
                              image.category === 'package' ? '箱' :
                              image.category === 'accessory' ? '付属品' :
-                             image.category === 'document' ? '書類' : 'その他'}
+                             image.category === 'document' ? '書類' : ''}
                           </div>
                         </div>
                       ))}

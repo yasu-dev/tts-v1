@@ -452,7 +452,6 @@ export default function SettingsPage() {
                           <option value="electronics">電子機器</option>
                           <option value="fashion">ファッション</option>
                           <option value="collectibles">コレクタブル</option>
-                          <option value="other">その他</option>
                         </select>
                       </div>
                       

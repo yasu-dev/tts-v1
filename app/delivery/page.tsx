@@ -43,6 +43,7 @@ import HierarchicalChecklistDisplay from '@/app/components/features/delivery-pla
 import PhotographyRequestDisplay from '@/app/components/features/photography/PhotographyRequestDisplay';
 import InspectionChecklistInput, { InspectionChecklistData } from '@/app/components/features/inspection/InspectionChecklistInput';
 import HierarchicalInspectionChecklistInput from '@/app/components/features/inspection/HierarchicalInspectionChecklistInput';
+import { getCategoryLabel } from '@/lib/utils/category';
 
 type SortField = 'date' | 'status' | 'items' | 'value';
 type SortDirection = 'asc' | 'desc';
@@ -898,20 +899,18 @@ export default function DeliveryPage() {
                             {(() => {
                               // ユニークなカテゴリを取得
                               const uniqueCategories = [...new Set(
-                                plan.products.map((product: any) => product.category || 'その他')
+                                plan.products.map((product: any) => product.category)
                               )];
                               
                               return uniqueCategories.slice(0, 2).map((category: string, index: number) => (
                                 <div key={index} className="text-sm text-nexus-text-primary">
-                                  {category === 'camera' ? 'カメラ' :
-                                   category === 'watch' ? '腕時計' :
-                                   category === 'other' ? 'その他' : category}
+                                  {getCategoryLabel(category)}
                                 </div>
                               ));
                             })()}
                             {(() => {
                               const uniqueCategories = [...new Set(
-                                plan.products.map((product: any) => product.category || 'その他')
+                                plan.products.map((product: any) => product.category)
                               )];
                               return uniqueCategories.length > 2 && (
                                 <div className="text-xs text-nexus-text-tertiary">
@@ -1147,9 +1146,7 @@ export default function DeliveryPage() {
                               })}
                               <div className="flex items-center gap-2 mt-1">
                                 <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                                  {product.category === 'camera' ? 'カメラ' :
-                                   product.category === 'watch' ? '腕時計' :
-                                   product.category === 'other' ? 'その他' : product.category}
+                                  {getCategoryLabel(product.category)}
                                 </span>
                                 {product.condition && (
                                   <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
@@ -1159,10 +1156,10 @@ export default function DeliveryPage() {
                                      product.condition === 'near_mint' ? 'Near Mint' :
                                      product.condition === 'excellent' ? 'Excellent' :
                                      product.condition === 'very_good' ? 'Very Good' :
-                                     product.condition === 'as_is' ? 'As-Is' :
-                                     product.condition === 'for_parts' ? 'For Parts or For Repair' :
-                                     product.condition === 'clad' ? 'CLAD\'d（整備済み）' :
-                                     product.condition === 'other' ? 'その他' : product.condition}
+                                     product.condition === 'good' ? 'Good' :
+                                     product.condition === 'fair' ? 'Fair' :
+                                     product.condition === 'poor' ? 'Poor' :
+                                     product.condition || '状態未設定'}
                                   </span>
                                 )}
                               </div>
@@ -1278,7 +1275,7 @@ export default function DeliveryPage() {
                             {/* 画像をカテゴリー別にグループ化 */}
                             {(() => {
                               const groupedImages = product.images.reduce((groups: any, image: any, index: number) => {
-                                const category = image.category || 'その他';
+                                const category = image.category;
                                 if (!groups[category]) groups[category] = [];
                                 groups[category].push({ ...image, originalIndex: index });
                                 return groups;
@@ -1288,17 +1285,36 @@ export default function DeliveryPage() {
                               const isMultipleCategories = categoryKeys.length > 1;
 
                               return Object.entries(groupedImages).map(([category, images]: [string, any]) => {
-                                // カテゴリー表示名を決定
                                 let displayCategory = category;
-                                if (!isMultipleCategories && category === 'その他') {
-                                  displayCategory = '商品画像';
+                                switch (category) {
+                                  case 'product':
+                                    displayCategory = '商品画像';
+                                    break;
+                                  case 'package':
+                                    displayCategory = '箱';
+                                    break;
+                                  case 'accessory':
+                                    displayCategory = '付属品';
+                                    break;
+                                  case 'document':
+                                    displayCategory = '書類';
+                                    break;
+                                  default:
+                                    displayCategory = category || '未分類';
                                 }
 
                                 return (
-                                  <div key={category} className="space-y-2">
-                                    <h6 className="text-xs font-medium text-nexus-text-primary bg-nexus-bg-tertiary px-2 py-1 rounded">
-                                      {displayCategory} ({images.length}枚)
-                                    </h6>
+                                  <div key={category} className="border border-nexus-border rounded-lg">
+                                    <div className="px-3 py-2 bg-nexus-bg-secondary border-b border-nexus-border flex items-center justify-between">
+                                      <span className="text-sm font-medium text-nexus-text-primary">
+                                        {displayCategory}
+                                      </span>
+                                      {isMultipleCategories && (
+                                        <span className="text-xs text-nexus-text-tertiary">
+                                          {images.length}枚
+                                        </span>
+                                      )}
+                                    </div>
                                     <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
                                       {images.map((image: any, imgIndex: number) => (
                                         <div key={imgIndex} className="relative group">

@@ -31,11 +31,12 @@ const getConditionBadge = (condition: string) => {
     very_good: { bg: 'bg-indigo-700', text: 'text-white', label: '良品' },
     as_is: { bg: 'bg-yellow-700', text: 'text-white', label: '現状品' },
     for_parts: { bg: 'bg-red-800', text: 'text-white', label: 'ジャンク' },
-    clad: { bg: 'bg-purple-800', text: 'text-white', label: '整備済み' },
-    other: { bg: 'bg-gray-700', text: 'text-white', label: 'その他' }
+    clad: { bg: 'bg-purple-800', text: 'text-white', label: '整備済み' }
   };
 
-  const config = conditionConfig[condition] || conditionConfig.other;
+  const defaultConfig = { bg: 'bg-gray-600', text: 'text-white', label: condition };
+
+  const config = conditionConfig[condition] || defaultConfig;
 
   return (
     <span className={`
@@ -440,9 +441,7 @@ export default function InventoryPage() {
                     </td>
                     <td className="p-4 text-center">
                       <span className="text-sm text-nexus-text-primary">
-                        {item.category === 'camera' ? 'カメラ' :
-                         item.category === 'watch' ? '腕時計' :
-                         item.category === 'other' ? 'その他' : item.category}
+                        {getNameByKey(productStatuses, item.category) || item.category}
                       </span>
                     </td>
                     <td className="p-4 text-center">

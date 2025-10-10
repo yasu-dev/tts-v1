@@ -33,6 +33,69 @@ import {
   CubeIcon
 } from '@heroicons/react/24/outline';
 
+type PackagingMetadata = {
+  packaging?: {
+    weight?: number | string;
+    weightUnit?: string;
+  };
+};
+
+function parseMetadata(metadata: unknown): PackagingMetadata | null {
+  if (!metadata) return null;
+
+  if (typeof metadata === 'string') {
+    try {
+      return JSON.parse(metadata);
+    } catch (error) {
+      console.warn('[SalesPage] Failed to parse metadata JSON:', error);
+      return null;
+    }
+  }
+
+  if (typeof metadata === 'object') {
+    return metadata as PackagingMetadata;
+  }
+
+  return null;
+}
+
+function formatWeight(weightValue: number | string | undefined, unit?: string): string | null {
+  if (weightValue === undefined || weightValue === null) return null;
+
+  const parsedWeight = typeof weightValue === 'string' ? Number(weightValue) : weightValue;
+  if (Number.isNaN(parsedWeight) || parsedWeight <= 0) return null;
+
+  return `${parsedWeight.toFixed(1)}${unit || 'kg'}`;
+}
+
+const resolveOrderWeight = (order: any): string | null => {
+  if (!order) return null;
+
+  const directMetadata = parseMetadata(order.metadata ?? order.productMetadata);
+  const formattedWeight = formatWeight(
+    directMetadata?.packaging?.weight,
+    directMetadata?.packaging?.weightUnit
+  );
+
+  if (formattedWeight) return formattedWeight;
+
+  if (Array.isArray(order.items)) {
+    for (const item of order.items) {
+      const itemMetadata = parseMetadata(item.productMetadata ?? item.product?.metadata);
+      const itemWeight = formatWeight(
+        itemMetadata?.packaging?.weight,
+        itemMetadata?.packaging?.weightUnit
+      );
+
+      if (itemWeight) {
+        return itemWeight;
+      }
+    }
+  }
+
+  return null;
+};
+
 export default function SalesPage() {
   const { showToast } = useToast();
   const [salesData, setSalesData] = useState<any>(null);
@@ -1057,7 +1120,7 @@ export default function SalesPage() {
             orderDetails={{
               orderId: selectedOrder.orderId || selectedOrder.orderNumber,
               product: selectedOrder.product,
-              weight: '2.5kg',
+              weight: resolveOrderWeight(selectedOrder),
               destination: '東京都内'
             }}
           />

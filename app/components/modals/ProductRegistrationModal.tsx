@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useToast } from '@/app/components/features/notifications/ToastProvider';
 import { BaseModal, NexusButton, NexusInput, NexusSelect, NexusTextarea } from '../ui';
+import { useCategories } from '@/lib/hooks/useMasterData';
 
 interface ProductRegistrationModalProps {
   isOpen: boolean;
@@ -16,7 +17,7 @@ export default function ProductRegistrationModal({ isOpen, onClose, onSubmit, in
   const [formData, setFormData] = useState({
     name: '',
     sku: '',
-    category: '',
+    category: 'camera',
     condition: 'excellent',
     purchasePrice: '',
     sellingPrice: '',
@@ -44,6 +45,7 @@ export default function ProductRegistrationModal({ isOpen, onClose, onSubmit, in
 
   const [isLoading, setIsLoading] = useState(false);
   const { showToast } = useToast();
+  const { categories } = useCategories();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -198,9 +200,9 @@ export default function ProductRegistrationModal({ isOpen, onClose, onSubmit, in
                 required
                 options={[
                   { value: '', label: 'カテゴリを選択' },
-                  { value: 'camera', label: 'カメラ' },
-                  { value: 'watch', label: '腕時計' },
-                  { value: 'other', label: 'その他' }
+                  ...categories
+                    .filter((category) => ['camera', 'watch'].includes(category.key))
+                    .map((category) => ({ value: category.key, label: category.nameJa }))
                 ]}
               />
             </div>

@@ -25,6 +25,13 @@ export interface WorkflowStep extends MasterDataItem {
   order: number;
 }
 
+export interface LocationMaster {
+  code: string;
+  name: string;
+  zone: string;
+  productCount?: number;
+}
+
 export interface SystemSetting {
   id: string;
   key: string;
@@ -297,6 +304,56 @@ export function useSystemSettings(type?: string, includeInactive = false) {
   }, [type, includeInactive]);
 
   return { settings, loading, error, refetch: () => setLoading(true) };
+}
+
+export function useLocations(includeInactive = false) {
+  const [locations, setLocations] = useState<LocationMaster[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        setLoading(true);
+        const params = new URLSearchParams();
+        if (includeInactive) {
+          params.append('includeInactive', 'true');
+        }
+
+        const query = params.toString();
+        const response = await fetch(`/api/locations${query ? `?${query}` : ''}`);
+        if (!response.ok) {
+          throw new Error('ロケーションの取得に失敗しました');
+        }
+
+        const data = await response.json();
+        const mapped: LocationMaster[] = Array.isArray(data)
+          ? data.map((location: any) => ({
+              code: location.code,
+              name: location.name,
+              zone: location.zone,
+              productCount: location._count?.products,
+            }))
+          : [];
+
+        setLocations(mapped);
+        setError(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : '不明なエラーが発生しました');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLocations();
+  }, [includeInactive]);
+
+  return {
+    locations,
+    loading,
+    error,
+    refetch: () => setLoading(true),
+  };
 }
 
 // ユーティリティ関数: マスタデータから選択肢を生成

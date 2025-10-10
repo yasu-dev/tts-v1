@@ -113,8 +113,7 @@ type BusinessStatus = 'inbound' | 'inspection' | 'completed' | 'rejected' | 'pen
 
 const categoryLabels = {
   camera: 'カメラ',
-  watch: '腕時計',
-  other: 'その他',
+  watch: '腕時計'
 };
 
 // ステータス変換関数（BusinessStatusIndicatorに合わせる）
@@ -734,7 +733,7 @@ export default function InspectionPage() {
                       </td>
                       <td className="py-3 px-2 sm:px-4">
                         <span className="text-xs sm:text-sm text-nexus-text-primary">
-                          {categoryLabels[product.category as keyof typeof categoryLabels]}
+                          {categoryLabels[product.category as keyof typeof categoryLabels] || product.category}
                         </span>
                       </td>
                       <td className="py-3 px-2 sm:px-4">
@@ -1112,7 +1111,7 @@ export default function InspectionPage() {
                                         <div className="flex items-center gap-2">
                                           <div className="w-3 h-3 bg-nexus-blue/20 rounded-full"></div>
                                           <span className="text-nexus-text-secondary">
-                                            {categoryLabels[product.category as keyof typeof categoryLabels]}
+                                            {categoryLabels[product.category as keyof typeof categoryLabels] || product.category}
                                           </span>
                                         </div>
                                       </div>
