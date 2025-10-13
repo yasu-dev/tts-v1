@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev)",
+      "Bash(taskkill:*)",
+      "Bash(lsof:*)",
+      "Bash(xargs kill:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(cmd.exe /c:*)",
+      "Bash(powershell.exe:*)",
+      "Bash(tasklist)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

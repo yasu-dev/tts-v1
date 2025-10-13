@@ -8,15 +8,15 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // CSS変数を参照（統一性を保つ）
-        'primary-blue': 'var(--primary-blue)',
-        'primary-blue-light': 'var(--primary-blue-light)', 
-        'primary-blue-lighter': 'var(--primary-blue-lighter)',
-        'nexus-yellow': 'var(--nexus-yellow)',
-        'nexus-red': 'var(--nexus-red)',
-        'nexus-green': 'var(--nexus-green)',
-        'nexus-purple': 'var(--nexus-purple)',
-        'nexus-cyan': 'var(--nexus-cyan)',
+        // CSS変数を参照（統一性を保つ）- Kondate Gacha Colors
+        'primary-blue': 'var(--primary-blue)', // Now Orange #FF8C42
+        'primary-blue-light': 'var(--primary-blue-light)', // Now Orange Light #FF9D5C
+        'primary-blue-lighter': 'var(--primary-blue-lighter)', // Now Orange Lighter #FFB380
+        'nexus-yellow': 'var(--nexus-yellow)', // #FFCE00
+        'nexus-red': 'var(--nexus-red)', // #FF6B6B
+        'nexus-green': 'var(--nexus-green)', // #7CCD7C
+        'nexus-purple': 'var(--nexus-purple)', // #9B7EBD
+        'nexus-cyan': 'var(--nexus-cyan)', // #87CEEB
         'nexus-background': 'var(--background)',
         'nexus-surface': 'var(--surface)',
         'nexus-bg-primary': 'var(--background)',

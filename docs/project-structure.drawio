@@ -1,0 +1,142 @@
+<mxfile host="app.diagrams.net" modified="2025-10-11T00:00:00.000Z" agent="Claude Code" version="24.0.0">
+  <diagram name="MGC-V1 Project Structure" id="project-structure">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="MGC-V1 献立ガチャサービス&#xa;プロジェクト構成図" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="360" y="20" width="450" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Root Directory -->
+        <mxCell id="root" value="mgc-v1/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=16;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="40" y="100" width="1080" height="680" as="geometry" />
+        </mxCell>
+
+        <!-- Frontend Layer -->
+        <mxCell id="frontend-layer" value="フロントエンド層" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;fontStyle=1;verticalAlign=top;align=center;" vertex="1" parent="1">
+          <mxGeometry x="80" y="140" width="480" height="320" as="geometry" />
+        </mxCell>
+
+        <!-- app directory -->
+        <mxCell id="app" value="app/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="100" y="180" width="440" height="260" as="geometry" />
+        </mxCell>
+
+        <!-- app subdirectories -->
+        <mxCell id="app-api" value="api/&#xa;(APIルート)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="120" y="220" width="120" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="app-components" value="components/&#xa;(コンポーネント)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="260" y="220" width="120" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="app-ui" value="ui/&#xa;(UIコンポーネント)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="280" y="250" width="80" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="app-pages" value="privacy-policy/&#xa;terms/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="400" y="220" width="120" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="app-files" value="layout.tsx&#xa;page.tsx&#xa;globals.css&#xa;loading.tsx&#xa;not-found.tsx" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="120" y="300" width="400" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- Backend/Lib Layer -->
+        <mxCell id="backend-layer" value="バックエンド/ライブラリ層" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;fontStyle=1;verticalAlign=top;align=center;" vertex="1" parent="1">
+          <mxGeometry x="80" y="480" width="480" height="180" as="geometry" />
+        </mxCell>
+
+        <!-- lib directory -->
+        <mxCell id="lib" value="lib/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="100" y="520" width="440" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="lib-hooks" value="hooks/&#xa;(カスタムフック)&#xa;useApi.ts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=center;" vertex="1" parent="1">
+          <mxGeometry x="120" y="560" width="120" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="lib-utils" value="utils/&#xa;(ユーティリティ)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=center;" vertex="1" parent="1">
+          <mxGeometry x="260" y="560" width="120" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="lib-files" value="utils.ts&#xa;image-processor.ts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="400" y="560" width="120" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Infrastructure Layer -->
+        <mxCell id="infra-layer" value="インフラ/開発ツール層" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;fontStyle=1;verticalAlign=top;align=center;" vertex="1" parent="1">
+          <mxGeometry x="600" y="140" width="480" height="520" as="geometry" />
+        </mxCell>
+
+        <!-- e2e -->
+        <mxCell id="e2e" value="e2e/&#xa;(E2Eテスト)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=center;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="620" y="180" width="180" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- .cursor -->
+        <mxCell id="cursor" value=".cursor/&#xa;(開発ルール)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=center;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="820" y="180" width="180" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cursor-rules" value="rules/dev-rules/&#xa;・db-blueprint.mdc&#xa;・nextjs.mdc&#xa;・techstack.mdc&#xa;・todo.mdc&#xa;・uiux.mdc" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="840" y="210" width="140" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- public -->
+        <mxCell id="public" value="public/&#xa;(静的ファイル)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=center;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="620" y="260" width="180" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="public-files" value="favicon.ico&#xa;robots.txt" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="640" y="290" width="140" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- docs -->
+        <mxCell id="docs" value="docs/&#xa;(ドキュメント)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=center;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="620" y="340" width="180" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Config Files -->
+        <mxCell id="config-files" value="設定ファイル" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=center;fontSize=13;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="820" y="340" width="240" height="300" as="geometry" />
+        </mxCell>
+
+        <mxCell id="config-list" value="package.json&#xa;next.config.js&#xa;tsconfig.json&#xa;tailwind.config.js&#xa;postcss.config.js&#xa;playwright.config.ts&#xa;jest.config.js&#xa;jest.setup.js&#xa;middleware.ts&#xa;.env.example&#xa;.gitignore&#xa;README.md" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=10;spacingTop=10;" vertex="1" parent="1">
+          <mxGeometry x="840" y="380" width="200" height="240" as="geometry" />
+        </mxCell>
+
+        <!-- Tech Stack -->
+        <mxCell id="tech-stack" value="技術スタック" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=center;fontSize=13;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="620" y="420" width="180" height="220" as="geometry" />
+        </mxCell>
+
+        <mxCell id="tech-list" value="Frontend:&#xa;・Next.js 14&#xa;・React 18&#xa;・TypeScript&#xa;・Tailwind CSS&#xa;&#xa;Backend:&#xa;・Next.js API Routes&#xa;・Supabase&#xa;&#xa;Testing:&#xa;・Playwright&#xa;・Jest" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=10;spacingTop=10;" vertex="1" parent="1">
+          <mxGeometry x="640" y="460" width="140" height="160" as="geometry" />
+        </mxCell>
+
+        <!-- Legend -->
+        <mxCell id="legend" value="凡例" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;align=center;fontSize=12;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="80" y="690" width="280" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="legend-frontend" value="フロントエンド層" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="100" y="720" width="80" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="legend-infra" value="インフラ層" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="190" y="720" width="80" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="legend-lib" value="ライブラリ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="280" y="720" width="70" height="30" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@300;400;500;700;800;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 @tailwind base;
@@ -8,37 +8,37 @@
 @layer base {
   /* CSS Variables - Optimized for Performance */
   :root {
-    /* Primary Colors - WORLD DOOR Design System */
-    --primary-blue: #0064D2;
-    --primary-blue-light: #0078FF;
-    --primary-blue-lighter: #00A0FF;
-    
+    /* Primary Colors - Kondate Gacha Design System */
+    --primary-blue: #FF8C42;
+    --primary-blue-light: #FF9D5C;
+    --primary-blue-lighter: #FFB380;
+
     /* Secondary Colors */
     --nexus-yellow: #FFCE00;
-    --nexus-red: #E53238;
-    --nexus-green: #86B817;
-    --nexus-purple: #7B1FA2;
-    --nexus-cyan: #00BCD4;
-    
+    --nexus-red: #FF6B6B;
+    --nexus-green: #7CCD7C;
+    --nexus-purple: #9B7EBD;
+    --nexus-cyan: #87CEEB;
+
     /* Status Colors */
-    --success: #86B817;
+    --success: #7CCD7C;
     --warning: #FFCE00;
-    --error: #E53238;
-    --info: #00BCD4;
-    
+    --error: #FF6B6B;
+    --info: #87CEEB;
+
     /* Neutral Colors */
-    --background: #F8FAFE;
-    --surface: rgba(255, 255, 255, 0.97);
-    --text-primary: #1A1A1A;
-    --text-secondary: #666666;
-    --text-muted: #999999;
-    --border: rgba(200, 200, 200, 0.5);
-    --border-light: rgba(200, 200, 200, 0.3);
+    --background: #FFFBF5;
+    --surface: rgba(255, 255, 255, 0.95);
+    --text-primary: #2C2C2C;
+    --text-secondary: #5A5A5A;
+    --text-muted: #8A8A8A;
+    --border: rgba(255, 140, 66, 0.2);
+    --border-light: rgba(255, 140, 66, 0.1);
     
     /* Font Families - Optimized Order */
-    --font-primary: 'Noto Sans JP', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-    --font-display: 'Orbitron', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    --font-mono: 'Orbitron', 'Courier New', monospace;
+    --font-primary: 'M PLUS Rounded 1c', 'Noto Sans JP', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --font-display: 'M PLUS Rounded 1c', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --font-mono: 'M PLUS Rounded 1c', 'Courier New', monospace;
     
     /* Font Sizes - Optimized for Laptop/Mobile Business Use */
     --text-xs: 0.6875rem;  /* 11px - ラベル、バッジ */
@@ -85,15 +85,15 @@
     --icon-xl: 2.5rem;  /* 40px */
 
     /* Nexus Design System Classes - Light Theme */
-    --nexus-bg: linear-gradient(135deg, #F8FAFE 0%, #FFFFFF 50%, #F8FAFE 100%);
-    --nexus-card-bg: rgba(255, 255, 255, 0.97);
-    --nexus-surface: rgba(255, 255, 255, 0.97);
-    --nexus-bg-secondary: rgba(248, 250, 254, 0.97);
-    --nexus-bg-tertiary: rgba(240, 245, 252, 0.97);
-    --nexus-text-primary: #1A1A1A;
-    --nexus-text-secondary: #666666;
-    --nexus-text-muted: #999999;
-    --nexus-border: rgba(200, 200, 200, 0.5);
+    --nexus-bg: linear-gradient(135deg, #FFFBF5 0%, #FFFFFF 50%, #FFF8F0 100%);
+    --nexus-card-bg: rgba(255, 255, 255, 0.95);
+    --nexus-surface: rgba(255, 255, 255, 0.95);
+    --nexus-bg-secondary: rgba(255, 251, 245, 0.95);
+    --nexus-bg-tertiary: rgba(255, 248, 240, 0.95);
+    --nexus-text-primary: #2C2C2C;
+    --nexus-text-secondary: #5A5A5A;
+    --nexus-text-muted: #8A8A8A;
+    --nexus-border: rgba(255, 140, 66, 0.2);
   }
 
   /* Reset & Base Styles */
@@ -145,20 +145,20 @@
 
   /* Global Circuit Background - Optimized */
   body::before {
-    background: 
-      radial-gradient(circle at 15% 85%, rgba(0, 100, 210, 0.08) 0%, transparent 40%),
-      radial-gradient(circle at 85% 15%, rgba(229, 50, 56, 0.06) 0%, transparent 40%),
+    background:
+      radial-gradient(circle at 15% 85%, rgba(255, 140, 66, 0.08) 0%, transparent 40%),
+      radial-gradient(circle at 85% 15%, rgba(124, 205, 124, 0.06) 0%, transparent 40%),
       radial-gradient(circle at 50% 50%, rgba(255, 206, 0, 0.05) 0%, transparent 35%),
-      radial-gradient(circle at 20% 30%, rgba(134, 184, 23, 0.06) 0%, transparent 35%),
-      radial-gradient(circle at 80% 70%, rgba(123, 31, 162, 0.05) 0%, transparent 40%),
-      radial-gradient(circle at 40% 20%, rgba(0, 188, 212, 0.06) 0%, transparent 35%);
+      radial-gradient(circle at 20% 30%, rgba(135, 206, 235, 0.06) 0%, transparent 35%),
+      radial-gradient(circle at 80% 70%, rgba(255, 157, 92, 0.05) 0%, transparent 40%),
+      radial-gradient(circle at 40% 20%, rgba(144, 238, 144, 0.06) 0%, transparent 35%);
     background-size: 100% 100%;
   }
 
   body::after {
-    background: 
-      linear-gradient(90deg, rgba(0, 100, 210, 0.04) 1px, transparent 1px),
-      linear-gradient(0deg, rgba(0, 100, 210, 0.04) 1px, transparent 1px);
+    background:
+      linear-gradient(90deg, rgba(255, 140, 66, 0.03) 1px, transparent 1px),
+      linear-gradient(0deg, rgba(255, 140, 66, 0.03) 1px, transparent 1px);
     background-size: 50px 50px;
   }
   
@@ -193,41 +193,6 @@
     display: block;
   }
 
-  /* Global Circuit Background */
-  body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: 
-      radial-gradient(circle at 15% 85%, rgba(0, 100, 210, 0.08) 0%, transparent 40%),
-      radial-gradient(circle at 85% 15%, rgba(229, 50, 56, 0.06) 0%, transparent 40%),
-      radial-gradient(circle at 45% 45%, rgba(255, 206, 0, 0.05) 0%, transparent 40%),
-      radial-gradient(circle at 65% 85%, rgba(134, 184, 23, 0.07) 0%, transparent 40%),
-      radial-gradient(circle at 25% 25%, rgba(123, 31, 162, 0.04) 0%, transparent 40%),
-      radial-gradient(circle at 75% 75%, rgba(0, 188, 212, 0.06) 0%, transparent 40%);
-    z-index: -2;
-    pointer-events: none;
-  }
-
-  /* World Wide Web Grid */
-  body::after {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: 
-      linear-gradient(90deg, rgba(0, 100, 210, 0.04) 1px, transparent 1px),
-      linear-gradient(0deg, rgba(0, 100, 210, 0.04) 1px, transparent 1px),
-      linear-gradient(45deg, rgba(255, 206, 0, 0.02) 1px, transparent 1px);
-    background-size: 50px 50px, 50px 50px, 100px 100px;
-    z-index: -1;
-    pointer-events: none;
-  }
 }
 
 @layer components {
@@ -276,9 +241,9 @@
   /* Nexus Header - Responsive Design */
   .nexus-header {
     grid-area: header;
-    background: linear-gradient(135deg, #0064D2 0%, #0078FF 50%, #00A0FF 100%);
-    box-shadow: 
-      0 2px 8px rgba(0, 100, 210, 0.2),
+    background: linear-gradient(135deg, #FF8C42 0%, #FF9D5C 50%, #FFB380 100%);
+    box-shadow:
+      0 2px 8px rgba(255, 140, 66, 0.2),
       inset 0 1px 0 rgba(255, 255, 255, 0.1);
     display: flex;
     align-items: center;
@@ -349,7 +314,7 @@
     background: rgba(255, 255, 255, 0.97);
     backdrop-filter: blur(25px);
     border-right: 3px solid;
-    border-image: linear-gradient(180deg, #0064D2, #FFCE00, #E53238, #86B817, #7B1FA2, #00BCD4) 1;
+    border-image: linear-gradient(180deg, #FF8C42, #FFCE00, #7CCD7C, #86B817, #7B1FA2, #87CEEB) 1;
     overflow-y: auto;
     overflow-x: hidden;
     position: relative;
@@ -582,7 +547,7 @@
     right: 0;
     width: 3px;
     height: 100%;
-    background: linear-gradient(180deg, transparent, rgba(0, 100, 210, 0.9), transparent);
+    background: linear-gradient(180deg, transparent, rgba(255, 140, 66, 0.9), transparent);
     opacity: 0.7;
   }
   
