@@ -3,13 +3,14 @@ import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 
 interface PageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function OrderConfirmationPage({ params }: PageProps) {
   const supabase = await createClient();
+  const { id } = await params; // Next.js 15: params is now a Promise
 
   // Get current user
   const {
@@ -36,7 +37,7 @@ export default async function OrderConfirmationPage({ params }: PageProps) {
       )
     `
     )
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('buyer_id', user.id)
     .single();
 

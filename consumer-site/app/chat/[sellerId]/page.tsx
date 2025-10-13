@@ -4,13 +4,14 @@ import Link from 'next/link';
 import ChatInterface from './ChatInterface';
 
 interface PageProps {
-  params: {
+  params: Promise<{
     sellerId: string;
-  };
+  }>;
 }
 
 export default async function ChatPage({ params }: PageProps) {
   const supabase = await createClient();
+  const { sellerId } = await params; // Next.js 15: params is now a Promise
 
   // Get current user
   const {
@@ -25,7 +26,7 @@ export default async function ChatPage({ params }: PageProps) {
   const { data: seller, error: sellerError } = await supabase
     .from('sellers')
     .select('*, profiles!sellers_user_id_fkey(full_name)')
-    .eq('user_id', params.sellerId)
+    .eq('user_id', sellerId)
     .single();
 
   if (sellerError || !seller) {
@@ -37,7 +38,7 @@ export default async function ChatPage({ params }: PageProps) {
     .from('chats')
     .select('id')
     .eq('buyer_id', user.id)
-    .eq('seller_id', params.sellerId)
+    .eq('seller_id', sellerId)
     .single();
 
   let chatId = existingChat?.id;
@@ -48,7 +49,7 @@ export default async function ChatPage({ params }: PageProps) {
       .from('chats')
       .insert({
         buyer_id: user.id,
-        seller_id: params.sellerId,
+        seller_id: sellerId,
       })
       .select('id')
       .single();
@@ -90,7 +91,7 @@ export default async function ChatPage({ params }: PageProps) {
           <ChatInterface
             chatId={chatId || ''}
             userId={user.id}
-            sellerId={params.sellerId}
+            sellerId={sellerId}
             initialMessages={messages || []}
           />
         </div>

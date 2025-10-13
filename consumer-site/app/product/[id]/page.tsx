@@ -4,13 +4,14 @@ import Link from 'next/link';
 import ProductPurchaseForm from './ProductPurchaseForm';
 
 interface PageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function ProductDetailPage({ params }: PageProps) {
   const supabase = await createClient();
+  const { id } = await params; // Next.js 15: params is now a Promise
 
   // Fetch product with seller info and SKUs
   const { data: product, error } = await supabase
@@ -27,7 +28,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
       ),
       product_skus(*)
     `)
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('is_active', true)
     .single();
 

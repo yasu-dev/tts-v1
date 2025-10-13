@@ -3,15 +3,16 @@ import { createClient } from '@/lib/supabase/server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
+    const { id } = await params; // Next.js 15: params is now a Promise
 
     const { data: product, error } = await supabase
       .from('products')
       .select('*, seller:sellers(*), skus:product_skus(*), reviews:reviews(*, buyer:profiles(nickname))')
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('is_active', true)
       .single();
 
