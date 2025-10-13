@@ -12,6 +12,7 @@ interface Product {
   irregular_reason: string;
   category: string;
   seller_id: string;
+  image_urls: string[] | null;
   sellers: {
     farm_name: string;
   };
