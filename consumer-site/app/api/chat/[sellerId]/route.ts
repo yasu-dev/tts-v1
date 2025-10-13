@@ -4,10 +4,11 @@ import { createClient } from '@/lib/supabase/server';
 // メッセージ一覧取得
 export async function GET(
   request: NextRequest,
-  { params }: { params: { sellerId: string } }
+  { params }: { params: Promise<{ sellerId: string }> }
 ) {
   try {
     const supabase = await createClient();
+    const { sellerId } = await params; // Next.js 15: params is now a Promise
 
     const {
       data: { user },
@@ -22,7 +23,7 @@ export async function GET(
       .from('chats')
       .select('*')
       .eq('buyer_id', user.id)
-      .eq('seller_id', params.sellerId)
+      .eq('seller_id', sellerId)
       .single();
 
     if (!chat) {
@@ -30,7 +31,7 @@ export async function GET(
         .from('chats')
         .insert({
           buyer_id: user.id,
-          seller_id: params.sellerId,
+          seller_id: sellerId,
         })
         .select()
         .single();
@@ -72,10 +73,11 @@ export async function GET(
 // メッセージ送信
 export async function POST(
   request: NextRequest,
-  { params }: { params: { sellerId: string } }
+  { params }: { params: Promise<{ sellerId: string }> }
 ) {
   try {
     const supabase = await createClient();
+    const { sellerId } = await params; // Next.js 15: params is now a Promise
 
     const {
       data: { user },
@@ -100,7 +102,7 @@ export async function POST(
       .from('chats')
       .select('*')
       .eq('buyer_id', user.id)
-      .eq('seller_id', params.sellerId)
+      .eq('seller_id', sellerId)
       .single();
 
     if (!chat) {
@@ -108,7 +110,7 @@ export async function POST(
         .from('chats')
         .insert({
           buyer_id: user.id,
-          seller_id: params.sellerId,
+          seller_id: sellerId,
         })
         .select()
         .single();
