@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (messageError) {
-      console.error('Message creation error:', messageError);
+      // TODO: 本番環境では適切なロギングサービスを使用
       return NextResponse.json(
         { error: 'Failed to create message' },
         { status: 500 }
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       message,
     });
   } catch (error: any) {
-    console.error('Send message error:', error);
+    // TODO: 本番環境では適切なロギングサービスを使用
     return NextResponse.json(
       { error: error.message || 'Internal server error' },
       { status: 500 }

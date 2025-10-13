@@ -31,7 +31,7 @@ export default function LoginPage() {
       router.push('/');
       router.refresh();
     } catch (err: any) {
-      console.error('Login error:', err);
+      // TODO: 本番環境では適切なロギングサービスを使用
       setError(err.message || 'ログインに失敗しました');
     } finally {
       setLoading(false);

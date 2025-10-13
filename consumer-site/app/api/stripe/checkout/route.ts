@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url: session.url });
   } catch (error) {
-    console.error('Checkout error:', error);
+    // TODO: 本番環境では適切なロギングサービスを使用
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

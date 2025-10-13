@@ -33,8 +33,9 @@ export default async function OrdersPage() {
     .eq('buyer_id', user.id)
     .order('created_at', { ascending: false });
 
+  // エラーハンドリングは適切なロギングサービスで行うべき
   if (error) {
-    console.error('Error fetching orders:', error);
+    // TODO: 本番環境では適切なロギングサービスを使用
   }
 
   const statusLabels: Record<string, string> = {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface SKU {
@@ -29,9 +29,24 @@ export default function ProductPurchaseForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [shippingFee, setShippingFee] = useState(800); // デフォルト値
   const router = useRouter();
 
   const selectedSku = skus.find((sku) => sku.id === selectedSkuId);
+
+  useEffect(() => {
+    // DBから送料を取得
+    fetch('/api/settings')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.defaultShippingFee) {
+          setShippingFee(data.defaultShippingFee);
+        }
+      })
+      .catch(() => {
+        // エラー時はデフォルト値を使用
+      });
+  }, []);
 
   const handleShowConfirmation = () => {
     if (!selectedSku) {
@@ -74,7 +89,7 @@ export default function ProductPurchaseForm({
       // Redirect to order confirmation page
       router.push(`/orders/${data.order.id}`);
     } catch (err: any) {
-      console.error('Purchase error:', err);
+      // TODO: 本番環境では適切なロギングサービスを使用
       setError(err.message || '購入に失敗しました');
       setShowConfirmModal(false);
     } finally {
@@ -83,7 +98,6 @@ export default function ProductPurchaseForm({
   };
 
   const totalPrice = selectedSku ? selectedSku.price_yen * quantity : 0;
-  const shippingFee = 800;
 
   return (
     <div className="space-y-4">

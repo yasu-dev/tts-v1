@@ -10,7 +10,7 @@
 4. [管理者向け管理サイト構成](#管理者向け管理サイト構成)
 5. [データフロー図](#データフロー図)
 6. [認証・認可フロー](#認証認可フロー)
-7. [決済フロー（Stripe）](#決済フローstripe)
+7. [決済フロー](#決済フロー)
 
 ---
 
@@ -50,8 +50,8 @@ graph TB
     CONSUMER --> AUTH
     CONSUMER --> STORAGE
     CONSUMER --> REALTIME
-    CONSUMER --> STRIPE
-    CONSUMER --> EMAIL
+    CONSUMER -.->|未実装| STRIPE
+    CONSUMER -.->|未実装| EMAIL
 
     ADMIN --> DB
     ADMIN --> AUTH
@@ -72,6 +72,10 @@ graph TB
     style EMAIL fill:#fff2cc
 ```
 
+**注記**:
+- Stripe決済とメール送信は本番環境での実装予定。MVP版では未実装。
+- MVP版ではデモ決済（LocalStorage）を使用。
+
 ---
 
 ## 3アプリケーション構成
@@ -86,7 +90,7 @@ graph LR
     subgraph "購入者向けECサイト"
         C1[Next.js 14<br/>App Router]
         C2[スマホファースト<br/>下部ナビ]
-        C3[Stripe決済<br/>チャット機能]
+        C3[デモ決済<br/>チャット機能]
     end
 
     subgraph "管理者向け管理サイト"
@@ -146,9 +150,10 @@ graph TB
     subgraph "API Routes"
         API_PROD[api/products/]
         API_ORDER[api/orders/]
+        API_SETTINGS[api/settings/<br/>システム設定取得<br/>送料・手数料率]
         API_REVIEW[api/reviews/]
         API_CHAT[api/chat/]
-        API_STRIPE[api/stripe/<br/>checkout/<br/>webhook/]
+        API_STRIPE[api/stripe/<br/>checkout/<br/>webhook/<br/>(本番環境で実装予定)]
     end
 
     subgraph "主要ページ"
@@ -171,7 +176,8 @@ graph TB
     subgraph "ライブラリ層"
         LIB[lib/]
         AUTH_HELPER[auth-helpers.ts<br/>認証ヘルパー]
-        STRIPE_LIB[stripe.ts<br/>Stripe連携]
+        SETTINGS_LIB[settings.ts<br/>システム設定取得<br/>ビジネスロジック]
+        STRIPE_LIB[stripe.ts<br/>Stripe連携<br/>(本番環境で実装予定)]
         SUPABASE[supabase/<br/>client.ts<br/>server.ts<br/>middleware.ts]
     end
 
@@ -190,6 +196,7 @@ graph TB
 
     API --> API_PROD
     API --> API_ORDER
+    API --> API_SETTINGS
     API --> API_REVIEW
     API --> API_CHAT
     API --> API_STRIPE
@@ -207,6 +214,7 @@ graph TB
     COMP --> NAV
 
     LIB --> AUTH_HELPER
+    LIB --> SETTINGS_LIB
     LIB --> STRIPE_LIB
     LIB --> SUPABASE
 
@@ -219,17 +227,16 @@ graph TB
     style TYPES fill:#f5f5f5
 ```
 
-### 主要機能フロー
+### 主要機能フロー（MVP版）
 
 ```mermaid
 sequenceDiagram
     participant U as ユーザー
     participant APP as Next.js App
-    participant API as API Routes
     participant SB as Supabase
-    participant ST as Stripe
+    participant LS as LocalStorage
 
-    Note over U,ST: 商品検索〜購入フロー
+    Note over U,LS: 商品検索〜カート追加（MVP実装）
 
     U->>APP: トップページアクセス
     APP->>SB: 商品一覧取得
@@ -242,29 +249,10 @@ sequenceDiagram
     APP-->>U: 商品詳細表示
 
     U->>APP: カートに追加
-    APP->>APP: ローカルステート更新
+    APP->>LS: カートデータ保存
     APP-->>U: カート更新通知
 
-    U->>APP: チェックアウト
-    APP->>API: 注文作成API
-    API->>SB: 仮注文作成（status=pending）
-    SB-->>API: 注文ID
-    API->>ST: Checkout Session作成
-    ST-->>API: Session URL
-    API-->>APP: Redirect URL
-    APP-->>U: Stripeページへリダイレクト
-
-    U->>ST: カード情報入力・決済
-    ST->>API: Webhook（checkout.session.completed）
-    API->>SB: 注文確定（status=paid）
-    API->>SB: 在庫減算
-    API->>API: メール送信
-    ST-->>U: 成功ページへリダイレクト
-
-    U->>APP: 注文完了ページ
-    APP->>SB: 注文情報取得
-    SB-->>APP: 注文データ
-    APP-->>U: 注文詳細表示
+    Note over U,LS: デモ決済フローはLocalStorageのみ使用、DBに保存されない
 ```
 
 ### 下部ナビゲーション（スマホファースト）
@@ -507,7 +495,7 @@ sequenceDiagram
     APP->>AUTH: signUp()
     AUTH->>AUTH: ユーザー作成
     AUTH->>DB: profiles INSERT (role='buyer')
-    AUTH->>U: 確認メール送信
+    AUTH->>U: 確認メール送信（Supabase Auth標準機能）
     AUTH-->>APP: ユーザー作成成功
     APP-->>U: 確認メール送信メッセージ
 
@@ -575,7 +563,63 @@ graph TB
 
 ---
 
-## 決済フロー（Stripe）
+## 決済フロー
+
+### MVP版の実装（デモ決済）
+
+```mermaid
+sequenceDiagram
+    participant U as ユーザー
+    participant APP as Next.js App
+    participant LS as LocalStorage
+
+    Note over U,LS: カート購入フロー（MVP: デモのみ）
+
+    U->>APP: チェックアウトページ
+    APP-->>U: 注文内容確認
+    U->>APP: 「注文を確定する」クリック
+
+    APP->>APP: handleDemoCheckout()<br/>2秒のsetTimeout
+    APP->>LS: cart削除
+    APP->>LS: checkout_shipping削除
+
+    APP-->>U: /order/complete?order=ORDER-{timestamp}
+    APP-->>U: 注文完了ページ表示
+
+    Note over U,LS: 注意: DBに保存されない、在庫管理なし
+```
+
+### 直接購入フロー（MVP: DB保存あり）
+
+```mermaid
+sequenceDiagram
+    participant U as ユーザー
+    participant APP as Next.js App
+    participant API as API Routes
+    participant DB as Supabase DB
+
+    Note over U,DB: 商品詳細ページからの直接購入
+
+    U->>APP: 商品詳細ページ
+    APP-->>U: 「購入する」ボタン
+    U->>APP: 購入確認モーダル
+
+    APP->>API: POST /api/orders/create
+    API->>DB: buyer_profiles取得（配送先）
+    API->>DB: system_settings取得（送料・手数料率）
+    API->>DB: 在庫チェック
+    API->>DB: 注文作成 (status='paid')
+    API->>DB: 在庫減算
+    DB-->>API: order_id
+
+    API-->>APP: { order: { id, order_number } }
+    APP-->>U: /orders/{order_id}
+    APP-->>U: 注文詳細ページ表示
+
+    Note over U,DB: 在庫管理あり、DBに保存される
+```
+
+### 本番環境での実装予定（Stripe統合）
 
 ```mermaid
 sequenceDiagram
@@ -585,58 +629,27 @@ sequenceDiagram
     participant DB as Supabase DB
     participant STRIPE as Stripe
 
-    Note over U,STRIPE: チェックアウトフロー
+    Note over U,STRIPE: 将来: Stripe Checkout統合
 
     U->>APP: チェックアウトページ
-    APP-->>U: 注文内容確認
     U->>APP: 「支払いへ進む」クリック
 
     APP->>API: POST /api/stripe/checkout
     API->>DB: 仮注文作成 (status='pending')
-    DB-->>API: order_id
-
     API->>STRIPE: Checkout Session作成
-    Note right of STRIPE: line_items:<br/>- 商品<br/>- 送料<br/>success_url<br/>cancel_url<br/>metadata: order_id
     STRIPE-->>API: session.url
-
-    API-->>APP: { url: session.url }
     APP-->>U: Stripeページへリダイレクト
 
-    Note over U,STRIPE: Stripe Checkoutページ
-
-    U->>STRIPE: カード情報入力
-    U->>STRIPE: 「支払う」クリック
-    STRIPE->>STRIPE: 決済処理
-
-    alt 決済成功
-        STRIPE->>API: Webhook: checkout.session.completed
-        API->>API: Webhook署名検証
-        API->>DB: 注文確定 (status='paid')
-        API->>DB: 在庫減算
-        API->>API: メール送信（購入完了）
-        API-->>STRIPE: 200 OK
-
-        STRIPE-->>U: success_url へリダイレクト
-        U->>APP: /order/complete?order=xxx
-        APP->>DB: 注文情報取得
-        DB-->>APP: 注文データ
-        APP-->>U: 注文完了ページ表示
-    else 決済失敗
-        STRIPE-->>U: cancel_url へリダイレクト
-        U->>APP: /cart
-        APP-->>U: カートページ（エラー表示）
-    end
-
-    Note over U,STRIPE: Webhook リトライ機能
-
-    alt Webhook失敗時
-        STRIPE->>API: Webhook リトライ (最大3回)
-        API-->>STRIPE: エラー応答
-        STRIPE->>STRIPE: 指数バックオフで再送
-    end
+    U->>STRIPE: カード情報入力・決済
+    STRIPE->>API: Webhook: checkout.session.completed
+    API->>DB: 注文確定 (status='paid')
+    API->>DB: 在庫減算
+    STRIPE-->>U: success_url へリダイレクト
 ```
 
-### Stripe Webhook処理詳細
+### Stripe Webhook処理詳細（本番環境での実装予定）
+
+**MVP版では未実装**。以下は本番環境での実装計画。
 
 ```mermaid
 graph TB
@@ -756,9 +769,9 @@ sequenceDiagram
 | | Supabase Auth | 認証・認可 |
 | | Supabase Storage | 画像保存 |
 | | Supabase Realtime | チャット機能 |
-| **決済** | Stripe Checkout | 決済処理 |
-| | Stripe Webhooks | 決済確認 |
-| **メール** | SendGrid / Resend | メール送信 |
+| **決済** | Stripe Checkout | 決済処理（本番環境で実装予定） |
+| | Stripe Webhooks | 決済確認（本番環境で実装予定） |
+| **メール** | SendGrid / Resend | メール送信（本番環境で実装予定） |
 | **デプロイ** | Vercel | ホスティング |
 | **テスト** | Playwright | E2Eテスト |
 | | Jest | ユニットテスト |
@@ -771,6 +784,17 @@ sequenceDiagram
 | 管理者向け管理サイト | 🔄 一部実装 | UIコンポーネントのみ |
 | 販売者向け管理サイト | ❌ 未実装 | 今後の開発予定 |
 
+### 主要機能の実装状況
+
+| 機能 | ステータス | 詳細 |
+|------|-----------|------|
+| デモ決済 | ✅ 実装済み | カート購入フロー（LocalStorage）|
+| 直接購入フロー | ✅ 実装済み | DB保存、在庫管理あり |
+| システム設定DB管理 | ✅ 実装済み | lib/settings.ts, api/settings/route.ts |
+| 送料・手数料率DB取得 | ✅ 実装済み | system_settingsテーブルから取得 |
+| Stripe決済 | ❌ 未実装 | 本番環境で実装予定 |
+| メール通知 | ❌ 未実装 | 本番環境で実装予定 |
+
 ### 次のステップ
 
 1. **管理者向け管理サイトの完成**
@@ -779,6 +803,7 @@ sequenceDiagram
    - 振込管理機能
    - レビュー管理機能
    - お知らせ管理機能
+   - システム設定管理（送料・手数料率のGUI編集）
 
 2. **販売者向け管理サイトの実装**
    - 商品登録・編集
@@ -787,7 +812,14 @@ sequenceDiagram
    - 売上確認
    - チャット対応
 
-3. **機能拡張**
+3. **本番決済機能の実装**
+   - Stripe Checkout統合
+   - Webhook実装
+   - カート購入フローのDB保存
+   - カート購入フローの在庫管理
+   - メール通知機能
+
+4. **機能拡張**
    - ガチャUI（Framer Motion）
    - お気に入り機能
    - クーポン・ポイントシステム

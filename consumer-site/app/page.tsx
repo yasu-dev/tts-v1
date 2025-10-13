@@ -34,8 +34,9 @@ export default async function HomePage() {
     .eq('is_active', true)
     .order('created_at', { ascending: false });
 
+  // エラーハンドリングは適切なロギングサービスで行うべき
   if (error) {
-    console.error('Error fetching products:', error);
+    // TODO: 本番環境では適切なロギングサービスを使用
   }
 
   return (
@@ -61,9 +62,17 @@ export default async function HomePage() {
               key={product.id}
               className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition"
             >
-              {/* Placeholder Image */}
-              <div className="h-48 bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center">
-                <span className="text-4xl">🥬</span>
+              {/* Product Image */}
+              <div className="h-48 bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center overflow-hidden">
+                {product.image_urls && product.image_urls.length > 0 ? (
+                  <img
+                    src={product.image_urls[0]}
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-4xl">🥬</span>
+                )}
               </div>
 
               <div className="p-4">

@@ -61,7 +61,7 @@ export async function GET(
 
     return NextResponse.json({ chat, messages });
   } catch (error) {
-    console.error('Chat GET error:', error);
+    // TODO: 本番環境では適切なロギングサービスを使用
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -149,7 +149,7 @@ export async function POST(
 
     return NextResponse.json({ message });
   } catch (error) {
-    console.error('Chat POST error:', error);
+    // TODO: 本番環境では適切なロギングサービスを使用
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
