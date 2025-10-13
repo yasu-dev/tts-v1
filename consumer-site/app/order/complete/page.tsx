@@ -3,13 +3,13 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 interface PageProps {
-  searchParams: {
+  searchParams: Promise<{
     order?: string;
-  };
+  }>;
 }
 
 export default async function OrderCompletePage({ searchParams }: PageProps) {
-  const orderId = searchParams.order;
+  const { order: orderId } = await searchParams; // Next.js 15: searchParams is now a Promise
 
   if (!orderId) {
     notFound();
