@@ -40,13 +40,13 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-gray-200">
+    <header className="sticky top-0 z-40 bg-white border-b border-gray-200 text-gray-900">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="md:hidden p-2"
+              className="md:hidden p-2 text-gray-900"
               aria-label="メニュー"
             >
               <Menu className="w-6 h-6" />
@@ -56,19 +56,19 @@ export function Header() {
             </Link>
           </div>
 
-          <nav className="hidden md:flex items-center gap-6">
-            <Link href="/" className="hover:text-green-600">
+          <nav className="hidden md:flex items-center gap-6 text-gray-900">
+            <Link href="/" className="hover:text-green-700">
               ガチャ
             </Link>
-            <Link href="/search" className="hover:text-green-600">
+            <Link href="/search" className="hover:text-green-700">
               検索
             </Link>
             {user && (
               <>
-                <Link href="/orders" className="hover:text-green-600">
+                <Link href="/orders" className="hover:text-green-700">
                   注文履歴
                 </Link>
-                <Link href="/profile" className="hover:text-green-600">
+                <Link href="/profile" className="hover:text-green-700">
                   マイページ
                 </Link>
               </>
@@ -80,12 +80,12 @@ export function Header() {
               <>
                 {user ? (
                   <div className="flex items-center gap-2">
-                    <Link href="/cart" className="p-2 relative">
+                    <Link href="/cart" className="p-2 relative text-gray-900">
                       <ShoppingCart className="w-6 h-6" />
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="flex items-center gap-1 px-3 py-1.5 text-sm hover:text-green-600"
+                      className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-900 hover:text-green-700"
                       title="ログアウト"
                     >
                       <LogOut className="w-4 h-4" />
@@ -106,38 +106,29 @@ export function Header() {
           </div>
         </div>
 
-        {/* モバイルメニュー */}
+        {/* モバイルメニュー → 左サイドドロワー */}
         {menuOpen && (
-          <div className="md:hidden border-t border-gray-200 py-4">
-            <nav className="flex flex-col gap-4">
-              <Link
-                href="/"
-                className="hover:text-green-600"
-                onClick={() => setMenuOpen(false)}
-              >
+          <div className="md:hidden fixed inset-0 z-50">
+            {/* backdrop */}
+            <button
+              aria-label="メニューを閉じる"
+              onClick={() => setMenuOpen(false)}
+              className="absolute inset-0 bg-black/30"
+            />
+            {/* drawer */}
+            <nav className="absolute left-0 top-0 h-full w-72 bg-white shadow-xl border-r border-gray-200 p-6 flex flex-col gap-4 text-gray-900">
+              <Link href="/" className="hover:text-green-700" onClick={() => setMenuOpen(false)}>
                 ガチャ
               </Link>
-              <Link
-                href="/search"
-                className="hover:text-green-600"
-                onClick={() => setMenuOpen(false)}
-              >
+              <Link href="/search" className="hover:text-green-700" onClick={() => setMenuOpen(false)}>
                 検索
               </Link>
               {user ? (
                 <>
-                  <Link
-                    href="/orders"
-                    className="hover:text-green-600"
-                    onClick={() => setMenuOpen(false)}
-                  >
+                  <Link href="/orders" className="hover:text-green-700" onClick={() => setMenuOpen(false)}>
                     注文履歴
                   </Link>
-                  <Link
-                    href="/profile"
-                    className="hover:text-green-600"
-                    onClick={() => setMenuOpen(false)}
-                  >
+                  <Link href="/profile" className="hover:text-green-700" onClick={() => setMenuOpen(false)}>
                     マイページ
                   </Link>
                   <button
@@ -145,17 +136,13 @@ export function Header() {
                       handleLogout();
                       setMenuOpen(false);
                     }}
-                    className="text-left hover:text-green-600"
+                    className="text-left hover:text-green-700"
                   >
                     ログアウト
                   </button>
                 </>
               ) : (
-                <Link
-                  href="/login"
-                  className="hover:text-green-600"
-                  onClick={() => setMenuOpen(false)}
-                >
+                <Link href="/login" className="hover:text-green-700" onClick={() => setMenuOpen(false)}>
                   ログイン
                 </Link>
               )}
