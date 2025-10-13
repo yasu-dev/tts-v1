@@ -54,7 +54,7 @@ export default async function ChatPage({ params }: PageProps) {
       .single();
 
     if (chatError) {
-      console.error('Error creating chat:', chatError);
+      // TODO: 本番環境では適切なロギングサービスを使用
     } else {
       chatId = newChat?.id;
     }

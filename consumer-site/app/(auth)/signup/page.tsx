@@ -62,9 +62,9 @@ export default function SignupPage() {
       router.push('/');
       router.refresh();
     } catch (err: any) {
-      console.error('Signup error:', err);
+      // TODO: 本番環境では適切なロギングサービスを使用
       setError(err.message || '登録に失敗しました');
-    } finally {
+    } finally{
       setLoading(false);
     }
   };

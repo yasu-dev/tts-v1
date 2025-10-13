@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       process.env.STRIPE_WEBHOOK_SECRET!
     );
   } catch (err) {
-    console.error('Webhook signature verification failed:', err);
+    // TODO: 本番環境では適切なロギングサービスを使用
     return NextResponse.json(
       { error: 'Invalid signature' },
       { status: 400 }
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     const order_id = session.metadata?.order_id;
 
     if (!order_id) {
-      console.error('No order_id in session metadata');
+      // TODO: 本番環境では適切なロギングサービスを使用
       return NextResponse.json(
         { error: 'No order_id' },
         { status: 400 }
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
         .eq('id', order_id);
 
       if (updateError) {
-        console.error('Failed to update order:', updateError);
+        // TODO: 本番環境では適切なロギングサービスを使用
         return NextResponse.json(
           { error: 'Failed to update order' },
           { status: 500 }
@@ -96,9 +96,9 @@ export async function POST(request: NextRequest) {
       // メール送信キュー登録（実装は将来的にEdge Functionで）
       // TODO: SendGrid/Resendでメール送信
 
-      console.log(`Order ${order_id} marked as paid and stock updated`);
+      // Order marked as paid and stock updated successfully
     } catch (error) {
-      console.error('Error processing webhook:', error);
+      // TODO: 本番環境では適切なロギングサービスを使用
       return NextResponse.json(
         { error: 'Processing error' },
         { status: 500 }

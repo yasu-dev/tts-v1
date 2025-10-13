@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ products: data });
   } catch (error) {
-    console.error('Products API error:', error);
+    // TODO: 本番環境では適切なロギングサービスを使用
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

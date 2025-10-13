@@ -72,7 +72,7 @@ export default function ChatInterface({
       // Refresh the page to get updated messages
       router.refresh();
     } catch (error) {
-      console.error('Error sending message:', error);
+      // TODO: 本番環境では適切なロギングサービスを使用
       alert('メッセージの送信に失敗しました');
     } finally {
       setLoading(false);

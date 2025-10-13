@@ -33,7 +33,7 @@ export default async function ChatListPage() {
     .order('last_message_at', { ascending: false });
 
   if (error) {
-    console.error('Error fetching chats:', error);
+    // TODO: 本番環境では適切なロギングサービスを使用
   }
 
   // Process chats to get last message

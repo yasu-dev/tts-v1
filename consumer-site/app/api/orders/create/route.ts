@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { getSystemSettings } from '@/lib/settings';
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,10 +45,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get buyer profile for shipping info
+    const { data: buyerProfile, error: buyerError } = await supabase
+      .from('buyer_profiles')
+      .select('default_shipping')
+      .eq('user_id', user.id)
+      .single();
+
+    if (buyerError || !buyerProfile?.default_shipping) {
+      return NextResponse.json(
+        { error: 'Shipping address not found. Please set up your profile first.' },
+        { status: 400 }
+      );
+    }
+
+    // Get system settings from DB
+    const settings = await getSystemSettings();
+
     // Calculate amounts
     const subtotal_yen = sku.price_yen * quantity;
-    const shipping_fee_yen = 800; // Default shipping fee
-    const platform_fee_rate = 0.1;
+    const shipping_fee_yen = settings.defaultShippingFee;
+    const platform_fee_rate = settings.platformFeeRate / 100;
     const platform_fee_yen = Math.floor(subtotal_yen * platform_fee_rate);
     const total_amount_yen = subtotal_yen + shipping_fee_yen;
 
@@ -61,25 +79,18 @@ export async function POST(request: NextRequest) {
         order_number,
         buyer_id: user.id,
         seller_id,
-        status: 'paid', // Demo: directly set to paid
+        status: 'paid', // MVP Demo: directly set to paid (no actual payment processing)
         subtotal_yen,
         shipping_fee_yen,
         platform_fee_yen,
         total_amount_yen,
-        shipping_info: {
-          name: 'デモ配送先',
-          postal_code: '000-0000',
-          prefecture: '東京都',
-          city: '渋谷区',
-          address1: 'サンプル町1-2-3',
-          phone: '000-0000-0000',
-        },
+        shipping_info: buyerProfile.default_shipping,
       })
       .select()
       .single();
 
     if (orderError || !order) {
-      console.error('Order creation error:', orderError);
+      // TODO: 本番環境では適切なロギングサービスを使用
       return NextResponse.json(
         { error: 'Failed to create order' },
         { status: 500 }
@@ -96,7 +107,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (itemError) {
-      console.error('Order item creation error:', itemError);
+      // TODO: 本番環境では適切なロギングサービスを使用
       // Rollback order creation
       await supabase.from('orders').delete().eq('id', order.id);
       return NextResponse.json(
@@ -112,7 +123,7 @@ export async function POST(request: NextRequest) {
       .eq('id', sku_id);
 
     if (stockError) {
-      console.error('Stock update error:', stockError);
+      // TODO: 本番環境では適切なロギングサービスを使用
     }
 
     return NextResponse.json({
@@ -124,7 +135,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error: any) {
-    console.error('Create order error:', error);
+    // TODO: 本番環境では適切なロギングサービスを使用
     return NextResponse.json(
       { error: error.message || 'Internal server error' },
       { status: 500 }

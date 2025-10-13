@@ -52,8 +52,16 @@ export default async function ProductDetailPage({ params }: PageProps) {
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           <div className="grid md:grid-cols-2 gap-6 p-6">
             {/* Product Image */}
-            <div className="bg-gradient-to-br from-green-100 to-green-200 rounded-lg flex items-center justify-center h-96">
-              <span className="text-8xl">🥬</span>
+            <div className="bg-gradient-to-br from-green-100 to-green-200 rounded-lg flex items-center justify-center h-96 overflow-hidden">
+              {product.image_urls && product.image_urls.length > 0 ? (
+                <img
+                  src={product.image_urls[0]}
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-8xl">🥬</span>
+              )}
             </div>
 
             {/* Product Info */}
