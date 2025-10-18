@@ -1,330 +1,266 @@
-<mxfile host="app.diagrams.net" modified="2025-10-18T08:35:00.000Z" agent="Claude Code" version="24.0.0">
-  <diagram name="トリアージタッグシステム プロジェクト構成" id="tts-project-structure">
-    <mxGraphModel dx="1600" dy="1100" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+<mxfile host="app.diagrams.net" modified="2025-10-18T10:00:00.000Z" agent="Claude Code" version="24.0.0">
+  <diagram name="トリアージタッグシステム プロジェクト構成 (MVP)" id="tts-project-structure">
+    <mxGraphModel dx="1600" dy="1400" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1600" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
 
         <!-- Title -->
-        <mxCell id="title" value="トリアージタッグシステム&#xa;プロジェクト構成 v1.0" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=26;fontStyle=1;fontColor=#485563" vertex="1" parent="1">
-          <mxGeometry x="500" y="20" width="600" height="60" as="geometry" />
+        <mxCell id="title" value="トリアージタッグシステム&#xa;プロジェクト構成 - MVP実装状況" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=26;fontStyle=1;fontColor=#485563" vertex="1" parent="1">
+          <mxGeometry x="500" y="20" width="800" height="60" as="geometry" />
         </mxCell>
 
         <!-- Root Directory -->
         <mxCell id="root" value="tts-v1/ (プロジェクトルート)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=16;fontStyle=1;verticalAlign=top;strokeWidth=3;" vertex="1" parent="1">
-          <mxGeometry x="40" y="100" width="1520" height="1060" as="geometry" />
+          <mxGeometry x="40" y="100" width="1000" height="1060" as="geometry" />
         </mxCell>
 
         <!-- App Directory (Main) -->
         <mxCell id="app-dir" value="app/ (Next.js 14 App Router)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;fontStyle=1;verticalAlign=top;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="60" y="140" width="740" height="580" as="geometry" />
+          <mxGeometry x="60" y="140" width="480" height="500" as="geometry" />
         </mxCell>
 
-        <!-- API Routes -->
-        <mxCell id="api" value="api/ (API Routes)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#E87722;fontSize=13;fontStyle=1;verticalAlign=top;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="80" y="180" width="340" height="240" as="geometry" />
+        <!-- Auth Routes -->
+        <mxCell id="auth-routes" value="(auth)/ ✓ MVP実装済み" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#E87722;fontSize=13;fontStyle=1;verticalAlign=top;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="80" y="180" width="220" height="100" as="geometry" />
         </mxCell>
 
-        <mxCell id="api-auth" value="auth/&#xa;認証API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="100" y="220" width="90" height="50" as="geometry" />
+        <mxCell id="auth-login" value="login/&#xa;ログイン画面" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#E87722;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="100" y="220" width="85" height="45" as="geometry" />
         </mxCell>
 
-        <mxCell id="api-events" value="events/&#xa;災害イベント" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="210" y="220" width="90" height="50" as="geometry" />
+        <!-- Dashboard Routes -->
+        <mxCell id="dashboard-routes" value="(dashboard)/ ✓ MVP実装済み" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#E87722;fontSize=13;fontStyle=1;verticalAlign=top;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="80" y="300" width="220" height="180" as="geometry" />
         </mxCell>
 
-        <mxCell id="api-triage" value="triage/&#xa;トリアージタグ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="320" y="220" width="90" height="50" as="geometry" />
+        <mxCell id="route-command" value="command/&#xa;指揮本部" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#E87722;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="340" width="85" height="45" as="geometry" />
         </mxCell>
 
-        <mxCell id="api-areas" value="areas/&#xa;エリア管理" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="100" y="285" width="90" height="50" as="geometry" />
+        <mxCell id="route-transport" value="transport/&#xa;搬送管理" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#E87722;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="340" width="85" height="45" as="geometry" />
         </mxCell>
 
-        <mxCell id="api-teams" value="teams/&#xa;隊・車両" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="210" y="285" width="90" height="50" as="geometry" />
+        <mxCell id="route-hospital" value="hospital/&#xa;医療機関画面" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#E87722;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="400" width="85" height="45" as="geometry" />
         </mxCell>
 
-        <mxCell id="api-hospitals" value="hospitals/&#xa;医療機関" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="320" y="285" width="90" height="50" as="geometry" />
-        </mxCell>
-
-        <mxCell id="api-ai" value="ai/&#xa;AI推論" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="100" y="350" width="90" height="50" as="geometry" />
-        </mxCell>
-
-        <mxCell id="api-sync" value="sync/&#xa;CRDT同期" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="210" y="350" width="90" height="50" as="geometry" />
-        </mxCell>
-
-        <mxCell id="api-audit" value="audit/&#xa;監査ログ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="320" y="350" width="90" height="50" as="geometry" />
-        </mxCell>
-
-        <!-- Pages/Routes (Authenticated) -->
-        <mxCell id="routes" value="(authenticated)/ (認証が必要なルート)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
-          <mxGeometry x="440" y="180" width="340" height="240" as="geometry" />
-        </mxCell>
-
-        <mxCell id="route-dashboard" value="dashboard/&#xa;指揮本部" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="460" y="220" width="100" height="50" as="geometry" />
-        </mxCell>
-
-        <mxCell id="route-triage" value="triage/&#xa;トリアージ入力" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="580" y="220" width="100" height="50" as="geometry" />
-        </mxCell>
-
-        <mxCell id="route-transport" value="transport/&#xa;搬送管理" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="460" y="285" width="100" height="50" as="geometry" />
-        </mxCell>
-
-        <mxCell id="route-hospital" value="hospital/&#xa;医療機関画面" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="580" y="285" width="100" height="50" as="geometry" />
-        </mxCell>
-
-        <mxCell id="route-audit" value="audit/&#xa;監査画面" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="460" y="350" width="100" height="50" as="geometry" />
-        </mxCell>
-
-        <mxCell id="route-settings" value="settings/&#xa;設定" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="580" y="350" width="100" height="50" as="geometry" />
+        <mxCell id="route-triage-partial" value="triage/scan/&#xa;トリアージ入力&#xa;⚠️ 部分実装" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="400" width="85" height="60" as="geometry" />
         </mxCell>
 
         <!-- Components -->
         <mxCell id="components" value="components/ (共有コンポーネント)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
-          <mxGeometry x="80" y="440" width="700" height="160" as="geometry" />
+          <mxGeometry x="320" y="180" width="200" height="300" as="geometry" />
         </mxCell>
 
-        <mxCell id="comp-ui" value="ui/&#xa;UIコンポーネント" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="100" y="480" width="110" height="50" as="geometry" />
+        <mxCell id="comp-qr" value="QRScanner.tsx&#xa;✓ 実装済み" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#E87722;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="340" y="220" width="100" height="45" as="geometry" />
         </mxCell>
 
-        <mxCell id="comp-qr" value="QRScanner.tsx&#xa;QR読取" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="230" y="480" width="110" height="50" as="geometry" />
+        <mxCell id="comp-voice" value="VoiceInput.tsx&#xa;✓ 実装済み" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#E87722;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="340" y="280" width="100" height="45" as="geometry" />
         </mxCell>
 
-        <mxCell id="comp-voice" value="VoiceInput.tsx&#xa;音声入力" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="360" y="480" width="110" height="50" as="geometry" />
+        <mxCell id="comp-wizard" value="StartWizard.tsx&#xa;✓ 実装済み" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#E87722;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="340" y="340" width="100" height="45" as="geometry" />
         </mxCell>
 
-        <mxCell id="comp-wizard" value="StartTriageWizard.tsx&#xa;START法" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="490" y="480" width="130" height="50" as="geometry" />
-        </mxCell>
-
-        <mxCell id="comp-map" value="MapView.tsx&#xa;地図表示" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="640" y="480" width="110" height="50" as="geometry" />
-        </mxCell>
-
-        <mxCell id="comp-image" value="ImageUploader.tsx&#xa;画像アップロード" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="100" y="540" width="130" height="50" as="geometry" />
-        </mxCell>
-
-        <mxCell id="comp-error" value="ErrorBoundary.tsx&#xa;エラー処理" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="250" y="540" width="120" height="50" as="geometry" />
-        </mxCell>
-
-        <mxCell id="comp-offline" value="OfflineHandler.tsx&#xa;オフライン処理" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="390" y="540" width="130" height="50" as="geometry" />
+        <mxCell id="comp-map" value="MapView.tsx&#xa;❌ Phase 2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="340" y="400" width="100" height="45" as="geometry" />
         </mxCell>
 
         <!-- App Root Files -->
-        <mxCell id="app-files" value="ルートファイル" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;verticalAlign=top;align=left;spacingLeft=10;spacingTop=5;" vertex="1" parent="1">
-          <mxGeometry x="80" y="620" width="220" height="90" as="geometry" />
+        <mxCell id="app-files" value="ルートファイル ✓" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#E87722;fontSize=12;verticalAlign=top;align=left;spacingLeft=10;spacingTop=5;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="80" y="500" width="220" height="120" as="geometry" />
         </mxCell>
 
-        <mxCell id="app-files-list" value="layout.tsx&#xa;page.tsx&#xa;globals.css&#xa;loading.tsx&#xa;error.tsx" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=10;spacingLeft=10;" vertex="1" parent="1">
-          <mxGeometry x="90" y="640" width="200" height="60" as="geometry" />
+        <mxCell id="app-files-list" value="layout.tsx&#xa;page.tsx&#xa;globals.css" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="90" y="530" width="200" height="80" as="geometry" />
         </mxCell>
 
         <!-- Lib Directory -->
         <mxCell id="lib-dir" value="lib/ (ビジネスロジック・ユーティリティ)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;fontStyle=1;verticalAlign=top;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="60" y="740" width="740" height="200" as="geometry" />
+          <mxGeometry x="60" y="660" width="480" height="180" as="geometry" />
         </mxCell>
 
-        <mxCell id="lib-auth" value="auth/&#xa;認証・RBAC" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="80" y="780" width="100" height="50" as="geometry" />
+        <mxCell id="lib-supabase" value="supabase/&#xa;✓ Supabaseクライアント&#xa;(client, server, middleware)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#E87722;fontSize=11;fontStyle=1;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="80" y="700" width="140" height="65" as="geometry" />
         </mxCell>
 
-        <mxCell id="lib-sync" value="sync/&#xa;CRDT同期" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="200" y="780" width="100" height="50" as="geometry" />
+        <mxCell id="lib-types" value="types/&#xa;✓ 型定義&#xa;(TriageTag, Hospital, etc.)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#E87722;fontSize=11;fontStyle=1;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="240" y="700" width="140" height="65" as="geometry" />
         </mxCell>
 
-        <mxCell id="lib-ai" value="ai/&#xa;AI/ML" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="320" y="780" width="100" height="50" as="geometry" />
+        <mxCell id="lib-hooks" value="hooks/&#xa;カスタムフック&#xa;⚠️ 部分実装" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="400" y="700" width="120" height="60" as="geometry" />
         </mxCell>
 
-        <mxCell id="lib-nlp" value="nlp/&#xa;音声解析" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="440" y="780" width="100" height="50" as="geometry" />
+        <mxCell id="lib-utils" value="utils/ ⚠️ 部分実装" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="80" y="780" width="100" height="40" as="geometry" />
         </mxCell>
 
-        <mxCell id="lib-offline" value="offline/&#xa;オフライン処理" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="560" y="780" width="110" height="50" as="geometry" />
+        <mxCell id="lib-constants" value="constants/ ⚠️" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="200" y="780" width="100" height="40" as="geometry" />
         </mxCell>
 
-        <mxCell id="lib-hooks" value="hooks/&#xa;カスタムフック" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="80" y="845" width="120" height="50" as="geometry" />
-        </mxCell>
-
-        <mxCell id="lib-utils" value="utils/&#xa;ユーティリティ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="220" y="845" width="110" height="50" as="geometry" />
-        </mxCell>
-
-        <mxCell id="lib-types" value="types/&#xa;型定義" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="350" y="845" width="100" height="50" as="geometry" />
-        </mxCell>
-
-        <mxCell id="lib-constants" value="constants/&#xa;定数" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="470" y="845" width="100" height="50" as="geometry" />
-        </mxCell>
-
-        <mxCell id="lib-validation" value="validation/&#xa;Zodスキーマ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="590" y="845" width="110" height="50" as="geometry" />
+        <mxCell id="lib-phase2" value="❌ Phase 2以降:&#xa;auth/, sync/, ai/, nlp/, offline/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="320" y="780" width="200" height="40" as="geometry" />
         </mxCell>
 
         <!-- Public Directory -->
         <mxCell id="public-dir" value="public/ (静的ファイル)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;fontStyle=1;verticalAlign=top;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="60" y="960" width="350" height="180" as="geometry" />
+          <mxGeometry x="60" y="860" width="230" height="120" as="geometry" />
         </mxCell>
 
-        <mxCell id="public-models" value="models/&#xa;AI/MLモデル" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="80" y="1000" width="120" height="50" as="geometry" />
+        <mxCell id="public-static" value="✓ 基本ファイル:&#xa;favicon.ico&#xa;next.svg&#xa;vercel.svg" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#E87722;fontSize=10;align=left;spacingLeft=10;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="80" y="900" width="190" height="60" as="geometry" />
         </mxCell>
 
-        <mxCell id="public-sw" value="sw.js&#xa;Service Worker" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="220" y="1000" width="120" height="50" as="geometry" />
+        <!-- Supabase Directory -->
+        <mxCell id="supabase-dir" value="supabase/ ✓ MVP実装済み" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#E87722;fontSize=14;fontStyle=1;verticalAlign=top;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="310" y="860" width="230" height="120" as="geometry" />
         </mxCell>
 
-        <mxCell id="public-manifest" value="manifest.json&#xa;PWAマニフェスト" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="80" y="1065" width="130" height="50" as="geometry" />
-        </mxCell>
-
-        <mxCell id="public-static" value="favicon.ico&#xa;robots.txt&#xa;sitemap.xml" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;align=left;spacingLeft=10;" vertex="1" parent="1">
-          <mxGeometry x="230" y="1065" width="110" height="50" as="geometry" />
+        <mxCell id="supabase-migrations" value="migrations/&#xa;001_initial_schema.sql&#xa;002_demo_data.sql" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#E87722;fontSize=10;align=left;spacingLeft=10;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="330" y="900" width="190" height="60" as="geometry" />
         </mxCell>
 
         <!-- Docs Directory -->
-        <mxCell id="docs-dir" value="docs/ (ドキュメント)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;fontStyle=1;verticalAlign=top;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="440" y="960" width="360" height="180" as="geometry" />
+        <mxCell id="docs-dir" value="docs/ (ドキュメント)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;fontStyle=1;verticalAlign=top;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1000" width="480" height="140" as="geometry" />
         </mxCell>
 
-        <mxCell id="docs-spec" value="仕様.md&#xa;specification.html" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="460" y="1000" width="140" height="50" as="geometry" />
+        <mxCell id="docs-spec" value="仕様.md&#xa;機能仕様.html" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="1040" width="110" height="50" as="geometry" />
         </mxCell>
 
-        <mxCell id="docs-arch" value="system-architecture.drawio" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="620" y="1000" width="160" height="50" as="geometry" />
-        </mxCell>
-
-        <mxCell id="docs-structure" value="project-structure.drawio" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="460" y="1065" width="150" height="50" as="geometry" />
+        <mxCell id="docs-arch" value="system-architecture.drawio&#xa;project-structure.drawio" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="210" y="1040" width="150" height="50" as="geometry" />
         </mxCell>
 
         <mxCell id="docs-flow" value="triage-system-flow.drawio&#xa;presentation.html" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="630" y="1065" width="150" height="50" as="geometry" />
-        </mxCell>
-
-        <!-- Config and Tools (Right Side) -->
-        <mxCell id="config-dir" value="設定ファイル・ツール" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;fontStyle=1;verticalAlign=top;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="840" y="140" width="700" height="1000" as="geometry" />
+          <mxGeometry x="380" y="1040" width="140" height="50" as="geometry" />
         </mxCell>
 
         <!-- Config Files -->
-        <mxCell id="config-main" value="主要設定ファイル" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
-          <mxGeometry x="860" y="180" width="320" height="280" as="geometry" />
+        <mxCell id="config-main" value="設定ファイル ✓" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="560" y="140" width="460" height="180" as="geometry" />
         </mxCell>
 
-        <mxCell id="config-files" value="package.json&#xa;next.config.js&#xa;tsconfig.json&#xa;tailwind.config.js&#xa;postcss.config.js&#xa;playwright.config.ts&#xa;jest.config.js&#xa;middleware.ts&#xa;.env.example&#xa;.env.local&#xa;.gitignore" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=15;spacingTop=5;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="880" y="220" width="280" height="220" as="geometry" />
+        <mxCell id="config-files" value="✓ package.json&#xa;✓ next.config.ts&#xa;✓ tsconfig.json&#xa;✓ tailwind.config.ts&#xa;✓ postcss.config.mjs&#xa;✓ .env.local&#xa;✓ .gitignore&#xa;✓ middleware.ts (部分実装)&#xa;❌ playwright.config.ts (Phase 2)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=15;spacingTop=5;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="580" y="180" width="420" height="120" as="geometry" />
         </mxCell>
 
-        <!-- Cursor Rules -->
-        <mxCell id="cursor-dir" value=".cursor/ (開発ルール)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
-          <mxGeometry x="1200" y="180" width="320" height="280" as="geometry" />
+        <!-- Implementation Status Box -->
+        <mxCell id="status-box" value="実装状況サマリー" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#E87722;fontSize=16;fontStyle=1;verticalAlign=top;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="100" width="680" height="1040" as="geometry" />
         </mxCell>
 
-        <mxCell id="cursor-rules" value="rules/dev-rules/&#xa;&#xa;・db-blueprint.mdc&#xa;　(データベース設計)&#xa;&#xa;・nextjs.mdc&#xa;　(Next.js開発規約)&#xa;&#xa;・techstack.mdc&#xa;　(技術スタック)&#xa;&#xa;・uiux.mdc&#xa;　(UI/UX規約)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=15;spacingTop=5;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="1220" y="220" width="280" height="220" as="geometry" />
+        <!-- Implemented -->
+        <mxCell id="status-implemented" value="✅ MVP実装完了 (約65%)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#E87722;fontSize=14;fontStyle=1;verticalAlign=top;align=left;spacingLeft=10;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="140" width="640" height="340" as="geometry" />
         </mxCell>
 
-        <!-- Tech Stack -->
-        <mxCell id="tech-stack-box" value="技術スタック一覧" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
-          <mxGeometry x="860" y="480" width="320" height="320" as="geometry" />
+        <mxCell id="impl-list" value="【データベース】&#xa;✓ Supabaseプロジェクト作成・設定&#xa;✓ PostgreSQLスキーマ (7テーブル)&#xa;✓ デモデータ投入 (7患者、3病院)&#xa;&#xa;【認証・ルーティング】&#xa;✓ 簡易ログイン画面 (app/(auth)/login/)&#xa;✓ ロール別ダッシュボード分岐&#xa;&#xa;【指揮本部】(app/(dashboard)/command/)&#xa;✓ 全トリアージタグ一覧表示&#xa;✓ カテゴリ別フィルタリング (赤/黄/緑/黒)&#xa;✓ 統計情報表示&#xa;&#xa;【搬送管理】(app/(dashboard)/transport/)&#xa;✓ 搬送対象患者一覧 (赤/黄のみ)&#xa;✓ 病院選択機能&#xa;✓ 搬送開始処理 (DB更新)&#xa;&#xa;【医療機関】(app/(dashboard)/hospital/)&#xa;✓ 搬送中患者一覧表示&#xa;✓ 受入完了処理&#xa;✓ 病院受入状況更新 (accepting/limited/full)&#xa;✓ 病床数・患者数表示&#xa;&#xa;【トリアージ入力】(部分実装)&#xa;✓ QRスキャナーコンポーネント&#xa;✓ START法ウィザードコンポーネント&#xa;✓ 音声入力コンポーネント&#xa;&#xa;【共通機能】&#xa;✓ Supabaseクライアント (client/server/middleware)&#xa;✓ TypeScript型定義 (TriageTag, Hospital, etc.)&#xa;✓ Tailwind CSSスタイリング" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=10;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="1110" y="175" width="620" height="295" as="geometry" />
         </mxCell>
 
-        <mxCell id="tech-frontend" value="【フロントエンド】&#xa;・Next.js 14 App Router&#xa;・React 18 + TypeScript 5&#xa;・Tailwind CSS 3&#xa;・PWA (next-pwa)&#xa;・Yjs (CRDT)&#xa;・Mapbox GL JS&#xa;・html5-qrcode&#xa;・Web Speech API&#xa;・browser-image-compression" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=15;spacingTop=5;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="880" y="520" width="280" height="120" as="geometry" />
+        <!-- Partial Implementation -->
+        <mxCell id="status-partial" value="⚠️ 部分実装 (約20%)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=14;fontStyle=1;verticalAlign=top;align=left;spacingLeft=10;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="500" width="640" height="220" as="geometry" />
         </mxCell>
 
-        <mxCell id="tech-backend" value="【バックエンド】&#xa;・Next.js API Routes&#xa;・Supabase (PostgreSQL 15)&#xa;・Supabase Auth (MFA)&#xa;・Supabase Storage&#xa;・Zod (バリデーション)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=15;spacingTop=5;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="880" y="655" width="280" height="70" as="geometry" />
+        <mxCell id="partial-list" value="【トリアージ入力画面】&#xa;⚠️ コンポーネントは作成済みだが、統合が未完了&#xa;⚠️ DB登録処理が未実装&#xa;⚠️ GPS位置情報取得が未実装&#xa;⚠️ 写真撮影機能が未実装&#xa;&#xa;【認証システム】&#xa;⚠️ 簡易実装のみ (emailベース)&#xa;⚠️ Supabase Authへの移行が必要&#xa;⚠️ Row Level Security (RLS) 未設定&#xa;&#xa;【その他】&#xa;⚠️ リアルタイム更新未実装 (手動リロード)&#xa;⚠️ エラーハンドリングが基本的&#xa;⚠️ バリデーション不十分&#xa;⚠️ 地図表示未実装" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=10;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="1110" y="535" width="620" height="175" as="geometry" />
         </mxCell>
 
-        <mxCell id="tech-ai" value="【AI/ML】&#xa;・TensorFlow.js 4&#xa;・YOLOv8 (ONNX Runtime)&#xa;・NLP (音声解析)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=15;spacingTop=5;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="880" y="740" width="280" height="50" as="geometry" />
+        <!-- Phase 2 -->
+        <mxCell id="status-phase2" value="❌ Phase 2以降 (約15%)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=14;fontStyle=1;verticalAlign=top;align=left;spacingLeft=10;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="740" width="640" height="240" as="geometry" />
         </mxCell>
 
-        <!-- Testing & Monitoring -->
-        <mxCell id="testing-box" value="テスト・監視" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=13;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
-          <mxGeometry x="1200" y="480" width="320" height="170" as="geometry" />
+        <mxCell id="phase2-list" value="【オフライン機能】&#xa;❌ PWA化 (Service Worker, manifest.json)&#xa;❌ CRDT同期 (Yjs)&#xa;❌ IndexedDB キャッシング&#xa;&#xa;【地図機能】&#xa;❌ Mapbox GL JS統合&#xa;❌ 患者位置表示&#xa;❌ クラスタリング&#xa;&#xa;【AI/ML機能】&#xa;❌ ドローン画像解析 (YOLOv8)&#xa;❌ 優先度自動判定 (TensorFlow.js)&#xa;❌ 音声解析・NLP&#xa;&#xa;【セキュリティ強化】&#xa;❌ MFA (多要素認証)&#xa;❌ 監査ログ (WORM)&#xa;❌ 暗号化通信強化&#xa;&#xa;【テスト・監視】&#xa;❌ Playwright E2Eテスト&#xa;❌ Jestユニットテスト&#xa;❌ Sentry監視" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=10;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="1110" y="775" width="620" height="195" as="geometry" />
         </mxCell>
 
-        <mxCell id="testing-tools" value="・Playwright (E2E)&#xa;・Jest (ユニット)&#xa;・Sentry (エラー監視)&#xa;・Lighthouse (パフォーマンス)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=15;spacingTop=5;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="1220" y="520" width="280" height="110" as="geometry" />
+        <!-- Tech Stack Current -->
+        <mxCell id="tech-current" value="現在の技術スタック (MVP)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;fontStyle=1;verticalAlign=top;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="1000" width="310" height="130" as="geometry" />
         </mxCell>
 
-        <!-- Key Features -->
-        <mxCell id="features-box" value="主要機能・特徴" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#E87722;fontSize=13;fontStyle=1;verticalAlign=top;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="1200" y="670" width="320" height="300" as="geometry" />
+        <mxCell id="tech-current-list" value="✓ Next.js 14 App Router&#xa;✓ React 18 + TypeScript 5&#xa;✓ Tailwind CSS 3&#xa;✓ Supabase PostgreSQL 15&#xa;✓ html5-qrcode&#xa;✓ Web Speech API" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="1110" y="1040" width="290" height="80" as="geometry" />
         </mxCell>
 
-        <mxCell id="features-list" value="✓ オフライン優先設計 (PWA)&#xa;✓ CRDT による競合解決&#xa;✓ QRコードスキャン&#xa;✓ 音声入力対応&#xa;✓ START法ウィザード&#xa;✓ AI画像解析 (ドローン)&#xa;✓ AI優先度判定&#xa;✓ リアルタイム同期 (WebSocket)&#xa;✓ 地図表示 (Mapbox)&#xa;✓ RLS + MFA認証&#xa;✓ 監査ログ (WORM)&#xa;✓ 画像圧縮・最適化" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=15;spacingTop=5;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="1220" y="710" width="280" height="240" as="geometry" />
+        <!-- Tech Stack Phase 2 -->
+        <mxCell id="tech-phase2" value="Phase 2技術スタック" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=14;fontStyle=1;verticalAlign=top;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="1430" y="1000" width="310" height="130" as="geometry" />
         </mxCell>
 
-        <!-- Database Schema -->
-        <mxCell id="db-box" value="データモデル (Supabase PostgreSQL)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
-          <mxGeometry x="860" y="820" width="320" height="140" as="geometry" />
+        <mxCell id="tech-phase2-list" value="❌ next-pwa (PWA)&#xa;❌ Yjs (CRDT)&#xa;❌ Mapbox GL JS&#xa;❌ TensorFlow.js 4&#xa;❌ YOLOv8 (ONNX Runtime)&#xa;❌ Playwright, Jest" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="1440" y="1040" width="290" height="80" as="geometry" />
         </mxCell>
 
-        <mxCell id="db-tables" value="・events (災害イベント)&#xa;・triage_tags (トリアージタグ)&#xa;・geographic_areas (エリア)&#xa;・hospitals (医療機関)&#xa;・teams (隊・車両)&#xa;・user_roles (ユーザーロール)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=15;spacingTop=5;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="880" y="860" width="280" height="80" as="geometry" />
+        <!-- Database Tables -->
+        <mxCell id="db-box" value="データベーステーブル (Supabase PostgreSQL)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="560" y="340" width="460" height="160" as="geometry" />
+        </mxCell>
+
+        <mxCell id="db-tables" value="✓ events (災害イベント)&#xa;✓ triage_tags (トリアージタグ) - JSONB活用&#xa;✓ geographic_areas (地理的エリア)&#xa;✓ hospitals (医療機関情報)&#xa;✓ teams (隊・車両)&#xa;✓ user_roles (ユーザーロール)&#xa;✓ tags (タグマスター)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=15;spacingTop=5;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="580" y="380" width="420" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- Next Steps -->
+        <mxCell id="next-steps" value="次のステップ (優先度順)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;fontStyle=1;verticalAlign=top;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="560" y="520" width="460" height="300" as="geometry" />
+        </mxCell>
+
+        <mxCell id="next-list" value="【高優先度 - MVP完成へ】&#xa;1. トリアージ入力画面の統合完了&#xa;   - QRスキャン → START法 → DB登録&#xa;   - GPS位置情報の取得&#xa;   - 写真撮影機能&#xa;&#xa;2. Supabase Auth統合&#xa;   - 本格的なログイン/ログアウト&#xa;   - Row Level Security (RLS) 設定&#xa;   - ロールベースアクセス制御&#xa;&#xa;3. リアルタイム更新&#xa;   - Supabase Realtime統合&#xa;   - 自動リフレッシュ (WebSocket)&#xa;&#xa;【中優先度】&#xa;4. 地図表示 (react-leaflet)&#xa;5. エラーハンドリング強化&#xa;6. バリデーション実装 (Zod)&#xa;&#xa;【低優先度 - Phase 2】&#xa;7. PWA化&#xa;8. オフライン対応 (CRDT)&#xa;9. AI/ML機能" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=10;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="570" y="560" width="440" height="250" as="geometry" />
+        </mxCell>
+
+        <!-- Directory Structure Summary -->
+        <mxCell id="dir-summary" value="現在のディレクトリ構成" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="560" y="840" width="460" height="300" as="geometry" />
+        </mxCell>
+
+        <mxCell id="dir-tree" value="tts-v1/&#xa;├── app/&#xa;│   ├── (auth)/login/         ✓ ログイン&#xa;│   ├── (dashboard)/&#xa;│   │   ├── command/          ✓ 指揮本部&#xa;│   │   ├── transport/        ✓ 搬送管理&#xa;│   │   └── hospital/         ✓ 医療機関&#xa;│   ├── triage/scan/          ⚠️ トリアージ (部分)&#xa;│   ├── layout.tsx&#xa;│   ├── page.tsx&#xa;│   └── globals.css&#xa;├── components/&#xa;│   ├── QRScanner.tsx         ✓&#xa;│   ├── StartWizard.tsx       ✓&#xa;│   └── VoiceInput.tsx        ✓&#xa;├── lib/&#xa;│   ├── supabase/             ✓ client, server, middleware&#xa;│   └── types/                ✓ 型定義&#xa;├── public/                   ✓ 静的ファイル&#xa;├── supabase/&#xa;│   └── migrations/           ✓ SQLスキーマ&#xa;├── docs/                     ✓ ドキュメント&#xa;├── .env.local                ✓ Supabase設定&#xa;├── next.config.ts&#xa;├── package.json&#xa;└── tsconfig.json" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;fontFamily=monospace;fontSize=9;spacingLeft=10;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="580" y="880" width="420" height="240" as="geometry" />
         </mxCell>
 
         <!-- Legend -->
         <mxCell id="legend-box" value="凡例" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#485563;fontSize=13;fontStyle=1;verticalAlign=top;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="860" y="980" width="660" height="150" as="geometry" />
+          <mxGeometry x="60" y="1200" width="980" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="legend-mvp" value="✓ MVP実装済み" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#E87722;fontSize=11;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="80" y="1240" width="140" height="35" as="geometry" />
+        </mxCell>
+
+        <mxCell id="legend-partial" value="⚠️ 部分実装" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="240" y="1240" width="120" height="35" as="geometry" />
+        </mxCell>
+
+        <mxCell id="legend-phase2" value="❌ Phase 2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="380" y="1240" width="100" height="35" as="geometry" />
         </mxCell>
 
         <mxCell id="legend-app" value="Appルート" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="880" y="1020" width="100" height="30" as="geometry" />
+          <mxGeometry x="500" y="1240" width="100" height="35" as="geometry" />
         </mxCell>
 
         <mxCell id="legend-lib" value="ライブラリ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="1000" y="1020" width="100" height="30" as="geometry" />
+          <mxGeometry x="620" y="1240" width="100" height="35" as="geometry" />
         </mxCell>
 
-        <mxCell id="legend-core" value="コア機能" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#E87722;fontSize=11;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="1120" y="1020" width="100" height="30" as="geometry" />
-        </mxCell>
-
-        <mxCell id="legend-offline" value="オフライン" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="1240" y="1020" width="100" height="30" as="geometry" />
-        </mxCell>
-
-        <mxCell id="legend-ai" value="AI/ML" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="1360" y="1020" width="100" height="30" as="geometry" />
+        <mxCell id="legend-docs" value="ドキュメント" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="740" y="1240" width="100" height="35" as="geometry" />
         </mxCell>
 
         <mxCell id="legend-security" value="セキュリティ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="880" y="1065" width="100" height="30" as="geometry" />
-        </mxCell>
-
-        <mxCell id="legend-config" value="設定・ツール" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="1000" y="1065" width="100" height="30" as="geometry" />
-        </mxCell>
-
-        <mxCell id="legend-static" value="静的ファイル" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="1120" y="1065" width="100" height="30" as="geometry" />
+          <mxGeometry x="860" y="1240" width="100" height="35" as="geometry" />
         </mxCell>
 
       </root>

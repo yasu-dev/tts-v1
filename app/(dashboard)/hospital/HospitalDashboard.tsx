@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Hospital, TriageTag, TriageCategories } from '@/lib/types'
 import { createClient } from '@/lib/supabase/client'
+import LogoutButton from '@/components/LogoutButton'
 
 interface HospitalDashboardProps {
   hospital: Hospital
@@ -12,8 +13,46 @@ interface HospitalDashboardProps {
 export default function HospitalDashboard({ hospital, incomingPatients }: HospitalDashboardProps) {
   const [acceptingStatus, setAcceptingStatus] = useState(hospital.current_load.accepting_status)
   const [loading, setLoading] = useState(false)
+  const [patients, setPatients] = useState<TriageTag[]>(incomingPatients)
+  const [isRealtime, setIsRealtime] = useState(false)
 
   const supabase = createClient()
+
+  // Supabase Realtimeでデータベース変更を購読
+  useEffect(() => {
+    const channel = supabase
+      .channel('hospital_triage_tags_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'triage_tags',
+        },
+        async (payload) => {
+          console.log('Realtime update (hospital):', payload)
+
+          // この病院向けの搬送中患者を再取得
+          const { data, error } = await supabase
+            .from('triage_tags')
+            .select('*')
+            .eq('transport->destination->>hospital_id', hospital.id)
+            .eq('transport->>status', 'in_transit')
+            .order('created_at', { ascending: false })
+
+          if (!error && data) {
+            setPatients(data as TriageTag[])
+            setIsRealtime(true)
+            setTimeout(() => setIsRealtime(false), 2000)
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [supabase, hospital.id])
 
   const availableBeds = hospital.current_load.total_capacity - hospital.current_load.current_patients
 
@@ -47,14 +86,20 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
   const handleReceivePatient = async (tagId: string) => {
     setLoading(true)
     try {
+      // Get the current tag data to preserve existing transport info
+      const { data: currentTag } = await supabase
+        .from('triage_tags')
+        .select('transport')
+        .eq('id', tagId)
+        .single()
+
       const { error } = await supabase
         .from('triage_tags')
         .update({
           transport: {
+            ...currentTag?.transport,
             status: 'completed',
-            hospital_id: hospital.id,
-            hospital_name: hospital.name,
-            arrived_at: new Date().toISOString(),
+            arrival_time: new Date().toISOString(),
           },
           updated_at: new Date().toISOString(),
         })
@@ -89,9 +134,20 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-purple-600 text-white p-4 shadow-lg">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-2xl font-bold">医療機関ダッシュボード</h1>
-          <p className="text-sm opacity-90">{hospital.name}</p>
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">医療機関ダッシュボード</h1>
+            <p className="text-sm opacity-90">{hospital.name}</p>
+          </div>
+          <div className="flex items-center gap-4">
+            {isRealtime && (
+              <div className="flex items-center gap-2 bg-green-500 px-4 py-2 rounded-lg animate-pulse">
+                <span className="w-3 h-3 bg-white rounded-full"></span>
+                <span className="text-sm font-bold">データ更新</span>
+              </div>
+            )}
+            <LogoutButton />
+          </div>
         </div>
       </header>
 
@@ -110,18 +166,18 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
             <p className="text-sm text-gray-600">現在患者数</p>
           </div>
           <div className="card text-center">
-            <p className="text-3xl font-bold text-red-600">{incomingPatients.length}</p>
+            <p className="text-3xl font-bold text-red-600">{patients.length}</p>
             <p className="text-sm text-gray-600">搬送中</p>
           </div>
         </div>
 
         <div className="card">
-          <h2 className="text-xl font-bold mb-4">搬送中患者（{incomingPatients.length}件）</h2>
-          {incomingPatients.length === 0 ? (
+          <h2 className="text-xl font-bold mb-4">搬送中患者（{patients.length}件）</h2>
+          {patients.length === 0 ? (
             <p className="text-center text-gray-500 py-8">搬送中の患者はいません</p>
           ) : (
             <div className="space-y-3">
-              {incomingPatients.map(tag => {
+              {patients.map(tag => {
                 const category = tag.triage_category.final
                 const categoryInfo = TriageCategories[category]
 
@@ -139,9 +195,9 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
                             {tag.patient_info?.age && ` | ${tag.patient_info.age}歳`}
                             {tag.patient_info?.sex && ` ${tag.patient_info.sex === 'male' ? '男性' : tag.patient_info.sex === 'female' ? '女性' : ''}`}
                           </p>
-                          {tag.transport.departed_at && (
+                          {tag.transport.departure_time && (
                             <p className="text-xs text-gray-500">
-                              出発: {new Date(tag.transport.departed_at).toLocaleString('ja-JP')}
+                              出発: {new Date(tag.transport.departure_time).toLocaleString('ja-JP')}
                             </p>
                           )}
                         </div>
@@ -199,17 +255,20 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
           <h2 className="text-xl font-bold mb-4">病院情報</h2>
           <div className="space-y-2 text-sm">
             <p><span className="font-semibold">所在地:</span> {hospital.location.address}</p>
-            <p><span className="font-semibold">緊急電話:</span> {hospital.contact.emergency_phone}</p>
+            <p><span className="font-semibold">緊急電話:</span> {hospital.contact.emergency_phone || hospital.contact.phone}</p>
             <p><span className="font-semibold">一般電話:</span> {hospital.contact.phone}</p>
-            {hospital.capabilities.trauma_center && (
+            {hospital.capabilities.has_er && (
               <p className="text-green-600 font-semibold">✓ 救命救急センター</p>
             )}
-            {hospital.capabilities.helipad && (
+            {hospital.capabilities.has_heliport && (
               <p className="text-blue-600 font-semibold">✓ ヘリポート有</p>
             )}
-            <p><span className="font-semibold">専門科:</span> {hospital.capabilities.specialties.join(', ')}</p>
-            <p><span className="font-semibold">ICU病床数:</span> {hospital.capabilities.icu_beds}</p>
-            <p><span className="font-semibold">手術室数:</span> {hospital.capabilities.or_count}</p>
+            {hospital.capabilities.has_icu && (
+              <p className="text-purple-600 font-semibold">✓ ICU有</p>
+            )}
+            <p className="text-sm text-gray-600 mt-2">
+              診療科: {hospital.capabilities.departments?.map(d => d.name).join(', ') || '情報なし'}
+            </p>
           </div>
         </div>
       </main>

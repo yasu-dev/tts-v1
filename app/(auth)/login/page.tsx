@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -9,6 +10,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+  const supabase = createClient()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -16,25 +18,38 @@ export default function LoginPage() {
     setError(null)
 
     try {
-      // モック認証 - Supabase接続時に実装
-      if (email && password) {
-        // ロールごとのデモアカウント
-        if (email.includes('ic@')) {
-          router.push('/command')
-        } else if (email.includes('tri@')) {
-          router.push('/triage/scan')
-        } else if (email.includes('trn@')) {
-          router.push('/transport')
-        } else if (email.includes('hsp@')) {
-          router.push('/hospital')
-        } else {
-          router.push('/command')
-        }
-      } else {
-        throw new Error('メールアドレスとパスワードを入力してください')
+      // Supabase Auth でログイン
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (authError) {
+        throw authError
       }
+
+      if (!authData.user) {
+        throw new Error('ログインに失敗しました')
+      }
+
+      // ロールに基づいてリダイレクト
+      // メタデータまたはuser_rolesテーブルからロールを取得
+      // デモ用：メールアドレスから判定
+      if (email.includes('ic@')) {
+        router.push('/command')
+      } else if (email.includes('tri@')) {
+        router.push('/triage/scan')
+      } else if (email.includes('trn@')) {
+        router.push('/transport')
+      } else if (email.includes('hsp@')) {
+        router.push('/hospital')
+      } else {
+        router.push('/command')
+      }
+
+      router.refresh()
     } catch (err: any) {
-      setError(err.message)
+      setError(err.message || 'ログインに失敗しました')
     } finally {
       setLoading(false)
     }

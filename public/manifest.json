@@ -1,0 +1,42 @@
+{
+  "name": "トリアージタッグシステム",
+  "short_name": "TTS",
+  "description": "災害時トリアージ管理システム - リアルタイム患者情報共有",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait",
+  "categories": ["medical", "emergency", "utilities"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "指揮本部",
+      "short_name": "指揮",
+      "description": "指揮本部ダッシュボード",
+      "url": "/command",
+      "icons": []
+    },
+    {
+      "name": "トリアージ入力",
+      "short_name": "入力",
+      "description": "トリアージタグ入力",
+      "url": "/triage/scan",
+      "icons": []
+    },
+    {
+      "name": "搬送管理",
+      "short_name": "搬送",
+      "description": "搬送管理画面",
+      "url": "/transport",
+      "icons": []
+    },
+    {
+      "name": "医療機関",
+      "short_name": "病院",
+      "description": "医療機関ダッシュボード",
+      "url": "/hospital",
+      "icons": []
+    }
+  ]
+}

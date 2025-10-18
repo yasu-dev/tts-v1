@@ -129,7 +129,7 @@ export interface TriageTag {
   }>
   
   transport: {
-    status: 'not_transported' | 'waiting' | 'in_transit' | 'arrived' | 'admitted'
+    status: 'not_transported' | 'preparing' | 'waiting' | 'in_transit' | 'arrived' | 'admitted' | 'completed'
     team_id?: string
     vehicle_id?: string
     destination?: {

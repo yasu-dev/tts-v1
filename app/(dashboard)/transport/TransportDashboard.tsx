@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { TriageTag, Hospital, TriageCategories } from '@/lib/types'
 import { createClient } from '@/lib/supabase/client'
+import LogoutButton from '@/components/LogoutButton'
 
 interface TransportDashboardProps {
   initialTags: TriageTag[]
@@ -10,11 +11,49 @@ interface TransportDashboardProps {
 }
 
 export default function TransportDashboard({ initialTags, hospitals }: TransportDashboardProps) {
+  const [tags, setTags] = useState<TriageTag[]>(initialTags)
   const [selectedTag, setSelectedTag] = useState<string | null>(null)
   const [selectedHospital, setSelectedHospital] = useState<string>('')
   const [loading, setLoading] = useState(false)
+  const [isRealtime, setIsRealtime] = useState(false)
 
   const supabase = createClient()
+
+  // Supabase Realtimeでデータベース変更を購読
+  useEffect(() => {
+    const channel = supabase
+      .channel('transport_triage_tags_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'triage_tags',
+        },
+        async (payload) => {
+          console.log('Realtime update (transport):', payload)
+
+          // 搬送対象のデータを再取得
+          const { data, error } = await supabase
+            .from('triage_tags')
+            .select('*')
+            .in('triage_category->>final', ['red', 'yellow'])
+            .in('transport->>status', ['not_transported', 'preparing'])
+            .order('triage_category->>final', { ascending: true })
+
+          if (!error && data) {
+            setTags(data as TriageTag[])
+            setIsRealtime(true)
+            setTimeout(() => setIsRealtime(false), 2000)
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [supabase])
 
   const handleStartTransport = async () => {
     if (!selectedTag || !selectedHospital) {
@@ -31,9 +70,12 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
         .update({
           transport: {
             status: 'in_transit',
-            hospital_id: selectedHospital,
-            hospital_name: selectedHospitalData?.name,
-            departed_at: new Date().toISOString(),
+            destination: {
+              hospital_id: selectedHospital,
+              hospital_name: selectedHospitalData?.name || '',
+              department: '',
+            },
+            departure_time: new Date().toISOString(),
           },
           updated_at: new Date().toISOString(),
         })
@@ -42,7 +84,8 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
       if (error) throw error
 
       alert('搬送を開始しました')
-      window.location.reload()
+      setSelectedTag(null)
+      setSelectedHospital('')
     } catch (error) {
       console.error('Error starting transport:', error)
       alert('搬送開始に失敗しました')
@@ -54,9 +97,20 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-orange-600 text-white p-4 shadow-lg">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-2xl font-bold">搬送管理</h1>
-          <p className="text-sm opacity-90">搬送部隊</p>
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">搬送管理</h1>
+            <p className="text-sm opacity-90">搬送部隊</p>
+          </div>
+          <div className="flex items-center gap-4">
+            {isRealtime && (
+              <div className="flex items-center gap-2 bg-green-500 px-4 py-2 rounded-lg animate-pulse">
+                <span className="w-3 h-3 bg-white rounded-full"></span>
+                <span className="text-sm font-bold">データ更新</span>
+              </div>
+            )}
+            <LogoutButton />
+          </div>
         </div>
       </header>
 

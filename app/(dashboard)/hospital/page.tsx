@@ -32,7 +32,7 @@ export default async function HospitalPage() {
   const { data: triageTags, error: tagsError } = await supabase
     .from('triage_tags')
     .select('*')
-    .eq('transport->>hospital_id', hospital.id)
+    .eq('transport->destination->>hospital_id', hospital.id)
     .eq('transport->>status', 'in_transit')
     .order('created_at', { ascending: true })
 

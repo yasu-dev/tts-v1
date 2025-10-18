@@ -55,7 +55,25 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // 保護されたルートのリスト
+  const protectedRoutes = ['/command', '/triage', '/transport', '/hospital']
+  const isProtectedRoute = protectedRoutes.some(route => request.nextUrl.pathname.startsWith(route))
+
+  // 認証が必要なページで未認証の場合、ログインページにリダイレクト
+  if (isProtectedRoute && !user) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    return NextResponse.redirect(url)
+  }
+
+  // ログインページで既に認証済みの場合、ダッシュボードにリダイレクト
+  if (request.nextUrl.pathname === '/login' && user) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/command'
+    return NextResponse.redirect(url)
+  }
 
   return response
 }

@@ -2,8 +2,62 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Leaflet CSS - 地図表示用 */
+/* Leaflet CSS - 地図表示用（最適化版） */
 @import 'leaflet/dist/leaflet.css';
+
+/* Leaflet カスタムスタイル */
+.leaflet-container {
+  @apply rounded-lg;
+  font-family: inherit !important;
+  z-index: 0;
+}
+
+.leaflet-popup-content-wrapper {
+  @apply rounded-lg shadow-lg;
+}
+
+.leaflet-popup-content {
+  @apply m-0 p-2;
+}
+
+.leaflet-control-zoom a {
+  @apply transition-colors duration-200;
+}
+
+.leaflet-control-zoom a:hover {
+  @apply bg-blue-500 text-white border-blue-500;
+}
+
+.leaflet-control-attribution {
+  @apply text-xs bg-white bg-opacity-80 px-2 py-1 rounded;
+}
+
+.leaflet-tile-container img {
+  @apply transition-opacity duration-300;
+}
+
+.leaflet-tile {
+  will-change: transform;
+}
+
+/* カスタムマーカー */
+.custom-marker-icon {
+  @apply drop-shadow-lg;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .leaflet-container {
+    height: 300px !important;
+  }
+}
+
+/* プリント用 */
+@media print {
+  .leaflet-control-container {
+    @apply hidden;
+  }
+}
 
 @layer base {
   :root {
