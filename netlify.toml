@@ -1,0 +1,58 @@
+# Netlify configuration for Next.js 14 App Router
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  # Node.js version
+  NODE_VERSION = "22"
+
+# Next.js Plugin (自動的に適用されます)
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Redirects and Rewrites
+# Next.js App Routerが自動的にルーティングを処理します
+
+# Headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Cache static assets
+[[headers]]
+  for = "/_next/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Service Worker
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Manifest
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Content-Type = "application/manifest+json"
+
+# カメラ・位置情報のアクセス許可（HTTPS環境で必要）
+[[headers]]
+  for = "/triage/*"
+  [headers.values]
+    Permissions-Policy = "camera=*, geolocation=*, microphone=*"
+
+# Function configuration (Edge Functionsを使用する場合)
+[functions]
+  node_bundler = "esbuild"

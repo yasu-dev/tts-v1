@@ -29,6 +29,8 @@ export interface TriageTag {
     name?: string
     age?: number
     sex?: 'male' | 'female' | 'other' | 'unknown'
+    height?: number
+    weight?: number
     address?: string
     phone?: string
   }
@@ -39,6 +41,7 @@ export interface TriageTag {
     altitude?: number
     accuracy: number
     method: 'gps' | 'wifi' | 'manual' | 'estimated'
+    address?: string
     area_grid?: string
     timestamp: string
   }
@@ -47,7 +50,8 @@ export interface TriageTag {
     respiratory_rate?: number
     respiratory_status: 'normal' | 'abnormal' | 'stopped'
     pulse_rate?: number
-    radial_pulse_palpable: boolean
+    heart_rate?: number
+    radial_pulse_palpable?: boolean
     crt?: number
     consciousness: {
       avpu: 'alert' | 'voice' | 'pain' | 'unresponsive'
@@ -58,17 +62,24 @@ export interface TriageTag {
         motor: number
       }
     }
+    consciousness_level?: string
     spo2?: number
     blood_pressure?: {
       systolic: number
       diastolic: number
-    }
+    } | string
     temperature?: number
     trauma_assessment?: string
     bleeding_evaluation?: 'none' | 'minor' | 'moderate' | 'severe'
     measured_at: string
   }
-  
+
+  chief_complaint?: {
+    primary: string
+    symptoms?: string[]
+    notes?: string
+  }
+
   triage_category: {
     ai_suggested: 'black' | 'red' | 'yellow' | 'green'
     ai_confidence: number
@@ -76,9 +87,13 @@ export interface TriageTag {
     final: 'black' | 'red' | 'yellow' | 'green'
     final_decided_by: string
     final_decided_at: string
+    reasoning?: string
     override_reason?: string
     start_steps: {
       can_walk: boolean | null
+      breathing?: boolean | null
+      circulation?: boolean | null
+      consciousness?: boolean | null
       has_respiration: boolean | null
       respiratory_rate_range: '0' | '<10' | '10-29' | '>=30' | null
       radial_pulse: boolean | null

@@ -5,6 +5,7 @@ import { TriageCategories, TriageTag } from '@/lib/types'
 import { createClient } from '@/lib/supabase/client'
 import dynamic from 'next/dynamic'
 import LogoutButton from '@/components/LogoutButton'
+import PatientDetailModal from '@/components/PatientDetailModal'
 
 // 地図コンポーネントを動的インポート（SSR無効化）
 const TriageMap = dynamic(() => import('@/components/TriageMap'), {
@@ -25,6 +26,7 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
   const [filter, setFilter] = useState<'all' | 'black' | 'red' | 'yellow' | 'green'>('all')
   const [isRealtime, setIsRealtime] = useState(false)
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null)
+  const [selectedTagDetail, setSelectedTagDetail] = useState<TriageTag | null>(null)
   const supabase = createClient()
 
   // Supabase Realtimeでデータベース変更を購読
@@ -94,49 +96,53 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
       </header>
 
       <main className="max-w-7xl mx-auto p-6">
-        {/* 統計カード */}
+        {/* 統計カード（フィルター機能統合） */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-          <div className="card text-center">
+          <button
+            onClick={() => setFilter('all')}
+            className={`card text-center transition-all duration-200 hover:scale-105 hover:shadow-xl cursor-pointer ${
+              filter === 'all' ? 'ring-4 ring-blue-500 shadow-xl' : ''
+            }`}
+          >
             <p className="text-3xl font-bold text-gray-800">{stats.total}</p>
             <p className="text-sm text-gray-600">総数</p>
-          </div>
-          <div className="card text-center bg-black text-white">
+          </button>
+          <button
+            onClick={() => setFilter('black')}
+            className={`card text-center bg-black text-white transition-all duration-200 hover:scale-105 hover:shadow-xl cursor-pointer ${
+              filter === 'black' ? 'ring-4 ring-gray-400 shadow-xl' : ''
+            }`}
+          >
             <p className="text-3xl font-bold">{stats.black}</p>
             <p className="text-sm opacity-90">黒（死亡）</p>
-          </div>
-          <div className="card text-center bg-red-500 text-white">
+          </button>
+          <button
+            onClick={() => setFilter('red')}
+            className={`card text-center bg-red-500 text-white transition-all duration-200 hover:scale-105 hover:shadow-xl cursor-pointer ${
+              filter === 'red' ? 'ring-4 ring-red-700 shadow-xl' : ''
+            }`}
+          >
             <p className="text-3xl font-bold">{stats.red}</p>
             <p className="text-sm opacity-90">赤（重症）</p>
-          </div>
-          <div className="card text-center bg-yellow-400">
+          </button>
+          <button
+            onClick={() => setFilter('yellow')}
+            className={`card text-center bg-yellow-400 transition-all duration-200 hover:scale-105 hover:shadow-xl cursor-pointer ${
+              filter === 'yellow' ? 'ring-4 ring-yellow-600 shadow-xl' : ''
+            }`}
+          >
             <p className="text-3xl font-bold">{stats.yellow}</p>
             <p className="text-sm">黄（中等症）</p>
-          </div>
-          <div className="card text-center bg-green-500 text-white">
+          </button>
+          <button
+            onClick={() => setFilter('green')}
+            className={`card text-center bg-green-500 text-white transition-all duration-200 hover:scale-105 hover:shadow-xl cursor-pointer ${
+              filter === 'green' ? 'ring-4 ring-green-700 shadow-xl' : ''
+            }`}
+          >
             <p className="text-3xl font-bold">{stats.green}</p>
             <p className="text-sm opacity-90">緑（軽症）</p>
-          </div>
-        </div>
-
-        {/* フィルター */}
-        <div className="card mb-6">
-          <div className="flex flex-wrap gap-2">
-            <button onClick={() => setFilter('all')} className={`px-4 py-2 rounded-lg font-semibold ${filter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>
-              全て
-            </button>
-            <button onClick={() => setFilter('red')} className={`px-4 py-2 rounded-lg font-semibold ${filter === 'red' ? 'bg-red-500 text-white' : 'bg-gray-200'}`}>
-              赤
-            </button>
-            <button onClick={() => setFilter('yellow')} className={`px-4 py-2 rounded-lg font-semibold ${filter === 'yellow' ? 'bg-yellow-400' : 'bg-gray-200'}`}>
-              黄
-            </button>
-            <button onClick={() => setFilter('green')} className={`px-4 py-2 rounded-lg font-semibold ${filter === 'green' ? 'bg-green-500 text-white' : 'bg-gray-200'}`}>
-              緑
-            </button>
-            <button onClick={() => setFilter('black')} className={`px-4 py-2 rounded-lg font-semibold ${filter === 'black' ? 'bg-black text-white' : 'bg-gray-200'}`}>
-              黒
-            </button>
-          </div>
+          </button>
         </div>
 
         {/* 地図表示 */}
@@ -215,7 +221,12 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
                                   tag.transport.status === 'in_transit' ? '搬送中' :
                                   tag.transport.status === 'completed' ? '搬送完了' : '不明'}
                       </p>
-                      <button className="btn-primary mt-2">詳細</button>
+                      <button
+                        onClick={() => setSelectedTagDetail(tag)}
+                        className="btn-primary mt-2"
+                      >
+                        詳細
+                      </button>
                     </div>
                   </div>
                 )
@@ -224,6 +235,12 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
           )}
         </div>
       </main>
+
+      {/* 患者詳細モーダル */}
+      <PatientDetailModal
+        tag={selectedTagDetail}
+        onClose={() => setSelectedTagDetail(null)}
+      />
     </div>
   )
 }

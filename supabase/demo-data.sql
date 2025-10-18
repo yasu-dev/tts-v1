@@ -136,7 +136,7 @@ ON CONFLICT (id) DO NOTHING;
 -- 患者1: 赤タグ（重症）- 搬送待ち
 INSERT INTO triage_tags (
   id, event_id, anonymous_id, tag_number,
-  patient_info, location, vital_signs, triage_category,
+  patient_info, location, vital_signs, chief_complaint, triage_category,
   retriage_history, attachments, treatments, transport, outcome,
   audit, created_at, updated_at
 )
@@ -145,23 +145,32 @@ VALUES (
   'event-001',
   'ANON-001',
   'T-2025-001',
-  '{"age": 45, "sex": "male"}'::jsonb,
+  '{"age": 45, "sex": "male", "height": 172, "weight": 75}'::jsonb,
   '{
     "latitude": 35.6900,
     "longitude": 139.6930,
     "accuracy": 10,
     "method": "gps",
+    "address": "東京都新宿区西新宿2-8-1付近",
     "timestamp": "2025-10-18T09:30:00+09:00"
   }'::jsonb,
   '{
     "respiratory_rate": 35,
     "respiratory_status": "abnormal",
+    "heart_rate": 120,
     "pulse_rate": 120,
     "radial_pulse_palpable": true,
+    "consciousness_level": "JCS II-10",
     "consciousness": {"avpu": "pain"},
     "spo2": 88,
-    "blood_pressure": {"systolic": 85, "diastolic": 55},
+    "blood_pressure": "85/55",
+    "temperature": 36.8,
     "measured_at": "2025-10-18T09:30:00+09:00"
+  }'::jsonb,
+  '{
+    "primary": "胸部打撲・呼吸困難",
+    "symptoms": ["胸痛", "呼吸困難", "意識混濁"],
+    "notes": "建物倒壊による挟圧。救出後も呼吸困難持続。"
   }'::jsonb,
   '{
     "ai_suggested": "red",
@@ -170,12 +179,12 @@ VALUES (
     "final": "red",
     "final_decided_by": "user-tri-001",
     "final_decided_at": "2025-10-18T09:32:00+09:00",
+    "reasoning": "呼吸数35回/分、SpO2 88%、意識レベル低下あり。即時搬送が必要。",
     "start_steps": {
       "can_walk": false,
-      "has_respiration": true,
-      "respiratory_rate_range": ">=30",
-      "radial_pulse": true,
-      "follows_commands": false
+      "breathing": true,
+      "circulation": true,
+      "consciousness": false
     }
   }'::jsonb,
   '[]'::jsonb,
@@ -183,7 +192,7 @@ VALUES (
   '[
     {
       "type": "oxygen",
-      "description": "酸素投与 10L/分",
+      "description": "酸素投与 10L/分 リザーバーマスク",
       "performed_by": "user-tri-001",
       "performed_at": "2025-10-18T09:35:00+09:00"
     }
@@ -212,7 +221,7 @@ ON CONFLICT (id) DO NOTHING;
 -- 患者2: 赤タグ（重症）- 搬送中
 INSERT INTO triage_tags (
   id, event_id, anonymous_id, tag_number,
-  patient_info, location, vital_signs, triage_category,
+  patient_info, location, vital_signs, chief_complaint, triage_category,
   retriage_history, attachments, treatments, transport, outcome,
   audit, created_at, updated_at
 )
@@ -221,22 +230,32 @@ VALUES (
   'event-001',
   'ANON-002',
   'T-2025-002',
-  '{"age": 32, "sex": "female"}'::jsonb,
+  '{"age": 32, "sex": "female", "height": 158, "weight": 52}'::jsonb,
   '{
     "latitude": 35.6885,
     "longitude": 139.6905,
     "accuracy": 15,
     "method": "gps",
+    "address": "東京都新宿区西新宿1-5-12付近",
     "timestamp": "2025-10-18T09:25:00+09:00"
   }'::jsonb,
   '{
     "respiratory_rate": 8,
     "respiratory_status": "abnormal",
+    "heart_rate": 50,
     "pulse_rate": 50,
     "radial_pulse_palpable": false,
+    "consciousness_level": "JCS III-300",
     "consciousness": {"avpu": "unresponsive"},
     "spo2": 82,
+    "blood_pressure": "60/40",
+    "temperature": 35.9,
     "measured_at": "2025-10-18T09:25:00+09:00"
+  }'::jsonb,
+  '{
+    "primary": "頭部外傷・意識障害",
+    "symptoms": ["意識消失", "呼吸抑制", "低血圧"],
+    "notes": "転落により頭部を強打。意識レベル著明に低下。"
   }'::jsonb,
   '{
     "ai_suggested": "red",
@@ -245,12 +264,12 @@ VALUES (
     "final": "red",
     "final_decided_by": "user-tri-001",
     "final_decided_at": "2025-10-18T09:27:00+09:00",
+    "reasoning": "呼吸数8回/分、橈骨動脈触知不可、意識レベルIII-300。緊急搬送必要。",
     "start_steps": {
       "can_walk": false,
-      "has_respiration": true,
-      "respiratory_rate_range": "<10",
-      "radial_pulse": false,
-      "follows_commands": false
+      "breathing": true,
+      "circulation": false,
+      "consciousness": false
     }
   }'::jsonb,
   '[]'::jsonb,
@@ -258,9 +277,15 @@ VALUES (
   '[
     {
       "type": "airway",
-      "description": "気道確保",
+      "description": "気道確保（頭部後屈顎先挙上法）",
       "performed_by": "user-tri-001",
       "performed_at": "2025-10-18T09:26:00+09:00"
+    },
+    {
+      "type": "oxygen",
+      "description": "酸素投与 15L/分 BVMによる補助換気",
+      "performed_by": "user-tri-001",
+      "performed_at": "2025-10-18T09:27:00+09:00"
     }
   ]'::jsonb,
   '{
@@ -270,7 +295,8 @@ VALUES (
     "destination": {
       "hospital_id": "hospital-001",
       "hospital_name": "東京総合病院",
-      "department": "救急科"
+      "department": "救急科",
+      "eta": "2025-10-18T09:55:00+09:00"
     },
     "departure_time": "2025-10-18T09:40:00+09:00"
   }'::jsonb,
