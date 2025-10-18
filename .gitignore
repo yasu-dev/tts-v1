@@ -1,93 +1,40 @@
-# Node modules
-node_modules/
-pnpm-lock.yaml
-package-lock.json
-yarn.lock
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
 
-# IDE settings
-.vscode/
+# testing
+/coverage
 
-# Environment files
-.env
-.env.local
+# next.js
+/.next/
+/out/
 
-# Cache
-.cache/
+# production
+/build
 
-# Logs
-*.log
-*.log.*
-
-# OS files
+# misc
 .DS_Store
-Thumbs.db
-NUL
+*.pem
 
-# Build outputs
-.next/
-dist/
-build/
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Temporary files
-temp/
-tmp/
-temp-*/
-*.tmp
-*.temp
+# local env files
+.env*.local
+.env
 
-# Uploaded files
-uploads/
+# vercel
+.vercel
 
-# Test outputs
-coverage/
-.nyc_output/
-test-results/
-playwright-report/
+# typescript
+*.tsbuildinfo
+next-env.d.ts
 
-# Backup files
-*.backup
-*.bak
-*.backup.*
-*inspection.backup.*
-app/staff/inspection.backup.*
-
-# Development files
-*.dev.*
-*.test.*
-*-test.*
-*-demo.*
-*-temp.*
-
-# Report files
-*REPORT*.md
-*COMPLETE*.md
-*SOLUTION*.md
-*FIX*.md
-
-# Batch files (except main ones)
-START_*.bat
-start-*.bat
-*-start.bat
-CHECK_*.bat
-OPEN_*.bat
-E2E_*.bat
-
-# HTML demos/tests
-*-demo.html
-*-test.html
-*-system.html
-*-professional.html
-working-*.html
-simple-*.html
-ultra-*.html
-api-*.html
-
-# Prisma database files
-prisma/dev.db
-prisma/dev.db-journal
-*.db
-*.db-journal
-
-# Generated HTML docs (except docs/index.html)
-docs/**/*.html
-!docs/index.html
+# playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

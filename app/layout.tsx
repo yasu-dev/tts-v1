@@ -1,31 +1,32 @@
-import type { Metadata, Viewport } from "next";
-import "./globals.css";
+import './globals.css'
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: "献立ガチャ - MGC-V1",
-  description: "献立ガチャサービス",
-  icons: {
-    icon: [
-      { url: '/favicon.ico', sizes: 'any' },
-    ],
+  title: 'トリアージタッグシステム',
+  description: '災害時トリアージタッグ管理システム',
+  manifest: '/manifest.json',
+  themeColor: '#2563EB',
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
   },
-};
-
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-};
+}
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
     <html lang="ja">
-      <body>
+      <body className={inter.className}>
         {children}
       </body>
     </html>
-  );
+  )
 }

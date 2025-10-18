@@ -1,189 +1,148 @@
-# MGC-V1 - 献立ガチャサービス
+# トリアージタッグシステム (Triage Tag System)
 
-規格外野菜をガチャ風UIで楽しく購入できる、農家と消費者をつなぐECプラットフォーム
+災害時のトリアージタッグ管理システムのMVP実装
 
-## 🌟 プロジェクト概要
+## 概要
 
-献立ガチャは、規格外野菜を活用した革新的なECプラットフォームです。
-- **消費者**: ガチャ演出で楽しく野菜を選び、複数の農家から購入可能
-- **販売者（農家）**: スマホで簡単に商品登録・在庫管理・売上確認
-- **管理者**: 販売者管理・月次振込・レビュー管理などを一元管理
+東京消防庁へのプレゼンテーション用に開発した、タブレットで操作可能なトリアージタッグ管理Webアプリケーションです。
 
-## 🏗️ アーキテクチャ
+## 技術スタック
 
-### 技術スタック
-- **フレームワーク**: Next.js 14 (App Router)
-- **言語**: TypeScript
-- **スタイリング**: Tailwind CSS
-- **UI**: shadcn/ui
-- **バックエンド**: Supabase (Database & Authentication)
-- **決済**: Stripe Checkout
-- **テスト**: Playwright (E2E), Jest (Unit)
+- **フロントエンド**: Next.js 14 (App Router) + React 18 + TypeScript
+- **UI**: Tailwind CSS
+- **バックエンド**: Next.js API Routes
+- **データベース**: Supabase (PostgreSQL) ※次のステップで接続予定
+- **認証**: Supabase Auth ※次のステップで接続予定
+- **追加ライブラリ**:
+  - html5-qrcode: QRコード読取
+  - react-leaflet: 地図表示
+  - zod: バリデーション
+  - date-fns: 日付処理
 
-### システム構成
-本プロジェクトは3つのアプリケーションで構成されています：
-1. **購入者向けECサイト** (`consumer-site/`): スマホファーストのショッピング体験
-2. **管理者向け管理サイト** (メインプロジェクト): PCファーストの管理画面
-3. **販売者向け管理サイト** (未実装): スマホファーストの出品・在庫管理
+## 実装済み機能
 
-すべてのアプリが同一のSupabaseプロジェクトとデータベースを共有します。
+### ✅ 基本機能
+- プロジェクト構造とTypeScript型定義
+- 認証画面（ログイン）
+- 共通UIコンポーネント:
+  - QRスキャナー
+  - START法ウィザード
+  - 音声入力
 
-## 📦 セットアップ
+### ✅ 各ユーザーロール画面
+1. **指揮本部ダッシュボード** (`/command`)
+   - リアルタイムトリアージ状況表示
+   - トリアージ区分別統計
+   - フィルタリング機能
 
-### 前提条件
-- Node.js 18以上
-- Supabaseアカウント
-- Stripeアカウント（決済機能を使用する場合）
+2. **トリアージ入力画面** (`/triage/scan`)
+   - QRコードスキャン
+   - START法による自動判定
+   - 手動入力対応
 
-### インストール手順
+3. **搬送管理画面** (`/transport`)
+   - 割り当てられた傷病者リスト
+   - 搬送先選択
+   - ナビゲーション機能（準備済み）
 
-1. **依存関係のインストール**
+4. **医療機関ダッシュボード** (`/hospital`)
+   - 病床状況管理
+   - 搬送予定患者リスト
+   - 受入状況更新
+
+## セットアップ手順
+
+### 1. 依存関係のインストール
+
 ```bash
 npm install
-
-# consumer-siteの依存関係もインストール
-cd consumer-site
-npm install
-cd ..
 ```
 
-2. **環境変数の設定**
+### 2. 環境変数の設定
 
-メインプロジェクトの `.env.local`:
-```env
-NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-```
+`.env.local`ファイルを作成：
 
-consumer-siteの `.env.local`:
-```env
-NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-STRIPE_SECRET_KEY=your-stripe-secret-key
-STRIPE_WEBHOOK_SECRET=your-webhook-secret
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-```
-
-3. **データベースのセットアップ**
 ```bash
-# Supabaseプロジェクトで docs/kondate-gacha-spec-final.md 内のDDLを実行
+cp .env.example .env.local
 ```
 
-4. **開発サーバーの起動**
+※次のステップでSupabaseの接続情報を設定します
 
-管理者サイト:
+### 3. 開発サーバーの起動
+
 ```bash
 npm run dev
-# http://localhost:3000
 ```
 
-購入者向けECサイト:
-```bash
-cd consumer-site
-npm run dev
-# http://localhost:3000
-```
+ブラウザで http://localhost:3000 を開く
 
-## 🏛️ プロジェクト構造
+## デモアカウント（モック認証）
+
+現在はモック認証が実装されています。以下のメールアドレスで各画面にアクセス可能です（パスワードは任意）：
+
+- `ic@demo.com` - 指揮本部
+- `tri@demo.com` - タッグ付け部隊
+- `trn@demo.com` - 搬送部隊
+- `hsp@demo.com` - 医療機関
+
+## 次のステップ
+
+### Supabase接続
+
+1. Supabaseプロジェクト作成
+2. データベーススキーマ適用（`docs/仕様.md`参照）
+3. 環境変数設定
+4. 認証機能の実装
+5. リアルタイム同期の実装
+
+## プロジェクト構造
 
 ```
-mgc-v1/
-├── app/                      # 管理者向けサイト (Next.js App Router)
-│   ├── components/ui/       # 共通UIコンポーネント
-│   ├── privacy-policy/      # プライバシーポリシー
-│   ├── terms/               # 利用規約
-│   ├── layout.tsx
+tts-v1/
+├── app/
+│   ├── (auth)/
+│   │   └── login/          # ログイン画面
+│   ├── (dashboard)/
+│   │   ├── command/        # 指揮本部
+│   │   ├── triage/         # トリアージ入力
+│   │   ├── transport/      # 搬送管理
+│   │   └── hospital/       # 医療機関
+│   ├── api/                # API Routes（準備済み）
+│   ├── components/         # 共通コンポーネント
 │   └── globals.css
-├── consumer-site/           # 購入者向けECサイト
-│   ├── app/
-│   │   ├── (auth)/          # 認証ページ
-│   │   ├── api/             # APIルート
-│   │   ├── cart/            # カート
-│   │   ├── checkout/        # チェックアウト
-│   │   ├── chat/            # チャット
-│   │   ├── orders/          # 注文履歴
-│   │   ├── product/         # 商品詳細
-│   │   ├── profile/         # プロフィール
-│   │   └── vegetables/      # 野菜検索
-│   ├── components/          # コンポーネント
-│   ├── lib/                 # ライブラリ
-│   │   ├── auth-helpers.ts  # 認証ヘルパー
-│   │   ├── stripe.ts        # Stripe連携
-│   │   └── supabase/        # Supabaseクライアント
-│   └── types/               # 型定義
-├── lib/                     # 共通ライブラリ
-│   ├── hooks/              # カスタムフック
-│   ├── image-processor.ts  # 画像処理
-│   └── utils.ts            # ユーティリティ
-├── e2e/                     # E2Eテスト (Playwright)
-├── docs/                    # ドキュメント
-│   ├── kondate-gacha-spec-final.md  # 仕様書
-│   ├── project-structure.drawio     # プロジェクト構造図
-│   ├── system-architecture.drawio   # システムアーキテクチャ図
-│   └── UIイメージ.png               # UI画像
-├── scripts/                 # スクリプト
-├── public/                  # 静的ファイル
-└── supabase/               # Supabase設定
+├── lib/
+│   ├── types/              # TypeScript型定義
+│   ├── supabase/           # Supabase設定（プレースホルダー）
+│   └── validation/         # バリデーションスキーマ
+├── docs/                   # 仕様書
+└── public/                 # 静的ファイル
 ```
 
-## 🧪 テスト
+## 開発ガイドライン
 
-```bash
-# E2Eテストの実行
-npm run test
+### コーディング規約
 
-# ユニットテストの実行
-npm run test:unit
+- TypeScriptの型を厳密に使用
+- コンポーネントは`'use client'`ディレクティブを適切に使用
+- Tailwind CSSのユーティリティクラスを使用
+- 仕様書（`docs/仕様.md`）に従った実装
 
-# テストの監視モード
-npm run test:unit:watch
+### コミットメッセージ
 
-# カバレッジレポート
-npm run test:unit:coverage
+```
+feat: 新機能追加
+fix: バグ修正
+docs: ドキュメント更新
+style: コードスタイル変更
+refactor: リファクタリング
+test: テスト追加・修正
 ```
 
-## 🗄️ データベース
+## ライセンス
 
-詳細なデータモデルとRLSポリシーについては、`docs/kondate-gacha-spec-final.md` を参照してください。
+Private - 東京消防庁プレゼンテーション用
 
-主要テーブル:
-- `profiles`: ユーザープロフィール（buyer/seller/admin）
-- `sellers`: 販売者（農家）情報
-- `products` & `product_skus`: 商品とSKU
-- `orders` & `order_items`: 注文情報
-- `reviews`: レビュー
-- `chats` & `chat_messages`: チャット
-- `payouts`: 振込管理
+## 作成者
 
-## 🚀 デプロイ
-
-推奨デプロイ先: Vercel
-
-```bash
-# ビルド確認
-npm run build
-
-# 本番環境起動
-npm run start
-```
-
-各アプリケーションは個別にデプロイしてください。
-
-## 📚 ドキュメント
-
-- [仕様書](./docs/kondate-gacha-spec-final.md): システム全体の仕様
-- [アーキテクチャ図](./docs/architecture-diagrams.md): システム・アプリ構成図（Mermaid形式）
-- [ECサイトデモ操作手順書](./docs/ec-site-demo-guide.md): 購入者向けECサイトの操作マニュアル
-- [デプロイメントサマリー](./DEPLOYMENT-SUMMARY.md): デプロイ情報
-- プロジェクト構造図（draw.io形式）: [project-structure.drawio](./docs/project-structure.drawio)
-- システムアーキテクチャ図（draw.io形式）: [system-architecture.drawio](./docs/system-architecture.drawio)
-
-## 🤝 貢献
-
-プルリクエストを歓迎します。大きな変更の場合は、まずissueを作成して変更内容を議論してください。
-
-## 📄 ライセンス
-
-Private
+開発: Claude Code + yasu-dev
+日付: 2025-10-18

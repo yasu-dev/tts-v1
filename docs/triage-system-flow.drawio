@@ -1,0 +1,214 @@
+<mxfile host="app.diagrams.net" modified="2025-10-18T08:00:00.000Z" agent="5.0" version="24.0.0" etag="drawio-v2">
+  <diagram name="トリアージシステム データフロー" id="triage-data-flow">
+    <mxGraphModel dx="2000" dy="1200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2000" pageHeight="1400" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- タイトル -->
+        <mxCell id="title" value="トリアージタッグシステム　データ連携フロー" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;fontColor=#485563" vertex="1" parent="1">
+          <mxGeometry x="600" y="20" width="800" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- スイムレーン背景 -->
+        <mxCell id="lane-drone" value="ドローン/AIシステム" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;fontStyle=1;startSize=120" vertex="1" parent="1">
+          <mxGeometry x="40" y="80" width="1920" height="140" as="geometry" />
+        </mxCell>
+
+        <mxCell id="lane-webapp" value="Webアプリ&#xa;（データハブ）" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#E87722;fontSize=14;fontStyle=1;startSize=120;strokeWidth=3" vertex="1" parent="1">
+          <mxGeometry x="40" y="220" width="1920" height="160" as="geometry" />
+        </mxCell>
+
+        <mxCell id="lane-command" value="指揮本部" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;fontStyle=1;startSize=120" vertex="1" parent="1">
+          <mxGeometry x="40" y="380" width="1920" height="140" as="geometry" />
+        </mxCell>
+
+        <mxCell id="lane-tag-team" value="タッグ付け部隊" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;fontStyle=1;startSize=120" vertex="1" parent="1">
+          <mxGeometry x="40" y="520" width="1920" height="140" as="geometry" />
+        </mxCell>
+
+        <mxCell id="lane-transport" value="搬送部隊" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=14;fontStyle=1;startSize=120" vertex="1" parent="1">
+          <mxGeometry x="40" y="660" width="1920" height="140" as="geometry" />
+        </mxCell>
+
+        <mxCell id="lane-dmat" value="DMAT" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;fontStyle=1;startSize=120" vertex="1" parent="1">
+          <mxGeometry x="40" y="800" width="1920" height="140" as="geometry" />
+        </mxCell>
+
+        <mxCell id="lane-hospital" value="医療機関" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=14;fontStyle=1;startSize=120" vertex="1" parent="1">
+          <mxGeometry x="40" y="940" width="1920" height="140" as="geometry" />
+        </mxCell>
+
+        <!-- STEP 1: ドローン撮影・AI解析 -->
+        <mxCell id="step1-drone" value="①災害現場&#xa;空撮" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="180" y="110" width="120" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="step1-ai" value="AI画像解析&#xa;エリア優先度&#xa;自動判定" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="340" y="110" width="120" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="arrow-s1-1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#E87722" edge="1" parent="1" source="step1-drone" target="step1-ai">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="step1-webapp" value="📊エリア優先度リスト&#xa;自動生成・保存" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#E87722;fontSize=11;fontStyle=1;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="340" y="250" width="140" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="arrow-s1-2" value="データ&#xa;送信" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#E87722;fontSize=10;fontStyle=1" edge="1" parent="1" source="step1-ai" target="step1-webapp">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- STEP 2: 指揮本部がエリア確認・指示 -->
+        <mxCell id="step2-command-view" value="②エリア優先度&#xa;リスト確認" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="520" y="410" width="120" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="arrow-s2-1" value="リアルタイム&#xa;閲覧" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#E87722;fontSize=10;fontStyle=1;dashed=1" edge="1" parent="1" source="step1-webapp" target="step2-command-view">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="step2-command-order" value="タッグ付け部隊へ&#xa;エリア指示" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="680" y="410" width="120" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="arrow-s2-2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#E87722" edge="1" parent="1" source="step2-command-view" target="step2-command-order">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- STEP 3: タッグ付け部隊の作業 -->
+        <mxCell id="step3-tag-move" value="③指定エリア&#xa;へ移動" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="680" y="550" width="100" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="arrow-s3-1" value="指示" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#E87722;fontSize=10;fontStyle=1" edge="1" parent="1" source="step2-command-order" target="step3-tag-move">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="step3-tag-qr" value="傷病者に&#xa;トリアージタッグ&#xa;装着" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="810" y="550" width="100" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="arrow-s3-2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#E87722" edge="1" parent="1" source="step3-tag-move" target="step3-tag-qr">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="step3-tag-input" value="QRコード読込&#xa;音声/写真で&#xa;データ入力" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="940" y="550" width="110" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="arrow-s3-3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#E87722" edge="1" parent="1" source="step3-tag-qr" target="step3-tag-input">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="step3-webapp" value="📊傷病者リスト&#xa;自動生成・優先度&#xa;自動ソート・保存" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#E87722;fontSize=11;fontStyle=1;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="930" y="250" width="130" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="arrow-s3-4" value="データ&#xa;送信" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#E87722;fontSize=10;fontStyle=1" edge="1" parent="1" source="step3-tag-input" target="step3-webapp">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- STEP 4: 指揮本部が傷病者リスト確認・搬送指示 -->
+        <mxCell id="step4-command-view" value="④傷病者&#xa;優先度リスト&#xa;確認" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1100" y="410" width="100" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="arrow-s4-1" value="リアルタイム&#xa;閲覧" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#E87722;fontSize=10;fontStyle=1;dashed=1" edge="1" parent="1" source="step3-webapp" target="step4-command-view">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="step4-command-order" value="搬送部隊へ&#xa;傷病者指示" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1230" y="410" width="100" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="arrow-s4-2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#E87722" edge="1" parent="1" source="step4-command-view" target="step4-command-order">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- STEP 5: 搬送部隊の作業 -->
+        <mxCell id="step5-transport-move" value="⑤傷病者位置へ&#xa;移動（ナビ）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1230" y="690" width="110" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="arrow-s5-1" value="指示" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#E87722;fontSize=10;fontStyle=1" edge="1" parent="1" source="step4-command-order" target="step5-transport-move">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="step5-transport-qr" value="QRコード&#xa;読込・確認" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1370" y="690" width="100" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="arrow-s5-2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#E87722" edge="1" parent="1" source="step5-transport-move" target="step5-transport-qr">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="step5-transport-carry" value="トリアージ&#xa;ポイントへ搬送" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1500" y="690" width="100" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="arrow-s5-3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#E87722" edge="1" parent="1" source="step5-transport-qr" target="step5-transport-carry">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="step5-webapp" value="📊ステータス&#xa;「搬送済」に&#xa;自動更新" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#E87722;fontSize=11;fontStyle=1;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="1360" y="250" width="120" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="arrow-s5-4" value="ステータス&#xa;更新" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#E87722;fontSize=10;fontStyle=1" edge="1" parent="1" source="step5-transport-qr" target="step5-webapp">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- STEP 6: DMAT確認・医療処置 -->
+        <mxCell id="step6-dmat-view" value="⑥傷病者情報&#xa;リアルタイム確認" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1640" y="830" width="120" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="arrow-s6-1" value="全データ&#xa;閲覧可能" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#E87722;fontSize=10;fontStyle=1;dashed=1" edge="1" parent="1" source="step5-webapp" target="step6-dmat-view">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="step6-dmat-medical" value="トリアージ&#xa;ポイントで医療処置" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1640" y="690" width="120" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="arrow-s6-2" value="情報&#xa;参照" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#E87722;fontSize=10;fontStyle=1" edge="1" parent="1" source="step6-dmat-view" target="step6-dmat-medical">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="step6-hospital" value="転院搬送" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=11;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1640" y="970" width="120" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="arrow-s6-3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#E87722" edge="1" parent="1" source="step6-dmat-medical" target="step6-hospital">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- リアルタイム共有の強調 -->
+        <mxCell id="realtime-box" value="■ すべての担当者がリアルタイムで&#xa;　 同じデータを共有・閲覧可能&#xa;■ データ入力と同時に自動で&#xa;　 リスト更新・優先度ソート&#xa;■ オフライン時も継続使用可能" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#E87722;fontSize=13;fontStyle=1;strokeWidth=3;dashed=1;align=left;verticalAlign=top" vertex="1" parent="1">
+          <mxGeometry x="180" y="250" width="120" height="460" as="geometry" />
+        </mxCell>
+
+        <!-- データフロー強調線 -->
+        <mxCell id="data-flow-highlight" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#E87722;fontSize=11;fontStyle=1;strokeWidth=5;dashed=1" vertex="1" parent="1">
+          <mxGeometry x="320" y="240" width="1180" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="data-flow-label" value="データハブ：全情報を一元管理・リアルタイム同期" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#E87722" vertex="1" parent="1">
+          <mxGeometry x="700" y="220" width="400" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- トリアージポイント（参考表示） -->
+        <mxCell id="triage-point-ref" value="トリアージポイント&#xa;（救急指揮所）&#xa;🔴赤 🟡黄 🟢緑 ⚫黒" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;fontStyle=2;dashed=1" vertex="1" parent="1">
+          <mxGeometry x="1500" y="830" width="100" height="110" as="geometry" />
+        </mxCell>
+
+        <mxCell id="arrow-tp" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#b85450;dashed=1" edge="1" parent="1" source="step5-transport-carry" target="triage-point-ref">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
