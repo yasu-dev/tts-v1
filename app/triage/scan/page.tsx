@@ -179,7 +179,22 @@ export default function TriageScanPage() {
       }
 
       alert('トリアージタグを登録しました')
-      router.push('/command')
+
+      // フォームをリセットして最初の画面に戻る
+      setTagNumber('')
+      setTriageResult(null)
+      setPatientInfo({
+        age: '',
+        sex: 'unknown',
+      })
+      setVitalSigns({
+        respiratory_rate: '',
+        pulse_rate: '',
+        systolic_bp: '',
+        consciousness: 'alert',
+      })
+      setNotes('')
+      setCurrentStep('qr')
     } catch (err) {
       console.error('Registration error:', err)
       setError(err instanceof Error ? err.message : '登録に失敗しました')
