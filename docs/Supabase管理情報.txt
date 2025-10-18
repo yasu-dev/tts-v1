@@ -1,0 +1,10 @@
+トリアージタッグシステム
+Supabase管理情報
+・Database password：B4ibtDCsPt*?ug2
+・Project URL：https://knjrlbrdevrfjlbhpjsk.supabase.co
+・anon public：eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuanJsYnJkZXZyZmpsYmhwanNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NzAzMDEsImV4cCI6MjA3NjM0NjMwMX0.EULGgNsLrNLK7i7-68UEdgbMZwdCgrAkU4WrCkymhM4
+
+
+
+
+

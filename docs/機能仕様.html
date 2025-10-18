@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>トリアージタグ・システム 機能仕様書</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Yu Gothic', 'Meiryo', sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: linear-gradient(135deg, #485563 0%, #3d4d5c 100%);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #485563 0%, #3d4d5c 100%);
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header .emoji {
+            font-size: 3em;
+            display: block;
+            margin-bottom: 20px;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        h2 {
+            color: #485563;
+            border-left: 5px solid #E87722;
+            padding-left: 15px;
+            margin: 40px 0 20px 0;
+            font-size: 1.8em;
+        }
+
+        h3 {
+            color: #485563;
+            margin: 30px 0 15px 0;
+            font-size: 1.4em;
+        }
+
+        p {
+            margin: 15px 0;
+            text-align: justify;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        table thead {
+            background: linear-gradient(135deg, #485563 0%, #3d4d5c 100%);
+            color: white;
+        }
+
+        table th,
+        table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        table tbody tr:hover {
+            background: #f8f9fa;
+            transform: scale(1.00);
+            transition: all 0.2s ease;
+        }
+
+        table tbody tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        ul, ol {
+            margin: 15px 0 15px 30px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        .section {
+            margin-bottom: 50px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            background: #E87722;
+            color: white;
+            border-radius: 20px;
+            font-size: 0.85em;
+            margin: 5px;
+        }
+
+        .highlight {
+            background: #E87722;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        hr {
+            border: none;
+            border-top: 2px solid #e0e0e0;
+            margin: 30px 0;
+        }
+
+        .toc {
+            background: #f8f9fa;
+            border: 3px solid #485563;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+
+        .toc h3 {
+            margin-top: 0;
+            color: #485563;
+        }
+
+        .toc ul {
+            list-style: none;
+            margin: 0;
+        }
+
+        .toc ul li {
+            margin: 10px 0;
+            padding: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .toc ul li:hover {
+            background: white;
+            border-radius: 5px;
+            transform: translateX(10px);
+        }
+
+        .toc a {
+            color: #485563;
+            text-decoration: none;
+            transition: color 0.3s;
+            font-size: 1.1rem;
+        }
+
+        .toc a:hover {
+            color: #E87722;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #485563 0%, #3d4d5c 100%);
+            color: white;
+            border-left: 4px solid #E87722;
+            padding: 30px;
+            margin: 20px 0;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .warning-box {
+            background: linear-gradient(135deg, #E87722 0%, #f5a623 100%);
+            color: white;
+            border-left: 4px solid #485563;
+            padding: 30px;
+            margin: 20px 0;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9em;
+            border: 1px solid #e0e0e0;
+        }
+
+        .footer {
+            background: linear-gradient(135deg, #485563 0%, #3d4d5c 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            border-top: none;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+            }
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 5px;
+            background: linear-gradient(to right, #E87722, #f5a623);
+            z-index: 1001;
+            transition: width 0.3s ease;
+        }
+
+        .navigation {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            gap: 15px;
+            z-index: 1000;
+        }
+
+        .nav-button {
+            background: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .nav-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+            background: #E87722;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+
+    <div class="container">
+        <div class="header">
+            <span class="emoji">🧭</span>
+            <h1>トリアージタグ・システム<br>機能仕様書</h1>
+        </div>
+
+        <div class="content">
+            <!-- 目次 -->
+            <div class="toc">
+                <h3>📋 目次</h3>
+                <ul>
+                    <li><a href="#section1">1. 目的・概要</a></li>
+                    <li><a href="#section2">2. システム構成と利用者</a></li>
+                    <li><a href="#section3">3. 業務フロー（上位）</a></li>
+                    <li><a href="#section4">4. 機能一覧</a></li>
+                    <li><a href="#section5">5. 非機能要件まとめ</a></li>
+                    <li><a href="#section6">6. 開発環境・構成</a></li>
+                    <li><a href="#section7">7. MVP範囲</a></li>
+                    <li><a href="#section8">8. 将来拡張（Phase2以降）</a></li>
+                    <li><a href="#section9">9. 受入基準（自動検証）</a></li>
+                    <li><a href="#section10">10. トレースマトリクス</a></li>
+                </ul>
+            </div>
+
+            <!-- 1. 目的・概要 -->
+            <div id="section1" class="section">
+                <h2>1. 目的・概要</h2>
+                <p>
+                    本システムは、災害・事故などの大規模救護現場において、<span class="highlight">トリアージタグ情報の電子化・リアルタイム共有・搬送管理</span>を実現するものです。
+                </p>
+                <p>
+                    従来の紙タグ運用に加え、PWAを中心としたモバイル端末上での迅速な登録・更新・集計を可能にし、情報の一元管理・誤記防止・搬送最適化を目的とします。
+                </p>
+            </div>
+
+            <hr>
+
+            <!-- 2. システム構成と利用者 -->
+            <div id="section2" class="section">
+                <h2>2. システム構成と利用者</h2>
+
+                <h3>2.1 利用ロール</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ロール</th>
+                            <th>主な利用場面</th>
+                            <th>権限範囲</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>IC (Incident Commander)</strong></td>
+                            <td>本部での統制・状況把握</td>
+                            <td>全データ閲覧・搬送指示・分析</td>
+                        </tr>
+                        <tr>
+                            <td><strong>TRI (Triage Team)</strong></td>
+                            <td>現場でのタグ登録・再判定</td>
+                            <td>タグ登録／更新（自担当エリア）</td>
+                        </tr>
+                        <tr>
+                            <td><strong>TRN (Transport Team)</strong></td>
+                            <td>搬送車両でのQRスキャン更新</td>
+                            <td>担当タグの搬送状態更新</td>
+                        </tr>
+                        <tr>
+                            <td><strong>HSP (Hospital)</strong></td>
+                            <td>受入・収容報告</td>
+                            <td>搬送対象タグの最終ステータス更新</td>
+                        </tr>
+                        <tr>
+                            <td><strong>AUD (Auditor)</strong></td>
+                            <td>運用・監査</td>
+                            <td>読取専用（改ざん検出監査）</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <hr>
+
+            <!-- 3. 業務フロー -->
+            <div id="section3" class="section">
+                <h2>3. 業務フロー（上位）</h2>
+
+                <ol>
+                    <li>
+                        <strong>発災登録</strong>
+                        <ul>
+                            <li>ICがイベント情報を作成（イベント名・地域範囲・通信モード）。</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>トリアージ登録</strong>
+                        <ul>
+                            <li>TRIがQRタグをスキャンし、被災者情報（最小30秒）を登録。</li>
+                            <li>STARTウィザードで分類（歩行→呼吸→脈→指示）。</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>再判定（再トリアージ）</strong>
+                        <ul>
+                            <li>再評価時に人による再分類・理由記録・履歴保持。</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>搬送指示／更新</strong>
+                        <ul>
+                            <li>ICまたはTRNが搬送指示を出し、搬送中・到着・収容まで更新。</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>医療機関受入</strong>
+                        <ul>
+                            <li>HSPがQRスキャンで受入完了を報告。</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>監査／報告</strong>
+                        <ul>
+                            <li>AUDまたはICが集計結果を閲覧、改ざん検証、PDF出力。</li>
+                        </ul>
+                    </li>
+                </ol>
+            </div>
+
+            <hr>
+
+            <!-- 4. 機能一覧 -->
+            <div id="section4" class="section">
+                <h2>4. 機能一覧</h2>
+
+                <h3>4.1 イベント管理機能</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>機能</th>
+                            <th>概要</th>
+                            <th>ロール</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>イベント登録</td>
+                            <td>発災イベントの作成（名称・範囲・通信方式）</td>
+                            <td>IC</td>
+                        </tr>
+                        <tr>
+                            <td>通信モード選択</td>
+                            <td>通常／衛星／メッシュ切替</td>
+                            <td>IC</td>
+                        </tr>
+                        <tr>
+                            <td>エリア設定</td>
+                            <td>エリアポリゴンを描画・保存</td>
+                            <td>IC</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>4.2 トリアージ登録機能</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>機能</th>
+                            <th>概要</th>
+                            <th>詳細要件</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>QRスキャン登録</td>
+                            <td>紙タグのQRを読み込み、タグIDを生成</td>
+                            <td>カメラ／外部QRリーダー対応</td>
+                        </tr>
+                        <tr>
+                            <td>最小登録（30秒）</td>
+                            <td>必須項目：タグID・区分・位置・写真1枚</td>
+                            <td>オフライン保存可</td>
+                        </tr>
+                        <tr>
+                            <td>STARTウィザード</td>
+                            <td>歩行可否→呼吸→脈→指示の4段階判定</td>
+                            <td>Yes/No UI＋音声読み上げ</td>
+                        </tr>
+                        <tr>
+                            <td>判定理由</td>
+                            <td>AI判定との不一致時は理由必須</td>
+                            <td>履歴自動保存</td>
+                        </tr>
+                        <tr>
+                            <td>位置記録</td>
+                            <td>GPS／Wi-Fi／手動補正可、精度値保持</td>
+                            <td>Mapピン表示</td>
+                        </tr>
+                        <tr>
+                            <td>受傷部位記録</td>
+                            <td>人体図へのタッチマーク</td>
+                            <td>PDFにサムネ反映</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>4.3 再トリアージ機能</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>機能</th>
+                            <th>内容</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>判定変更</td>
+                            <td>区分変更時、理由入力必須</td>
+                        </tr>
+                        <tr>
+                            <td>履歴保持</td>
+                            <td>変更履歴を時系列で全保存</td>
+                        </tr>
+                        <tr>
+                            <td>表示</td>
+                            <td>最新区分＋履歴リストを参照可</td>
+                        </tr>
+                        <tr>
+                            <td>権限</td>
+                            <td>TRIまたはICのみ変更可</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>4.4 搬送管理機能</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>機能</th>
+                            <th>内容</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>搬送指示</td>
+                            <td>IC/TRNが対象タグを選択し、搬送先を指定</td>
+                        </tr>
+                        <tr>
+                            <td>搬送先レコメンド</td>
+                            <td>距離・受入枠・専門・安定性からスコア算出</td>
+                        </tr>
+                        <tr>
+                            <td>ステータス更新</td>
+                            <td>waiting→transporting→arrived→admitted</td>
+                        </tr>
+                        <tr>
+                            <td>QR更新</td>
+                            <td>各段階でQR再スキャンで確定</td>
+                        </tr>
+                        <tr>
+                            <td>到着報告</td>
+                            <td>HSPが到着・収容を報告</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>4.5 地図表示機能</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>要素</th>
+                            <th>内容</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>ピン表示</td>
+                            <td>タグ位置（色：区分、形：状態）</td>
+                        </tr>
+                        <tr>
+                            <td>クラスタリング</td>
+                            <td>近接地点を自動統合</td>
+                        </tr>
+                        <tr>
+                            <td>隊位置表示</td>
+                            <td>TRI/TRNの現在地を表示</td>
+                        </tr>
+                        <tr>
+                            <td>フィルタ</td>
+                            <td>区分・エリア・搬送状態・時間帯</td>
+                        </tr>
+                        <tr>
+                            <td>表示更新</td>
+                            <td>CRDT同期後に自動反映</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>4.6 リスト／検索機能</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>要素</th>
+                            <th>内容</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>未搬送リスト</td>
+                            <td>未搬送×重症順（デフォルト）</td>
+                        </tr>
+                        <tr>
+                            <td>フィルタ条件</td>
+                            <td>状態／区分／地域／病院</td>
+                        </tr>
+                        <tr>
+                            <td>検索</td>
+                            <td>タグID・匿名ID・備考から検索</td>
+                        </tr>
+                        <tr>
+                            <td>ソート</td>
+                            <td>区分→更新時刻→搬送状態</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>4.7 統計・分析機能</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>機能</th>
+                            <th>内容</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>区分別集計</td>
+                            <td>黒・赤・黄・緑タグ人数／変遷</td>
+                        </tr>
+                        <tr>
+                            <td>医療機関別</td>
+                            <td>受入数／稼働率／平均搬送時間</td>
+                        </tr>
+                        <tr>
+                            <td>時系列分析</td>
+                            <td>登録・搬送推移／更新頻度</td>
+                        </tr>
+                        <tr>
+                            <td>ダッシュボード</td>
+                            <td>リアルタイム更新／Map連動</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>4.8 出力・報告機能</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>出力物</th>
+                            <th>内容</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>個票PDF</td>
+                            <td>紙様式互換：QR・区分色・打刻欄・人体図</td>
+                        </tr>
+                        <tr>
+                            <td>一覧CSV</td>
+                            <td>全タグデータ（フィルタ条件反映）</td>
+                        </tr>
+                        <tr>
+                            <td>改ざん検証</td>
+                            <td>監査ログのハッシュ整合性チェック</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>4.9 オフライン・同期機能</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>要素</th>
+                            <th>内容</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>IndexedDB暗号化</td>
+                            <td>端末内でAES-GCM暗号化保存</td>
+                        </tr>
+                        <tr>
+                            <td>同期方式</td>
+                            <td>write-behind／ベクタ時計CRDT</td>
+                        </tr>
+                        <tr>
+                            <td>衝突解決</td>
+                            <td>人決定フィールドはサーバ優先／差分履歴保存</td>
+                        </tr>
+                        <tr>
+                            <td>復旧動作</td>
+                            <td>回線復旧後5分以内に整合保証</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>4.10 セキュリティ・監査機能</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>要素</th>
+                            <th>内容</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>RBAC＋ABAC</td>
+                            <td>ロール＋イベント属性で制御</td>
+                        </tr>
+                        <tr>
+                            <td>監査ログ</td>
+                            <td>append-only JSONL＋ハッシュチェーン</td>
+                        </tr>
+                        <tr>
+                            <td>改ざん検証API</td>
+                            <td><code>/api/audit/verify</code> により検証可能</td>
+                        </tr>
+                        <tr>
+                            <td>暗号鍵管理</td>
+                            <td>端末ローカル鍵をユーザ鍵でラップ</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>4.11 運用・監視機能</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>項目</th>
+                            <th>内容</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>メトリクス</td>
+                            <td>登録件数、同期遅延、P95応答時間</td>
+                        </tr>
+                        <tr>
+                            <td>DR／バックアップ</td>
+                            <td>RPO≤5分、RTO≤30分、マルチAZ冗長構成</td>
+                        </tr>
+                        <tr>
+                            <td>Blue/Green切替</td>
+                            <td>Phase2で導入予定</td>
+                        </tr>
+                        <tr>
+                            <td>Runbook</td>
+                            <td>通信切断・競合・DB障害時対応を手順化</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <hr>
+
+            <!-- 5. 非機能要件 -->
+            <div id="section5" class="section">
+                <h2>5. 非機能要件まとめ（見解1補強済）</h2>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>区分</th>
+                            <th>要件値</th>
+                            <th>出典</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>検索性能</td>
+                            <td>P95 ≤ 1.0s</td>
+                            <td>見解1</td>
+                        </tr>
+                        <tr>
+                            <td>登録性能</td>
+                            <td>P95 ≤ 1.5s</td>
+                            <td>見解1</td>
+                        </tr>
+                        <tr>
+                            <td>地図描画</td>
+                            <td>1,000ピン ≤ 1.5s</td>
+                            <td>見解1</td>
+                        </tr>
+                        <tr>
+                            <td>同期時間</td>
+                            <td>オフライン100件→5分整合</td>
+                            <td>見解1</td>
+                        </tr>
+                        <tr>
+                            <td>稼働率</td>
+                            <td>通常99.9%、災害時99.95%</td>
+                            <td>見解1</td>
+                        </tr>
+                        <tr>
+                            <td>DR</td>
+                            <td>RPO 5分 / RTO 30分</td>
+                            <td>見解1</td>
+                        </tr>
+                        <tr>
+                            <td>改ざん防止</td>
+                            <td>ハッシュチェーン整合</td>
+                            <td>見解1</td>
+                        </tr>
+                        <tr>
+                            <td>紙互換</td>
+                            <td>PDFレイアウト一致</td>
+                            <td>見解1</td>
+                        </tr>
+                        <tr>
+                            <td>イベント隔離</td>
+                            <td>eventId単位</td>
+                            <td>見解4</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <hr>
+
+            <!-- 6. 開発環境・構成 -->
+            <div id="section6" class="section">
+                <h2>6. 開発環境・構成（drawio準拠）</h2>
+
+                <ul>
+                    <li><strong>フロント：</strong>Next.js 14 + TypeScript + Material-UI + Zustand + Dexie + automerge</li>
+                    <li><strong>バックエンド：</strong>Next.js Route Handler (API層) → AWS Lambda想定</li>
+                    <li><strong>DB：</strong>RDS(MySQL)＋S3＋CloudFront／CloudWatch監視</li>
+                    <li><strong>CI/CD：</strong>GitHub Actions（lint/test/e2e）＋署名アーティファクト</li>
+                    <li><strong>PWA：</strong>Workbox＋IndexedDB＋CRDT同期</li>
+                    <li><strong>E2Eテスト：</strong>Playwright（通信断・100件同期・改ざん検証）</li>
+                </ul>
+            </div>
+
+            <hr>
+
+            <!-- 7. MVP範囲 -->
+            <div id="section7" class="section">
+                <h2>7. MVP範囲</h2>
+
+                <div class="info-box">
+                    <ul>
+                        <li><strong>ロール：</strong>IC/TRI/TRN/HSP</li>
+                        <li><strong>対応機能：</strong>登録／再判定／搬送／地図／出力／同期／監査</li>
+                        <li><strong>対象件数：</strong>最大2,000タグ／イベント</li>
+                        <li><strong>目標：</strong>E2E受入基準5項目をGREEN化</li>
+                    </ul>
+                </div>
+            </div>
+
+            <hr>
+
+            <!-- 8. 将来拡張 -->
+            <div id="section8" class="section">
+                <h2>8. 将来拡張（Phase2以降）</h2>
+
+                <ul>
+                    <li>AI姿勢分類補助（TensorFlow Liteモデル）</li>
+                    <li>ドローン位置送信API連携</li>
+                    <li>巡回最適化（Greedy+2-opt）</li>
+                    <li>MFA認証・OIDC統合</li>
+                    <li>外部病院システム連携（FHIRベース）</li>
+                </ul>
+            </div>
+
+            <hr>
+
+            <!-- 9. 受入基準 -->
+            <div id="section9" class="section">
+                <h2>9. 受入基準（自動検証）</h2>
+
+                <div class="warning-box">
+                    <ol>
+                        <li>オフライン100件登録→復旧5分以内整合</li>
+                        <li>未搬送赤タグ検索 P95 ≤ 1.0s</li>
+                        <li>画像付登録 P95 ≤ 1.5s</li>
+                        <li>改ざん検証 = OK</li>
+                        <li>地図1000ピン描画 P95 ≤ 1.5s</li>
+                    </ol>
+                </div>
+            </div>
+
+            <hr>
+
+            <!-- 10. トレースマトリクス -->
+            <div id="section10" class="section">
+                <h2>10. トレースマトリクス（要求→仕様→受入）</h2>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>要求ID</th>
+                            <th>機能項目</th>
+                            <th>該当仕様章</th>
+                            <th>テスト項目</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>RQ-01</td>
+                            <td>オフライン登録</td>
+                            <td>4.2, 4.9</td>
+                            <td>TC01, TC02</td>
+                        </tr>
+                        <tr>
+                            <td>RQ-02</td>
+                            <td>START判定</td>
+                            <td>4.2, 4.3</td>
+                            <td>TC03</td>
+                        </tr>
+                        <tr>
+                            <td>RQ-03</td>
+                            <td>搬送管理</td>
+                            <td>4.4</td>
+                            <td>TC04</td>
+                        </tr>
+                        <tr>
+                            <td>RQ-04</td>
+                            <td>PDF出力</td>
+                            <td>4.8</td>
+                            <td>TC05</td>
+                        </tr>
+                        <tr>
+                            <td>RQ-05</td>
+                            <td>改ざん検証</td>
+                            <td>4.10</td>
+                            <td>TC06</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>トリアージタグ・システム - 機能仕様書</p>
+            <p style="font-size: 1rem; opacity: 0.8; margin-top: 10px;">© 2025 トリアージタグ・システム開発チーム | 最終更新: 2025年10月18日</p>
+        </div>
+    </div>
+
+    <div class="navigation">
+        <button class="nav-button" onclick="scrollToTop()">↑</button>
+        <button class="nav-button" onclick="window.print()">🖨️</button>
+    </div>
+
+    <script>
+        // プログレスバーの更新
+        window.addEventListener('scroll', () => {
+            const windowHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (window.scrollY / windowHeight) * 100;
+            document.getElementById('progressBar').style.width = scrolled + '%';
+        });
+
+        // トップへスクロール
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
