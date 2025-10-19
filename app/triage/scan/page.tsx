@@ -120,9 +120,9 @@ export default function TriageScanPage() {
     }
   }
 
-  const handleContactPointsUpdate = () => {
-    // モーダルで接触地点が更新されたら再読み込み
-    loadEventData()
+  const handleContactPointsUpdate = (updatedPoints: string[]) => {
+    // モーダルで接触地点が更新されたら状態を更新
+    setContactPoints(updatedPoints)
   }
 
   const handleQRScanSuccess = (decodedText: string) => {
@@ -724,10 +724,10 @@ export default function TriageScanPage() {
       </main>
 
       {/* 接触地点管理モーダル */}
-      {eventId && (
+      {eventId && isContactPointModalOpen && (
         <ContactPointManager
           eventId={eventId}
-          isOpen={isContactPointModalOpen}
+          contactPoints={contactPoints}
           onClose={() => setIsContactPointModalOpen(false)}
           onUpdate={handleContactPointsUpdate}
         />

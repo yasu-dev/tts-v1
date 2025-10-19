@@ -218,12 +218,6 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
               地図上のマーカーをクリックすると、患者詳細が表示されます。
             </p>
           </div>
-
-          {isMapCollapsed && (
-            <p className="text-sm text-gray-500 text-center py-4">
-              地図を折りたたんでいます。「▼ 展開」をクリックして表示できます。
-            </p>
-          )}
         </div>
 
         {/* トリアージタグリスト */}
