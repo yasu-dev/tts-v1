@@ -70,6 +70,11 @@ export default function TriageScanPage() {
     }
   }, [])
 
+  // currentStepの変更を監視（デバッグ用）
+  useEffect(() => {
+    console.log('[TriageScanPage] currentStep changed to:', currentStep)
+  }, [currentStep])
+
   const handleQRScanSuccess = (decodedText: string) => {
     // QRコードから タグ番号を抽出
     // 想定フォーマット: "TAG-2025-001" または単純な番号
@@ -86,8 +91,11 @@ export default function TriageScanPage() {
   }
 
   const handleStartComplete = (result: StartTriageResult) => {
+    console.log('[TriageScanPage] handleStartComplete called with result:', result)
+    console.log('[TriageScanPage] Current step before:', currentStep)
     setTriageResult(result)
     setCurrentStep('vitals')
+    console.log('[TriageScanPage] Current step after:', 'vitals')
   }
 
   const handleVitalSubmit = (e: React.FormEvent) => {

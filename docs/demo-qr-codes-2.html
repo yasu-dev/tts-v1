@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>トリアージシステム デモ用QRコード</title>
+    <title>トリアージシステム デモ用QRコード #2</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -108,7 +108,7 @@
     </style>
 </head>
 <body>
-    <h1>🏥 トリアージシステム デモ用QRコード</h1>
+    <h1>🏥 トリアージシステム デモ用QRコード #2</h1>
 
     <div class="instructions">
         <h3>使い方</h3>
@@ -125,17 +125,63 @@
     <script>
         const demoPatients = [
             {
-                id: "DEMO-001",
-                name: "患者1（フェーズ2のシナリオ用）",
-                age: 35,
-                gender: "女性",
-                location: "新宿区西新宿2-10-5",
-                chiefComplaint: "右足骨折、打撲",
+                id: "DEMO-007",
+                name: "田中 健一",
+                age: 45,
+                gender: "男性",
+                location: "新宿区西新宿1-5-10",
+                chiefComplaint: "左肩打撲",
                 vitals: {
-                    respiratoryRate: 18,
-                    heartRate: 85,
-                    spO2: 97,
-                    bloodPressure: "120/75",
+                    respiratoryRate: 16,
+                    heartRate: 80,
+                    spO2: 98,
+                    bloodPressure: "125/78",
+                    consciousnessLevel: "JCS 0"
+                },
+                startAssessment: {
+                    canWalk: true,
+                    isBreathing: true,
+                    hasRadialPulse: true,
+                    followsCommands: true
+                },
+                expectedTag: "緑",
+                notes: "歩行可能、軽度の打撲のみ"
+            },
+            {
+                id: "DEMO-008",
+                name: "佐藤 美咲",
+                age: 58,
+                gender: "女性",
+                location: "新宿区西新宿1-6-15",
+                chiefComplaint: "腹部刺創、多量出血",
+                vitals: {
+                    respiratoryRate: 32,
+                    heartRate: 135,
+                    spO2: 86,
+                    bloodPressure: "75/50",
+                    consciousnessLevel: "JCS 2"
+                },
+                startAssessment: {
+                    canWalk: false,
+                    isBreathing: true,
+                    hasRadialPulse: true,
+                    followsCommands: true
+                },
+                expectedTag: "赤",
+                notes: "呼吸数30回/分以上、ショック状態"
+            },
+            {
+                id: "DEMO-009",
+                name: "鈴木 翔太",
+                age: 32,
+                gender: "男性",
+                location: "新宿区西新宿1-7-20",
+                chiefComplaint: "右膝関節脱臼",
+                vitals: {
+                    respiratoryRate: 22,
+                    heartRate: 95,
+                    spO2: 96,
+                    bloodPressure: "135/82",
                     consciousnessLevel: "JCS 0"
                 },
                 startAssessment: {
@@ -148,40 +194,40 @@
                 notes: "歩行不可だが、バイタル安定、意識清明"
             },
             {
-                id: "DEMO-002",
-                name: "患者2（赤タグ - 重症）",
-                age: 52,
+                id: "DEMO-010",
+                name: "山田 太郎",
+                age: 73,
                 gender: "男性",
-                location: "新宿区西新宿2-8-1",
-                chiefComplaint: "胸部圧迫、呼吸困難",
+                location: "新宿区西新宿1-8-5",
+                chiefComplaint: "心肺停止",
                 vitals: {
-                    respiratoryRate: 28,
-                    heartRate: 120,
-                    spO2: 88,
-                    bloodPressure: "90/60",
-                    consciousnessLevel: "JCS 1"
+                    respiratoryRate: 0,
+                    heartRate: 0,
+                    spO2: 0,
+                    bloodPressure: "0/0",
+                    consciousnessLevel: "JCS 300"
                 },
                 startAssessment: {
                     canWalk: false,
-                    isBreathing: true,
+                    isBreathing: false,
                     hasRadialPulse: false,
-                    followsCommands: true
+                    followsCommands: false
                 },
-                expectedTag: "赤",
-                notes: "橈骨動脈触知不可、呼吸促迫"
+                expectedTag: "黒",
+                notes: "呼吸なし、心肺停止状態"
             },
             {
-                id: "DEMO-003",
-                name: "患者3（緑タグ - 軽症）",
-                age: 28,
+                id: "DEMO-011",
+                name: "高橋 由美",
+                age: 23,
                 gender: "女性",
-                location: "新宿区西新宿2-11-2",
-                chiefComplaint: "左前腕擦過傷",
+                location: "新宿区西新宿1-9-12",
+                chiefComplaint: "右足首捻挫、軽度",
                 vitals: {
-                    respiratoryRate: 16,
-                    heartRate: 78,
+                    respiratoryRate: 15,
+                    heartRate: 75,
                     spO2: 99,
-                    bloodPressure: "115/70",
+                    bloodPressure: "118/72",
                     consciousnessLevel: "JCS 0"
                 },
                 startAssessment: {
@@ -191,44 +237,21 @@
                     followsCommands: true
                 },
                 expectedTag: "緑",
-                notes: "歩行可能、軽度の外傷のみ"
+                notes: "歩行可能、軽度の捻挫"
             },
             {
-                id: "DEMO-004",
-                name: "患者4（黄タグ - 中等症）",
-                age: 67,
+                id: "DEMO-012",
+                name: "渡辺 誠",
+                age: 61,
                 gender: "男性",
-                location: "新宿区西新宿2-9-3",
-                chiefComplaint: "左大腿骨骨折疑い",
+                location: "新宿区西新宿1-10-8",
+                chiefComplaint: "頭部外傷、意識混濁",
                 vitals: {
-                    respiratoryRate: 20,
-                    heartRate: 92,
-                    spO2: 95,
-                    bloodPressure: "130/85",
-                    consciousnessLevel: "JCS 0"
-                },
-                startAssessment: {
-                    canWalk: false,
-                    isBreathing: true,
-                    hasRadialPulse: true,
-                    followsCommands: true
-                },
-                expectedTag: "黄",
-                notes: "下肢骨折、歩行不可だがバイタル安定"
-            },
-            {
-                id: "DEMO-005",
-                name: "患者5（赤タグ - 重症）",
-                age: 41,
-                gender: "女性",
-                location: "新宿区西新宿2-7-4",
-                chiefComplaint: "頭部外傷、意識レベル低下",
-                vitals: {
-                    respiratoryRate: 24,
-                    heartRate: 110,
-                    spO2: 91,
-                    bloodPressure: "100/65",
-                    consciousnessLevel: "JCS 10"
+                    respiratoryRate: 26,
+                    heartRate: 115,
+                    spO2: 90,
+                    bloodPressure: "95/60",
+                    consciousnessLevel: "JCS 20"
                 },
                 startAssessment: {
                     canWalk: false,
@@ -240,17 +263,40 @@
                 notes: "意識レベル低下、指示に従えず"
             },
             {
-                id: "DEMO-006",
-                name: "患者6（緑タグ - 軽症）",
-                age: 19,
-                gender: "男性",
-                location: "新宿区西新宿2-12-1",
-                chiefComplaint: "右手関節捻挫",
+                id: "DEMO-013",
+                name: "伊藤 花子",
+                age: 39,
+                gender: "女性",
+                location: "新宿区西新宿1-11-3",
+                chiefComplaint: "左前腕骨折",
                 vitals: {
-                    respiratoryRate: 14,
-                    heartRate: 72,
+                    respiratoryRate: 19,
+                    heartRate: 88,
+                    spO2: 97,
+                    bloodPressure: "128/80",
+                    consciousnessLevel: "JCS 0"
+                },
+                startAssessment: {
+                    canWalk: false,
+                    isBreathing: true,
+                    hasRadialPulse: true,
+                    followsCommands: true
+                },
+                expectedTag: "黄",
+                notes: "骨折により歩行不可、バイタル安定"
+            },
+            {
+                id: "DEMO-014",
+                name: "中村 一郎",
+                age: 50,
+                gender: "男性",
+                location: "新宿区西新宿1-12-7",
+                chiefComplaint: "顔面擦過傷",
+                vitals: {
+                    respiratoryRate: 17,
+                    heartRate: 82,
                     spO2: 98,
-                    bloodPressure: "110/68",
+                    bloodPressure: "132/85",
                     consciousnessLevel: "JCS 0"
                 },
                 startAssessment: {
@@ -260,7 +306,53 @@
                     followsCommands: true
                 },
                 expectedTag: "緑",
-                notes: "歩行可能、軽度の捻挫"
+                notes: "歩行可能、軽度の擦過傷のみ"
+            },
+            {
+                id: "DEMO-015",
+                name: "小林 恵子",
+                age: 44,
+                gender: "女性",
+                location: "新宿区西新宿1-13-1",
+                chiefComplaint: "胸部圧迫外傷、ショック状態",
+                vitals: {
+                    respiratoryRate: 28,
+                    heartRate: 125,
+                    spO2: 85,
+                    bloodPressure: "80/55",
+                    consciousnessLevel: "JCS 3"
+                },
+                startAssessment: {
+                    canWalk: false,
+                    isBreathing: true,
+                    hasRadialPulse: false,
+                    followsCommands: true
+                },
+                expectedTag: "赤",
+                notes: "橈骨動脈触知不可、ショック状態"
+            },
+            {
+                id: "DEMO-016",
+                name: "加藤 龍一",
+                age: 29,
+                gender: "男性",
+                location: "新宿区西新宿1-14-9",
+                chiefComplaint: "腰椎圧迫骨折疑い",
+                vitals: {
+                    respiratoryRate: 21,
+                    heartRate: 90,
+                    spO2: 95,
+                    bloodPressure: "138/88",
+                    consciousnessLevel: "JCS 0"
+                },
+                startAssessment: {
+                    canWalk: false,
+                    isBreathing: true,
+                    hasRadialPulse: true,
+                    followsCommands: true
+                },
+                expectedTag: "黄",
+                notes: "腰椎損傷疑い、歩行不可だがバイタル安定"
             }
         ];
 
