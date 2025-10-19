@@ -177,22 +177,22 @@ export default function ImageUploader({ tagId, onUploadComplete }: ImageUploader
       </div>
 
       <p className="text-sm text-gray-600">
-        外傷部位、現場写真などを撮影してアップロードできます（最大{MAX_IMAGES}枚）
+        外傷部位、現場写真などをカメラで撮影して即座にアップロードします（最大{MAX_IMAGES}枚）
       </p>
 
-      {/* アップロードボタン */}
+      {/* カメラ撮影ボタン */}
       {images.length < MAX_IMAGES && (
         <div>
           <label className="btn-primary inline-block cursor-pointer">
             <input
               type="file"
               accept="image/*"
-              multiple
+              capture="environment"
               onChange={handleFileChange}
               disabled={uploading}
               className="hidden"
             />
-            {uploading ? 'アップロード中...' : '画像を選択'}
+            {uploading ? 'アップロード中...' : '📷 カメラで撮影'}
           </label>
         </div>
       )}
@@ -256,8 +256,8 @@ export default function ImageUploader({ tagId, onUploadComplete }: ImageUploader
       <div className="p-3 bg-gray-50 border border-gray-300 rounded-lg">
         <p className="text-xs text-gray-700">
           <strong>注意:</strong>
+          <br />• 撮影後、即座にクラウドにアップロードされます（デバイスには保存されません）
           <br />• 画像は自動的に圧縮されます（最大1920px、JPEG品質80%）
-          <br />• アップロードした画像は公開URLで保存されます
         </p>
       </div>
     </div>
