@@ -75,6 +75,11 @@ export default function TriageScanPage() {
     console.log('[TriageScanPage] currentStep changed to:', currentStep)
   }, [currentStep])
 
+  // notesの変更を監視（デバッグ用）
+  useEffect(() => {
+    console.log('[TriageScanPage] notes changed to:', notes)
+  }, [notes])
+
   const handleQRScanSuccess = (decodedText: string) => {
     // QRコードから タグ番号を抽出
     // 想定フォーマット: "TAG-2025-001" または単純な番号
@@ -212,7 +217,13 @@ export default function TriageScanPage() {
   }
 
   const handleVoiceTranscript = (text: string) => {
-    setNotes((prev) => (prev ? `${prev} ${text}` : text))
+    console.log('[TriageScanPage] handleVoiceTranscript called with:', text)
+    console.log('[TriageScanPage] Current notes before:', notes)
+    setNotes((prev) => {
+      const newNotes = prev ? `${prev} ${text}` : text
+      console.log('[TriageScanPage] New notes after:', newNotes)
+      return newNotes
+    })
   }
 
   return (

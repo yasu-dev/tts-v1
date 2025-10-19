@@ -27,17 +27,24 @@ export default function VoiceInput({ onTranscript, placeholder = '音声入力�
 
         recognition.onresult = (event: any) => {
           const result = event.results[0][0].transcript
+          console.log('[VoiceInput] 音声認識成功:', result)
           setTranscript(result)
+          console.log('[VoiceInput] onTranscript呼び出し:', result)
           onTranscript(result)
         }
 
         recognition.onerror = (event: any) => {
-          console.error('Speech recognition error:', event.error)
+          console.error('[VoiceInput] 音声認識エラー:', event.error)
           setIsListening(false)
         }
 
         recognition.onend = () => {
+          console.log('[VoiceInput] 音声認識終了')
           setIsListening(false)
+        }
+
+        recognition.onstart = () => {
+          console.log('[VoiceInput] 音声認識開始')
         }
 
         recognitionRef.current = recognition
@@ -53,14 +60,20 @@ export default function VoiceInput({ onTranscript, placeholder = '音声入力�
 
   const startListening = () => {
     if (recognitionRef.current && !isListening) {
+      console.log('[VoiceInput] 音声入力開始ボタンが押されました')
       setTranscript('')
-      recognitionRef.current.start()
-      setIsListening(true)
+      try {
+        recognitionRef.current.start()
+        setIsListening(true)
+      } catch (error) {
+        console.error('[VoiceInput] 音声認識開始エラー:', error)
+      }
     }
   }
 
   const stopListening = () => {
     if (recognitionRef.current && isListening) {
+      console.log('[VoiceInput] 音声入力停止ボタンが押されました')
       recognitionRef.current.stop()
       setIsListening(false)
     }
@@ -80,6 +93,7 @@ export default function VoiceInput({ onTranscript, placeholder = '音声入力�
       <div className="flex gap-2">
         {!isListening ? (
           <button
+            type="button"
             onClick={startListening}
             className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-bold hover:bg-blue-700 transition flex items-center justify-center gap-2"
           >
@@ -87,6 +101,7 @@ export default function VoiceInput({ onTranscript, placeholder = '音声入力�
           </button>
         ) : (
           <button
+            type="button"
             onClick={stopListening}
             className="flex-1 bg-red-600 text-white py-3 px-6 rounded-lg font-bold hover:bg-red-700 transition flex items-center justify-center gap-2 animate-pulse"
           >
@@ -96,20 +111,24 @@ export default function VoiceInput({ onTranscript, placeholder = '音声入力�
       </div>
 
       {transcript && (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <p className="text-sm text-gray-600 mb-1">認識結果:</p>
+        <div className="bg-green-50 border-2 border-green-500 rounded-lg p-4">
+          <p className="text-sm text-green-700 font-bold mb-1">✓ 認識成功（メモ欄に追加されました）:</p>
           <p className="text-lg font-bold text-gray-800">{transcript}</p>
         </div>
       )}
 
       {isListening && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-          <p className="text-sm text-blue-800 text-center">🎤 聞き取り中...</p>
+          <p className="text-sm text-blue-800 text-center font-bold">🎤 聞き取り中...話してください</p>
         </div>
       )}
 
       {!transcript && !isListening && (
-        <p className="text-xs text-gray-500 text-center">{placeholder}</p>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+          <p className="text-xs text-gray-600 text-center">
+            💡 「音声入力開始」ボタンを押して話すと、メモ欄に自動で追加されます
+          </p>
+        </div>
       )}
     </div>
   )
