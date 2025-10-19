@@ -27,7 +27,16 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
   const [isRealtime, setIsRealtime] = useState(false)
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null)
   const [selectedTagDetail, setSelectedTagDetail] = useState<TriageTag | null>(null)
+  const [isMapCollapsed, setIsMapCollapsed] = useState(false)
   const supabase = createClient()
+
+  // ローカルストレージから地図の折り畳み状態を復元
+  useEffect(() => {
+    const savedState = localStorage.getItem('commandDashboard_mapCollapsed')
+    if (savedState !== null) {
+      setIsMapCollapsed(savedState === 'true')
+    }
+  }, [])
 
   // Supabase Realtimeでデータベース変更を購読
   useEffect(() => {
@@ -73,6 +82,13 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
     red: tags.filter(t => t.triage_category.final === 'red').length,
     yellow: tags.filter(t => t.triage_category.final === 'yellow').length,
     green: tags.filter(t => t.triage_category.final === 'green').length,
+  }
+
+  // 地図の折り畳み/展開を切り替え
+  const toggleMapCollapse = () => {
+    const newState = !isMapCollapsed
+    setIsMapCollapsed(newState)
+    localStorage.setItem('commandDashboard_mapCollapsed', String(newState))
   }
 
   return (
@@ -145,40 +161,69 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
           </button>
         </div>
 
-        {/* 地図表示 */}
+        {/* 地図表示（折り畳み可能） */}
         <div className="card mb-6">
-          <h2 className="text-xl font-bold mb-4">患者位置マップ</h2>
-          <TriageMap
-            patients={tags
-              .filter(tag => tag.location && tag.location.latitude && tag.location.longitude)
-              .map(tag => ({
-                id: tag.id,
-                position: [tag.location.latitude, tag.location.longitude] as [number, number],
-                category: tag.triage_category.final,
-                tagNumber: tag.tag_number,
-                anonymousId: tag.anonymous_id,
-              }))}
-            center={
-              tags.length > 0 && tags[0].location
-                ? [tags[0].location.latitude, tags[0].location.longitude] as [number, number]
-                : undefined
-            }
-            onMarkerClick={(patientId) => {
-              setSelectedPatientId(patientId)
-              // スクロールして該当患者の詳細を表示
-              const element = document.getElementById(`patient-${patientId}`)
-              if (element) {
-                element.scrollIntoView({ behavior: 'smooth', block: 'center' })
-                element.classList.add('ring-4', 'ring-blue-500')
-                setTimeout(() => {
-                  element.classList.remove('ring-4', 'ring-blue-500')
-                }, 3000)
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold">患者位置マップ</h2>
+            <button
+              onClick={toggleMapCollapse}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-bold text-gray-700 transition"
+            >
+              {isMapCollapsed ? (
+                <>
+                  <span>▼ 展開</span>
+                </>
+              ) : (
+                <>
+                  <span>▲ 折りたたむ</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          <div
+            className={`overflow-hidden transition-all duration-300 ease-in-out ${
+              isMapCollapsed ? 'max-h-0 opacity-0' : 'max-h-[600px] opacity-100'
+            }`}
+          >
+            <TriageMap
+              patients={tags
+                .filter(tag => tag.location && tag.location.latitude && tag.location.longitude)
+                .map(tag => ({
+                  id: tag.id,
+                  position: [tag.location.latitude, tag.location.longitude] as [number, number],
+                  category: tag.triage_category.final,
+                  tagNumber: tag.tag_number,
+                  anonymousId: tag.anonymous_id,
+                }))}
+              center={
+                tags.length > 0 && tags[0].location
+                  ? [tags[0].location.latitude, tags[0].location.longitude] as [number, number]
+                  : undefined
               }
-            }}
-          />
-          <p className="text-sm text-gray-600 mt-2">
-            地図上のマーカーをクリックすると、患者詳細が表示されます。
-          </p>
+              onMarkerClick={(patientId) => {
+                setSelectedPatientId(patientId)
+                // スクロールして該当患者の詳細を表示
+                const element = document.getElementById(`patient-${patientId}`)
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                  element.classList.add('ring-4', 'ring-blue-500')
+                  setTimeout(() => {
+                    element.classList.remove('ring-4', 'ring-blue-500')
+                  }, 3000)
+                }
+              }}
+            />
+            <p className="text-sm text-gray-600 mt-2">
+              地図上のマーカーをクリックすると、患者詳細が表示されます。
+            </p>
+          </div>
+
+          {isMapCollapsed && (
+            <p className="text-sm text-gray-500 text-center py-4">
+              地図を折りたたんでいます。「▼ 展開」をクリックして表示できます。
+            </p>
+          )}
         </div>
 
         {/* トリアージタグリスト */}

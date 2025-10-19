@@ -7,6 +7,8 @@ import QRScanner from '@/components/QRScanner'
 import StartWizard, { StartTriageResult } from '@/components/StartWizard'
 import VoiceInput from '@/components/VoiceInput'
 import LogoutButton from '@/components/LogoutButton'
+import ContactPointManager from '@/components/ContactPointManager'
+import ImageUploader from '@/components/ImageUploader'
 
 type Step = 'qr' | 'start' | 'vitals' | 'info' | 'confirm'
 
@@ -38,6 +40,18 @@ export default function TriageScanPage() {
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [contactPoint, setContactPoint] = useState('')
+  const [contactPoints, setContactPoints] = useState<string[]>([])
+  const [eventId, setEventId] = useState<string | null>(null)
+  const [isContactPointModalOpen, setIsContactPointModalOpen] = useState(false)
+  const [uploadedImages, setUploadedImages] = useState<Array<{
+    id: string
+    url: string
+    type: 'wound' | 'scene' | 'body_diagram' | 'other'
+    compressed_size: number
+    taken_at: string
+  }>>([])
+  const [anonymousId, setAnonymousId] = useState('')
 
   // GPS位置情報を取得
   useEffect(() => {
@@ -80,6 +94,37 @@ export default function TriageScanPage() {
     console.log('[TriageScanPage] notes changed to:', notes)
   }, [notes])
 
+  // イベントIDと接触地点リストを取得
+  useEffect(() => {
+    loadEventData()
+  }, [])
+
+  const loadEventData = async () => {
+    try {
+      // 最初のアクティブなイベントを取得
+      const { data: events, error: eventsError } = await supabase
+        .from('events')
+        .select('id, contact_points')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      if (eventsError) throw eventsError
+
+      if (events && events.length > 0) {
+        setEventId(events[0].id)
+        setContactPoints(events[0].contact_points || [])
+      }
+    } catch (err) {
+      console.error('イベントデータの取得エラー:', err)
+    }
+  }
+
+  const handleContactPointsUpdate = () => {
+    // モーダルで接触地点が更新されたら再読み込み
+    loadEventData()
+  }
+
   const handleQRScanSuccess = (decodedText: string) => {
     // QRコードから タグ番号を抽出
     // 想定フォーマット: "TAG-2025-001" または単純な番号
@@ -99,6 +144,13 @@ export default function TriageScanPage() {
     console.log('[TriageScanPage] handleStartComplete called with result:', result)
     console.log('[TriageScanPage] Current step before:', currentStep)
     setTriageResult(result)
+
+    // 匿名IDを生成（まだ生成されていない場合）
+    if (!anonymousId) {
+      const newAnonymousId = `ANON-${Date.now().toString().slice(-6)}`
+      setAnonymousId(newAnonymousId)
+    }
+
     setCurrentStep('vitals')
     console.log('[TriageScanPage] Current step after:', 'vitals')
   }
@@ -134,13 +186,13 @@ export default function TriageScanPage() {
         throw new Error('イベントが見つかりません')
       }
 
-      // 匿名IDを生成
-      const anonymousId = `ANON-${Date.now().toString().slice(-6)}`
+      // 匿名IDを生成（または既存のものを使用）
+      const finalAnonymousId = anonymousId || `ANON-${Date.now().toString().slice(-6)}`
 
       // トリアージタグを登録
       const { error: insertError } = await supabase.from('triage_tags').insert({
         event_id: events.id,
-        anonymous_id: anonymousId,
+        anonymous_id: finalAnonymousId,
         tag_number: tagNumber,
         patient_info: {
           age: patientInfo.age ? parseInt(patientInfo.age) : null,
@@ -151,6 +203,7 @@ export default function TriageScanPage() {
           longitude: location.longitude,
           accuracy: location.accuracy,
           method: 'gps',
+          contact_point: contactPoint || null,
           timestamp: new Date().toISOString(),
         },
         vital_signs: {
@@ -166,6 +219,11 @@ export default function TriageScanPage() {
           start_steps: triageResult.steps,
           reasoning: triageResult.reasoning,
           timestamp: new Date().toISOString(),
+        },
+        attachments: {
+          images: uploadedImages,
+          audio_notes: [],
+          drone_images: [],
         },
         treatments: notes
           ? [
@@ -207,6 +265,9 @@ export default function TriageScanPage() {
         consciousness: 'alert',
       })
       setNotes('')
+      setContactPoint('')
+      setUploadedImages([])
+      setAnonymousId('')
       setCurrentStep('qr')
     } catch (err) {
       console.error('Registration error:', err)
@@ -305,6 +366,39 @@ export default function TriageScanPage() {
               >
                 次へ
               </button>
+            </div>
+
+            {/* 接触地点の登録ボタン */}
+            <div className="mt-4 p-4 bg-white rounded-lg shadow">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <p className="text-sm font-bold text-gray-700">接触地点の管理</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    現場内での患者発見位置を登録できます
+                  </p>
+                </div>
+                <button
+                  onClick={() => setIsContactPointModalOpen(true)}
+                  className="bg-purple-600 text-white py-2 px-4 rounded-lg font-bold hover:bg-purple-700 transition whitespace-nowrap"
+                >
+                  📍 管理
+                </button>
+              </div>
+              {contactPoints.length > 0 && (
+                <div className="bg-gray-50 border border-gray-200 rounded p-3">
+                  <p className="text-xs text-gray-600 mb-1">登録済み: {contactPoints.length}件</p>
+                  <div className="flex flex-wrap gap-1">
+                    {contactPoints.map((point, index) => (
+                      <span
+                        key={index}
+                        className="inline-block bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs font-bold"
+                      >
+                        {point}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -444,6 +538,28 @@ export default function TriageScanPage() {
                 </select>
               </div>
 
+              {/* 接触地点選択（登録済みの場合のみ表示） */}
+              {contactPoints.length > 0 && (
+                <div>
+                  <label className="block text-sm font-bold mb-2">接触地点（任意）</label>
+                  <select
+                    value={contactPoint}
+                    onChange={(e) => setContactPoint(e.target.value)}
+                    className="input"
+                  >
+                    <option value="">選択しない</option>
+                    {contactPoints.map((point, index) => (
+                      <option key={index} value={point}>
+                        {point}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    現場内での患者発見位置を選択できます
+                  </p>
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-bold mb-2">メモ・所見</label>
                 <textarea
@@ -451,6 +567,17 @@ export default function TriageScanPage() {
                   onChange={(e) => setNotes(e.target.value)}
                   className="input min-h-[100px]"
                   placeholder="外傷の状態、意識レベルの変化など"
+                />
+              </div>
+
+              <div className="border-t pt-4">
+                <label className="block text-sm font-bold mb-2">📷 画像アップロード（任意）</label>
+                <p className="text-xs text-gray-500 mb-3">
+                  外傷・現場状況などの写真を最大5枚まで添付できます
+                </p>
+                <ImageUploader
+                  tagId={anonymousId || tagNumber}
+                  onUploadComplete={(images) => setUploadedImages(images)}
                 />
               </div>
 
@@ -529,10 +656,39 @@ export default function TriageScanPage() {
                 </ul>
               </div>
 
+              {contactPoint && (
+                <div className="border-b pb-3">
+                  <p className="text-sm text-gray-600">接触地点</p>
+                  <p className="text-sm mt-1 font-bold text-purple-700">📍 {contactPoint}</p>
+                </div>
+              )}
+
               {notes && (
                 <div className="border-b pb-3">
                   <p className="text-sm text-gray-600">メモ</p>
                   <p className="text-sm mt-1">{notes}</p>
+                </div>
+              )}
+
+              {uploadedImages.length > 0 && (
+                <div className="border-b pb-3">
+                  <p className="text-sm text-gray-600 mb-2">添付画像（{uploadedImages.length}枚）</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {uploadedImages.map((image, index) => (
+                      <div key={image.id} className="relative">
+                        <img
+                          src={image.url}
+                          alt={`添付画像 ${index + 1}`}
+                          className="w-full h-24 object-cover rounded border border-gray-200"
+                        />
+                        <span className="absolute top-1 right-1 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+                          {image.type === 'wound' ? '外傷' :
+                           image.type === 'scene' ? '現場' :
+                           image.type === 'body_diagram' ? '身体図' : 'その他'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -566,6 +722,16 @@ export default function TriageScanPage() {
           </div>
         )}
       </main>
+
+      {/* 接触地点管理モーダル */}
+      {eventId && (
+        <ContactPointManager
+          eventId={eventId}
+          isOpen={isContactPointModalOpen}
+          onClose={() => setIsContactPointModalOpen(false)}
+          onUpdate={handleContactPointsUpdate}
+        />
+      )}
     </div>
   )
 }

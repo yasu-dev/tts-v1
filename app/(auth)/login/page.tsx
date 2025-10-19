@@ -118,7 +118,7 @@ export default function LoginPage() {
             <li>タッグ付け: tri@demo.com</li>
             <li>搬送部隊: trn@demo.com</li>
             <li>医療機関: hsp@demo.com</li>
-            <li>パスワード: 任意</li>
+            <li>パスワード: password</li>
           </ul>
         </div>
       </div>

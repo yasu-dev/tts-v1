@@ -204,6 +204,45 @@ export default function PatientDetailModal({ tag, onClose }: PatientDetailModalP
             </section>
           )}
 
+          {/* 添付画像 */}
+          {tag.attachments?.images && tag.attachments.images.length > 0 && (
+            <section>
+              <h3 className="text-lg font-bold mb-3 border-b pb-2">
+                📷 添付画像（{tag.attachments.images.length}枚）
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {tag.attachments.images.map((image, index) => (
+                  <div key={image.id} className="relative group">
+                    <img
+                      src={image.url}
+                      alt={`添付画像 ${index + 1}`}
+                      className="w-full h-48 object-cover rounded-lg border border-gray-200 cursor-pointer hover:opacity-90 transition"
+                      onClick={() => window.open(image.url, '_blank')}
+                    />
+                    <div className="absolute top-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+                      {image.type === 'wound' ? '外傷' :
+                       image.type === 'scene' ? '現場' :
+                       image.type === 'body_diagram' ? '身体図' : 'その他'}
+                    </div>
+                    <div className="absolute bottom-2 left-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+                      {new Date(image.taken_at).toLocaleString('ja-JP', {
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </div>
+                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded-lg flex items-center justify-center">
+                      <span className="text-white opacity-0 group-hover:opacity-100 transition font-bold">
+                        クリックで拡大
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* 搬送情報 */}
           <section>
             <h3 className="text-lg font-bold mb-3 border-b pb-2">搬送情報</h3>
@@ -254,6 +293,14 @@ export default function PatientDetailModal({ tag, onClose }: PatientDetailModalP
           <section>
             <h3 className="text-lg font-bold mb-3 border-b pb-2">位置情報</h3>
             <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+              {tag.location.contact_point && (
+                <div className="flex items-center gap-2 mb-3 pb-3 border-b border-gray-300">
+                  <span className="text-sm text-gray-600 min-w-[80px]">接触地点:</span>
+                  <span className="font-bold text-purple-700 bg-purple-100 px-3 py-1 rounded">
+                    📍 {tag.location.contact_point}
+                  </span>
+                </div>
+              )}
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-600 min-w-[80px]">緯度:</span>
                 <span className="font-mono">{tag.location.latitude.toFixed(6)}</span>

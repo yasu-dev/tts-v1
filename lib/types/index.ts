@@ -13,6 +13,7 @@ export interface Event {
   } | null
   communication_mode: 'normal' | 'satellite' | 'mesh' | 'offline'
   status: 'preparing' | 'active' | 'closing' | 'archived'
+  contact_points?: string[]  // 接触地点リスト（例：["バスの右前方", "対向車線", "歩道側"]）
   created_by: string
   created_at: string
   updated_at: string
@@ -43,6 +44,7 @@ export interface TriageTag {
     method: 'gps' | 'wifi' | 'manual' | 'estimated'
     address?: string
     area_grid?: string
+    contact_point?: string  // 発見された接触地点（例："バスの右前方"）
     timestamp: string
   }
   

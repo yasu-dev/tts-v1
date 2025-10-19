@@ -16,6 +16,7 @@ test.describe('ログイン機能', () => {
 
     // デモアカウント情報の表示確認
     await expect(page.locator('text=デモアカウント')).toBeVisible()
+    await expect(page.locator('text=パスワード: password')).toBeVisible()
   })
 
   test('空のフォームで送信時にエラーが表示される', async ({ page }) => {
