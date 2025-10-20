@@ -112,12 +112,13 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
       // ローカル状態を即座に更新
       setPatients(prevPatients => 
         prevPatients.map(patient => 
-          patient.id === tagId 
+          patient.id === tagId && patient.transport_assignment
             ? {
                 ...patient,
                 transport_assignment: {
-                  ...patient.transport_assignment,
-                  status: status,
+                  team: patient.transport_assignment.team,
+                  status: status as 'assigned' | 'in_progress' | 'completed',
+                  assigned_at: patient.transport_assignment.assigned_at,
                   updated_at: new Date().toISOString(),
                 },
                 updated_at: new Date().toISOString(),
