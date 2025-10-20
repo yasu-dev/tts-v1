@@ -36,8 +36,6 @@ export default function StartWizard({ onComplete, onCancel }: StartWizardProps) 
   })
 
   const handleAnswer = (answer: boolean) => {
-    console.log(`[StartWizard] Step ${step}: Answer = ${answer}`)
-
     const newResult = { ...result }
     const newHistory = [...answerHistory, {
       step,
@@ -52,7 +50,6 @@ export default function StartWizard({ onComplete, onCancel }: StartWizardProps) 
         if (answer) {
           newResult.category = 'green'
           newResult.reasoning = '歩行可能'
-          console.log('[StartWizard] Completing with GREEN tag:', newResult)
           onComplete(newResult)
           return
         } else {
@@ -66,7 +63,6 @@ export default function StartWizard({ onComplete, onCancel }: StartWizardProps) 
         if (!answer) {
           newResult.category = 'black'
           newResult.reasoning = '呼吸なし'
-          console.log('[StartWizard] Completing with BLACK tag:', newResult)
           onComplete(newResult)
           return
         } else {
@@ -80,7 +76,6 @@ export default function StartWizard({ onComplete, onCancel }: StartWizardProps) 
           newResult.steps.respiratory_rate_range = '>=30'
           newResult.category = 'red'
           newResult.reasoning = '呼吸数異常（30回/分以上）'
-          console.log('[StartWizard] Completing with RED tag:', newResult)
           onComplete(newResult)
           return
         } else {
@@ -95,7 +90,6 @@ export default function StartWizard({ onComplete, onCancel }: StartWizardProps) 
         if (!answer) {
           newResult.category = 'red'
           newResult.reasoning = '橈骨動脈触知不可'
-          console.log('[StartWizard] Completing with RED tag:', newResult)
           onComplete(newResult)
           return
         } else {
@@ -109,13 +103,11 @@ export default function StartWizard({ onComplete, onCancel }: StartWizardProps) 
         if (!answer) {
           newResult.category = 'red'
           newResult.reasoning = '意識レベル低下'
-          console.log('[StartWizard] Completing with RED tag:', newResult)
           onComplete(newResult)
           return
         } else {
           newResult.category = 'yellow'
           newResult.reasoning = '全項目該当せず、遅延治療群'
-          console.log('[StartWizard] Completing with YELLOW tag:', newResult)
           onComplete(newResult)
           return
         }
@@ -149,8 +141,6 @@ export default function StartWizard({ onComplete, onCancel }: StartWizardProps) 
           break
       }
       setResult(newResult)
-
-      console.log(`[StartWizard] Going back to step ${previousStep}`)
     }
   }
 
@@ -258,7 +248,7 @@ export default function StartWizard({ onComplete, onCancel }: StartWizardProps) 
             onClick={onCancel}
             className={`${step > 1 ? 'flex-1' : 'w-full'} bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition`}
           >
-            最初からやり直す
+            QRスキャンに戻る
           </button>
         )}
       </div>

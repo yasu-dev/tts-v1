@@ -55,7 +55,7 @@ export default async function HospitalPage() {
     .order('created_at', { ascending: true })
 
   if (tagsError) {
-    console.error('Error fetching triage tags:', tagsError)
+    // console.error('Error fetching triage tags:', tagsError)
   }
 
   const incomingPatients = (triageTags || []) as TriageTag[]

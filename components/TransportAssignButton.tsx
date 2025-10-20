@@ -47,10 +47,8 @@ export default function TransportAssignButton({ tag }: TransportAssignButtonProp
       alert(`${selectedTeam}に搬送指示を出しました`)
       setShowModal(false)
       setSelectedTeam('')
-      // ページをリロードして最新状態を反映
-      window.location.reload()
+      // リアルタイム更新に依存（ページリロードは削除）
     } catch (error) {
-      console.error('Error assigning transport team:', error)
       alert('搬送部隊の割り当てに失敗しました')
     } finally {
       setLoading(false)

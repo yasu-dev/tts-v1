@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import QRScanner from '@/components/QRScanner'
@@ -17,7 +17,11 @@ export default function TriageScanPage() {
   const supabase = createClient()
 
   // ステップ管理
-  const [currentStep, setCurrentStep] = useState<Step>('qr')
+  const [currentStep, setCurrentStepInternal] = useState<Step>('qr')
+  
+  const setCurrentStep = (step: Step) => {
+    setCurrentStepInternal(step)
+  }
 
   // フォームデータ
   const [tagNumber, setTagNumber] = useState('')
@@ -44,6 +48,7 @@ export default function TriageScanPage() {
   const [contactPoints, setContactPoints] = useState<string[]>([])
   const [eventId, setEventId] = useState<string | null>(null)
   const [isContactPointModalOpen, setIsContactPointModalOpen] = useState(false)
+  const [isContactPointSectionExpanded, setIsContactPointSectionExpanded] = useState(false)
   const [uploadedImages, setUploadedImages] = useState<Array<{
     id: string
     url: string
@@ -65,7 +70,6 @@ export default function TriageScanPage() {
           })
         },
         (error) => {
-          console.error('位置情報取得エラー:', error)
           // デモ用デフォルト位置（東京消防庁本部付近）
           setLocation({
             latitude: 35.6895,
@@ -84,15 +88,6 @@ export default function TriageScanPage() {
     }
   }, [])
 
-  // currentStepの変更を監視（デバッグ用）
-  useEffect(() => {
-    console.log('[TriageScanPage] currentStep changed to:', currentStep)
-  }, [currentStep])
-
-  // notesの変更を監視（デバッグ用）
-  useEffect(() => {
-    console.log('[TriageScanPage] notes changed to:', notes)
-  }, [notes])
 
   // イベントIDと接触地点リストを取得
   useEffect(() => {
@@ -116,7 +111,6 @@ export default function TriageScanPage() {
         setContactPoints(events[0].contact_points || [])
       }
     } catch (err) {
-      console.error('イベントデータの取得エラー:', err)
     }
   }
 
@@ -126,34 +120,56 @@ export default function TriageScanPage() {
   }
 
   const handleQRScanSuccess = (decodedText: string) => {
+    // すでに処理済みの場合は無視
+    if (currentStep !== 'qr') {
+      return
+    }
+    
     // QRコードから タグ番号を抽出
-    // 想定フォーマット: "TAG-2025-001" または単純な番号
-    const tagMatch = decodedText.match(/(?:TAG-)?(\d{4}-\d{3})/) || decodedText.match(/(\d+)/)
-    if (tagMatch) {
-      const extractedTag = tagMatch[1]
-      setTagNumber(`T-2025-${String(extractedTag).padStart(3, '0')}`)
-      setCurrentStep('start')
-    } else {
-      // デモ用：QRコードの内容をそのまま使用
+    // 想定フォーマット: "T-2025-001", "TAG-2025-001" または単純な番号
+    
+    // 既に正しいフォーマットの場合はそのまま使用
+    if (decodedText.match(/^T-\d{4}-\d{3}$/)) {
       setTagNumber(decodedText)
       setCurrentStep('start')
+      return
     }
+    
+    // TAG-付きのフォーマットの場合
+    const tagMatch = decodedText.match(/^TAG-(\d{4}-\d{3})$/)
+    if (tagMatch) {
+      setTagNumber(`T-${tagMatch[1]}`)
+      setCurrentStep('start')
+      return
+    }
+    
+    // 単純な番号の場合
+    const numberMatch = decodedText.match(/^(\d+)$/)
+    if (numberMatch) {
+      const paddedNumber = String(numberMatch[1]).padStart(3, '0')
+      setTagNumber(`T-2025-${paddedNumber}`)
+      setCurrentStep('start')
+      return
+    }
+    
+    // どのパターンにもマッチしない場合はそのまま使用
+    setTagNumber(decodedText)
+    setCurrentStep('start')
   }
 
-  const handleStartComplete = (result: StartTriageResult) => {
-    console.log('[TriageScanPage] handleStartComplete called with result:', result)
-    console.log('[TriageScanPage] Current step before:', currentStep)
-    setTriageResult(result)
-
+  const handleStartComplete = useCallback((result: StartTriageResult) => {
     // 匿名IDを生成（まだ生成されていない場合）
-    if (!anonymousId) {
-      const newAnonymousId = `ANON-${Date.now().toString().slice(-6)}`
-      setAnonymousId(newAnonymousId)
+    let finalAnonymousId = anonymousId
+    if (!finalAnonymousId) {
+      finalAnonymousId = `ANON-${Date.now().toString().slice(-6)}`
+      setAnonymousId(finalAnonymousId)
     }
 
+    // 先にtriageResultを設定
+    setTriageResult(result)
+    // その後でcurrentStepを更新
     setCurrentStep('vitals')
-    console.log('[TriageScanPage] Current step after:', 'vitals')
-  }
+  }, [anonymousId])
 
   const handleVitalSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -189,7 +205,7 @@ export default function TriageScanPage() {
       // 匿名IDを生成（または既存のものを使用）
       const finalAnonymousId = anonymousId || `ANON-${Date.now().toString().slice(-6)}`
 
-      // トリアージタグを登録
+      // トリアージタッグを登録
       const { error: insertError } = await supabase.from('triage_tags').insert({
         event_id: events.id,
         anonymous_id: finalAnonymousId,
@@ -249,28 +265,11 @@ export default function TriageScanPage() {
         throw insertError
       }
 
-      alert('トリアージタグを登録しました')
+      alert('トリアージタッグを登録しました')
 
       // フォームをリセットして最初の画面に戻る
-      setTagNumber('')
-      setTriageResult(null)
-      setPatientInfo({
-        age: '',
-        sex: 'unknown',
-      })
-      setVitalSigns({
-        respiratory_rate: '',
-        pulse_rate: '',
-        systolic_bp: '',
-        consciousness: 'alert',
-      })
-      setNotes('')
-      setContactPoint('')
-      setUploadedImages([])
-      setAnonymousId('')
-      setCurrentStep('qr')
+      resetForm()
     } catch (err) {
-      console.error('Registration error:', err)
       setError(err instanceof Error ? err.message : '登録に失敗しました')
     } finally {
       setLoading(false)
@@ -278,13 +277,30 @@ export default function TriageScanPage() {
   }
 
   const handleVoiceTranscript = (text: string) => {
-    console.log('[TriageScanPage] handleVoiceTranscript called with:', text)
-    console.log('[TriageScanPage] Current notes before:', notes)
     setNotes((prev) => {
       const newNotes = prev ? `${prev} ${text}` : text
-      console.log('[TriageScanPage] New notes after:', newNotes)
       return newNotes
     })
+  }
+
+  const resetForm = () => {
+    setTagNumber('')
+    setTriageResult(null)
+    setPatientInfo({
+      age: '',
+      sex: 'unknown',
+    })
+    setVitalSigns({
+      respiratory_rate: '',
+      pulse_rate: '',
+      systolic_bp: '',
+      consciousness: 'alert',
+    })
+    setNotes('')
+    setContactPoint('')
+    setUploadedImages([])
+    setAnonymousId('')
+    setCurrentStep('qr')
   }
 
   return (
@@ -370,35 +386,62 @@ export default function TriageScanPage() {
 
             {/* 接触地点の登録ボタン */}
             <div className="mt-4 p-4 bg-white rounded-lg shadow">
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-4">
                 <div>
-                  <p className="text-sm font-bold text-gray-700">接触地点の管理</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    現場内での患者発見位置を登録できます
-                  </p>
+                  <h3 className="text-lg font-bold">接触地点の管理</h3>
+                  {contactPoints.length > 0 && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      登録済み: {contactPoints.length}件
+                    </p>
+                  )}
                 </div>
                 <button
-                  onClick={() => setIsContactPointModalOpen(true)}
-                  className="bg-purple-600 text-white py-2 px-4 rounded-lg font-bold hover:bg-purple-700 transition whitespace-nowrap"
+                  onClick={() => setIsContactPointSectionExpanded(!isContactPointSectionExpanded)}
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-bold text-gray-700 transition"
                 >
-                  管理
+                  {isContactPointSectionExpanded ? (
+                    <span>▲ 折りたたむ</span>
+                  ) : (
+                    <span>▼ 展開</span>
+                  )}
                 </button>
               </div>
-              {contactPoints.length > 0 && (
-                <div className="bg-gray-50 border border-gray-200 rounded p-3">
-                  <p className="text-xs text-gray-600 mb-1">登録済み: {contactPoints.length}件</p>
-                  <div className="flex flex-wrap gap-1">
-                    {contactPoints.map((point, index) => (
-                      <span
-                        key={index}
-                        className="inline-block bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs font-bold"
-                      >
-                        {point}
-                      </span>
-                    ))}
+              
+              <div
+                className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                  isContactPointSectionExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                }`}
+              >
+                <div className="space-y-3">
+                  <p className="text-xs text-gray-600">
+                    現場内での患者発見位置を登録・管理できます
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">接触地点設定</span>
+                    <button
+                      onClick={() => setIsContactPointModalOpen(true)}
+                      className="bg-purple-600 text-white py-2 px-4 rounded-lg font-bold hover:bg-purple-700 transition whitespace-nowrap"
+                    >
+                      管理
+                    </button>
                   </div>
+                  {contactPoints.length > 0 && (
+                    <div className="bg-gray-50 border border-gray-200 rounded p-3">
+                      <p className="text-xs text-gray-600 mb-2">登録済み接触地点:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {contactPoints.map((point, index) => (
+                          <span
+                            key={index}
+                            className="inline-block bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs font-bold"
+                          >
+                            {point}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           </div>
         )}
@@ -410,27 +453,40 @@ export default function TriageScanPage() {
               <p className="text-sm text-gray-600">タグ番号: {tagNumber}</p>
             </div>
             <StartWizard
+              key={`start-wizard-${tagNumber}`}
               onComplete={handleStartComplete}
-              onCancel={() => setCurrentStep('qr')}
+              onCancel={() => {
+                resetForm()
+              }}
             />
           </div>
         )}
 
         {/* ステップ3: バイタルサイン入力 */}
-        {currentStep === 'vitals' && triageResult && (
+        {currentStep === 'vitals' && (
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="mb-6">
-              <h2 className="text-xl font-bold mb-2">バイタルサイン入力</h2>
-              <div className="inline-block px-4 py-2 rounded-lg font-bold" style={{
-                backgroundColor: ['black', 'red', 'yellow', 'green'][['black', 'red', 'yellow', 'green'].indexOf(triageResult.category)] === 'black' ? '#000' :
-                                 ['black', 'red', 'yellow', 'green'][['black', 'red', 'yellow', 'green'].indexOf(triageResult.category)] === 'red' ? '#ef4444' :
-                                 ['black', 'red', 'yellow', 'green'][['black', 'red', 'yellow', 'green'].indexOf(triageResult.category)] === 'yellow' ? '#eab308' : '#22c55e',
-                color: triageResult.category === 'yellow' ? '#000' : '#fff'
-              }}>
-                判定: {triageResult.category === 'black' ? '黒（死亡）' :
-                      triageResult.category === 'red' ? '赤（重症）' :
-                      triageResult.category === 'yellow' ? '黄（中等症）' : '緑（軽症）'}
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-xl font-bold">バイタルサイン入力</h2>
+                <button
+                  onClick={() => setCurrentStep('qr')}
+                  className="bg-gray-300 text-gray-700 py-2 px-4 rounded-lg font-bold hover:bg-gray-400 transition text-sm"
+                >
+                  最初からやり直す
+                </button>
               </div>
+              {triageResult && (
+                <div className="inline-block px-4 py-2 rounded-lg font-bold" style={{
+                  backgroundColor: ['black', 'red', 'yellow', 'green'][['black', 'red', 'yellow', 'green'].indexOf(triageResult.category)] === 'black' ? '#000' :
+                                   ['black', 'red', 'yellow', 'green'][['black', 'red', 'yellow', 'green'].indexOf(triageResult.category)] === 'red' ? '#ef4444' :
+                                   ['black', 'red', 'yellow', 'green'][['black', 'red', 'yellow', 'green'].indexOf(triageResult.category)] === 'yellow' ? '#eab308' : '#22c55e',
+                  color: triageResult.category === 'yellow' ? '#000' : '#fff'
+                }}>
+                  判定: {triageResult.category === 'black' ? '黒（死亡）' :
+                        triageResult.category === 'red' ? '赤（重症）' :
+                        triageResult.category === 'yellow' ? '黄（中等症）' : '緑（軽症）'}
+                </div>
+              )}
             </div>
 
             <form onSubmit={handleVitalSubmit} className="space-y-4">
@@ -493,7 +549,10 @@ export default function TriageScanPage() {
               <div className="flex gap-3">
                 <button
                   type="button"
-                  onClick={() => setCurrentStep('start')}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setCurrentStep('start')
+                  }}
                   className="flex-1 bg-gray-300 text-gray-700 py-3 px-6 rounded-lg font-bold hover:bg-gray-400"
                 >
                   戻る
@@ -509,7 +568,17 @@ export default function TriageScanPage() {
         {/* ステップ4: 患者情報入力 */}
         {currentStep === 'info' && (
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-bold mb-6">患者情報・メモ</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold">患者情報・メモ</h2>
+              <button
+                onClick={() => {
+                  resetForm()
+                }}
+                className="bg-gray-300 text-gray-700 py-2 px-4 rounded-lg font-bold hover:bg-gray-400 transition text-sm"
+              >
+                最初からやり直す
+              </button>
+            </div>
 
             <form onSubmit={handleInfoSubmit} className="space-y-4">
               <div>
@@ -607,9 +676,19 @@ export default function TriageScanPage() {
         )}
 
         {/* ステップ5: 確認・登録 */}
-        {currentStep === 'confirm' && triageResult && (
+        {currentStep === 'confirm' && (
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-bold mb-6">登録内容の確認</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold">登録内容の確認</h2>
+              <button
+                onClick={() => {
+                  resetForm()
+                }}
+                className="bg-gray-300 text-gray-700 py-2 px-4 rounded-lg font-bold hover:bg-gray-400 transition text-sm"
+              >
+                最初からやり直す
+              </button>
+            </div>
 
             <div className="space-y-4">
               <div className="border-b pb-3">
@@ -617,19 +696,21 @@ export default function TriageScanPage() {
                 <p className="font-bold text-lg">{tagNumber}</p>
               </div>
 
-              <div className="border-b pb-3">
-                <p className="text-sm text-gray-600">トリアージ判定</p>
-                <p className="font-bold text-lg" style={{
-                  color: triageResult.category === 'black' ? '#000' :
-                        triageResult.category === 'red' ? '#ef4444' :
-                        triageResult.category === 'yellow' ? '#eab308' : '#22c55e'
-                }}>
-                  {triageResult.category === 'black' ? '黒（死亡）' :
-                   triageResult.category === 'red' ? '赤（重症）' :
-                   triageResult.category === 'yellow' ? '黄（中等症）' : '緑（軽症）'}
-                </p>
-                <p className="text-sm text-gray-600 mt-1">理由: {triageResult.reasoning}</p>
-              </div>
+              {triageResult && (
+                <div className="border-b pb-3">
+                  <p className="text-sm text-gray-600">トリアージ判定</p>
+                  <p className="font-bold text-lg" style={{
+                    color: triageResult.category === 'black' ? '#000' :
+                          triageResult.category === 'red' ? '#ef4444' :
+                          triageResult.category === 'yellow' ? '#eab308' : '#22c55e'
+                  }}>
+                    {triageResult.category === 'black' ? '黒（死亡）' :
+                     triageResult.category === 'red' ? '赤（重症）' :
+                     triageResult.category === 'yellow' ? '黄（中等症）' : '緑（軽症）'}
+                  </p>
+                  <p className="text-sm text-gray-600 mt-1">理由: {triageResult.reasoning}</p>
+                </div>
+              )}
 
               <div className="border-b pb-3">
                 <p className="text-sm text-gray-600">バイタルサイン</p>

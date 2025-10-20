@@ -26,7 +26,7 @@ test.describe('指揮本部ダッシュボード', () => {
 
   test('フィルター機能が動作する', async ({ page }) => {
     // 全てのタグを確認
-    const allCount = await page.locator('text=トリアージタグ一覧').textContent()
+    const allCount = await page.locator('text=トリアージタッグ一覧').textContent()
     expect(allCount).toContain('件')
 
     // 赤タグでフィルター

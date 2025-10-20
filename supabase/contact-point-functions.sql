@@ -24,4 +24,4 @@ END;
 $$;
 
 -- 関数の説明コメント
-COMMENT ON FUNCTION update_contact_point IS '指定されたイベントの全トリアージタグの接触地点を一括更新する。変更または削除時に使用。';
+COMMENT ON FUNCTION update_contact_point IS '指定されたイベントの全トリアージタッグの接触地点を一括更新する。変更または削除時に使用。';

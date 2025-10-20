@@ -6,7 +6,6 @@ import { createClient } from '@/lib/supabase/client'
 import LogoutButton from '@/components/LogoutButton'
 import PatientDetailModal from '@/components/PatientDetailModal'
 import QRScanner from '@/components/QRScanner'
-import QRScanNavigationButton from '@/components/QRScanNavigationButton'
 
 interface TransportTeamDashboardProps {
   assignedPatients: TriageTag[]
@@ -45,12 +44,13 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
           table: 'triage_tags',
         },
         async (payload) => {
-          console.log('Realtime update (transport team):', payload)
+          // console.log('Realtime update (transport team):', payload)
 
           // 搬送部隊に割り当てられた患者を再取得
           const { data, error } = await supabase
             .from('triage_tags')
             .select('*')
+            .not('transport_assignment', 'is', null)
             .order('triage_category->final', { ascending: true })
             .order('created_at', { ascending: true })
 
@@ -109,14 +109,31 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
 
       if (error) throw error
 
+      // ローカル状態を即座に更新
+      setPatients(prevPatients => 
+        prevPatients.map(patient => 
+          patient.id === tagId 
+            ? {
+                ...patient,
+                transport_assignment: {
+                  ...patient.transport_assignment,
+                  status: status,
+                  updated_at: new Date().toISOString(),
+                },
+                updated_at: new Date().toISOString(),
+              }
+            : patient
+        )
+      )
+
       if (status === 'in_progress') {
         setConfirmingPatientId(null)
         // 成功メッセージは表示しない（UIで即座に反映されるため）
       } else {
-        alert(`搬送ステータスを${status === 'completed' ? '搬送完了' : status}に更新しました`)
+        alert(`搬送ステータスを${status === 'completed' ? '応急救護所到着' : status}に更新しました`)
       }
     } catch (error) {
-      console.error('Error updating transport status:', error)
+      // console.error('Error updating transport status:', error)
       alert('ステータス更新に失敗しました')
     } finally {
       setLoading(false)
@@ -125,7 +142,7 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
 
   // QRコードスキャン処理
   const handleQRScan = async (result: string) => {
-    console.log('QR scan result:', result)
+    // console.log('QR scan result:', result)
     
     try {
       let patientId = ''
@@ -176,7 +193,7 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
       setShowQRScanner(false)
       
     } catch (error) {
-      console.error('QR scan error:', error)
+      // console.error('QR scan error:', error)
       alert('QRコードの読み取りに失敗しました')
     }
   }
@@ -202,7 +219,6 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
             >
               QRスキャン
             </button>
-            <QRScanNavigationButton />
             <LogoutButton />
           </div>
         </div>
@@ -316,7 +332,7 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
                             }`}>
                               {transportStatus === 'assigned' ? '指示済' :
                                transportStatus === 'in_progress' ? '搬送中' :
-                               transportStatus === 'completed' ? '集積地点到着' : '不明'}
+                               transportStatus === 'completed' ? '応急救護所到着' : '不明'}
                             </span>
                           </div>
                           <p className="text-xs text-gray-500">
@@ -395,7 +411,7 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
                               disabled={loading}
                               className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
                             >
-                              集積地点到着
+                              応急救護所到着
                             </button>
                           </div>
                         )}
@@ -464,7 +480,7 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
                       disabled={loading}
                       className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
                     >
-                      集積地点到着
+                      応急救護所到着
                     </button>
                   </div>
                 )}
@@ -496,7 +512,7 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
                 <QRScanner
                   onScanSuccess={handleQRScan}
                   onScanError={(error) => {
-                    console.error('QR Scanner error:', error)
+                    // console.error('QR Scanner error:', error)
                     alert('QRスキャンでエラーが発生しました')
                   }}
                 />

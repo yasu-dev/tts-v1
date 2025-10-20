@@ -102,7 +102,6 @@ export default function ImageUploader({ tagId, onUploadComplete }: ImageUploader
         })
 
       if (error) {
-        console.error('画像アップロードエラー:', error)
         alert(`${file.name} のアップロードに失敗しました`)
         continue
       }
@@ -157,7 +156,6 @@ export default function ImageUploader({ tagId, onUploadComplete }: ImageUploader
       .remove([fileName])
 
     if (error) {
-      console.error('画像削除エラー:', error)
       alert('画像の削除に失敗しました')
       return
     }

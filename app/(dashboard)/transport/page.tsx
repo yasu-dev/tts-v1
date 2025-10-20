@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic'
 export default async function TransportPage() {
   const supabase = createClient()
 
-  // 搬送待ちのトリアージタグを取得（赤・黄タグで未搬送、搬送準備中、病院搬送中のもの）
+  // 搬送待ちのトリアージタッグを取得（赤・黄タグで未搬送、搬送準備中、病院搬送中のもの）
   const { data: triageTags, error: tagsError } = await supabase
     .from('triage_tags')
     .select('*')
@@ -23,7 +23,7 @@ export default async function TransportPage() {
     .order('name')
 
   if (tagsError || hospitalsError) {
-    console.error('Error fetching data:', tagsError || hospitalsError)
+    // console.error('Error fetching data:', tagsError || hospitalsError)
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="card max-w-md">

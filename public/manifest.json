@@ -20,7 +20,7 @@
     {
       "name": "トリアージ入力",
       "short_name": "入力",
-      "description": "トリアージタグ入力",
+      "description": "トリアージタッグ入力",
       "url": "/triage/scan",
       "icons": []
     },

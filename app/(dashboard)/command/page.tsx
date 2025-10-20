@@ -7,14 +7,14 @@ export const dynamic = 'force-dynamic'
 export default async function CommandPage() {
   const supabase = createClient()
 
-  // トリアージタグを取得
+  // トリアージタッグを取得
   const { data: triageTags, error } = await supabase
     .from('triage_tags')
     .select('*')
     .order('created_at', { ascending: false })
 
   if (error) {
-    console.error('Error fetching triage tags:', error)
+    // console.error('Error fetching triage tags:', error)
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="card max-w-md">

@@ -27,24 +27,19 @@ export default function VoiceInput({ onTranscript, placeholder = '音声入力�
 
         recognition.onresult = (event: any) => {
           const result = event.results[0][0].transcript
-          console.log('[VoiceInput] 音声認識成功:', result)
           setTranscript(result)
-          console.log('[VoiceInput] onTranscript呼び出し:', result)
           onTranscript(result)
         }
 
         recognition.onerror = (event: any) => {
-          console.error('[VoiceInput] 音声認識エラー:', event.error)
           setIsListening(false)
         }
 
         recognition.onend = () => {
-          console.log('[VoiceInput] 音声認識終了')
           setIsListening(false)
         }
 
         recognition.onstart = () => {
-          console.log('[VoiceInput] 音声認識開始')
         }
 
         recognitionRef.current = recognition
@@ -60,20 +55,17 @@ export default function VoiceInput({ onTranscript, placeholder = '音声入力�
 
   const startListening = () => {
     if (recognitionRef.current && !isListening) {
-      console.log('[VoiceInput] 音声入力開始ボタンが押されました')
       setTranscript('')
       try {
         recognitionRef.current.start()
         setIsListening(true)
       } catch (error) {
-        console.error('[VoiceInput] 音声認識開始エラー:', error)
       }
     }
   }
 
   const stopListening = () => {
     if (recognitionRef.current && isListening) {
-      console.log('[VoiceInput] 音声入力停止ボタンが押されました')
       recognitionRef.current.stop()
       setIsListening(false)
     }

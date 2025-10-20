@@ -5,7 +5,7 @@ import { Hospital, TriageTag, TriageCategories } from '@/lib/types'
 import { createClient } from '@/lib/supabase/client'
 import LogoutButton from '@/components/LogoutButton'
 import PatientDetailModal from '@/components/PatientDetailModal'
-import QRScanNavigationButton from '@/components/QRScanNavigationButton'
+import QRScanner from '@/components/QRScanner'
 
 interface HospitalDashboardProps {
   hospital: Hospital
@@ -19,14 +19,22 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
   const [isRealtime, setIsRealtime] = useState(false)
   const [filter, setFilter] = useState<'all' | 'black' | 'red' | 'yellow' | 'green'>('all')
   const [selectedPatient, setSelectedPatient] = useState<TriageTag | null>(null)
-  const [isStatusUpdateCollapsed, setIsStatusUpdateCollapsed] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('hospitalDashboard_statusUpdateCollapsed') === 'true'
-    }
-    return false
-  })
+  const [isStatusUpdateCollapsed, setIsStatusUpdateCollapsed] = useState(false)
+  const [isClient, setIsClient] = useState(false)
+  const [showQRScanner, setShowQRScanner] = useState(false)
+  const [manualInput, setManualInput] = useState('')
+  const [showManualInput, setShowManualInput] = useState(false)
 
   const supabase = createClient()
+
+  // クライアントサイドでのみlocalStorageを読み込み
+  useEffect(() => {
+    setIsClient(true)
+    const savedState = localStorage.getItem('hospitalDashboard_statusUpdateCollapsed')
+    if (savedState !== null) {
+      setIsStatusUpdateCollapsed(savedState === 'true')
+    }
+  }, [])
 
   // Supabase Realtimeでデータベース変更を購読
   useEffect(() => {
@@ -41,7 +49,7 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
           table: 'triage_tags',
         },
         async (payload) => {
-          console.log('Realtime update (hospital triage):', payload)
+          // console.log('Realtime update (hospital triage):', payload)
 
           // この病院向けの搬送中患者を再取得
           const { data, error } = await supabase
@@ -72,7 +80,7 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
           filter: `id=eq.${hospital.id}`
         },
         async (payload) => {
-          console.log('Realtime update (hospital data):', payload)
+          // console.log('Realtime update (hospital data):', payload)
           // ページを再読み込みして最新情報を取得
           window.location.reload()
         }
@@ -121,7 +129,7 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
       alert('受入状況を更新しました')
       window.location.reload()
     } catch (error) {
-      console.error('Error updating hospital status:', error)
+      // console.error('Error updating hospital status:', error)
       alert('更新に失敗しました')
     } finally {
       setLoading(false)
@@ -134,7 +142,7 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
       // Get the current tag data to preserve existing transport info
       const { data: currentTag } = await supabase
         .from('triage_tags')
-        .select('transport')
+        .select('transport, transport_assignment')
         .eq('id', tagId)
         .single()
 
@@ -146,6 +154,11 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
             status: 'completed',
             arrival_time: new Date().toISOString(),
           },
+          transport_assignment: currentTag?.transport_assignment ? {
+            ...currentTag.transport_assignment,
+            status: 'completed',
+            updated_at: new Date().toISOString(),
+          } : undefined,
           updated_at: new Date().toISOString(),
         })
         .eq('id', tagId)
@@ -166,17 +179,72 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
         })
         .eq('id', hospital.id)
 
-      // 搬送完了した患者を一覧から削除
+      // 搬送完了した患者を一覧から削除（受入完了のため表示不要）
       setPatients(prevPatients => 
         prevPatients.filter(patient => patient.id !== tagId)
       )
       
       alert('患者を受け入れました')
     } catch (error) {
-      console.error('Error receiving patient:', error)
+      // console.error('Error receiving patient:', error)
       alert('受入処理に失敗しました')
     } finally {
       setLoading(false)
+    }
+  }
+
+  // QRコードスキャン処理
+  const handleQRScan = async (result: string) => {    
+    try {
+      let patientId = ''
+      
+      // 様々なQRコード形式に対応
+      try {
+        // JSON形式を試行
+        const patientData = JSON.parse(result)
+        patientId = patientData.id || patientData.patient_id || patientData.tag_id
+      } catch {
+        // 単純な文字列の場合
+        patientId = result.trim()
+      }
+      
+      if (!patientId) {
+        alert('QRコードから患者IDを取得できませんでした')
+        return
+      }
+
+      // 患者情報を取得
+      const { data: patient, error } = await supabase
+        .from('triage_tags')
+        .select('*')
+        .eq('id', patientId)
+        .single()
+
+      if (error || !patient) {
+        // IDで見つからない場合、tag_numberやanonymous_idで検索
+        const { data: patientByTag, error: tagError } = await supabase
+          .from('triage_tags')
+          .select('*')
+          .or(`tag_number.eq.${patientId},anonymous_id.eq.${patientId}`)
+          .single()
+          
+        if (tagError || !patientByTag) {
+          alert(`患者が見つかりません: ${patientId}`)
+          return
+        }
+        
+        // 患者詳細モーダルを表示
+        setSelectedPatient(patientByTag as TriageTag)
+        setShowQRScanner(false)
+        return
+      }
+
+      // 患者詳細モーダルを表示
+      setSelectedPatient(patient as TriageTag)
+      setShowQRScanner(false)
+      
+    } catch (error) {
+      alert('QRコードの読み取りに失敗しました')
     }
   }
 
@@ -195,7 +263,12 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
                 <span className="text-sm font-bold">データ更新</span>
               </div>
             )}
-            <QRScanNavigationButton />
+            <button
+              onClick={() => setShowQRScanner(true)}
+              className="bg-white text-purple-600 px-4 py-2 rounded-lg font-medium hover:bg-purple-50 transition-colors"
+            >
+              QRスキャン
+            </button>
             <LogoutButton />
           </div>
         </div>
@@ -328,7 +401,9 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
               onClick={() => {
                 const newState = !isStatusUpdateCollapsed
                 setIsStatusUpdateCollapsed(newState)
-                localStorage.setItem('hospitalDashboard_statusUpdateCollapsed', String(newState))
+                if (isClient) {
+                  localStorage.setItem('hospitalDashboard_statusUpdateCollapsed', String(newState))
+                }
               }}
               className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-bold text-gray-700 transition"
             >
@@ -474,6 +549,84 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
             )
           }
         />
+      )}
+
+      {/* QRスキャナーモーダル */}
+      {showQRScanner && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold">QRコードスキャン</h3>
+              <button
+                onClick={() => {
+                  setShowQRScanner(false)
+                  setShowManualInput(false)
+                  setManualInput('')
+                }}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            {!showManualInput ? (
+              <>
+                <QRScanner
+                  onScanSuccess={handleQRScan}
+                  onScanError={(error) => {
+                    alert('QRスキャンでエラーが発生しました')
+                  }}
+                />
+                <div className="mt-4 text-center">
+                  <button
+                    onClick={() => setShowManualInput(true)}
+                    className="text-purple-600 hover:underline text-sm"
+                  >
+                    手動入力に切り替え
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    患者IDまたはタグ番号を入力
+                  </label>
+                  <input
+                    type="text"
+                    value={manualInput}
+                    onChange={(e) => setManualInput(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    placeholder="T-2025-001 または ANON-123456"
+                    autoFocus
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      if (manualInput.trim()) {
+                        handleQRScan(manualInput.trim())
+                        setManualInput('')
+                      }
+                    }}
+                    disabled={!manualInput.trim()}
+                    className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50"
+                  >
+                    検索
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowManualInput(false)
+                      setManualInput('')
+                    }}
+                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  >
+                    QRスキャンに戻る
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   )

@@ -29,7 +29,13 @@ export default function QRScanner({ onScanSuccess, onScanError }: QRScannerProps
         },
         (decodedText) => {
           onScanSuccess(decodedText)
-          stopScanning()
+          
+          // onScanSuccess呼び出し後にスキャンを停止
+          if (scannerRef.current) {
+            scannerRef.current.stop().catch(() => {})
+            scannerRef.current.clear()
+          }
+          setIsScanning(false)
         },
         (errorMessage) => {
           // スキャンエラーは無視（スキャン中は常にエラーが発生する）
@@ -55,7 +61,6 @@ export default function QRScanner({ onScanSuccess, onScanError }: QRScannerProps
         await scannerRef.current.stop()
         scannerRef.current.clear()
       } catch (err) {
-        console.error('Scanner stop error:', err)
       }
     }
     setIsScanning(false)

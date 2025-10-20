@@ -23,8 +23,6 @@ export default class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo)
-
     // エラーをログサービスに送信（将来拡張用）
     // logErrorToService(error, errorInfo)
   }

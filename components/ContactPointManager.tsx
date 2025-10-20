@@ -41,7 +41,6 @@ export default function ContactPointManager({
       .eq('id', eventId)
 
     if (error) {
-      console.error('接触地点の追加に失敗:', error)
       alert('接触地点の追加に失敗しました')
       setIsLoading(false)
       return
@@ -74,7 +73,6 @@ export default function ContactPointManager({
       .eq('id', eventId)
 
     if (eventError) {
-      console.error('接触地点の更新に失敗:', eventError)
       alert('接触地点の更新に失敗しました')
       setIsLoading(false)
       return
@@ -88,7 +86,6 @@ export default function ContactPointManager({
     })
 
     if (rpcError) {
-      console.error('既存タグの更新に失敗:', rpcError)
       // イベント更新は成功しているので、警告のみ
       alert('既存タグの更新に失敗しましたが、接触地点リストは更新されました')
     }
@@ -116,7 +113,6 @@ export default function ContactPointManager({
       .eq('id', eventId)
 
     if (eventError) {
-      console.error('接触地点の削除に失敗:', eventError)
       alert('接触地点の削除に失敗しました')
       setIsLoading(false)
       return
@@ -130,7 +126,6 @@ export default function ContactPointManager({
     })
 
     if (rpcError) {
-      console.error('既存タグの更新に失敗:', rpcError)
       alert('既存タグの更新に失敗しましたが、接触地点リストは削除されました')
     }
 

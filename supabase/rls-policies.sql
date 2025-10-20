@@ -168,6 +168,6 @@ CREATE POLICY "user_roles_update_policy" ON user_roles
 --   WITH CHECK (auth.role() = 'authenticated');
 
 COMMENT ON POLICY "events_select_policy" ON events IS '全ユーザーが災害イベントを参照可能';
-COMMENT ON POLICY "triage_tags_select_policy" ON triage_tags IS '全認証ユーザーがトリアージタグを参照可能';
-COMMENT ON POLICY "triage_tags_insert_policy" ON triage_tags IS 'TRI, DMAT, IC, ADM がトリアージタグを作成可能';
-COMMENT ON POLICY "triage_tags_update_policy" ON triage_tags IS 'TRI, DMAT, IC, TRN, HSP, ADM がトリアージタグを更新可能';
+COMMENT ON POLICY "triage_tags_select_policy" ON triage_tags IS '全認証ユーザーがトリアージタッグを参照可能';
+COMMENT ON POLICY "triage_tags_insert_policy" ON triage_tags IS 'TRI, DMAT, IC, ADM がトリアージタッグを作成可能';
+COMMENT ON POLICY "triage_tags_update_policy" ON triage_tags IS 'TRI, DMAT, IC, TRN, HSP, ADM がトリアージタッグを更新可能';

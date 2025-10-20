@@ -298,12 +298,15 @@ export default function PatientDetailModal({ tag, onClose, actions }: PatientDet
                 </div>
               )}
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600 min-w-[80px]">緯度:</span>
-                <span className="font-mono">{tag.location.latitude.toFixed(6)}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600 min-w-[80px]">経度:</span>
-                <span className="font-mono">{tag.location.longitude.toFixed(6)}</span>
+                <span className="text-sm text-gray-600 min-w-[80px]">位置:</span>
+                <a
+                  href={`https://www.google.com/maps?q=${tag.location.latitude},${tag.location.longitude}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 underline font-mono text-sm hover:bg-blue-50 px-2 py-1 rounded transition"
+                >
+                  {tag.location.latitude.toFixed(6)}, {tag.location.longitude.toFixed(6)}
+                </a>
               </div>
               {tag.location.address && (
                 <div className="flex items-center gap-2">

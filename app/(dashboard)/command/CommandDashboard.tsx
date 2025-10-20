@@ -7,7 +7,6 @@ import dynamic from 'next/dynamic'
 import LogoutButton from '@/components/LogoutButton'
 import PatientDetailModal from '@/components/PatientDetailModal'
 import TransportAssignButton from '@/components/TransportAssignButton'
-import QRScanNavigationButton from '@/components/QRScanNavigationButton'
 
 // 地図コンポーネントを動的インポート（SSR無効化）
 const TriageMap = dynamic(() => import('@/components/TriageMap'), {
@@ -52,7 +51,7 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
           table: 'triage_tags',
         },
         async (payload) => {
-          console.log('Realtime update:', payload)
+          // console.log('Realtime update:', payload)
 
           // データを再取得
           const { data, error } = await supabase
@@ -108,7 +107,6 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
                 <span className="text-sm font-bold">データ更新</span>
               </div>
             )}
-            <QRScanNavigationButton />
             <LogoutButton />
           </div>
         </div>
@@ -223,7 +221,7 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
           </div>
         </div>
 
-        {/* トリアージタグリスト */}
+        {/* トリアージタッグリスト */}
         <div className="card">
           <h2 className="text-xl font-bold mb-4">患者一覧（{filteredTags.length}件）</h2>
           {filteredTags.length === 0 ? (
@@ -291,7 +289,7 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
                                 }`}>
                                   {status === 'assigned' ? '搬送部隊割当済' :
                                    status === 'in_progress' ? '搬送中' :
-                                   status === 'completed' ? '集積地点到着' : '不明'}
+                                   status === 'completed' ? '病院搬送完了' : '不明'}
                                 </span>
                               )
                             } else {
