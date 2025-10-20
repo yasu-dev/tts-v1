@@ -6,9 +6,10 @@ import { formatDateTime, formatShortDateTime } from '@/lib/utils/date-formatter'
 interface PatientDetailModalProps {
   tag: TriageTag | null
   onClose: () => void
+  actions?: React.ReactNode // アクションボタンをカスタマイズ可能
 }
 
-export default function PatientDetailModal({ tag, onClose }: PatientDetailModalProps) {
+export default function PatientDetailModal({ tag, onClose, actions }: PatientDetailModalProps) {
   if (!tag) return null
 
   const category = tag.triage_category.final
@@ -197,8 +198,7 @@ export default function PatientDetailModal({ tag, onClose }: PatientDetailModalP
                         {formatDateTime(treatment.performed_at)}
                       </span>
                     </div>
-                    <p className="text-sm mb-1">{treatment.description}</p>
-                    <p className="text-xs text-gray-600">実施者: {treatment.performed_by}</p>
+                    <p className="text-sm">{treatment.description}</p>
                   </div>
                 ))}
               </div>
@@ -335,7 +335,10 @@ export default function PatientDetailModal({ tag, onClose }: PatientDetailModalP
         </div>
 
         {/* フッター */}
-        <div className="sticky bottom-0 bg-white border-t p-4 flex justify-end">
+        <div className="sticky bottom-0 bg-white border-t p-4 flex justify-between items-center">
+          <div className="flex gap-2">
+            {actions}
+          </div>
           <button onClick={onClose} className="btn-primary px-6 py-2">
             閉じる
           </button>

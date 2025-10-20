@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Hospital, TriageTag, TriageCategories } from '@/lib/types'
 import { createClient } from '@/lib/supabase/client'
 import LogoutButton from '@/components/LogoutButton'
+import PatientDetailModal from '@/components/PatientDetailModal'
 
 interface HospitalDashboardProps {
   hospital: Hospital
@@ -16,12 +17,20 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
   const [patients, setPatients] = useState<TriageTag[]>(incomingPatients)
   const [isRealtime, setIsRealtime] = useState(false)
   const [filter, setFilter] = useState<'all' | 'black' | 'red' | 'yellow' | 'green'>('all')
+  const [selectedPatient, setSelectedPatient] = useState<TriageTag | null>(null)
+  const [isStatusUpdateCollapsed, setIsStatusUpdateCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('hospitalDashboard_statusUpdateCollapsed') === 'true'
+    }
+    return false
+  })
 
   const supabase = createClient()
 
   // Supabase Realtimeでデータベース変更を購読
   useEffect(() => {
-    const channel = supabase
+    // 患者データの変更を監視
+    const triageChannel = supabase
       .channel('hospital_triage_tags_changes')
       .on(
         'postgres_changes',
@@ -31,7 +40,7 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
           table: 'triage_tags',
         },
         async (payload) => {
-          console.log('Realtime update (hospital):', payload)
+          console.log('Realtime update (hospital triage):', payload)
 
           // この病院向けの搬送中患者を再取得
           const { data, error } = await supabase
@@ -50,8 +59,28 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
       )
       .subscribe()
 
+    // 病院データの変更を監視
+    const hospitalChannel = supabase
+      .channel('hospital_data_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'hospitals',
+          filter: `id=eq.${hospital.id}`
+        },
+        async (payload) => {
+          console.log('Realtime update (hospital data):', payload)
+          // ページを再読み込みして最新情報を取得
+          window.location.reload()
+        }
+      )
+      .subscribe()
+
     return () => {
-      supabase.removeChannel(channel)
+      supabase.removeChannel(triageChannel)
+      supabase.removeChannel(hospitalChannel)
     }
   }, [supabase, hospital.id])
 
@@ -136,8 +165,12 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
         })
         .eq('id', hospital.id)
 
+      // 搬送完了した患者を一覧から削除
+      setPatients(prevPatients => 
+        prevPatients.filter(patient => patient.id !== tagId)
+      )
+      
       alert('患者を受け入れました')
-      window.location.reload()
     } catch (error) {
       console.error('Error receiving patient:', error)
       alert('受入処理に失敗しました')
@@ -224,6 +257,12 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
               <p><span className="font-semibold">所在地:</span> {hospital.location.address}</p>
               <p><span className="font-semibold">緊急電話:</span> {hospital.contact.emergency_phone || hospital.contact.phone}</p>
               <p><span className="font-semibold">一般電話:</span> {hospital.contact.phone}</p>
+              {hospital.contact.email && (
+                <p><span className="font-semibold">メール:</span> {hospital.contact.email}</p>
+              )}
+              {hospital.name === '東京医科大学病院' && (
+                <p><span className="font-semibold">公式サイト:</span> <a href="https://tokyo-med-er.jp/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">https://tokyo-med-er.jp/</a></p>
+              )}
               {hospital.capabilities.has_er && (
                 <p className="text-green-600 font-semibold">✓ 救命救急センター</p>
               )}
@@ -241,7 +280,7 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
 
           <div className="card">
             <h2 className="text-xl font-bold mb-4">病床状況</h2>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-4 mb-4">
               <div className="text-center">
                 <p className="text-2xl font-bold text-blue-600">{hospital.current_load.total_capacity}</p>
                 <p className="text-xs text-gray-600">総病床数</p>
@@ -255,13 +294,60 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
                 <p className="text-xs text-gray-600">現在患者数</p>
               </div>
             </div>
+            
+            {/* 診療科別病床状況 */}
+            <div className="border-t pt-4">
+              <h3 className="font-semibold mb-3 text-gray-700">診療科別病床状況</h3>
+              <div className="space-y-2">
+                {hospital.capabilities.departments?.map((dept, index) => (
+                  <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                    <span className="text-sm font-medium">{dept.name}</span>
+                    <div className="text-xs space-x-4">
+                      <span className="text-green-600">空床: {dept.available_beds}</span>
+                      <span className="text-gray-600">使用中: {dept.occupied_beds}</span>
+                    </div>
+                  </div>
+                )) || <p className="text-sm text-gray-500">診療科情報なし</p>}
+              </div>
+            </div>
+            
+            <div className="mt-4 text-xs text-gray-500">
+              <p>病床情報更新: {new Date(hospital.current_load.last_updated).toLocaleString('ja-JP')}</p>
+              <p>総搬送受入実績: {hospital.transport_count}件</p>
+            </div>
           </div>
         </div>
 
         {/* 受入状況更新 */}
         <div className="card">
-          <h2 className="text-xl font-bold mb-4">受入状況更新</h2>
-          <div className="space-y-3">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold">受入状況更新</h2>
+            <button
+              onClick={() => {
+                const newState = !isStatusUpdateCollapsed
+                setIsStatusUpdateCollapsed(newState)
+                localStorage.setItem('hospitalDashboard_statusUpdateCollapsed', String(newState))
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-bold text-gray-700 transition"
+            >
+              {isStatusUpdateCollapsed ? (
+                <>
+                  <span>▼ 展開</span>
+                </>
+              ) : (
+                <>
+                  <span>▲ 折りたたむ</span>
+                </>
+              )}
+            </button>
+          </div>
+          
+          <div
+            className={`overflow-hidden transition-all duration-300 ease-in-out ${
+              isStatusUpdateCollapsed ? 'max-h-0 opacity-0' : 'max-h-96 opacity-100'
+            }`}
+          >
+            <div className="space-y-3">
             <div>
               <label className="block text-sm font-medium mb-2">受入可否</label>
               <select
@@ -290,6 +376,7 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
             >
               {loading ? '更新中...' : '状況を更新'}
             </button>
+            </div>
           </div>
         </div>
 
@@ -324,10 +411,12 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
                             <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                               tag.transport.status === 'in_transit' ? 'bg-blue-100 text-blue-800' :
                               tag.transport.status === 'arrived' ? 'bg-green-100 text-green-800' :
+                              tag.transport.status === 'completed' ? 'bg-gray-600 text-white' :
                               'bg-gray-100 text-gray-800'
                             }`}>
                               {tag.transport.status === 'in_transit' ? '搬送中' :
-                               tag.transport.status === 'arrived' ? '到着済' : '不明'}
+                               tag.transport.status === 'arrived' ? '到着済' :
+                               tag.transport.status === 'completed' ? '搬送完了' : '不明'}
                             </span>
                           </div>
                           {tag.transport.departure_time && (
@@ -337,13 +426,23 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
                           )}
                         </div>
                       </div>
-                      <button
-                        onClick={() => handleReceivePatient(tag.id)}
-                        disabled={loading}
-                        className="btn-primary disabled:opacity-50"
-                      >
-                        受入完了
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setSelectedPatient(tag)}
+                          className="px-4 py-2 text-blue-600 border border-blue-600 rounded hover:bg-blue-50"
+                        >
+                          詳細
+                        </button>
+                        {tag.transport.status !== 'completed' && (
+                          <button
+                            onClick={() => handleReceivePatient(tag.id)}
+                            disabled={loading}
+                            className="btn-primary disabled:opacity-50"
+                          >
+                            受入完了
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )
@@ -352,6 +451,28 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
           )}
         </div>
       </main>
+
+      {/* 患者詳細モーダル */}
+      {selectedPatient && (
+        <PatientDetailModal
+          tag={selectedPatient}
+          onClose={() => setSelectedPatient(null)}
+          actions={
+            selectedPatient.transport.status !== 'completed' && (
+              <button
+                onClick={() => {
+                  handleReceivePatient(selectedPatient.id)
+                  setSelectedPatient(null)
+                }}
+                disabled={loading}
+                className="btn-primary disabled:opacity-50"
+              >
+                受入完了
+              </button>
+            )
+          }
+        />
+      )}
     </div>
   )
 }

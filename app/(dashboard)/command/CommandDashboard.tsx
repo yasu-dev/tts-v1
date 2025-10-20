@@ -253,7 +253,28 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
                         </div>
                         <div className="flex items-center gap-2">
                           <p className="text-xs text-gray-500">
-                            現在地: {tag.location.address || `${tag.location.latitude}, ${tag.location.longitude}` || '位置情報なし'}
+                            現在地: 
+                            {tag.location.address ? (
+                              <a 
+                                href={`https://www.google.com/maps?q=${tag.location.latitude},${tag.location.longitude}`}
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline ml-1"
+                              >
+                                {tag.location.address}
+                              </a>
+                            ) : tag.location.latitude && tag.location.longitude ? (
+                              <a 
+                                href={`https://www.google.com/maps?q=${tag.location.latitude},${tag.location.longitude}`}
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline ml-1"
+                              >
+                                {tag.location.latitude}, {tag.location.longitude}
+                              </a>
+                            ) : (
+                              <span className="ml-1">位置情報なし</span>
+                            )}
                           </p>
                           {/* 搬送状態バッジ */}
                           {(() => {
@@ -322,6 +343,18 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
       <PatientDetailModal
         tag={selectedTagDetail}
         onClose={() => setSelectedTagDetail(null)}
+        actions={selectedTagDetail && (
+          <>
+            {(selectedTagDetail.transport.status === 'not_transported' || selectedTagDetail.transport.status === 'preparing') && !selectedTagDetail.transport_assignment && (
+              <TransportAssignButton tag={selectedTagDetail} />
+            )}
+            {selectedTagDetail.transport_assignment && (
+              <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm font-medium">
+                {selectedTagDetail.transport_assignment.team}割当済
+              </span>
+            )}
+          </>
+        )}
       />
     </div>
   )

@@ -7,26 +7,44 @@ export const dynamic = 'force-dynamic'
 export default async function HospitalPage() {
   const supabase = createClient()
 
-  // デモ用：最初の病院を取得（本来は認証ユーザーの病院IDを使用）
-  const { data: hospitals, error: hospitalError } = await supabase
-    .from('hospitals')
-    .select('*')
-    .limit(1)
-    .single()
-
-  if (hospitalError || !hospitals) {
-    console.error('Error fetching hospital:', hospitalError)
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="card max-w-md">
-          <h2 className="text-xl font-bold text-red-600 mb-2">病院情報取得エラー</h2>
-          <p className="text-gray-600">{hospitalError?.message || '病院が見つかりません'}</p>
-        </div>
-      </div>
-    )
+  // デモ用：東京医科大学病院の固定データを使用
+  const tokyoMedHospital: Hospital = {
+    id: 'demo-1',
+    name: '東京医科大学病院',
+    location: {
+      address: '東京都新宿区西新宿6-7-1',
+      latitude: 35.6965,
+      longitude: 139.6917
+    },
+    contact: {
+      phone: '03-3342-6111',
+      emergency_phone: '03-3342-6111',
+      email: 'info@tokyo-med.ac.jp'
+    },
+    capabilities: {
+      departments: [
+        { name: '救命救急センター', available_beds: 10, occupied_beds: 40, specialties: ['救急科', '外傷外科'] },
+        { name: '心臓血管外科', available_beds: 15, occupied_beds: 25, specialties: ['心臓血管外科', '循環器内科'] },
+        { name: '脳神経外科', available_beds: 12, occupied_beds: 18, specialties: ['脳神経外科', '脳神経内科'] },
+        { name: '整形外科', available_beds: 20, occupied_beds: 30, specialties: ['整形外科', 'リハビリテーション科'] },
+        { name: '一般病棟', available_beds: 100, occupied_beds: 650, specialties: ['内科', '外科', '小児科'] }
+      ],
+      has_er: true,
+      has_icu: true,
+      has_heliport: true
+    },
+    current_load: {
+      total_capacity: 880,
+      current_patients: 763,
+      accepting_status: 'limited' as const,
+      last_updated: new Date().toISOString()
+    },
+    transport_count: 45,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   }
 
-  const hospital = hospitals as Hospital
+  const hospital = tokyoMedHospital
 
   // この病院への搬送中の患者を取得
   const { data: triageTags, error: tagsError } = await supabase

@@ -85,7 +85,28 @@ export default function TransportAssignButton({ tag }: TransportAssignButtonProp
                   患者: {tag.tag_number} ({tag.anonymous_id})
                 </p>
                 <p className="text-sm text-gray-600 mb-4">
-                  現在地: {tag.location.address || `${tag.location.latitude}, ${tag.location.longitude}` || '位置情報なし'}
+現在地: 
+                  {tag.location.address ? (
+                    <a 
+                      href={`https://www.google.com/maps?q=${tag.location.latitude},${tag.location.longitude}`}
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline"
+                    >
+                      {tag.location.address}
+                    </a>
+                  ) : tag.location.latitude && tag.location.longitude ? (
+                    <a 
+                      href={`https://www.google.com/maps?q=${tag.location.latitude},${tag.location.longitude}`}
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline"
+                    >
+                      {tag.location.latitude}, {tag.location.longitude}
+                    </a>
+                  ) : (
+                    '位置情報なし'
+                  )}
                 </p>
               </div>
 

@@ -123,12 +123,6 @@ export default function LoginPage() {
             <li>医療機関: hsp@demo.com</li>
             <li>パスワード: password</li>
           </ul>
-          <div className="mt-3 pt-3 border-t border-blue-200">
-            <p className="text-xs text-blue-600">
-              ※ 搬送部隊: 現場→集積地点への搬送<br/>
-              ※ DMAT: 集積地点→病院への搬送
-            </p>
-          </div>
         </div>
       </div>
     </div>

@@ -22,8 +22,10 @@ export default function QRScanner({ onScanSuccess, onScanError }: QRScannerProps
       await scanner.start(
         { facingMode: 'environment' }, // バックカメラを使用
         {
-          fps: 10,
-          qrbox: { width: 250, height: 250 },
+          fps: 20,
+          qrbox: { width: 300, height: 300 },
+          aspectRatio: 1.0,
+          disableFlip: false,
         },
         (decodedText) => {
           onScanSuccess(decodedText)
@@ -68,8 +70,6 @@ export default function QRScanner({ onScanSuccess, onScanError }: QRScannerProps
   return (
     <div className="space-y-4">
       <div className="bg-white rounded-lg shadow-md p-4">
-        <h3 className="text-lg font-bold mb-3">QRコードスキャン</h3>
-
         <div id="qr-reader" className="w-full max-w-md mx-auto mb-4" />
 
         {error && (

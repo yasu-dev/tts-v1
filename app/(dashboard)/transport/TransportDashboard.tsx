@@ -21,6 +21,7 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
   const [selectedTagDetail, setSelectedTagDetail] = useState<TriageTag | null>(null)
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1)
   const [currentPage, setCurrentPage] = useState(1)
+  const [hospitalStatuses, setHospitalStatuses] = useState<{[key: string]: any}>({})
   
   const ITEMS_PER_PAGE = 10
 
@@ -39,21 +40,24 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
       contact: {
         phone: '03-3342-6111',
         emergency_phone: '03-3342-6111',
-        email: ''
+        email: 'info@tokyo-med.ac.jp'
       },
       capabilities: {
         departments: [
-          { name: '救急科', available_beds: 10, occupied_beds: 40, specialties: ['救急科'] },
-          { name: '外科', available_beds: 100, occupied_beds: 700, specialties: ['外科', '脳神経外科', '整形外科'] }
+          { name: '救命救急センター', available_beds: 10, occupied_beds: 40, specialties: ['救急科', '外傷外科'] },
+          { name: '心臓血管外科', available_beds: 15, occupied_beds: 25, specialties: ['心臓血管外科', '循環器内科'] },
+          { name: '脳神経外科', available_beds: 12, occupied_beds: 18, specialties: ['脳神経外科', '脳神経内科'] },
+          { name: '整形外科', available_beds: 20, occupied_beds: 30, specialties: ['整形外科', 'リハビリテーション科'] },
+          { name: '一般病棟', available_beds: 100, occupied_beds: 650, specialties: ['内科', '外科', '小児科'] }
         ],
         has_er: true,
         has_icu: true,
         has_heliport: true
       },
-      transport_count: 0,
+      transport_count: 45,
       current_load: {
         total_capacity: 880,
-        current_patients: 770,
+        current_patients: 763,
         accepting_status: 'limited' as const,
         last_updated: new Date().toISOString()
       },
@@ -147,7 +151,8 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
 
   // Supabase Realtimeでデータベース変更を購読
   useEffect(() => {
-    const channel = supabase
+    // 患者データの変更を監視
+    const triageChannel = supabase
       .channel('transport_triage_tags_changes')
       .on(
         'postgres_changes',
@@ -159,12 +164,12 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
         async (payload) => {
           console.log('Realtime update (transport):', payload)
 
-          // 搬送対象のデータを再取得
+          // 搬送対象のデータを再取得（搬送中も含む）
           const { data, error } = await supabase
             .from('triage_tags')
             .select('*')
             .in('triage_category->>final', ['red', 'yellow'])
-            .in('transport->>status', ['not_transported', 'preparing'])
+            .in('transport->>status', ['not_transported', 'preparing', 'in_transit'])
             .order('triage_category->>final', { ascending: true })
 
           if (!error && data) {
@@ -176,8 +181,34 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
       )
       .subscribe()
 
+    // 病院データの変更を監視
+    const hospitalChannel = supabase
+      .channel('transport_hospitals_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'hospitals',
+        },
+        async (payload) => {
+          console.log('Realtime update (hospitals):', payload)
+          // 病院ステータスを更新
+          if (payload.new) {
+            setHospitalStatuses(prev => ({
+              ...prev,
+              [payload.new.id]: payload.new.current_load
+            }))
+            setIsRealtime(true)
+            setTimeout(() => setIsRealtime(false), 2000)
+          }
+        }
+      )
+      .subscribe()
+
     return () => {
-      supabase.removeChannel(channel)
+      supabase.removeChannel(triageChannel)
+      supabase.removeChannel(hospitalChannel)
     }
   }, [supabase])
 
@@ -208,6 +239,26 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
         .eq('id', selectedTag)
 
       if (error) throw error
+
+      // ローカルステートを即座に更新
+      setTags(prevTags => 
+        prevTags.map(tag => 
+          tag.id === selectedTag 
+            ? {
+                ...tag,
+                transport: {
+                  status: 'in_transit',
+                  destination: {
+                    hospital_id: selectedHospital,
+                    hospital_name: selectedHospitalData?.name || '',
+                    department: '',
+                  },
+                  departure_time: new Date().toISOString(),
+                }
+              }
+            : tag
+        )
+      )
 
       alert(`${ambulanceTeams.find(a => a.id === selectedAmbulance)?.name}が搬送を開始しました`)
       setSelectedTag(null)
@@ -315,7 +366,28 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
                               </span>
                             </div>
                             <p className="text-xs text-gray-500">
-                              現在地: {tag.location.address || `${tag.location.latitude}, ${tag.location.longitude}` || '位置情報なし'}
+現在地: 
+                              {tag.location.address ? (
+                                <a 
+                                  href={`https://www.google.com/maps?q=${tag.location.latitude},${tag.location.longitude}`}
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:underline"
+                                >
+                                  {tag.location.address}
+                                </a>
+                              ) : tag.location.latitude && tag.location.longitude ? (
+                                <a 
+                                  href={`https://www.google.com/maps?q=${tag.location.latitude},${tag.location.longitude}`}
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:underline"
+                                >
+                                  {tag.location.latitude}, {tag.location.longitude}
+                                </a>
+                              ) : (
+                                '位置情報なし'
+                              )}
                             </p>
                           </div>
                         </div>
@@ -404,7 +476,12 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
 
             <div className="space-y-3 mb-6">
               {shinjukuHospitals.map(hospital => {
-                const acceptingStatus = hospital.current_load.accepting_status
+                // リアルタイム更新されたステータスがあればそれを使用
+                const currentStatus = hospitalStatuses[hospital.id] || hospital.current_load
+                const acceptingStatus = currentStatus.accepting_status
+                const currentPatients = currentStatus.current_patients
+                const totalCapacity = currentStatus.total_capacity
+                
                 const statusText = acceptingStatus === 'accepting' ? '受入可' :
                                  acceptingStatus === 'limited' ? '制限あり' :
                                  acceptingStatus === 'full' ? '満床' : '不可'
@@ -413,6 +490,8 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
                                   'text-red-600'
                 
                 const isTertiary = hospital.name === '東京医科大学病院'
+                const availableBeds = totalCapacity - currentPatients
+                const isDisabled = acceptingStatus === 'full' || acceptingStatus === 'not_accepting'
 
                 return (
                   <div key={hospital.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
@@ -421,13 +500,23 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
                         isTertiary ? 'bg-red-600' : 'bg-blue-600'
                       }`}></span>
                       <div>
-                        <span className="font-semibold">{hospital.name}</span>
-                        <span className={`ml-2 text-sm font-bold ${statusColor}`}>
-                          {statusText}
-                        </span>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-semibold">{hospital.name}</span>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            acceptingStatus === 'accepting' ? 'bg-green-100 text-green-800' :
+                            acceptingStatus === 'limited' ? 'bg-yellow-100 text-yellow-800' :
+                            acceptingStatus === 'full' ? 'bg-red-100 text-red-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {statusText}
+                          </span>
+                        </div>
                         <p className="text-sm text-gray-600">
-                          空床: {hospital.current_load.total_capacity - hospital.current_load.current_patients}床
+                          空床: {availableBeds}床 / 総{totalCapacity}床
                         </p>
+                        {hospitalStatuses[hospital.id] && (
+                          <p className="text-xs text-blue-600 font-medium">リアルタイム更新</p>
+                        )}
                       </div>
                     </div>
                     <button
@@ -435,9 +524,12 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
                         setSelectedHospital(hospital.id)
                         setCurrentStep(3)
                       }}
-                      className="btn-primary"
+                      disabled={isDisabled}
+                      className={`btn-primary ${
+                        isDisabled ? 'opacity-50 cursor-not-allowed bg-gray-400' : ''
+                      }`}
                     >
-                      選択
+                      {isDisabled ? '選択不可' : '選択'}
                     </button>
                   </div>
                 )
@@ -560,8 +652,16 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
                 </div>
                 <div className="text-sm text-gray-600 space-y-1">
                   <p>住所: {selectedHospitalData.location.address}</p>
-                  <p>電話: {selectedHospitalData.contact.emergency_phone}</p>
-                  <p>空床: {selectedHospitalData.current_load.total_capacity - selectedHospitalData.current_load.current_patients}床</p>
+                  <p>緊急電話: {selectedHospitalData.contact.emergency_phone}</p>
+                  <p>空床: {selectedHospitalData.current_load.total_capacity - selectedHospitalData.current_load.current_patients}床 / 総{selectedHospitalData.current_load.total_capacity}床</p>
+                  {selectedHospitalData.name === '東京医科大学病院' && (
+                    <div className="mt-2 pt-2 border-t space-y-1">
+                      <p className="text-green-600 font-semibold">✓ 救命救急センター</p>
+                      <p className="text-blue-600 font-semibold">✓ ヘリポート有</p>
+                      <p className="text-purple-600 font-semibold">✓ ICU有</p>
+                      <p className="text-xs">公式サイト: https://tokyo-med-er.jp/</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -602,6 +702,18 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
       <PatientDetailModal
         tag={selectedTagDetail}
         onClose={() => setSelectedTagDetail(null)}
+        actions={selectedTagDetail && currentStep === 1 && (
+          <button
+            onClick={() => {
+              setSelectedTag(selectedTagDetail.id)
+              setCurrentStep(2)
+              setSelectedTagDetail(null)
+            }}
+            className="btn-primary"
+          >
+            この患者を選択
+          </button>
+        )}
       />
     </div>
   )

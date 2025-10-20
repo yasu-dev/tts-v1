@@ -23,9 +23,12 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
   const [selectedTeam, setSelectedTeam] = useState<string>('全チーム')
   const [selectedPatient, setSelectedPatient] = useState<TriageTag | null>(null)
   const [showQRScanner, setShowQRScanner] = useState(false)
+  const [manualInput, setManualInput] = useState('')
+  const [showManualInput, setShowManualInput] = useState(false)
   const [loading, setLoading] = useState(false)
   const [isRealtime, setIsRealtime] = useState(false)
   const [filter, setFilter] = useState<'all' | 'black' | 'red' | 'yellow' | 'green'>('all')
+  const [confirmingPatientId, setConfirmingPatientId] = useState<string | null>(null)
 
   const supabase = createClient()
 
@@ -105,7 +108,12 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
 
       if (error) throw error
 
-      alert(`搬送ステータスを${status === 'in_progress' ? '搬送中' : status === 'completed' ? '搬送完了' : status}に更新しました`)
+      if (status === 'in_progress') {
+        setConfirmingPatientId(null)
+        // 成功メッセージは表示しない（UIで即座に反映されるため）
+      } else {
+        alert(`搬送ステータスを${status === 'completed' ? '搬送完了' : status}に更新しました`)
+      }
     } catch (error) {
       console.error('Error updating transport status:', error)
       alert('ステータス更新に失敗しました')
@@ -116,10 +124,25 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
 
   // QRコードスキャン処理
   const handleQRScan = async (result: string) => {
+    console.log('QR scan result:', result)
+    
     try {
-      // QRコードから患者IDを取得
-      const patientData = JSON.parse(result)
-      const patientId = patientData.id
+      let patientId = ''
+      
+      // 様々なQRコード形式に対応
+      try {
+        // JSON形式を試行
+        const patientData = JSON.parse(result)
+        patientId = patientData.id || patientData.patient_id || patientData.tag_id
+      } catch {
+        // 単純な文字列の場合
+        patientId = result.trim()
+      }
+      
+      if (!patientId) {
+        alert('QRコードから患者IDを取得できませんでした')
+        return
+      }
 
       // 患者情報を取得
       const { data: patient, error } = await supabase
@@ -129,13 +152,28 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
         .single()
 
       if (error || !patient) {
-        alert('患者が見つかりません')
+        // IDで見つからない場合、tag_numberやanonymous_idで検索
+        const { data: patientByTag, error: tagError } = await supabase
+          .from('triage_tags')
+          .select('*')
+          .or(`tag_number.eq.${patientId},anonymous_id.eq.${patientId}`)
+          .single()
+          
+        if (tagError || !patientByTag) {
+          alert(`患者が見つかりません: ${patientId}`)
+          return
+        }
+        
+        // 患者詳細モーダルを表示
+        setSelectedPatient(patientByTag as TriageTag)
+        setShowQRScanner(false)
         return
       }
 
-      // 搬送ステータスを更新
-      await handleUpdateTransportStatus(patientId, 'in_progress')
+      // 患者詳細モーダルを表示
+      setSelectedPatient(patient as TriageTag)
       setShowQRScanner(false)
+      
     } catch (error) {
       console.error('QR scan error:', error)
       alert('QRコードの読み取りに失敗しました')
@@ -280,7 +318,29 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
                             </span>
                           </div>
                           <p className="text-xs text-gray-500">
-                            現在地: {tag.location.address || `${tag.location.latitude}, ${tag.location.longitude}` || '位置情報なし'} | 割当チーム: {tag.transport_assignment?.team || '未割当'}
+現在地: 
+                            {tag.location.address ? (
+                              <a 
+                                href={`https://www.google.com/maps?q=${tag.location.latitude},${tag.location.longitude}`}
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline"
+                              >
+                                {tag.location.address}
+                              </a>
+                            ) : tag.location.latitude && tag.location.longitude ? (
+                              <a 
+                                href={`https://www.google.com/maps?q=${tag.location.latitude},${tag.location.longitude}`}
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline"
+                              >
+                                {tag.location.latitude}, {tag.location.longitude}
+                              </a>
+                            ) : (
+                              '位置情報なし'
+                            )}
+                            {' | 割当チーム: '}{tag.transport_assignment?.team || '未割当'}
                           </p>
                         </div>
                       </div>
@@ -293,9 +353,9 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
                           詳細
                         </button>
                         
-                        {transportStatus === 'assigned' && (
+                        {transportStatus === 'assigned' && confirmingPatientId !== tag.id && (
                           <button
-                            onClick={() => handleUpdateTransportStatus(tag.id, 'in_progress')}
+                            onClick={() => setConfirmingPatientId(tag.id)}
                             disabled={loading}
                             className="btn-primary disabled:opacity-50"
                           >
@@ -303,14 +363,39 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
                           </button>
                         )}
                         
+                        {transportStatus === 'assigned' && confirmingPatientId === tag.id && (
+                          <div className="flex gap-2 items-center">
+                            <span className="text-sm text-gray-600">本当に開始？</span>
+                            <button
+                              onClick={() => handleUpdateTransportStatus(tag.id, 'in_progress')}
+                              disabled={loading}
+                              className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm font-medium"
+                            >
+                              OK
+                            </button>
+                            <button
+                              onClick={() => setConfirmingPatientId(null)}
+                              className="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500 text-sm font-medium"
+                            >
+                              キャンセル
+                            </button>
+                          </div>
+                        )}
+                        
                         {transportStatus === 'in_progress' && (
-                          <button
-                            onClick={() => handleUpdateTransportStatus(tag.id, 'completed')}
-                            disabled={loading}
-                            className="btn-primary disabled:opacity-50"
-                          >
-                            搬送完了
-                          </button>
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
+                              <span className="text-orange-600 font-medium">搬送中</span>
+                            </div>
+                            <button
+                              onClick={() => handleUpdateTransportStatus(tag.id, 'completed')}
+                              disabled={loading}
+                              className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+                            >
+                              集積地点到着
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -327,6 +412,63 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
         <PatientDetailModal
           tag={selectedPatient}
           onClose={() => setSelectedPatient(null)}
+          actions={(() => {
+            const transportStatus = selectedPatient.transport_assignment?.status || 'assigned'
+            return (
+              <>
+                {transportStatus === 'assigned' && confirmingPatientId !== selectedPatient.id && (
+                  <button
+                    onClick={() => setConfirmingPatientId(selectedPatient.id)}
+                    disabled={loading}
+                    className="btn-primary disabled:opacity-50"
+                  >
+                    搬送開始
+                  </button>
+                )}
+                
+                {transportStatus === 'assigned' && confirmingPatientId === selectedPatient.id && (
+                  <div className="flex gap-2 items-center">
+                    <span className="text-sm text-gray-600">本当に開始？</span>
+                    <button
+                      onClick={() => {
+                        handleUpdateTransportStatus(selectedPatient.id, 'in_progress')
+                        setSelectedPatient(null)
+                      }}
+                      disabled={loading}
+                      className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm font-medium"
+                    >
+                      OK
+                    </button>
+                    <button
+                      onClick={() => setConfirmingPatientId(null)}
+                      className="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500 text-sm font-medium"
+                    >
+                      キャンセル
+                    </button>
+                  </div>
+                )}
+                
+                {transportStatus === 'in_progress' && (
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
+                      <span className="text-orange-600 font-medium">搬送中</span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        handleUpdateTransportStatus(selectedPatient.id, 'completed')
+                        setSelectedPatient(null)
+                      }}
+                      disabled={loading}
+                      className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+                    >
+                      集積地点到着
+                    </button>
+                  </div>
+                )}
+              </>
+            )
+          })()}
         />
       )}
 
@@ -337,19 +479,74 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold">QRコードスキャン</h3>
               <button
-                onClick={() => setShowQRScanner(false)}
+                onClick={() => {
+                  setShowQRScanner(false)
+                  setShowManualInput(false)
+                  setManualInput('')
+                }}
                 className="text-gray-500 hover:text-gray-700"
               >
                 ✕
               </button>
             </div>
-            <QRScanner
-              onScanSuccess={handleQRScan}
-              onScanError={(error) => {
-                console.error('QR Scanner error:', error)
-                alert('QRスキャンでエラーが発生しました')
-              }}
-            />
+            {!showManualInput ? (
+              <>
+                <QRScanner
+                  onScanSuccess={handleQRScan}
+                  onScanError={(error) => {
+                    console.error('QR Scanner error:', error)
+                    alert('QRスキャンでエラーが発生しました')
+                  }}
+                />
+                <div className="mt-4 text-center">
+                  <button
+                    onClick={() => setShowManualInput(true)}
+                    className="text-blue-600 hover:underline text-sm"
+                  >
+                    手動入力に切り替え
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    患者IDまたはタグ番号を入力
+                  </label>
+                  <input
+                    type="text"
+                    value={manualInput}
+                    onChange={(e) => setManualInput(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    placeholder="T-2025-001 または ANON-123456"
+                    autoFocus
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      if (manualInput.trim()) {
+                        handleQRScan(manualInput.trim())
+                        setManualInput('')
+                      }
+                    }}
+                    disabled={!manualInput.trim()}
+                    className="flex-1 bg-orange-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-orange-700 disabled:opacity-50"
+                  >
+                    検索
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowManualInput(false)
+                      setManualInput('')
+                    }}
+                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  >
+                    QRスキャンに戻る
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
