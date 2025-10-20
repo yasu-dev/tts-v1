@@ -5,6 +5,7 @@ import { TriageTag, Hospital, TriageCategories } from '@/lib/types'
 import { createClient } from '@/lib/supabase/client'
 import LogoutButton from '@/components/LogoutButton'
 import PatientDetailModal from '@/components/PatientDetailModal'
+import QRScanNavigationButton from '@/components/QRScanNavigationButton'
 
 interface TransportDashboardProps {
   initialTags: TriageTag[]
@@ -289,6 +290,7 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
                 <span className="text-sm font-bold">データ更新</span>
               </div>
             )}
+            <QRScanNavigationButton />
             <LogoutButton />
           </div>
         </div>

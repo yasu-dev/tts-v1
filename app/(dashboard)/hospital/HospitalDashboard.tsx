@@ -5,6 +5,7 @@ import { Hospital, TriageTag, TriageCategories } from '@/lib/types'
 import { createClient } from '@/lib/supabase/client'
 import LogoutButton from '@/components/LogoutButton'
 import PatientDetailModal from '@/components/PatientDetailModal'
+import QRScanNavigationButton from '@/components/QRScanNavigationButton'
 
 interface HospitalDashboardProps {
   hospital: Hospital
@@ -194,6 +195,7 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
                 <span className="text-sm font-bold">データ更新</span>
               </div>
             )}
+            <QRScanNavigationButton />
             <LogoutButton />
           </div>
         </div>

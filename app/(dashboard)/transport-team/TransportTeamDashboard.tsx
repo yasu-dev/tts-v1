@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import LogoutButton from '@/components/LogoutButton'
 import PatientDetailModal from '@/components/PatientDetailModal'
 import QRScanner from '@/components/QRScanner'
+import QRScanNavigationButton from '@/components/QRScanNavigationButton'
 
 interface TransportTeamDashboardProps {
   assignedPatients: TriageTag[]
@@ -201,6 +202,7 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
             >
               QRスキャン
             </button>
+            <QRScanNavigationButton />
             <LogoutButton />
           </div>
         </div>

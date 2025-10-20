@@ -7,6 +7,7 @@ import dynamic from 'next/dynamic'
 import LogoutButton from '@/components/LogoutButton'
 import PatientDetailModal from '@/components/PatientDetailModal'
 import TransportAssignButton from '@/components/TransportAssignButton'
+import QRScanNavigationButton from '@/components/QRScanNavigationButton'
 
 // 地図コンポーネントを動的インポート（SSR無効化）
 const TriageMap = dynamic(() => import('@/components/TriageMap'), {
@@ -107,6 +108,7 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
                 <span className="text-sm font-bold">データ更新</span>
               </div>
             )}
+            <QRScanNavigationButton />
             <LogoutButton />
           </div>
         </div>
