@@ -253,7 +253,7 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
                         </div>
                         <div className="flex items-center gap-2">
                           <p className="text-xs text-gray-500">
-                            現在地: {tag.location.coordinates || '位置情報なし'}
+                            現在地: {tag.location.address || `${tag.location.latitude}, ${tag.location.longitude}` || '位置情報なし'}
                           </p>
                           {/* 搬送状態バッジ */}
                           {(() => {

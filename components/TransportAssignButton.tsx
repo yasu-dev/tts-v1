@@ -85,7 +85,7 @@ export default function TransportAssignButton({ tag }: TransportAssignButtonProp
                   患者: {tag.tag_number} ({tag.anonymous_id})
                 </p>
                 <p className="text-sm text-gray-600 mb-4">
-                  現在地: {tag.location.coordinates}
+                  現在地: {tag.location.address || `${tag.location.latitude}, ${tag.location.longitude}` || '位置情報なし'}
                 </p>
               </div>
 

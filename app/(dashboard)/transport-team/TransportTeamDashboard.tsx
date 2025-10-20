@@ -280,7 +280,7 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
                             </span>
                           </div>
                           <p className="text-xs text-gray-500">
-                            現在地: {tag.location.coordinates || '位置情報なし'} | 割当チーム: {tag.transport_assignment?.team || '未割当'}
+                            現在地: {tag.location.address || `${tag.location.latitude}, ${tag.location.longitude}` || '位置情報なし'} | 割当チーム: {tag.transport_assignment?.team || '未割当'}
                           </p>
                         </div>
                       </div>
@@ -344,8 +344,8 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
               </button>
             </div>
             <QRScanner
-              onResult={handleQRScan}
-              onError={(error) => {
+              onScanSuccess={handleQRScan}
+              onScanError={(error) => {
                 console.error('QR Scanner error:', error)
                 alert('QRスキャンでエラーが発生しました')
               }}

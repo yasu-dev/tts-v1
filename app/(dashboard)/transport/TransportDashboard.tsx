@@ -37,18 +37,20 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
         longitude: 139.6917,
       },
       contact: {
-        main_phone: '03-3342-6111',
+        phone: '03-3342-6111',
         emergency_phone: '03-3342-6111',
-        fax: '03-3342-6111',
         email: ''
       },
-      capacity: {
-        emergency: { total: 50, available: 10 },
-        icu: { total: 30, available: 5 },
-        general: { total: 800, available: 100 },
-        operating_rooms: { total: 20, available: 3 }
+      capabilities: {
+        departments: [
+          { name: '救急科', available_beds: 10, occupied_beds: 40, specialties: ['救急科'] },
+          { name: '外科', available_beds: 100, occupied_beds: 700, specialties: ['外科', '脳神経外科', '整形外科'] }
+        ],
+        has_er: true,
+        has_icu: true,
+        has_heliport: true
       },
-      specialties: ['救急科', '外科', '脳神経外科', '整形外科'],
+      transport_count: 0,
       current_load: {
         total_capacity: 880,
         current_patients: 770,
@@ -67,18 +69,20 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
         longitude: 139.7412,
       },
       contact: {
-        main_phone: '03-3269-8111',
+        phone: '03-3269-8111',
         emergency_phone: '03-3269-8111',
-        fax: '03-3269-8111',
         email: ''
       },
-      capacity: {
-        emergency: { total: 30, available: 8 },
-        icu: { total: 10, available: 2 },
-        general: { total: 500, available: 80 },
-        operating_rooms: { total: 10, available: 2 }
+      capabilities: {
+        departments: [
+          { name: '救急科', available_beds: 8, occupied_beds: 22, specialties: ['救急科'] },
+          { name: '内科', available_beds: 80, occupied_beds: 420, specialties: ['内科', '外科', '整形外科'] }
+        ],
+        has_er: true,
+        has_icu: true,
+        has_heliport: false
       },
-      specialties: ['救急科', '内科', '外科', '整形外科'],
+      transport_count: 0,
       current_load: {
         total_capacity: 540,
         current_patients: 450,
@@ -97,18 +101,20 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
         longitude: 139.7014,
       },
       contact: {
-        main_phone: '03-5273-7711',
+        phone: '03-5273-7711',
         emergency_phone: '03-5273-7711',
-        fax: '03-5273-7711',
         email: ''
       },
-      capacity: {
-        emergency: { total: 20, available: 5 },
-        icu: { total: 8, available: 1 },
-        general: { total: 300, available: 50 },
-        operating_rooms: { total: 8, available: 1 }
+      capabilities: {
+        departments: [
+          { name: '救急科', available_beds: 5, occupied_beds: 15, specialties: ['救急科'] },
+          { name: '内科', available_beds: 50, occupied_beds: 250, specialties: ['内科', '外科'] }
+        ],
+        has_er: true,
+        has_icu: true,
+        has_heliport: false
       },
-      specialties: ['救急科', '内科', '外科'],
+      transport_count: 0,
       current_load: {
         total_capacity: 328,
         current_patients: 272,
@@ -309,7 +315,7 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
                               </span>
                             </div>
                             <p className="text-xs text-gray-500">
-                              現在地: {tag.location.coordinates || '位置情報なし'}
+                              現在地: {tag.location.address || `${tag.location.latitude}, ${tag.location.longitude}` || '位置情報なし'}
                             </p>
                           </div>
                         </div>
