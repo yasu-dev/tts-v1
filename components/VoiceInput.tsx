@@ -97,7 +97,7 @@ export default function VoiceInput({ onTranscript, placeholder = '音声入力�
             onClick={startListening}
             className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-bold hover:bg-blue-700 transition flex items-center justify-center gap-2"
           >
-            🎤 音声入力開始
+音声入力開始
           </button>
         ) : (
           <button
@@ -105,31 +105,24 @@ export default function VoiceInput({ onTranscript, placeholder = '音声入力�
             onClick={stopListening}
             className="flex-1 bg-red-600 text-white py-3 px-6 rounded-lg font-bold hover:bg-red-700 transition flex items-center justify-center gap-2 animate-pulse"
           >
-            ⏹ 停止
+停止
           </button>
         )}
       </div>
 
       {transcript && (
         <div className="bg-green-50 border-2 border-green-500 rounded-lg p-4">
-          <p className="text-sm text-green-700 font-bold mb-1">✓ 認識成功（メモ欄に追加されました）:</p>
+          <p className="text-sm text-green-700 font-bold mb-1">認識成功（メモ欄に追加されました）:</p>
           <p className="text-lg font-bold text-gray-800">{transcript}</p>
         </div>
       )}
 
       {isListening && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-          <p className="text-sm text-blue-800 text-center font-bold">🎤 聞き取り中...話してください</p>
+          <p className="text-sm text-blue-800 text-center font-bold">聞き取り中...話してください</p>
         </div>
       )}
 
-      {!transcript && !isListening && (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-          <p className="text-xs text-gray-600 text-center">
-            💡 「音声入力開始」ボタンを押して話すと、メモ欄に自動で追加されます
-          </p>
-        </div>
-      )}
     </div>
   )
 }

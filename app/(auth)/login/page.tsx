@@ -40,6 +40,8 @@ export default function LoginPage() {
       } else if (email.includes('tri@')) {
         router.push('/triage/scan')
       } else if (email.includes('trn@')) {
+        router.push('/transport-team')
+      } else if (email.includes('dmat@')) {
         router.push('/transport')
       } else if (email.includes('hsp@')) {
         router.push('/hospital')
@@ -117,9 +119,16 @@ export default function LoginPage() {
             <li>指揮本部: ic@demo.com</li>
             <li>タッグ付け: tri@demo.com</li>
             <li>搬送部隊: trn@demo.com</li>
+            <li>DMAT: dmat@demo.com</li>
             <li>医療機関: hsp@demo.com</li>
             <li>パスワード: password</li>
           </ul>
+          <div className="mt-3 pt-3 border-t border-blue-200">
+            <p className="text-xs text-blue-600">
+              ※ 搬送部隊: 現場→集積地点への搬送<br/>
+              ※ DMAT: 集積地点→病院への搬送
+            </p>
+          </div>
         </div>
       </div>
     </div>

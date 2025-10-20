@@ -381,7 +381,7 @@ export default function TriageScanPage() {
                   onClick={() => setIsContactPointModalOpen(true)}
                   className="bg-purple-600 text-white py-2 px-4 rounded-lg font-bold hover:bg-purple-700 transition whitespace-nowrap"
                 >
-                  📍 管理
+                  管理
                 </button>
               </div>
               {contactPoints.length > 0 && (
@@ -427,9 +427,9 @@ export default function TriageScanPage() {
                                  ['black', 'red', 'yellow', 'green'][['black', 'red', 'yellow', 'green'].indexOf(triageResult.category)] === 'yellow' ? '#eab308' : '#22c55e',
                 color: triageResult.category === 'yellow' ? '#000' : '#fff'
               }}>
-                判定: {triageResult.category === 'black' ? '⚫ 黒（死亡）' :
-                      triageResult.category === 'red' ? '🔴 赤（重症）' :
-                      triageResult.category === 'yellow' ? '🟡 黄（中等症）' : '🟢 緑（軽症）'}
+                判定: {triageResult.category === 'black' ? '黒（死亡）' :
+                      triageResult.category === 'red' ? '赤（重症）' :
+                      triageResult.category === 'yellow' ? '黄（中等症）' : '緑（軽症）'}
               </div>
             </div>
 
@@ -568,27 +568,22 @@ export default function TriageScanPage() {
                   className="input min-h-[100px]"
                   placeholder="外傷の状態、意識レベルの変化など"
                 />
+                <div className="mt-3">
+                  <VoiceInput onTranscript={handleVoiceTranscript} />
+                </div>
               </div>
 
               <div className="border-t pt-4">
-                <label className="block text-sm font-bold mb-2">📷 画像アップロード（任意）</label>
-                <p className="text-xs text-gray-500 mb-3">
-                  外傷・現場状況などの写真を最大5枚まで添付できます
-                </p>
+                <label className="block text-sm font-bold mb-2">画像アップロード（任意）</label>
                 <ImageUploader
                   tagId={anonymousId || tagNumber}
                   onUploadComplete={(images) => setUploadedImages(images)}
                 />
               </div>
 
-              <div className="border-t pt-4">
-                <label className="block text-sm font-bold mb-2">音声入力</label>
-                <VoiceInput onTranscript={handleVoiceTranscript} />
-              </div>
-
               {location && (
                 <div className="bg-green-50 border border-green-200 rounded p-3">
-                  <p className="text-sm font-bold text-green-800">📍 位置情報取得済み</p>
+                  <p className="text-sm font-bold text-green-800">位置情報取得済み</p>
                   <p className="text-xs text-green-600 mt-1">
                     緯度: {location.latitude.toFixed(6)}, 経度: {location.longitude.toFixed(6)}
                   </p>
@@ -629,9 +624,9 @@ export default function TriageScanPage() {
                         triageResult.category === 'red' ? '#ef4444' :
                         triageResult.category === 'yellow' ? '#eab308' : '#22c55e'
                 }}>
-                  {triageResult.category === 'black' ? '⚫ 黒（死亡）' :
-                   triageResult.category === 'red' ? '🔴 赤（重症）' :
-                   triageResult.category === 'yellow' ? '🟡 黄（中等症）' : '🟢 緑（軽症）'}
+                  {triageResult.category === 'black' ? '黒（死亡）' :
+                   triageResult.category === 'red' ? '赤（重症）' :
+                   triageResult.category === 'yellow' ? '黄（中等症）' : '緑（軽症）'}
                 </p>
                 <p className="text-sm text-gray-600 mt-1">理由: {triageResult.reasoning}</p>
               </div>
@@ -659,7 +654,7 @@ export default function TriageScanPage() {
               {contactPoint && (
                 <div className="border-b pb-3">
                   <p className="text-sm text-gray-600">接触地点</p>
-                  <p className="text-sm mt-1 font-bold text-purple-700">📍 {contactPoint}</p>
+                  <p className="text-sm mt-1 font-bold text-purple-700">{contactPoint}</p>
                 </div>
               )}
 

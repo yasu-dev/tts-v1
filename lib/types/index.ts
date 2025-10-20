@@ -164,6 +164,13 @@ export interface TriageTag {
     }>
   }
   
+  transport_assignment?: {
+    team: string
+    status: 'assigned' | 'in_progress' | 'completed'
+    assigned_at: string
+    updated_at?: string
+  }
+  
   outcome?: {
     diagnosis: string
     treatments_performed: string[]

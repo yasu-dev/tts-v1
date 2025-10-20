@@ -170,7 +170,6 @@ export default function ImageUploader({ tagId, onUploadComplete }: ImageUploader
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-bold text-gray-800">📷 画像アップロード</h3>
         <span className="text-sm text-gray-600">
           {images.length} / {MAX_IMAGES}枚
         </span>
@@ -192,7 +191,7 @@ export default function ImageUploader({ tagId, onUploadComplete }: ImageUploader
               disabled={uploading}
               className="hidden"
             />
-            {uploading ? 'アップロード中...' : '📷 カメラで撮影'}
+            {uploading ? 'アップロード中...' : 'カメラで撮影'}
           </label>
         </div>
       )}

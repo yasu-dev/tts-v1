@@ -239,7 +239,7 @@ export default function ContactPointManager({
                     ) : (
                       <>
                         <span className="flex-1 font-bold text-gray-800">
-                          📍 {point}
+                          {point}
                         </span>
                         <button
                           onClick={() => startEdit(index)}

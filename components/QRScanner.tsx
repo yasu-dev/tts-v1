@@ -85,14 +85,14 @@ export default function QRScanner({ onScanSuccess, onScanError }: QRScannerProps
               onClick={startScanning}
               className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-bold hover:bg-blue-700 transition"
             >
-              📷 スキャン開始
+              スキャン開始
             </button>
           ) : (
             <button
               onClick={stopScanning}
               className="flex-1 bg-red-600 text-white py-3 px-6 rounded-lg font-bold hover:bg-red-700 transition"
             >
-              ⏹ 停止
+              停止
             </button>
           )}
         </div>

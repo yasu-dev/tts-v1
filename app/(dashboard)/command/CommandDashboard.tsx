@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import dynamic from 'next/dynamic'
 import LogoutButton from '@/components/LogoutButton'
 import PatientDetailModal from '@/components/PatientDetailModal'
+import TransportAssignButton from '@/components/TransportAssignButton'
 
 // 地図コンポーネントを動的インポート（SSR無効化）
 const TriageMap = dynamic(() => import('@/components/TriageMap'), {
@@ -222,7 +223,7 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
 
         {/* トリアージタグリスト */}
         <div className="card">
-          <h2 className="text-xl font-bold mb-4">トリアージタグ一覧（{filteredTags.length}件）</h2>
+          <h2 className="text-xl font-bold mb-4">患者一覧（{filteredTags.length}件）</h2>
           {filteredTags.length === 0 ? (
             <p className="text-center text-gray-500 py-8">データがありません</p>
           ) : (
@@ -242,30 +243,72 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
                         {tag.tag_number}
                       </span>
                       <div>
-                        <p className="font-semibold">{categoryInfo.label}</p>
-                        <p className="text-sm text-gray-600">
-                          患者ID: {tag.anonymous_id} |
-                          {tag.patient_info?.age && ` ${tag.patient_info.age}歳`}
-                          {tag.patient_info?.sex && ` ${tag.patient_info.sex === 'male' ? '男性' : tag.patient_info.sex === 'female' ? '女性' : ''}`}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          登録: {new Date(tag.audit.created_at).toLocaleString('ja-JP')}
-                        </p>
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="text-sm font-medium text-gray-700">
+                            {tag.patient_info?.age && `${tag.patient_info.age}歳`}
+                            {tag.patient_info?.sex && tag.patient_info?.age && ' | '}
+                            {tag.patient_info?.sex && `${tag.patient_info.sex === 'male' ? '男性' : tag.patient_info.sex === 'female' ? '女性' : tag.patient_info.sex}`}
+                            {(!tag.patient_info?.age && !tag.patient_info?.sex) && '詳細情報なし'}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs text-gray-500">
+                            現在地: {tag.location.coordinates || '位置情報なし'}
+                          </p>
+                          {/* 搬送状態バッジ */}
+                          {(() => {
+                            if (tag.transport_assignment) {
+                              const status = tag.transport_assignment.status
+                              return (
+                                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                  status === 'assigned' ? 'bg-blue-100 text-blue-800' :
+                                  status === 'in_progress' ? 'bg-orange-100 text-orange-800' :
+                                  status === 'completed' ? 'bg-green-100 text-green-800' :
+                                  'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {status === 'assigned' ? '搬送部隊割当済' :
+                                   status === 'in_progress' ? '搬送中' :
+                                   status === 'completed' ? '集積地点到着' : '不明'}
+                                </span>
+                              )
+                            } else {
+                              const status = tag.transport.status
+                              return (
+                                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                  status === 'not_transported' ? 'bg-gray-100 text-gray-800' :
+                                  status === 'preparing' ? 'bg-yellow-100 text-yellow-800' :
+                                  status === 'in_transit' ? 'bg-blue-100 text-blue-800' :
+                                  status === 'completed' ? 'bg-green-100 text-green-800' :
+                                  'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {status === 'not_transported' ? '未搬送' :
+                                   status === 'preparing' ? '搬送準備中' :
+                                   status === 'in_transit' ? '病院搬送中' :
+                                   status === 'completed' ? '搬送完了' : '不明'}
+                                </span>
+                              )
+                            }
+                          })()}
+                        </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-semibold">
-                        搬送状態: {tag.transport.status === 'not_transported' ? '未搬送' :
-                                  tag.transport.status === 'preparing' ? '搬送準備中' :
-                                  tag.transport.status === 'in_transit' ? '搬送中' :
-                                  tag.transport.status === 'completed' ? '搬送完了' : '不明'}
-                      </p>
-                      <button
-                        onClick={() => setSelectedTagDetail(tag)}
-                        className="btn-primary mt-2"
-                      >
-                        詳細
-                      </button>
+                    <div className="text-right flex flex-col gap-2">
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          onClick={() => setSelectedTagDetail(tag)}
+                          className="px-4 py-2 text-blue-600 border border-blue-600 rounded hover:bg-blue-50"
+                        >
+                          詳細
+                        </button>
+                        {(tag.transport.status === 'not_transported' || tag.transport.status === 'preparing') && !tag.transport_assignment && (
+                          <TransportAssignButton tag={tag} />
+                        )}
+                        {tag.transport_assignment && (
+                          <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm font-medium">
+                            {tag.transport_assignment.team}割当済
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )
