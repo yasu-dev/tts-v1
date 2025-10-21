@@ -25,6 +25,7 @@ interface CommandDashboardProps {
 export default function CommandDashboard({ initialTags }: CommandDashboardProps) {
   const [tags, setTags] = useState<TriageTag[]>(initialTags)
   const [filter, setFilter] = useState<'all' | 'black' | 'red' | 'yellow' | 'green'>('all')
+  const [statusFilters, setStatusFilters] = useState<string[]>([])
   const [isRealtime, setIsRealtime] = useState(false)
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null)
   const [selectedTagDetail, setSelectedTagDetail] = useState<TriageTag | null>(null)
@@ -73,9 +74,45 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
     }
   }, [supabase])
 
-  const filteredTags = filter === 'all'
-    ? tags
-    : tags.filter(tag => tag.triage_category.final === filter)
+  // 全ステータスを取得
+  const getAllStatuses = () => {
+    const statuses = new Set<string>()
+    tags.forEach(tag => {
+      if (tag.transport_assignment) {
+        const status = tag.transport_assignment.status
+        statuses.add(`transport_assignment:${status}`)
+      } else {
+        const status = tag.transport.status
+        statuses.add(`transport:${status}`)
+      }
+    })
+    return Array.from(statuses)
+  }
+
+  // ステータスフィルターの初期化（全てチェック状態）
+  useEffect(() => {
+    if (statusFilters.length === 0) {
+      setStatusFilters(getAllStatuses())
+    }
+  }, [tags])
+
+  // フィルタリング: トリアージカテゴリとステータスのAND条件
+  const filteredTags = tags.filter(tag => {
+    // トリアージカテゴリのフィルタリング
+    const categoryMatch = filter === 'all' || tag.triage_category.final === filter
+    
+    // ステータスのフィルタリング
+    let statusMatch = false
+    if (tag.transport_assignment) {
+      const status = `transport_assignment:${tag.transport_assignment.status}`
+      statusMatch = statusFilters.includes(status)
+    } else {
+      const status = `transport:${tag.transport.status}`
+      statusMatch = statusFilters.includes(status)
+    }
+    
+    return categoryMatch && statusMatch
+  })
 
   const stats = {
     total: tags.length,
@@ -90,6 +127,45 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
     const newState = !isMapCollapsed
     setIsMapCollapsed(newState)
     localStorage.setItem('commandDashboard_mapCollapsed', String(newState))
+  }
+
+  // ステータスフィルターの切り替え
+  const toggleStatusFilter = (status: string) => {
+    setStatusFilters(prev => 
+      prev.includes(status)
+        ? prev.filter(s => s !== status)
+        : [...prev, status]
+    )
+  }
+
+  // ステータス表示用のヘルパー関数
+  const getStatusDisplay = (statusKey: string) => {
+    const [type, status] = statusKey.split(':')
+    if (type === 'transport_assignment') {
+      return {
+        label: status === 'assigned' ? '搬送部隊割当済' :
+               status === 'in_progress' ? '搬送中' :
+               status === 'completed' ? '応急救護所到着' : '不明',
+        color: status === 'assigned' ? 'bg-blue-100 text-blue-800' :
+               status === 'in_progress' ? 'bg-orange-100 text-orange-800' :
+               status === 'completed' ? 'bg-green-100 text-green-800' :
+               'bg-gray-100 text-gray-800'
+      }
+    } else {
+      return {
+        label: status === 'not_transported' ? '未搬送' :
+               status === 'arrived' ? '応急救護所到着' :
+               status === 'preparing' ? '搬送準備中' :
+               status === 'in_transit' ? '病院搬送中' :
+               status === 'completed' ? '搬送完了' : '不明',
+        color: status === 'not_transported' ? 'bg-gray-100 text-gray-800' :
+               status === 'arrived' ? 'bg-purple-100 text-purple-800' :
+               status === 'preparing' ? 'bg-yellow-100 text-yellow-800' :
+               status === 'in_transit' ? 'bg-blue-100 text-blue-800' :
+               status === 'completed' ? 'bg-green-100 text-green-800' :
+               'bg-gray-100 text-gray-800'
+      }
+    }
   }
 
   return (
@@ -162,6 +238,36 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
           </button>
         </div>
 
+        {/* ステータスフィルター */}
+        <div className="card mb-6">
+          <h3 className="text-lg font-bold mb-4">搬送ステータスフィルター</h3>
+          <div className="flex flex-wrap gap-3">
+            {getAllStatuses().map(statusKey => {
+              const { label, color } = getStatusDisplay(statusKey)
+              const isChecked = statusFilters.includes(statusKey)
+              
+              return (
+                <label key={statusKey} className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    onChange={() => toggleStatusFilter(statusKey)}
+                    className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${color} ${
+                    isChecked ? 'opacity-100' : 'opacity-50'
+                  }`}>
+                    {label}
+                  </span>
+                </label>
+              )
+            })}
+          </div>
+          <div className="mt-3 text-sm text-gray-600">
+            チェックしたステータスの患者のみ表示されます（トリアージカテゴリとのAND条件）
+          </div>
+        </div>
+
         {/* 地図表示（折り畳み可能） */}
         <div className="card mb-6">
           <div className="flex items-center justify-between mb-4">
@@ -188,7 +294,7 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
             }`}
           >
             <TriageMap
-              patients={tags
+              patients={filteredTags
                 .filter(tag => tag.location && tag.location.latitude && tag.location.longitude)
                 .map(tag => ({
                   id: tag.id,
@@ -278,37 +384,19 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
                           </p>
                           {/* 搬送状態バッジ */}
                           {(() => {
+                            let statusKey: string
                             if (tag.transport_assignment) {
-                              const status = tag.transport_assignment.status
-                              return (
-                                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                                  status === 'assigned' ? 'bg-blue-100 text-blue-800' :
-                                  status === 'in_progress' ? 'bg-orange-100 text-orange-800' :
-                                  status === 'completed' ? 'bg-green-100 text-green-800' :
-                                  'bg-gray-100 text-gray-800'
-                                }`}>
-                                  {status === 'assigned' ? '搬送部隊割当済' :
-                                   status === 'in_progress' ? '搬送中' :
-                                   status === 'completed' ? '病院搬送完了' : '不明'}
-                                </span>
-                              )
+                              statusKey = `transport_assignment:${tag.transport_assignment.status}`
                             } else {
-                              const status = tag.transport.status
-                              return (
-                                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                                  status === 'not_transported' ? 'bg-gray-100 text-gray-800' :
-                                  status === 'preparing' ? 'bg-yellow-100 text-yellow-800' :
-                                  status === 'in_transit' ? 'bg-blue-100 text-blue-800' :
-                                  status === 'completed' ? 'bg-green-100 text-green-800' :
-                                  'bg-gray-100 text-gray-800'
-                                }`}>
-                                  {status === 'not_transported' ? '未搬送' :
-                                   status === 'preparing' ? '搬送準備中' :
-                                   status === 'in_transit' ? '病院搬送中' :
-                                   status === 'completed' ? '搬送完了' : '不明'}
-                                </span>
-                              )
+                              statusKey = `transport:${tag.transport.status}`
                             }
+                            const { label, color } = getStatusDisplay(statusKey)
+                            
+                            return (
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${color}`}>
+                                {label}
+                              </span>
+                            )
                           })()}
                         </div>
                       </div>
