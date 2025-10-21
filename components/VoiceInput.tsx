@@ -11,6 +11,7 @@ export default function VoiceInput({ onTranscript, placeholder = '音声入力�
   const [isListening, setIsListening] = useState(false)
   const [transcript, setTranscript] = useState('')
   const [isSupported, setIsSupported] = useState(false)
+  const [error, setError] = useState('')
   const recognitionRef = useRef<any>(null)
 
   useEffect(() => {
@@ -33,6 +34,12 @@ export default function VoiceInput({ onTranscript, placeholder = '音声入力�
 
         recognition.onerror = (event: any) => {
           setIsListening(false)
+          const errorMsg = event.error === 'no-speech' ? '音声が認識されませんでした。もう一度お試しください。' :
+                          event.error === 'network' ? 'ネットワークエラーが発生しました。' :
+                          event.error === 'not-allowed' ? 'マイクのアクセス許可が必要です。' :
+                          '音声認識エラーが発生しました。'
+          setError(errorMsg)
+          setTimeout(() => setError(''), 5000)
         }
 
         recognition.onend = () => {
@@ -56,10 +63,13 @@ export default function VoiceInput({ onTranscript, placeholder = '音声入力�
   const startListening = () => {
     if (recognitionRef.current && !isListening) {
       setTranscript('')
+      setError('')
       try {
         recognitionRef.current.start()
         setIsListening(true)
       } catch (error) {
+        setError('音声認識を開始できませんでした。')
+        setTimeout(() => setError(''), 3000)
       }
     }
   }
@@ -112,6 +122,12 @@ export default function VoiceInput({ onTranscript, placeholder = '音声入力�
       {isListening && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
           <p className="text-sm text-blue-800 text-center font-bold">聞き取り中...話してください</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+          <p className="text-sm text-red-800 text-center">{error}</p>
         </div>
       )}
 

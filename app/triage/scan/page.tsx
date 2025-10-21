@@ -46,6 +46,7 @@ export default function TriageScanPage() {
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [retryCount, setRetryCount] = useState(0)
   const [contactPoint, setContactPoint] = useState('')
   const [contactPoints, setContactPoints] = useState<string[]>([])
   const [eventId, setEventId] = useState<string | null>(null)
@@ -201,6 +202,13 @@ export default function TriageScanPage() {
       return
     }
 
+    // 画像アップロード中は登録を待機
+    const isAnyImageUploading = document.querySelector('[class*="bg-blue-500"]')
+    if (isAnyImageUploading) {
+      setError('画像アップロード完了後に登録してください')
+      return
+    }
+
     setLoading(true)
     setError('')
 
@@ -285,9 +293,19 @@ export default function TriageScanPage() {
 
       // フォームをリセットして最初の画面に戻る
       resetForm()
+      setRetryCount(0)
     } catch (err) {
-      setError(err instanceof Error ? err.message : '登録に失敗しました')
-      logger.error('Insert triage tag failed')
+      const errorMessage = err instanceof Error ? err.message : '登録に失敗しました'
+      setError(errorMessage)
+      logger.error('Insert triage tag failed', { error: errorMessage, retryCount })
+      
+      // 自動リトライ（最大2回）
+      if (retryCount < 2) {
+        setTimeout(() => {
+          setRetryCount(prev => prev + 1)
+          handleFinalSubmit()
+        }, 2000)
+      }
     } finally {
       setLoading(false)
     }
@@ -318,6 +336,7 @@ export default function TriageScanPage() {
     setContactPoint('')
     setUploadedImages([])
     setAnonymousId('')
+    setRetryCount(0)
     setCurrentStep('qr')
   }
 
@@ -796,6 +815,15 @@ export default function TriageScanPage() {
                 </div>
               )}
             </div>
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-4">
+                <p className="text-red-800 font-medium">{error}</p>
+                {retryCount > 0 && (
+                  <p className="text-red-600 text-sm mt-1">自動リトライ中... ({retryCount}/2)</p>
+                )}
+              </div>
+            )}
 
             <div className="flex gap-3 mt-6">
               <button

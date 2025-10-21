@@ -20,6 +20,7 @@ export default function ImageUploader({ tagId, onUploadComplete }: ImageUploader
   const [images, setImages] = useState<UploadedImage[]>([])
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
+  const [uploadError, setUploadError] = useState('')
   const supabase = createClient()
 
   const MAX_IMAGES = 5
@@ -68,58 +69,66 @@ export default function ImageUploader({ tagId, onUploadComplete }: ImageUploader
     if (!files || files.length === 0) return
 
     if (images.length + files.length > MAX_IMAGES) {
-      alert(`画像は最大${MAX_IMAGES}枚までアップロードできます`)
+      setUploadError(`画像は最大${MAX_IMAGES}枚までアップロードできます`)
+      setTimeout(() => setUploadError(''), 3000)
       return
     }
 
     setUploading(true)
     setUploadProgress(0)
+    setUploadError('')
 
     const uploadedImages: UploadedImage[] = []
+    let failedCount = 0
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i]
 
       // 画像ファイルかチェック
       if (!file.type.startsWith('image/')) {
-        alert(`${file.name} は画像ファイルではありません`)
+        failedCount++
         continue
       }
 
-      // 圧縮
-      const { blob, size } = await compressImage(file)
+      try {
+        // 圧縮
+        const { blob, size } = await compressImage(file)
 
-      // ファイル名生成
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
-      const fileName = `${tagId}/${timestamp}_${i}.jpg`
+        // ファイル名生成
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
+        const fileName = `${tagId}/${timestamp}_${i}.jpg`
 
-      // Supabase Storageにアップロード
-      const { data, error } = await supabase.storage
-        .from('triage-images')
-        .upload(fileName, blob, {
-          cacheControl: '3600',
-          upsert: false,
-        })
+        // Supabase Storageにアップロード
+        const { data, error } = await supabase.storage
+          .from('triage-images')
+          .upload(fileName, blob, {
+            cacheControl: '3600',
+            upsert: false,
+          })
 
-      if (error) {
-        alert(`${file.name} のアップロードに失敗しました`)
-        continue
+        if (error) {
+          failedCount++
+          continue
+        }
+
+        // 公開URLを取得
+        const { data: urlData } = supabase.storage
+          .from('triage-images')
+          .getPublicUrl(fileName)
+
+        const uploadedImage: UploadedImage = {
+          id: `${tagId}_${timestamp}_${i}`,
+          url: urlData.publicUrl,
+          type: 'other', // デフォルト値
+          compressed_size: size,
+          taken_at: new Date().toISOString(),
+        }
+
+        uploadedImages.push(uploadedImage)
+      } catch (error) {
+        failedCount++
       }
-
-      // 公開URLを取得
-      const { data: urlData } = supabase.storage
-        .from('triage-images')
-        .getPublicUrl(fileName)
-
-      const uploadedImage: UploadedImage = {
-        id: `${tagId}_${timestamp}_${i}`,
-        url: urlData.publicUrl,
-        type: 'other', // デフォルト値
-        compressed_size: size,
-        taken_at: new Date().toISOString(),
-      }
-
-      uploadedImages.push(uploadedImage)
+      
       setUploadProgress(((i + 1) / files.length) * 100)
     }
 
@@ -128,6 +137,12 @@ export default function ImageUploader({ tagId, onUploadComplete }: ImageUploader
     onUploadComplete(newImages)
     setUploading(false)
     setUploadProgress(0)
+
+    // エラー表示
+    if (failedCount > 0) {
+      setUploadError(`${failedCount}枚の画像をアップロードできませんでした`)
+      setTimeout(() => setUploadError(''), 5000)
+    }
 
     // input要素をリセット
     e.target.value = ''
@@ -206,6 +221,13 @@ export default function ImageUploader({ tagId, onUploadComplete }: ImageUploader
           <p className="text-sm text-gray-600 text-center">
             {Math.round(uploadProgress)}%
           </p>
+        </div>
+      )}
+
+      {/* エラー表示 */}
+      {uploadError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+          <p className="text-sm text-red-800">{uploadError}</p>
         </div>
       )}
 
