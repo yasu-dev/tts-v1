@@ -168,13 +168,12 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
         async (payload) => {
           // console.log('Realtime update (transport):', payload)
 
-          // 搬送対象のデータを再取得（搬送中も含む）
-          // 応急救護所到着済み（transport_assignment.status = 'completed'）も含む
+          // DMAT対象患者を再取得（赤・黄タグで応急救護所到着済み、病院搬送未開始）
           const { data, error } = await supabase
             .from('triage_tags')
             .select('*')
             .in('triage_category->>final', ['red', 'yellow'])
-            .not('transport->>status', 'eq', 'completed')
+            .eq('transport->>status', 'arrived')
             .order('triage_category->>final', { ascending: true })
 
           if (!error && data) {

@@ -46,11 +46,13 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
         async (payload) => {
           // console.log('Realtime update (transport team):', payload)
 
-          // 搬送部隊に割り当てられた患者を再取得
+          // 搬送部隊に割り当てられた患者を再取得（作業中のもののみ）
           const { data, error } = await supabase
             .from('triage_tags')
             .select('*')
             .not('transport_assignment', 'is', null)
+            .neq('transport->>status', 'arrived')
+            .neq('transport->>status', 'completed')
             .order('triage_category->final', { ascending: true })
             .order('created_at', { ascending: true })
 
@@ -95,21 +97,23 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
         .eq('id', tagId)
         .single()
 
-      const updateData: any = {
-        transport_assignment: {
-          ...currentTag?.transport_assignment,
-          status: status,
-          updated_at: new Date().toISOString(),
-        },
+      let updateData: any = {
         updated_at: new Date().toISOString(),
       }
 
-      // 応急救護所到着時はtransport.statusも更新
+      // 応急救護所到着時はtransport.statusのみ更新（統一）
       if (status === 'completed') {
         updateData.transport = {
           ...currentTag?.transport,
           status: 'arrived',
           arrival_time: new Date().toISOString(),
+        }
+      } else {
+        // その他のステータス（assigned, in_progress）はtransport_assignmentで管理
+        updateData.transport_assignment = {
+          ...currentTag?.transport_assignment,
+          status: status,
+          updated_at: new Date().toISOString(),
         }
       }
 
@@ -123,24 +127,25 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
       // ローカル状態を即座に更新
       setPatients(prevPatients => 
         prevPatients.map(patient => {
-          if (patient.id === tagId && patient.transport_assignment) {
+          if (patient.id === tagId) {
             const updatedPatient = {
               ...patient,
-              transport_assignment: {
-                team: patient.transport_assignment.team,
-                status: status as 'assigned' | 'in_progress' | 'completed',
-                assigned_at: patient.transport_assignment.assigned_at,
-                updated_at: new Date().toISOString(),
-              },
               updated_at: new Date().toISOString(),
             }
             
-            // 応急救護所到着時はtransport.statusも更新
+            // 応急救護所到着時はtransport.statusのみ更新（統一）
             if (status === 'completed') {
               updatedPatient.transport = {
                 ...patient.transport,
                 status: 'arrived',
                 arrival_time: new Date().toISOString(),
+              }
+            } else if (patient.transport_assignment) {
+              // その他のステータス（assigned, in_progress）はtransport_assignmentで管理
+              updatedPatient.transport_assignment = {
+                ...patient.transport_assignment,
+                status: status as 'assigned' | 'in_progress' | 'completed',
+                updated_at: new Date().toISOString(),
               }
             }
             
@@ -347,17 +352,36 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
                               {tag.patient_info?.sex && `${tag.patient_info.sex === 'male' ? '男性' : tag.patient_info.sex === 'female' ? '女性' : tag.patient_info.sex}`}
                               {(!tag.patient_info?.age && !tag.patient_info?.sex) && '詳細情報なし'}
                             </p>
-                            {/* 搬送状態バッジ */}
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                              transportStatus === 'assigned' ? 'bg-indigo-100 text-indigo-800' :
-                              transportStatus === 'in_progress' ? 'bg-orange-100 text-orange-800' :
-                              transportStatus === 'completed' ? 'bg-purple-100 text-purple-800' :
-                              'bg-gray-100 text-gray-800'
-                            }`}>
-                              {transportStatus === 'assigned' ? '指示済' :
-                               transportStatus === 'in_progress' ? '搬送中' :
-                               transportStatus === 'completed' ? '応急救護所到着' : '不明'}
-                            </span>
+                            {/* 搬送状態バッジ - 統一仕様 */}
+                            {(() => {
+                              // transport.statusが優先（arrived, completed）
+                              if (tag.transport.status === 'arrived') {
+                                return (
+                                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                    応急救護所到着
+                                  </span>
+                                )
+                              }
+                              if (tag.transport.status === 'completed') {
+                                return (
+                                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                    搬送完了
+                                  </span>
+                                )
+                              }
+                              // transport_assignment.statusを使用
+                              const status = tag.transport_assignment?.status || 'assigned'
+                              return (
+                                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                  status === 'assigned' ? 'bg-indigo-100 text-indigo-800' :
+                                  status === 'in_progress' ? 'bg-orange-100 text-orange-800' :
+                                  'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {status === 'assigned' ? '搬送部隊割当済' :
+                                   status === 'in_progress' ? '搬送中' : '不明'}
+                                </span>
+                              )
+                            })()}
                           </div>
                           <p className="text-xs text-gray-500">
 現在地: 

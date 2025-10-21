@@ -7,13 +7,12 @@ export const dynamic = 'force-dynamic'
 export default async function TransportPage() {
   const supabase = createClient()
 
-  // 搬送待ちのトリアージタッグを取得（赤・黄タグで病院搬送が完了していないもの）
-  // 応急救護所到着済み（transport_assignment.status = 'completed'）も含む
+  // DMAT対象患者を取得（赤・黄タグで応急救護所到着済み、病院搬送未開始）
   const { data: triageTags, error: tagsError } = await supabase
     .from('triage_tags')
     .select('*')
     .in('triage_category->>final', ['red', 'yellow'])
-    .not('transport->>status', 'eq', 'completed')
+    .eq('transport->>status', 'arrived')
     .order('triage_category->>final', { ascending: true }) // 赤を優先
     .order('created_at', { ascending: true })
 

@@ -487,12 +487,12 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
                             </p>
                             <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                               tag.transport.status === 'in_transit' ? 'bg-cyan-100 text-cyan-800' :
-                              tag.transport.status === 'arrived' ? 'bg-lime-100 text-lime-800' :
+                              tag.transport.status === 'arrived' ? 'bg-purple-100 text-purple-800' :
                               tag.transport.status === 'completed' ? 'bg-emerald-100 text-emerald-800' :
                               'bg-gray-100 text-gray-800'
                             }`}>
-                              {tag.transport.status === 'in_transit' ? '搬送中' :
-                               tag.transport.status === 'arrived' ? '到着済' :
+                              {tag.transport.status === 'in_transit' ? '病院搬送中' :
+                               tag.transport.status === 'arrived' ? '応急救護所到着' :
                                tag.transport.status === 'completed' ? '搬送完了' : '不明'}
                             </span>
                           </div>

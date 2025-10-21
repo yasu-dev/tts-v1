@@ -34,7 +34,7 @@ test.describe('トリアージ入力画面', () => {
     await page.click('button:has-text("次へ")')
 
     // START法画面に遷移
-    await expect(page.locator('text=START法')).toBeVisible()
+    await expect(page.locator('h3:has-text("START法トリアージ")')).toBeVisible()
   })
 
   test('START法ウィザードで緑タグ判定', async ({ page }) => {
@@ -43,11 +43,11 @@ test.describe('トリアージ入力画面', () => {
     await page.click('button:has-text("次へ")')
 
     // ステップ1: 歩行可能
-    await expect(page.locator('text=歩行できますか')).toBeVisible()
+    await expect(page.locator('text=患者は歩行可能ですか？')).toBeVisible()
     await page.click('button:has-text("はい")')
 
     // バイタル入力画面に進む（緑タグは自動判定）
-    await expect(page.locator('text=🟢 緑（軽症）')).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('text=判定: 緑（軽症）')).toBeVisible({ timeout: 5000 })
   })
 
   test('START法ウィザードで赤タグ判定', async ({ page }) => {
@@ -59,13 +59,13 @@ test.describe('トリアージ入力画面', () => {
     await page.click('button:has-text("いいえ")')
 
     // ステップ2: 呼吸あり
-    await page.click('button:has-text("あり")')
+    await page.click('button:has-text("はい")')
 
-    // ステップ3: 呼吸数30回以上
-    await page.click('button:has-text("30回/分以上")')
+    // ステップ3: 呼吸数30回以上（設問は「30回/分未満ですか？」→ いいえ）
+    await page.click('button:has-text("いいえ")')
 
     // 赤タグ判定
-    await expect(page.locator('text=🔴 赤（重症）')).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('text=判定: 赤（重症）')).toBeVisible({ timeout: 5000 })
   })
 
   test('バイタルサイン入力フォーム', async ({ page }) => {
