@@ -1,7 +1,4 @@
-/**
- * 画像処理ユーティリティ
- * Canvas APIを使用した画像のリサイズ・最適化
- */
+// moved to archive (not used)
 
 interface ImageProcessingOptions {
   width?: number;
@@ -21,33 +18,4 @@ interface ProcessedImage {
   size: number;
 }
 
-export class ImageProcessor {
-  // Mock implementation for build purposes
-  static async processImage(): Promise<ProcessedImage> {
-    throw new Error('Image processing not implemented in build mode');
-  }
-
-  static async generateResponsiveImages(): Promise<Map<number, ProcessedImage>> {
-    throw new Error('Image processing not implemented in build mode');
-  }
-
-  static async createThumbnail(): Promise<ProcessedImage> {
-    throw new Error('Image processing not implemented in build mode');
-  }
-
-  static async extractColors(): Promise<string[]> {
-    throw new Error('Image processing not implemented in build mode');
-  }
-
-  static async removeBackground(): Promise<ProcessedImage> {
-    throw new Error('Image processing not implemented in build mode');
-  }
-
-  static async validateImage(): Promise<boolean> {
-    throw new Error('Image processing not implemented in build mode');
-  }
-
-  static async batchProcess(): Promise<ProcessedImage[]> {
-    throw new Error('Image processing not implemented in build mode');
-  }
-}
+export class ImageProcessor {}

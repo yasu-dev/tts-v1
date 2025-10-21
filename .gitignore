@@ -41,3 +41,14 @@ next-env.d.ts
 
 # windows reserved name created accidentally
 nul
+
+# Playwright reports and artifacts
+playwright-report/
+playwright-report/**/*
+
+# Test run outputs
+/test-results/
+/test-results/**/*
+
+# TypeScript incremental build info
+/tsconfig.tsbuildinfo

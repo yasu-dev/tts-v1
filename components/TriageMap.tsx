@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import { createLogger } from '@/lib/utils/logger'
 
 // Leaflet のデフォルトアイコン修正（Next.jsでの問題対応）
 import icon from 'leaflet/dist/images/marker-icon.png'
@@ -40,9 +41,11 @@ export default function TriageMap({
   onMarkerClick,
 }: TriageMapProps) {
   const [isMounted, setIsMounted] = useState(false)
+  const logger = createLogger('components/TriageMap')
 
   useEffect(() => {
     setIsMounted(true)
+    logger.debug('Mounted', { patients: patients.length })
   }, [])
 
   // カテゴリー別の色設定
@@ -126,6 +129,7 @@ export default function TriageMap({
             eventHandlers={{
               click: () => {
                 if (onMarkerClick) {
+                  logger.info('Marker clicked', { id: patient.id })
                   onMarkerClick(patient.id)
                 }
               },

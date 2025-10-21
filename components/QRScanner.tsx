@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { Html5Qrcode } from 'html5-qrcode'
+import { createLogger } from '@/lib/utils/logger'
 
 interface QRScannerProps {
   onScanSuccess: (decodedText: string) => void
@@ -13,9 +14,11 @@ export default function QRScanner({ onScanSuccess, onScanError }: QRScannerProps
   const [hasPermission, setHasPermission] = useState<boolean | null>(null)
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const [error, setError] = useState<string>('')
+  const logger = createLogger('components/QRScanner')
 
   const startScanning = async () => {
     try {
+      logger.debug('Initializing scanner')
       const scanner = new Html5Qrcode('qr-reader')
       scannerRef.current = scanner
 
@@ -28,17 +31,19 @@ export default function QRScanner({ onScanSuccess, onScanError }: QRScannerProps
           disableFlip: false,
         },
         (decodedText) => {
+          logger.info('QR decoded', { decodedText })
           onScanSuccess(decodedText)
           
           // onScanSuccess呼び出し後にスキャンを停止
           if (scannerRef.current) {
-            scannerRef.current.stop().catch(() => {})
+            scannerRef.current.stop().catch((e) => logger.warn('Stop after success failed', e))
             scannerRef.current.clear()
           }
           setIsScanning(false)
         },
         (errorMessage) => {
           // スキャンエラーは無視（スキャン中は常にエラーが発生する）
+          logger.debug('Scan tick error', { errorMessage })
         }
       )
 
@@ -49,6 +54,7 @@ export default function QRScanner({ onScanSuccess, onScanError }: QRScannerProps
       const errorMsg = err instanceof Error ? err.message : 'カメラの起動に失敗しました'
       setError(errorMsg)
       setHasPermission(false)
+      logger.error('Failed to start camera', { error: errorMsg })
       if (onScanError) {
         onScanError(errorMsg)
       }
@@ -61,13 +67,16 @@ export default function QRScanner({ onScanSuccess, onScanError }: QRScannerProps
         await scannerRef.current.stop()
         scannerRef.current.clear()
       } catch (err) {
+        logger.warn('Stop scanner failed', err)
       }
     }
     setIsScanning(false)
   }
 
   useEffect(() => {
+    logger.debug('Mount')
     return () => {
+      logger.debug('Unmount -> stopScanning')
       stopScanning()
     }
   }, [])

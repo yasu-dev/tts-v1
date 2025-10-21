@@ -3,8 +3,10 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { createLogger } from '@/lib/utils/logger'
 
 export default function LoginPage() {
+  const logger = createLogger('app/login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -18,6 +20,7 @@ export default function LoginPage() {
     setError(null)
 
     try {
+      logger.info('Login attempt', { email })
       // Supabase Auth でログイン
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
@@ -49,9 +52,11 @@ export default function LoginPage() {
         router.push('/command')
       }
 
+      logger.info('Login success, redirected')
       router.refresh()
     } catch (err: any) {
       setError(err.message || 'ログインに失敗しました')
+      logger.error('Login failed', { message: err?.message })
     } finally {
       setLoading(false)
     }

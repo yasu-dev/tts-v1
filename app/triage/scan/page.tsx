@@ -9,10 +9,12 @@ import VoiceInput from '@/components/VoiceInput'
 import LogoutButton from '@/components/LogoutButton'
 import ContactPointManager from '@/components/ContactPointManager'
 import ImageUploader from '@/components/ImageUploader'
+import { createLogger } from '@/lib/utils/logger'
 
 type Step = 'qr' | 'start' | 'vitals' | 'info' | 'confirm'
 
 export default function TriageScanPage() {
+  const logger = createLogger('app/triage/scan')
   const router = useRouter()
   const supabase = createClient()
 
@@ -60,6 +62,7 @@ export default function TriageScanPage() {
 
   // GPS位置情報を取得
   useEffect(() => {
+    logger.debug('Init geolocation')
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -71,6 +74,7 @@ export default function TriageScanPage() {
         },
         (error) => {
           // デモ用デフォルト位置（東京消防庁本部付近）
+          logger.warn('Geolocation failed, fallback to default', { code: error.code })
           setLocation({
             latitude: 35.6895,
             longitude: 139.6917,
@@ -80,6 +84,7 @@ export default function TriageScanPage() {
       )
     } else {
       // デモ用デフォルト位置
+      logger.warn('Geolocation not available, use default')
       setLocation({
         latitude: 35.6895,
         longitude: 139.6917,
@@ -96,6 +101,7 @@ export default function TriageScanPage() {
 
   const loadEventData = async () => {
     try {
+      logger.debug('Load event data')
       // 最初のアクティブなイベントを取得
       const { data: events, error: eventsError } = await supabase
         .from('events')
@@ -109,8 +115,10 @@ export default function TriageScanPage() {
       if (events && events.length > 0) {
         setEventId(events[0].id)
         setContactPoints(events[0].contact_points || [])
+        logger.info('Event loaded', { eventId: events[0].id, points: (events[0].contact_points || []).length })
       }
     } catch (err) {
+      logger.error('Failed to load event data')
     }
   }
 
@@ -120,8 +128,10 @@ export default function TriageScanPage() {
   }
 
   const handleQRScanSuccess = (decodedText: string) => {
+    logger.info('QR scan success', { decodedText })
     // すでに処理済みの場合は無視
     if (currentStep !== 'qr') {
+      logger.debug('Ignore QR: not in qr step')
       return
     }
     
@@ -158,6 +168,7 @@ export default function TriageScanPage() {
   }
 
   const handleStartComplete = useCallback((result: StartTriageResult) => {
+    logger.info('START result', { category: result.category })
     // 匿名IDを生成（まだ生成されていない場合）
     let finalAnonymousId = anonymousId
     if (!finalAnonymousId) {
@@ -173,17 +184,20 @@ export default function TriageScanPage() {
 
   const handleVitalSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    logger.debug('Vitals submit')
     setCurrentStep('info')
   }
 
   const handleInfoSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    logger.debug('Info submit')
     setCurrentStep('confirm')
   }
 
   const handleFinalSubmit = async () => {
     if (!triageResult || !location) {
       setError('必須情報が不足しています')
+      logger.warn('Submit blocked: missing triageResult or location')
       return
     }
 
@@ -191,6 +205,7 @@ export default function TriageScanPage() {
     setError('')
 
     try {
+      logger.info('Insert triage tag start')
       // デフォルトイベントID（デモ用に最初のイベントを使用）
       const { data: events } = await supabase
         .from('events')
@@ -266,17 +281,20 @@ export default function TriageScanPage() {
       }
 
       alert('トリアージタッグを登録しました')
+      logger.info('Insert triage tag success')
 
       // フォームをリセットして最初の画面に戻る
       resetForm()
     } catch (err) {
       setError(err instanceof Error ? err.message : '登録に失敗しました')
+      logger.error('Insert triage tag failed')
     } finally {
       setLoading(false)
     }
   }
 
   const handleVoiceTranscript = (text: string) => {
+    logger.debug('Voice transcript received')
     setNotes((prev) => {
       const newNotes = prev ? `${prev} ${text}` : text
       return newNotes
