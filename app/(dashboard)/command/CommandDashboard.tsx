@@ -74,7 +74,7 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
     }
   }, [supabase])
 
-  // 全ステータスを取得
+  // 全ステータスを取得（業務フロー順に並べ替え）
   const getAllStatuses = () => {
     const statuses = new Set<string>()
     tags.forEach(tag => {
@@ -86,7 +86,20 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
         statuses.add(`transport:${status}`)
       }
     })
-    return Array.from(statuses)
+    
+    // 業務フロー順に並べ替え
+    const statusOrder = [
+      'transport:not_transported',      // 1. 未搬送
+      'transport_assignment:assigned',   // 2. 搬送部隊割当済
+      'transport_assignment:in_progress', // 3. 搬送中
+      'transport_assignment:completed',  // 4. 応急救護所到着
+      'transport:arrived',              // 4. 応急救護所到着（別表現）
+      'transport:preparing',            // 5. 搬送準備中
+      'transport:in_transit',           // 6. 病院搬送中
+      'transport:completed'             // 7. 搬送完了
+    ]
+    
+    return statusOrder.filter(status => statuses.has(status))
   }
 
   // ステータスフィルターの初期化（全てチェック状態）
@@ -240,7 +253,6 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
 
         {/* ステータスフィルター */}
         <div className="card mb-6">
-          <h3 className="text-lg font-bold mb-4">搬送ステータスフィルター</h3>
           <div className="flex flex-wrap gap-3">
             {getAllStatuses().map(statusKey => {
               const { label, color } = getStatusDisplay(statusKey)
@@ -262,9 +274,6 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
                 </label>
               )
             })}
-          </div>
-          <div className="mt-3 text-sm text-gray-600">
-            チェックしたステータスの患者のみ表示されます（トリアージカテゴリとのAND条件）
           </div>
         </div>
 
