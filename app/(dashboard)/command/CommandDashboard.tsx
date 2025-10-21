@@ -78,7 +78,10 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
   const getAllStatuses = () => {
     const statuses = new Set<string>()
     tags.forEach(tag => {
-      if (tag.transport_assignment) {
+      // transport.statusがcompletedの場合は最終状態なので優先
+      if (tag.transport.status === 'completed') {
+        statuses.add(`transport:completed`)
+      } else if (tag.transport_assignment) {
         const status = tag.transport_assignment.status
         statuses.add(`transport_assignment:${status}`)
       } else {
@@ -116,7 +119,10 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
     
     // ステータスのフィルタリング
     let statusMatch = false
-    if (tag.transport_assignment) {
+    // transport.statusがcompletedの場合は最終状態なので優先
+    if (tag.transport.status === 'completed') {
+      statusMatch = statusFilters.includes('transport:completed')
+    } else if (tag.transport_assignment) {
       const status = `transport_assignment:${tag.transport_assignment.status}`
       statusMatch = statusFilters.includes(status)
     } else {
@@ -394,7 +400,10 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
                           {/* 搬送状態バッジ */}
                           {(() => {
                             let statusKey: string
-                            if (tag.transport_assignment) {
+                            // transport.statusがcompletedの場合は最終状態なので優先
+                            if (tag.transport.status === 'completed') {
+                              statusKey = `transport:completed`
+                            } else if (tag.transport_assignment) {
                               statusKey = `transport_assignment:${tag.transport_assignment.status}`
                             } else {
                               statusKey = `transport:${tag.transport.status}`

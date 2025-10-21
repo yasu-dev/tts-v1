@@ -7,11 +7,12 @@ export const dynamic = 'force-dynamic'
 export default async function TransportTeamPage() {
   const supabase = createClient()
 
-  // 搬送部隊に割り当てられた患者を取得
+  // 搬送部隊に割り当てられた患者を取得（病院搬送完了を除く）
   const { data: triageTags, error: tagsError } = await supabase
     .from('triage_tags')
     .select('*')
     .not('transport_assignment', 'is', null)
+    .neq('transport->>status', 'completed')
     .order('triage_category->final', { ascending: true })
     .order('created_at', { ascending: true })
 
