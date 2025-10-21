@@ -349,9 +349,9 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
                             </p>
                             {/* 搬送状態バッジ */}
                             <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                              transportStatus === 'assigned' ? 'bg-blue-100 text-blue-800' :
+                              transportStatus === 'assigned' ? 'bg-indigo-100 text-indigo-800' :
                               transportStatus === 'in_progress' ? 'bg-orange-100 text-orange-800' :
-                              transportStatus === 'completed' ? 'bg-green-100 text-green-800' :
+                              transportStatus === 'completed' ? 'bg-purple-100 text-purple-800' :
                               'bg-gray-100 text-gray-800'
                             }`}>
                               {transportStatus === 'assigned' ? '指示済' :

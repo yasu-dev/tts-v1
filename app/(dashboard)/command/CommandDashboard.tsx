@@ -165,9 +165,9 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
         label: status === 'assigned' ? '搬送部隊割当済' :
                status === 'in_progress' ? '搬送中' :
                status === 'completed' ? '応急救護所到着' : '不明',
-        color: status === 'assigned' ? 'bg-blue-100 text-blue-800' :
+        color: status === 'assigned' ? 'bg-indigo-100 text-indigo-800' :
                status === 'in_progress' ? 'bg-orange-100 text-orange-800' :
-               status === 'completed' ? 'bg-green-100 text-green-800' :
+               status === 'completed' ? 'bg-purple-100 text-purple-800' :
                'bg-gray-100 text-gray-800'
       }
     } else {
@@ -179,9 +179,9 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
                status === 'completed' ? '搬送完了' : '不明',
         color: status === 'not_transported' ? 'bg-gray-100 text-gray-800' :
                status === 'arrived' ? 'bg-purple-100 text-purple-800' :
-               status === 'preparing' ? 'bg-yellow-100 text-yellow-800' :
-               status === 'in_transit' ? 'bg-blue-100 text-blue-800' :
-               status === 'completed' ? 'bg-green-100 text-green-800' :
+               status === 'preparing' ? 'bg-amber-100 text-amber-800' :
+               status === 'in_transit' ? 'bg-cyan-100 text-cyan-800' :
+               status === 'completed' ? 'bg-emerald-100 text-emerald-800' :
                'bg-gray-100 text-gray-800'
       }
     }

@@ -427,9 +427,9 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
                               <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                                 tag.transport.status === 'not_transported' ? 'bg-gray-100 text-gray-800' :
                                 tag.transport.status === 'arrived' ? 'bg-purple-100 text-purple-800' :
-                                tag.transport.status === 'preparing' ? 'bg-yellow-100 text-yellow-800' :
-                                tag.transport.status === 'in_transit' ? 'bg-blue-100 text-blue-800' :
-                                tag.transport.status === 'completed' ? 'bg-green-100 text-green-800' :
+                                tag.transport.status === 'preparing' ? 'bg-amber-100 text-amber-800' :
+                                tag.transport.status === 'in_transit' ? 'bg-cyan-100 text-cyan-800' :
+                                tag.transport.status === 'completed' ? 'bg-emerald-100 text-emerald-800' :
                                 'bg-gray-100 text-gray-800'
                               }`}>
                                 {tag.transport.status === 'not_transported' ? '未搬送' :

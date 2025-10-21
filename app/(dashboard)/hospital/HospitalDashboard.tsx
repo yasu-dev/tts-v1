@@ -486,9 +486,9 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
                               {(!tag.patient_info?.age && !tag.patient_info?.sex) && '詳細情報なし'}
                             </p>
                             <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                              tag.transport.status === 'in_transit' ? 'bg-blue-100 text-blue-800' :
-                              tag.transport.status === 'arrived' ? 'bg-green-100 text-green-800' :
-                              tag.transport.status === 'completed' ? 'bg-gray-600 text-white' :
+                              tag.transport.status === 'in_transit' ? 'bg-cyan-100 text-cyan-800' :
+                              tag.transport.status === 'arrived' ? 'bg-lime-100 text-lime-800' :
+                              tag.transport.status === 'completed' ? 'bg-emerald-100 text-emerald-800' :
                               'bg-gray-100 text-gray-800'
                             }`}>
                               {tag.transport.status === 'in_transit' ? '搬送中' :
