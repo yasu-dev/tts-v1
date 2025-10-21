@@ -78,8 +78,14 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
   const getAllStatuses = () => {
     const statuses = new Set<string>()
     tags.forEach(tag => {
-      // transport.statusがcompletedの場合は最終状態なので優先
-      if (tag.transport.status === 'completed') {
+      // transport.statusが arrived, preparing, in_transit, completed の場合は最終状態なので優先
+      if (tag.transport.status === 'arrived') {
+        statuses.add(`transport:arrived`)
+      } else if (tag.transport.status === 'preparing') {
+        statuses.add(`transport:preparing`)
+      } else if (tag.transport.status === 'in_transit') {
+        statuses.add(`transport:in_transit`)
+      } else if (tag.transport.status === 'completed') {
         statuses.add(`transport:completed`)
       } else if (tag.transport_assignment) {
         const status = tag.transport_assignment.status
@@ -119,8 +125,14 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
     
     // ステータスのフィルタリング
     let statusMatch = false
-    // transport.statusがcompletedの場合は最終状態なので優先
-    if (tag.transport.status === 'completed') {
+    // transport.statusが arrived, preparing, in_transit, completed の場合は最終状態なので優先
+    if (tag.transport.status === 'arrived') {
+      statusMatch = statusFilters.includes('transport:arrived')
+    } else if (tag.transport.status === 'preparing') {
+      statusMatch = statusFilters.includes('transport:preparing')
+    } else if (tag.transport.status === 'in_transit') {
+      statusMatch = statusFilters.includes('transport:in_transit')
+    } else if (tag.transport.status === 'completed') {
       statusMatch = statusFilters.includes('transport:completed')
     } else if (tag.transport_assignment) {
       const status = `transport_assignment:${tag.transport_assignment.status}`
@@ -400,8 +412,14 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
                           {/* 搬送状態バッジ */}
                           {(() => {
                             let statusKey: string
-                            // transport.statusがcompletedの場合は最終状態なので優先
-                            if (tag.transport.status === 'completed') {
+                            // transport.statusが arrived, preparing, in_transit, completed の場合は最終状態なので優先
+                            if (tag.transport.status === 'arrived') {
+                              statusKey = `transport:arrived`
+                            } else if (tag.transport.status === 'preparing') {
+                              statusKey = `transport:preparing`
+                            } else if (tag.transport.status === 'in_transit') {
+                              statusKey = `transport:in_transit`
+                            } else if (tag.transport.status === 'completed') {
                               statusKey = `transport:completed`
                             } else if (tag.transport_assignment) {
                               statusKey = `transport_assignment:${tag.transport_assignment.status}`
