@@ -91,40 +91,63 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
       // 現在のタグデータを取得
       const { data: currentTag } = await supabase
         .from('triage_tags')
-        .select('transport_assignment')
+        .select('transport_assignment, transport')
         .eq('id', tagId)
         .single()
 
+      const updateData: any = {
+        transport_assignment: {
+          ...currentTag?.transport_assignment,
+          status: status,
+          updated_at: new Date().toISOString(),
+        },
+        updated_at: new Date().toISOString(),
+      }
+
+      // 応急救護所到着時はtransport.statusも更新
+      if (status === 'completed') {
+        updateData.transport = {
+          ...currentTag?.transport,
+          status: 'arrived',
+          arrival_time: new Date().toISOString(),
+        }
+      }
+
       const { error } = await supabase
         .from('triage_tags')
-        .update({
-          transport_assignment: {
-            ...currentTag?.transport_assignment,
-            status: status,
-            updated_at: new Date().toISOString(),
-          },
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq('id', tagId)
 
       if (error) throw error
 
       // ローカル状態を即座に更新
       setPatients(prevPatients => 
-        prevPatients.map(patient => 
-          patient.id === tagId && patient.transport_assignment
-            ? {
-                ...patient,
-                transport_assignment: {
-                  team: patient.transport_assignment.team,
-                  status: status as 'assigned' | 'in_progress' | 'completed',
-                  assigned_at: patient.transport_assignment.assigned_at,
-                  updated_at: new Date().toISOString(),
-                },
+        prevPatients.map(patient => {
+          if (patient.id === tagId && patient.transport_assignment) {
+            const updatedPatient = {
+              ...patient,
+              transport_assignment: {
+                team: patient.transport_assignment.team,
+                status: status as 'assigned' | 'in_progress' | 'completed',
+                assigned_at: patient.transport_assignment.assigned_at,
                 updated_at: new Date().toISOString(),
+              },
+              updated_at: new Date().toISOString(),
+            }
+            
+            // 応急救護所到着時はtransport.statusも更新
+            if (status === 'completed') {
+              updatedPatient.transport = {
+                ...patient.transport,
+                status: 'arrived',
+                arrival_time: new Date().toISOString(),
               }
-            : patient
-        )
+            }
+            
+            return updatedPatient
+          }
+          return patient
+        })
       )
 
       if (status === 'in_progress') {

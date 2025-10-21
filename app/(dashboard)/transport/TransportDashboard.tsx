@@ -169,11 +169,12 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
           // console.log('Realtime update (transport):', payload)
 
           // 搬送対象のデータを再取得（搬送中も含む）
+          // 応急救護所到着済み（transport_assignment.status = 'completed'）も含む
           const { data, error } = await supabase
             .from('triage_tags')
             .select('*')
             .in('triage_category->>final', ['red', 'yellow'])
-            .in('transport->>status', ['not_transported', 'preparing', 'in_transit'])
+            .not('transport->>status', 'eq', 'completed')
             .order('triage_category->>final', { ascending: true })
 
           if (!error && data) {
@@ -425,12 +426,14 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
                               </p>
                               <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                                 tag.transport.status === 'not_transported' ? 'bg-gray-100 text-gray-800' :
+                                tag.transport.status === 'arrived' ? 'bg-purple-100 text-purple-800' :
                                 tag.transport.status === 'preparing' ? 'bg-yellow-100 text-yellow-800' :
                                 tag.transport.status === 'in_transit' ? 'bg-blue-100 text-blue-800' :
                                 tag.transport.status === 'completed' ? 'bg-green-100 text-green-800' :
                                 'bg-gray-100 text-gray-800'
                               }`}>
                                 {tag.transport.status === 'not_transported' ? '未搬送' :
+                                 tag.transport.status === 'arrived' ? '応急救護所到着' :
                                  tag.transport.status === 'preparing' ? '搬送準備中' :
                                  tag.transport.status === 'in_transit' ? '病院搬送中' :
                                  tag.transport.status === 'completed' ? '搬送完了' : '不明'}
