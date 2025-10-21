@@ -46,7 +46,7 @@ export default function TriageScanPage() {
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [retryCount, setRetryCount] = useState(0)
+  const [networkStatus, setNetworkStatus] = useState(navigator.onLine)
   const [contactPoint, setContactPoint] = useState('')
   const [contactPoints, setContactPoints] = useState<string[]>([])
   const [eventId, setEventId] = useState<string | null>(null)
@@ -60,6 +60,20 @@ export default function TriageScanPage() {
     taken_at: string
   }>>([])
   const [anonymousId, setAnonymousId] = useState('')
+
+  // ネットワーク状態監視
+  useEffect(() => {
+    const handleOnline = () => setNetworkStatus(true)
+    const handleOffline = () => setNetworkStatus(false)
+    
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+    
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [])
 
   // GPS位置情報を取得
   useEffect(() => {
@@ -196,17 +210,44 @@ export default function TriageScanPage() {
   }
 
   const handleFinalSubmit = async () => {
+    // １エラー防止：事前チェック
+    if (!networkStatus) {
+      setError('ネットワークに接続されていません。接続を確認してからやり直してください')
+      return
+    }
+
     if (!triageResult || !location) {
-      setError('必須情報が不足しています')
+      setError('必須情報が不足しています（トリアージ判定または位置情報）')
       logger.warn('Submit blocked: missing triageResult or location')
       return
     }
 
-    // 画像アップロード中は登録を待機
-    const isAnyImageUploading = document.querySelector('[class*="bg-blue-500"]')
-    if (isAnyImageUploading) {
-      setError('画像アップロード完了後に登録してください')
-      return
+    // 画像データの整合性チェック
+    if (uploadedImages.length > 0) {
+      const invalidImages = uploadedImages.filter(img => !img.url || !img.id)
+      if (invalidImages.length > 0) {
+        setError('画像データが不完全です。画像を削除して再度アップロードしてください')
+        return
+      }
+    }
+
+    // タグ番号の重複チェック（事前）
+    if (tagNumber) {
+      try {
+        const { data: existing } = await supabase
+          .from('triage_tags')
+          .select('tag_number')
+          .eq('tag_number', tagNumber)
+          .limit(1)
+        
+        if (existing && existing.length > 0) {
+          setError(`タグ番号 ${tagNumber} は既に使用されています。別の番号を入力してください`)
+          return
+        }
+      } catch (err) {
+        // 事前チェックエラーは警告レベル
+        logger.warn('Pre-check failed, continuing with submission')
+      }
     }
 
     setLoading(true)
@@ -215,21 +256,21 @@ export default function TriageScanPage() {
     try {
       logger.info('Insert triage tag start')
       // デフォルトイベントID（デモ用に最初のイベントを使用）
-      const { data: events } = await supabase
+      const { data: events, error: eventError } = await supabase
         .from('events')
         .select('id')
         .limit(1)
         .single()
 
-      if (!events) {
-        throw new Error('イベントが見つかりません')
+      if (eventError || !events) {
+        throw new Error('システムエラー: イベントデータを取得できません。管理者に連絡してください')
       }
 
       // 匿名IDを生成（または既存のものを使用）
       const finalAnonymousId = anonymousId || `ANON-${Date.now().toString().slice(-6)}`
 
-      // トリアージタッグを登録
-      const { error: insertError } = await supabase.from('triage_tags').insert({
+      // データサイズチェック
+      const dataToInsert = {
         event_id: events.id,
         anonymous_id: finalAnonymousId,
         tag_number: tagNumber,
@@ -282,10 +323,33 @@ export default function TriageScanPage() {
           updated_by: 'user-tri-001',
           updated_at: new Date().toISOString(),
         },
-      })
+      }
+
+      // データサイズ制限チェック（JSON文字列で8MB以下）
+      const dataString = JSON.stringify(dataToInsert)
+      if (dataString.length > 8 * 1024 * 1024) {
+        throw new Error('データサイズが大きすぎます。画像を減らすか、メモを短縮してください')
+      }
+
+      // トリアージタッグを登録
+      const { error: insertError } = await supabase.from('triage_tags').insert(dataToInsert)
 
       if (insertError) {
-        throw insertError
+        // ２明確なエラー原因と対処法
+        if (insertError.message.includes('duplicate') || insertError.code === '23505') {
+          throw new Error(`タグ番号 ${tagNumber} は既に使用されています。\n対処：異なるタグ番号を入力してください`)
+        }
+        if (insertError.message.includes('network') || insertError.code === 'PGRST301') {
+          throw new Error('ネットワークエラーが発生しました。\n対処：接続を確認して再度お試しください')
+        }
+        if (insertError.message.includes('payload') || insertError.message.includes('too large')) {
+          throw new Error('データサイズが大きすぎます。\n対処：画像を減らすかメモを短縮してください')
+        }
+        if (insertError.code === '42501') {
+          throw new Error('データベースアクセス権限がありません。\n対処：管理者に連絡してください')
+        }
+        // 一般的なエラー
+        throw new Error(`登録エラーが発生しました。\nエラー詳細: ${insertError.message}\n対処：画面を更新して再度お試しください`)
       }
 
       alert('トリアージタッグを登録しました')
@@ -293,19 +357,11 @@ export default function TriageScanPage() {
 
       // フォームをリセットして最初の画面に戻る
       resetForm()
-      setRetryCount(0)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '登録に失敗しました'
       setError(errorMessage)
-      logger.error('Insert triage tag failed', { error: errorMessage, retryCount })
+      logger.error('Insert triage tag failed', { error: errorMessage })
       
-      // 自動リトライ（最大2回）
-      if (retryCount < 2) {
-        setTimeout(() => {
-          setRetryCount(prev => prev + 1)
-          handleFinalSubmit()
-        }, 2000)
-      }
     } finally {
       setLoading(false)
     }
@@ -336,7 +392,6 @@ export default function TriageScanPage() {
     setContactPoint('')
     setUploadedImages([])
     setAnonymousId('')
-    setRetryCount(0)
     setCurrentStep('qr')
   }
 
@@ -816,12 +871,15 @@ export default function TriageScanPage() {
               )}
             </div>
 
+            {!networkStatus && (
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mt-4">
+                <p className="text-orange-800 font-medium">⚠️ オフラインです。登録にはネットワーク接続が必要です</p>
+              </div>
+            )}
+
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-4">
-                <p className="text-red-800 font-medium">{error}</p>
-                {retryCount > 0 && (
-                  <p className="text-red-600 text-sm mt-1">自動リトライ中... ({retryCount}/2)</p>
-                )}
+                <p className="text-red-800 font-medium whitespace-pre-line">{error}</p>
               </div>
             )}
 
@@ -835,10 +893,12 @@ export default function TriageScanPage() {
               </button>
               <button
                 onClick={handleFinalSubmit}
-                disabled={loading}
-                className="flex-1 btn-primary py-3 disabled:opacity-50"
+                disabled={loading || !networkStatus}
+                className={`flex-1 py-3 disabled:opacity-50 ${!networkStatus ? 'btn-disabled' : 'btn-primary'}`}
               >
-                {loading ? '登録中...' : '登録する'}
+                {loading ? '登録中...' : 
+                 !networkStatus ? 'オフライン' :
+                 '登録する'}
               </button>
             </div>
           </div>

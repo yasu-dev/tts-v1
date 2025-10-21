@@ -21,7 +21,22 @@ export default function ImageUploader({ tagId, onUploadComplete }: ImageUploader
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [uploadError, setUploadError] = useState('')
+  const [networkStatus, setNetworkStatus] = useState(navigator.onLine)
   const supabase = createClient()
+
+  // ネットワーク状態監視
+  useEffect(() => {
+    const handleOnline = () => setNetworkStatus(true)
+    const handleOffline = () => setNetworkStatus(false)
+    
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+    
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [])
 
   const MAX_IMAGES = 5
 
@@ -68,10 +83,24 @@ export default function ImageUploader({ tagId, onUploadComplete }: ImageUploader
     const files = e.target.files
     if (!files || files.length === 0) return
 
+    // １エラー防止：事前チェック
+    if (!networkStatus) {
+      setUploadError('ネットワークに接続されていません。接続を確認してからやり直してください')
+      return
+    }
+
     if (images.length + files.length > MAX_IMAGES) {
       setUploadError(`画像は最大${MAX_IMAGES}枚までアップロードできます`)
       setTimeout(() => setUploadError(''), 3000)
       return
+    }
+
+    // ファイルサイズチェック（10MB制限）
+    for (let i = 0; i < files.length; i++) {
+      if (files[i].size > 10 * 1024 * 1024) {
+        setUploadError(`${files[i].name}は10MBを超えています。別の画像を選択してください`)
+        return
+      }
     }
 
     setUploading(true)
@@ -127,6 +156,7 @@ export default function ImageUploader({ tagId, onUploadComplete }: ImageUploader
         uploadedImages.push(uploadedImage)
       } catch (error) {
         failedCount++
+        console.error('Image upload failed:', error)
       }
       
       setUploadProgress(((i + 1) / files.length) * 100)
@@ -138,10 +168,14 @@ export default function ImageUploader({ tagId, onUploadComplete }: ImageUploader
     setUploading(false)
     setUploadProgress(0)
 
-    // エラー表示
+    // ２明確なエラー表示
     if (failedCount > 0) {
-      setUploadError(`${failedCount}枚の画像をアップロードできませんでした`)
-      setTimeout(() => setUploadError(''), 5000)
+      if (!networkStatus) {
+        setUploadError('ネットワーク接続が切断されました。接続を確認して再度お試しください')
+      } else {
+        setUploadError(`${failedCount}枚の画像をアップロードできませんでした。画像サイズまたはネットワーク状況を確認してください`)
+      }
+      setTimeout(() => setUploadError(''), 8000)
     }
 
     // input要素をリセット
@@ -192,19 +226,28 @@ export default function ImageUploader({ tagId, onUploadComplete }: ImageUploader
         外傷部位、現場写真などをカメラで撮影して即座にアップロードします（最大{MAX_IMAGES}枚）
       </p>
 
+      {/* ネットワーク状態表示 */}
+      {!networkStatus && (
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
+          <p className="text-orange-800 text-sm font-medium">⚠️ オフラインです。画像アップロードにはネットワーク接続が必要です</p>
+        </div>
+      )}
+
       {/* カメラ撮影ボタン */}
       {images.length < MAX_IMAGES && (
         <div>
-          <label className="btn-primary inline-block cursor-pointer">
+          <label className={`inline-block cursor-pointer ${!networkStatus || uploading ? 'btn-disabled' : 'btn-primary'}`}>
             <input
               type="file"
               accept="image/*"
               capture="environment"
               onChange={handleFileChange}
-              disabled={uploading}
+              disabled={uploading || !networkStatus}
               className="hidden"
             />
-            {uploading ? 'アップロード中...' : 'カメラで撮影'}
+            {uploading ? 'アップロード中...' : 
+             !networkStatus ? 'オフライン' :
+             'カメラで撮影'}
           </label>
         </div>
       )}
