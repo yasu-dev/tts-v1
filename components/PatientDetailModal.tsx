@@ -280,51 +280,37 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
               </div>
             ) : (
               <div className="space-y-3">
-                {editedTag.patient_info?.name && (
-                  <div>
-                    <p className="text-sm text-gray-600">氏名</p>
-                    <p className="font-semibold">{editedTag.patient_info.name}</p>
-                  </div>
-                )}
-                {editedTag.patient_info?.phone && (
-                  <div>
-                    <p className="text-sm text-gray-600">電話番号</p>
-                    <p className="font-semibold">{editedTag.patient_info.phone}</p>
-                  </div>
-                )}
-                {editedTag.patient_info?.address && (
-                  <div>
-                    <p className="text-sm text-gray-600">住所</p>
-                    <p className="font-semibold">{editedTag.patient_info.address}</p>
-                  </div>
-                )}
+                <div>
+                  <p className="text-sm text-gray-600">氏名</p>
+                  <p className="font-semibold">{editedTag.patient_info?.name || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">電話番号</p>
+                  <p className="font-semibold">{editedTag.patient_info?.phone || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">住所</p>
+                  <p className="font-semibold">{editedTag.patient_info?.address || '-'}</p>
+                </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {editedTag.patient_info?.age && (
-                    <div>
-                      <p className="text-sm text-gray-600">年齢</p>
-                      <p className="font-semibold">{editedTag.patient_info.age}歳</p>
-                    </div>
-                  )}
-                  {editedTag.patient_info?.sex && (
-                    <div>
-                      <p className="text-sm text-gray-600">性別</p>
-                      <p className="font-semibold">
-                        {editedTag.patient_info.sex === 'male' ? '男性' : editedTag.patient_info.sex === 'female' ? '女性' : 'その他'}
-                      </p>
-                    </div>
-                  )}
-                  {editedTag.patient_info?.height && (
-                    <div>
-                      <p className="text-sm text-gray-600">身長</p>
-                      <p className="font-semibold">{editedTag.patient_info.height}cm</p>
-                    </div>
-                  )}
-                  {editedTag.patient_info?.weight && (
-                    <div>
-                      <p className="text-sm text-gray-600">体重</p>
-                      <p className="font-semibold">{editedTag.patient_info.weight}kg</p>
-                    </div>
-                  )}
+                  <div>
+                    <p className="text-sm text-gray-600">年齢</p>
+                    <p className="font-semibold">{editedTag.patient_info?.age ? `${editedTag.patient_info.age}歳` : '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">性別</p>
+                    <p className="font-semibold">
+                      {editedTag.patient_info?.sex === 'male' ? '男性' : editedTag.patient_info?.sex === 'female' ? '女性' : editedTag.patient_info?.sex === 'other' ? 'その他' : '-'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">身長</p>
+                    <p className="font-semibold">{editedTag.patient_info?.height ? `${editedTag.patient_info.height}cm` : '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">体重</p>
+                    <p className="font-semibold">{editedTag.patient_info?.weight ? `${editedTag.patient_info.weight}kg` : '-'}</p>
+                  </div>
                 </div>
               </div>
             )}
@@ -900,98 +886,66 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
                     </tr>
                   </thead>
                   <tbody>
-                    {(editedTag.vital_signs_records?.first?.judger_name ||
-                      editedTag.vital_signs_records?.second?.judger_name ||
-                      editedTag.vital_signs_records?.third?.judger_name) && (
-                      <tr>
-                        <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">判定者名</td>
-                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.first?.judger_name || '-'}</td>
-                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.second?.judger_name || '-'}</td>
-                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.third?.judger_name || '-'}</td>
-                      </tr>
-                    )}
-                    {(editedTag.vital_signs_records?.first?.judgment_location ||
-                      editedTag.vital_signs_records?.second?.judgment_location ||
-                      editedTag.vital_signs_records?.third?.judgment_location) && (
-                      <tr>
-                        <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">判定場所</td>
-                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.first?.judgment_location || '-'}</td>
-                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.second?.judgment_location || '-'}</td>
-                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.third?.judgment_location || '-'}</td>
-                      </tr>
-                    )}
-                    {(editedTag.vital_signs_records?.first?.judgment_time ||
-                      editedTag.vital_signs_records?.second?.judgment_time ||
-                      editedTag.vital_signs_records?.third?.judgment_time) && (
-                      <tr>
-                        <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">判定時間</td>
-                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.first?.judgment_time || '-'}</td>
-                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.second?.judgment_time || '-'}</td>
-                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.third?.judgment_time || '-'}</td>
-                      </tr>
-                    )}
-                    {(editedTag.vital_signs_records?.first?.consciousness ||
-                      editedTag.vital_signs_records?.second?.consciousness ||
-                      editedTag.vital_signs_records?.third?.consciousness) && (
-                      <tr>
-                        <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">意識</td>
-                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.first?.consciousness || '-'}</td>
-                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.second?.consciousness || '-'}</td>
-                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.third?.consciousness || '-'}</td>
-                      </tr>
-                    )}
-                    {(editedTag.vital_signs_records?.first?.respiratory_rate ||
-                      editedTag.vital_signs_records?.second?.respiratory_rate ||
-                      editedTag.vital_signs_records?.third?.respiratory_rate) && (
-                      <tr>
-                        <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">呼吸 (回/分)</td>
-                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.first?.respiratory_rate || '-'}</td>
-                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.second?.respiratory_rate || '-'}</td>
-                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.third?.respiratory_rate || '-'}</td>
-                      </tr>
-                    )}
-                    {(editedTag.vital_signs_records?.first?.pulse_rate ||
-                      editedTag.vital_signs_records?.second?.pulse_rate ||
-                      editedTag.vital_signs_records?.third?.pulse_rate) && (
-                      <tr>
-                        <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">脈拍 (回/分)</td>
-                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.first?.pulse_rate || '-'}</td>
-                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.second?.pulse_rate || '-'}</td>
-                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.third?.pulse_rate || '-'}</td>
-                      </tr>
-                    )}
-                    {(editedTag.vital_signs_records?.first?.blood_pressure ||
-                      editedTag.vital_signs_records?.second?.blood_pressure ||
-                      editedTag.vital_signs_records?.third?.blood_pressure) && (
-                      <tr>
-                        <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">血圧 (mmHg)</td>
-                        <td className="border border-gray-300 px-2 py-2">
-                          {editedTag.vital_signs_records?.first?.blood_pressure
-                            ? `${editedTag.vital_signs_records.first.blood_pressure.systolic}/${editedTag.vital_signs_records.first.blood_pressure.diastolic}`
-                            : '-'}
-                        </td>
-                        <td className="border border-gray-300 px-2 py-2">
-                          {editedTag.vital_signs_records?.second?.blood_pressure
-                            ? `${editedTag.vital_signs_records.second.blood_pressure.systolic}/${editedTag.vital_signs_records.second.blood_pressure.diastolic}`
-                            : '-'}
-                        </td>
-                        <td className="border border-gray-300 px-2 py-2">
-                          {editedTag.vital_signs_records?.third?.blood_pressure
-                            ? `${editedTag.vital_signs_records.third.blood_pressure.systolic}/${editedTag.vital_signs_records.third.blood_pressure.diastolic}`
-                            : '-'}
-                        </td>
-                      </tr>
-                    )}
-                    {(editedTag.vital_signs_records?.first?.temperature ||
-                      editedTag.vital_signs_records?.second?.temperature ||
-                      editedTag.vital_signs_records?.third?.temperature) && (
-                      <tr>
-                        <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">体温 (°C)</td>
-                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.first?.temperature || '-'}</td>
-                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.second?.temperature || '-'}</td>
-                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.third?.temperature || '-'}</td>
-                      </tr>
-                    )}
+                    <tr>
+                      <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">判定者名</td>
+                      <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.first?.judger_name || '-'}</td>
+                      <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.second?.judger_name || '-'}</td>
+                      <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.third?.judger_name || '-'}</td>
+                    </tr>
+                    <tr>
+                      <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">判定場所</td>
+                      <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.first?.judgment_location || '-'}</td>
+                      <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.second?.judgment_location || '-'}</td>
+                      <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.third?.judgment_location || '-'}</td>
+                    </tr>
+                    <tr>
+                      <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">判定時間</td>
+                      <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.first?.judgment_time || '-'}</td>
+                      <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.second?.judgment_time || '-'}</td>
+                      <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.third?.judgment_time || '-'}</td>
+                    </tr>
+                    <tr>
+                      <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">意識</td>
+                      <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.first?.consciousness || '-'}</td>
+                      <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.second?.consciousness || '-'}</td>
+                      <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.third?.consciousness || '-'}</td>
+                    </tr>
+                    <tr>
+                      <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">呼吸 (回/分)</td>
+                      <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.first?.respiratory_rate || '-'}</td>
+                      <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.second?.respiratory_rate || '-'}</td>
+                      <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.third?.respiratory_rate || '-'}</td>
+                    </tr>
+                    <tr>
+                      <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">脈拍 (回/分)</td>
+                      <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.first?.pulse_rate || '-'}</td>
+                      <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.second?.pulse_rate || '-'}</td>
+                      <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.third?.pulse_rate || '-'}</td>
+                    </tr>
+                    <tr>
+                      <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">血圧 (mmHg)</td>
+                      <td className="border border-gray-300 px-2 py-2">
+                        {editedTag.vital_signs_records?.first?.blood_pressure
+                          ? `${editedTag.vital_signs_records.first.blood_pressure.systolic}/${editedTag.vital_signs_records.first.blood_pressure.diastolic}`
+                          : '-'}
+                      </td>
+                      <td className="border border-gray-300 px-2 py-2">
+                        {editedTag.vital_signs_records?.second?.blood_pressure
+                          ? `${editedTag.vital_signs_records.second.blood_pressure.systolic}/${editedTag.vital_signs_records.second.blood_pressure.diastolic}`
+                          : '-'}
+                      </td>
+                      <td className="border border-gray-300 px-2 py-2">
+                        {editedTag.vital_signs_records?.third?.blood_pressure
+                          ? `${editedTag.vital_signs_records.third.blood_pressure.systolic}/${editedTag.vital_signs_records.third.blood_pressure.diastolic}`
+                          : '-'}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">体温 (°C)</td>
+                      <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.first?.temperature || '-'}</td>
+                      <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.second?.temperature || '-'}</td>
+                      <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.third?.temperature || '-'}</td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
@@ -1264,30 +1218,22 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {editedTag.triage_category.final_decided_at && (
-                  <div>
-                    <p className="text-sm text-gray-600">トリアージ実施日時</p>
-                    <p className="font-semibold">{formatDateTime(editedTag.triage_category.final_decided_at)}</p>
-                  </div>
-                )}
-                {editedTag.triage_category.final_decided_by && (
-                  <div>
-                    <p className="text-sm text-gray-600">トリアージ実施者氏名</p>
-                    <p className="font-semibold">{editedTag.triage_category.final_decided_by}</p>
-                  </div>
-                )}
-                {editedTag.conveyer && (
-                  <div>
-                    <p className="text-sm text-gray-600">搬送機関</p>
-                    <p className="font-semibold">{editedTag.conveyer}</p>
-                  </div>
-                )}
-                {editedTag.transport.destination?.hospital_name && (
-                  <div>
-                    <p className="text-sm text-gray-600">収容医療機関名</p>
-                    <p className="font-semibold">{editedTag.transport.destination.hospital_name}</p>
-                  </div>
-                )}
+                <div>
+                  <p className="text-sm text-gray-600">トリアージ実施日時</p>
+                  <p className="font-semibold">{editedTag.triage_category.final_decided_at ? formatDateTime(editedTag.triage_category.final_decided_at) : '-'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">トリアージ実施者氏名</p>
+                  <p className="font-semibold">{editedTag.triage_category.final_decided_by || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">搬送機関</p>
+                  <p className="font-semibold">{editedTag.conveyer || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">収容医療機関名</p>
+                  <p className="font-semibold">{editedTag.transport.destination?.hospital_name || '-'}</p>
+                </div>
               </div>
             )}
           </section>
@@ -1454,9 +1400,9 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
               </div>
             ) : (
               <div className="space-y-3">
-                {editedTag.execution_places && editedTag.execution_places.length > 0 && (
-                  <div>
-                    <p className="text-sm text-gray-600">トリアージ実施場所</p>
+                <div>
+                  <p className="text-sm text-gray-600">トリアージ実施場所</p>
+                  {editedTag.execution_places && editedTag.execution_places.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
                       {editedTag.execution_places.map((place) => (
                         <span key={place} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
@@ -1469,24 +1415,23 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
                         </span>
                       )}
                     </div>
-                  </div>
-                )}
-                {editedTag.rescue_place && (
-                  <div>
-                    <p className="text-sm text-gray-600">救出場所</p>
-                    <p className="font-semibold">{editedTag.rescue_place}</p>
-                  </div>
-                )}
-                {editedTag.enforcement_organization && (
-                  <div>
-                    <p className="text-sm text-gray-600">トリアージ実施機関</p>
-                    <p className="font-semibold">
-                      {editedTag.enforcement_organization === 'doctor' ? '医師' :
-                       editedTag.enforcement_organization === 'paramedic' ? '救急救命士' :
-                       editedTag.enforcement_organization_other || 'その他'}
-                    </p>
-                  </div>
-                )}
+                  ) : (
+                    <p className="font-semibold">-</p>
+                  )}
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">救出場所</p>
+                  <p className="font-semibold">{editedTag.rescue_place || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">トリアージ実施機関</p>
+                  <p className="font-semibold">
+                    {editedTag.enforcement_organization === 'doctor' ? '医師' :
+                     editedTag.enforcement_organization === 'paramedic' ? '救急救命士' :
+                     editedTag.enforcement_organization === 'other' && editedTag.enforcement_organization_other ? editedTag.enforcement_organization_other :
+                     editedTag.enforcement_organization === 'other' ? 'その他' : '-'}
+                  </p>
+                </div>
               </div>
             )}
           </section>
@@ -1680,15 +1625,13 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
               </div>
             ) : (
               <div className="space-y-2">
-                {editedTag.chief_complaint?.primary && (
-                  <div>
-                    <p className="text-sm text-gray-600">主訴</p>
-                    <p className="bg-gray-50 p-3 rounded-lg">{editedTag.chief_complaint.primary}</p>
-                  </div>
-                )}
-                {editedTag.conditions && editedTag.conditions.length > 0 && (
-                  <div>
-                    <p className="text-sm text-gray-600">症状・傷病名</p>
+                <div>
+                  <p className="text-sm text-gray-600">主訴</p>
+                  <p className="bg-gray-50 p-3 rounded-lg">{editedTag.chief_complaint?.primary || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">症状・傷病名</p>
+                  {editedTag.conditions && editedTag.conditions.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
                       {editedTag.conditions.map((condition) => (
                         <span key={condition} className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
@@ -1705,8 +1648,10 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
                         </span>
                       )}
                     </div>
-                  </div>
-                )}
+                  ) : (
+                    <p className="font-semibold">-</p>
+                  )}
+                </div>
                 {editedTag.chief_complaint?.symptoms && editedTag.chief_complaint.symptoms.length > 0 && (
                   <div>
                     <p className="text-sm text-gray-600">症状</p>
@@ -1719,12 +1664,10 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
                     </div>
                   </div>
                 )}
-                {editedTag.chief_complaint?.notes && (
-                  <div>
-                    <p className="text-sm text-gray-600">特記事項</p>
-                    <p className="bg-gray-50 p-3 rounded-lg">{editedTag.chief_complaint.notes}</p>
-                  </div>
-                )}
+                <div>
+                  <p className="text-sm text-gray-600">特記事項</p>
+                  <p className="bg-gray-50 p-3 rounded-lg">{editedTag.chief_complaint?.notes || '-'}</p>
+                </div>
               </div>
             )}
           </section>
