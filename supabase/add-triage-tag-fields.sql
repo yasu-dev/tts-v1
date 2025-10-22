@@ -1,6 +1,18 @@
 -- 紙のトリアージタッグ詳細項目を追加するマイグレーション
 -- 実行日: 2025-10-22
 
+-- 既存カラムの確認（chief_complaintが存在するか）
+-- 存在しない場合は追加
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'triage_tags' AND column_name = 'chief_complaint'
+  ) THEN
+    ALTER TABLE triage_tags ADD COLUMN chief_complaint JSONB;
+  END IF;
+END $$;
+
 -- triage_tagsテーブルに新規カラムを追加
 ALTER TABLE triage_tags
   -- 搬送機関
@@ -46,3 +58,6 @@ COMMENT ON COLUMN triage_tags.enforcement_organization_other IS 'トリアージ
 COMMENT ON COLUMN triage_tags.conditions IS '症状・傷病名（複数選択可: contusion/fracture/sprain/amputation/burn/other）';
 COMMENT ON COLUMN triage_tags.condition_other IS '症状・傷病名のその他詳細';
 COMMENT ON COLUMN triage_tags.vital_signs_records IS 'バイタルサイン複数回記録（1st/2nd/3rd）JSONB形式';
+
+-- スキーマキャッシュの更新を通知
+NOTIFY pgrst, 'reload schema';
