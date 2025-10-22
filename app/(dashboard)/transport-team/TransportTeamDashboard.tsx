@@ -172,10 +172,10 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
   // QRコードスキャン処理
   const handleQRScan = async (result: string) => {
     // console.log('QR scan result:', result)
-    
+
     try {
       let patientId = ''
-      
+
       // 様々なQRコード形式に対応
       try {
         // JSON形式を試行
@@ -185,9 +185,9 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
         // 単純な文字列の場合
         patientId = result.trim()
       }
-      
+
       if (!patientId) {
-        alert('QRコードから患者IDを取得できませんでした')
+        alert('❌ QRコード読み取りエラー\n\nQRコードから患者IDを取得できませんでした。\n正しいQRコードをスキャンしてください。')
         return
       }
 
@@ -205,25 +205,30 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
           .select('*')
           .or(`tag_number.eq.${patientId},anonymous_id.eq.${patientId}`)
           .single()
-          
+
         if (tagError || !patientByTag) {
-          alert(`患者が見つかりません: ${patientId}`)
+          alert(`❌ 患者が見つかりません\n\nスキャンされたID: ${patientId}\n\nこのIDに該当する患者がデータベースに存在しません。\n・IDが正しいか確認してください\n・患者がまだ登録されていない可能性があります`)
+          setShowQRScanner(false)
           return
         }
-        
+
         // 患者詳細モーダルを表示
+        alert(`✅ 患者情報を取得しました\n\nタグ番号: ${patientByTag.tag_number}\n患者ID: ${patientByTag.anonymous_id}`)
         setSelectedPatient(patientByTag as TriageTag)
         setShowQRScanner(false)
         return
       }
 
       // 患者詳細モーダルを表示
+      alert(`✅ 患者情報を取得しました\n\nタグ番号: ${patient.tag_number}\n患者ID: ${patient.anonymous_id}`)
       setSelectedPatient(patient as TriageTag)
       setShowQRScanner(false)
-      
+
     } catch (error) {
       // console.error('QR scan error:', error)
-      alert('QRコードの読み取りに失敗しました')
+      const errorMsg = error instanceof Error ? error.message : '不明なエラー'
+      alert(`❌ QRコード処理エラー\n\nエラー詳細: ${errorMsg}\n\nもう一度スキャンしてください。問題が続く場合は手動入力をお試しください。`)
+      setShowQRScanner(false)
     }
   }
 
