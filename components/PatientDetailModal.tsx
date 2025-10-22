@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { TriageTag, TriageCategories } from '@/lib/types'
 import { formatDateTime, formatShortDateTime } from '@/lib/utils/date-formatter'
 
@@ -11,39 +10,14 @@ interface PatientDetailModalProps {
 }
 
 export default function PatientDetailModal({ tag, onClose, actions }: PatientDetailModalProps) {
-  const [enlargedImage, setEnlargedImage] = useState<string | null>(null)
-
   if (!tag) return null
 
   const category = tag.triage_category.final
   const categoryInfo = TriageCategories[category]
 
   return (
-    <>
-      {/* 画像拡大表示モーダル */}
-      {enlargedImage && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[60] p-4"
-          onClick={() => setEnlargedImage(null)}
-        >
-          <button
-            onClick={() => setEnlargedImage(null)}
-            className="fixed top-4 right-4 text-white hover:text-gray-300 text-5xl font-bold z-[70] w-12 h-12 flex items-center justify-center"
-          >
-            ×
-          </button>
-          <img
-            src={enlargedImage}
-            alt="拡大画像"
-            className="max-w-full max-h-[95vh] object-contain"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
-      )}
-
-      {/* 詳細モーダル */}
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
-        <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         {/* ヘッダー */}
         <div className="sticky top-0 bg-white border-b p-6 flex items-center justify-between z-10">
           <div className="flex items-center gap-4">
@@ -244,17 +218,17 @@ export default function PatientDetailModal({ tag, onClose, actions }: PatientDet
                       src={image.url}
                       alt={`添付画像 ${index + 1}`}
                       className="w-full h-48 object-cover rounded-lg border border-gray-200 cursor-pointer hover:opacity-90 transition"
-                      onClick={() => setEnlargedImage(image.url)}
+                      onClick={() => window.open(image.url, '_blank')}
                     />
-                    <div className="absolute top-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded pointer-events-none">
+                    <div className="absolute top-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
                       {image.type === 'wound' ? '外傷' :
                        image.type === 'scene' ? '現場' :
                        image.type === 'body_diagram' ? '身体図' : 'その他'}
                     </div>
-                    <div className="absolute bottom-2 left-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded pointer-events-none">
+                    <div className="absolute bottom-2 left-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
                       {formatShortDateTime(image.taken_at)}
                     </div>
-                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded-lg flex items-center justify-center pointer-events-none">
+                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition rounded-lg flex items-center justify-center">
                       <span className="text-white opacity-0 group-hover:opacity-100 transition font-bold">
                         クリックで拡大
                       </span>
@@ -374,6 +348,5 @@ export default function PatientDetailModal({ tag, onClose, actions }: PatientDet
         </div>
       </div>
     </div>
-    </>
   )
 }

@@ -171,9 +171,11 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
 
   // QRコードスキャン処理
   const handleQRScan = async (result: string) => {
+    // console.log('QR scan result:', result)
+    
     try {
       let patientId = ''
-
+      
       // 様々なQRコード形式に対応
       try {
         // JSON形式を試行
@@ -183,9 +185,9 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
         // 単純な文字列の場合
         patientId = result.trim()
       }
-
+      
       if (!patientId) {
-        alert('❌ QRコード読み取りエラー\n\nQRコードから患者IDを取得できませんでした。\n正しいQRコードをスキャンしてください。')
+        alert('QRコードから患者IDを取得できませんでした')
         return
       }
 
@@ -203,59 +205,25 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
           .select('*')
           .or(`tag_number.eq.${patientId},anonymous_id.eq.${patientId}`)
           .single()
-
+          
         if (tagError || !patientByTag) {
-          alert(`❌ 患者が見つかりません\n\nスキャンされたID: ${patientId}\n\nこのIDに該当する患者がデータベースに存在しません。\n・IDが正しいか確認してください\n・患者がまだ登録されていない可能性があります`)
-          setShowQRScanner(false)
+          alert(`患者が見つかりません: ${patientId}`)
           return
         }
-
-        // 搬送部隊割り当てチェック
-        const patientByTagData = patientByTag as TriageTag
-
-        if (!patientByTagData.transport_assignment) {
-          alert(`⚠️ 搬送未割当の患者です\n\nタグ番号: ${patientByTagData.tag_number}\n患者ID: ${patientByTagData.anonymous_id}\n\nこの患者はまだ搬送部隊に割り当てられていません。\n搬送調整ダッシュボードから割り当てを行ってください。`)
-          setShowQRScanner(false)
-          return
-        }
-
-        // completedステータスの患者をチェック
-        if (patientByTagData.transport_assignment.status === 'completed') {
-          alert(`✅ 搬送完了済みの患者です\n\nタグ番号: ${patientByTagData.tag_number}\n患者ID: ${patientByTagData.anonymous_id}\n割当チーム: ${patientByTagData.transport_assignment.team}\n\nこの患者は既に応急救護所に到着済みです。`)
-          setShowQRScanner(false)
-          return
-        }
-
+        
         // 患者詳細モーダルを表示
-        setShowQRScanner(false)
-        setSelectedPatient(patientByTagData)
-        return
-      }
-
-      // 搬送部隊割り当てチェック
-      const patientData = patient as TriageTag
-
-      if (!patientData.transport_assignment) {
-        alert(`⚠️ 搬送未割当の患者です\n\nタグ番号: ${patientData.tag_number}\n患者ID: ${patientData.anonymous_id}\n\nこの患者はまだ搬送部隊に割り当てられていません。\n搬送調整ダッシュボードから割り当てを行ってください。`)
-        setShowQRScanner(false)
-        return
-      }
-
-      // completedステータスの患者をチェック
-      if (patientData.transport_assignment.status === 'completed') {
-        alert(`✅ 搬送完了済みの患者です\n\nタグ番号: ${patientData.tag_number}\n患者ID: ${patientData.anonymous_id}\n割当チーム: ${patientData.transport_assignment.team}\n\nこの患者は既に応急救護所に到着済みです。`)
+        setSelectedPatient(patientByTag as TriageTag)
         setShowQRScanner(false)
         return
       }
 
       // 患者詳細モーダルを表示
+      setSelectedPatient(patient as TriageTag)
       setShowQRScanner(false)
-      setSelectedPatient(patientData)
-
+      
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : '不明なエラー'
-      alert(`❌ QRコード処理エラー\n\nエラー詳細: ${errorMsg}\n\nもう一度スキャンしてください。問題が続く場合は手動入力をお試しください。`)
-      setShowQRScanner(false)
+      // console.error('QR scan error:', error)
+      alert('QRコードの読み取りに失敗しました')
     }
   }
 
@@ -564,13 +532,6 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
                     </button>
                   </div>
                 )}
-
-                {transportStatus === 'completed' && (
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                    <span className="text-green-600 font-medium">応急救護所到着済み</span>
-                  </div>
-                )}
               </>
             )
           })()}
@@ -579,7 +540,7 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
 
       {/* QRスキャナーモーダル */}
       {showQRScanner && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold">QRコードスキャン</h3>

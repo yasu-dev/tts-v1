@@ -194,10 +194,10 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
   }
 
   // QRコードスキャン処理
-  const handleQRScan = async (result: string) => {
+  const handleQRScan = async (result: string) => {    
     try {
       let patientId = ''
-
+      
       // 様々なQRコード形式に対応
       try {
         // JSON形式を試行
@@ -207,9 +207,9 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
         // 単純な文字列の場合
         patientId = result.trim()
       }
-
+      
       if (!patientId) {
-        alert('❌ QRコード読み取りエラー\n\nQRコードから患者IDを取得できませんでした。\n正しいQRコードをスキャンしてください。')
+        alert('QRコードから患者IDを取得できませんでした')
         return
       }
 
@@ -227,29 +227,24 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
           .select('*')
           .or(`tag_number.eq.${patientId},anonymous_id.eq.${patientId}`)
           .single()
-
+          
         if (tagError || !patientByTag) {
-          alert(`❌ 患者が見つかりません\n\nスキャンされたID: ${patientId}\n\nこのIDに該当する患者がデータベースに存在しません。\n・IDが正しいか確認してください\n・患者がまだ登録されていない可能性があります`)
-          setShowQRScanner(false)
+          alert(`患者が見つかりません: ${patientId}`)
           return
         }
-
+        
         // 患者詳細モーダルを表示
-        alert(`✅ 患者情報を取得しました\n\nタグ番号: ${patientByTag.tag_number}\n患者ID: ${patientByTag.anonymous_id}`)
         setSelectedPatient(patientByTag as TriageTag)
         setShowQRScanner(false)
         return
       }
 
       // 患者詳細モーダルを表示
-      alert(`✅ 患者情報を取得しました\n\nタグ番号: ${patient.tag_number}\n患者ID: ${patient.anonymous_id}`)
       setSelectedPatient(patient as TriageTag)
       setShowQRScanner(false)
-
+      
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : '不明なエラー'
-      alert(`❌ QRコード処理エラー\n\nエラー詳細: ${errorMsg}\n\nもう一度スキャンしてください。問題が続く場合は手動入力をお試しください。`)
-      setShowQRScanner(false)
+      alert('QRコードの読み取りに失敗しました')
     }
   }
 
@@ -558,7 +553,7 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
 
       {/* QRスキャナーモーダル */}
       {showQRScanner && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold">QRコードスキャン</h3>
