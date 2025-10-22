@@ -28,7 +28,9 @@ export default defineConfig({
   /* 共通設定 */
   use: {
     /* ベースURL */
-    baseURL: 'http://localhost:3000',
+    baseURL: process.env.PW_USE_HTTPS === '1' ? 'https://localhost:3443' : 'http://localhost:3000',
+    /* 自己署名証明書を許可（ローカルHTTPSプロキシ用） */
+    ignoreHTTPSErrors: true,
 
     /* 失敗時のスクリーンショット */
     screenshot: 'only-on-failure',
@@ -69,10 +71,19 @@ export default defineConfig({
   ],
 
   /* 開発サーバー設定 */
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
-  },
+  webServer: process.env.PW_USE_HTTPS === '1'
+    ? [
+        {
+          command: 'npm run dev:ssl',
+          url: 'https://localhost:3443',
+          reuseExistingServer: !process.env.CI,
+          timeout: 180 * 1000,
+        },
+      ]
+    : {
+        command: 'npm run dev',
+        url: 'http://localhost:3000',
+        reuseExistingServer: !process.env.CI,
+        timeout: 120 * 1000,
+      },
 })
