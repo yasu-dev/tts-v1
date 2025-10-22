@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { TriageTag, TriageCategories } from '@/lib/types'
 import { formatDateTime, formatShortDateTime } from '@/lib/utils/date-formatter'
 import { createClient } from '@/lib/supabase/client'
@@ -19,6 +19,14 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
   const [editedTag, setEditedTag] = useState<TriageTag | null>(tag)
 
   const supabase = createClient()
+
+  // tagが変更されたときにeditedTagを更新
+  useEffect(() => {
+    if (tag) {
+      setEditedTag(tag)
+      setIsEditing(false)
+    }
+  }, [tag])
 
   if (!tag || !editedTag) return null
 
