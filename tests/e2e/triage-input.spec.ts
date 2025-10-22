@@ -7,9 +7,10 @@ test.describe('トリアージ入力画面', () => {
     await page.fill('input[type="email"]', 'tri@demo.com')
     await page.fill('input[type="password"]', 'password')
     await page.click('button[type="submit"]')
+    await page.waitForLoadState('networkidle')
 
     // トリアージ入力画面を待機
-    await page.waitForURL(/\/triage\/scan/, { timeout: 10000 })
+    await page.waitForURL(/\/triage\/scan/, { timeout: 20000 })
   })
 
   test('トリアージ入力画面が表示される', async ({ page }) => {

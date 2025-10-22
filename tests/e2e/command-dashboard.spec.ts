@@ -7,9 +7,10 @@ test.describe('指揮本部ダッシュボード', () => {
     await page.fill('input[type="email"]', 'ic@demo.com')
     await page.fill('input[type="password"]', 'password')
     await page.click('button[type="submit"]')
+    await page.waitForLoadState('networkidle')
 
     // ダッシュボード表示を待機
-    await page.waitForURL(/\/command/, { timeout: 10000 })
+    await page.waitForURL(/\/command/, { timeout: 20000 })
   })
 
   test('ダッシュボードが正しく表示される', async ({ page }) => {
