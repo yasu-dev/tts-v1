@@ -46,7 +46,7 @@ export default function TriageScanPage() {
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [networkStatus, setNetworkStatus] = useState(navigator.onLine)
+  const [networkStatus, setNetworkStatus] = useState(typeof window !== 'undefined' ? navigator.onLine : true)
   const [contactPoint, setContactPoint] = useState('')
   const [contactPoints, setContactPoints] = useState<string[]>([])
   const [eventId, setEventId] = useState<string | null>(null)
