@@ -35,6 +35,24 @@ export interface TriageTag {
     address?: string
     phone?: string
   }
+
+  // 搬送機関
+  conveyer?: string
+
+  // トリアージ実施場所（複数選択可）
+  execution_places?: Array<'scene' | 'post' | 'vehicle' | 'other'>
+  execution_place_other?: string
+
+  // 救出場所
+  rescue_place?: string
+
+  // トリアージ実施機関
+  enforcement_organization?: 'doctor' | 'paramedic' | 'other'
+  enforcement_organization_other?: string
+
+  // 症状・傷病名（複数選択可）
+  conditions?: Array<'contusion' | 'fracture' | 'sprain' | 'amputation' | 'burn' | 'other'>
+  condition_other?: string
   
   location: {
     latitude: number
@@ -74,6 +92,40 @@ export interface TriageTag {
     trauma_assessment?: string
     bleeding_evaluation?: 'none' | 'minor' | 'moderate' | 'severe'
     measured_at: string
+  }
+
+  // バイタルサイン複数回記録（紙のトリアージタッグ用）
+  vital_signs_records?: {
+    first?: {
+      judger_name?: string
+      judgment_location?: string
+      judgment_time?: string
+      consciousness?: 'I' | 'II' | 'III'
+      respiratory_rate?: number
+      pulse_rate?: number
+      blood_pressure?: { systolic: number; diastolic: number }
+      temperature?: number
+    }
+    second?: {
+      judger_name?: string
+      judgment_location?: string
+      judgment_time?: string
+      consciousness?: 'I' | 'II' | 'III'
+      respiratory_rate?: number
+      pulse_rate?: number
+      blood_pressure?: { systolic: number; diastolic: number }
+      temperature?: number
+    }
+    third?: {
+      judger_name?: string
+      judgment_location?: string
+      judgment_time?: string
+      consciousness?: 'I' | 'II' | 'III'
+      respiratory_rate?: number
+      pulse_rate?: number
+      blood_pressure?: { systolic: number; diastolic: number }
+      temperature?: number
+    }
   }
 
   chief_complaint?: {

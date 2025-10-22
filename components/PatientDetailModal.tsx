@@ -59,6 +59,15 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
         chief_complaint: editedTag.chief_complaint
           ? replaceUndefinedWithNull(editedTag.chief_complaint)
           : null,
+        conveyer: editedTag.conveyer || null,
+        execution_places: editedTag.execution_places || null,
+        execution_place_other: editedTag.execution_place_other || null,
+        rescue_place: editedTag.rescue_place || null,
+        enforcement_organization: editedTag.enforcement_organization || null,
+        enforcement_organization_other: editedTag.enforcement_organization_other || null,
+        conditions: editedTag.conditions || null,
+        condition_other: editedTag.condition_other || null,
+        vital_signs_records: replaceUndefinedWithNull(editedTag.vital_signs_records),
         updated_at: new Date().toISOString(),
       }
 
@@ -149,109 +158,849 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
           <section>
             <h3 className="text-lg font-bold mb-3 border-b pb-2">患者基本情報</h3>
             {isEditing ? (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">年齢</label>
-                  <input
-                    type="number"
-                    value={editedTag.patient_info?.age || ''}
-                    onChange={(e) => setEditedTag({
-                      ...editedTag,
-                      patient_info: {
-                        ...editedTag.patient_info,
-                        age: e.target.value ? parseInt(e.target.value) : undefined
-                      }
-                    })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                    placeholder="年齢"
-                  />
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">氏名</label>
+                    <input
+                      type="text"
+                      value={editedTag.patient_info?.name || ''}
+                      onChange={(e) => setEditedTag({
+                        ...editedTag,
+                        patient_info: {
+                          ...editedTag.patient_info,
+                          name: e.target.value || undefined
+                        }
+                      })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                      placeholder="氏名"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">電話番号</label>
+                    <input
+                      type="tel"
+                      value={editedTag.patient_info?.phone || ''}
+                      onChange={(e) => setEditedTag({
+                        ...editedTag,
+                        patient_info: {
+                          ...editedTag.patient_info,
+                          phone: e.target.value || undefined
+                        }
+                      })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                      placeholder="電話番号"
+                    />
+                  </div>
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-600 mb-1">性別</label>
-                  <select
-                    value={editedTag.patient_info?.sex || 'unknown'}
-                    onChange={(e) => setEditedTag({
-                      ...editedTag,
-                      patient_info: {
-                        ...editedTag.patient_info,
-                        sex: e.target.value as 'male' | 'female' | 'unknown'
-                      }
-                    })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  >
-                    <option value="unknown">不明</option>
-                    <option value="male">男性</option>
-                    <option value="female">女性</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">身長 (cm)</label>
+                  <label className="block text-sm text-gray-600 mb-1">住所</label>
                   <input
-                    type="number"
-                    value={editedTag.patient_info?.height || ''}
+                    type="text"
+                    value={editedTag.patient_info?.address || ''}
                     onChange={(e) => setEditedTag({
                       ...editedTag,
                       patient_info: {
                         ...editedTag.patient_info,
-                        height: e.target.value ? parseInt(e.target.value) : undefined
+                        address: e.target.value || undefined
                       }
                     })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                    placeholder="身長"
+                    placeholder="住所"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">体重 (kg)</label>
-                  <input
-                    type="number"
-                    value={editedTag.patient_info?.weight || ''}
-                    onChange={(e) => setEditedTag({
-                      ...editedTag,
-                      patient_info: {
-                        ...editedTag.patient_info,
-                        weight: e.target.value ? parseInt(e.target.value) : undefined
-                      }
-                    })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                    placeholder="体重"
-                  />
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">年齢</label>
+                    <input
+                      type="number"
+                      value={editedTag.patient_info?.age || ''}
+                      onChange={(e) => setEditedTag({
+                        ...editedTag,
+                        patient_info: {
+                          ...editedTag.patient_info,
+                          age: e.target.value ? parseInt(e.target.value) : undefined
+                        }
+                      })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                      placeholder="年齢"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">性別</label>
+                    <select
+                      value={editedTag.patient_info?.sex || 'unknown'}
+                      onChange={(e) => setEditedTag({
+                        ...editedTag,
+                        patient_info: {
+                          ...editedTag.patient_info,
+                          sex: e.target.value as 'male' | 'female' | 'unknown'
+                        }
+                      })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    >
+                      <option value="unknown">不明</option>
+                      <option value="male">男性</option>
+                      <option value="female">女性</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">身長 (cm)</label>
+                    <input
+                      type="number"
+                      value={editedTag.patient_info?.height || ''}
+                      onChange={(e) => setEditedTag({
+                        ...editedTag,
+                        patient_info: {
+                          ...editedTag.patient_info,
+                          height: e.target.value ? parseInt(e.target.value) : undefined
+                        }
+                      })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                      placeholder="身長"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">体重 (kg)</label>
+                    <input
+                      type="number"
+                      value={editedTag.patient_info?.weight || ''}
+                      onChange={(e) => setEditedTag({
+                        ...editedTag,
+                        patient_info: {
+                          ...editedTag.patient_info,
+                          weight: e.target.value ? parseInt(e.target.value) : undefined
+                        }
+                      })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                      placeholder="体重"
+                    />
+                  </div>
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {editedTag.patient_info?.age && (
+              <div className="space-y-3">
+                {editedTag.patient_info?.name && (
                   <div>
-                    <p className="text-sm text-gray-600">年齢</p>
-                    <p className="font-semibold">{editedTag.patient_info.age}歳</p>
+                    <p className="text-sm text-gray-600">氏名</p>
+                    <p className="font-semibold">{editedTag.patient_info.name}</p>
                   </div>
                 )}
-                {editedTag.patient_info?.sex && (
+                {editedTag.patient_info?.phone && (
                   <div>
-                    <p className="text-sm text-gray-600">性別</p>
-                    <p className="font-semibold">
-                      {editedTag.patient_info.sex === 'male' ? '男性' : editedTag.patient_info.sex === 'female' ? '女性' : 'その他'}
-                    </p>
+                    <p className="text-sm text-gray-600">電話番号</p>
+                    <p className="font-semibold">{editedTag.patient_info.phone}</p>
                   </div>
                 )}
-                {editedTag.patient_info?.height && (
+                {editedTag.patient_info?.address && (
                   <div>
-                    <p className="text-sm text-gray-600">身長</p>
-                    <p className="font-semibold">{editedTag.patient_info.height}cm</p>
+                    <p className="text-sm text-gray-600">住所</p>
+                    <p className="font-semibold">{editedTag.patient_info.address}</p>
                   </div>
                 )}
-                {editedTag.patient_info?.weight && (
-                  <div>
-                    <p className="text-sm text-gray-600">体重</p>
-                    <p className="font-semibold">{editedTag.patient_info.weight}kg</p>
-                  </div>
-                )}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {editedTag.patient_info?.age && (
+                    <div>
+                      <p className="text-sm text-gray-600">年齢</p>
+                      <p className="font-semibold">{editedTag.patient_info.age}歳</p>
+                    </div>
+                  )}
+                  {editedTag.patient_info?.sex && (
+                    <div>
+                      <p className="text-sm text-gray-600">性別</p>
+                      <p className="font-semibold">
+                        {editedTag.patient_info.sex === 'male' ? '男性' : editedTag.patient_info.sex === 'female' ? '女性' : 'その他'}
+                      </p>
+                    </div>
+                  )}
+                  {editedTag.patient_info?.height && (
+                    <div>
+                      <p className="text-sm text-gray-600">身長</p>
+                      <p className="font-semibold">{editedTag.patient_info.height}cm</p>
+                    </div>
+                  )}
+                  {editedTag.patient_info?.weight && (
+                    <div>
+                      <p className="text-sm text-gray-600">体重</p>
+                      <p className="font-semibold">{editedTag.patient_info.weight}kg</p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </section>
 
-          {/* バイタルサイン */}
+          {/* バイタルサイン（紙のトリアージタッグ形式：1st/2nd/3rd横並び） */}
           <section>
             <h3 className="text-lg font-bold mb-3 border-b pb-2">バイタルサイン</h3>
+            {isEditing ? (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse border border-gray-300 text-sm">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="border border-gray-300 px-2 py-2 text-left">項目</th>
+                      <th className="border border-gray-300 px-2 py-2 text-center">1st</th>
+                      <th className="border border-gray-300 px-2 py-2 text-center">2nd</th>
+                      <th className="border border-gray-300 px-2 py-2 text-center">3rd</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">判定者名</td>
+                      <td className="border border-gray-300 px-2 py-2">
+                        <input
+                          type="text"
+                          value={editedTag.vital_signs_records?.first?.judger_name || ''}
+                          onChange={(e) => setEditedTag({
+                            ...editedTag,
+                            vital_signs_records: {
+                              ...editedTag.vital_signs_records,
+                              first: {
+                                ...editedTag.vital_signs_records?.first,
+                                judger_name: e.target.value || undefined
+                              }
+                            }
+                          })}
+                          className="w-full px-2 py-1 border border-gray-300 rounded"
+                          placeholder="判定者名"
+                        />
+                      </td>
+                      <td className="border border-gray-300 px-2 py-2">
+                        <input
+                          type="text"
+                          value={editedTag.vital_signs_records?.second?.judger_name || ''}
+                          onChange={(e) => setEditedTag({
+                            ...editedTag,
+                            vital_signs_records: {
+                              ...editedTag.vital_signs_records,
+                              second: {
+                                ...editedTag.vital_signs_records?.second,
+                                judger_name: e.target.value || undefined
+                              }
+                            }
+                          })}
+                          className="w-full px-2 py-1 border border-gray-300 rounded"
+                          placeholder="判定者名"
+                        />
+                      </td>
+                      <td className="border border-gray-300 px-2 py-2">
+                        <input
+                          type="text"
+                          value={editedTag.vital_signs_records?.third?.judger_name || ''}
+                          onChange={(e) => setEditedTag({
+                            ...editedTag,
+                            vital_signs_records: {
+                              ...editedTag.vital_signs_records,
+                              third: {
+                                ...editedTag.vital_signs_records?.third,
+                                judger_name: e.target.value || undefined
+                              }
+                            }
+                          })}
+                          className="w-full px-2 py-1 border border-gray-300 rounded"
+                          placeholder="判定者名"
+                        />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">判定場所</td>
+                      <td className="border border-gray-300 px-2 py-2">
+                        <input
+                          type="text"
+                          value={editedTag.vital_signs_records?.first?.judgment_location || ''}
+                          onChange={(e) => setEditedTag({
+                            ...editedTag,
+                            vital_signs_records: {
+                              ...editedTag.vital_signs_records,
+                              first: {
+                                ...editedTag.vital_signs_records?.first,
+                                judgment_location: e.target.value || undefined
+                              }
+                            }
+                          })}
+                          className="w-full px-2 py-1 border border-gray-300 rounded"
+                          placeholder="判定場所"
+                        />
+                      </td>
+                      <td className="border border-gray-300 px-2 py-2">
+                        <input
+                          type="text"
+                          value={editedTag.vital_signs_records?.second?.judgment_location || ''}
+                          onChange={(e) => setEditedTag({
+                            ...editedTag,
+                            vital_signs_records: {
+                              ...editedTag.vital_signs_records,
+                              second: {
+                                ...editedTag.vital_signs_records?.second,
+                                judgment_location: e.target.value || undefined
+                              }
+                            }
+                          })}
+                          className="w-full px-2 py-1 border border-gray-300 rounded"
+                          placeholder="判定場所"
+                        />
+                      </td>
+                      <td className="border border-gray-300 px-2 py-2">
+                        <input
+                          type="text"
+                          value={editedTag.vital_signs_records?.third?.judgment_location || ''}
+                          onChange={(e) => setEditedTag({
+                            ...editedTag,
+                            vital_signs_records: {
+                              ...editedTag.vital_signs_records,
+                              third: {
+                                ...editedTag.vital_signs_records?.third,
+                                judgment_location: e.target.value || undefined
+                              }
+                            }
+                          })}
+                          className="w-full px-2 py-1 border border-gray-300 rounded"
+                          placeholder="判定場所"
+                        />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">判定時間</td>
+                      <td className="border border-gray-300 px-2 py-2">
+                        <input
+                          type="time"
+                          value={editedTag.vital_signs_records?.first?.judgment_time || ''}
+                          onChange={(e) => setEditedTag({
+                            ...editedTag,
+                            vital_signs_records: {
+                              ...editedTag.vital_signs_records,
+                              first: {
+                                ...editedTag.vital_signs_records?.first,
+                                judgment_time: e.target.value || undefined
+                              }
+                            }
+                          })}
+                          className="w-full px-2 py-1 border border-gray-300 rounded"
+                        />
+                      </td>
+                      <td className="border border-gray-300 px-2 py-2">
+                        <input
+                          type="time"
+                          value={editedTag.vital_signs_records?.second?.judgment_time || ''}
+                          onChange={(e) => setEditedTag({
+                            ...editedTag,
+                            vital_signs_records: {
+                              ...editedTag.vital_signs_records,
+                              second: {
+                                ...editedTag.vital_signs_records?.second,
+                                judgment_time: e.target.value || undefined
+                              }
+                            }
+                          })}
+                          className="w-full px-2 py-1 border border-gray-300 rounded"
+                        />
+                      </td>
+                      <td className="border border-gray-300 px-2 py-2">
+                        <input
+                          type="time"
+                          value={editedTag.vital_signs_records?.third?.judgment_time || ''}
+                          onChange={(e) => setEditedTag({
+                            ...editedTag,
+                            vital_signs_records: {
+                              ...editedTag.vital_signs_records,
+                              third: {
+                                ...editedTag.vital_signs_records?.third,
+                                judgment_time: e.target.value || undefined
+                              }
+                            }
+                          })}
+                          className="w-full px-2 py-1 border border-gray-300 rounded"
+                        />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">意識</td>
+                      <td className="border border-gray-300 px-2 py-2">
+                        <select
+                          value={editedTag.vital_signs_records?.first?.consciousness || ''}
+                          onChange={(e) => setEditedTag({
+                            ...editedTag,
+                            vital_signs_records: {
+                              ...editedTag.vital_signs_records,
+                              first: {
+                                ...editedTag.vital_signs_records?.first,
+                                consciousness: e.target.value as 'I' | 'II' | 'III' || undefined
+                              }
+                            }
+                          })}
+                          className="w-full px-2 py-1 border border-gray-300 rounded"
+                        >
+                          <option value="">-</option>
+                          <option value="I">I</option>
+                          <option value="II">II</option>
+                          <option value="III">III</option>
+                        </select>
+                      </td>
+                      <td className="border border-gray-300 px-2 py-2">
+                        <select
+                          value={editedTag.vital_signs_records?.second?.consciousness || ''}
+                          onChange={(e) => setEditedTag({
+                            ...editedTag,
+                            vital_signs_records: {
+                              ...editedTag.vital_signs_records,
+                              second: {
+                                ...editedTag.vital_signs_records?.second,
+                                consciousness: e.target.value as 'I' | 'II' | 'III' || undefined
+                              }
+                            }
+                          })}
+                          className="w-full px-2 py-1 border border-gray-300 rounded"
+                        >
+                          <option value="">-</option>
+                          <option value="I">I</option>
+                          <option value="II">II</option>
+                          <option value="III">III</option>
+                        </select>
+                      </td>
+                      <td className="border border-gray-300 px-2 py-2">
+                        <select
+                          value={editedTag.vital_signs_records?.third?.consciousness || ''}
+                          onChange={(e) => setEditedTag({
+                            ...editedTag,
+                            vital_signs_records: {
+                              ...editedTag.vital_signs_records,
+                              third: {
+                                ...editedTag.vital_signs_records?.third,
+                                consciousness: e.target.value as 'I' | 'II' | 'III' || undefined
+                              }
+                            }
+                          })}
+                          className="w-full px-2 py-1 border border-gray-300 rounded"
+                        >
+                          <option value="">-</option>
+                          <option value="I">I</option>
+                          <option value="II">II</option>
+                          <option value="III">III</option>
+                        </select>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">呼吸 (回/分)</td>
+                      <td className="border border-gray-300 px-2 py-2">
+                        <input
+                          type="number"
+                          value={editedTag.vital_signs_records?.first?.respiratory_rate || ''}
+                          onChange={(e) => setEditedTag({
+                            ...editedTag,
+                            vital_signs_records: {
+                              ...editedTag.vital_signs_records,
+                              first: {
+                                ...editedTag.vital_signs_records?.first,
+                                respiratory_rate: e.target.value ? parseInt(e.target.value) : undefined
+                              }
+                            }
+                          })}
+                          className="w-full px-2 py-1 border border-gray-300 rounded"
+                          placeholder="回/分"
+                        />
+                      </td>
+                      <td className="border border-gray-300 px-2 py-2">
+                        <input
+                          type="number"
+                          value={editedTag.vital_signs_records?.second?.respiratory_rate || ''}
+                          onChange={(e) => setEditedTag({
+                            ...editedTag,
+                            vital_signs_records: {
+                              ...editedTag.vital_signs_records,
+                              second: {
+                                ...editedTag.vital_signs_records?.second,
+                                respiratory_rate: e.target.value ? parseInt(e.target.value) : undefined
+                              }
+                            }
+                          })}
+                          className="w-full px-2 py-1 border border-gray-300 rounded"
+                          placeholder="回/分"
+                        />
+                      </td>
+                      <td className="border border-gray-300 px-2 py-2">
+                        <input
+                          type="number"
+                          value={editedTag.vital_signs_records?.third?.respiratory_rate || ''}
+                          onChange={(e) => setEditedTag({
+                            ...editedTag,
+                            vital_signs_records: {
+                              ...editedTag.vital_signs_records,
+                              third: {
+                                ...editedTag.vital_signs_records?.third,
+                                respiratory_rate: e.target.value ? parseInt(e.target.value) : undefined
+                              }
+                            }
+                          })}
+                          className="w-full px-2 py-1 border border-gray-300 rounded"
+                          placeholder="回/分"
+                        />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">脈拍 (回/分)</td>
+                      <td className="border border-gray-300 px-2 py-2">
+                        <input
+                          type="number"
+                          value={editedTag.vital_signs_records?.first?.pulse_rate || ''}
+                          onChange={(e) => setEditedTag({
+                            ...editedTag,
+                            vital_signs_records: {
+                              ...editedTag.vital_signs_records,
+                              first: {
+                                ...editedTag.vital_signs_records?.first,
+                                pulse_rate: e.target.value ? parseInt(e.target.value) : undefined
+                              }
+                            }
+                          })}
+                          className="w-full px-2 py-1 border border-gray-300 rounded"
+                          placeholder="回/分"
+                        />
+                      </td>
+                      <td className="border border-gray-300 px-2 py-2">
+                        <input
+                          type="number"
+                          value={editedTag.vital_signs_records?.second?.pulse_rate || ''}
+                          onChange={(e) => setEditedTag({
+                            ...editedTag,
+                            vital_signs_records: {
+                              ...editedTag.vital_signs_records,
+                              second: {
+                                ...editedTag.vital_signs_records?.second,
+                                pulse_rate: e.target.value ? parseInt(e.target.value) : undefined
+                              }
+                            }
+                          })}
+                          className="w-full px-2 py-1 border border-gray-300 rounded"
+                          placeholder="回/分"
+                        />
+                      </td>
+                      <td className="border border-gray-300 px-2 py-2">
+                        <input
+                          type="number"
+                          value={editedTag.vital_signs_records?.third?.pulse_rate || ''}
+                          onChange={(e) => setEditedTag({
+                            ...editedTag,
+                            vital_signs_records: {
+                              ...editedTag.vital_signs_records,
+                              third: {
+                                ...editedTag.vital_signs_records?.third,
+                                pulse_rate: e.target.value ? parseInt(e.target.value) : undefined
+                              }
+                            }
+                          })}
+                          className="w-full px-2 py-1 border border-gray-300 rounded"
+                          placeholder="回/分"
+                        />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">血圧 (mmHg)</td>
+                      <td className="border border-gray-300 px-2 py-2">
+                        <div className="flex gap-1">
+                          <input
+                            type="number"
+                            value={editedTag.vital_signs_records?.first?.blood_pressure?.systolic || ''}
+                            onChange={(e) => setEditedTag({
+                              ...editedTag,
+                              vital_signs_records: {
+                                ...editedTag.vital_signs_records,
+                                first: {
+                                  ...editedTag.vital_signs_records?.first,
+                                  blood_pressure: {
+                                    systolic: e.target.value ? parseInt(e.target.value) : 0,
+                                    diastolic: editedTag.vital_signs_records?.first?.blood_pressure?.diastolic || 0
+                                  }
+                                }
+                              }
+                            })}
+                            className="w-full px-2 py-1 border border-gray-300 rounded"
+                            placeholder="収縮期"
+                          />
+                          <span className="self-center">/</span>
+                          <input
+                            type="number"
+                            value={editedTag.vital_signs_records?.first?.blood_pressure?.diastolic || ''}
+                            onChange={(e) => setEditedTag({
+                              ...editedTag,
+                              vital_signs_records: {
+                                ...editedTag.vital_signs_records,
+                                first: {
+                                  ...editedTag.vital_signs_records?.first,
+                                  blood_pressure: {
+                                    systolic: editedTag.vital_signs_records?.first?.blood_pressure?.systolic || 0,
+                                    diastolic: e.target.value ? parseInt(e.target.value) : 0
+                                  }
+                                }
+                              }
+                            })}
+                            className="w-full px-2 py-1 border border-gray-300 rounded"
+                            placeholder="拡張期"
+                          />
+                        </div>
+                      </td>
+                      <td className="border border-gray-300 px-2 py-2">
+                        <div className="flex gap-1">
+                          <input
+                            type="number"
+                            value={editedTag.vital_signs_records?.second?.blood_pressure?.systolic || ''}
+                            onChange={(e) => setEditedTag({
+                              ...editedTag,
+                              vital_signs_records: {
+                                ...editedTag.vital_signs_records,
+                                second: {
+                                  ...editedTag.vital_signs_records?.second,
+                                  blood_pressure: {
+                                    systolic: e.target.value ? parseInt(e.target.value) : 0,
+                                    diastolic: editedTag.vital_signs_records?.second?.blood_pressure?.diastolic || 0
+                                  }
+                                }
+                              }
+                            })}
+                            className="w-full px-2 py-1 border border-gray-300 rounded"
+                            placeholder="収縮期"
+                          />
+                          <span className="self-center">/</span>
+                          <input
+                            type="number"
+                            value={editedTag.vital_signs_records?.second?.blood_pressure?.diastolic || ''}
+                            onChange={(e) => setEditedTag({
+                              ...editedTag,
+                              vital_signs_records: {
+                                ...editedTag.vital_signs_records,
+                                second: {
+                                  ...editedTag.vital_signs_records?.second,
+                                  blood_pressure: {
+                                    systolic: editedTag.vital_signs_records?.second?.blood_pressure?.systolic || 0,
+                                    diastolic: e.target.value ? parseInt(e.target.value) : 0
+                                  }
+                                }
+                              }
+                            })}
+                            className="w-full px-2 py-1 border border-gray-300 rounded"
+                            placeholder="拡張期"
+                          />
+                        </div>
+                      </td>
+                      <td className="border border-gray-300 px-2 py-2">
+                        <div className="flex gap-1">
+                          <input
+                            type="number"
+                            value={editedTag.vital_signs_records?.third?.blood_pressure?.systolic || ''}
+                            onChange={(e) => setEditedTag({
+                              ...editedTag,
+                              vital_signs_records: {
+                                ...editedTag.vital_signs_records,
+                                third: {
+                                  ...editedTag.vital_signs_records?.third,
+                                  blood_pressure: {
+                                    systolic: e.target.value ? parseInt(e.target.value) : 0,
+                                    diastolic: editedTag.vital_signs_records?.third?.blood_pressure?.diastolic || 0
+                                  }
+                                }
+                              }
+                            })}
+                            className="w-full px-2 py-1 border border-gray-300 rounded"
+                            placeholder="収縮期"
+                          />
+                          <span className="self-center">/</span>
+                          <input
+                            type="number"
+                            value={editedTag.vital_signs_records?.third?.blood_pressure?.diastolic || ''}
+                            onChange={(e) => setEditedTag({
+                              ...editedTag,
+                              vital_signs_records: {
+                                ...editedTag.vital_signs_records,
+                                third: {
+                                  ...editedTag.vital_signs_records?.third,
+                                  blood_pressure: {
+                                    systolic: editedTag.vital_signs_records?.third?.blood_pressure?.systolic || 0,
+                                    diastolic: e.target.value ? parseInt(e.target.value) : 0
+                                  }
+                                }
+                              }
+                            })}
+                            className="w-full px-2 py-1 border border-gray-300 rounded"
+                            placeholder="拡張期"
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">体温 (°C)</td>
+                      <td className="border border-gray-300 px-2 py-2">
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={editedTag.vital_signs_records?.first?.temperature || ''}
+                          onChange={(e) => setEditedTag({
+                            ...editedTag,
+                            vital_signs_records: {
+                              ...editedTag.vital_signs_records,
+                              first: {
+                                ...editedTag.vital_signs_records?.first,
+                                temperature: e.target.value ? parseFloat(e.target.value) : undefined
+                              }
+                            }
+                          })}
+                          className="w-full px-2 py-1 border border-gray-300 rounded"
+                          placeholder="体温"
+                        />
+                      </td>
+                      <td className="border border-gray-300 px-2 py-2">
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={editedTag.vital_signs_records?.second?.temperature || ''}
+                          onChange={(e) => setEditedTag({
+                            ...editedTag,
+                            vital_signs_records: {
+                              ...editedTag.vital_signs_records,
+                              second: {
+                                ...editedTag.vital_signs_records?.second,
+                                temperature: e.target.value ? parseFloat(e.target.value) : undefined
+                              }
+                            }
+                          })}
+                          className="w-full px-2 py-1 border border-gray-300 rounded"
+                          placeholder="体温"
+                        />
+                      </td>
+                      <td className="border border-gray-300 px-2 py-2">
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={editedTag.vital_signs_records?.third?.temperature || ''}
+                          onChange={(e) => setEditedTag({
+                            ...editedTag,
+                            vital_signs_records: {
+                              ...editedTag.vital_signs_records,
+                              third: {
+                                ...editedTag.vital_signs_records?.third,
+                                temperature: e.target.value ? parseFloat(e.target.value) : undefined
+                              }
+                            }
+                          })}
+                          className="w-full px-2 py-1 border border-gray-300 rounded"
+                          placeholder="体温"
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse border border-gray-300 text-sm">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="border border-gray-300 px-2 py-2 text-left">項目</th>
+                      <th className="border border-gray-300 px-2 py-2 text-center">1st</th>
+                      <th className="border border-gray-300 px-2 py-2 text-center">2nd</th>
+                      <th className="border border-gray-300 px-2 py-2 text-center">3rd</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(editedTag.vital_signs_records?.first?.judger_name ||
+                      editedTag.vital_signs_records?.second?.judger_name ||
+                      editedTag.vital_signs_records?.third?.judger_name) && (
+                      <tr>
+                        <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">判定者名</td>
+                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.first?.judger_name || '-'}</td>
+                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.second?.judger_name || '-'}</td>
+                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.third?.judger_name || '-'}</td>
+                      </tr>
+                    )}
+                    {(editedTag.vital_signs_records?.first?.judgment_location ||
+                      editedTag.vital_signs_records?.second?.judgment_location ||
+                      editedTag.vital_signs_records?.third?.judgment_location) && (
+                      <tr>
+                        <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">判定場所</td>
+                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.first?.judgment_location || '-'}</td>
+                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.second?.judgment_location || '-'}</td>
+                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.third?.judgment_location || '-'}</td>
+                      </tr>
+                    )}
+                    {(editedTag.vital_signs_records?.first?.judgment_time ||
+                      editedTag.vital_signs_records?.second?.judgment_time ||
+                      editedTag.vital_signs_records?.third?.judgment_time) && (
+                      <tr>
+                        <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">判定時間</td>
+                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.first?.judgment_time || '-'}</td>
+                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.second?.judgment_time || '-'}</td>
+                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.third?.judgment_time || '-'}</td>
+                      </tr>
+                    )}
+                    {(editedTag.vital_signs_records?.first?.consciousness ||
+                      editedTag.vital_signs_records?.second?.consciousness ||
+                      editedTag.vital_signs_records?.third?.consciousness) && (
+                      <tr>
+                        <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">意識</td>
+                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.first?.consciousness || '-'}</td>
+                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.second?.consciousness || '-'}</td>
+                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.third?.consciousness || '-'}</td>
+                      </tr>
+                    )}
+                    {(editedTag.vital_signs_records?.first?.respiratory_rate ||
+                      editedTag.vital_signs_records?.second?.respiratory_rate ||
+                      editedTag.vital_signs_records?.third?.respiratory_rate) && (
+                      <tr>
+                        <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">呼吸 (回/分)</td>
+                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.first?.respiratory_rate || '-'}</td>
+                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.second?.respiratory_rate || '-'}</td>
+                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.third?.respiratory_rate || '-'}</td>
+                      </tr>
+                    )}
+                    {(editedTag.vital_signs_records?.first?.pulse_rate ||
+                      editedTag.vital_signs_records?.second?.pulse_rate ||
+                      editedTag.vital_signs_records?.third?.pulse_rate) && (
+                      <tr>
+                        <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">脈拍 (回/分)</td>
+                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.first?.pulse_rate || '-'}</td>
+                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.second?.pulse_rate || '-'}</td>
+                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.third?.pulse_rate || '-'}</td>
+                      </tr>
+                    )}
+                    {(editedTag.vital_signs_records?.first?.blood_pressure ||
+                      editedTag.vital_signs_records?.second?.blood_pressure ||
+                      editedTag.vital_signs_records?.third?.blood_pressure) && (
+                      <tr>
+                        <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">血圧 (mmHg)</td>
+                        <td className="border border-gray-300 px-2 py-2">
+                          {editedTag.vital_signs_records?.first?.blood_pressure
+                            ? `${editedTag.vital_signs_records.first.blood_pressure.systolic}/${editedTag.vital_signs_records.first.blood_pressure.diastolic}`
+                            : '-'}
+                        </td>
+                        <td className="border border-gray-300 px-2 py-2">
+                          {editedTag.vital_signs_records?.second?.blood_pressure
+                            ? `${editedTag.vital_signs_records.second.blood_pressure.systolic}/${editedTag.vital_signs_records.second.blood_pressure.diastolic}`
+                            : '-'}
+                        </td>
+                        <td className="border border-gray-300 px-2 py-2">
+                          {editedTag.vital_signs_records?.third?.blood_pressure
+                            ? `${editedTag.vital_signs_records.third.blood_pressure.systolic}/${editedTag.vital_signs_records.third.blood_pressure.diastolic}`
+                            : '-'}
+                        </td>
+                      </tr>
+                    )}
+                    {(editedTag.vital_signs_records?.first?.temperature ||
+                      editedTag.vital_signs_records?.second?.temperature ||
+                      editedTag.vital_signs_records?.third?.temperature) && (
+                      <tr>
+                        <td className="border border-gray-300 px-2 py-2 font-semibold bg-gray-50">体温 (°C)</td>
+                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.first?.temperature || '-'}</td>
+                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.second?.temperature || '-'}</td>
+                        <td className="border border-gray-300 px-2 py-2">{editedTag.vital_signs_records?.third?.temperature || '-'}</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+
+          {/* バイタルサイン（一次トリアージ情報） */}
+          <section>
+            <h3 className="text-lg font-bold mb-3 border-b pb-2">バイタルサイン（一次トリアージ情報）</h3>
             {isEditing ? (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div>
@@ -463,6 +1212,285 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
             </div>
           </section>
 
+          {/* トリアージ実施情報 */}
+          <section>
+            <h3 className="text-lg font-bold mb-3 border-b pb-2">トリアージ実施情報</h3>
+            {isEditing ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">トリアージ実施日時</label>
+                    <input
+                      type="text"
+                      value={editedTag.triage_category.final_decided_at ? formatDateTime(editedTag.triage_category.final_decided_at) : ''}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">トリアージ実施者氏名</label>
+                    <input
+                      type="text"
+                      value={editedTag.triage_category.final_decided_by || ''}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">搬送機関</label>
+                    <input
+                      type="text"
+                      value={editedTag.conveyer || ''}
+                      onChange={(e) => setEditedTag({
+                        ...editedTag,
+                        conveyer: e.target.value || undefined
+                      })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                      placeholder="搬送機関"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">収容医療機関名</label>
+                    <input
+                      type="text"
+                      value={editedTag.transport.destination?.hospital_name || ''}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100"
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {editedTag.triage_category.final_decided_at && (
+                  <div>
+                    <p className="text-sm text-gray-600">トリアージ実施日時</p>
+                    <p className="font-semibold">{formatDateTime(editedTag.triage_category.final_decided_at)}</p>
+                  </div>
+                )}
+                {editedTag.triage_category.final_decided_by && (
+                  <div>
+                    <p className="text-sm text-gray-600">トリアージ実施者氏名</p>
+                    <p className="font-semibold">{editedTag.triage_category.final_decided_by}</p>
+                  </div>
+                )}
+                {editedTag.conveyer && (
+                  <div>
+                    <p className="text-sm text-gray-600">搬送機関</p>
+                    <p className="font-semibold">{editedTag.conveyer}</p>
+                  </div>
+                )}
+                {editedTag.transport.destination?.hospital_name && (
+                  <div>
+                    <p className="text-sm text-gray-600">収容医療機関名</p>
+                    <p className="font-semibold">{editedTag.transport.destination.hospital_name}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </section>
+
+          {/* 現場・搬送情報 */}
+          <section>
+            <h3 className="text-lg font-bold mb-3 border-b pb-2">現場・搬送情報</h3>
+            {isEditing ? (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm text-gray-600 mb-2">トリアージ実施場所（複数選択可）</label>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={editedTag.execution_places?.includes('scene') || false}
+                        onChange={(e) => {
+                          const current = editedTag.execution_places || []
+                          setEditedTag({
+                            ...editedTag,
+                            execution_places: e.target.checked
+                              ? [...current, 'scene']
+                              : current.filter(p => p !== 'scene')
+                          })
+                        }}
+                        className="w-4 h-4"
+                      />
+                      <span>現場</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={editedTag.execution_places?.includes('post') || false}
+                        onChange={(e) => {
+                          const current = editedTag.execution_places || []
+                          setEditedTag({
+                            ...editedTag,
+                            execution_places: e.target.checked
+                              ? [...current, 'post']
+                              : current.filter(p => p !== 'post')
+                          })
+                        }}
+                        className="w-4 h-4"
+                      />
+                      <span>ポスト</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={editedTag.execution_places?.includes('vehicle') || false}
+                        onChange={(e) => {
+                          const current = editedTag.execution_places || []
+                          setEditedTag({
+                            ...editedTag,
+                            execution_places: e.target.checked
+                              ? [...current, 'vehicle']
+                              : current.filter(p => p !== 'vehicle')
+                          })
+                        }}
+                        className="w-4 h-4"
+                      />
+                      <span>車内</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={editedTag.execution_places?.includes('other') || false}
+                        onChange={(e) => {
+                          const current = editedTag.execution_places || []
+                          setEditedTag({
+                            ...editedTag,
+                            execution_places: e.target.checked
+                              ? [...current, 'other']
+                              : current.filter(p => p !== 'other')
+                          })
+                        }}
+                        className="w-4 h-4"
+                      />
+                      <span>その他</span>
+                    </label>
+                    {editedTag.execution_places?.includes('other') && (
+                      <input
+                        type="text"
+                        value={editedTag.execution_place_other || ''}
+                        onChange={(e) => setEditedTag({
+                          ...editedTag,
+                          execution_place_other: e.target.value || undefined
+                        })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg ml-6"
+                        placeholder="その他の場所を入力"
+                      />
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">救出場所</label>
+                  <input
+                    type="text"
+                    value={editedTag.rescue_place || ''}
+                    onChange={(e) => setEditedTag({
+                      ...editedTag,
+                      rescue_place: e.target.value || undefined
+                    })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    placeholder="救出場所"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-600 mb-2">トリアージ実施機関</label>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="enforcement_organization"
+                        checked={editedTag.enforcement_organization === 'doctor'}
+                        onChange={() => setEditedTag({
+                          ...editedTag,
+                          enforcement_organization: 'doctor'
+                        })}
+                        className="w-4 h-4"
+                      />
+                      <span>医師</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="enforcement_organization"
+                        checked={editedTag.enforcement_organization === 'paramedic'}
+                        onChange={() => setEditedTag({
+                          ...editedTag,
+                          enforcement_organization: 'paramedic'
+                        })}
+                        className="w-4 h-4"
+                      />
+                      <span>救急救命士</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="enforcement_organization"
+                        checked={editedTag.enforcement_organization === 'other'}
+                        onChange={() => setEditedTag({
+                          ...editedTag,
+                          enforcement_organization: 'other'
+                        })}
+                        className="w-4 h-4"
+                      />
+                      <span>その他</span>
+                    </label>
+                    {editedTag.enforcement_organization === 'other' && (
+                      <input
+                        type="text"
+                        value={editedTag.enforcement_organization_other || ''}
+                        onChange={(e) => setEditedTag({
+                          ...editedTag,
+                          enforcement_organization_other: e.target.value || undefined
+                        })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg ml-6"
+                        placeholder="その他の機関を入力"
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {editedTag.execution_places && editedTag.execution_places.length > 0 && (
+                  <div>
+                    <p className="text-sm text-gray-600">トリアージ実施場所</p>
+                    <div className="flex flex-wrap gap-2">
+                      {editedTag.execution_places.map((place) => (
+                        <span key={place} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                          {place === 'scene' ? '現場' : place === 'post' ? 'ポスト' : place === 'vehicle' ? '車内' : 'その他'}
+                        </span>
+                      ))}
+                      {editedTag.execution_place_other && (
+                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                          {editedTag.execution_place_other}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {editedTag.rescue_place && (
+                  <div>
+                    <p className="text-sm text-gray-600">救出場所</p>
+                    <p className="font-semibold">{editedTag.rescue_place}</p>
+                  </div>
+                )}
+                {editedTag.enforcement_organization && (
+                  <div>
+                    <p className="text-sm text-gray-600">トリアージ実施機関</p>
+                    <p className="font-semibold">
+                      {editedTag.enforcement_organization === 'doctor' ? '医師' :
+                       editedTag.enforcement_organization === 'paramedic' ? '救急救命士' :
+                       editedTag.enforcement_organization_other || 'その他'}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </section>
+
           {/* 主訴・症状 */}
           <section>
             <h3 className="text-lg font-bold mb-3 border-b pb-2">主訴・症状</h3>
@@ -500,7 +1528,126 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-600 mb-1">備考</label>
+                  <label className="block text-sm text-gray-600 mb-2">症状・傷病名（複数選択可）</label>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={editedTag.conditions?.includes('contusion') || false}
+                        onChange={(e) => {
+                          const current = editedTag.conditions || []
+                          setEditedTag({
+                            ...editedTag,
+                            conditions: e.target.checked
+                              ? [...current, 'contusion']
+                              : current.filter(c => c !== 'contusion')
+                          })
+                        }}
+                        className="w-4 h-4"
+                      />
+                      <span>打撲</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={editedTag.conditions?.includes('fracture') || false}
+                        onChange={(e) => {
+                          const current = editedTag.conditions || []
+                          setEditedTag({
+                            ...editedTag,
+                            conditions: e.target.checked
+                              ? [...current, 'fracture']
+                              : current.filter(c => c !== 'fracture')
+                          })
+                        }}
+                        className="w-4 h-4"
+                      />
+                      <span>骨折</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={editedTag.conditions?.includes('sprain') || false}
+                        onChange={(e) => {
+                          const current = editedTag.conditions || []
+                          setEditedTag({
+                            ...editedTag,
+                            conditions: e.target.checked
+                              ? [...current, 'sprain']
+                              : current.filter(c => c !== 'sprain')
+                          })
+                        }}
+                        className="w-4 h-4"
+                      />
+                      <span>捻挫</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={editedTag.conditions?.includes('amputation') || false}
+                        onChange={(e) => {
+                          const current = editedTag.conditions || []
+                          setEditedTag({
+                            ...editedTag,
+                            conditions: e.target.checked
+                              ? [...current, 'amputation']
+                              : current.filter(c => c !== 'amputation')
+                          })
+                        }}
+                        className="w-4 h-4"
+                      />
+                      <span>切断</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={editedTag.conditions?.includes('burn') || false}
+                        onChange={(e) => {
+                          const current = editedTag.conditions || []
+                          setEditedTag({
+                            ...editedTag,
+                            conditions: e.target.checked
+                              ? [...current, 'burn']
+                              : current.filter(c => c !== 'burn')
+                          })
+                        }}
+                        className="w-4 h-4"
+                      />
+                      <span>熱傷</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={editedTag.conditions?.includes('other') || false}
+                        onChange={(e) => {
+                          const current = editedTag.conditions || []
+                          setEditedTag({
+                            ...editedTag,
+                            conditions: e.target.checked
+                              ? [...current, 'other']
+                              : current.filter(c => c !== 'other')
+                          })
+                        }}
+                        className="w-4 h-4"
+                      />
+                      <span>その他</span>
+                    </label>
+                    {editedTag.conditions?.includes('other') && (
+                      <input
+                        type="text"
+                        value={editedTag.condition_other || ''}
+                        onChange={(e) => setEditedTag({
+                          ...editedTag,
+                          condition_other: e.target.value || undefined
+                        })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg ml-6"
+                        placeholder="その他の症状・傷病名を入力"
+                      />
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">特記事項</label>
                   <textarea
                     value={editedTag.chief_complaint?.notes || ''}
                     onChange={(e) => setEditedTag({
@@ -513,7 +1660,7 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
                     })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                     rows={2}
-                    placeholder="備考を入力"
+                    placeholder="特記事項を入力"
                   />
                   <div className="mt-2">
                     <VoiceInput
@@ -531,13 +1678,36 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
                   </div>
                 </div>
               </div>
-            ) : editedTag.chief_complaint ? (
+            ) : (
               <div className="space-y-2">
-                <div>
-                  <p className="text-sm text-gray-600">主訴</p>
-                  <p className="bg-gray-50 p-3 rounded-lg">{editedTag.chief_complaint.primary}</p>
-                </div>
-                {editedTag.chief_complaint.symptoms && editedTag.chief_complaint.symptoms.length > 0 && (
+                {editedTag.chief_complaint?.primary && (
+                  <div>
+                    <p className="text-sm text-gray-600">主訴</p>
+                    <p className="bg-gray-50 p-3 rounded-lg">{editedTag.chief_complaint.primary}</p>
+                  </div>
+                )}
+                {editedTag.conditions && editedTag.conditions.length > 0 && (
+                  <div>
+                    <p className="text-sm text-gray-600">症状・傷病名</p>
+                    <div className="flex flex-wrap gap-2">
+                      {editedTag.conditions.map((condition) => (
+                        <span key={condition} className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
+                          {condition === 'contusion' ? '打撲' :
+                           condition === 'fracture' ? '骨折' :
+                           condition === 'sprain' ? '捻挫' :
+                           condition === 'amputation' ? '切断' :
+                           condition === 'burn' ? '熱傷' : 'その他'}
+                        </span>
+                      ))}
+                      {editedTag.condition_other && (
+                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">
+                          {editedTag.condition_other}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {editedTag.chief_complaint?.symptoms && editedTag.chief_complaint.symptoms.length > 0 && (
                   <div>
                     <p className="text-sm text-gray-600">症状</p>
                     <div className="flex flex-wrap gap-2">
@@ -549,15 +1719,13 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
                     </div>
                   </div>
                 )}
-                {editedTag.chief_complaint.notes && (
+                {editedTag.chief_complaint?.notes && (
                   <div>
-                    <p className="text-sm text-gray-600">備考</p>
+                    <p className="text-sm text-gray-600">特記事項</p>
                     <p className="bg-gray-50 p-3 rounded-lg">{editedTag.chief_complaint.notes}</p>
                   </div>
                 )}
               </div>
-            ) : (
-              <p className="text-gray-500 text-sm">記載なし</p>
             )}
           </section>
 
