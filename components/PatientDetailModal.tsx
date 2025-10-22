@@ -34,21 +34,43 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
   const category = editedTag.triage_category.final
   const categoryInfo = TriageCategories[category]
 
+  // undefinedをnullに変換するヘルパー関数
+  const replaceUndefinedWithNull = (obj: any): any => {
+    if (obj === undefined) return null
+    if (obj === null) return null
+    if (typeof obj !== 'object') return obj
+    if (Array.isArray(obj)) return obj.map(replaceUndefinedWithNull)
+
+    const result: any = {}
+    for (const key in obj) {
+      result[key] = replaceUndefinedWithNull(obj[key])
+    }
+    return result
+  }
+
   // 保存処理
   const handleSave = async () => {
     setIsSaving(true)
     try {
+      // undefinedをnullに変換
+      const updateData = {
+        patient_info: replaceUndefinedWithNull(editedTag.patient_info),
+        vital_signs: replaceUndefinedWithNull(editedTag.vital_signs),
+        chief_complaint: editedTag.chief_complaint
+          ? replaceUndefinedWithNull(editedTag.chief_complaint)
+          : null,
+        updated_at: new Date().toISOString(),
+      }
+
       const { error } = await supabase
         .from('triage_tags')
-        .update({
-          patient_info: editedTag.patient_info,
-          vital_signs: editedTag.vital_signs,
-          chief_complaint: editedTag.chief_complaint,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq('id', editedTag.id)
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabase update error:', error)
+        throw error
+      }
 
       alert('患者情報を更新しました')
       setIsEditing(false)
@@ -56,7 +78,9 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
         onUpdate(editedTag)
       }
     } catch (error) {
-      alert('更新に失敗しました')
+      const errorMessage = error instanceof Error ? error.message : '不明なエラー'
+      console.error('Save error:', error)
+      alert(`更新に失敗しました\n\nエラー: ${errorMessage}`)
     } finally {
       setIsSaving(false)
     }
