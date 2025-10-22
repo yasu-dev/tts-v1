@@ -558,7 +558,7 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
 
       {/* QRスキャナーモーダル */}
       {showQRScanner && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]">
           <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold">QRコードスキャン</h3>
