@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { TriageTag, TriageCategories } from '@/lib/types'
 import { formatDateTime, formatShortDateTime } from '@/lib/utils/date-formatter'
 import { createClient } from '@/lib/supabase/client'
+import VoiceInput from '@/components/VoiceInput'
 
 interface PatientDetailModalProps {
   tag: TriageTag | null
@@ -442,7 +443,7 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
           <section>
             <h3 className="text-lg font-bold mb-3 border-b pb-2">主訴・症状</h3>
             {isEditing ? (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div>
                   <label className="block text-sm text-gray-600 mb-1">主訴</label>
                   <textarea
@@ -459,6 +460,20 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
                     rows={3}
                     placeholder="主訴を入力"
                   />
+                  <div className="mt-2">
+                    <VoiceInput
+                      onTranscript={(text) => setEditedTag({
+                        ...editedTag,
+                        chief_complaint: {
+                          primary: editedTag.chief_complaint?.primary
+                            ? `${editedTag.chief_complaint.primary} ${text}`
+                            : text,
+                          symptoms: editedTag.chief_complaint?.symptoms,
+                          notes: editedTag.chief_complaint?.notes
+                        }
+                      })}
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm text-gray-600 mb-1">備考</label>
@@ -476,6 +491,20 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
                     rows={2}
                     placeholder="備考を入力"
                   />
+                  <div className="mt-2">
+                    <VoiceInput
+                      onTranscript={(text) => setEditedTag({
+                        ...editedTag,
+                        chief_complaint: {
+                          primary: editedTag.chief_complaint?.primary || '',
+                          symptoms: editedTag.chief_complaint?.symptoms,
+                          notes: editedTag.chief_complaint?.notes
+                            ? `${editedTag.chief_complaint.notes} ${text}`
+                            : text
+                        }
+                      })}
+                    />
+                  </div>
                 </div>
               </div>
             ) : editedTag.chief_complaint ? (
