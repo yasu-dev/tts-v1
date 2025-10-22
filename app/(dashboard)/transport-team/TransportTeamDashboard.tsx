@@ -171,8 +171,6 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
 
   // QRコードスキャン処理
   const handleQRScan = async (result: string) => {
-    console.log('[TransportTeam] QR scan result:', result)
-
     try {
       let patientId = ''
 
@@ -181,42 +179,32 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
         // JSON形式を試行
         const patientData = JSON.parse(result)
         patientId = patientData.id || patientData.patient_id || patientData.tag_id
-        console.log('[TransportTeam] Parsed JSON patientId:', patientId)
       } catch {
         // 単純な文字列の場合
         patientId = result.trim()
-        console.log('[TransportTeam] Direct string patientId:', patientId)
       }
 
       if (!patientId) {
-        console.error('[TransportTeam] No patientId extracted')
         alert('❌ QRコード読み取りエラー\n\nQRコードから患者IDを取得できませんでした。\n正しいQRコードをスキャンしてください。')
         return
       }
 
       // 患者情報を取得
-      console.log('[TransportTeam] Fetching patient by id:', patientId)
       const { data: patient, error } = await supabase
         .from('triage_tags')
         .select('*')
         .eq('id', patientId)
         .single()
 
-      console.log('[TransportTeam] Patient by id result:', { patient, error })
-
       if (error || !patient) {
         // IDで見つからない場合、tag_numberやanonymous_idで検索
-        console.log('[TransportTeam] Fetching patient by tag_number or anonymous_id:', patientId)
         const { data: patientByTag, error: tagError } = await supabase
           .from('triage_tags')
           .select('*')
           .or(`tag_number.eq.${patientId},anonymous_id.eq.${patientId}`)
           .single()
 
-        console.log('[TransportTeam] Patient by tag result:', { patientByTag, tagError })
-
         if (tagError || !patientByTag) {
-          console.error('[TransportTeam] Patient not found:', patientId)
           alert(`❌ 患者が見つかりません\n\nスキャンされたID: ${patientId}\n\nこのIDに該当する患者がデータベースに存在しません。\n・IDが正しいか確認してください\n・患者がまだ登録されていない可能性があります`)
           setShowQRScanner(false)
           return
@@ -224,17 +212,8 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
 
         // 搬送部隊割り当てチェック
         const patientByTagData = patientByTag as TriageTag
-        console.log('[TransportTeam] Patient data (by tag):', {
-          tag_number: patientByTagData.tag_number,
-          anonymous_id: patientByTagData.anonymous_id,
-          transport_assignment: patientByTagData.transport_assignment
-        })
-
-        // デバッグ情報を表示
-        alert(`🔍 デバッグ情報 (by tag)\n\nタグ番号: ${patientByTagData.tag_number}\n患者ID: ${patientByTagData.anonymous_id}\ntransport_assignment:\n${JSON.stringify(patientByTagData.transport_assignment, null, 2)}`)
 
         if (!patientByTagData.transport_assignment) {
-          console.warn('[TransportTeam] Patient has no transport_assignment')
           alert(`⚠️ 搬送未割当の患者です\n\nタグ番号: ${patientByTagData.tag_number}\n患者ID: ${patientByTagData.anonymous_id}\n\nこの患者はまだ搬送部隊に割り当てられていません。\n搬送調整ダッシュボードから割り当てを行ってください。`)
           setShowQRScanner(false)
           return
@@ -242,37 +221,21 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
 
         // completedステータスの患者をチェック
         if (patientByTagData.transport_assignment.status === 'completed') {
-          console.warn('[TransportTeam] Patient already completed')
           alert(`✅ 搬送完了済みの患者です\n\nタグ番号: ${patientByTagData.tag_number}\n患者ID: ${patientByTagData.anonymous_id}\n割当チーム: ${patientByTagData.transport_assignment.team}\n\nこの患者は既に応急救護所に到着済みです。`)
           setShowQRScanner(false)
           return
         }
 
         // 患者詳細モーダルを表示
-        console.log('[TransportTeam] Setting selected patient (by tag)')
         setShowQRScanner(false)
-        // QRスキャナーモーダルが完全に閉じるのを待ってから患者モーダルを開く
-        const teamName = patientByTagData.transport_assignment.team
-        setTimeout(() => {
-          setSelectedPatient(patientByTagData)
-          alert(`✅ 患者情報を取得しました\n\nタグ番号: ${patientByTagData.tag_number}\n患者ID: ${patientByTagData.anonymous_id}\n割当チーム: ${teamName}`)
-        }, 100)
+        setSelectedPatient(patientByTagData)
         return
       }
 
       // 搬送部隊割り当てチェック
       const patientData = patient as TriageTag
-      console.log('[TransportTeam] Patient data (by id):', {
-        tag_number: patientData.tag_number,
-        anonymous_id: patientData.anonymous_id,
-        transport_assignment: patientData.transport_assignment
-      })
-
-      // デバッグ情報を表示
-      alert(`🔍 デバッグ情報 (by id)\n\nタグ番号: ${patientData.tag_number}\n患者ID: ${patientData.anonymous_id}\ntransport_assignment:\n${JSON.stringify(patientData.transport_assignment, null, 2)}`)
 
       if (!patientData.transport_assignment) {
-        console.warn('[TransportTeam] Patient has no transport_assignment')
         alert(`⚠️ 搬送未割当の患者です\n\nタグ番号: ${patientData.tag_number}\n患者ID: ${patientData.anonymous_id}\n\nこの患者はまだ搬送部隊に割り当てられていません。\n搬送調整ダッシュボードから割り当てを行ってください。`)
         setShowQRScanner(false)
         return
@@ -280,27 +243,17 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
 
       // completedステータスの患者をチェック
       if (patientData.transport_assignment.status === 'completed') {
-        console.warn('[TransportTeam] Patient already completed')
         alert(`✅ 搬送完了済みの患者です\n\nタグ番号: ${patientData.tag_number}\n患者ID: ${patientData.anonymous_id}\n割当チーム: ${patientData.transport_assignment.team}\n\nこの患者は既に応急救護所に到着済みです。`)
         setShowQRScanner(false)
         return
       }
 
       // 患者詳細モーダルを表示
-      console.log('[TransportTeam] Setting selected patient (by id)')
       setShowQRScanner(false)
-      // QRスキャナーモーダルが完全に閉じるのを待ってから患者モーダルを開く
-      const teamName = patientData.transport_assignment.team
-      setTimeout(() => {
-        setSelectedPatient(patientData)
-        alert(`✅ 患者情報を取得しました\n\nタグ番号: ${patientData.tag_number}\n患者ID: ${patientData.anonymous_id}\n割当チーム: ${teamName}`)
-      }, 100)
+      setSelectedPatient(patientData)
 
     } catch (error) {
-      console.error('[TransportTeam] QR scan error:', error)
       const errorMsg = error instanceof Error ? error.message : '不明なエラー'
-      const errorStack = error instanceof Error ? error.stack : ''
-      console.error('[TransportTeam] Error details:', { errorMsg, errorStack })
       alert(`❌ QRコード処理エラー\n\nエラー詳細: ${errorMsg}\n\nもう一度スキャンしてください。問題が続く場合は手動入力をお試しください。`)
       setShowQRScanner(false)
     }
