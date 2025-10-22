@@ -231,11 +231,19 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
         })
 
         // デバッグ情報を表示
-        alert(`🔍 デバッグ情報\n\nタグ番号: ${patientByTagData.tag_number}\n患者ID: ${patientByTagData.anonymous_id}\ntransport_assignment:\n${JSON.stringify(patientByTagData.transport_assignment, null, 2)}`)
+        alert(`🔍 デバッグ情報 (by tag)\n\nタグ番号: ${patientByTagData.tag_number}\n患者ID: ${patientByTagData.anonymous_id}\ntransport_assignment:\n${JSON.stringify(patientByTagData.transport_assignment, null, 2)}`)
 
         if (!patientByTagData.transport_assignment) {
           console.warn('[TransportTeam] Patient has no transport_assignment')
           alert(`⚠️ 搬送未割当の患者です\n\nタグ番号: ${patientByTagData.tag_number}\n患者ID: ${patientByTagData.anonymous_id}\n\nこの患者はまだ搬送部隊に割り当てられていません。\n搬送調整ダッシュボードから割り当てを行ってください。`)
+          setShowQRScanner(false)
+          return
+        }
+
+        // completedステータスの患者をチェック
+        if (patientByTagData.transport_assignment.status === 'completed') {
+          console.warn('[TransportTeam] Patient already completed')
+          alert(`✅ 搬送完了済みの患者です\n\nタグ番号: ${patientByTagData.tag_number}\n患者ID: ${patientByTagData.anonymous_id}\n割当チーム: ${patientByTagData.transport_assignment.team}\n\nこの患者は既に応急救護所に到着済みです。`)
           setShowQRScanner(false)
           return
         }
@@ -257,11 +265,19 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
       })
 
       // デバッグ情報を表示
-      alert(`🔍 デバッグ情報\n\nタグ番号: ${patientData.tag_number}\n患者ID: ${patientData.anonymous_id}\ntransport_assignment:\n${JSON.stringify(patientData.transport_assignment, null, 2)}`)
+      alert(`🔍 デバッグ情報 (by id)\n\nタグ番号: ${patientData.tag_number}\n患者ID: ${patientData.anonymous_id}\ntransport_assignment:\n${JSON.stringify(patientData.transport_assignment, null, 2)}`)
 
       if (!patientData.transport_assignment) {
         console.warn('[TransportTeam] Patient has no transport_assignment')
         alert(`⚠️ 搬送未割当の患者です\n\nタグ番号: ${patientData.tag_number}\n患者ID: ${patientData.anonymous_id}\n\nこの患者はまだ搬送部隊に割り当てられていません。\n搬送調整ダッシュボードから割り当てを行ってください。`)
+        setShowQRScanner(false)
+        return
+      }
+
+      // completedステータスの患者をチェック
+      if (patientData.transport_assignment.status === 'completed') {
+        console.warn('[TransportTeam] Patient already completed')
+        alert(`✅ 搬送完了済みの患者です\n\nタグ番号: ${patientData.tag_number}\n患者ID: ${patientData.anonymous_id}\n割当チーム: ${patientData.transport_assignment.team}\n\nこの患者は既に応急救護所に到着済みです。`)
         setShowQRScanner(false)
         return
       }
@@ -585,6 +601,13 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
                     >
                       応急救護所到着
                     </button>
+                  </div>
+                )}
+
+                {transportStatus === 'completed' && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span className="text-green-600 font-medium">応急救護所到着済み</span>
                   </div>
                 )}
               </>
