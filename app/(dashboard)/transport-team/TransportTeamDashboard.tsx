@@ -250,9 +250,12 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
 
         // 患者詳細モーダルを表示
         console.log('[TransportTeam] Setting selected patient (by tag)')
-        alert(`✅ 患者情報を取得しました\n\nタグ番号: ${patientByTagData.tag_number}\n患者ID: ${patientByTagData.anonymous_id}\n割当チーム: ${patientByTagData.transport_assignment.team}`)
-        setSelectedPatient(patientByTagData)
         setShowQRScanner(false)
+        // QRスキャナーモーダルが完全に閉じるのを待ってから患者モーダルを開く
+        setTimeout(() => {
+          setSelectedPatient(patientByTagData)
+          alert(`✅ 患者情報を取得しました\n\nタグ番号: ${patientByTagData.tag_number}\n患者ID: ${patientByTagData.anonymous_id}\n割当チーム: ${patientByTagData.transport_assignment.team}`)
+        }, 100)
         return
       }
 
@@ -284,9 +287,12 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
 
       // 患者詳細モーダルを表示
       console.log('[TransportTeam] Setting selected patient (by id)')
-      alert(`✅ 患者情報を取得しました\n\nタグ番号: ${patientData.tag_number}\n患者ID: ${patientData.anonymous_id}\n割当チーム: ${patientData.transport_assignment.team}`)
-      setSelectedPatient(patientData)
       setShowQRScanner(false)
+      // QRスキャナーモーダルが完全に閉じるのを待ってから患者モーダルを開く
+      setTimeout(() => {
+        setSelectedPatient(patientData)
+        alert(`✅ 患者情報を取得しました\n\nタグ番号: ${patientData.tag_number}\n患者ID: ${patientData.anonymous_id}\n割当チーム: ${patientData.transport_assignment.team}`)
+      }, 100)
 
     } catch (error) {
       console.error('[TransportTeam] QR scan error:', error)
