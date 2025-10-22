@@ -212,16 +212,32 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
           return
         }
 
+        // 搬送部隊割り当てチェック
+        const patientByTagData = patientByTag as TriageTag
+        if (!patientByTagData.transport_assignment) {
+          alert(`⚠️ 搬送未割当の患者です\n\nタグ番号: ${patientByTagData.tag_number}\n患者ID: ${patientByTagData.anonymous_id}\n\nこの患者はまだ搬送部隊に割り当てられていません。\n搬送調整ダッシュボードから割り当てを行ってください。`)
+          setShowQRScanner(false)
+          return
+        }
+
         // 患者詳細モーダルを表示
-        alert(`✅ 患者情報を取得しました\n\nタグ番号: ${patientByTag.tag_number}\n患者ID: ${patientByTag.anonymous_id}`)
-        setSelectedPatient(patientByTag as TriageTag)
+        alert(`✅ 患者情報を取得しました\n\nタグ番号: ${patientByTagData.tag_number}\n患者ID: ${patientByTagData.anonymous_id}\n割当チーム: ${patientByTagData.transport_assignment.team}`)
+        setSelectedPatient(patientByTagData)
+        setShowQRScanner(false)
+        return
+      }
+
+      // 搬送部隊割り当てチェック
+      const patientData = patient as TriageTag
+      if (!patientData.transport_assignment) {
+        alert(`⚠️ 搬送未割当の患者です\n\nタグ番号: ${patientData.tag_number}\n患者ID: ${patientData.anonymous_id}\n\nこの患者はまだ搬送部隊に割り当てられていません。\n搬送調整ダッシュボードから割り当てを行ってください。`)
         setShowQRScanner(false)
         return
       }
 
       // 患者詳細モーダルを表示
-      alert(`✅ 患者情報を取得しました\n\nタグ番号: ${patient.tag_number}\n患者ID: ${patient.anonymous_id}`)
-      setSelectedPatient(patient as TriageTag)
+      alert(`✅ 患者情報を取得しました\n\nタグ番号: ${patientData.tag_number}\n患者ID: ${patientData.anonymous_id}\n割当チーム: ${patientData.transport_assignment.team}`)
+      setSelectedPatient(patientData)
       setShowQRScanner(false)
 
     } catch (error) {
