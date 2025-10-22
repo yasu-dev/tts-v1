@@ -276,20 +276,22 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
               const { label, color } = getStatusDisplay(statusKey)
               const isChecked = statusFilters.includes(statusKey)
               
+              const id = `status-${statusKey}`
               return (
-                <label key={statusKey} className="flex items-center gap-2 cursor-pointer">
+                <div key={statusKey} className="flex items-center gap-2">
                   <input
+                    id={id}
                     type="checkbox"
                     checked={isChecked}
                     onChange={() => toggleStatusFilter(statusKey)}
-                    className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
                   />
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${color} ${
+                  <label htmlFor={id} className={`px-3 py-1 rounded-full text-sm font-medium ${color} ${
                     isChecked ? 'opacity-100' : 'opacity-50'
-                  }`}>
+                  } cursor-pointer select-none`}>
                     {label}
-                  </span>
-                </label>
+                  </label>
+                </div>
               )
             })}
           </div>
