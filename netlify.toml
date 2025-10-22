@@ -5,8 +5,8 @@
   publish = ".next"
 
 [build.environment]
-  # Node.js version
-  NODE_VERSION = "22"
+  # Node.js version (LTS)
+  NODE_VERSION = "20"
 
 # Next.js Plugin (自動的に適用されます)
 [[plugins]]
