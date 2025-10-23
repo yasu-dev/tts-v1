@@ -916,12 +916,18 @@ export default function TriageScanPage() {
               <div className="border-b pb-3">
                 <p className="text-sm text-gray-600">バイタルサイン</p>
                 <ul className="text-sm mt-1">
+                  {vitalSigns.judger_name && <li>判定者名: {vitalSigns.judger_name}</li>}
+                  {vitalSigns.judgment_location && <li>判定場所: {vitalSigns.judgment_location}</li>}
+                  {vitalSigns.judgment_time && <li>判定時間: {vitalSigns.judgment_time}</li>}
+                  <li>意識: {vitalSigns.consciousness}</li>
                   {vitalSigns.respiratory_rate && (
                     <li>呼吸数: {vitalSigns.respiratory_rate} 回/分</li>
                   )}
                   {vitalSigns.pulse_rate && <li>脈拍数: {vitalSigns.pulse_rate} 回/分</li>}
-                  {vitalSigns.systolic_bp && <li>血圧: {vitalSigns.systolic_bp} mmHg</li>}
-                  <li>意識: {vitalSigns.consciousness}</li>
+                  {(vitalSigns.blood_pressure_systolic || vitalSigns.blood_pressure_diastolic) && (
+                    <li>血圧: {vitalSigns.blood_pressure_systolic || '-'}/{vitalSigns.blood_pressure_diastolic || '-'} mmHg</li>
+                  )}
+                  {vitalSigns.temperature && <li>体温: {vitalSigns.temperature}°C</li>}
                 </ul>
               </div>
 
