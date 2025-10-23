@@ -874,14 +874,65 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
       <PatientDetailModal
         tag={selectedTagDetail}
         onClose={() => setSelectedTagDetail(null)}
-        actions={selectedTagDetail && currentStep === 1 && (
+        actions={selectedTagDetail && (
           <button
-            onClick={() => {
-              setSelectedTag(selectedTagDetail.id)
-              setCurrentStep(2)
-              setSelectedTagDetail(null)
+            onClick={async () => {
+              // 搬送ステータスを準備中に更新
+              const { error } = await supabase
+                .from('triage_tags')
+                .update({
+                  transport: {
+                    ...selectedTagDetail.transport,
+                    status: 'preparing',
+                  },
+                  updated_at: new Date().toISOString(),
+                })
+                .eq('id', selectedTagDetail.id)
+
+              if (!error) {
+                // tags配列にこの患者が含まれているか確認
+                const existingTag = tags.find(t => t.id === selectedTagDetail.id)
+
+                if (existingTag) {
+                  // 既存の場合はステータスを更新
+                  setTags(prevTags =>
+                    prevTags.map(t =>
+                      t.id === selectedTagDetail.id
+                        ? {
+                            ...t,
+                            transport: {
+                              ...t.transport,
+                              status: 'preparing',
+                            },
+                            updated_at: new Date().toISOString(),
+                          }
+                        : t
+                    )
+                  )
+                } else {
+                  // tags配列に追加
+                  setTags(prevTags => [
+                    {
+                      ...selectedTagDetail,
+                      transport: {
+                        ...selectedTagDetail.transport,
+                        status: 'preparing',
+                      },
+                      updated_at: new Date().toISOString(),
+                    },
+                    ...prevTags
+                  ])
+                }
+
+                setSelectedTag(selectedTagDetail.id)
+                setCurrentStep(2)
+                setSelectedTagDetail(null)
+              } else {
+                alert('ステータス更新に失敗しました')
+              }
             }}
             className="btn-primary"
+            disabled={loading}
           >
             搬送先を選択
           </button>
