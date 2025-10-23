@@ -69,6 +69,7 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
         conditions: editedTag.conditions || null,
         condition_other: editedTag.condition_other || null,
         vital_signs_records: replaceUndefinedWithNull(editedTag.vital_signs_records),
+        attachments: replaceUndefinedWithNull(editedTag.attachments),
         updated_at: new Date().toISOString(),
       }
 
