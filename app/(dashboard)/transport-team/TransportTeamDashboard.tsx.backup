@@ -20,7 +20,7 @@ const TRANSPORT_TEAMS = [
 
 export default function TransportTeamDashboard({ assignedPatients }: TransportTeamDashboardProps) {
   const [patients, setPatients] = useState<TriageTag[]>(assignedPatients)
-  const [selectedTeam, setSelectedTeam] = useState<string>('全搬送部隊')
+  const [selectedTeam, setSelectedTeam] = useState<string>('全チーム')
   const [selectedPatient, setSelectedPatient] = useState<TriageTag | null>(null)
   const [showQRScanner, setShowQRScanner] = useState(false)
   const [manualInput, setManualInput] = useState('')
@@ -31,67 +31,6 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
   const [confirmingPatientId, setConfirmingPatientId] = useState<string | null>(null)
 
   const supabase = createClient()
-
-  // 搬送フェーズと担当者を取得（CommandDashboardと統一）
-  const getPhaseInfo = (tag: TriageTag) => {
-    // 病院到着
-    if (tag.transport.status === 'completed' && tag.transport.destination) {
-      return {
-        phase: '病院',
-        icon: '✅',
-        responsible: `収容: ${tag.transport.destination.hospital_name}`,
-        location: tag.transport.destination.hospital_name,
-      }
-    }
-
-    // 病院へ搬送中
-    if (tag.transport.status === 'in_transit' && tag.transport.destination) {
-      return {
-        phase: '病院へ',
-        icon: '🚑',
-        responsible: `救急隊 → ${tag.transport.destination.hospital_name}`,
-        location: `搬送先: ${tag.transport.destination.hospital_name}`,
-      }
-    }
-
-    // 応急救護所到着
-    if (tag.transport.status === 'arrived') {
-      return {
-        phase: '応急',
-        icon: '🏥',
-        responsible: '応急救護所待機',
-        location: '現在地: 応急救護所',
-      }
-    }
-
-    // 応急救護所へ搬送中
-    if (tag.transport_assignment?.status === 'in_progress') {
-      return {
-        phase: '応急へ',
-        icon: '🚑',
-        responsible: `搬送: ${tag.transport_assignment.team}`,
-        location: `発見位置: ${tag.location.address || '座標情報あり'}`,
-      }
-    }
-
-    // 搬送部隊割当済
-    if (tag.transport_assignment?.status === 'assigned') {
-      return {
-        phase: '割当済',
-        icon: '⏳',
-        responsible: `割当: ${tag.transport_assignment.team}`,
-        location: `発見位置: ${tag.location.address || '座標情報あり'}`,
-      }
-    }
-
-    // 現場待機
-    return {
-      phase: '現場',
-      icon: '📍',
-      responsible: `発見: ${tag.audit.created_by}`,
-      location: `発見位置: ${tag.location.address || '座標情報あり'}`,
-    }
-  }
 
   // Supabase Realtimeでデータベース変更を購読
   useEffect(() => {
@@ -139,10 +78,10 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
     green: patients.filter(p => p.triage_category.final === 'green').length,
   }
 
-  // カテゴリと搬送部隊両方でフィルタリング
+  // カテゴリとチーム両方でフィルタリング
   const filteredPatients = patients
     .filter(patient => filter === 'all' || patient.triage_category.final === filter)
-    .filter(patient => selectedTeam === '全搬送部隊'
+    .filter(patient => selectedTeam === '全チーム' 
       ? patient.transport_assignment?.team || !patient.transport_assignment
       : patient.transport_assignment?.team === selectedTeam)
 
@@ -217,7 +156,7 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
         setConfirmingPatientId(null)
         // 成功メッセージは表示しない（UIで即座に反映されるため）
       } else {
-        alert(`搬送ステータスを${status === 'completed' ? '応急' : status}に更新しました`)
+        alert(`搬送ステータスを${status === 'completed' ? '応急救護所到着' : status}に更新しました`)
       }
     } catch (error) {
       // console.error('Error updating transport status:', error)
@@ -361,16 +300,16 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
           </button>
         </div>
 
-        {/* 搬送部隊絞り込み */}
+        {/* チーム絞り込み */}
         <div className="card">
           <div className="flex items-center gap-4">
-            <label className="text-sm font-medium text-gray-700">搬送部隊絞り込み:</label>
+            <label className="text-sm font-medium text-gray-700">チーム絞り込み:</label>
             <select
               value={selectedTeam}
               onChange={(e) => setSelectedTeam(e.target.value)}
               className="input max-w-xs"
             >
-              <option value="全搬送部隊">全搬送部隊</option>
+              <option value="全チーム">全チーム</option>
               {TRANSPORT_TEAMS.map(team => (
                 <option key={team} value={team}>{team}</option>
               ))}
@@ -386,7 +325,7 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
           <h2 className="text-xl font-bold mb-4">患者一覧（{filteredPatients.length}件）</h2>
           {filteredPatients.length === 0 ? (
             <p className="text-center text-gray-500 py-8">
-              {selectedTeam === '全搬送部隊' ? '搬送指示はありません' : `${selectedTeam}への搬送指示はありません`}
+              {selectedTeam === '全チーム' ? '搬送指示はありません' : `${selectedTeam}への搬送指示はありません`}
             </p>
           ) : (
             <div className="space-y-3">
@@ -396,67 +335,76 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
                 const transportStatus = tag.transport_assignment?.status || 'assigned'
 
                 return (
-                  <div key={tag.id} className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all">
+                  <div key={tag.id} className="p-4 bg-gray-50 rounded-lg">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
                         <span className={`px-4 py-2 rounded-lg font-bold ${categoryInfo.color} ${categoryInfo.textColor}`}>
                           {tag.tag_number}
                         </span>
                         <div>
-                          {/* 1行目: フェーズ + 患者属性 */}
                           <div className="flex items-center gap-2 mb-1">
+                            <p className="text-sm font-medium text-gray-700">
+                              {tag.patient_info?.age && `${tag.patient_info.age}歳`}
+                              {tag.patient_info?.sex && tag.patient_info?.age && ' | '}
+                              {tag.patient_info?.sex && `${tag.patient_info.sex === 'male' ? '男性' : tag.patient_info.sex === 'female' ? '女性' : tag.patient_info.sex}`}
+                              {(!tag.patient_info?.age && !tag.patient_info?.sex) && '詳細情報なし'}
+                            </p>
+                            {/* 搬送状態バッジ - 統一仕様 */}
                             {(() => {
-                              const phaseInfo = getPhaseInfo(tag)
-                              return (
-                                <>
-                                  <span className="text-base">{phaseInfo.icon}</span>
-                                  <span className="text-sm font-medium text-gray-900">{phaseInfo.phase}</span>
-                                  <span className="text-gray-400">|</span>
-                                  <span className="text-sm text-gray-700">
-                                    {tag.patient_info?.age && `${tag.patient_info.age}歳`}
-                                    {tag.patient_info?.sex && tag.patient_info?.age && ' '}
-                                    {tag.patient_info?.sex && `${tag.patient_info.sex === 'male' ? '男性' : tag.patient_info.sex === 'female' ? '女性' : tag.patient_info.sex}`}
-                                    {(!tag.patient_info?.age && !tag.patient_info?.sex) && '詳細情報なし'}
+                              // transport.statusが優先（arrived, completed）
+                              if (tag.transport.status === 'arrived') {
+                                return (
+                                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                    応急救護所到着
                                   </span>
-                                </>
+                                )
+                              }
+                              if (tag.transport.status === 'completed') {
+                                return (
+                                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                    搬送完了
+                                  </span>
+                                )
+                              }
+                              // transport_assignment.statusを使用
+                              const status = tag.transport_assignment?.status || 'assigned'
+                              return (
+                                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                  status === 'assigned' ? 'bg-indigo-100 text-indigo-800' :
+                                  status === 'in_progress' ? 'bg-orange-100 text-orange-800' :
+                                  'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {status === 'assigned' ? '搬送部隊割当済' :
+                                   status === 'in_progress' ? '搬送中' : '不明'}
+                                </span>
                               )
                             })()}
                           </div>
-                          {/* 2行目: 担当者 + 位置情報 */}
-                          <div className="flex items-center gap-2">
-                            {(() => {
-                              const phaseInfo = getPhaseInfo(tag)
-                              return (
-                                <>
-                                  <span className="text-xs text-gray-600">{phaseInfo.responsible}</span>
-                                  <span className="text-gray-400">|</span>
-                                  <span className="text-xs text-gray-500">
-                                    {tag.location.address ? (
-                                      <a
-                                        href={`https://www.google.com/maps?q=${tag.location.latitude},${tag.location.longitude}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-blue-600 hover:underline"
-                                      >
-                                        {phaseInfo.location}
-                                      </a>
-                                    ) : tag.location.latitude && tag.location.longitude ? (
-                                      <a
-                                        href={`https://www.google.com/maps?q=${tag.location.latitude},${tag.location.longitude}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-blue-600 hover:underline"
-                                      >
-                                        {phaseInfo.location}
-                                      </a>
-                                    ) : (
-                                      <span>位置情報なし</span>
-                                    )}
-                                  </span>
-                                </>
-                              )
-                            })()}
-                          </div>
+                          <p className="text-xs text-gray-500">
+現在地: 
+                            {tag.location.address ? (
+                              <a 
+                                href={`https://www.google.com/maps?q=${tag.location.latitude},${tag.location.longitude}`}
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline"
+                              >
+                                {tag.location.address}
+                              </a>
+                            ) : tag.location.latitude && tag.location.longitude ? (
+                              <a 
+                                href={`https://www.google.com/maps?q=${tag.location.latitude},${tag.location.longitude}`}
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline"
+                              >
+                                {tag.location.latitude}, {tag.location.longitude}
+                              </a>
+                            ) : (
+                              '位置情報なし'
+                            )}
+                            {' | 割当チーム: '}{tag.transport_assignment?.team || '未割当'}
+                          </p>
                         </div>
                       </div>
                       
@@ -501,14 +449,14 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
                           <div className="flex items-center gap-3">
                             <div className="flex items-center gap-2">
                               <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
-                              <span className="text-orange-600 font-medium">応急へ</span>
+                              <span className="text-orange-600 font-medium">搬送中</span>
                             </div>
                             <button
                               onClick={() => handleUpdateTransportStatus(tag.id, 'completed')}
                               disabled={loading}
                               className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
                             >
-                              応急到着
+                              応急救護所到着
                             </button>
                           </div>
                         )}
@@ -567,7 +515,7 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
-                      <span className="text-orange-600 font-medium">応急へ</span>
+                      <span className="text-orange-600 font-medium">搬送中</span>
                     </div>
                     <button
                       onClick={() => {
@@ -577,7 +525,7 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
                       disabled={loading}
                       className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
                     >
-                      応急到着
+                      応急救護所到着
                     </button>
                   </div>
                 )}

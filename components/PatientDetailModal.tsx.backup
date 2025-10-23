@@ -1540,10 +1540,10 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
                   editedTag.transport.status === 'in_transit' ? 'text-blue-600' :
                   editedTag.transport.status === 'preparing' ? 'text-yellow-600' : 'text-gray-600'
                 }`}>
-                  {editedTag.transport.status === 'not_transported' ? '現場' :
-                   editedTag.transport.status === 'preparing' ? '病院準備' :
-                   editedTag.transport.status === 'in_transit' ? '病院へ' :
-                   editedTag.transport.status === 'completed' ? '病院' : '不明'}
+                  {editedTag.transport.status === 'not_transported' ? '未搬送' :
+                   editedTag.transport.status === 'preparing' ? '搬送準備中' :
+                   editedTag.transport.status === 'in_transit' ? '搬送中' :
+                   editedTag.transport.status === 'completed' ? '搬送完了' : '不明'}
                 </span>
               </div>
               {editedTag.transport.destination && (

@@ -104,13 +104,13 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
     
     // 業務フロー順に並べ替え
     const statusOrder = [
-      'transport:not_transported',      // 1. 現場
-      'transport_assignment:assigned',   // 2. 割当済
-      'transport_assignment:in_progress', // 3. 応急へ
-      'transport_assignment:completed',  // 4. 応急
-      'transport:preparing',            // 5. 病院準備
-      'transport:in_transit',           // 6. 病院へ
-      'transport:completed'             // 7. 病院
+      'transport:not_transported',      // 1. 未搬送
+      'transport_assignment:assigned',   // 2. 搬送部隊割当済
+      'transport_assignment:in_progress', // 3. 搬送中
+      'transport_assignment:completed',  // 4. 応急救護所到着
+      'transport:preparing',            // 5. 搬送準備中
+      'transport:in_transit',           // 6. 病院搬送中
+      'transport:completed'             // 7. 搬送完了
     ]
     
     return statusOrder.filter(status => statuses.has(status))
@@ -179,9 +179,9 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
     const [type, status] = statusKey.split(':')
     if (type === 'transport_assignment') {
       return {
-        label: status === 'assigned' ? '割当済' :
-               status === 'in_progress' ? '応急へ' :
-               status === 'completed' ? '応急' : '不明',
+        label: status === 'assigned' ? '搬送部隊割当済' :
+               status === 'in_progress' ? '搬送中' :
+               status === 'completed' ? '応急救護所到着' : '不明',
         color: status === 'assigned' ? 'bg-indigo-100 text-indigo-800' :
                status === 'in_progress' ? 'bg-orange-100 text-orange-800' :
                status === 'completed' ? 'bg-purple-100 text-purple-800' :
@@ -189,11 +189,11 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
       }
     } else {
       return {
-        label: status === 'not_transported' ? '現場' :
-               status === 'arrived' ? '応急' :
-               status === 'preparing' ? '病院準備' :
-               status === 'in_transit' ? '病院へ' :
-               status === 'completed' ? '病院' : '不明',
+        label: status === 'not_transported' ? '未搬送' :
+               status === 'arrived' ? '応急救護所到着' :
+               status === 'preparing' ? '搬送準備中' :
+               status === 'in_transit' ? '病院搬送中' :
+               status === 'completed' ? '搬送完了' : '不明',
         color: status === 'not_transported' ? 'bg-gray-100 text-gray-800' :
                status === 'arrived' ? 'bg-purple-100 text-purple-800' :
                status === 'preparing' ? 'bg-amber-100 text-amber-800' :
@@ -201,67 +201,6 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
                status === 'completed' ? 'bg-emerald-100 text-emerald-800' :
                'bg-gray-100 text-gray-800'
       }
-    }
-  }
-
-  // 搬送フェーズと担当者を取得
-  const getPhaseInfo = (tag: TriageTag) => {
-    // 病院到着
-    if (tag.transport.status === 'completed' && tag.transport.destination) {
-      return {
-        phase: '病院',
-        icon: '✅',
-        responsible: `収容: ${tag.transport.destination.hospital_name}`,
-        location: tag.transport.destination.hospital_name,
-      }
-    }
-
-    // 病院へ搬送中
-    if (tag.transport.status === 'in_transit' && tag.transport.destination) {
-      return {
-        phase: '病院へ',
-        icon: '🚑',
-        responsible: `救急隊 → ${tag.transport.destination.hospital_name}`,
-        location: `搬送先: ${tag.transport.destination.hospital_name}`,
-      }
-    }
-
-    // 応急救護所到着
-    if (tag.transport.status === 'arrived') {
-      return {
-        phase: '応急',
-        icon: '🏥',
-        responsible: '応急救護所待機',
-        location: '現在地: 応急救護所',
-      }
-    }
-
-    // 応急救護所へ搬送中
-    if (tag.transport_assignment?.status === 'in_progress') {
-      return {
-        phase: '応急へ',
-        icon: '🚑',
-        responsible: `搬送: ${tag.transport_assignment.team}`,
-        location: `発見位置: ${tag.location.address || '座標情報あり'}`,
-      }
-    }
-
-    // 搬送部隊割当済
-    if (tag.transport_assignment?.status === 'assigned') {
-      return {
-        phase: '割当済',
-        icon: '⏳',
-        responsible: `割当: ${tag.transport_assignment.team}`,
-        location: `発見位置: ${tag.location.address || '座標情報あり'}`,
-      }
-    }
-
-    // 現場待機
-    return {
-      phase: '現場',
-      icon: '📍',
-      responsible: `発見: ${tag.audit.created_by}`,
-      location: `発見位置: ${tag.location.address || '座標情報あり'}`,
     }
   }
 
@@ -444,72 +383,84 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
                         {tag.tag_number}
                       </span>
                       <div>
-                        {/* 1行目: フェーズ + 患者属性 */}
                         <div className="flex items-center gap-2 mb-1">
-                          {(() => {
-                            const phaseInfo = getPhaseInfo(tag)
-                            return (
-                              <>
-                                <span className="text-base">{phaseInfo.icon}</span>
-                                <span className="text-sm font-medium text-gray-900">{phaseInfo.phase}</span>
-                                <span className="text-gray-400">|</span>
-                                <span className="text-sm text-gray-700">
-                                  {tag.patient_info?.age && `${tag.patient_info.age}歳`}
-                                  {tag.patient_info?.sex && tag.patient_info?.age && ' '}
-                                  {tag.patient_info?.sex && `${tag.patient_info.sex === 'male' ? '男性' : tag.patient_info.sex === 'female' ? '女性' : tag.patient_info.sex}`}
-                                  {(!tag.patient_info?.age && !tag.patient_info?.sex) && '詳細情報なし'}
-                                </span>
-                              </>
-                            )
-                          })()}
+                          <p className="text-sm font-medium text-gray-700">
+                            {tag.patient_info?.age && `${tag.patient_info.age}歳`}
+                            {tag.patient_info?.sex && tag.patient_info?.age && ' | '}
+                            {tag.patient_info?.sex && `${tag.patient_info.sex === 'male' ? '男性' : tag.patient_info.sex === 'female' ? '女性' : tag.patient_info.sex}`}
+                            {(!tag.patient_info?.age && !tag.patient_info?.sex) && '詳細情報なし'}
+                          </p>
                         </div>
-                        {/* 2行目: 担当者 + 位置情報 */}
                         <div className="flex items-center gap-2">
+                          <p className="text-xs text-gray-500">
+                            現在地: 
+                            {tag.location.address ? (
+                              <a 
+                                href={`https://www.google.com/maps?q=${tag.location.latitude},${tag.location.longitude}`}
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline ml-1"
+                              >
+                                {tag.location.address}
+                              </a>
+                            ) : tag.location.latitude && tag.location.longitude ? (
+                              <a 
+                                href={`https://www.google.com/maps?q=${tag.location.latitude},${tag.location.longitude}`}
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline ml-1"
+                              >
+                                {tag.location.latitude}, {tag.location.longitude}
+                              </a>
+                            ) : (
+                              <span className="ml-1">位置情報なし</span>
+                            )}
+                          </p>
+                          {/* 搬送状態バッジ */}
                           {(() => {
-                            const phaseInfo = getPhaseInfo(tag)
+                            let statusKey: string
+                            // transport.statusが arrived, preparing, in_transit, completed の場合は最終状態なので優先
+                            if (tag.transport.status === 'arrived') {
+                              statusKey = `transport:arrived`
+                            } else if (tag.transport.status === 'preparing') {
+                              statusKey = `transport:preparing`
+                            } else if (tag.transport.status === 'in_transit') {
+                              statusKey = `transport:in_transit`
+                            } else if (tag.transport.status === 'completed') {
+                              statusKey = `transport:completed`
+                            } else if (tag.transport_assignment) {
+                              statusKey = `transport_assignment:${tag.transport_assignment.status}`
+                            } else {
+                              statusKey = `transport:${tag.transport.status}`
+                            }
+                            const { label, color } = getStatusDisplay(statusKey)
+                            
                             return (
-                              <>
-                                <span className="text-xs text-gray-600">{phaseInfo.responsible}</span>
-                                <span className="text-gray-400">|</span>
-                                <span className="text-xs text-gray-500">
-                                  {tag.location.address ? (
-                                    <a
-                                      href={`https://www.google.com/maps?q=${tag.location.latitude},${tag.location.longitude}`}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-blue-600 hover:underline"
-                                    >
-                                      {phaseInfo.location}
-                                    </a>
-                                  ) : tag.location.latitude && tag.location.longitude ? (
-                                    <a
-                                      href={`https://www.google.com/maps?q=${tag.location.latitude},${tag.location.longitude}`}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-blue-600 hover:underline"
-                                    >
-                                      {phaseInfo.location}
-                                    </a>
-                                  ) : (
-                                    <span>位置情報なし</span>
-                                  )}
-                                </span>
-                              </>
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${color}`}>
+                                {label}
+                              </span>
                             )
                           })()}
                         </div>
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setSelectedTagDetail(tag)}
-                        className="px-4 py-2 text-blue-600 border border-blue-600 rounded hover:bg-blue-50"
-                      >
-                        詳細
-                      </button>
-                      {(tag.transport.status === 'not_transported' || tag.transport.status === 'preparing') && !tag.transport_assignment && (
-                        <TransportAssignButton tag={tag} />
-                      )}
+                    <div className="text-right flex flex-col gap-2">
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          onClick={() => setSelectedTagDetail(tag)}
+                          className="px-4 py-2 text-blue-600 border border-blue-600 rounded hover:bg-blue-50"
+                        >
+                          詳細
+                        </button>
+                        {(tag.transport.status === 'not_transported' || tag.transport.status === 'preparing') && !tag.transport_assignment && (
+                          <TransportAssignButton tag={tag} />
+                        )}
+                        {tag.transport_assignment && (
+                          <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm font-medium">
+                            {tag.transport_assignment.team}割当済
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )
@@ -527,6 +478,11 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
           <>
             {(selectedTagDetail.transport.status === 'not_transported' || selectedTagDetail.transport.status === 'preparing') && !selectedTagDetail.transport_assignment && (
               <TransportAssignButton tag={selectedTagDetail} />
+            )}
+            {selectedTagDetail.transport_assignment && (
+              <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm font-medium">
+                {selectedTagDetail.transport_assignment.team}割当済
+              </span>
             )}
           </>
         )}

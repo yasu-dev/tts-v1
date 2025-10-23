@@ -27,77 +27,6 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
 
   const supabase = createClient()
 
-  // 搬送フェーズと担当者を取得（CommandDashboardと統一）
-  const getPhaseInfo = (tag: TriageTag) => {
-    // 病院到着
-    if (tag.transport.status === 'completed' && tag.transport.destination) {
-      return {
-        phase: '病院',
-        icon: '✅',
-        responsible: `収容: ${tag.transport.destination.hospital_name}`,
-        location: tag.transport.destination.hospital_name,
-      }
-    }
-
-    // 病院へ搬送中
-    if (tag.transport.status === 'in_transit' && tag.transport.destination) {
-      return {
-        phase: '病院へ',
-        icon: '🚑',
-        responsible: `救急隊 → ${tag.transport.destination.hospital_name}`,
-        location: `搬送先: ${tag.transport.destination.hospital_name}`,
-      }
-    }
-
-    // 病院搬送準備中
-    if (tag.transport.status === 'preparing') {
-      return {
-        phase: '病院準備',
-        icon: '📋',
-        responsible: 'DMAT準備中',
-        location: '現在地: 応急救護所',
-      }
-    }
-
-    // 応急救護所到着
-    if (tag.transport.status === 'arrived') {
-      return {
-        phase: '応急',
-        icon: '🏥',
-        responsible: '応急救護所待機',
-        location: '現在地: 応急救護所',
-      }
-    }
-
-    // 応急救護所へ搬送中
-    if (tag.transport_assignment?.status === 'in_progress') {
-      return {
-        phase: '応急へ',
-        icon: '🚑',
-        responsible: `搬送: ${tag.transport_assignment.team}`,
-        location: `発見位置: ${tag.location.address || '座標情報あり'}`,
-      }
-    }
-
-    // 搬送部隊割当済
-    if (tag.transport_assignment?.status === 'assigned') {
-      return {
-        phase: '割当済',
-        icon: '⏳',
-        responsible: `割当: ${tag.transport_assignment.team}`,
-        location: `発見位置: ${tag.location.address || '座標情報あり'}`,
-      }
-    }
-
-    // 現場待機
-    return {
-      phase: '現場',
-      icon: '📍',
-      responsible: `発見: ${tag.audit.created_by}`,
-      location: `発見位置: ${tag.location.address || '座標情報あり'}`,
-    }
-  }
-
   // クライアントサイドでのみlocalStorageを読み込み
   useEffect(() => {
     setIsClient(true)
@@ -540,61 +469,57 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
               {filteredPatients.map(tag => {
                 const category = tag.triage_category.final
                 const categoryInfo = TriageCategories[category]
-                const phaseInfo = getPhaseInfo(tag)
 
                 return (
-                  <div
-                    key={tag.id}
-                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all"
-                  >
-                    <div className="flex items-center gap-4 flex-1">
-                      <span className={`px-4 py-2 rounded-lg font-bold ${categoryInfo.color} ${categoryInfo.textColor}`}>
-                        {tag.tag_number}
-                      </span>
-                      <div className="flex-1">
-                        {/* Line 1: Icon + Phase + Patient attributes */}
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-base">{phaseInfo.icon}</span>
-                          <span className="font-semibold text-gray-900">{phaseInfo.phase}</span>
-                          <span className="text-gray-400">|</span>
-                          <p className="text-sm text-gray-700">
-                            {tag.patient_info?.age && `${tag.patient_info.age}歳`}
-                            {tag.patient_info?.sex && tag.patient_info?.age && ' | '}
-                            {tag.patient_info?.sex && `${tag.patient_info.sex === 'male' ? '男性' : tag.patient_info.sex === 'female' ? '女性' : tag.patient_info.sex}`}
-                            {(!tag.patient_info?.age && !tag.patient_info?.sex) && '詳細情報なし'}
-                          </p>
-                        </div>
-                        {/* Line 2: Responsible party + Departure time */}
-                        <div className="flex items-center gap-2">
-                          <p className="text-xs text-gray-500">{phaseInfo.responsible}</p>
+                  <div key={tag.id} className="p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <span className={`px-4 py-2 rounded-lg font-bold ${categoryInfo.color} ${categoryInfo.textColor}`}>
+                          {tag.tag_number}
+                        </span>
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="text-sm font-medium text-gray-700">
+                              {tag.patient_info?.age && `${tag.patient_info.age}歳`}
+                              {tag.patient_info?.sex && tag.patient_info?.age && ' | '}
+                              {tag.patient_info?.sex && `${tag.patient_info.sex === 'male' ? '男性' : tag.patient_info.sex === 'female' ? '女性' : tag.patient_info.sex}`}
+                              {(!tag.patient_info?.age && !tag.patient_info?.sex) && '詳細情報なし'}
+                            </p>
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                              tag.transport.status === 'in_transit' ? 'bg-cyan-100 text-cyan-800' :
+                              tag.transport.status === 'arrived' ? 'bg-purple-100 text-purple-800' :
+                              tag.transport.status === 'completed' ? 'bg-emerald-100 text-emerald-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {tag.transport.status === 'in_transit' ? '病院搬送中' :
+                               tag.transport.status === 'arrived' ? '応急救護所到着' :
+                               tag.transport.status === 'completed' ? '搬送完了' : '不明'}
+                            </span>
+                          </div>
                           {tag.transport.departure_time && (
-                            <>
-                              <span className="text-gray-300">•</span>
-                              <p className="text-xs text-gray-500">
-                                出発: {new Date(tag.transport.departure_time).toLocaleString('ja-JP')}
-                              </p>
-                            </>
+                            <p className="text-xs text-gray-500">
+                              出発: {new Date(tag.transport.departure_time).toLocaleString('ja-JP')}
+                            </p>
                           )}
                         </div>
                       </div>
-                    </div>
-                    {/* Right side: Action buttons only */}
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setSelectedPatient(tag)}
-                        className="px-4 py-2 text-blue-600 border border-blue-600 rounded hover:bg-blue-50"
-                      >
-                        詳細
-                      </button>
-                      {tag.transport.status !== 'completed' && (
+                      <div className="flex gap-2">
                         <button
-                          onClick={() => handleReceivePatient(tag.id)}
-                          disabled={loading}
-                          className="btn-primary disabled:opacity-50"
+                          onClick={() => setSelectedPatient(tag)}
+                          className="px-4 py-2 text-blue-600 border border-blue-600 rounded hover:bg-blue-50"
                         >
-                          受入完了
+                          詳細
                         </button>
-                      )}
+                        {tag.transport.status !== 'completed' && (
+                          <button
+                            onClick={() => handleReceivePatient(tag.id)}
+                            disabled={loading}
+                            className="btn-primary disabled:opacity-50"
+                          >
+                            受入完了
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )
