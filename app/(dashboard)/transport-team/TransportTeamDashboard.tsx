@@ -138,7 +138,7 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
             }
             
             // 応急救護所到着時はtransport_assignmentとtransportの両方を更新
-            if (status === 'completed') {
+            if (status === 'completed' && patient.transport_assignment) {
               updatedPatient.transport_assignment = {
                 ...patient.transport_assignment,
                 status: 'completed',
