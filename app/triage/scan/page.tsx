@@ -226,9 +226,10 @@ export default function TriageScanPage() {
     // バイタルサインの自動入力
     const now = new Date()
     const currentTime = now.toTimeString().slice(0, 5) // HH:MM形式
+    const triagedBy = 'user-tri-001' // トリアージ実施者氏名
     setVitalSigns(prev => ({
       ...prev,
-      judger_name: currentUser || 'tri',
+      judger_name: triagedBy, // トリアージ実施者氏名と同じ値
       judgment_location: '現場',
       judgment_time: currentTime,
     }))
@@ -437,8 +438,9 @@ export default function TriageScanPage() {
     })
     const now = new Date()
     const currentTime = now.toTimeString().slice(0, 5)
+    const triagedBy = 'user-tri-001' // トリアージ実施者氏名
     setVitalSigns({
-      judger_name: currentUser || 'tri',
+      judger_name: triagedBy, // トリアージ実施者氏名と同じ値
       judgment_location: '現場',
       judgment_time: currentTime,
       consciousness: 'alert',
