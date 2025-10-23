@@ -52,7 +52,7 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
           table: 'triage_tags',
         },
         async (payload) => {
-          // console.log('Realtime update:', payload)
+          console.log('✅ Realtime update detected:', payload)
 
           // データを再取得
           const { data, error } = await supabase
@@ -61,15 +61,21 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
             .order('created_at', { ascending: false })
 
           if (!error && data) {
+            console.log('🔄 Data refreshed, total tags:', data.length)
             setTags(data as TriageTag[])
             setIsRealtime(true)
             setTimeout(() => setIsRealtime(false), 2000)
+          } else if (error) {
+            console.error('❌ Error fetching updated data:', error)
           }
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        console.log('📡 Realtime subscription status:', status)
+      })
 
     return () => {
+      console.log('🔌 Unsubscribing from realtime channel')
       supabase.removeChannel(channel)
     }
   }, [supabase])
@@ -121,12 +127,12 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
   const filteredTags = tags.filter(tag => {
     // トリアージカテゴリのフィルタリング
     const categoryMatch = filter === 'all' || tag.triage_category.final === filter
-    
+
     // ステータスのフィルタリング
     let statusMatch = false
-    // transport.statusが arrived, preparing, in_transit, completed の場合は最終状態なので優先
+    // transport.statusが arrived の場合は transport_assignment:completed として扱う
     if (tag.transport.status === 'arrived') {
-      statusMatch = statusFilters.includes('transport:arrived')
+      statusMatch = statusFilters.includes('transport_assignment:completed')
     } else if (tag.transport.status === 'preparing') {
       statusMatch = statusFilters.includes('transport:preparing')
     } else if (tag.transport.status === 'in_transit') {
@@ -140,7 +146,7 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
       const status = `transport:${tag.transport.status}`
       statusMatch = statusFilters.includes(status)
     }
-    
+
     return categoryMatch && statusMatch
   })
 
