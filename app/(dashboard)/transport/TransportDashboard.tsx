@@ -239,16 +239,47 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
         async (payload) => {
           // console.log('Realtime update (transport):', payload)
 
-          // DMAT対象患者を再取得（赤・黄タグで応急救護所到着済み、病院搬送未開始）
-          const { data, error } = await supabase
-            .from('triage_tags')
-            .select('*')
-            .in('triage_category->>final', ['red', 'yellow'])
-            .eq('transport_assignment->>status', 'completed')
-            .order('triage_category->>final', { ascending: true })
+          if (payload.eventType === 'INSERT') {
+            // 新規患者: DMAT対象なら追加
+            const newTag = payload.new as TriageTag
+            const isTargetPatient =
+              ['red', 'yellow'].includes(newTag.triage_category?.final) &&
+              newTag.transport_assignment?.status === 'completed'
 
-          if (!error && data) {
-            setTags(data as TriageTag[])
+            if (isTargetPatient) {
+              setTags(prevTags => [newTag, ...prevTags])
+              setIsRealtime(true)
+              setTimeout(() => setIsRealtime(false), 2000)
+            }
+          } else if (payload.eventType === 'UPDATE') {
+            // 更新: 既存の患者を更新
+            const updatedTag = payload.new as TriageTag
+            setTags(prevTags => {
+              const existingIndex = prevTags.findIndex(t => t.id === updatedTag.id)
+
+              if (existingIndex >= 0) {
+                // 既存患者を更新
+                const newTags = [...prevTags]
+                newTags[existingIndex] = updatedTag
+                return newTags
+              } else {
+                // 新たにDMAT対象になった患者を追加
+                const isTargetPatient =
+                  ['red', 'yellow'].includes(updatedTag.triage_category?.final) &&
+                  updatedTag.transport_assignment?.status === 'completed'
+
+                if (isTargetPatient) {
+                  return [updatedTag, ...prevTags]
+                }
+                return prevTags
+              }
+            })
+            setIsRealtime(true)
+            setTimeout(() => setIsRealtime(false), 2000)
+          } else if (payload.eventType === 'DELETE') {
+            // 削除: tags配列から削除
+            const deletedId = payload.old.id
+            setTags(prevTags => prevTags.filter(t => t.id !== deletedId))
             setIsRealtime(true)
             setTimeout(() => setIsRealtime(false), 2000)
           }
