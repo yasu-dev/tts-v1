@@ -268,7 +268,7 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
                   <div>
                     <p className="text-sm text-gray-600">性別</p>
                     <p className="font-semibold">
-                      {editedTag.patient_info?.sex === 'male' ? '男性' : editedTag.patient_info?.sex === 'female' ? '女性' : editedTag.patient_info?.sex === 'other' ? 'その他' : '-'}
+                      {editedTag.patient_info?.sex === 'male' ? '男性' : editedTag.patient_info?.sex === 'female' ? '女性' : editedTag.patient_info?.sex === 'other' ? 'その他' : editedTag.patient_info?.sex === 'unknown' ? '不明' : '-'}
                     </p>
                   </div>
                 </div>
