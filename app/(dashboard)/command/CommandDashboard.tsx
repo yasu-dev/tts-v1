@@ -102,7 +102,6 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
       'transport_assignment:assigned',   // 2. 搬送部隊割当済
       'transport_assignment:in_progress', // 3. 搬送中
       'transport_assignment:completed',  // 4. 応急救護所到着
-      'transport:arrived',              // 4. 応急救護所到着（別表現）
       'transport:preparing',            // 5. 搬送準備中
       'transport:in_transit',           // 6. 病院搬送中
       'transport:completed'             // 7. 搬送完了

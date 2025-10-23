@@ -173,7 +173,7 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
             .from('triage_tags')
             .select('*')
             .in('triage_category->>final', ['red', 'yellow'])
-            .eq('transport->>status', 'arrived')
+            .eq('transport_assignment->>status', 'completed')
             .order('triage_category->>final', { ascending: true })
 
           if (!error && data) {
