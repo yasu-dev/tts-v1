@@ -129,40 +129,28 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
       if (error) throw error
 
       // ローカル状態を即座に更新
-      setPatients(prevPatients => 
-        prevPatients.map(patient => {
-          if (patient.id === tagId) {
-            const updatedPatient = {
+      setPatients(prevPatients => {
+        // 応急救護所到着の場合は一覧から削除
+        if (status === 'completed') {
+          return prevPatients.filter(patient => patient.id !== tagId)
+        }
+
+        // その他のステータスは更新
+        return prevPatients.map(patient => {
+          if (patient.id === tagId && patient.transport_assignment) {
+            return {
               ...patient,
-              updated_at: new Date().toISOString(),
-            }
-            
-            // 応急救護所到着時はtransport_assignmentとtransportの両方を更新
-            if (status === 'completed' && patient.transport_assignment) {
-              updatedPatient.transport_assignment = {
-                ...patient.transport_assignment,
-                status: 'completed',
-                updated_at: new Date().toISOString(),
-              }
-              updatedPatient.transport = {
-                ...patient.transport,
-                status: 'arrived',
-                arrival_time: new Date().toISOString(),
-              }
-            } else if (patient.transport_assignment) {
-              // その他のステータス（assigned, in_progress）はtransport_assignmentで管理
-              updatedPatient.transport_assignment = {
+              transport_assignment: {
                 ...patient.transport_assignment,
                 status: status as 'assigned' | 'in_progress' | 'completed',
                 updated_at: new Date().toISOString(),
-              }
+              },
+              updated_at: new Date().toISOString(),
             }
-            
-            return updatedPatient
           }
           return patient
         })
-      )
+      })
 
       if (status === 'in_progress') {
         setConfirmingPatientId(null)
