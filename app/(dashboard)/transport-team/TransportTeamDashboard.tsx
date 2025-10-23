@@ -51,8 +51,7 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
             .from('triage_tags')
             .select('*')
             .not('transport_assignment', 'is', null)
-            .neq('transport->>status', 'arrived')
-            .neq('transport->>status', 'completed')
+            .neq('transport_assignment->>status', 'completed')
             .order('triage_category->final', { ascending: true })
             .order('created_at', { ascending: true })
 
@@ -101,8 +100,13 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
         updated_at: new Date().toISOString(),
       }
 
-      // 応急救護所到着時はtransport.statusのみ更新（統一）
+      // 応急救護所到着時はtransport_assignmentとtransportの両方を更新
       if (status === 'completed') {
+        updateData.transport_assignment = {
+          ...currentTag?.transport_assignment,
+          status: 'completed',
+          updated_at: new Date().toISOString(),
+        }
         updateData.transport = {
           ...currentTag?.transport,
           status: 'arrived',
@@ -133,8 +137,13 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
               updated_at: new Date().toISOString(),
             }
             
-            // 応急救護所到着時はtransport.statusのみ更新（統一）
+            // 応急救護所到着時はtransport_assignmentとtransportの両方を更新
             if (status === 'completed') {
+              updatedPatient.transport_assignment = {
+                ...patient.transport_assignment,
+                status: 'completed',
+                updated_at: new Date().toISOString(),
+              }
               updatedPatient.transport = {
                 ...patient.transport,
                 status: 'arrived',

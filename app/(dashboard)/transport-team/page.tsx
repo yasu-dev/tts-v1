@@ -12,8 +12,7 @@ export default async function TransportTeamPage() {
     .from('triage_tags')
     .select('*')
     .not('transport_assignment', 'is', null)
-    .neq('transport->>status', 'arrived')
-    .neq('transport->>status', 'completed')
+    .neq('transport_assignment->>status', 'completed')
     .order('triage_category->final', { ascending: true })
     .order('created_at', { ascending: true })
 
