@@ -813,7 +813,7 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
             }}
             className="btn-primary"
           >
-            この患者を選択
+            搬送先を選択
           </button>
         )}
       />

@@ -315,13 +315,6 @@ export default function ImageUploader({ tagId, onUploadComplete }: ImageUploader
         </div>
       )}
 
-      <div className="p-3 bg-gray-50 border border-gray-300 rounded-lg">
-        <p className="text-xs text-gray-700">
-          <strong>注意:</strong>
-          <br />• 撮影後、即座にクラウドにアップロードされます（デバイスには保存されません）
-          <br />• 画像は自動的に圧縮されます（最大1920px、JPEG品質80%）
-        </p>
-      </div>
     </div>
   )
 }

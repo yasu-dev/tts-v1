@@ -814,7 +814,7 @@ export default function TriageScanPage() {
               {/* 接触地点選択（登録済みの場合のみ表示） */}
               {contactPoints.length > 0 && (
                 <div>
-                  <label className="block text-sm font-bold mb-2">接触地点（任意）</label>
+                  <label className="block text-sm font-bold mb-2">接触地点【任意】</label>
                   <select
                     value={contactPoint}
                     onChange={(e) => setContactPoint(e.target.value)}
@@ -847,7 +847,7 @@ export default function TriageScanPage() {
               </div>
 
               <div className="border-t pt-4">
-                <label className="block text-sm font-bold mb-2">画像アップロード（任意）</label>
+                <label className="block text-sm font-bold mb-2">画像アップロード【任意】</label>
                 <ImageUploader
                   tagId={anonymousId || tagNumber}
                   onUploadComplete={(images) => setUploadedImages(images)}
@@ -856,7 +856,7 @@ export default function TriageScanPage() {
 
               {location && (
                 <div className="bg-green-50 border border-green-200 rounded p-3">
-                  <p className="text-sm font-bold text-green-800">位置情報取得済み</p>
+                  <p className="text-sm font-bold text-green-800">位置情報</p>
                   <p className="text-xs text-green-600 mt-1">
                     緯度: {location.latitude.toFixed(6)}, 経度: {location.longitude.toFixed(6)}
                   </p>
