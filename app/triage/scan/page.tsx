@@ -328,6 +328,9 @@ export default function TriageScanPage() {
           contact_point: contactPoint || null,
           timestamp: new Date().toISOString(),
         },
+        vital_signs: {
+          timestamp: new Date().toISOString(),
+        },
         vital_signs_records: {
           first: {
             judger_name: vitalSigns.judger_name || undefined,
