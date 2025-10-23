@@ -14,10 +14,11 @@ interface UploadedImage {
 interface ImageUploaderProps {
   tagId: string
   onUploadComplete: (images: UploadedImage[]) => void
+  initialImages?: UploadedImage[]
 }
 
-export default function ImageUploader({ tagId, onUploadComplete }: ImageUploaderProps) {
-  const [images, setImages] = useState<UploadedImage[]>([])
+export default function ImageUploader({ tagId, onUploadComplete, initialImages = [] }: ImageUploaderProps) {
+  const [images, setImages] = useState<UploadedImage[]>(initialImages)
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [uploadError, setUploadError] = useState('')
@@ -38,7 +39,7 @@ export default function ImageUploader({ tagId, onUploadComplete }: ImageUploader
     }
   }, [])
 
-  const MAX_IMAGES = 5
+  const MAX_IMAGES = 15
 
   const compressImage = async (file: File): Promise<{ blob: Blob; size: number }> => {
     return new Promise((resolve) => {

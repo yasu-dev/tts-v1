@@ -5,6 +5,7 @@ import { TriageTag, TriageCategories } from '@/lib/types'
 import { formatDateTime, formatShortDateTime } from '@/lib/utils/date-formatter'
 import { createClient } from '@/lib/supabase/client'
 import VoiceInput from '@/components/VoiceInput'
+import ImageUploader from '@/components/ImageUploader'
 
 interface PatientDetailModalProps {
   tag: TriageTag | null
@@ -1399,6 +1400,24 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
                       })}
                     />
                   </div>
+                </div>
+
+                {/* 画像アップロード */}
+                <div>
+                  <label className="block text-sm font-bold mb-2">画像アップロード【任意】</label>
+                  <ImageUploader
+                    tagId={editedTag.id}
+                    initialImages={editedTag.attachments?.images || []}
+                    onUploadComplete={(images) => setEditedTag({
+                      ...editedTag,
+                      attachments: {
+                        ...editedTag.attachments,
+                        images: images,
+                        audio_notes: editedTag.attachments?.audio_notes || [],
+                        drone_images: editedTag.attachments?.drone_images || []
+                      }
+                    })}
+                  />
                 </div>
               </div>
             ) : (
