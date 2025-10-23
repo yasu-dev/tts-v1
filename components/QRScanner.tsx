@@ -69,8 +69,8 @@ export default function QRScanner({ onScanSuccess, onScanError }: QRScannerProps
           qrbox: { width: 280, height: 280 },
           aspectRatio: 1.0,
           disableFlip: false,
-          experimentalFeatures: { useBarCodeDetectorIfSupported: true } as any,
-        },
+          experimentalFeatures: { useBarCodeDetectorIfSupported: true },
+        } as any,
         (decodedText) => {
           logger.info('QR decoded', { decodedText })
           onScanSuccess(decodedText)
