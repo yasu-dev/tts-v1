@@ -30,8 +30,6 @@ export interface TriageTag {
     name?: string
     age?: number
     sex?: 'male' | 'female' | 'other' | 'unknown'
-    height?: number
-    weight?: number
     address?: string
     phone?: string
   }

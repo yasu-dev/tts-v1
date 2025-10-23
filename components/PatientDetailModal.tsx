@@ -209,7 +209,7 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
                     placeholder="住所"
                   />
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm text-gray-600 mb-1">年齢</label>
                     <input
@@ -244,38 +244,6 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
                       <option value="female">女性</option>
                     </select>
                   </div>
-                  <div>
-                    <label className="block text-sm text-gray-600 mb-1">身長 (cm)</label>
-                    <input
-                      type="number"
-                      value={editedTag.patient_info?.height || ''}
-                      onChange={(e) => setEditedTag({
-                        ...editedTag,
-                        patient_info: {
-                          ...editedTag.patient_info,
-                          height: e.target.value ? parseInt(e.target.value) : undefined
-                        }
-                      })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                      placeholder="身長"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-600 mb-1">体重 (kg)</label>
-                    <input
-                      type="number"
-                      value={editedTag.patient_info?.weight || ''}
-                      onChange={(e) => setEditedTag({
-                        ...editedTag,
-                        patient_info: {
-                          ...editedTag.patient_info,
-                          weight: e.target.value ? parseInt(e.target.value) : undefined
-                        }
-                      })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                      placeholder="体重"
-                    />
-                  </div>
                 </div>
               </div>
             ) : (
@@ -292,7 +260,7 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
                   <p className="text-sm text-gray-600">住所</p>
                   <p className="font-semibold">{editedTag.patient_info?.address || '-'}</p>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-600">年齢</p>
                     <p className="font-semibold">{editedTag.patient_info?.age ? `${editedTag.patient_info.age}歳` : '-'}</p>
@@ -302,14 +270,6 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
                     <p className="font-semibold">
                       {editedTag.patient_info?.sex === 'male' ? '男性' : editedTag.patient_info?.sex === 'female' ? '女性' : editedTag.patient_info?.sex === 'other' ? 'その他' : '-'}
                     </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">身長</p>
-                    <p className="font-semibold">{editedTag.patient_info?.height ? `${editedTag.patient_info.height}cm` : '-'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">体重</p>
-                    <p className="font-semibold">{editedTag.patient_info?.weight ? `${editedTag.patient_info.weight}kg` : '-'}</p>
                   </div>
                 </div>
               </div>
@@ -952,188 +912,6 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
             )}
           </section>
 
-          {/* バイタルサイン（一次トリアージ情報） */}
-          <section>
-            <h3 className="text-lg font-bold mb-3 border-b pb-2">バイタルサイン（一次トリアージ情報）</h3>
-            {isEditing ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">収縮期血圧 (mmHg)</label>
-                  <input
-                    type="number"
-                    value={typeof editedTag.vital_signs.blood_pressure === 'object'
-                      ? editedTag.vital_signs.blood_pressure?.systolic || ''
-                      : ''}
-                    onChange={(e) => {
-                      const systolic = e.target.value ? parseInt(e.target.value) : undefined
-                      const diastolic = typeof editedTag.vital_signs.blood_pressure === 'object'
-                        ? editedTag.vital_signs.blood_pressure?.diastolic
-                        : undefined
-                      setEditedTag({
-                        ...editedTag,
-                        vital_signs: {
-                          ...editedTag.vital_signs,
-                          blood_pressure: systolic && diastolic ? { systolic, diastolic } : undefined
-                        }
-                      })
-                    }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                    placeholder="収縮期"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">拡張期血圧 (mmHg)</label>
-                  <input
-                    type="number"
-                    value={typeof editedTag.vital_signs.blood_pressure === 'object'
-                      ? editedTag.vital_signs.blood_pressure?.diastolic || ''
-                      : ''}
-                    onChange={(e) => {
-                      const diastolic = e.target.value ? parseInt(e.target.value) : undefined
-                      const systolic = typeof editedTag.vital_signs.blood_pressure === 'object'
-                        ? editedTag.vital_signs.blood_pressure?.systolic
-                        : undefined
-                      setEditedTag({
-                        ...editedTag,
-                        vital_signs: {
-                          ...editedTag.vital_signs,
-                          blood_pressure: systolic && diastolic ? { systolic, diastolic } : undefined
-                        }
-                      })
-                    }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                    placeholder="拡張期"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">心拍数 (bpm)</label>
-                  <input
-                    type="number"
-                    value={editedTag.vital_signs.heart_rate || ''}
-                    onChange={(e) => setEditedTag({
-                      ...editedTag,
-                      vital_signs: {
-                        ...editedTag.vital_signs,
-                        heart_rate: e.target.value ? parseInt(e.target.value) : undefined
-                      }
-                    })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                    placeholder="心拍数"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">呼吸数 (/min)</label>
-                  <input
-                    type="number"
-                    value={editedTag.vital_signs.respiratory_rate || ''}
-                    onChange={(e) => setEditedTag({
-                      ...editedTag,
-                      vital_signs: {
-                        ...editedTag.vital_signs,
-                        respiratory_rate: e.target.value ? parseInt(e.target.value) : undefined
-                      }
-                    })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                    placeholder="呼吸数"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">SpO2 (%)</label>
-                  <input
-                    type="number"
-                    value={editedTag.vital_signs.spo2 || ''}
-                    onChange={(e) => setEditedTag({
-                      ...editedTag,
-                      vital_signs: {
-                        ...editedTag.vital_signs,
-                        spo2: e.target.value ? parseInt(e.target.value) : undefined
-                      }
-                    })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                    placeholder="SpO2"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">体温 (°C)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={editedTag.vital_signs.temperature || ''}
-                    onChange={(e) => setEditedTag({
-                      ...editedTag,
-                      vital_signs: {
-                        ...editedTag.vital_signs,
-                        temperature: e.target.value ? parseFloat(e.target.value) : undefined
-                      }
-                    })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                    placeholder="体温"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">意識レベル</label>
-                  <input
-                    type="text"
-                    value={editedTag.vital_signs.consciousness_level || ''}
-                    onChange={(e) => setEditedTag({
-                      ...editedTag,
-                      vital_signs: {
-                        ...editedTag.vital_signs,
-                        consciousness_level: e.target.value || undefined
-                      }
-                    })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                    placeholder="意識レベル"
-                  />
-                </div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {editedTag.vital_signs.blood_pressure && (
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <p className="text-sm text-gray-600">血圧</p>
-                    <p className="font-semibold text-lg">
-                      {typeof editedTag.vital_signs.blood_pressure === 'string'
-                        ? editedTag.vital_signs.blood_pressure
-                        : `${editedTag.vital_signs.blood_pressure.systolic}/${editedTag.vital_signs.blood_pressure.diastolic}`
-                      } mmHg
-                    </p>
-                  </div>
-                )}
-                {editedTag.vital_signs.heart_rate && (
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <p className="text-sm text-gray-600">心拍数</p>
-                    <p className="font-semibold text-lg">{editedTag.vital_signs.heart_rate} bpm</p>
-                  </div>
-                )}
-                {editedTag.vital_signs.respiratory_rate && (
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <p className="text-sm text-gray-600">呼吸数</p>
-                    <p className="font-semibold text-lg">{editedTag.vital_signs.respiratory_rate} /min</p>
-                  </div>
-                )}
-                {editedTag.vital_signs.spo2 && (
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <p className="text-sm text-gray-600">SpO2</p>
-                    <p className="font-semibold text-lg">{editedTag.vital_signs.spo2}%</p>
-                  </div>
-                )}
-                {editedTag.vital_signs.consciousness_level && (
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <p className="text-sm text-gray-600">意識レベル</p>
-                    <p className="font-semibold text-lg">{editedTag.vital_signs.consciousness_level}</p>
-                  </div>
-                )}
-                {editedTag.vital_signs.temperature && (
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <p className="text-sm text-gray-600">体温</p>
-                    <p className="font-semibold text-lg">{editedTag.vital_signs.temperature}°C</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </section>
-
           {/* トリアージ評価 */}
           <section>
             <h3 className="text-lg font-bold mb-3 border-b pb-2">トリアージ評価</h3>
@@ -1176,7 +954,7 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
                     <label className="block text-sm text-gray-600 mb-1">トリアージ実施日時</label>
                     <input
                       type="text"
-                      value={editedTag.triage_category.final_decided_at ? formatDateTime(editedTag.triage_category.final_decided_at) : ''}
+                      value={editedTag.audit.created_at ? formatDateTime(editedTag.audit.created_at) : ''}
                       disabled
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100"
                     />
@@ -1185,7 +963,7 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
                     <label className="block text-sm text-gray-600 mb-1">トリアージ実施者氏名</label>
                     <input
                       type="text"
-                      value={editedTag.triage_category.final_decided_by || ''}
+                      value={editedTag.audit.created_by || ''}
                       disabled
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100"
                     />
@@ -1220,11 +998,11 @@ export default function PatientDetailModal({ tag, onClose, onUpdate, actions }: 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-600">トリアージ実施日時</p>
-                  <p className="font-semibold">{editedTag.triage_category.final_decided_at ? formatDateTime(editedTag.triage_category.final_decided_at) : '-'}</p>
+                  <p className="font-semibold">{editedTag.audit.created_at ? formatDateTime(editedTag.audit.created_at) : '-'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">トリアージ実施者氏名</p>
-                  <p className="font-semibold">{editedTag.triage_category.final_decided_by || '-'}</p>
+                  <p className="font-semibold">{editedTag.audit.created_by || '-'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">搬送機関</p>

@@ -13,6 +13,19 @@ import { createLogger } from '@/lib/utils/logger'
 
 type Step = 'qr' | 'start' | 'vitals' | 'info' | 'confirm'
 
+// AVPUからJCS方式への変換
+const mapAVPUtoJCS = (avpu: 'alert' | 'verbal' | 'pain' | 'unresponsive'): 'I' | 'II' | 'III' => {
+  switch (avpu) {
+    case 'alert':
+      return 'I'
+    case 'verbal':
+      return 'II'
+    case 'pain':
+    case 'unresponsive':
+      return 'III'
+  }
+}
+
 export default function TriageScanPage() {
   const logger = createLogger('app/triage/scan')
   const router = useRouter()
@@ -20,6 +33,7 @@ export default function TriageScanPage() {
 
   // ステップ管理
   const [currentStep, setCurrentStepInternal] = useState<Step>('qr')
+  const [currentUser, setCurrentUser] = useState<string>('')
   
   const setCurrentStep = (step: Step) => {
     setCurrentStepInternal(step)
@@ -33,10 +47,15 @@ export default function TriageScanPage() {
     sex: '' as 'male' | 'female' | 'unknown',
   })
   const [vitalSigns, setVitalSigns] = useState({
+    judger_name: '',
+    judgment_location: '',
+    judgment_time: '',
+    consciousness: 'alert' as 'alert' | 'verbal' | 'pain' | 'unresponsive',
     respiratory_rate: '',
     pulse_rate: '',
-    systolic_bp: '',
-    consciousness: 'alert' as 'alert' | 'verbal' | 'pain' | 'unresponsive',
+    blood_pressure_systolic: '',
+    blood_pressure_diastolic: '',
+    temperature: '',
   })
   const [location, setLocation] = useState<{
     latitude: number
@@ -61,14 +80,27 @@ export default function TriageScanPage() {
   }>>([])
   const [anonymousId, setAnonymousId] = useState('')
 
+  // ログインユーザー情報を取得
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        // デモ用: メールアドレスから名前を抽出（tri@demo.com → tri）
+        const userName = user.email?.split('@')[0] || 'unknown'
+        setCurrentUser(userName)
+      }
+    }
+    getCurrentUser()
+  }, [])
+
   // ネットワーク状態監視
   useEffect(() => {
     const handleOnline = () => setNetworkStatus(true)
     const handleOffline = () => setNetworkStatus(false)
-    
+
     window.addEventListener('online', handleOnline)
     window.addEventListener('offline', handleOffline)
-    
+
     return () => {
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
@@ -191,11 +223,21 @@ export default function TriageScanPage() {
       setAnonymousId(finalAnonymousId)
     }
 
+    // バイタルサインの自動入力
+    const now = new Date()
+    const currentTime = now.toTimeString().slice(0, 5) // HH:MM形式
+    setVitalSigns(prev => ({
+      ...prev,
+      judger_name: currentUser || 'tri',
+      judgment_location: '現場',
+      judgment_time: currentTime,
+    }))
+
     // 先にtriageResultを設定
     setTriageResult(result)
     // その後でcurrentStepを更新
     setCurrentStep('vitals')
-  }, [anonymousId])
+  }, [anonymousId, currentUser])
 
   const handleVitalSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -286,12 +328,20 @@ export default function TriageScanPage() {
           contact_point: contactPoint || null,
           timestamp: new Date().toISOString(),
         },
-        vital_signs: {
-          respiratory_rate: vitalSigns.respiratory_rate ? parseInt(vitalSigns.respiratory_rate) : null,
-          pulse_rate: vitalSigns.pulse_rate ? parseInt(vitalSigns.pulse_rate) : null,
-          systolic_bp: vitalSigns.systolic_bp ? parseInt(vitalSigns.systolic_bp) : null,
-          consciousness: vitalSigns.consciousness,
-          timestamp: new Date().toISOString(),
+        vital_signs_records: {
+          first: {
+            judger_name: vitalSigns.judger_name || undefined,
+            judgment_location: vitalSigns.judgment_location || undefined,
+            judgment_time: vitalSigns.judgment_time || undefined,
+            consciousness: mapAVPUtoJCS(vitalSigns.consciousness),
+            respiratory_rate: vitalSigns.respiratory_rate ? parseInt(vitalSigns.respiratory_rate) : undefined,
+            pulse_rate: vitalSigns.pulse_rate ? parseInt(vitalSigns.pulse_rate) : undefined,
+            blood_pressure: (vitalSigns.blood_pressure_systolic && vitalSigns.blood_pressure_diastolic) ? {
+              systolic: parseInt(vitalSigns.blood_pressure_systolic),
+              diastolic: parseInt(vitalSigns.blood_pressure_diastolic)
+            } : undefined,
+            temperature: vitalSigns.temperature ? parseFloat(vitalSigns.temperature) : undefined,
+          }
         },
         triage_category: {
           final: triageResult.category,
@@ -382,11 +432,18 @@ export default function TriageScanPage() {
       age: '',
       sex: 'unknown',
     })
+    const now = new Date()
+    const currentTime = now.toTimeString().slice(0, 5)
     setVitalSigns({
+      judger_name: currentUser || 'tri',
+      judgment_location: '現場',
+      judgment_time: currentTime,
+      consciousness: 'alert',
       respiratory_rate: '',
       pulse_rate: '',
-      systolic_bp: '',
-      consciousness: 'alert',
+      blood_pressure_systolic: '',
+      blood_pressure_diastolic: '',
+      temperature: '',
     })
     setNotes('')
     setContactPoint('')
@@ -583,6 +640,57 @@ export default function TriageScanPage() {
 
             <form onSubmit={handleVitalSubmit} className="space-y-4">
               <div>
+                <label className="block text-sm font-bold mb-2">判定者名</label>
+                <input
+                  type="text"
+                  value={vitalSigns.judger_name}
+                  onChange={(e) => setVitalSigns({ ...vitalSigns, judger_name: e.target.value })}
+                  className="input"
+                  placeholder="例: tri"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold mb-2">判定場所</label>
+                <input
+                  type="text"
+                  value={vitalSigns.judgment_location}
+                  onChange={(e) => setVitalSigns({ ...vitalSigns, judgment_location: e.target.value })}
+                  className="input"
+                  placeholder="例: 現場"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold mb-2">判定時間</label>
+                <input
+                  type="time"
+                  value={vitalSigns.judgment_time}
+                  onChange={(e) => setVitalSigns({ ...vitalSigns, judgment_time: e.target.value })}
+                  className="input"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold mb-2">意識レベル</label>
+                <select
+                  value={vitalSigns.consciousness}
+                  onChange={(e) =>
+                    setVitalSigns({
+                      ...vitalSigns,
+                      consciousness: e.target.value as any,
+                    })
+                  }
+                  className="input"
+                >
+                  <option value="alert">清明（Alert）</option>
+                  <option value="verbal">音声刺激で反応（Verbal）</option>
+                  <option value="pain">痛み刺激で反応（Pain）</option>
+                  <option value="unresponsive">無反応（Unresponsive）</option>
+                </select>
+              </div>
+
+              <div>
                 <label className="block text-sm font-bold mb-2">呼吸数（回/分）</label>
                 <input
                   type="number"
@@ -607,35 +715,36 @@ export default function TriageScanPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-bold mb-2">収縮期血圧（mmHg）</label>
-                <input
-                  type="number"
-                  value={vitalSigns.systolic_bp}
-                  onChange={(e) =>
-                    setVitalSigns({ ...vitalSigns, systolic_bp: e.target.value })
-                  }
-                  className="input"
-                  placeholder="例: 120"
-                />
+                <label className="block text-sm font-bold mb-2">血圧（mmHg）</label>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    value={vitalSigns.blood_pressure_systolic}
+                    onChange={(e) => setVitalSigns({ ...vitalSigns, blood_pressure_systolic: e.target.value })}
+                    className="input flex-1"
+                    placeholder="収縮期"
+                  />
+                  <span className="self-center">/</span>
+                  <input
+                    type="number"
+                    value={vitalSigns.blood_pressure_diastolic}
+                    onChange={(e) => setVitalSigns({ ...vitalSigns, blood_pressure_diastolic: e.target.value })}
+                    className="input flex-1"
+                    placeholder="拡張期"
+                  />
+                </div>
               </div>
 
               <div>
-                <label className="block text-sm font-bold mb-2">意識レベル</label>
-                <select
-                  value={vitalSigns.consciousness}
-                  onChange={(e) =>
-                    setVitalSigns({
-                      ...vitalSigns,
-                      consciousness: e.target.value as any,
-                    })
-                  }
+                <label className="block text-sm font-bold mb-2">体温（°C）【任意】</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={vitalSigns.temperature}
+                  onChange={(e) => setVitalSigns({ ...vitalSigns, temperature: e.target.value })}
                   className="input"
-                >
-                  <option value="alert">清明（Alert）</option>
-                  <option value="verbal">音声刺激で反応（Verbal）</option>
-                  <option value="pain">痛み刺激で反応（Pain）</option>
-                  <option value="unresponsive">無反応（Unresponsive）</option>
-                </select>
+                  placeholder="例: 36.5"
+                />
               </div>
 
               <div className="flex gap-3">
