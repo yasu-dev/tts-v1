@@ -117,18 +117,6 @@ export default function LoginPage() {
             {loading ? 'ログイン中...' : 'ログイン'}
           </button>
         </form>
-
-        <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-          <p className="text-xs font-semibold text-gray-700 mb-2">デモアカウント:</p>
-          <ul className="text-xs text-gray-600 space-y-1">
-            <li>指揮本部: ic@demo.com</li>
-            <li>タッグ付け: tri@demo.com</li>
-            <li>搬送部隊: trn@demo.com</li>
-            <li>DMAT: dmat@demo.com</li>
-            <li>医療機関: hsp@demo.com</li>
-            <li>パスワード: password</li>
-          </ul>
-        </div>
       </div>
     </div>
   )
