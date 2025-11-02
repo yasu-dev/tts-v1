@@ -237,8 +237,6 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
           table: 'triage_tags',
         },
         async (payload) => {
-          // console.log('Realtime update (transport):', payload)
-
           if (payload.eventType === 'INSERT') {
             // 新規患者: DMAT対象なら追加
             const newTag = payload.new as TriageTag
@@ -298,7 +296,6 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
           table: 'hospitals',
         },
         async (payload) => {
-          // console.log('Realtime update (hospitals):', payload)
           // 病院ステータスを更新
           if (payload.new) {
             setHospitalStatuses(prev => ({
@@ -379,7 +376,6 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
       setCurrentStep(1)
       setCurrentPage(1)
     } catch (error) {
-      // console.error('Error starting transport:', error)
       alert('搬送開始に失敗しました')
     } finally {
       setLoading(false)

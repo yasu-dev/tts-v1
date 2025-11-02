@@ -1,54 +1,166 @@
----
-title: トリアージタッグシステム 概要
-lastUpdated: 2025-10-21
-version: 0.1.0
-phases:
-  current: "ドキュメント整備・リファクタ（安全第一）"
-  next: "E2E安定化・役割ベース権限・オフライン強化"
----
+# トリアージタッグシステム
 
-## 目的
-本ドキュメントは、プロジェクト全体を俯瞰可能にし、人間とAIの双方が理解・検索しやすい情報のインデックスを提供します。
+災害・事故などの大規模救護現場において、トリアージタッグ情報の電子化・リアルタイム共有・搬送管理を実現するWebアプリケーション。
 
-## システム概要（要点）
-- フロント: Next.js App Router（14.x）/ React 18 / TailwindCSS
-- データ: Supabase（認証・DB・ストレージ）
-- 地図: Leaflet（`components/TriageMap.tsx`）
-- QR: `html5-qrcode` を利用した QR スキャン（`components/QRScanner.tsx`）
-- START法ウィザード: `components/StartWizard.tsx`
-- 音声メモ: `components/VoiceInput.tsx`
-- 主要画面: `/(auth)/login`, `/(dashboard)/{command, transport, transport-team, hospital}`, `/triage/scan`
+## 📋 目次
 
-## ドキュメント索引
-- 仕様・設計
-  - 機能仕様（MD）: `docs/機能仕様.md`
-  - 機能仕様（HTML）: `docs/機能仕様.html`
-  - システム構成図（Draw.io）: `docs/system-architecture.drawio`
-  - 業務/画面フロー（Draw.io）: `docs/triage-system-flow.drawio`
-  - ディレクトリ構成（Draw.io）: `docs/project-structure.drawio`
-- 概観・現状
-  - フィーチャーマトリクス: `docs/FEATURES.md`
-  - ロードマップ: `docs/ROADMAP.md`
-- アーカイブ（旧版/一過性）
-  - `docs/archive/` を参照
+1. [概要](#概要)
+2. [主要機能](#主要機能)
+3. [技術スタック](#技術スタック)
+4. [セットアップ](#セットアップ)
+5. [使用方法](#使用方法)
+6. [ドキュメント](#ドキュメント)
 
-## 実装状況（要約）
-- 認証/ログイン: 実装済み（Supabase Auth）。E2E: Login系は Mobile Chrome で合格。
-- トリアージ入力（/triage/scan）: START法ウィザード・QR・音声メモ・画像添付・登録フローを実装。
-- ダッシュボード（指揮/搬送/医療/搬送チーム）: 画面/データ取得/一部Realtimeを実装。地図は Leaflet で描画。
-- ロギング/エラー: 共通ロガー導入、`ErrorBoundary` 全体適用。
+## 概要
 
-詳細は `docs/FEATURES.md` の表を参照。
+本システムは、従来の紙タグ運用に加え、PWAを中心としたモバイル端末上での迅速な登録・更新・集計を可能にし、情報の一元管理・誤記防止・搬送最適化を実現します。
 
-## 今後の方針（抜粋）
-- 現フェーズ: E2Eの安定化（ダッシュボード系）、ログ整備、メタデータ定義の整合。
-- 次フェーズ: 役割ベース権限・オフライン強化（PWA/再送）・監査ログ・外部出力。
+### 利用ロール
 
-## テスト
-- Unit: Jest / Testing Library（設定済）
-- E2E: Playwright（`tests/e2e/*.spec.ts`）
+- **指揮本部（Command）**: 全体状況の把握・分析
+- **トリアージ部隊（Triage）**: 現場でのタグ登録・判定
+- **搬送部隊（Transport）**: 搬送指示・病院割当
+- **搬送チーム（Transport Team）**: 搬送中のステータス更新
+- **病院（Hospital）**: 患者受入・収容報告
 
-## 付記（AI向け）
-本MDは先頭にメタ情報（YAML）を含み、フェーズ・更新日・索引を機械抽出しやすくしています。
+## 主要機能
 
+### ✅ 実装済み機能
 
+- **トリアージ登録**: QRスキャン、STARTウィザード、バイタルサイン記録
+- **患者管理**: 詳細情報表示・編集、画像アップロード、音声入力
+- **搬送管理**: 病院・救急隊割当、搬送ステータス追跡
+- **リアルタイム更新**: Supabase Realtimeによる即時反映
+- **地図表示**: 患者位置の可視化（Leaflet）
+- **画像管理**: 最大15枚、自動圧縮、拡大表示
+
+### 🚧 未実装機能（Phase 2以降）
+
+- オフライン対応（IndexedDB）
+- PDF/CSV出力
+- 統計ダッシュボード
+- 搬送先レコメンド
+- 再トリアージ履歴管理
+
+詳細は [`実装済み機能一覧.md`](./実装済み機能一覧.md) を参照
+
+## 技術スタック
+
+- **フレームワーク**: Next.js 14 (App Router)
+- **言語**: TypeScript
+- **UI**: React 18 + Tailwind CSS
+- **データベース**: Supabase (PostgreSQL)
+- **認証**: Supabase Auth
+- **ストレージ**: Supabase Storage
+- **リアルタイム**: Supabase Realtime
+- **地図**: Leaflet + React-Leaflet
+- **QRコード**: html5-qrcode
+
+## セットアップ
+
+### 前提条件
+
+- Node.js 18以上
+- npm または yarn
+- Supabaseアカウント
+
+### インストール
+
+```bash
+# リポジトリのクローン
+git clone <repository-url>
+cd tts-v1
+
+# 依存パッケージのインストール
+npm install
+
+# 環境変数の設定
+cp .env.example .env.local
+# .env.localにSupabaseの認証情報を設定
+```
+
+### 環境変数
+
+`.env.local`に以下を設定：
+
+```
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
+
+### 開発サーバーの起動
+
+```bash
+npm run dev
+```
+
+ブラウザで http://localhost:3000 にアクセス
+
+### ビルド
+
+```bash
+npm run build
+npm start
+```
+
+## 使用方法
+
+### 1. ログイン
+
+- デモアカウントでログイン（実際のSupabaseアカウントが必要）
+
+### 2. ダッシュボードへのアクセス
+
+各ロール専用のダッシュボードにアクセス：
+
+- 指揮本部: `/command`
+- トリアージ部隊: `/triage/scan`
+- 搬送部隊: `/transport`
+- 搬送チーム: `/transport-team`
+- 病院: `/hospital`
+
+### 3. 基本操作
+
+#### トリアージ登録（/triage/scan）
+1. QRコードをスキャン
+2. STARTウィザードで判定
+3. バイタルサイン入力
+4. 画像・音声情報の追加
+5. 登録完了
+
+#### 搬送管理（/transport）
+1. 患者を選択
+2. 病院・救急隊を割当
+3. 搬送開始
+
+#### 搬送チーム（/transport-team）
+1. 割当患者を確認
+2. QRスキャンまたは手動選択
+3. ステータス更新（病院準備→病院へ→病院）
+
+#### 病院（/hospital）
+1. 搬送中患者を確認
+2. 受入ステータス変更
+3. 患者受入完了
+
+## ドキュメント
+
+- [`実装済み機能一覧.md`](./実装済み機能一覧.md) - 実装状況の詳細
+- [`機能仕様.md`](./機能仕様.md) - 完全な機能仕様（計画含む）
+- [`仕様.md`](./仕様.md) - 技術仕様書
+- [`Supabase管理情報.txt`](./Supabase管理情報.txt) - データベース設定
+
+### その他のドキュメント
+
+- 業務フロー図: `TTS業務フロー.png`
+- システムアーキテクチャ: `system-architecture.drawio`
+- プロジェクト構造: `project-structure.drawio`
+- トリアージタッグ見本: `トリアージタッグ表.png`, `トリアージタッグ裏.png`
+
+## ライセンス
+
+（ライセンス情報を記載）
+
+## お問い合わせ
+
+（連絡先を記載）

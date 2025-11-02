@@ -25,38 +25,44 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 
 ### 2. データベーススキーマの作成
 
-Supabaseダッシュボードの SQL Editor で以下を順番に実行：
+Supabaseダッシュボードの SQL Editor で以下のSQLファイルを順番に実行：
 
-#### 2.1 テーブル作成（schema.sql）
-```sql
--- events, hospitals, triage_tags, teams, geographic_areas, user_roles テーブルを作成
--- ファイル: supabase/schema.sql（別途作成が必要）
-```
+#### 📋 SQLファイル一覧と実行順序
 
-#### 2.2 RLSポリシー設定
-```bash
-supabase/rls-policies.sql
-```
+##### ステップ1: テーブルスキーマの拡張
+**`add-triage-tag-fields.sql`**
+- トリアージタッグテーブルのフィールド追加
+- 搬送機関、実施場所、救出場所、症状・傷病名、バイタルサイン記録など
+- インデックスも自動作成
 
-SQL Editorで実行：
-```sql
--- Row Level Security を有効化し、各テーブルのアクセス制御を設定
-```
+##### ステップ2: データベース関数の定義
+**`contact-point-functions.sql`**
+- 接触地点管理関数（stored procedures）
 
-#### 2.3 デモデータ投入
-```bash
-supabase/demo-data.sql
-```
+##### ステップ3: セキュリティポリシーの設定
+**`rls-policies.sql`**
+- Row Level Security（RLS）を有効化
+- ロール別のアクセス制御を設定
+- **⚠️ 必須**: セキュリティ上、必ず実行すること
 
-SQL Editorで実行して、以下のデータを投入：
+##### ステップ4: デモユーザーの作成（任意）
+**`create-demo-users.sql`**
+- デモアカウント作成手順
+- IC、TRI、TRN、HSPのデモユーザー
+- **注意**: 本番環境では実行しない
+
+##### ステップ5: デモデータの投入（任意）
+**`demo-data.sql`**
 - イベント: 1件（東京都内大規模地震）
 - 病院: 3件（総合病院、市民病院、医療センター）
-- トリアージタグ: 7件
-  - 赤（重症）: 2件
-  - 黄（中等症）: 2件
-  - 緑（軽症）: 2件
-  - 黒（死亡）: 1件
+- トリアージタグ: 7件（赤2、黄2、緑2、黒1）
 - チーム: 2件（搬送隊）
+- **注意**: 本番環境では実行しない
+
+##### メンテナンス用
+**`check-schema.sql`**
+- スキーマ検証クエリ
+- トラブルシューティング時に使用
 
 ### 3. Supabase Authの設定
 

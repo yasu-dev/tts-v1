@@ -105,8 +105,6 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
           table: 'triage_tags',
         },
         async (payload) => {
-          // console.log('Realtime update (transport team):', payload)
-
           // 搬送部隊に割り当てられた患者を再取得（作業中のもののみ）
           const { data, error } = await supabase
             .from('triage_tags')
@@ -220,7 +218,6 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
         alert(`搬送ステータスを${status === 'completed' ? '応急' : status}に更新しました`)
       }
     } catch (error) {
-      // console.error('Error updating transport status:', error)
       alert('ステータス更新に失敗しました')
     } finally {
       setLoading(false)
@@ -229,8 +226,6 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
 
   // QRコードスキャン処理
   const handleQRScan = async (result: string) => {
-    // console.log('QR scan result:', result)
-    
     try {
       let patientId = ''
       
@@ -278,9 +273,8 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
       // 患者詳細モーダルを表示
       setSelectedPatient(patient as TriageTag)
       setShowQRScanner(false)
-      
+
     } catch (error) {
-      // console.error('QR scan error:', error)
       alert('QRコードの読み取りに失敗しました')
     }
   }
@@ -609,7 +603,6 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
                 <QRScanner
                   onScanSuccess={handleQRScan}
                   onScanError={(error) => {
-                    // console.error('QR Scanner error:', error)
                     alert('QRスキャンでエラーが発生しました')
                   }}
                 />

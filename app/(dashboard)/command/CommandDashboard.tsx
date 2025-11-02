@@ -27,10 +27,35 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
   const [filter, setFilter] = useState<'all' | 'black' | 'red' | 'yellow' | 'green'>('all')
   const [statusFilters, setStatusFilters] = useState<string[]>([])
   const [isRealtime, setIsRealtime] = useState(false)
+  const [syncError, setSyncError] = useState<string | null>(null)
+  const [realtimeStatus, setRealtimeStatus] = useState<string | null>(null)
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null)
   const [selectedTagDetail, setSelectedTagDetail] = useState<TriageTag | null>(null)
   const [isMapCollapsed, setIsMapCollapsed] = useState(false)
   const supabase = createClient()
+
+  // データの再取得（共通処理）
+  const refreshTags = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('triage_tags')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+
+      if (data) {
+        setTags(data as TriageTag[])
+        setIsRealtime(true)
+        setTimeout(() => setIsRealtime(false), 2000)
+        setSyncError(null)
+      }
+    } catch (err) {
+      console.error('Failed to refresh triage_tags:', err)
+      const message = err instanceof Error ? err.message : String(err)
+      setSyncError(message)
+    }
+  }
 
   // ローカルストレージから地図の折り畳み状態を復元
   useEffect(() => {
@@ -51,31 +76,24 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
           schema: 'public',
           table: 'triage_tags',
         },
-        async (payload) => {
-          console.log('✅ Realtime update detected:', payload)
-
-          // データを再取得
-          const { data, error } = await supabase
-            .from('triage_tags')
-            .select('*')
-            .order('created_at', { ascending: false })
-
-          if (!error && data) {
-            console.log('🔄 Data refreshed, total tags:', data.length)
-            setTags(data as TriageTag[])
-            setIsRealtime(true)
-            setTimeout(() => setIsRealtime(false), 2000)
-          } else if (error) {
-            console.error('❌ Error fetching updated data:', error)
-          }
+        async () => {
+          // 変更イベント受信時に再取得
+          await refreshTags()
         }
       )
-      .subscribe((status) => {
-        console.log('📡 Realtime subscription status:', status)
+      .subscribe((status, err) => {
+        setRealtimeStatus(status)
+        if (status === 'SUBSCRIBED') {
+          setSyncError(null)
+        }
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+          const reason = err?.message || status
+          setSyncError(`Realtime接続エラー: ${reason}`)
+          console.error('Realtime channel status:', status, err)
+        }
       })
 
     return () => {
-      console.log('🔌 Unsubscribing from realtime channel')
       supabase.removeChannel(channel)
     }
   }, [supabase])
@@ -274,6 +292,18 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
             <p className="text-sm opacity-90">リアルタイムトリアージ状況</p>
           </div>
           <div className="flex items-center gap-4">
+            {syncError && (
+              <div className="flex items-center gap-2 bg-red-500 px-4 py-2 rounded-lg">
+                <span className="w-3 h-3 bg-white rounded-full"></span>
+                <span className="text-sm font-bold">同期エラー</span>
+                <button
+                  onClick={refreshTags}
+                  className="underline text-white text-sm"
+                >
+                  再試行
+                </button>
+              </div>
+            )}
             {isRealtime && (
               <div className="flex items-center gap-2 bg-green-500 px-4 py-2 rounded-lg animate-pulse">
                 <span className="w-3 h-3 bg-white rounded-full"></span>

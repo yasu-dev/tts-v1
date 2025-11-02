@@ -120,8 +120,6 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
           table: 'triage_tags',
         },
         async (payload) => {
-          // console.log('Realtime update (hospital triage):', payload)
-
           // この病院向けの搬送中患者を再取得
           const { data, error } = await supabase
             .from('triage_tags')
@@ -151,7 +149,6 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
           filter: `id=eq.${hospital.id}`
         },
         async (payload) => {
-          // console.log('Realtime update (hospital data):', payload)
           // ページを再読み込みして最新情報を取得
           window.location.reload()
         }
@@ -200,7 +197,6 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
       alert('受入状況を更新しました')
       window.location.reload()
     } catch (error) {
-      // console.error('Error updating hospital status:', error)
       alert('更新に失敗しました')
     } finally {
       setLoading(false)
@@ -254,10 +250,9 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
       setPatients(prevPatients => 
         prevPatients.filter(patient => patient.id !== tagId)
       )
-      
+
       alert('患者を受け入れました')
     } catch (error) {
-      // console.error('Error receiving patient:', error)
       alert('受入処理に失敗しました')
     } finally {
       setLoading(false)
