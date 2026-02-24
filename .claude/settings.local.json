@@ -1,17 +1,20 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run dev)",
-      "Bash(taskkill:*)",
-      "Bash(lsof:*)",
-      "Bash(xargs kill:*)",
-      "Bash(netstat:*)",
-      "Bash(findstr:*)",
-      "Bash(cmd.exe /c:*)",
-      "Bash(powershell.exe:*)",
-      "Bash(tasklist)"
+      "Bash(*)",
+      "Read(*)",
+      "Write(*)",
+      "Edit(*)",
+      "Glob(*)",
+      "Grep(*)",
+      "WebFetch(*)",
+      "mcp__netlify__*",
+      "mcp__supabase__*",
+      "mcp__aws-api__*",
+      "mcp__aws-docs__*"
     ],
     "deny": [],
-    "ask": []
+    "ask": [],
+    "additionalDirectories": ["C:\\Users\\tbnki\\.cursor"]
   }
 }
