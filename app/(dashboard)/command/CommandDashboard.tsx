@@ -11,6 +11,7 @@ import { getPhaseInfo } from '@/lib/utils/getPhaseInfo';
 import ViewToggle from '@/components/ViewToggle';
 import PatientListItem from '@/components/PatientListItem';
 import PatientPanelCard from '@/components/PatientPanelCard';
+import CasualtyFlowChart from '@/components/CasualtyFlowChart';
 
 // 地図コンポーネントを動的インポート（SSR無効化）
 const TriageMap = dynamic(() => import('@/components/TriageMap'), {
@@ -337,6 +338,9 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
             <p className="text-sm opacity-90">緑（軽症）</p>
           </button>
         </div>
+
+        {/* 搬送進捗ドーナツフローチャート */}
+        <CasualtyFlowChart tags={tags} storageKey="commandDashboard_flowCollapsed" />
 
         {/* ステータスフィルター */}
         <div className="card mb-6">

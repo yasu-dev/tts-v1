@@ -10,6 +10,7 @@ import { getPhaseInfo } from '@/lib/utils/getPhaseInfo';
 import ViewToggle from '@/components/ViewToggle';
 import PatientListItem from '@/components/PatientListItem';
 import PatientPanelCard from '@/components/PatientPanelCard';
+import CasualtyFlowChart from '@/components/CasualtyFlowChart';
 
 interface TransportDashboardProps {
   initialTags: TriageTag[];
@@ -437,6 +438,31 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
       </header>
 
       <main className="mx-auto max-w-4xl p-6">
+        {/* 統計カード（トリアージカテゴリ別） */}
+        <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-5">
+          <div className="card bg-white text-center">
+            <p className="text-3xl font-bold text-gray-800">{tags.length}</p>
+            <p className="text-sm text-gray-600">総数</p>
+          </div>
+          {(
+            Object.entries(TriageCategories) as [
+              string,
+              { label: string; color: string; textColor: string },
+            ][]
+          ).map(([key, cat]) => {
+            const count = tags.filter((t) => t.triage_category?.final === key).length;
+            return (
+              <div key={key} className={`card text-center ${cat.color} ${cat.textColor}`}>
+                <p className="text-3xl font-bold">{count}</p>
+                <p className="text-sm opacity-90">{cat.label}</p>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* 搬送進捗ドーナツフローチャート */}
+        <CasualtyFlowChart tags={tags} storageKey="transportDashboard_flowCollapsed" />
+
         {/* プログレスバー */}
         <div className="mb-6 rounded-lg bg-white p-6 shadow">
           <div className="mb-4 flex justify-between">

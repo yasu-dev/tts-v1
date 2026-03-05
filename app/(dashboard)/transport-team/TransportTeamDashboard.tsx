@@ -10,6 +10,7 @@ import { getPhaseInfo } from '@/lib/utils/getPhaseInfo';
 import ViewToggle from '@/components/ViewToggle';
 import PatientListItem from '@/components/PatientListItem';
 import PatientPanelCard from '@/components/PatientPanelCard';
+import CasualtyFlowChart from '@/components/CasualtyFlowChart';
 
 interface TransportTeamDashboardProps {
   assignedPatients: TriageTag[];
@@ -303,6 +304,9 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
             <p className="text-sm opacity-90">緑（軽症）</p>
           </button>
         </div>
+
+        {/* 搬送進捗ドーナツフローチャート */}
+        <CasualtyFlowChart tags={patients} storageKey="transportTeamDashboard_flowCollapsed" />
 
         {/* 搬送部隊絞り込み */}
         <div className="card">

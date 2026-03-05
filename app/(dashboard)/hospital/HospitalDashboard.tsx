@@ -7,6 +7,7 @@ import LogoutButton from '@/components/LogoutButton';
 import PatientDetailModal from '@/components/PatientDetailModal';
 import QRScanner from '@/components/QRScanner';
 import { getPhaseInfo } from '@/lib/utils/getPhaseInfo';
+import CasualtyFlowChart from '@/components/CasualtyFlowChart';
 
 interface HospitalDashboardProps {
   hospital: Hospital;
@@ -320,6 +321,9 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
             <p className="text-sm opacity-90">緑（軽症）</p>
           </button>
         </div>
+
+        {/* 搬送進捗ドーナツフローチャート */}
+        <CasualtyFlowChart tags={patients} storageKey="hospitalDashboard_flowCollapsed" />
 
         {/* 病院情報 */}
         <div className="grid gap-6 md:grid-cols-2">
