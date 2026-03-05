@@ -125,7 +125,7 @@ export default function PatientPanelCard({
     return () => clearInterval(interval);
   }, [tag.created_at]);
 
-  const avpu = getAvpuDisplay(tag.vital_signs.consciousness.avpu);
+  const avpu = getAvpuDisplay(tag.vital_signs?.consciousness?.avpu ?? '');
   const conditions = formatConditions(tag);
 
   return (
@@ -200,25 +200,25 @@ export default function PatientPanelCard({
             <div>
               SpO₂{' '}
               <span
-                className={`font-bold ${isSpO2Abnormal(tag.vital_signs.spo2) ? 'text-red-600' : 'text-gray-900'}`}
+                className={`font-bold ${isSpO2Abnormal(tag.vital_signs?.spo2) ? 'text-red-600' : 'text-gray-900'}`}
               >
-                {tag.vital_signs.spo2 !== undefined ? `${tag.vital_signs.spo2}%` : '-'}
+                {tag.vital_signs?.spo2 !== undefined ? `${tag.vital_signs?.spo2}%` : '-'}
               </span>
             </div>
             <div>
               脈拍{' '}
               <span
-                className={`font-bold ${isPulseAbnormal(tag.vital_signs.pulse_rate) ? 'text-red-600' : 'text-gray-900'}`}
+                className={`font-bold ${isPulseAbnormal(tag.vital_signs?.pulse_rate) ? 'text-red-600' : 'text-gray-900'}`}
               >
-                {tag.vital_signs.pulse_rate ?? '-'}
+                {tag.vital_signs?.pulse_rate ?? '-'}
               </span>
             </div>
             <div>
               血圧{' '}
               <span
-                className={`font-bold ${isBPAbnormal(tag.vital_signs.blood_pressure) ? 'text-red-600' : 'text-gray-900'}`}
+                className={`font-bold ${isBPAbnormal(tag.vital_signs?.blood_pressure) ? 'text-red-600' : 'text-gray-900'}`}
               >
-                {formatBP(tag.vital_signs.blood_pressure)}
+                {formatBP(tag.vital_signs?.blood_pressure)}
               </span>
             </div>
             <div>
@@ -232,17 +232,17 @@ export default function PatientPanelCard({
             <div>
               呼吸{' '}
               <span
-                className={`font-bold ${isRespRateAbnormal(tag.vital_signs.respiratory_rate) ? 'text-red-600' : 'text-gray-900'}`}
+                className={`font-bold ${isRespRateAbnormal(tag.vital_signs?.respiratory_rate) ? 'text-red-600' : 'text-gray-900'}`}
               >
-                {tag.vital_signs.respiratory_rate ?? '-'}
+                {tag.vital_signs?.respiratory_rate ?? '-'}
               </span>
             </div>
             <div>
               SpO₂{' '}
               <span
-                className={`font-bold ${isSpO2Abnormal(tag.vital_signs.spo2) ? 'text-red-600' : 'text-gray-900'}`}
+                className={`font-bold ${isSpO2Abnormal(tag.vital_signs?.spo2) ? 'text-red-600' : 'text-gray-900'}`}
               >
-                {tag.vital_signs.spo2 !== undefined ? `${tag.vital_signs.spo2}%` : '-'}
+                {tag.vital_signs?.spo2 !== undefined ? `${tag.vital_signs?.spo2}%` : '-'}
               </span>
             </div>
             <div>
@@ -251,17 +251,17 @@ export default function PatientPanelCard({
             <div>
               脈拍{' '}
               <span
-                className={`font-bold ${isPulseAbnormal(tag.vital_signs.pulse_rate) ? 'text-red-600' : 'text-gray-900'}`}
+                className={`font-bold ${isPulseAbnormal(tag.vital_signs?.pulse_rate) ? 'text-red-600' : 'text-gray-900'}`}
               >
-                {tag.vital_signs.pulse_rate ?? '-'}
+                {tag.vital_signs?.pulse_rate ?? '-'}
               </span>
             </div>
             <div>
               血圧{' '}
               <span
-                className={`font-bold ${isBPAbnormal(tag.vital_signs.blood_pressure) ? 'text-red-600' : 'text-gray-900'}`}
+                className={`font-bold ${isBPAbnormal(tag.vital_signs?.blood_pressure) ? 'text-red-600' : 'text-gray-900'}`}
               >
-                {formatBP(tag.vital_signs.blood_pressure)}
+                {formatBP(tag.vital_signs?.blood_pressure)}
               </span>
             </div>
           </div>
@@ -272,9 +272,9 @@ export default function PatientPanelCard({
             <div>
               SpO₂{' '}
               <span
-                className={`font-bold ${isSpO2Abnormal(tag.vital_signs.spo2) ? 'text-red-600' : 'text-gray-900'}`}
+                className={`font-bold ${isSpO2Abnormal(tag.vital_signs?.spo2) ? 'text-red-600' : 'text-gray-900'}`}
               >
-                {tag.vital_signs.spo2 !== undefined ? `${tag.vital_signs.spo2}%` : '-'}
+                {tag.vital_signs?.spo2 !== undefined ? `${tag.vital_signs?.spo2}%` : '-'}
               </span>
             </div>
             <div>
@@ -304,7 +304,7 @@ export default function PatientPanelCard({
           <>
             <p className="text-sm text-gray-700">{conditions}</p>
             <p className="flex items-center gap-1 text-sm text-gray-500">
-              <span>📍</span> {tag.location.address || '位置情報なし'}
+              <span>📍</span> {tag.location?.address || '位置情報なし'}
             </p>
           </>
         )}
