@@ -21,7 +21,6 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
   const [isRealtime, setIsRealtime] = useState(false);
   const [filter, setFilter] = useState<'all' | 'black' | 'red' | 'yellow' | 'green'>('all');
   const [selectedPatient, setSelectedPatient] = useState<TriageTag | null>(null);
-  const [isStatusUpdateCollapsed, setIsStatusUpdateCollapsed] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [manualInput, setManualInput] = useState('');
@@ -29,13 +28,8 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
 
   const supabase = createClient();
 
-  // クライアントサイドでのみlocalStorageを読み込み
   useEffect(() => {
     setIsClient(true);
-    const savedState = localStorage.getItem('hospitalDashboard_statusUpdateCollapsed');
-    if (savedState !== null) {
-      setIsStatusUpdateCollapsed(savedState === 'true');
-    }
   }, []);
 
   // Supabase Realtimeでデータベース変更を購読
@@ -110,15 +104,19 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
     green: patients.filter((p) => p.triage_category.final === 'green').length,
   };
 
-  const handleUpdateStatus = async () => {
+  const handleUpdateStatus = async (
+    newStatus: 'accepting' | 'limited' | 'full' | 'not_accepting'
+  ) => {
+    if (newStatus === acceptingStatus) return;
     setLoading(true);
+    setAcceptingStatus(newStatus);
     try {
       const { error } = await supabase
         .from('hospitals')
         .update({
           current_load: {
             ...hospital.current_load,
-            accepting_status: acceptingStatus,
+            accepting_status: newStatus,
             last_updated: new Date().toISOString(),
           },
           updated_at: new Date().toISOString(),
@@ -126,10 +124,8 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
         .eq('id', hospital.id);
 
       if (error) throw error;
-
-      alert('受入状況を更新しました');
-      window.location.reload();
     } catch (error) {
+      setAcceptingStatus(hospital.current_load.accepting_status);
       alert('更新に失敗しました');
     } finally {
       setLoading(false);
@@ -248,11 +244,10 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <header className="bg-purple-600 p-4 text-white shadow-lg">
+      <header className="bg-teal-700 p-4 text-white shadow-lg">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">医療機関ダッシュボード</h1>
-            <p className="text-sm opacity-90">{hospital.name}</p>
           </div>
           <div className="flex items-center gap-4">
             {isRealtime && (
@@ -263,7 +258,7 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
             )}
             <button
               onClick={() => setShowQRScanner(true)}
-              className="rounded-lg bg-white px-4 py-2 font-medium text-purple-600 transition-colors hover:bg-purple-50"
+              className="rounded-lg bg-white px-4 py-2 font-medium text-teal-700 transition-colors hover:bg-teal-50"
             >
               QRスキャン
             </button>
@@ -278,7 +273,7 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
           <button
             onClick={() => setFilter('all')}
             className={`card cursor-pointer text-center transition-all duration-200 hover:scale-105 hover:shadow-xl ${
-              filter === 'all' ? 'shadow-xl ring-4 ring-purple-500' : ''
+              filter === 'all' ? 'shadow-xl ring-4 ring-teal-500' : ''
             }`}
           >
             <p className="text-3xl font-bold text-gray-800">{stats.total}</p>
@@ -325,174 +320,186 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
         {/* 搬送進捗ドーナツフローチャート */}
         <CasualtyFlowChart tags={patients} storageKey="hospitalDashboard_flowCollapsed" />
 
-        {/* 病院情報 */}
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="card">
-            <h2 className="mb-4 text-xl font-bold">病院情報</h2>
-            <div className="space-y-2 text-sm">
-              <p>
-                <span className="font-semibold">所在地:</span> {hospital.location.address}
-              </p>
-              <p>
-                <span className="font-semibold">緊急電話:</span>{' '}
+        {/* Identity Bar */}
+        <div className="card">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-xl font-bold">{hospital.name}</h2>
+              <p className="text-sm text-gray-500">
+                {hospital.location.address} ·{' '}
                 {hospital.contact.emergency_phone || hospital.contact.phone}
               </p>
-              <p>
-                <span className="font-semibold">一般電話:</span> {hospital.contact.phone}
-              </p>
-              {hospital.contact.email && (
-                <p>
-                  <span className="font-semibold">メール:</span> {hospital.contact.email}
-                </p>
-              )}
-              {hospital.name === '東京医科大学病院' && (
-                <p>
-                  <span className="font-semibold">公式サイト:</span>{' '}
-                  <a
-                    href="https://tokyo-med-er.jp/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline"
-                  >
-                    https://tokyo-med-er.jp/
-                  </a>
-                </p>
-              )}
-              {hospital.capabilities.has_er && (
-                <p className="font-semibold text-green-600">✓ 救命救急センター</p>
-              )}
-              {hospital.capabilities.has_heliport && (
-                <p className="font-semibold text-blue-600">✓ ヘリポート有</p>
-              )}
-              {hospital.capabilities.has_icu && (
-                <p className="font-semibold text-purple-600">✓ ICU有</p>
-              )}
-              <p className="mt-2 text-sm text-gray-600">
-                診療科:{' '}
-                {hospital.capabilities.departments?.map((d) => d.name).join(', ') || '情報なし'}
-              </p>
-            </div>
-          </div>
-
-          <div className="card">
-            <h2 className="mb-4 text-xl font-bold">病床状況</h2>
-            <div className="mb-4 grid grid-cols-3 gap-4">
-              <div className="text-center">
-                <p className="text-2xl font-bold text-blue-600">
-                  {hospital.current_load.total_capacity}
-                </p>
-                <p className="text-xs text-gray-600">総病床数</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-green-600">{availableBeds}</p>
-                <p className="text-xs text-gray-600">空床数</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-orange-600">
-                  {hospital.current_load.current_patients}
-                </p>
-                <p className="text-xs text-gray-600">現在患者数</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {hospital.capabilities.has_er && (
+                  <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700">
+                    救命救急
+                  </span>
+                )}
+                {hospital.capabilities.has_icu && (
+                  <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700">
+                    ICU
+                  </span>
+                )}
+                {hospital.capabilities.has_heliport && (
+                  <span className="rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700">
+                    ヘリポート
+                  </span>
+                )}
               </div>
             </div>
-
-            {/* 診療科別病床状況 */}
-            <div className="border-t pt-4">
-              <h3 className="mb-3 font-semibold text-gray-700">診療科別病床状況</h3>
-              <div className="space-y-2">
-                {hospital.capabilities.departments?.map((dept, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between rounded bg-gray-50 p-2"
-                  >
-                    <span className="text-sm font-medium">{dept.name}</span>
-                    <div className="space-x-4 text-xs">
-                      <span className="text-green-600">空床: {dept.available_beds}</span>
-                      <span className="text-gray-600">使用中: {dept.occupied_beds}</span>
-                    </div>
-                  </div>
-                )) || <p className="text-sm text-gray-500">診療科情報なし</p>}
-              </div>
-            </div>
-
-            <div className="mt-4 text-xs text-gray-500">
-              <p>
-                病床情報更新: {new Date(hospital.current_load.last_updated).toLocaleString('ja-JP')}
-              </p>
-              <p>総搬送受入実績: {hospital.transport_count}件</p>
+            <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
+              {(
+                [
+                  {
+                    key: 'accepting',
+                    label: '受入可',
+                    colors: 'bg-green-50 text-green-700 ring-1 ring-green-400',
+                  },
+                  {
+                    key: 'limited',
+                    label: '制限あり',
+                    colors: 'bg-yellow-50 text-yellow-700 ring-1 ring-yellow-400',
+                  },
+                  {
+                    key: 'full',
+                    label: '満床',
+                    colors: 'bg-orange-50 text-orange-700 ring-1 ring-orange-400',
+                  },
+                  {
+                    key: 'not_accepting',
+                    label: '不可',
+                    colors: 'bg-red-50 text-red-700 ring-1 ring-red-400',
+                  },
+                ] as const
+              ).map((opt) => (
+                <button
+                  key={opt.key}
+                  onClick={() => handleUpdateStatus(opt.key)}
+                  disabled={loading}
+                  className={`rounded-md px-3 py-1.5 text-sm font-medium transition-all ${
+                    acceptingStatus === opt.key ? opt.colors : 'text-gray-500 hover:bg-gray-200'
+                  } disabled:opacity-50`}
+                >
+                  {opt.label}
+                </button>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* 受入状況更新 */}
+        {/* 病床状況 */}
         <div className="card">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-bold">受入状況更新</h2>
-            <button
-              onClick={() => {
-                const newState = !isStatusUpdateCollapsed;
-                setIsStatusUpdateCollapsed(newState);
-                if (isClient) {
-                  localStorage.setItem('hospitalDashboard_statusUpdateCollapsed', String(newState));
-                }
-              }}
-              className="flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 font-bold text-gray-700 transition hover:bg-gray-200"
-            >
-              {isStatusUpdateCollapsed ? (
-                <>
-                  <span>▼ 展開</span>
-                </>
-              ) : (
-                <>
-                  <span>▲ 折りたたむ</span>
-                </>
-              )}
-            </button>
+            <h2 className="text-lg font-bold">病床状況</h2>
+            <div className="flex items-center gap-4 text-xs text-gray-500">
+              <span>
+                更新: {new Date(hospital.current_load.last_updated).toLocaleString('ja-JP')}
+              </span>
+              <span>搬送実績: {hospital.transport_count}件</span>
+            </div>
           </div>
 
-          <div
-            className={`overflow-hidden transition-all duration-300 ease-in-out ${
-              isStatusUpdateCollapsed ? 'max-h-0 opacity-0' : 'max-h-96 opacity-100'
-            }`}
-          >
-            <div className="space-y-3">
-              <div>
-                <label className="mb-2 block text-sm font-medium">受入可否</label>
-                <select
-                  className="input"
-                  value={acceptingStatus}
-                  onChange={(e) => setAcceptingStatus(e.target.value as any)}
-                >
-                  <option value="accepting">受入可能</option>
-                  <option value="limited">制限あり</option>
-                  <option value="full">満床</option>
-                  <option value="not_accepting">受入不可</option>
-                </select>
-              </div>
-              <div className="text-sm text-gray-600">
-                <p>
-                  現在の状態:{' '}
-                  <span className="font-semibold">
-                    {hospital.current_load.accepting_status === 'accepting'
-                      ? '受入可能'
-                      : hospital.current_load.accepting_status === 'limited'
-                        ? '制限あり'
-                        : hospital.current_load.accepting_status === 'full'
-                          ? '満床'
-                          : '受入不可'}
+          {/* 全体プログレスバー */}
+          {(() => {
+            const totalOccupancy = hospital.current_load.current_patients;
+            const totalCapacity = hospital.current_load.total_capacity;
+            const totalRate =
+              totalCapacity > 0 ? Math.round((totalOccupancy / totalCapacity) * 100) : 0;
+            const pipelineCount = patients.length;
+
+            return (
+              <div className="mb-5">
+                <div className="mb-1 flex items-center justify-between">
+                  <span className="text-sm font-semibold">全体</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600">
+                      {totalOccupancy} / {totalCapacity}床
+                    </span>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs font-bold ${
+                        totalRate >= 80
+                          ? 'bg-red-100 text-red-700'
+                          : totalRate >= 60
+                            ? 'bg-yellow-100 text-yellow-700'
+                            : 'bg-green-100 text-green-700'
+                      }`}
+                    >
+                      {totalRate}%
+                    </span>
+                  </div>
+                </div>
+                <div className="flex h-6 overflow-hidden rounded-full bg-gray-200">
+                  <div
+                    className="bg-orange-500 transition-all duration-300"
+                    style={{ width: `${totalRate}%` }}
+                  />
+                  <div
+                    className="bg-green-400 transition-all duration-300"
+                    style={{ width: `${100 - totalRate}%` }}
+                  />
+                </div>
+                <div className="mt-2 flex flex-wrap gap-4 text-xs text-gray-500">
+                  <span className="flex items-center gap-1">
+                    <span className="inline-block h-2.5 w-2.5 rounded bg-orange-500" />
+                    使用中 {totalOccupancy}
                   </span>
-                </p>
-                <p>
-                  最終更新: {new Date(hospital.current_load.last_updated).toLocaleString('ja-JP')}
-                </p>
+                  <span className="flex items-center gap-1">
+                    <span className="inline-block h-2.5 w-2.5 rounded bg-green-400" />
+                    空床 {availableBeds}
+                  </span>
+                  {pipelineCount > 0 && (
+                    <span className="flex items-center gap-1">
+                      <span className="inline-block h-2.5 w-2.5 rounded bg-blue-400" />
+                      搬送中 +{pipelineCount}（到着見込）
+                    </span>
+                  )}
+                </div>
               </div>
-              <button
-                onClick={handleUpdateStatus}
-                disabled={loading || acceptingStatus === hospital.current_load.accepting_status}
-                className="btn-primary w-full py-3 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {loading ? '更新中...' : '状況を更新'}
-              </button>
-            </div>
+            );
+          })()}
+
+          {/* 診療科別プログレスバー */}
+          <div className="space-y-3">
+            {hospital.capabilities.departments?.map((dept, index) => {
+              const deptTotal = dept.available_beds + dept.occupied_beds;
+              const deptRate =
+                deptTotal > 0 ? Math.round((dept.occupied_beds / deptTotal) * 100) : 0;
+              return (
+                <div key={index}>
+                  <div className="mb-1 flex items-center justify-between">
+                    <span className="text-sm">{dept.name}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">
+                        {dept.occupied_beds} / {deptTotal}床
+                      </span>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs font-bold ${
+                          deptRate >= 80
+                            ? 'bg-red-100 text-red-700'
+                            : deptRate >= 60
+                              ? 'bg-yellow-100 text-yellow-700'
+                              : 'bg-green-100 text-green-700'
+                        }`}
+                      >
+                        {deptRate}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex h-3 overflow-hidden rounded-full bg-gray-200">
+                    <div
+                      className={`transition-all duration-300 ${
+                        deptRate >= 80
+                          ? 'bg-red-500'
+                          : deptRate >= 60
+                            ? 'bg-yellow-400'
+                            : 'bg-green-400'
+                      }`}
+                      style={{ width: `${deptRate}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -628,7 +635,7 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
                 <div className="mt-4 text-center">
                   <button
                     onClick={() => setShowManualInput(true)}
-                    className="text-sm text-purple-600 hover:underline"
+                    className="text-sm text-teal-700 hover:underline"
                   >
                     手動入力に切り替え
                   </button>
@@ -644,7 +651,7 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
                     type="text"
                     value={manualInput}
                     onChange={(e) => setManualInput(e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-purple-500 focus:ring-2 focus:ring-purple-500"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-teal-500 focus:ring-2 focus:ring-teal-500"
                     placeholder="T-2025-001 または ANON-123456"
                     autoFocus
                   />
@@ -658,7 +665,7 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
                       }
                     }}
                     disabled={!manualInput.trim()}
-                    className="flex-1 rounded-lg bg-purple-600 px-4 py-2 font-medium text-white hover:bg-purple-700 disabled:opacity-50"
+                    className="flex-1 rounded-lg bg-teal-700 px-4 py-2 font-medium text-white hover:bg-teal-800 disabled:opacity-50"
                   >
                     検索
                   </button>

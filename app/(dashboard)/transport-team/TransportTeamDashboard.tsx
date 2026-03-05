@@ -235,7 +235,6 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">搬送部隊ダッシュボード</h1>
-            <p className="text-sm opacity-90">搬送指示・患者搬送管理</p>
           </div>
           <div className="flex items-center gap-4">
             {isRealtime && (

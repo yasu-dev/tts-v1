@@ -262,11 +262,10 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <header className="bg-blue-600 p-4 text-white shadow-lg">
+      <header className="bg-slate-800 p-4 text-white shadow-lg">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">指揮本部ダッシュボード</h1>
-            <p className="text-sm opacity-90">リアルタイムトリアージ状況</p>
           </div>
           <div className="flex items-center gap-4">
             {syncError && (

@@ -413,11 +413,10 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <header className="bg-purple-600 p-4 text-white shadow-lg">
+      <header className="bg-blue-600 p-4 text-white shadow-lg">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">DMATダッシュボード</h1>
-            <p className="text-sm opacity-90">災害医療支援チーム・病院搬送管理</p>
           </div>
           <div className="flex items-center gap-4">
             {isRealtime && (
@@ -428,7 +427,7 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
             )}
             <button
               onClick={() => setShowQRScanner(true)}
-              className="rounded-lg bg-white px-4 py-2 font-medium text-purple-600 transition-colors hover:bg-purple-50"
+              className="rounded-lg bg-white px-4 py-2 font-medium text-blue-600 transition-colors hover:bg-blue-50"
             >
               QRスキャン
             </button>
@@ -467,29 +466,29 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
         <div className="mb-6 rounded-lg bg-white p-6 shadow">
           <div className="mb-4 flex justify-between">
             <span
-              className={`text-sm font-bold ${currentStep >= 1 ? 'text-purple-600' : 'text-gray-400'}`}
+              className={`text-sm font-bold ${currentStep >= 1 ? 'text-blue-600' : 'text-gray-400'}`}
             >
               1. 患者選択
             </span>
             <span
-              className={`text-sm font-bold ${currentStep >= 2 ? 'text-purple-600' : 'text-gray-400'}`}
+              className={`text-sm font-bold ${currentStep >= 2 ? 'text-blue-600' : 'text-gray-400'}`}
             >
               2. 搬送先選択
             </span>
             <span
-              className={`text-sm font-bold ${currentStep >= 3 ? 'text-purple-600' : 'text-gray-400'}`}
+              className={`text-sm font-bold ${currentStep >= 3 ? 'text-blue-600' : 'text-gray-400'}`}
             >
               3. 救急隊選択
             </span>
             <span
-              className={`text-sm font-bold ${currentStep >= 4 ? 'text-purple-600' : 'text-gray-400'}`}
+              className={`text-sm font-bold ${currentStep >= 4 ? 'text-blue-600' : 'text-gray-400'}`}
             >
               4. 確認
             </span>
           </div>
           <div className="h-2 w-full rounded-full bg-gray-200">
             <div
-              className="h-2 rounded-full bg-purple-600 transition-all duration-300"
+              className="h-2 rounded-full bg-blue-600 transition-all duration-300"
               style={{
                 width: `${
                   currentStep === 1 ? 25 : currentStep === 2 ? 50 : currentStep === 3 ? 75 : 100
@@ -878,7 +877,7 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
                     <div className="mt-2 space-y-1 border-t pt-2">
                       <p className="font-semibold text-green-600">✓ 救命救急センター</p>
                       <p className="font-semibold text-blue-600">✓ ヘリポート有</p>
-                      <p className="font-semibold text-purple-600">✓ ICU有</p>
+                      <p className="font-semibold text-blue-600">✓ ICU有</p>
                       <p className="text-xs">公式サイト: https://tokyo-med-er.jp/</p>
                     </div>
                   )}
@@ -1016,7 +1015,7 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
                 <div className="mt-4 text-center">
                   <button
                     onClick={() => setShowManualInput(true)}
-                    className="text-sm text-purple-600 hover:underline"
+                    className="text-sm text-blue-600 hover:underline"
                   >
                     手動入力に切り替え
                   </button>
@@ -1032,7 +1031,7 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
                     type="text"
                     value={manualInput}
                     onChange={(e) => setManualInput(e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-purple-500 focus:ring-2 focus:ring-purple-500"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
                     placeholder="T-2025-001 または ANON-123456"
                     autoFocus
                   />
@@ -1046,7 +1045,7 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
                       }
                     }}
                     disabled={!manualInput.trim()}
-                    className="flex-1 rounded-lg bg-purple-600 px-4 py-2 font-medium text-white hover:bg-purple-700 disabled:opacity-50"
+                    className="flex-1 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
                   >
                     検索
                   </button>
