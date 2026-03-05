@@ -12,12 +12,14 @@ interface SceneMapViewerProps {
   data: SceneMapData | null;
   mapName: string;
   updatedAt: string | null;
+  onClose: () => void;
 }
 
 export default function SceneMapViewer({
   data: initialData,
   mapName,
   updatedAt,
+  onClose,
 }: SceneMapViewerProps) {
   const viewData = initialData || createEmptySceneMapData();
   const [scale, setScale] = useState(viewData.stage.scale);
@@ -91,10 +93,28 @@ export default function SceneMapViewer({
     <div className="flex h-full flex-col">
       {/* ヘッダー */}
       <div className="flex items-center justify-between border-b bg-gray-50 p-3">
-        <h2 className="text-lg font-bold">災害現場図{mapName ? `: ${mapName}` : ''}</h2>
-        {updatedAt && (
-          <span className="text-sm text-gray-500">最終更新 {formatUpdatedAt(updatedAt)}</span>
-        )}
+        <h2 className="text-lg font-bold text-gray-900">
+          災害現場図{mapName ? `: ${mapName}` : ''}
+        </h2>
+        <div className="flex items-center gap-2">
+          {updatedAt && (
+            <span className="text-sm text-gray-500">最終更新 {formatUpdatedAt(updatedAt)}</span>
+          )}
+          <button
+            onClick={onClose}
+            className="rounded-lg p-2 text-gray-600 hover:bg-gray-200"
+            aria-label="閉じる"
+          >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* キャンバス */}

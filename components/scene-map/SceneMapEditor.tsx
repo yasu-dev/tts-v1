@@ -22,6 +22,7 @@ interface SceneMapEditorProps {
   mapName: string;
   onSave: (data: SceneMapData, name: string) => Promise<void>;
   onCreateNew: () => void;
+  onClose: () => void;
 }
 
 export default function SceneMapEditor({
@@ -29,17 +30,31 @@ export default function SceneMapEditor({
   mapName,
   onSave,
   onCreateNew,
+  onClose,
 }: SceneMapEditorProps) {
   const [data, setData] = useState<SceneMapData>(initialData || createEmptySceneMapData());
   const [name, setName] = useState(mapName);
   const [paletteSelection, setPaletteSelection] = useState<string | null>(null);
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
   const [stageSize, setStageSize] = useState({ width: 800, height: 600 });
   const [editingLabel, setEditingLabel] = useState<string | null>(null);
   const [labelInputText, setLabelInputText] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<Konva.Stage>(null);
+
+  // データ変更を追跡
+  const setDataDirty = useCallback((updater: (prev: SceneMapData) => SceneMapData) => {
+    setData(updater);
+    setIsDirty(true);
+  }, []);
+
+  // 閉じる（未保存警告付き）
+  const handleClose = useCallback(() => {
+    if (isDirty && !confirm('未保存の変更があります。閉じますか？')) return;
+    onClose();
+  }, [isDirty, onClose]);
 
   // ステージサイズをコンテナに合わせる
   useEffect(() => {
@@ -92,7 +107,7 @@ export default function SceneMapEditor({
           color: '#374151',
           rotation: 0,
         };
-        setData((prev) => ({ ...prev, labels: [...prev.labels, newLabel] }));
+        setDataDirty((prev) => ({ ...prev, labels: [...prev.labels, newLabel] }));
         setEditingLabel(newLabel.id);
         setLabelInputText('テキスト');
         setPaletteSelection(null);
@@ -110,7 +125,7 @@ export default function SceneMapEditor({
           text: '',
           showBubble: true,
         };
-        setData((prev) => ({
+        setDataDirty((prev) => ({
           ...prev,
           annotations: [...prev.annotations, newAnnotation],
           annotationCounter: nextNum,
@@ -128,10 +143,10 @@ export default function SceneMapEditor({
         rotation: 0,
         scale: 1,
       };
-      setData((prev) => ({ ...prev, icons: [...prev.icons, newIcon] }));
+      setDataDirty((prev) => ({ ...prev, icons: [...prev.icons, newIcon] }));
       setPaletteSelection(null);
     },
-    [paletteSelection, data.annotationCounter]
+    [paletteSelection, data.annotationCounter, setDataDirty]
   );
 
   // ズーム（ホイール / ピンチ）
@@ -179,33 +194,42 @@ export default function SceneMapEditor({
   }, []);
 
   // アイコン移動
-  const handleIconDragEnd = useCallback((id: string, x: number, y: number) => {
-    setData((prev) => ({
-      ...prev,
-      icons: prev.icons.map((icon) => (icon.id === id ? { ...icon, x, y } : icon)),
-    }));
-  }, []);
+  const handleIconDragEnd = useCallback(
+    (id: string, x: number, y: number) => {
+      setDataDirty((prev) => ({
+        ...prev,
+        icons: prev.icons.map((icon) => (icon.id === id ? { ...icon, x, y } : icon)),
+      }));
+    },
+    [setDataDirty]
+  );
 
   // アノテーション移動
-  const handleAnnotationDragEnd = useCallback((id: string, x: number, y: number) => {
-    setData((prev) => ({
-      ...prev,
-      annotations: prev.annotations.map((a) => (a.id === id ? { ...a, x, y } : a)),
-    }));
-  }, []);
+  const handleAnnotationDragEnd = useCallback(
+    (id: string, x: number, y: number) => {
+      setDataDirty((prev) => ({
+        ...prev,
+        annotations: prev.annotations.map((a) => (a.id === id ? { ...a, x, y } : a)),
+      }));
+    },
+    [setDataDirty]
+  );
 
   // ラベル移動
-  const handleLabelDragEnd = useCallback((id: string, x: number, y: number) => {
-    setData((prev) => ({
-      ...prev,
-      labels: prev.labels.map((l) => (l.id === id ? { ...l, x, y } : l)),
-    }));
-  }, []);
+  const handleLabelDragEnd = useCallback(
+    (id: string, x: number, y: number) => {
+      setDataDirty((prev) => ({
+        ...prev,
+        labels: prev.labels.map((l) => (l.id === id ? { ...l, x, y } : l)),
+      }));
+    },
+    [setDataDirty]
+  );
 
   // 回転（15度刻み）
   const handleRotate = useCallback(() => {
     if (!selectedIconId) return;
-    setData((prev) => ({
+    setDataDirty((prev) => ({
       ...prev,
       icons: prev.icons.map((icon) =>
         icon.id === selectedIconId ? { ...icon, rotation: (icon.rotation + 15) % 360 } : icon
@@ -214,12 +238,12 @@ export default function SceneMapEditor({
         l.id === selectedIconId ? { ...l, rotation: (l.rotation + 15) % 360 } : l
       ),
     }));
-  }, [selectedIconId]);
+  }, [selectedIconId, setDataDirty]);
 
   // 前面へ移動
   const handleBringToFront = useCallback(() => {
     if (!selectedIconId) return;
-    setData((prev) => {
+    setDataDirty((prev) => {
       const idx = prev.icons.findIndex((i) => i.id === selectedIconId);
       if (idx >= 0 && idx < prev.icons.length - 1) {
         const newIcons = [...prev.icons];
@@ -229,12 +253,12 @@ export default function SceneMapEditor({
       }
       return prev;
     });
-  }, [selectedIconId]);
+  }, [selectedIconId, setDataDirty]);
 
   // 背面へ移動
   const handleSendToBack = useCallback(() => {
     if (!selectedIconId) return;
-    setData((prev) => {
+    setDataDirty((prev) => {
       const idx = prev.icons.findIndex((i) => i.id === selectedIconId);
       if (idx > 0) {
         const newIcons = [...prev.icons];
@@ -244,55 +268,68 @@ export default function SceneMapEditor({
       }
       return prev;
     });
-  }, [selectedIconId]);
+  }, [selectedIconId, setDataDirty]);
 
-  // 削除
+  // 削除（注釈は番号を詰め直す）
   const handleDelete = useCallback(() => {
     if (!selectedIconId) return;
-    setData((prev) => ({
-      ...prev,
-      icons: prev.icons.filter((i) => i.id !== selectedIconId),
-      labels: prev.labels.filter((l) => l.id !== selectedIconId),
-      annotations: prev.annotations.filter((a) => a.id !== selectedIconId),
-    }));
+    setDataDirty((prev) => {
+      const newAnnotations = prev.annotations
+        .filter((a) => a.id !== selectedIconId)
+        .map((a, i) => ({ ...a, number: i + 1 }));
+      return {
+        ...prev,
+        icons: prev.icons.filter((i) => i.id !== selectedIconId),
+        labels: prev.labels.filter((l) => l.id !== selectedIconId),
+        annotations: newAnnotations,
+        annotationCounter: newAnnotations.length,
+      };
+    });
     setSelectedIconId(null);
-  }, [selectedIconId]);
+  }, [selectedIconId, setDataDirty]);
 
   // グリッドトグル
   const handleToggleGrid = useCallback(() => {
-    setData((prev) => ({ ...prev, showGrid: !prev.showGrid }));
-  }, []);
+    setDataDirty((prev) => ({ ...prev, showGrid: !prev.showGrid }));
+  }, [setDataDirty]);
 
   // 保存
   const handleSave = async () => {
     setSaving(true);
     try {
       await onSave(data, name);
+      setIsDirty(false);
     } finally {
       setSaving(false);
     }
   };
 
   // 注釈テキスト更新
-  const updateAnnotationText = useCallback((id: string, text: string) => {
-    setData((prev) => ({
-      ...prev,
-      annotations: prev.annotations.map((a) => (a.id === id ? { ...a, text } : a)),
-    }));
-  }, []);
+  const updateAnnotationText = useCallback(
+    (id: string, text: string) => {
+      setDataDirty((prev) => ({
+        ...prev,
+        annotations: prev.annotations.map((a) => (a.id === id ? { ...a, text } : a)),
+      }));
+    },
+    [setDataDirty]
+  );
 
   // 注釈吹き出し一括表示/非表示
-  const toggleAllBubbles = useCallback((show: boolean) => {
-    setData((prev) => ({
-      ...prev,
-      annotations: prev.annotations.map((a) => ({ ...a, showBubble: show })),
-    }));
-  }, []);
+  const toggleAllBubbles = useCallback(
+    (show: boolean) => {
+      setDataDirty((prev) => ({
+        ...prev,
+        annotations: prev.annotations.map((a) => ({ ...a, showBubble: show })),
+      }));
+    },
+    [setDataDirty]
+  );
 
   // テキストラベル編集確定
   const commitLabelEdit = useCallback(
     (id: string) => {
-      setData((prev) => ({
+      setDataDirty((prev) => ({
         ...prev,
         labels: prev.labels.map((l) =>
           l.id === id ? { ...l, text: labelInputText || 'テキスト' } : l
@@ -301,8 +338,18 @@ export default function SceneMapEditor({
       setEditingLabel(null);
       setLabelInputText('');
     },
-    [labelInputText]
+    [labelInputText, setDataDirty]
   );
+
+  // テキストラベル編集開始（ツールバーから呼び出し用）
+  const handleEditLabel = useCallback(() => {
+    if (!selectedIconId) return;
+    const label = data.labels.find((l) => l.id === selectedIconId);
+    if (label) {
+      setEditingLabel(label.id);
+      setLabelInputText(label.text);
+    }
+  }, [selectedIconId, data.labels]);
 
   // 選択中アイコンのtype取得
   const selectedIconType =
@@ -317,10 +364,13 @@ export default function SceneMapEditor({
       {/* ヘッダー */}
       <div className="flex items-center justify-between border-b bg-gray-50 p-3">
         <div className="flex items-center gap-2">
-          <h2 className="text-lg font-bold">災害現場図:</h2>
+          <h2 className="text-lg font-bold text-gray-900">災害現場図:</h2>
           <input
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => {
+              setName(e.target.value);
+              setIsDirty(true);
+            }}
             className="rounded border border-gray-300 bg-white px-2 py-1 text-sm font-medium text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-400"
             placeholder="図名を入力"
           />
@@ -338,6 +388,20 @@ export default function SceneMapEditor({
             className="rounded-lg bg-gray-200 px-4 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-300"
           >
             新規
+          </button>
+          <button
+            onClick={handleClose}
+            className="rounded-lg p-2 text-gray-600 hover:bg-gray-200"
+            aria-label="閉じる"
+          >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
           </button>
         </div>
       </div>
@@ -615,6 +679,7 @@ export default function SceneMapEditor({
         onRotate={handleRotate}
         onBringToFront={handleBringToFront}
         onSendToBack={handleSendToBack}
+        onEditLabel={handleEditLabel}
         onDelete={handleDelete}
       />
     </div>

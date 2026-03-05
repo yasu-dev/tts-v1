@@ -11,6 +11,7 @@ interface CanvasToolbarProps {
   onRotate: () => void;
   onBringToFront: () => void;
   onSendToBack: () => void;
+  onEditLabel?: () => void;
   onDelete: () => void;
 }
 
@@ -22,9 +23,11 @@ export default function CanvasToolbar({
   onRotate,
   onBringToFront,
   onSendToBack,
+  onEditLabel,
   onDelete,
 }: CanvasToolbarProps) {
   const def = selectedIconType ? getIconDefinition(selectedIconType) : null;
+  const isTextLabel = selectedIconType === 'text_label';
 
   return (
     <div className="flex items-center gap-3 border-t bg-gray-50 px-4 py-2">
@@ -33,6 +36,14 @@ export default function CanvasToolbar({
           <span className="text-sm text-gray-600">
             選択中: <strong>{def.label}</strong>
           </span>
+          {isTextLabel && onEditLabel && (
+            <button
+              onClick={onEditLabel}
+              className="rounded bg-blue-100 px-3 py-1 text-sm text-blue-700 hover:bg-blue-200"
+            >
+              編集
+            </button>
+          )}
           <button
             onClick={onRotate}
             className="rounded bg-gray-200 px-3 py-1 text-sm text-gray-700 hover:bg-gray-300"

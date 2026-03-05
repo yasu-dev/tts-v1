@@ -130,24 +130,6 @@ export default function SceneMapModal({ isOpen, onClose, canEdit }: SceneMapModa
 
       {/* モーダル本体 */}
       <div className="relative flex h-full w-full flex-col bg-white">
-        {/* 閉じるボタン（編集・閲覧共通でヘッダー右端） */}
-        <div className="absolute right-3 top-3 z-20">
-          <button
-            onClick={onClose}
-            className="rounded-lg p-2 text-gray-600 hover:bg-gray-200"
-            aria-label="閉じる"
-          >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
-
         {loading ? (
           <div className="flex flex-1 items-center justify-center">
             <div className="text-center text-gray-500">
@@ -175,12 +157,14 @@ export default function SceneMapModal({ isOpen, onClose, canEdit }: SceneMapModa
             mapName={currentMap?.name || '無題の現場図'}
             onSave={handleSave}
             onCreateNew={handleCreateNew}
+            onClose={onClose}
           />
         ) : (
           <SceneMapViewer
             data={currentMap?.data || null}
             mapName={currentMap?.name || ''}
             updatedAt={currentMap?.updated_at || null}
+            onClose={onClose}
           />
         )}
       </div>
