@@ -117,10 +117,10 @@ function getPaletteLabelStyle(type: string, category: IconCategory): string {
   if (type === 'hazard_victim') return `${base} text-xs text-red-600`;
   if (type === 'hazard_spread') return `${base} text-[8px] text-red-500`;
   if (category === 'structure') return `${base} text-[8px] text-gray-500`;
-  if (type === 'direction_arrow') return `${base} text-lg`;
+  if (type === 'direction_arrow') return `${base} text-lg text-gray-700`;
   if (type === 'direction_water_stream') return `${base} text-sm text-blue-500`;
   if (type === 'direction_north') return `${base} text-xs text-gray-700`;
-  if (type === 'direction_wind') return `${base} text-sm`;
+  if (type === 'direction_wind') return `${base} text-sm text-gray-700`;
   if (category === 'annotation') return `${base} text-xs text-orange-700`;
   if (category === 'text') return `${base} text-xs text-gray-600`;
   return `${base} text-xs text-gray-700`;

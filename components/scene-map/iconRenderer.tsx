@@ -307,6 +307,8 @@ function renderIconShape(type: string, w: number, h: number): React.ReactNode {
     );
   }
   if (type === 'hazard_danger') {
+    // RegularPolygon radius=w/2=18: top vertex y=-18, bottom y=+9
+    // テキストを三角形内に収めるため、y位置とサイズを調整
     return (
       <>
         <RegularPolygon
@@ -320,13 +322,15 @@ function renderIconShape(type: string, w: number, h: number): React.ReactNode {
         />
         <Text
           x={-w / 2}
-          y={-4}
+          y={-8}
           width={w}
+          height={16}
           text="!"
-          fontSize={18}
+          fontSize={14}
           fontStyle="bold"
           fill="#dc2626"
           align="center"
+          verticalAlign="middle"
         />
       </>
     );

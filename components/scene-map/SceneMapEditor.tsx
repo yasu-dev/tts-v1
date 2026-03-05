@@ -216,6 +216,36 @@ export default function SceneMapEditor({
     }));
   }, [selectedIconId]);
 
+  // 前面へ移動
+  const handleBringToFront = useCallback(() => {
+    if (!selectedIconId) return;
+    setData((prev) => {
+      const idx = prev.icons.findIndex((i) => i.id === selectedIconId);
+      if (idx >= 0 && idx < prev.icons.length - 1) {
+        const newIcons = [...prev.icons];
+        const [item] = newIcons.splice(idx, 1);
+        newIcons.push(item);
+        return { ...prev, icons: newIcons };
+      }
+      return prev;
+    });
+  }, [selectedIconId]);
+
+  // 背面へ移動
+  const handleSendToBack = useCallback(() => {
+    if (!selectedIconId) return;
+    setData((prev) => {
+      const idx = prev.icons.findIndex((i) => i.id === selectedIconId);
+      if (idx > 0) {
+        const newIcons = [...prev.icons];
+        const [item] = newIcons.splice(idx, 1);
+        newIcons.unshift(item);
+        return { ...prev, icons: newIcons };
+      }
+      return prev;
+    });
+  }, [selectedIconId]);
+
   // 削除
   const handleDelete = useCallback(() => {
     if (!selectedIconId) return;
@@ -291,7 +321,7 @@ export default function SceneMapEditor({
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="rounded border border-gray-300 px-2 py-1 text-sm font-medium focus:outline-none focus:ring-1 focus:ring-blue-400"
+            className="rounded border border-gray-300 bg-white px-2 py-1 text-sm font-medium text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-400"
             placeholder="図名を入力"
           />
         </div>
@@ -489,7 +519,7 @@ export default function SceneMapEditor({
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') commitLabelEdit(editingLabel);
                       }}
-                      className="rounded border border-blue-400 px-1 py-0.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="rounded border border-blue-400 bg-white px-1 py-0.5 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     />
                   </div>
                 );
@@ -522,7 +552,7 @@ export default function SceneMapEditor({
                       value={ann.text}
                       onChange={(e) => updateAnnotationText(ann.id, e.target.value)}
                       placeholder="注釈を入力..."
-                      className="flex-1 rounded border border-gray-300 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-orange-400"
+                      className="flex-1 rounded border border-gray-300 bg-white px-2 py-1 text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-orange-400"
                     />
                   </div>
                 ))}
@@ -583,6 +613,8 @@ export default function SceneMapEditor({
         showGrid={data.showGrid}
         onToggleGrid={handleToggleGrid}
         onRotate={handleRotate}
+        onBringToFront={handleBringToFront}
+        onSendToBack={handleSendToBack}
         onDelete={handleDelete}
       />
     </div>

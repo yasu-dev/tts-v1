@@ -18,6 +18,7 @@ export default function SceneMapModal({ isOpen, onClose, canEdit }: SceneMapModa
   const [loading, setLoading] = useState(true);
   const [currentMap, setCurrentMap] = useState<SceneMapRow | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [editorKey, setEditorKey] = useState(0);
   const supabase = createClient();
 
   // ESCキーで閉じる
@@ -113,9 +114,11 @@ export default function SceneMapModal({ isOpen, onClose, canEdit }: SceneMapModa
     }
   };
 
-  // 新規作成
+  // 新規作成（確認ダイアログ付き、エディタを完全リセット）
   const handleCreateNew = () => {
+    if (!confirm('現在の図を破棄して新規作成しますか？')) return;
     setCurrentMap(null);
+    setEditorKey((k) => k + 1);
   };
 
   if (!isOpen) return null;
@@ -167,6 +170,7 @@ export default function SceneMapModal({ isOpen, onClose, canEdit }: SceneMapModa
           </div>
         ) : canEdit ? (
           <SceneMapEditor
+            key={editorKey}
             initialData={currentMap?.data || null}
             mapName={currentMap?.name || '無題の現場図'}
             onSave={handleSave}

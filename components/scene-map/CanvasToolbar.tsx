@@ -9,6 +9,8 @@ interface CanvasToolbarProps {
   showGrid: boolean;
   onToggleGrid: () => void;
   onRotate: () => void;
+  onBringToFront: () => void;
+  onSendToBack: () => void;
   onDelete: () => void;
 }
 
@@ -18,12 +20,14 @@ export default function CanvasToolbar({
   showGrid,
   onToggleGrid,
   onRotate,
+  onBringToFront,
+  onSendToBack,
   onDelete,
 }: CanvasToolbarProps) {
   const def = selectedIconType ? getIconDefinition(selectedIconType) : null;
 
   return (
-    <div className="flex items-center gap-4 border-t bg-gray-50 px-4 py-2">
+    <div className="flex items-center gap-3 border-t bg-gray-50 px-4 py-2">
       {selectedIconId && def ? (
         <>
           <span className="text-sm text-gray-600">
@@ -31,9 +35,21 @@ export default function CanvasToolbar({
           </span>
           <button
             onClick={onRotate}
-            className="rounded bg-gray-200 px-3 py-1 text-sm hover:bg-gray-300"
+            className="rounded bg-gray-200 px-3 py-1 text-sm text-gray-700 hover:bg-gray-300"
           >
             ↺ 回転
+          </button>
+          <button
+            onClick={onBringToFront}
+            className="rounded bg-gray-200 px-3 py-1 text-sm text-gray-700 hover:bg-gray-300"
+          >
+            前面
+          </button>
+          <button
+            onClick={onSendToBack}
+            className="rounded bg-gray-200 px-3 py-1 text-sm text-gray-700 hover:bg-gray-300"
+          >
+            背面
           </button>
           <button
             onClick={onDelete}
