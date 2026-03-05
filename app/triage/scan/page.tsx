@@ -7,6 +7,7 @@ import QRScanner from '@/components/QRScanner';
 import StartWizard, { StartTriageResult } from '@/components/StartWizard';
 import VoiceInput from '@/components/VoiceInput';
 import LogoutButton from '@/components/LogoutButton';
+import HeaderToolButtons from '@/components/HeaderToolButtons';
 import ContactPointManager from '@/components/ContactPointManager';
 import ImageUploader from '@/components/ImageUploader';
 import { createLogger } from '@/lib/utils/logger';
@@ -491,7 +492,10 @@ export default function TriageScanPage() {
           <div>
             <h1 className="text-2xl font-bold">トリアージ入力</h1>
           </div>
-          <LogoutButton />
+          <div className="flex items-center gap-2">
+            <HeaderToolButtons />
+            <LogoutButton />
+          </div>
         </div>
       </header>
 

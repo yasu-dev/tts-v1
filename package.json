@@ -33,10 +33,12 @@
     "@supabase/supabase-js": "^2.45.4",
     "date-fns": "^3.6.0",
     "html5-qrcode": "^2.3.8",
+    "konva": "^10.2.0",
     "leaflet": "^1.9.4",
     "next": "14.2.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-konva": "^18.2.14",
     "react-leaflet": "^4.2.1",
     "zod": "^3.23.8"
   },

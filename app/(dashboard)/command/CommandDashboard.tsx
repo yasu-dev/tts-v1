@@ -1,27 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { TriageCategories, TriageTag } from '@/lib/types';
+import { TriageTag } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
-import dynamic from 'next/dynamic';
 import LogoutButton from '@/components/LogoutButton';
+import HeaderToolButtons from '@/components/HeaderToolButtons';
 import PatientDetailModal from '@/components/PatientDetailModal';
 import TransportAssignButton from '@/components/TransportAssignButton';
-import { getPhaseInfo } from '@/lib/utils/getPhaseInfo';
 import ViewToggle from '@/components/ViewToggle';
 import PatientListItem from '@/components/PatientListItem';
 import PatientPanelCard from '@/components/PatientPanelCard';
 import CasualtyFlowChart from '@/components/CasualtyFlowChart';
-
-// 地図コンポーネントを動的インポート（SSR無効化）
-const TriageMap = dynamic(() => import('@/components/TriageMap'), {
-  ssr: false,
-  loading: () => (
-    <div className="flex h-[500px] w-full items-center justify-center rounded-lg bg-gray-200">
-      <p className="text-gray-600">地図を読み込み中...</p>
-    </div>
-  ),
-});
 
 interface CommandDashboardProps {
   initialTags: TriageTag[];
@@ -34,9 +23,7 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
   const [isRealtime, setIsRealtime] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
   const [realtimeStatus, setRealtimeStatus] = useState<string | null>(null);
-  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [selectedTagDetail, setSelectedTagDetail] = useState<TriageTag | null>(null);
-  const [isMapCollapsed, setIsMapCollapsed] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'panel'>(() => {
     if (typeof window !== 'undefined') {
       return (localStorage.getItem('commandDashboard_viewMode') as 'list' | 'panel') || 'list';
@@ -67,14 +54,6 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
       setSyncError(message);
     }
   };
-
-  // ローカルストレージから地図の折り畳み状態を復元
-  useEffect(() => {
-    const savedState = localStorage.getItem('commandDashboard_mapCollapsed');
-    if (savedState !== null) {
-      setIsMapCollapsed(savedState === 'true');
-    }
-  }, []);
 
   // Supabase Realtimeでデータベース変更を購読
   useEffect(() => {
@@ -189,13 +168,6 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
     green: tags.filter((t) => t.triage_category.final === 'green').length,
   };
 
-  // 地図の折り畳み/展開を切り替え
-  const toggleMapCollapse = () => {
-    const newState = !isMapCollapsed;
-    setIsMapCollapsed(newState);
-    localStorage.setItem('commandDashboard_mapCollapsed', String(newState));
-  };
-
   // ステータスフィルターの切り替え
   const toggleStatusFilter = (status: string) => {
     setStatusFilters((prev) =>
@@ -267,7 +239,7 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
           <div>
             <h1 className="text-2xl font-bold">指揮本部ダッシュボード</h1>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             {syncError && (
               <div className="flex items-center gap-2 rounded-lg bg-red-500 px-4 py-2">
                 <span className="h-3 w-3 rounded-full bg-white"></span>
@@ -283,6 +255,7 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
                 <span className="text-sm font-bold">データ更新</span>
               </div>
             )}
+            <HeaderToolButtons canEditSceneMap={true} />
             <LogoutButton />
           </div>
         </div>
@@ -372,65 +345,6 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
           </div>
         </div>
 
-        {/* 地図表示（折り畳み可能） */}
-        <div className="card mb-6">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-bold">患者位置マップ</h2>
-            <button
-              onClick={toggleMapCollapse}
-              className="flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 font-bold text-gray-700 transition hover:bg-gray-200"
-            >
-              {isMapCollapsed ? (
-                <>
-                  <span>▼ 展開</span>
-                </>
-              ) : (
-                <>
-                  <span>▲ 折りたたむ</span>
-                </>
-              )}
-            </button>
-          </div>
-
-          <div
-            className={`overflow-hidden transition-all duration-300 ease-in-out ${
-              isMapCollapsed ? 'max-h-0 opacity-0' : 'max-h-[600px] opacity-100'
-            }`}
-          >
-            <TriageMap
-              patients={filteredTags
-                .filter((tag) => tag.location && tag.location.latitude && tag.location.longitude)
-                .map((tag) => ({
-                  id: tag.id,
-                  position: [tag.location.latitude, tag.location.longitude] as [number, number],
-                  category: tag.triage_category.final,
-                  tagNumber: tag.tag_number,
-                  anonymousId: tag.anonymous_id,
-                }))}
-              center={
-                tags.length > 0 && tags[0].location
-                  ? ([tags[0].location.latitude, tags[0].location.longitude] as [number, number])
-                  : undefined
-              }
-              onMarkerClick={(patientId) => {
-                setSelectedPatientId(patientId);
-                // スクロールして該当患者の詳細を表示
-                const element = document.getElementById(`patient-${patientId}`);
-                if (element) {
-                  element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                  element.classList.add('ring-4', 'ring-blue-500');
-                  setTimeout(() => {
-                    element.classList.remove('ring-4', 'ring-blue-500');
-                  }, 3000);
-                }
-              }}
-            />
-            <p className="mt-2 text-sm text-gray-600">
-              地図上のマーカーをクリックすると、患者詳細が表示されます。
-            </p>
-          </div>
-        </div>
-
         {/* トリアージタッグリスト */}
         <div className="card">
           <div className="mb-4 flex items-center justify-between">
@@ -446,7 +360,7 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
                   key={tag.id}
                   tag={tag}
                   onDetailClick={setSelectedTagDetail}
-                  selected={selectedPatientId === tag.id}
+                  selected={false}
                   actions={
                     (tag.transport.status === 'not_transported' ||
                       tag.transport.status === 'preparing') &&
@@ -465,7 +379,7 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
                   tag={tag}
                   variant="command"
                   onDetailClick={setSelectedTagDetail}
-                  selected={selectedPatientId === tag.id}
+                  selected={false}
                   actions={
                     (tag.transport.status === 'not_transported' ||
                       tag.transport.status === 'preparing') &&

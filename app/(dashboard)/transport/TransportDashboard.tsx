@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { TriageTag, Hospital, TriageCategories } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
 import LogoutButton from '@/components/LogoutButton';
+import HeaderToolButtons from '@/components/HeaderToolButtons';
 import PatientDetailModal from '@/components/PatientDetailModal';
 import QRScanner from '@/components/QRScanner';
 import { getPhaseInfo } from '@/lib/utils/getPhaseInfo';
@@ -418,7 +419,7 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
           <div>
             <h1 className="text-2xl font-bold">DMATダッシュボード</h1>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             {isRealtime && (
               <div className="flex animate-pulse items-center gap-2 rounded-lg bg-green-500 px-4 py-2">
                 <span className="h-3 w-3 rounded-full bg-white"></span>
@@ -427,10 +428,21 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
             )}
             <button
               onClick={() => setShowQRScanner(true)}
-              className="rounded-lg bg-white px-4 py-2 font-medium text-blue-600 transition-colors hover:bg-blue-50"
+              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-white transition-colors hover:bg-white/10"
+              style={{ minHeight: 44 }}
+              aria-label="患者QRコードをスキャン"
             >
-              QRスキャン
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 9V5a2 2 0 012-2h4M3 15v4a2 2 0 002 2h4m8-18h4a2 2 0 012 2v4m0 6v4a2 2 0 01-2 2h-4"
+                />
+              </svg>
+              <span className="hidden text-sm font-medium sm:inline">QRスキャン</span>
             </button>
+            <HeaderToolButtons />
             <LogoutButton />
           </div>
         </div>

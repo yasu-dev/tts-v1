@@ -377,6 +377,16 @@ export const RoleNames: Record<UserRole['role'], string> = {
   ADM: 'システム管理者',
 };
 
+// ===== 災害現場図 =====
+export interface SceneMap {
+  id: string;
+  name: string;
+  data: Record<string, unknown>;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
 // ===== トリアージ区分の色とラベル =====
 export const TriageCategories = {
   black: { label: '黒（死亡）', color: 'bg-black', textColor: 'text-white' },
