@@ -1,0 +1,1325 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>指揮本部ダッシュボード - UIモックアップ（Rev.2）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        font-family:
+          'Inter',
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          sans-serif;
+      }
+
+      /* Donut: 災害点 (denom=50, colored=23, gray=27)
+     ⬛2/50=4%, 🔴3/50=6%, 🟡9/50=18%, 🟢9/50=18%, gray 27/50=54% */
+      .donut-disaster {
+        background: conic-gradient(
+          #1f2937 0% 4%,
+          #ef4444 4% 10%,
+          #facc15 10% 28%,
+          #22c55e 28% 46%,
+          #f3f4f6 46% 100%
+        );
+        -webkit-mask: radial-gradient(circle, transparent 58%, black 60%);
+        mask: radial-gradient(circle, transparent 58%, black 60%);
+      }
+
+      /* Donut: 集積場所 (denom=25, colored=16, gray=9)
+     ⬛1/25=4%, 🔴4/25=16%, 🟡6/25=24%, 🟢5/25=20%, gray 9/25=36% */
+      .donut-collection {
+        background: conic-gradient(
+          #1f2937 0% 4%,
+          #ef4444 4% 20%,
+          #facc15 20% 44%,
+          #22c55e 44% 64%,
+          #f3f4f6 64% 100%
+        );
+        -webkit-mask: radial-gradient(circle, transparent 58%, black 60%);
+        mask: radial-gradient(circle, transparent 58%, black 60%);
+      }
+
+      /* Donut: 医療機関 (denom=50, gray=44, colored=6)
+     gray 44/50=88%, 🔴3/50=6%, 🟡1/50=2%, 🟢2/50=4% */
+      .donut-hospital {
+        background: conic-gradient(
+          #f3f4f6 0% 88%,
+          #ef4444 88% 94%,
+          #facc15 94% 96%,
+          #22c55e 96% 100%
+        );
+        -webkit-mask: radial-gradient(circle, transparent 58%, black 60%);
+        mask: radial-gradient(circle, transparent 58%, black 60%);
+      }
+
+      @keyframes pulse-arrow {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.4;
+        }
+      }
+      .arrow-pulse {
+        animation: pulse-arrow 1.5s ease-in-out infinite;
+      }
+
+      /* Category badge */
+      .cat-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        font-size: 11px;
+        line-height: 1;
+      }
+      .cat-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+        display: inline-block;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-gray-100">
+    <!-- ======== HEADER ======== -->
+    <header class="sticky top-0 z-40 bg-blue-600 p-4 text-white shadow-lg">
+      <div class="mx-auto flex max-w-7xl items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold">指揮本部ダッシュボード</h1>
+          <p class="text-sm opacity-90">リアルタイムトリアージ状況</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <!-- NEW: 地図アイコン -->
+          <button
+            onclick="document.getElementById('mapModal').classList.remove('hidden')"
+            class="rounded-lg p-2 text-white transition-colors hover:bg-white hover:bg-opacity-10 hover:text-gray-200"
+            title="患者位置マップ"
+          >
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+            </svg>
+          </button>
+          <!-- NEW: 現場図アイコン -->
+          <button
+            onclick="document.getElementById('sceneMapModal').classList.remove('hidden')"
+            class="rounded-lg p-2 text-white transition-colors hover:bg-white hover:bg-opacity-10 hover:text-gray-200"
+            title="災害現場図"
+          >
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+              />
+            </svg>
+          </button>
+          <!-- 既存: ログアウト -->
+          <button
+            class="rounded-lg p-2 text-gray-300 transition-colors hover:bg-white hover:bg-opacity-10 hover:text-white"
+            title="ログアウト"
+          >
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-7xl p-6">
+      <!-- ======== 統計カード（既存） ======== -->
+      <div class="mb-6 grid grid-cols-2 gap-4 md:grid-cols-5">
+        <button
+          class="rounded-lg bg-white p-6 text-center shadow-md shadow-xl ring-4 ring-blue-500 transition-all duration-200 hover:scale-105"
+        >
+          <p class="text-3xl font-bold text-gray-800">50</p>
+          <p class="text-sm text-gray-600">総数</p>
+        </button>
+        <button
+          class="rounded-lg bg-black p-6 text-center text-white shadow-md transition-all duration-200 hover:scale-105 hover:shadow-xl"
+        >
+          <p class="text-3xl font-bold">3</p>
+          <p class="text-sm opacity-90">黒（死亡）</p>
+        </button>
+        <button
+          class="rounded-lg bg-red-500 p-6 text-center text-white shadow-md transition-all duration-200 hover:scale-105 hover:shadow-xl"
+        >
+          <p class="text-3xl font-bold">12</p>
+          <p class="text-sm opacity-90">赤（重症）</p>
+        </button>
+        <button
+          class="rounded-lg bg-yellow-400 p-6 text-center shadow-md transition-all duration-200 hover:scale-105 hover:shadow-xl"
+        >
+          <p class="text-3xl font-bold">18</p>
+          <p class="text-sm">黄（中等症）</p>
+        </button>
+        <button
+          class="rounded-lg bg-green-500 p-6 text-center text-white shadow-md transition-all duration-200 hover:scale-105 hover:shadow-xl"
+        >
+          <p class="text-3xl font-bold">17</p>
+          <p class="text-sm opacity-90">緑（軽症）</p>
+        </button>
+      </div>
+
+      <!-- ======== NEW: 搬送進捗（ドーナツ） ======== -->
+      <div class="mb-6 rounded-lg bg-white p-6 shadow-md">
+        <div class="mb-2 flex items-center justify-between">
+          <h2 class="text-xl font-bold text-gray-800">搬送進捗</h2>
+          <button
+            onclick="toggleFlow()"
+            id="flowToggleBtn"
+            class="flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 font-bold text-gray-700 transition hover:bg-gray-200"
+          >
+            <span id="flowToggleText">▲ 折りたたむ</span>
+          </button>
+        </div>
+
+        <div
+          id="flowContent"
+          class="overflow-hidden transition-all duration-300 ease-in-out"
+          style="max-height: 500px; opacity: 1"
+        >
+          <!-- デスクトップ横並び / モバイル縦積み -->
+          <div class="flex flex-col items-start justify-center gap-2 py-4 md:flex-row md:gap-4">
+            <!-- ===== 災害点 ===== -->
+            <div class="flex min-w-[140px] flex-col items-center">
+              <h3 class="mb-2 text-sm font-bold text-gray-700">災害点</h3>
+              <div class="relative">
+                <div class="donut-disaster h-[120px] w-[120px] rounded-full"></div>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                  <span class="text-3xl font-bold leading-none text-gray-800">23</span>
+                  <span class="mt-0.5 text-xs text-gray-500">残</span>
+                </div>
+              </div>
+              <p class="mt-1.5 text-xs text-gray-400">/ 50人</p>
+              <!-- カテゴリ内訳 -->
+              <div class="mt-1 flex items-center gap-1.5">
+                <span class="cat-badge"><span class="cat-dot bg-gray-800"></span>2</span>
+                <span class="cat-badge"><span class="cat-dot bg-red-500"></span>3</span>
+                <span class="cat-badge"><span class="cat-dot bg-yellow-400"></span>9</span>
+                <span class="cat-badge"><span class="cat-dot bg-green-500"></span>9</span>
+              </div>
+              <!-- グレー領域の説明 -->
+              <p class="mt-1 text-[11px] text-gray-400">搬出済 27人</p>
+            </div>
+
+            <!-- ===== 矢印① 災害点→集積場所 ===== -->
+            <div
+              class="flex flex-col items-center justify-center self-center py-2 md:mt-10 md:py-0"
+            >
+              <span class="arrow-pulse hidden text-xl font-bold text-gray-400 md:block">→</span>
+              <span class="arrow-pulse text-xl font-bold text-gray-400 md:hidden">↓</span>
+              <span class="text-sm font-semibold text-gray-600">2人</span>
+              <div class="mt-0.5 flex items-center gap-1">
+                <span class="cat-badge"
+                  ><span class="cat-dot bg-red-500" style="width: 8px; height: 8px"></span
+                  ><span class="text-[10px]">1</span></span
+                >
+                <span class="cat-badge"
+                  ><span class="cat-dot bg-yellow-400" style="width: 8px; height: 8px"></span
+                  ><span class="text-[10px]">1</span></span
+                >
+              </div>
+            </div>
+
+            <!-- ===== 集積場所 ===== -->
+            <div class="flex min-w-[140px] flex-col items-center">
+              <h3 class="mb-2 text-sm font-bold text-gray-700">集積場所</h3>
+              <div class="relative">
+                <div class="donut-collection h-[120px] w-[120px] rounded-full"></div>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                  <span class="text-3xl font-bold leading-none text-gray-800">16</span>
+                  <span class="mt-0.5 text-xs text-gray-500">残</span>
+                </div>
+              </div>
+              <p class="mt-1.5 text-xs text-gray-400">/ 25人到着</p>
+              <!-- カテゴリ内訳 -->
+              <div class="mt-1 flex items-center gap-1.5">
+                <span class="cat-badge"><span class="cat-dot bg-gray-800"></span>1</span>
+                <span class="cat-badge"><span class="cat-dot bg-red-500"></span>4</span>
+                <span class="cat-badge"><span class="cat-dot bg-yellow-400"></span>6</span>
+                <span class="cat-badge"><span class="cat-dot bg-green-500"></span>5</span>
+              </div>
+              <p class="mt-1 text-[11px] text-gray-400">送出済 9人</p>
+              <!-- 到着見込 -->
+              <p class="mt-0.5 text-[11px] text-blue-500">到着見込 +25人</p>
+            </div>
+
+            <!-- ===== 矢印② 集積場所→医療機関 ===== -->
+            <div
+              class="flex flex-col items-center justify-center self-center py-2 md:mt-10 md:py-0"
+            >
+              <span class="arrow-pulse hidden text-xl font-bold text-gray-400 md:block">→</span>
+              <span class="arrow-pulse text-xl font-bold text-gray-400 md:hidden">↓</span>
+              <span class="text-sm font-semibold text-gray-600">3人</span>
+              <div class="mt-0.5 flex items-center gap-1">
+                <span class="cat-badge"
+                  ><span class="cat-dot bg-red-500" style="width: 8px; height: 8px"></span
+                  ><span class="text-[10px]">1</span></span
+                >
+                <span class="cat-badge"
+                  ><span class="cat-dot bg-yellow-400" style="width: 8px; height: 8px"></span
+                  ><span class="text-[10px]">1</span></span
+                >
+                <span class="cat-badge"
+                  ><span class="cat-dot bg-green-500" style="width: 8px; height: 8px"></span
+                  ><span class="text-[10px]">1</span></span
+                >
+              </div>
+            </div>
+
+            <!-- ===== 医療機関 ===== -->
+            <div class="flex min-w-[140px] flex-col items-center">
+              <h3 class="mb-2 text-sm font-bold text-gray-700">医療機関</h3>
+              <div class="relative">
+                <div class="donut-hospital h-[120px] w-[120px] rounded-full"></div>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                  <span class="text-2xl font-bold leading-none text-gray-800"
+                    >6<span class="text-base font-normal text-gray-400"> / 50</span></span
+                  >
+                  <span class="mt-0.5 text-xs text-gray-500">済</span>
+                </div>
+              </div>
+              <p class="mt-1.5 text-xs text-gray-400">&nbsp;</p>
+              <!-- 到着済カテゴリ内訳 -->
+              <div class="mt-1 flex items-center gap-1.5">
+                <span class="cat-badge"><span class="cat-dot bg-red-500"></span>3</span>
+                <span class="cat-badge"><span class="cat-dot bg-yellow-400"></span>1</span>
+                <span class="cat-badge"><span class="cat-dot bg-green-500"></span>2</span>
+              </div>
+              <!-- 搬送パイプライン -->
+              <p class="mt-1 text-[11px] text-gray-500">
+                搬送中 <strong>3</strong>人 | 待機 <strong>41</strong>人
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======== ステータスフィルター（既存） ======== -->
+      <div class="mb-6 rounded-lg bg-white p-6 shadow-md">
+        <div class="flex flex-wrap gap-3">
+          <div class="flex items-center gap-2">
+            <input type="checkbox" checked class="h-4 w-4 cursor-pointer rounded text-blue-600" />
+            <label
+              class="cursor-pointer rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-800"
+              >現場</label
+            >
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="checkbox" checked class="h-4 w-4 cursor-pointer rounded text-blue-600" />
+            <label
+              class="cursor-pointer rounded-full bg-indigo-100 px-3 py-1 text-sm font-medium text-indigo-800"
+              >割当済</label
+            >
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="checkbox" checked class="h-4 w-4 cursor-pointer rounded text-blue-600" />
+            <label
+              class="cursor-pointer rounded-full bg-orange-100 px-3 py-1 text-sm font-medium text-orange-800"
+              >応急へ</label
+            >
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="checkbox" checked class="h-4 w-4 cursor-pointer rounded text-blue-600" />
+            <label
+              class="cursor-pointer rounded-full bg-purple-100 px-3 py-1 text-sm font-medium text-purple-800"
+              >応急</label
+            >
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="checkbox" checked class="h-4 w-4 cursor-pointer rounded text-blue-600" />
+            <label
+              class="cursor-pointer rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-800"
+              >病院準備</label
+            >
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="checkbox" checked class="h-4 w-4 cursor-pointer rounded text-blue-600" />
+            <label
+              class="cursor-pointer rounded-full bg-cyan-100 px-3 py-1 text-sm font-medium text-cyan-800"
+              >病院へ</label
+            >
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="checkbox" checked class="h-4 w-4 cursor-pointer rounded text-blue-600" />
+            <label
+              class="cursor-pointer rounded-full bg-emerald-100 px-3 py-1 text-sm font-medium text-emerald-800"
+              >病院</label
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- ======== 患者一覧 + リスト/パネル切替 ======== -->
+      <div class="rounded-lg bg-white p-6 shadow-md">
+        <div class="mb-4 flex items-center justify-between">
+          <h2 class="text-xl font-bold">患者一覧（12件）</h2>
+          <div class="flex items-center gap-1">
+            <button
+              onclick="switchView('list')"
+              id="listBtn"
+              class="rounded-lg bg-blue-100 p-2 text-blue-700 transition-colors"
+              title="リスト表示"
+            >
+              <svg
+                class="h-5 w-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            </button>
+            <button
+              onclick="switchView('panel')"
+              id="panelBtn"
+              class="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100"
+              title="パネル表示"
+            >
+              <svg
+                class="h-5 w-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="3" y="3" width="7" height="7" />
+                <rect x="14" y="3" width="7" height="7" />
+                <rect x="3" y="14" width="7" height="7" />
+                <rect x="14" y="14" width="7" height="7" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- ===== リスト表示（既存スタイル） ===== -->
+        <div id="listView" class="space-y-3">
+          <div
+            class="flex items-center justify-between rounded-lg bg-gray-50 p-4 transition-all hover:bg-gray-100"
+          >
+            <div class="flex items-center gap-4">
+              <span class="rounded-lg bg-red-500 px-4 py-2 font-bold text-white">T-001</span>
+              <div>
+                <div class="mb-1 flex items-center gap-2">
+                  <span class="text-base">📍</span>
+                  <span class="text-sm font-medium text-gray-900">現場</span>
+                  <span class="text-gray-400">|</span>
+                  <span class="text-sm text-gray-700">45歳 男性</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs text-gray-600">発見: 山田太郎</span>
+                  <span class="text-gray-400">|</span>
+                  <span class="text-xs text-blue-600 hover:underline"
+                    >発見位置: 新宿区西新宿6丁目</span
+                  >
+                </div>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button
+                class="rounded border border-blue-600 px-4 py-2 text-blue-600 hover:bg-blue-50"
+              >
+                詳細
+              </button>
+              <button class="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
+                搬送割当
+              </button>
+            </div>
+          </div>
+          <div
+            class="flex items-center justify-between rounded-lg bg-gray-50 p-4 transition-all hover:bg-gray-100"
+          >
+            <div class="flex items-center gap-4">
+              <span class="rounded-lg bg-red-500 px-4 py-2 font-bold text-white">T-002</span>
+              <div>
+                <div class="mb-1 flex items-center gap-2">
+                  <span class="text-base">⏳</span>
+                  <span class="text-sm font-medium text-gray-900">割当済</span>
+                  <span class="text-gray-400">|</span>
+                  <span class="text-sm text-gray-700">62歳 女性</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs text-gray-600">割当: 新宿ポンプ1</span>
+                  <span class="text-gray-400">|</span>
+                  <span class="text-xs text-blue-600">発見位置: 新宿区歌舞伎町1丁目</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button
+                class="rounded border border-blue-600 px-4 py-2 text-blue-600 hover:bg-blue-50"
+              >
+                詳細
+              </button>
+            </div>
+          </div>
+          <div
+            class="flex items-center justify-between rounded-lg bg-gray-50 p-4 transition-all hover:bg-gray-100"
+          >
+            <div class="flex items-center gap-4">
+              <span class="rounded-lg bg-yellow-400 px-4 py-2 font-bold text-gray-900">T-003</span>
+              <div>
+                <div class="mb-1 flex items-center gap-2">
+                  <span class="text-base">🏥</span>
+                  <span class="text-sm font-medium text-gray-900">応急</span>
+                  <span class="text-gray-400">|</span>
+                  <span class="text-sm text-gray-700">38歳 男性</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs text-gray-600">応急救護所待機</span>
+                  <span class="text-gray-400">|</span>
+                  <span class="text-xs text-gray-500">現在地: 応急救護所</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button
+                class="rounded border border-blue-600 px-4 py-2 text-blue-600 hover:bg-blue-50"
+              >
+                詳細
+              </button>
+            </div>
+          </div>
+          <div
+            class="flex items-center justify-between rounded-lg bg-gray-50 p-4 transition-all hover:bg-gray-100"
+          >
+            <div class="flex items-center gap-4">
+              <span class="rounded-lg bg-green-500 px-4 py-2 font-bold text-white">T-004</span>
+              <div>
+                <div class="mb-1 flex items-center gap-2">
+                  <span class="text-base">🚑</span>
+                  <span class="text-sm font-medium text-gray-900">病院へ</span>
+                  <span class="text-gray-400">|</span>
+                  <span class="text-sm text-gray-700">28歳 女性</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs text-gray-600">救急隊 → 東京医科大学病院</span>
+                  <span class="text-gray-400">|</span>
+                  <span class="text-xs text-gray-500">搬送先: 東京医科大学病院</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button
+                class="rounded border border-blue-600 px-4 py-2 text-blue-600 hover:bg-blue-50"
+              >
+                詳細
+              </button>
+            </div>
+          </div>
+          <div
+            class="flex items-center justify-between rounded-lg bg-gray-50 p-4 transition-all hover:bg-gray-100"
+          >
+            <div class="flex items-center gap-4">
+              <span class="rounded-lg bg-black px-4 py-2 font-bold text-white">T-005</span>
+              <div>
+                <div class="mb-1 flex items-center gap-2">
+                  <span class="text-base">📍</span>
+                  <span class="text-sm font-medium text-gray-900">現場</span>
+                  <span class="text-gray-400">|</span>
+                  <span class="text-sm text-gray-700">55歳 男性</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs text-gray-600">発見: 佐藤花子</span>
+                  <span class="text-gray-400">|</span>
+                  <span class="text-xs text-blue-600">発見位置: 新宿区西新宿2丁目</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button
+                class="rounded border border-blue-600 px-4 py-2 text-blue-600 hover:bg-blue-50"
+              >
+                詳細
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== パネル表示（指揮本部variant） ===== -->
+        <div id="panelView" class="grid hidden grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <!-- T-001 赤（異常値あり） -->
+          <div class="rounded-lg border-l-4 border-red-500 bg-red-50/60 p-4 shadow-sm">
+            <div class="mb-2 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="rounded-lg bg-red-500 px-3 py-1 text-sm font-bold text-white"
+                  >T-001</span
+                >
+                <span class="text-sm">📍</span>
+                <span class="text-sm font-medium text-gray-900">現場</span>
+              </div>
+              <span class="text-xs text-gray-400">経過</span>
+              <span class="text-sm font-bold text-red-600">32分</span>
+            </div>
+            <p class="mb-3 text-sm text-gray-600">45歳 男性</p>
+            <div class="mb-2 border-t border-red-200 pt-2">
+              <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                <div>SpO<sub>2</sub> <span class="font-bold text-red-600">92%</span></div>
+                <div>脈拍 <span class="font-bold text-gray-900">110</span></div>
+                <div>血圧 <span class="font-bold text-red-600">85/55</span></div>
+                <div>意識 <span class="font-bold text-yellow-600">V</span></div>
+              </div>
+            </div>
+            <div class="border-t border-red-200 pt-2">
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-700">骨折, 熱傷</span>
+                <span class="text-gray-500">発見: 山田太郎</span>
+              </div>
+              <div class="mt-3 flex gap-2">
+                <button
+                  class="rounded border border-blue-600 px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50"
+                >
+                  詳細
+                </button>
+                <button
+                  class="rounded bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-700"
+                >
+                  搬送割当
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- T-002 赤 -->
+          <div class="rounded-lg border-l-4 border-red-500 bg-red-50/60 p-4 shadow-sm">
+            <div class="mb-2 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="rounded-lg bg-red-500 px-3 py-1 text-sm font-bold text-white"
+                  >T-002</span
+                >
+                <span class="text-sm">⏳</span>
+                <span class="text-sm font-medium text-gray-900">割当済</span>
+              </div>
+              <span class="text-xs text-gray-400">経過</span>
+              <span class="text-sm font-bold text-red-600">45分</span>
+            </div>
+            <p class="mb-3 text-sm text-gray-600">62歳 女性</p>
+            <div class="mb-2 border-t border-red-200 pt-2">
+              <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                <div>SpO<sub>2</sub> <span class="font-bold text-gray-900">96%</span></div>
+                <div>脈拍 <span class="font-bold text-red-600">130</span></div>
+                <div>血圧 <span class="font-bold text-gray-900">105/70</span></div>
+                <div>意識 <span class="font-bold text-gray-900">A</span></div>
+              </div>
+            </div>
+            <div class="border-t border-red-200 pt-2">
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-700">打撲</span>
+                <span class="text-gray-500">割当: 新宿ポンプ1</span>
+              </div>
+              <div class="mt-3 flex gap-2">
+                <button
+                  class="rounded border border-blue-600 px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50"
+                >
+                  詳細
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- T-003 黄 -->
+          <div class="rounded-lg border-l-4 border-yellow-400 bg-yellow-50/60 p-4 shadow-sm">
+            <div class="mb-2 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="rounded-lg bg-yellow-400 px-3 py-1 text-sm font-bold text-gray-900"
+                  >T-003</span
+                >
+                <span class="text-sm">🏥</span>
+                <span class="text-sm font-medium text-gray-900">応急</span>
+              </div>
+              <span class="text-xs text-gray-400">経過</span>
+              <span class="text-sm font-bold text-yellow-600">22分</span>
+            </div>
+            <p class="mb-3 text-sm text-gray-600">38歳 男性</p>
+            <div class="mb-2 border-t border-yellow-200 pt-2">
+              <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                <div>SpO<sub>2</sub> <span class="font-bold text-gray-900">97%</span></div>
+                <div>脈拍 <span class="font-bold text-gray-900">88</span></div>
+                <div>血圧 <span class="font-bold text-gray-900">120/80</span></div>
+                <div>意識 <span class="font-bold text-gray-900">A</span></div>
+              </div>
+            </div>
+            <div class="border-t border-yellow-200 pt-2">
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-700">捻挫</span>
+                <span class="text-gray-500">応急救護所待機</span>
+              </div>
+              <div class="mt-3 flex gap-2">
+                <button
+                  class="rounded border border-blue-600 px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50"
+                >
+                  詳細
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- T-004 緑 -->
+          <div class="rounded-lg border-l-4 border-green-500 bg-green-50/60 p-4 shadow-sm">
+            <div class="mb-2 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="rounded-lg bg-green-500 px-3 py-1 text-sm font-bold text-white"
+                  >T-004</span
+                >
+                <span class="text-sm">🚑</span>
+                <span class="text-sm font-medium text-gray-900">病院へ</span>
+              </div>
+              <span class="text-xs text-gray-400">経過</span>
+              <span class="text-sm text-gray-500">8分</span>
+            </div>
+            <p class="mb-3 text-sm text-gray-600">28歳 女性</p>
+            <div class="mb-2 border-t border-green-200 pt-2">
+              <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                <div>SpO<sub>2</sub> <span class="font-bold text-gray-900">99%</span></div>
+                <div>脈拍 <span class="font-bold text-gray-900">72</span></div>
+                <div>血圧 <span class="font-bold text-gray-900">115/75</span></div>
+                <div>意識 <span class="font-bold text-gray-900">A</span></div>
+              </div>
+            </div>
+            <div class="border-t border-green-200 pt-2">
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-700">打撲</span>
+                <span class="text-gray-500">救急隊 → 東京医科大</span>
+              </div>
+              <div class="mt-3 flex gap-2">
+                <button
+                  class="rounded border border-blue-600 px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50"
+                >
+                  詳細
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- T-005 黒 -->
+          <div class="rounded-lg border-l-4 border-gray-900 bg-gray-100 p-4 shadow-sm">
+            <div class="mb-2 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="rounded-lg bg-black px-3 py-1 text-sm font-bold text-white"
+                  >T-005</span
+                >
+                <span class="text-sm">📍</span>
+                <span class="text-sm font-medium text-gray-900">現場</span>
+              </div>
+              <span class="text-xs text-gray-400">経過</span>
+              <span class="text-sm font-bold text-red-600">52分</span>
+            </div>
+            <p class="mb-3 text-sm text-gray-600">55歳 男性</p>
+            <div class="mb-2 border-t border-gray-300 pt-2">
+              <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                <div>SpO<sub>2</sub> <span class="font-bold text-gray-400">-</span></div>
+                <div>脈拍 <span class="font-bold text-gray-400">-</span></div>
+                <div>血圧 <span class="font-bold text-gray-400">-</span></div>
+                <div>意識 <span class="font-bold text-red-600">U</span></div>
+              </div>
+            </div>
+            <div class="border-t border-gray-300 pt-2">
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-700">-</span>
+                <span class="text-gray-500">発見: 佐藤花子</span>
+              </div>
+              <div class="mt-3 flex gap-2">
+                <button
+                  class="rounded border border-blue-600 px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50"
+                >
+                  詳細
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- T-006 黄（異常値あり） -->
+          <div class="rounded-lg border-l-4 border-yellow-400 bg-yellow-50/60 p-4 shadow-sm">
+            <div class="mb-2 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="rounded-lg bg-yellow-400 px-3 py-1 text-sm font-bold text-gray-900"
+                  >T-006</span
+                >
+                <span class="text-sm">🚑</span>
+                <span class="text-sm font-medium text-gray-900">応急へ</span>
+              </div>
+              <span class="text-xs text-gray-400">経過</span>
+              <span class="text-sm font-bold text-yellow-600">18分</span>
+            </div>
+            <p class="mb-3 text-sm text-gray-600">71歳 女性</p>
+            <div class="mb-2 border-t border-yellow-200 pt-2">
+              <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                <div>SpO<sub>2</sub> <span class="font-bold text-red-600">93%</span></div>
+                <div>脈拍 <span class="font-bold text-gray-900">95</span></div>
+                <div>血圧 <span class="font-bold text-gray-900">140/90</span></div>
+                <div>意識 <span class="font-bold text-gray-900">A</span></div>
+              </div>
+            </div>
+            <div class="border-t border-yellow-200 pt-2">
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-700">骨折</span>
+                <span class="text-gray-500">搬送: 新宿救助1</span>
+              </div>
+              <div class="mt-3 flex gap-2">
+                <button
+                  class="rounded border border-blue-600 px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50"
+                >
+                  詳細
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ======== 地図モーダル ======== -->
+    <div id="mapModal" class="fixed inset-0 z-50 hidden">
+      <div
+        class="absolute inset-0 bg-black/50"
+        onclick="document.getElementById('mapModal').classList.add('hidden')"
+      ></div>
+      <div class="relative flex h-full w-full flex-col bg-white">
+        <div class="flex items-center justify-between border-b p-4">
+          <h2 class="text-xl font-bold">患者位置マップ</h2>
+          <div class="flex items-center gap-4">
+            <span class="text-sm text-gray-500">最終更新 14:32</span>
+            <button
+              onclick="document.getElementById('mapModal').classList.add('hidden')"
+              class="rounded-lg p-2 text-gray-600 hover:bg-gray-100"
+            >
+              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="flex flex-1 items-center justify-center bg-gray-200">
+          <div class="text-center text-gray-500">
+            <svg
+              class="mx-auto mb-4 h-16 w-16 opacity-50"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1"
+                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1"
+                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+            </svg>
+            <p class="text-lg font-medium">Leaflet地図（実装時に表示）</p>
+            <div class="mt-4 flex justify-center gap-3">
+              <span class="inline-flex items-center gap-1"
+                ><span class="h-3 w-3 rounded-full bg-red-500"></span>赤</span
+              >
+              <span class="inline-flex items-center gap-1"
+                ><span class="h-3 w-3 rounded-full bg-yellow-400"></span>黄</span
+              >
+              <span class="inline-flex items-center gap-1"
+                ><span class="h-3 w-3 rounded-full bg-green-500"></span>緑</span
+              >
+              <span class="inline-flex items-center gap-1"
+                ><span class="h-3 w-3 rounded-full bg-black"></span>黒</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======== 現場図モーダル（編集モード + 注釈システム） ======== -->
+    <div id="sceneMapModal" class="fixed inset-0 z-50 hidden">
+      <div class="absolute inset-0 bg-black/50"></div>
+      <div class="relative flex h-full w-full flex-col bg-white">
+        <!-- ヘッダー -->
+        <div class="flex items-center justify-between border-b bg-gray-50 p-3">
+          <h2 class="text-lg font-bold">災害現場図: 新宿交差点事故</h2>
+          <div class="flex items-center gap-2">
+            <button
+              class="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+            >
+              保存
+            </button>
+            <button
+              class="rounded-lg bg-gray-200 px-4 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-300"
+            >
+              新規
+            </button>
+            <button
+              onclick="document.getElementById('sceneMapModal').classList.add('hidden')"
+              class="rounded-lg p-2 text-gray-600 hover:bg-gray-200"
+            >
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <!-- 本体 -->
+        <div class="flex flex-1 overflow-hidden">
+          <!-- サイドバー（パレット） -->
+          <div class="w-20 flex-shrink-0 space-y-3 overflow-y-auto border-r bg-gray-50 p-2">
+            <div>
+              <p class="mb-1 text-center text-[10px] font-bold text-gray-500">車両</p>
+              <div class="grid grid-cols-2 gap-1">
+                <button
+                  class="mx-auto flex h-8 w-8 items-center justify-center rounded border-2 border-red-500 text-xs font-bold text-red-700 hover:bg-red-50"
+                >
+                  P
+                </button>
+                <button
+                  class="mx-auto flex h-8 w-8 items-center justify-center rounded border-2 border-red-500 text-xs font-bold text-red-700 hover:bg-red-50"
+                >
+                  L
+                </button>
+                <button
+                  class="mx-auto flex h-8 w-8 items-center justify-center rounded border-2 border-red-500 text-xs font-bold text-red-700 hover:bg-red-50"
+                >
+                  A
+                </button>
+                <button
+                  class="mx-auto flex h-8 w-8 items-center justify-center rounded border-2 border-red-500 text-xs font-bold text-red-700 hover:bg-red-50"
+                >
+                  R
+                </button>
+                <button
+                  class="mx-auto flex h-8 w-8 items-center justify-center rounded border-2 border-red-500 text-[8px] font-bold text-red-700 hover:bg-red-50"
+                >
+                  指揮
+                </button>
+                <button
+                  class="mx-auto flex h-8 w-8 items-center justify-center rounded border-2 border-red-500 text-xs font-bold text-red-700 hover:bg-red-50"
+                >
+                  T
+                </button>
+                <button
+                  class="col-span-2 mx-auto flex h-8 w-8 items-center justify-center rounded border-2 border-red-500 text-xs font-bold text-red-700 hover:bg-red-50"
+                >
+                  C
+                </button>
+              </div>
+            </div>
+            <div>
+              <p class="mb-1 text-center text-[10px] font-bold text-gray-500">施設</p>
+              <div class="grid grid-cols-2 gap-1">
+                <button
+                  class="mx-auto flex h-8 w-8 items-center justify-center rounded border border-gray-400 text-[8px] font-bold text-gray-700 hover:bg-gray-100"
+                >
+                  🚩本
+                </button>
+                <button
+                  class="mx-auto flex h-8 w-8 items-center justify-center rounded border border-gray-400 text-[10px] font-bold text-red-600 hover:bg-gray-100"
+                >
+                  +救
+                </button>
+                <button
+                  class="mx-auto flex h-8 w-8 items-center justify-center rounded border border-gray-400 text-[10px] font-bold text-red-600 hover:bg-gray-100"
+                >
+                  +T
+                </button>
+                <button
+                  class="mx-auto flex h-8 w-8 items-center justify-center rounded border border-gray-400 text-xs font-bold text-gray-700 hover:bg-gray-100"
+                >
+                  S
+                </button>
+              </div>
+            </div>
+            <div>
+              <p class="mb-1 text-center text-[10px] font-bold text-gray-500">水利</p>
+              <div class="grid grid-cols-2 gap-1">
+                <button
+                  class="mx-auto flex h-8 w-8 items-center justify-center rounded-full border border-blue-400 text-xs font-bold text-blue-700 hover:bg-blue-50"
+                >
+                  H
+                </button>
+                <button
+                  class="mx-auto flex h-8 w-8 items-center justify-center rounded-full border-2 border-blue-400 text-xs font-bold text-blue-700 hover:bg-blue-50"
+                  style="
+                    box-shadow:
+                      inset 0 0 0 2px white,
+                      inset 0 0 0 3px #60a5fa;
+                  "
+                >
+                  H
+                </button>
+                <button
+                  class="col-span-2 mx-auto flex h-8 w-8 items-center justify-center rounded border border-blue-400 text-[8px] font-bold text-blue-700 hover:bg-blue-50"
+                >
+                  ~水~
+                </button>
+              </div>
+            </div>
+            <div>
+              <p class="mb-1 text-center text-[10px] font-bold text-gray-500">災害</p>
+              <div class="grid grid-cols-2 gap-1">
+                <button
+                  class="mx-auto flex h-8 w-8 items-center justify-center rounded text-lg text-red-600 hover:bg-red-50"
+                >
+                  &#10060;
+                </button>
+                <button
+                  class="mx-auto flex h-8 w-8 items-center justify-center rounded border border-red-400 text-sm font-bold text-red-600 hover:bg-red-50"
+                >
+                  !
+                </button>
+                <button
+                  class="mx-auto flex h-8 w-8 items-center justify-center rounded text-red-600 hover:bg-red-50"
+                >
+                  <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                      d="M12 2C10.34 2 9 3.34 9 5c0 .89.36 1.68.94 2.27L12 9.28l2.06-2.01C14.64 6.68 15 5.89 15 5c0-1.66-1.34-3-3-3zm-4.5 16c-1.38 0-2.5-1.12-2.5-2.5S6.12 13 7.5 13s2.5 1.12 2.5 2.5S8.88 18 7.5 18zm9 0c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5S17.88 18 16.5 18z"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div>
+              <p class="mb-1 text-center text-[10px] font-bold text-gray-500">構造</p>
+              <div class="grid grid-cols-2 gap-1">
+                <button
+                  class="mx-auto flex h-8 w-8 items-center justify-center rounded border-2 border-gray-400 text-[8px] text-gray-500 hover:bg-gray-100"
+                >
+                  □
+                </button>
+                <button
+                  class="mx-auto flex h-8 w-8 items-center justify-center rounded border-2 border-gray-400 text-[8px] text-gray-500 hover:bg-gray-100"
+                >
+                  ■
+                </button>
+                <button
+                  class="col-span-2 mx-auto h-4 w-12 rounded-sm bg-gray-300 hover:bg-gray-400"
+                ></button>
+              </div>
+            </div>
+            <div>
+              <p class="mb-1 text-center text-[10px] font-bold text-gray-500">方向</p>
+              <div class="grid grid-cols-2 gap-1">
+                <button
+                  class="mx-auto flex h-8 w-8 items-center justify-center rounded text-lg hover:bg-gray-100"
+                >
+                  →
+                </button>
+                <button
+                  class="mx-auto flex h-8 w-8 items-center justify-center rounded text-sm font-bold text-blue-500 hover:bg-blue-50"
+                >
+                  ~→
+                </button>
+                <button
+                  class="mx-auto flex h-8 w-8 items-center justify-center rounded text-xs font-bold text-gray-700 hover:bg-gray-100"
+                >
+                  N↑
+                </button>
+                <button
+                  class="mx-auto flex h-8 w-8 items-center justify-center rounded text-sm hover:bg-gray-100"
+                >
+                  🎏
+                </button>
+              </div>
+            </div>
+            <!-- 注釈（旧: 番号） -->
+            <div>
+              <p class="mb-1 text-center text-[10px] font-bold text-gray-500">注釈</p>
+              <div class="grid grid-cols-2 gap-1">
+                <button
+                  class="col-span-2 mx-auto flex h-8 w-8 items-center justify-center rounded-full border border-orange-400 bg-orange-100 text-xs font-bold text-orange-700 hover:bg-orange-50"
+                >
+                  ①
+                </button>
+              </div>
+            </div>
+            <div>
+              <p class="mb-1 text-center text-[10px] font-bold text-gray-500">文字</p>
+              <div class="grid grid-cols-2 gap-1">
+                <button
+                  class="col-span-2 mx-auto flex h-8 w-8 items-center justify-center rounded border border-gray-400 text-xs font-bold text-gray-600 hover:bg-gray-100"
+                >
+                  Aa
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- キャンバス + 注釈パネル -->
+          <div class="flex flex-1 flex-col overflow-hidden">
+            <!-- キャンバス -->
+            <div
+              class="relative flex-1 overflow-hidden bg-white"
+              style="
+                background-image: radial-gradient(circle, #e5e7eb 1px, transparent 1px);
+                background-size: 30px 30px;
+              "
+            >
+              <!-- 道路 -->
+              <div
+                class="absolute rounded bg-gray-300"
+                style="left: 200px; top: 150px; width: 400px; height: 50px; opacity: 0.7"
+              ></div>
+              <div
+                class="absolute rounded bg-gray-300"
+                style="left: 350px; top: 50px; width: 50px; height: 300px; opacity: 0.7"
+              ></div>
+              <!-- 建物 -->
+              <div
+                class="absolute flex items-center justify-center rounded border-2 border-gray-400 bg-gray-100 text-xs text-gray-500"
+                style="left: 100px; top: 60px; width: 80px; height: 60px"
+              >
+                ビル A
+              </div>
+              <div
+                class="absolute flex items-center justify-center rounded border-2 border-gray-400 bg-gray-100 text-xs text-gray-500"
+                style="left: 450px; top: 60px; width: 100px; height: 70px"
+              >
+                商業施設
+              </div>
+              <!-- 出火点 -->
+              <div class="absolute text-2xl font-bold text-red-600" style="left: 365px; top: 160px">
+                &#10060;
+              </div>
+              <!-- 車両 -->
+              <div
+                class="absolute flex items-center justify-center rounded border-2 border-red-500 bg-white text-xs font-bold text-red-700"
+                style="left: 140px; top: 220px; width: 32px; height: 32px"
+              >
+                P
+              </div>
+              <div
+                class="absolute flex items-center justify-center rounded border-2 border-red-500 bg-white text-xs font-bold text-red-700"
+                style="left: 180px; top: 220px; width: 32px; height: 32px"
+              >
+                P
+              </div>
+              <div
+                class="absolute flex items-center justify-center rounded border-2 border-red-500 bg-white text-xs font-bold text-red-700"
+                style="left: 500px; top: 220px; width: 32px; height: 32px"
+              >
+                A
+              </div>
+              <div
+                class="absolute flex items-center justify-center rounded border-2 border-red-500 bg-white text-xs font-bold text-red-700"
+                style="left: 540px; top: 220px; width: 32px; height: 32px"
+              >
+                A
+              </div>
+              <!-- 指揮本部 -->
+              <div
+                class="absolute flex items-center justify-center rounded border border-gray-500 bg-white text-[9px] font-bold text-gray-700"
+                style="left: 80px; top: 300px; width: 44px; height: 28px"
+              >
+                🚩本部
+              </div>
+              <!-- トリアージポスト -->
+              <div
+                class="absolute flex items-center justify-center rounded border border-gray-500 bg-white text-[10px] font-bold text-red-600"
+                style="left: 450px; top: 290px; width: 32px; height: 28px"
+              >
+                +T
+              </div>
+              <!-- 消火栓 -->
+              <div
+                class="absolute flex items-center justify-center rounded-full border border-blue-400 bg-white text-xs font-bold text-blue-700"
+                style="left: 250px; top: 120px; width: 28px; height: 28px"
+              >
+                H
+              </div>
+              <!-- 北マーク -->
+              <div class="absolute text-sm font-bold text-gray-700" style="left: 620px; top: 40px">
+                N↑
+              </div>
+              <!-- テキストラベル -->
+              <div class="absolute text-xs text-gray-600" style="left: 250px; top: 200px">
+                国道20号
+              </div>
+              <div class="absolute text-xs text-gray-600" style="left: 360px; top: 40px">
+                甲州街道
+              </div>
+
+              <!-- ===== 注釈マーカー ①（吹き出し表示時） ===== -->
+              <div class="absolute" style="left: 335px; top: 190px">
+                <div
+                  class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-2 border-orange-500 bg-orange-100 text-xs font-bold text-orange-700 shadow-sm"
+                >
+                  1
+                </div>
+                <!-- 吹き出し（表示時） -->
+                <div
+                  class="absolute -top-2 left-8 z-10 w-48 rounded-lg border border-orange-300 bg-white p-2 text-xs shadow-lg"
+                >
+                  <p class="text-gray-700">要救助者3名確認、梁が落下し閉じ込め</p>
+                </div>
+              </div>
+
+              <!-- ===== 注釈マーカー ②（吹き出し表示時） ===== -->
+              <div class="absolute" style="left: 405px; top: 180px">
+                <div
+                  class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-2 border-orange-500 bg-orange-100 text-xs font-bold text-orange-700 shadow-sm"
+                >
+                  2
+                </div>
+                <div
+                  class="absolute -top-2 left-8 z-10 w-48 rounded-lg border border-orange-300 bg-white p-2 text-xs shadow-lg"
+                >
+                  <p class="text-gray-700">ガス漏れ確認、東京ガス手配済</p>
+                </div>
+              </div>
+
+              <!-- ===== 注釈マーカー ③（吹き出し非表示時 = マーカーのみ） ===== -->
+              <div class="absolute" style="left: 460px; top: 250px">
+                <div
+                  class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-2 border-orange-500 bg-orange-100 text-xs font-bold text-orange-700 shadow-sm"
+                >
+                  3
+                </div>
+              </div>
+            </div>
+
+            <!-- 注釈パネル（キャンバス下部） -->
+            <div class="max-h-32 overflow-y-auto border-t bg-gray-50 p-3" id="annotationPanel">
+              <div class="mb-2 flex items-center justify-between">
+                <h4 class="text-xs font-bold text-gray-600">注釈一覧</h4>
+                <label class="flex items-center gap-1 text-xs text-gray-500">
+                  <input
+                    type="checkbox"
+                    checked
+                    class="h-3 w-3 rounded"
+                    onchange="toggleAnnotations(this)"
+                  />
+                  吹き出し表示
+                </label>
+              </div>
+              <div class="space-y-1.5">
+                <div class="flex items-start gap-2">
+                  <span
+                    class="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-orange-400 bg-orange-100 text-[10px] font-bold text-orange-700"
+                    >1</span
+                  >
+                  <input
+                    type="text"
+                    value="要救助者3名確認、梁が落下し閉じ込め"
+                    class="flex-1 rounded border border-gray-300 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-orange-400"
+                  />
+                </div>
+                <div class="flex items-start gap-2">
+                  <span
+                    class="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-orange-400 bg-orange-100 text-[10px] font-bold text-orange-700"
+                    >2</span
+                  >
+                  <input
+                    type="text"
+                    value="ガス漏れ確認、東京ガス手配済"
+                    class="flex-1 rounded border border-gray-300 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-orange-400"
+                  />
+                </div>
+                <div class="flex items-start gap-2">
+                  <span
+                    class="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-orange-400 bg-orange-100 text-[10px] font-bold text-orange-700"
+                    >3</span
+                  >
+                  <input
+                    type="text"
+                    value="2階部分崩落危険"
+                    class="flex-1 rounded border border-gray-300 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-orange-400"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- 下部ツールバー -->
+        <div class="flex items-center gap-4 border-t bg-gray-50 px-4 py-2">
+          <span class="text-sm text-gray-600">選択中: <strong>ポンプ車 (P)</strong></span>
+          <button class="rounded bg-gray-200 px-3 py-1 text-sm hover:bg-gray-300">↺ 回転</button>
+          <button class="rounded bg-red-100 px-3 py-1 text-sm text-red-700 hover:bg-red-200">
+            削除
+          </button>
+          <label class="ml-auto flex items-center gap-2 text-sm text-gray-600">
+            <input type="checkbox" checked class="h-4 w-4 rounded" />
+            グリッド表示
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let flowCollapsed = false;
+      function toggleFlow() {
+        flowCollapsed = !flowCollapsed;
+        const content = document.getElementById('flowContent');
+        const text = document.getElementById('flowToggleText');
+        if (flowCollapsed) {
+          content.style.maxHeight = '0px';
+          content.style.opacity = '0';
+          text.textContent = '▼ 展開';
+        } else {
+          content.style.maxHeight = '500px';
+          content.style.opacity = '1';
+          text.textContent = '▲ 折りたたむ';
+        }
+      }
+
+      function switchView(mode) {
+        const listView = document.getElementById('listView');
+        const panelView = document.getElementById('panelView');
+        const listBtn = document.getElementById('listBtn');
+        const panelBtn = document.getElementById('panelBtn');
+        if (mode === 'list') {
+          listView.classList.remove('hidden');
+          panelView.classList.add('hidden');
+          listBtn.className = 'p-2 rounded-lg bg-blue-100 text-blue-700 transition-colors';
+          panelBtn.className = 'p-2 rounded-lg text-gray-400 hover:bg-gray-100 transition-colors';
+        } else {
+          listView.classList.add('hidden');
+          panelView.classList.remove('hidden');
+          panelView.classList.add('grid');
+          listBtn.className = 'p-2 rounded-lg text-gray-400 hover:bg-gray-100 transition-colors';
+          panelBtn.className = 'p-2 rounded-lg bg-blue-100 text-blue-700 transition-colors';
+        }
+      }
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          document.getElementById('mapModal').classList.add('hidden');
+          document.getElementById('sceneMapModal').classList.add('hidden');
+        }
+      });
+    </script>
+  </body>
+</html>

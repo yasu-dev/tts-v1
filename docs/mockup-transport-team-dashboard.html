@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>搬送部隊ダッシュボード - UIモックアップ（パネル表示）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        font-family:
+          'Inter',
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          sans-serif;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-gray-100">
+    <!-- ======== HEADER ======== -->
+    <header class="sticky top-0 z-40 bg-orange-600 p-4 text-white shadow-lg">
+      <div class="mx-auto flex max-w-7xl items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold">搬送部隊ダッシュボード</h1>
+          <p class="text-sm opacity-90">搬送指示・患者搬送管理</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <button
+            class="rounded-lg bg-white px-4 py-2 font-medium text-orange-600 transition-colors hover:bg-orange-50"
+          >
+            QRスキャン
+          </button>
+          <!-- NEW: 地図アイコン -->
+          <button
+            class="rounded-lg p-2 text-white transition-colors hover:bg-white hover:bg-opacity-10 hover:text-gray-200"
+            title="患者位置マップ"
+          >
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+            </svg>
+          </button>
+          <!-- NEW: 現場図アイコン -->
+          <button
+            class="rounded-lg p-2 text-white transition-colors hover:bg-white hover:bg-opacity-10 hover:text-gray-200"
+            title="災害現場図"
+          >
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+              />
+            </svg>
+          </button>
+          <!-- ログアウト -->
+          <button
+            class="rounded-lg p-2 text-gray-300 transition-colors hover:bg-white hover:bg-opacity-10 hover:text-white"
+            title="ログアウト"
+          >
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-7xl space-y-6 p-6">
+      <!-- 統計カード -->
+      <div class="grid grid-cols-2 gap-4 md:grid-cols-5">
+        <button
+          class="rounded-lg bg-white p-6 text-center shadow-md shadow-xl ring-4 ring-orange-500"
+        >
+          <p class="text-3xl font-bold text-gray-800">15</p>
+          <p class="text-sm text-gray-600">総数</p>
+        </button>
+        <button class="rounded-lg bg-black p-6 text-center text-white shadow-md">
+          <p class="text-3xl font-bold">0</p>
+          <p class="text-sm opacity-90">黒（死亡）</p>
+        </button>
+        <button class="rounded-lg bg-red-500 p-6 text-center text-white shadow-md">
+          <p class="text-3xl font-bold">5</p>
+          <p class="text-sm opacity-90">赤（重症）</p>
+        </button>
+        <button class="rounded-lg bg-yellow-400 p-6 text-center shadow-md">
+          <p class="text-3xl font-bold">7</p>
+          <p class="text-sm">黄（中等症）</p>
+        </button>
+        <button class="rounded-lg bg-green-500 p-6 text-center text-white shadow-md">
+          <p class="text-3xl font-bold">3</p>
+          <p class="text-sm opacity-90">緑（軽症）</p>
+        </button>
+      </div>
+
+      <!-- 搬送部隊絞り込み -->
+      <div class="rounded-lg bg-white p-6 shadow-md">
+        <div class="flex items-center gap-4">
+          <label class="text-sm font-medium text-gray-700">搬送部隊絞り込み:</label>
+          <select
+            class="max-w-xs rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-orange-500"
+          >
+            <option>全搬送部隊</option>
+            <option>新宿ポンプ1</option>
+            <option>新宿ポンプ2</option>
+            <option>新宿救助1</option>
+            <option>三本部機動</option>
+          </select>
+          <span class="ml-auto text-sm text-gray-600">表示中: 6件 / 全15件</span>
+        </div>
+      </div>
+
+      <!-- 患者一覧 + 切替 -->
+      <div class="rounded-lg bg-white p-6 shadow-md">
+        <div class="mb-4 flex items-center justify-between">
+          <h2 class="text-xl font-bold">患者一覧（6件）</h2>
+          <div class="flex items-center gap-1">
+            <button
+              onclick="switchView('list')"
+              id="listBtn"
+              class="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100"
+              title="リスト表示"
+            >
+              <svg
+                class="h-5 w-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            </button>
+            <button
+              onclick="switchView('panel')"
+              id="panelBtn"
+              class="rounded-lg bg-orange-100 p-2 text-orange-700 transition-colors"
+              title="パネル表示"
+            >
+              <svg
+                class="h-5 w-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="3" y="3" width="7" height="7" />
+                <rect x="14" y="3" width="7" height="7" />
+                <rect x="3" y="14" width="7" height="7" />
+                <rect x="14" y="14" width="7" height="7" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- リスト表示 -->
+        <div id="listView" class="hidden space-y-3">
+          <div
+            class="flex items-center justify-between rounded-lg bg-gray-50 p-4 hover:bg-gray-100"
+          >
+            <div class="flex items-center gap-4">
+              <span class="rounded-lg bg-red-500 px-4 py-2 font-bold text-white">T-020</span>
+              <div>
+                <div class="mb-1 flex items-center gap-2">
+                  <span class="text-base">⏳</span>
+                  <span class="text-sm font-medium text-gray-900">割当済</span>
+                  <span class="text-gray-400">|</span>
+                  <span class="text-sm text-gray-700">41歳 男性</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs text-gray-600">割当: 新宿ポンプ1</span>
+                  <span class="text-gray-400">|</span>
+                  <span class="text-xs text-blue-600">発見位置: 新宿区西新宿6丁目</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button
+                class="rounded border border-orange-600 px-4 py-2 text-orange-600 hover:bg-orange-50"
+              >
+                詳細
+              </button>
+              <button class="rounded bg-orange-600 px-4 py-2 text-white hover:bg-orange-700">
+                搬送開始
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- NEW: パネル表示（搬送部隊 variant: バイタル2項目 + チーム名 + 位置） -->
+        <div id="panelView" class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <!-- T-020: 赤・割当済（搬送開始ボタンあり） -->
+          <div class="rounded-lg border-l-4 border-red-500 bg-red-50/60 p-4 shadow-sm">
+            <div class="mb-1 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="rounded-lg bg-red-500 px-3 py-1 text-sm font-bold text-white"
+                  >T-020</span
+                >
+                <span class="text-sm">⏳</span>
+                <span class="text-sm font-medium text-gray-900">割当済</span>
+              </div>
+            </div>
+            <div class="mb-3 flex items-center justify-between">
+              <span class="text-sm text-gray-600">41歳 男性</span>
+              <span class="text-sm font-medium text-orange-700">新宿ポンプ1</span>
+            </div>
+            <!-- Scan: バイタル2項目のみ -->
+            <div class="mb-2 border-t border-red-200 pt-2">
+              <div class="grid grid-cols-2 gap-x-4 text-sm">
+                <div>SpO<sub>2</sub> <span class="font-bold text-red-600">91%</span></div>
+                <div>意識 <span class="font-bold text-yellow-600">V</span></div>
+              </div>
+            </div>
+            <!-- Read: 症状 + 位置 -->
+            <div class="border-t border-red-200 pt-2">
+              <p class="text-sm text-gray-700">骨折, 熱傷</p>
+              <p class="flex items-center gap-1 text-sm text-gray-500">
+                <span>📍</span> 新宿区西新宿6丁目
+              </p>
+              <div class="mt-3 flex gap-2">
+                <button
+                  class="rounded border border-orange-600 px-3 py-1.5 text-sm text-orange-600 hover:bg-orange-50"
+                >
+                  詳細
+                </button>
+                <button
+                  class="rounded bg-orange-600 px-3 py-1.5 text-sm text-white hover:bg-orange-700"
+                >
+                  搬送開始
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- T-021: 赤・搬送中 -->
+          <div class="rounded-lg border-l-4 border-red-500 bg-red-50/60 p-4 shadow-sm">
+            <div class="mb-1 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="rounded-lg bg-red-500 px-3 py-1 text-sm font-bold text-white"
+                  >T-021</span
+                >
+                <span class="text-sm">🚑</span>
+                <span class="text-sm font-medium text-gray-900">応急へ</span>
+              </div>
+            </div>
+            <div class="mb-3 flex items-center justify-between">
+              <span class="text-sm text-gray-600">55歳 女性</span>
+              <span class="text-sm font-medium text-orange-700">新宿ポンプ1</span>
+            </div>
+            <div class="mb-2 border-t border-red-200 pt-2">
+              <div class="grid grid-cols-2 gap-x-4 text-sm">
+                <div>SpO<sub>2</sub> <span class="font-bold text-red-600">89%</span></div>
+                <div>意識 <span class="font-bold text-red-600">P</span></div>
+              </div>
+            </div>
+            <div class="border-t border-red-200 pt-2">
+              <p class="text-sm text-gray-700">切断</p>
+              <p class="flex items-center gap-1 text-sm text-gray-500">
+                <span>📍</span> 新宿区歌舞伎町1丁目
+              </p>
+              <div class="mt-3 flex gap-2">
+                <button
+                  class="rounded border border-orange-600 px-3 py-1.5 text-sm text-orange-600 hover:bg-orange-50"
+                >
+                  詳細
+                </button>
+                <button
+                  class="rounded bg-green-600 px-3 py-1.5 text-sm text-white hover:bg-green-700"
+                >
+                  応急到着
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- T-022: 黄・割当済 -->
+          <div class="rounded-lg border-l-4 border-yellow-400 bg-yellow-50/60 p-4 shadow-sm">
+            <div class="mb-1 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="rounded-lg bg-yellow-400 px-3 py-1 text-sm font-bold text-gray-900"
+                  >T-022</span
+                >
+                <span class="text-sm">⏳</span>
+                <span class="text-sm font-medium text-gray-900">割当済</span>
+              </div>
+            </div>
+            <div class="mb-3 flex items-center justify-between">
+              <span class="text-sm text-gray-600">38歳 男性</span>
+              <span class="text-sm font-medium text-orange-700">新宿救助1</span>
+            </div>
+            <div class="mb-2 border-t border-yellow-200 pt-2">
+              <div class="grid grid-cols-2 gap-x-4 text-sm">
+                <div>SpO<sub>2</sub> <span class="font-bold text-gray-900">96%</span></div>
+                <div>意識 <span class="font-bold text-gray-900">A</span></div>
+              </div>
+            </div>
+            <div class="border-t border-yellow-200 pt-2">
+              <p class="text-sm text-gray-700">打撲</p>
+              <p class="flex items-center gap-1 text-sm text-gray-500">
+                <span>📍</span> 新宿区新宿3丁目
+              </p>
+              <div class="mt-3 flex gap-2">
+                <button
+                  class="rounded border border-orange-600 px-3 py-1.5 text-sm text-orange-600 hover:bg-orange-50"
+                >
+                  詳細
+                </button>
+                <button
+                  class="rounded bg-orange-600 px-3 py-1.5 text-sm text-white hover:bg-orange-700"
+                >
+                  搬送開始
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- T-023: 緑・応急到着済 -->
+          <div class="rounded-lg border-l-4 border-green-500 bg-green-50/60 p-4 shadow-sm">
+            <div class="mb-1 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="rounded-lg bg-green-500 px-3 py-1 text-sm font-bold text-white"
+                  >T-023</span
+                >
+                <span class="text-sm">🏥</span>
+                <span class="text-sm font-medium text-gray-900">応急</span>
+              </div>
+            </div>
+            <div class="mb-3 flex items-center justify-between">
+              <span class="text-sm text-gray-600">25歳 女性</span>
+              <span class="text-sm font-medium text-orange-700">新宿ポンプ2</span>
+            </div>
+            <div class="mb-2 border-t border-green-200 pt-2">
+              <div class="grid grid-cols-2 gap-x-4 text-sm">
+                <div>SpO<sub>2</sub> <span class="font-bold text-gray-900">99%</span></div>
+                <div>意識 <span class="font-bold text-gray-900">A</span></div>
+              </div>
+            </div>
+            <div class="border-t border-green-200 pt-2">
+              <p class="text-sm text-gray-700">捻挫</p>
+              <p class="flex items-center gap-1 text-sm text-gray-500">
+                <span>📍</span> 新宿区西新宿2丁目
+              </p>
+              <div class="mt-3 flex gap-2">
+                <button
+                  class="rounded border border-orange-600 px-3 py-1.5 text-sm text-orange-600 hover:bg-orange-50"
+                >
+                  詳細
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- T-024: 黄・搬送中（確認ダイアログ状態） -->
+          <div
+            class="rounded-lg border-l-4 border-yellow-400 bg-yellow-50/60 p-4 shadow-sm ring-2 ring-orange-400"
+          >
+            <div class="mb-1 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="rounded-lg bg-yellow-400 px-3 py-1 text-sm font-bold text-gray-900"
+                  >T-024</span
+                >
+                <span class="text-sm">🚑</span>
+                <span class="text-sm font-medium text-gray-900">応急へ</span>
+              </div>
+            </div>
+            <div class="mb-3 flex items-center justify-between">
+              <span class="text-sm text-gray-600">70歳 男性</span>
+              <span class="text-sm font-medium text-orange-700">三本部機動</span>
+            </div>
+            <div class="mb-2 border-t border-yellow-200 pt-2">
+              <div class="grid grid-cols-2 gap-x-4 text-sm">
+                <div>SpO<sub>2</sub> <span class="font-bold text-red-600">93%</span></div>
+                <div>意識 <span class="font-bold text-gray-900">A</span></div>
+              </div>
+            </div>
+            <div class="border-t border-yellow-200 pt-2">
+              <p class="text-sm text-gray-700">骨折</p>
+              <p class="flex items-center gap-1 text-sm text-gray-500">
+                <span>📍</span> 新宿区四谷1丁目
+              </p>
+              <div class="mt-3 flex gap-2">
+                <button
+                  class="rounded border border-orange-600 px-3 py-1.5 text-sm text-orange-600 hover:bg-orange-50"
+                >
+                  詳細
+                </button>
+                <button
+                  class="rounded bg-green-600 px-3 py-1.5 text-sm text-white hover:bg-green-700"
+                >
+                  応急到着
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- T-025: 緑・割当済 -->
+          <div class="rounded-lg border-l-4 border-green-500 bg-green-50/60 p-4 shadow-sm">
+            <div class="mb-1 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="rounded-lg bg-green-500 px-3 py-1 text-sm font-bold text-white"
+                  >T-025</span
+                >
+                <span class="text-sm">⏳</span>
+                <span class="text-sm font-medium text-gray-900">割当済</span>
+              </div>
+            </div>
+            <div class="mb-3 flex items-center justify-between">
+              <span class="text-sm text-gray-600">19歳 男性</span>
+              <span class="text-sm font-medium text-orange-700">新宿救助1</span>
+            </div>
+            <div class="mb-2 border-t border-green-200 pt-2">
+              <div class="grid grid-cols-2 gap-x-4 text-sm">
+                <div>SpO<sub>2</sub> <span class="font-bold text-gray-900">98%</span></div>
+                <div>意識 <span class="font-bold text-gray-900">A</span></div>
+              </div>
+            </div>
+            <div class="border-t border-green-200 pt-2">
+              <p class="text-sm text-gray-700">打撲</p>
+              <p class="flex items-center gap-1 text-sm text-gray-500">
+                <span>📍</span> 新宿区大久保2丁目
+              </p>
+              <div class="mt-3 flex gap-2">
+                <button
+                  class="rounded border border-orange-600 px-3 py-1.5 text-sm text-orange-600 hover:bg-orange-50"
+                >
+                  詳細
+                </button>
+                <button
+                  class="rounded bg-orange-600 px-3 py-1.5 text-sm text-white hover:bg-orange-700"
+                >
+                  搬送開始
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      function switchView(mode) {
+        const listView = document.getElementById('listView');
+        const panelView = document.getElementById('panelView');
+        const listBtn = document.getElementById('listBtn');
+        const panelBtn = document.getElementById('panelBtn');
+
+        if (mode === 'list') {
+          listView.classList.remove('hidden');
+          panelView.classList.add('hidden');
+          listBtn.className = 'p-2 rounded-lg bg-orange-100 text-orange-700 transition-colors';
+          panelBtn.className = 'p-2 rounded-lg text-gray-400 hover:bg-gray-100 transition-colors';
+        } else {
+          listView.classList.add('hidden');
+          panelView.classList.remove('hidden');
+          panelView.classList.add('grid');
+          listBtn.className = 'p-2 rounded-lg text-gray-400 hover:bg-gray-100 transition-colors';
+          panelBtn.className = 'p-2 rounded-lg bg-orange-100 text-orange-700 transition-colors';
+        }
+      }
+    </script>
+  </body>
+</html>
