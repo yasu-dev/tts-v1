@@ -105,13 +105,113 @@ export default function SceneMapEditor({
 
   const genId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-  // Thumbnail generation
+  // Thumbnail generation (content-aware cropping)
   const generateThumbnail = useCallback(async (): Promise<string | null> => {
     const stage = stageRef.current;
     if (!stage) return null;
     try {
-      const dataUrl = stage.toDataURL({ pixelRatio: 0.5 });
-      return new Promise((resolve) => {
+      const d = dataRef.current;
+
+      // Compute content bounding box
+      let minX = Infinity,
+        minY = Infinity,
+        maxX = -Infinity,
+        maxY = -Infinity;
+      const expand = (x1: number, y1: number, x2: number, y2: number) => {
+        if (x1 < minX) minX = x1;
+        if (y1 < minY) minY = y1;
+        if (x2 > maxX) maxX = x2;
+        if (y2 > maxY) maxY = y2;
+      };
+
+      for (const icon of d.icons) {
+        const def = getIconDefinition(icon.type);
+        const w = (icon.width ?? def?.canvasWidth ?? 40) * icon.scale;
+        const h = (icon.height ?? def?.canvasHeight ?? 40) * icon.scale;
+        const r = Math.max(w, h) / 2;
+        expand(icon.x - r, icon.y - r, icon.x + r, icon.y + r);
+      }
+      for (const label of d.labels) {
+        const fs = label.fontSize ?? 16;
+        const tw = Math.max(60, label.text.length * fs * 0.6);
+        expand(label.x, label.y, label.x + tw, label.y + fs * 1.2);
+      }
+      for (const ann of d.annotations) {
+        expand(ann.x - 14, ann.y - 14, ann.x + 14, ann.y + 14);
+        if (ann.showBubble && ann.text) {
+          const bw = Math.max(120, ann.text.length * 12 + 16);
+          expand(ann.x + 18, ann.y - 20, ann.x + 18 + bw, ann.y + 8);
+        }
+      }
+
+      // Fallback: full stage if no content
+      if (!isFinite(minX)) {
+        const dataUrl = stage.toDataURL({ pixelRatio: 0.5 });
+        return new Promise<string | null>((resolve) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 360;
+            canvas.height = 270;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+              resolve(null);
+              return;
+            }
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, 360, 270);
+            resolve(canvas.toDataURL('image/jpeg', 0.7));
+          };
+          img.onerror = () => resolve(null);
+          img.src = dataUrl;
+        });
+      }
+
+      // Add padding and enforce 4:3 aspect ratio
+      const pad = 30;
+      minX -= pad;
+      minY -= pad;
+      maxX += pad;
+      maxY += pad;
+      let cw = maxX - minX;
+      let ch = maxY - minY;
+      const cx = (minX + maxX) / 2;
+      const cy = (minY + maxY) / 2;
+      const ratio = 4 / 3;
+      if (cw / ch > ratio) {
+        ch = cw / ratio;
+      } else {
+        cw = ch * ratio;
+      }
+      const cropX = cx - cw / 2;
+      const cropY = cy - ch / 2;
+
+      // Temporarily reset stage transform for accurate capture
+      const origScaleX = stage.scaleX();
+      const origScaleY = stage.scaleY();
+      const origX = stage.x();
+      const origY = stage.y();
+      stage.scaleX(1);
+      stage.scaleY(1);
+      stage.x(0);
+      stage.y(0);
+
+      const pixelRatio = Math.min(2, Math.max(0.5, 360 / cw));
+      const dataUrl = stage.toDataURL({
+        x: cropX,
+        y: cropY,
+        width: cw,
+        height: ch,
+        pixelRatio,
+      });
+
+      // Restore stage transform
+      stage.scaleX(origScaleX);
+      stage.scaleY(origScaleY);
+      stage.x(origX);
+      stage.y(origY);
+
+      return new Promise<string | null>((resolve) => {
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');

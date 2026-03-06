@@ -188,6 +188,52 @@ export default function SceneMapModal({ isOpen, onClose, canEdit }: SceneMapModa
     [supabase]
   );
 
+  // Delete callback for list view
+  const handleDelete = useCallback(
+    async (id: string) => {
+      try {
+        const { error } = await supabase.from('scene_maps').delete().eq('id', id);
+        if (error) throw error;
+        setMaps((prev) => prev.filter((m) => m.id !== id));
+      } catch (err) {
+        console.error('Failed to delete:', err);
+      }
+    },
+    [supabase]
+  );
+
+  // Duplicate callback for list view
+  const handleDuplicate = useCallback(
+    async (id: string) => {
+      try {
+        const original = maps.find((m) => m.id === id);
+        if (!original) return;
+
+        const { data: userData } = await supabase.auth.getUser();
+        const userId = userData?.user?.id;
+
+        const { data: inserted, error: insertError } = await supabase
+          .from('scene_maps')
+          .insert({
+            name: `${original.name}（コピー）`,
+            data: original.data as unknown as Record<string, unknown>,
+            thumbnail: original.thumbnail,
+            created_by: userId || 'unknown',
+          })
+          .select()
+          .single();
+
+        if (insertError) throw insertError;
+
+        const newMap = inserted as SceneMapRow;
+        setMaps((prev) => [newMap, ...prev]);
+      } catch (err) {
+        console.error('Failed to duplicate:', err);
+      }
+    },
+    [supabase, maps]
+  );
+
   if (!isOpen) return null;
 
   return (
@@ -210,6 +256,8 @@ export default function SceneMapModal({ isOpen, onClose, canEdit }: SceneMapModa
             onCreateNew={handleCreateNew}
             onClose={onClose}
             onRename={handleRename}
+            onDelete={handleDelete}
+            onDuplicate={handleDuplicate}
             canEdit={canEdit}
           />
         )}
