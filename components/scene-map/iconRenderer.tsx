@@ -52,6 +52,8 @@ export default function IconRenderer({
       onClick={onSelect}
       onTap={onSelect}
       onDragEnd={(e) => {
+        // Ignore drag events bubbled from resize handles
+        if (e.target !== e.currentTarget) return;
         onDragEnd?.(e.target.x(), e.target.y());
       }}
     >
@@ -87,10 +89,12 @@ export default function IconRenderer({
               e.cancelBubble = true;
             }}
             onDragMove={(e) => {
+              e.cancelBubble = true;
               e.target.y(0);
               if (e.target.x() < MIN_W / 2) e.target.x(MIN_W / 2);
             }}
             onDragEnd={(e) => {
+              e.cancelBubble = true;
               onResize(Math.max(MIN_W, e.target.x() * 2), h);
             }}
           />
@@ -108,10 +112,12 @@ export default function IconRenderer({
               e.cancelBubble = true;
             }}
             onDragMove={(e) => {
+              e.cancelBubble = true;
               e.target.y(0);
               if (e.target.x() > -MIN_W / 2) e.target.x(-MIN_W / 2);
             }}
             onDragEnd={(e) => {
+              e.cancelBubble = true;
               onResize(Math.max(MIN_W, Math.abs(e.target.x()) * 2), h);
             }}
           />
@@ -129,10 +135,12 @@ export default function IconRenderer({
               e.cancelBubble = true;
             }}
             onDragMove={(e) => {
+              e.cancelBubble = true;
               e.target.x(0);
               if (e.target.y() < MIN_H / 2) e.target.y(MIN_H / 2);
             }}
             onDragEnd={(e) => {
+              e.cancelBubble = true;
               onResize(w, Math.max(MIN_H, e.target.y() * 2));
             }}
           />
@@ -150,10 +158,12 @@ export default function IconRenderer({
               e.cancelBubble = true;
             }}
             onDragMove={(e) => {
+              e.cancelBubble = true;
               e.target.x(0);
               if (e.target.y() > -MIN_H / 2) e.target.y(-MIN_H / 2);
             }}
             onDragEnd={(e) => {
+              e.cancelBubble = true;
               onResize(w, Math.max(MIN_H, Math.abs(e.target.y()) * 2));
             }}
           />
