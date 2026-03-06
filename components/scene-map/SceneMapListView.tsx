@@ -162,6 +162,9 @@ export default function SceneMapListView({
                   ) : (
                     <p
                       className="truncate text-sm font-medium text-gray-900"
+                      onClick={(e) => {
+                        if (canEdit) e.stopPropagation();
+                      }}
                       onDoubleClick={(e) => {
                         if (canEdit) {
                           e.stopPropagation();
