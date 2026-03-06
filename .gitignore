@@ -55,3 +55,9 @@ playwright-report/**/*
 
 # TypeScript incremental build info
 /tsconfig.tsbuildinfo
+
+# Local Netlify folder
+.netlify
+
+# Claude Code personal settings
+.claude/settings.local.json
