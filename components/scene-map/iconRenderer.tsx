@@ -17,7 +17,7 @@ interface IconRendererProps {
   isSelected: boolean;
   onSelect?: () => void;
   onDragEnd?: (x: number, y: number) => void;
-  onResize?: (width: number, height: number) => void;
+  onResizeStart?: (edge: 'right' | 'left' | 'top' | 'bottom') => void;
 }
 
 export default function IconRenderer({
@@ -32,7 +32,7 @@ export default function IconRenderer({
   isSelected,
   onSelect,
   onDragEnd,
-  onResize,
+  onResizeStart,
 }: IconRendererProps) {
   const def = getIconDefinition(type);
   if (!def) return null;
@@ -73,7 +73,7 @@ export default function IconRenderer({
       {renderIconShape(type, w, h)}
 
       {/* リサイズハンドル（選択中のリサイズ可能アイコンのみ） */}
-      {isSelected && resizable && onResize && (
+      {isSelected && resizable && onResizeStart && (
         <>
           {/* 右辺 */}
           <Circle
@@ -85,17 +85,32 @@ export default function IconRenderer({
             strokeWidth={2}
             hitStrokeWidth={12}
             draggable
+            onMouseDown={(e) => {
+              e.cancelBubble = true;
+              e.evt.preventDefault();
+              onResizeStart('right');
+            }}
+            onTouchStart={(e) => {
+              e.cancelBubble = true;
+              e.evt.preventDefault();
+              onResizeStart('right');
+            }}
             onDragStart={(e) => {
               e.cancelBubble = true;
             }}
             onDragMove={(e) => {
               e.cancelBubble = true;
+              e.target.x(w / 2);
               e.target.y(0);
-              if (e.target.x() < MIN_W / 2) e.target.x(MIN_W / 2);
             }}
             onDragEnd={(e) => {
               e.cancelBubble = true;
-              onResize(Math.max(MIN_W, e.target.x() * 2), h);
+            }}
+            onClick={(e) => {
+              e.cancelBubble = true;
+            }}
+            onTap={(e) => {
+              e.cancelBubble = true;
             }}
           />
           {/* 左辺 */}
@@ -108,17 +123,32 @@ export default function IconRenderer({
             strokeWidth={2}
             hitStrokeWidth={12}
             draggable
+            onMouseDown={(e) => {
+              e.cancelBubble = true;
+              e.evt.preventDefault();
+              onResizeStart('left');
+            }}
+            onTouchStart={(e) => {
+              e.cancelBubble = true;
+              e.evt.preventDefault();
+              onResizeStart('left');
+            }}
             onDragStart={(e) => {
               e.cancelBubble = true;
             }}
             onDragMove={(e) => {
               e.cancelBubble = true;
+              e.target.x(-w / 2);
               e.target.y(0);
-              if (e.target.x() > -MIN_W / 2) e.target.x(-MIN_W / 2);
             }}
             onDragEnd={(e) => {
               e.cancelBubble = true;
-              onResize(Math.max(MIN_W, Math.abs(e.target.x()) * 2), h);
+            }}
+            onClick={(e) => {
+              e.cancelBubble = true;
+            }}
+            onTap={(e) => {
+              e.cancelBubble = true;
             }}
           />
           {/* 下辺 */}
@@ -131,17 +161,32 @@ export default function IconRenderer({
             strokeWidth={2}
             hitStrokeWidth={12}
             draggable
+            onMouseDown={(e) => {
+              e.cancelBubble = true;
+              e.evt.preventDefault();
+              onResizeStart('bottom');
+            }}
+            onTouchStart={(e) => {
+              e.cancelBubble = true;
+              e.evt.preventDefault();
+              onResizeStart('bottom');
+            }}
             onDragStart={(e) => {
               e.cancelBubble = true;
             }}
             onDragMove={(e) => {
               e.cancelBubble = true;
               e.target.x(0);
-              if (e.target.y() < MIN_H / 2) e.target.y(MIN_H / 2);
+              e.target.y(h / 2);
             }}
             onDragEnd={(e) => {
               e.cancelBubble = true;
-              onResize(w, Math.max(MIN_H, e.target.y() * 2));
+            }}
+            onClick={(e) => {
+              e.cancelBubble = true;
+            }}
+            onTap={(e) => {
+              e.cancelBubble = true;
             }}
           />
           {/* 上辺 */}
@@ -154,17 +199,32 @@ export default function IconRenderer({
             strokeWidth={2}
             hitStrokeWidth={12}
             draggable
+            onMouseDown={(e) => {
+              e.cancelBubble = true;
+              e.evt.preventDefault();
+              onResizeStart('top');
+            }}
+            onTouchStart={(e) => {
+              e.cancelBubble = true;
+              e.evt.preventDefault();
+              onResizeStart('top');
+            }}
             onDragStart={(e) => {
               e.cancelBubble = true;
             }}
             onDragMove={(e) => {
               e.cancelBubble = true;
               e.target.x(0);
-              if (e.target.y() > -MIN_H / 2) e.target.y(-MIN_H / 2);
+              e.target.y(-h / 2);
             }}
             onDragEnd={(e) => {
               e.cancelBubble = true;
-              onResize(w, Math.max(MIN_H, Math.abs(e.target.y()) * 2));
+            }}
+            onClick={(e) => {
+              e.cancelBubble = true;
+            }}
+            onTap={(e) => {
+              e.cancelBubble = true;
             }}
           />
         </>

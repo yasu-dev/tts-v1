@@ -57,6 +57,7 @@ export default function SceneMapEditor({
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressStartRef = useRef<{ x: number; y: number } | null>(null);
+  const resizeCleanupRef = useRef<(() => void) | null>(null);
 
   // Keep refs in sync
   useEffect(() => {
@@ -86,6 +87,7 @@ export default function SceneMapEditor({
     return () => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
       if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+      resizeCleanupRef.current?.();
     };
   }, []);
 
@@ -405,12 +407,102 @@ export default function SceneMapEditor({
     [setDataDirty]
   );
 
-  const handleIconResize = useCallback(
-    (id: string, w: number, h: number) => {
-      setDataDirty((prev) => ({
-        ...prev,
-        icons: prev.icons.map((icon) => (icon.id === id ? { ...icon, width: w, height: h } : icon)),
-      }));
+  // Excel式リサイズ: ドラッグした辺だけが動き、反対側は固定
+  const handleResizeStart = useCallback(
+    (iconId: string, edge: 'right' | 'left' | 'top' | 'bottom') => {
+      const icon = dataRef.current.icons.find((i) => i.id === iconId);
+      if (!icon) return;
+      const def = getIconDefinition(icon.type);
+      if (!def) return;
+
+      const stage = stageRef.current;
+      if (!stage) return;
+      const pointerPos = stage.getPointerPosition();
+      if (!pointerPos) return;
+      const transform = stage.getAbsoluteTransform().copy().invert();
+      const startCanvas = transform.point(pointerPos);
+
+      const startW = icon.width ?? def.canvasWidth;
+      const startH = icon.height ?? def.canvasHeight;
+      const startX = icon.x;
+      const startY = icon.y;
+      const θ = (icon.rotation * Math.PI) / 180;
+      const cosθ = Math.cos(θ);
+      const sinθ = Math.sin(θ);
+      const s = icon.scale;
+
+      const MIN_W = 30;
+      const MIN_H = 20;
+
+      const moveHandler = (e: MouseEvent | TouchEvent) => {
+        e.preventDefault();
+
+        const clientX = 'touches' in e ? e.touches[0].clientX : (e as MouseEvent).clientX;
+        const clientY = 'touches' in e ? e.touches[0].clientY : (e as MouseEvent).clientY;
+
+        const stageInst = stageRef.current;
+        if (!stageInst) return;
+        const container = stageInst.container();
+        const rect = container.getBoundingClientRect();
+        const xform = stageInst.getAbsoluteTransform().copy().invert();
+        const cur = xform.point({ x: clientX - rect.left, y: clientY - rect.top });
+
+        const dx = cur.x - startCanvas.x;
+        const dy = cur.y - startCanvas.y;
+
+        // キャンバス空間のデルタをアイコンのローカル軸に射影
+        const deltaLocalX = (dx * cosθ + dy * sinθ) / s;
+        const deltaLocalY = (-dx * sinθ + dy * cosθ) / s;
+
+        let newW = startW;
+        let newH = startH;
+        let newX = startX;
+        let newY = startY;
+
+        if (edge === 'right') {
+          newW = Math.max(MIN_W, startW + deltaLocalX);
+          const dw = newW - startW;
+          newX = startX + (dw / 2) * s * cosθ;
+          newY = startY + (dw / 2) * s * sinθ;
+        } else if (edge === 'left') {
+          newW = Math.max(MIN_W, startW - deltaLocalX);
+          const dw = newW - startW;
+          newX = startX - (dw / 2) * s * cosθ;
+          newY = startY - (dw / 2) * s * sinθ;
+        } else if (edge === 'bottom') {
+          newH = Math.max(MIN_H, startH + deltaLocalY);
+          const dh = newH - startH;
+          newX = startX + (dh / 2) * s * -sinθ;
+          newY = startY + (dh / 2) * s * cosθ;
+        } else if (edge === 'top') {
+          newH = Math.max(MIN_H, startH - deltaLocalY);
+          const dh = newH - startH;
+          newX = startX - (dh / 2) * s * -sinθ;
+          newY = startY - (dh / 2) * s * cosθ;
+        }
+
+        setDataDirty((prev) => ({
+          ...prev,
+          icons: prev.icons.map((ic) =>
+            ic.id === iconId ? { ...ic, x: newX, y: newY, width: newW, height: newH } : ic
+          ),
+        }));
+      };
+
+      const endHandler = () => {
+        document.removeEventListener('mousemove', moveHandler);
+        document.removeEventListener('mouseup', endHandler);
+        document.removeEventListener('touchmove', moveHandler);
+        document.removeEventListener('touchend', endHandler);
+        resizeCleanupRef.current = null;
+      };
+
+      resizeCleanupRef.current = endHandler;
+
+      document.addEventListener('mousemove', moveHandler);
+      document.addEventListener('mouseup', endHandler);
+      document.addEventListener('touchmove', moveHandler, { passive: false });
+      document.addEventListener('touchend', endHandler);
     },
     [setDataDirty]
   );
@@ -645,7 +737,7 @@ export default function SceneMapEditor({
                 isSelected={selectedIconId === icon.id}
                 onSelect={() => setSelectedIconId(icon.id)}
                 onDragEnd={(x, y) => handleIconDragEnd(icon.id, x, y)}
-                onResize={(w, h) => handleIconResize(icon.id, w, h)}
+                onResizeStart={(edge) => handleResizeStart(icon.id, edge)}
               />
             ))}
 
