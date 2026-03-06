@@ -91,6 +91,18 @@ export default function SceneMapEditor({
     };
   }, []);
 
+  // Auto-save on initial load of existing map to generate thumbnail
+  useEffect(() => {
+    if (initialData) {
+      const timer = setTimeout(() => {
+        isDirtyRef.current = true;
+        performSaveRef.current();
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const genId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
   // Thumbnail generation

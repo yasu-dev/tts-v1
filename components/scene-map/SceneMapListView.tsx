@@ -160,20 +160,35 @@ export default function SceneMapListView({
                       className="w-full rounded border border-blue-400 px-1 py-0.5 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     />
                   ) : (
-                    <p
-                      className="truncate text-sm font-medium text-gray-900"
-                      onClick={(e) => {
-                        if (canEdit) e.stopPropagation();
-                      }}
-                      onDoubleClick={(e) => {
-                        if (canEdit) {
-                          e.stopPropagation();
-                          startRename(map);
-                        }
-                      }}
-                    >
-                      {map.name}
-                    </p>
+                    <div className="flex items-center gap-1">
+                      <p className="min-w-0 flex-1 truncate text-sm font-medium text-gray-900">
+                        {map.name}
+                      </p>
+                      {canEdit && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            startRename(map);
+                          }}
+                          className="shrink-0 rounded p-0.5 text-gray-400 opacity-0 transition-opacity hover:text-gray-600 group-hover:opacity-100"
+                          aria-label="名前変更"
+                        >
+                          <svg
+                            className="h-3.5 w-3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                            />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
                   )}
                   <p className="mt-0.5 text-xs text-gray-500">{formatTime(map.updated_at)}</p>
                 </div>
