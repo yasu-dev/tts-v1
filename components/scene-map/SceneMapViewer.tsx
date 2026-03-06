@@ -151,6 +151,8 @@ export default function SceneMapViewer({
                   y={icon.y}
                   rotation={icon.rotation}
                   scale={icon.scale}
+                  width={icon.width}
+                  height={icon.height}
                   draggable={false}
                   isSelected={false}
                 />

@@ -1,6 +1,9 @@
 import React from 'react';
 import { Group, Rect, Text, Line, Circle, RegularPolygon } from 'react-konva';
-import { getIconDefinition } from './icons';
+import { getIconDefinition, isResizableType } from './icons';
+
+const MIN_W = 30;
+const MIN_H = 20;
 
 interface IconRendererProps {
   type: string;
@@ -8,10 +11,13 @@ interface IconRendererProps {
   y: number;
   rotation: number;
   scale: number;
+  width?: number;
+  height?: number;
   draggable: boolean;
   isSelected: boolean;
   onSelect?: () => void;
   onDragEnd?: (x: number, y: number) => void;
+  onResize?: (width: number, height: number) => void;
 }
 
 export default function IconRenderer({
@@ -20,16 +26,20 @@ export default function IconRenderer({
   y,
   rotation,
   scale,
+  width,
+  height,
   draggable,
   isSelected,
   onSelect,
   onDragEnd,
+  onResize,
 }: IconRendererProps) {
   const def = getIconDefinition(type);
   if (!def) return null;
 
-  const w = def.canvasWidth;
-  const h = def.canvasHeight;
+  const w = width ?? def.canvasWidth;
+  const h = height ?? def.canvasHeight;
+  const resizable = isResizableType(type);
 
   return (
     <Group
@@ -59,6 +69,96 @@ export default function IconRenderer({
         />
       )}
       {renderIconShape(type, w, h)}
+
+      {/* リサイズハンドル（選択中のリサイズ可能アイコンのみ） */}
+      {isSelected && resizable && onResize && (
+        <>
+          {/* 右辺 */}
+          <Circle
+            x={w / 2}
+            y={0}
+            radius={6}
+            fill="#3b82f6"
+            stroke="white"
+            strokeWidth={2}
+            hitStrokeWidth={12}
+            draggable
+            onDragStart={(e) => {
+              e.cancelBubble = true;
+            }}
+            onDragMove={(e) => {
+              e.target.y(0);
+              if (e.target.x() < MIN_W / 2) e.target.x(MIN_W / 2);
+            }}
+            onDragEnd={(e) => {
+              onResize(Math.max(MIN_W, e.target.x() * 2), h);
+            }}
+          />
+          {/* 左辺 */}
+          <Circle
+            x={-w / 2}
+            y={0}
+            radius={6}
+            fill="#3b82f6"
+            stroke="white"
+            strokeWidth={2}
+            hitStrokeWidth={12}
+            draggable
+            onDragStart={(e) => {
+              e.cancelBubble = true;
+            }}
+            onDragMove={(e) => {
+              e.target.y(0);
+              if (e.target.x() > -MIN_W / 2) e.target.x(-MIN_W / 2);
+            }}
+            onDragEnd={(e) => {
+              onResize(Math.max(MIN_W, Math.abs(e.target.x()) * 2), h);
+            }}
+          />
+          {/* 下辺 */}
+          <Circle
+            x={0}
+            y={h / 2}
+            radius={6}
+            fill="#3b82f6"
+            stroke="white"
+            strokeWidth={2}
+            hitStrokeWidth={12}
+            draggable
+            onDragStart={(e) => {
+              e.cancelBubble = true;
+            }}
+            onDragMove={(e) => {
+              e.target.x(0);
+              if (e.target.y() < MIN_H / 2) e.target.y(MIN_H / 2);
+            }}
+            onDragEnd={(e) => {
+              onResize(w, Math.max(MIN_H, e.target.y() * 2));
+            }}
+          />
+          {/* 上辺 */}
+          <Circle
+            x={0}
+            y={-h / 2}
+            radius={6}
+            fill="#3b82f6"
+            stroke="white"
+            strokeWidth={2}
+            hitStrokeWidth={12}
+            draggable
+            onDragStart={(e) => {
+              e.cancelBubble = true;
+            }}
+            onDragMove={(e) => {
+              e.target.x(0);
+              if (e.target.y() > -MIN_H / 2) e.target.y(-MIN_H / 2);
+            }}
+            onDragEnd={(e) => {
+              onResize(w, Math.max(MIN_H, Math.abs(e.target.y()) * 2));
+            }}
+          />
+        </>
+      )}
     </Group>
   );
 }
@@ -307,8 +407,6 @@ function renderIconShape(type: string, w: number, h: number): React.ReactNode {
     );
   }
   if (type === 'hazard_danger') {
-    // RegularPolygon radius=w/2=18: top vertex y=-18, bottom y=+9
-    // テキストを三角形内に収めるため、y位置とサイズを調整
     return (
       <>
         <RegularPolygon
@@ -336,7 +434,6 @@ function renderIconShape(type: string, w: number, h: number): React.ReactNode {
     );
   }
   if (type === 'hazard_victim') {
-    // 人型アイコン（シンプルな棒人間）
     return (
       <>
         <Circle x={0} y={-10} radius={6} fill="#dc2626" />
@@ -348,22 +445,12 @@ function renderIconShape(type: string, w: number, h: number): React.ReactNode {
     );
   }
 
-  // --- 構造物 ---
-  if (type === 'structure_building_small') {
-    return (
-      <Rect
-        x={-w / 2}
-        y={-h / 2}
-        width={w}
-        height={h}
-        fill="#f3f4f6"
-        stroke="#9ca3af"
-        strokeWidth={2}
-        cornerRadius={2}
-      />
-    );
-  }
-  if (type === 'structure_building_large') {
+  // --- 構造物（レガシー型名にも対応） ---
+  if (
+    type === 'structure_building' ||
+    type === 'structure_building_small' ||
+    type === 'structure_building_large'
+  ) {
     return (
       <Rect
         x={-w / 2}
@@ -423,7 +510,6 @@ function renderIconShape(type: string, w: number, h: number): React.ReactNode {
     );
   }
   if (type === 'direction_wind') {
-    // 吹き流し + 矢印
     return (
       <>
         <Line points={[-20, 0, 15, 0]} stroke="#6b7280" strokeWidth={2} />

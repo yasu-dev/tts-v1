@@ -6,6 +6,8 @@ export interface PlacedIcon {
   y: number;
   rotation: number;
   scale: number;
+  width?: number;
+  height?: number;
 }
 
 // テキストラベル

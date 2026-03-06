@@ -12,7 +12,7 @@ export const categoryLabels: Record<IconCategory, string> = {
   text: '文字',
 };
 
-// 全27種アイコン定義
+// 全26種アイコン定義
 export const iconDefinitions: IconDefinition[] = [
   // === 車両（7種）===
   {
@@ -180,24 +180,15 @@ export const iconDefinitions: IconDefinition[] = [
     canvasWidth: 28,
     canvasHeight: 36,
   },
-  // === 構造物（3種）===
+  // === 構造物（2種）===
   {
-    type: 'structure_building_small',
-    label: '□小',
+    type: 'structure_building',
+    label: '建物',
     category: 'structure',
     paletteWidth: 32,
     paletteHeight: 32,
     canvasWidth: 80,
     canvasHeight: 60,
-  },
-  {
-    type: 'structure_building_large',
-    label: '■大',
-    category: 'structure',
-    paletteWidth: 32,
-    paletteHeight: 32,
-    canvasWidth: 120,
-    canvasHeight: 80,
   },
   {
     type: 'structure_road',
@@ -267,6 +258,21 @@ export const iconDefinitions: IconDefinition[] = [
   },
 ];
 
+// レガシー型名の正規化（既存データとの後方互換性）
+function normalizeIconType(type: string): string {
+  if (type === 'structure_building_small' || type === 'structure_building_large') {
+    return 'structure_building';
+  }
+  return type;
+}
+
+// リサイズ可能なアイコンタイプ
+const RESIZABLE_TYPES = new Set(['structure_building', 'structure_road', 'hazard_spread']);
+
+export function isResizableType(type: string): boolean {
+  return RESIZABLE_TYPES.has(normalizeIconType(type));
+}
+
 // カテゴリ別にアイコンをグループ化
 export function getIconsByCategory(): Record<IconCategory, IconDefinition[]> {
   const grouped: Record<string, IconDefinition[]> = {};
@@ -279,7 +285,8 @@ export function getIconsByCategory(): Record<IconCategory, IconDefinition[]> {
   return grouped as Record<IconCategory, IconDefinition[]>;
 }
 
-// type名からアイコン定義を取得
+// type名からアイコン定義を取得（レガシー型名にも対応）
 export function getIconDefinition(type: string): IconDefinition | undefined {
-  return iconDefinitions.find((d) => d.type === type);
+  const normalized = normalizeIconType(type);
+  return iconDefinitions.find((d) => d.type === normalized);
 }

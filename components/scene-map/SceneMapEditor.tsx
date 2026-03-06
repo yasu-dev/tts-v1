@@ -192,8 +192,8 @@ export default function SceneMapEditor({
     for (const icon of [...d.icons].reverse()) {
       const def = getIconDefinition(icon.type);
       if (!def) continue;
-      const halfW = (def.canvasWidth * icon.scale) / 2 + 8;
-      const halfH = (def.canvasHeight * icon.scale) / 2 + 8;
+      const halfW = ((icon.width ?? def.canvasWidth) * icon.scale) / 2 + 8;
+      const halfH = ((icon.height ?? def.canvasHeight) * icon.scale) / 2 + 8;
       if (
         canvasX >= icon.x - halfW &&
         canvasX <= icon.x + halfW &&
@@ -400,6 +400,16 @@ export default function SceneMapEditor({
       setDataDirty((prev) => ({
         ...prev,
         icons: prev.icons.map((icon) => (icon.id === id ? { ...icon, x, y } : icon)),
+      }));
+    },
+    [setDataDirty]
+  );
+
+  const handleIconResize = useCallback(
+    (id: string, w: number, h: number) => {
+      setDataDirty((prev) => ({
+        ...prev,
+        icons: prev.icons.map((icon) => (icon.id === id ? { ...icon, width: w, height: h } : icon)),
       }));
     },
     [setDataDirty]
@@ -629,10 +639,13 @@ export default function SceneMapEditor({
                 y={icon.y}
                 rotation={icon.rotation}
                 scale={icon.scale}
+                width={icon.width}
+                height={icon.height}
                 draggable={true}
                 isSelected={selectedIconId === icon.id}
                 onSelect={() => setSelectedIconId(icon.id)}
                 onDragEnd={(x, y) => handleIconDragEnd(icon.id, x, y)}
+                onResize={(w, h) => handleIconResize(icon.id, w, h)}
               />
             ))}
 
