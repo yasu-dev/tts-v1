@@ -348,7 +348,7 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
         {/* トリアージタッグリスト */}
         <div className="card">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-bold">患者一覧（{filteredTags.length}件）</h2>
+            <h2 className="text-xl font-bold">傷病者一覧（{filteredTags.length}件）</h2>
             <ViewToggle viewMode={viewMode} onToggle={handleViewModeToggle} />
           </div>
           {filteredTags.length === 0 ? (

@@ -3,10 +3,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { createClient } from '@/lib/supabase/client';
-import { SceneMapData, SceneMapRow, createEmptySceneMapData } from './types';
+import { SceneMapData, SceneMapRow } from './types';
 
 const SceneMapEditor = dynamic(() => import('./SceneMapEditor'), { ssr: false });
 const SceneMapViewer = dynamic(() => import('./SceneMapViewer'), { ssr: false });
+const SceneMapListView = dynamic(() => import('./SceneMapListView'), { ssr: false });
 
 interface SceneMapModalProps {
   isOpen: boolean;
@@ -14,50 +15,63 @@ interface SceneMapModalProps {
   canEdit: boolean;
 }
 
+type ViewState = 'list' | 'editor' | 'viewer';
+
+function generateDefaultName(): string {
+  const now = new Date();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const hh = String(now.getHours()).padStart(2, '0');
+  const min = String(now.getMinutes()).padStart(2, '0');
+  return `現場図 ${mm}/${dd} ${hh}:${min}`;
+}
+
 export default function SceneMapModal({ isOpen, onClose, canEdit }: SceneMapModalProps) {
+  const [view, setView] = useState<ViewState>('list');
+  const [maps, setMaps] = useState<SceneMapRow[]>([]);
+  const [selectedMap, setSelectedMap] = useState<SceneMapRow | null>(null);
   const [loading, setLoading] = useState(true);
-  const [currentMap, setCurrentMap] = useState<SceneMapRow | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [editorKey, setEditorKey] = useState(0);
   const supabase = createClient();
 
-  // ESCキーで閉じる
+  // ESC key to close / go back
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        if (view === 'list') {
+          onClose();
+        } else {
+          setView('list');
+        }
+      }
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, view]);
 
-  // データ取得
-  const fetchLatestMap = useCallback(async () => {
+  // Fetch all maps
+  const fetchMaps = useCallback(async () => {
     setLoading(true);
-    setError(null);
     try {
       const { data, error: fetchError } = await supabase
         .from('scene_maps')
         .select('*')
-        .order('updated_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .order('updated_at', { ascending: false });
 
       if (fetchError) {
-        // テーブルが存在しない場合のエラーをハンドル
         if (fetchError.code === '42P01' || fetchError.message?.includes('does not exist')) {
-          setCurrentMap(null);
+          setMaps([]);
           setLoading(false);
           return;
         }
         throw fetchError;
       }
 
-      setCurrentMap(data as SceneMapRow | null);
+      setMaps((data as SceneMapRow[]) || []);
     } catch (err) {
-      console.error('Failed to fetch scene map:', err);
-      // テーブル未作成の場合は空状態で表示
-      setCurrentMap(null);
+      console.error('Failed to fetch scene maps:', err);
+      setMaps([]);
     } finally {
       setLoading(false);
     }
@@ -65,39 +79,77 @@ export default function SceneMapModal({ isOpen, onClose, canEdit }: SceneMapModa
 
   useEffect(() => {
     if (isOpen) {
-      fetchLatestMap();
+      fetchMaps();
+      setView('list');
+      setSelectedMap(null);
     }
-  }, [isOpen, fetchLatestMap]);
+  }, [isOpen, fetchMaps]);
 
-  // 保存
-  const handleSave = async (data: SceneMapData, name: string) => {
-    try {
+  // Select a map to view/edit
+  const handleSelectMap = useCallback(
+    (map: SceneMapRow) => {
+      setSelectedMap(map);
+      setEditorKey((k) => k + 1);
+      setView(canEdit ? 'editor' : 'viewer');
+    },
+    [canEdit]
+  );
+
+  // Create new map
+  const handleCreateNew = useCallback(() => {
+    setSelectedMap(null);
+    setEditorKey((k) => k + 1);
+    setView('editor');
+  }, []);
+
+  // Go back to list
+  const handleBackToList = useCallback(() => {
+    setView('list');
+    // Refresh list to show updated thumbnails
+    fetchMaps();
+  }, [fetchMaps]);
+
+  // Save callback for editor (auto-save)
+  const handleSave = useCallback(
+    async (data: SceneMapData, mapName: string, thumbnail: string | null) => {
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData?.user?.id;
 
-      if (currentMap) {
-        // 更新
+      if (selectedMap) {
+        // Update existing
         const { error: updateError } = await supabase
           .from('scene_maps')
           .update({
-            name,
+            name: mapName,
             data: data as unknown as Record<string, unknown>,
+            thumbnail,
             updated_at: new Date().toISOString(),
           })
-          .eq('id', currentMap.id);
+          .eq('id', selectedMap.id);
 
         if (updateError) throw updateError;
 
-        setCurrentMap((prev) =>
-          prev ? { ...prev, name, data, updated_at: new Date().toISOString() } : prev
+        // Update local state
+        setSelectedMap((prev) =>
+          prev
+            ? { ...prev, name: mapName, data, thumbnail, updated_at: new Date().toISOString() }
+            : prev
+        );
+        setMaps((prev) =>
+          prev.map((m) =>
+            m.id === selectedMap.id
+              ? { ...m, name: mapName, data, thumbnail, updated_at: new Date().toISOString() }
+              : m
+          )
         );
       } else {
-        // 新規作成
+        // Insert new
         const { data: inserted, error: insertError } = await supabase
           .from('scene_maps')
           .insert({
-            name,
+            name: mapName,
             data: data as unknown as Record<string, unknown>,
+            thumbnail,
             created_by: userId || 'unknown',
           })
           .select()
@@ -105,66 +157,77 @@ export default function SceneMapModal({ isOpen, onClose, canEdit }: SceneMapModa
 
         if (insertError) throw insertError;
 
-        setCurrentMap(inserted as SceneMapRow);
+        const newMap = inserted as SceneMapRow;
+        setSelectedMap(newMap);
+        setMaps((prev) => [newMap, ...prev]);
       }
-      setError(null);
-    } catch (err) {
-      console.error('Failed to save scene map:', err);
-      setError('保存に失敗しました');
-    }
-  };
+    },
+    [supabase, selectedMap]
+  );
 
-  // 新規作成（確認ダイアログ付き、エディタを完全リセット）
-  const handleCreateNew = () => {
-    if (!confirm('現在の図を破棄して新規作成しますか？')) return;
-    setCurrentMap(null);
-    setEditorKey((k) => k + 1);
-  };
+  // Rename callback for list view
+  const handleRename = useCallback(
+    async (id: string, newName: string) => {
+      try {
+        const { error } = await supabase
+          .from('scene_maps')
+          .update({ name: newName, updated_at: new Date().toISOString() })
+          .eq('id', id);
+
+        if (error) throw error;
+
+        setMaps((prev) =>
+          prev.map((m) =>
+            m.id === id ? { ...m, name: newName, updated_at: new Date().toISOString() } : m
+          )
+        );
+      } catch (err) {
+        console.error('Failed to rename:', err);
+      }
+    },
+    [supabase]
+  );
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col">
-      {/* 背景オーバーレイ */}
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      {/* Background overlay */}
+      <div
+        className="absolute inset-0 bg-black/50"
+        onClick={() => {
+          if (view === 'list') onClose();
+        }}
+      />
 
-      {/* モーダル本体 */}
+      {/* Modal body - fullscreen */}
       <div className="relative flex h-full w-full flex-col bg-white">
-        {loading ? (
-          <div className="flex flex-1 items-center justify-center">
-            <div className="text-center text-gray-500">
-              <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
-              <p>読み込み中...</p>
-            </div>
-          </div>
-        ) : error ? (
-          <div className="flex flex-1 items-center justify-center">
-            <div className="text-center text-red-500">
-              <p className="text-lg font-bold">エラー</p>
-              <p className="mt-2 text-sm">{error}</p>
-              <button
-                onClick={fetchLatestMap}
-                className="mt-4 rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-              >
-                再試行
-              </button>
-            </div>
-          </div>
-        ) : canEdit ? (
-          <SceneMapEditor
-            key={editorKey}
-            initialData={currentMap?.data || null}
-            mapName={currentMap?.name || '無題の現場図'}
-            onSave={handleSave}
+        {view === 'list' && (
+          <SceneMapListView
+            maps={maps}
+            loading={loading}
+            onSelect={handleSelectMap}
             onCreateNew={handleCreateNew}
             onClose={onClose}
+            onRename={handleRename}
+            canEdit={canEdit}
           />
-        ) : (
+        )}
+        {view === 'editor' && (
+          <SceneMapEditor
+            key={editorKey}
+            initialData={selectedMap?.data || null}
+            mapName={selectedMap?.name || generateDefaultName()}
+            onSave={handleSave}
+            onBack={handleBackToList}
+          />
+        )}
+        {view === 'viewer' && selectedMap && (
           <SceneMapViewer
-            data={currentMap?.data || null}
-            mapName={currentMap?.name || ''}
-            updatedAt={currentMap?.updated_at || null}
-            onClose={onClose}
+            data={selectedMap.data}
+            mapName={selectedMap.name}
+            updatedAt={selectedMap.updated_at}
+            onBack={handleBackToList}
           />
         )}
       </div>

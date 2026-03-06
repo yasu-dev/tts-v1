@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>災害現場図 改善案モックアップ</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --surface2: #334155;
+    --border: #475569;
+    --text: #f1f5f9;
+    --text-muted: #94a3b8;
+    --accent: #3b82f6;
+    --accent-hover: #2563eb;
+    --danger: #ef4444;
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --orange: #f97316;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ===== ナビゲーション ===== */
+  .nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex; align-items: center; gap: 8px;
+    overflow-x: auto;
+  }
+  .nav-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    cursor: pointer;
+    white-space: nowrap;
+    font-size: 13px;
+    transition: all 0.2s;
+  }
+  .nav-btn:hover { background: var(--surface2); color: var(--text); }
+  .nav-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+  /* ===== セクション共通 ===== */
+  .section {
+    display: none;
+    padding: 80px 20px 40px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .section.active { display: block; }
+
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+  h2 { font-size: 22px; font-weight: 600; margin: 32px 0 16px; color: var(--accent); }
+  h3 { font-size: 17px; font-weight: 600; margin: 20px 0 10px; }
+
+  .subtitle { color: var(--text-muted); font-size: 15px; margin-bottom: 24px; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-right: 6px;
+  }
+  .badge-func { background: #1e40af; color: #93c5fd; }
+  .badge-nonfunc { background: #065f46; color: #6ee7b7; }
+  .badge-break { background: #7c2d12; color: #fdba74; }
+  .badge-ux { background: #4c1d95; color: #c4b5fd; }
+
+  .comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0;
+  }
+  .comparison-before, .comparison-after {
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .comparison-before { background: #1c1917; border: 1px solid #78350f; }
+  .comparison-after { background: #052e16; border: 1px solid #166534; }
+  .comparison-label {
+    font-size: 12px; font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .comparison-before .comparison-label { color: var(--danger); }
+  .comparison-after .comparison-label { color: var(--success); }
+
+  ul { padding-left: 20px; margin: 8px 0; }
+  li { margin: 4px 0; font-size: 14px; color: var(--text-muted); }
+  li strong { color: var(--text); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  th, td {
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  th { background: var(--surface2); color: var(--text); font-weight: 600; }
+  td { color: var(--text-muted); }
+
+  code {
+    background: var(--surface2);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #e879f9;
+  }
+
+  .note {
+    background: rgba(59, 130, 246, 0.1);
+    border-left: 3px solid var(--accent);
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    margin: 12px 0;
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  .warn {
+    background: rgba(239, 68, 68, 0.1);
+    border-left: 3px solid var(--danger);
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    margin: 12px 0;
+    font-size: 14px;
+    color: #fca5a5;
+  }
+
+  /* ===== モックアップ系 ===== */
+  .mockup-container {
+    background: #000;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 16px 0;
+    position: relative;
+  }
+  .mockup-label {
+    position: absolute; top: 8px; left: 8px; z-index: 10;
+    background: rgba(0,0,0,0.7);
+    color: var(--text-muted);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+  }
+
+  /* ===== 現場図一覧モック ===== */
+  .list-mockup {
+    background: #111827;
+    padding: 16px;
+    min-height: 500px;
+  }
+  .list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .list-header h3 {
+    margin: 0;
+    font-size: 18px;
+  }
+  .list-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  .list-card {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .list-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .list-card-thumb {
+    height: 0;
+    padding-bottom: 75%; /* 4:3 aspect ratio — 大型サムネイル */
+    background: #1a1a2e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    color: var(--text-muted);
+    position: relative;
+  }
+  .list-card-thumb-inner {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .list-card-thumb.new-card {
+    background: rgba(59, 130, 246, 0.1);
+    border: 2px dashed var(--accent);
+    margin: 8px;
+    border-radius: 8px;
+    padding-bottom: calc(75% - 16px);
+  }
+  .list-card-info {
+    padding: 12px;
+  }
+  .list-card-info .title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 2px;
+    cursor: text;
+  }
+  .list-card-info .title:hover {
+    text-decoration: underline;
+    text-decoration-style: dashed;
+    text-underline-offset: 3px;
+  }
+  .list-card-info .meta {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* ===== フルスクリーンキャンバスモック ===== */
+  .canvas-mockup {
+    position: relative;
+    background: #ffffff;
+    height: 600px;
+    overflow: hidden;
+  }
+  .canvas-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px);
+    background-size: 30px 30px;
+  }
+
+  /* フローティングパレット */
+  .floating-palette {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(30, 41, 59, 0.95);
+    backdrop-filter: blur(12px);
+    border-radius: 12px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    z-index: 10;
+    max-height: 80%;
+    overflow-y: auto;
+  }
+  .palette-item {
+    width: 44px; height: 44px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    transition: all 0.15s;
+    border: 1px solid transparent;
+  }
+  .palette-item:hover { background: rgba(255,255,255,0.15); }
+  .palette-item.selected { background: var(--accent); color: white; }
+  .palette-divider {
+    height: 1px;
+    background: rgba(255,255,255,0.15);
+    margin: 4px 0;
+  }
+  .palette-collapse {
+    width: 44px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 18px;
+  }
+  .palette-collapse:hover { background: rgba(255,255,255,0.1); }
+
+  /* フローティングツールバー（上部） */
+  .floating-top-bar {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(30, 41, 59, 0.95);
+    backdrop-filter: blur(12px);
+    border-radius: 10px;
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    z-index: 10;
+    font-size: 13px;
+  }
+  .top-bar-btn {
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.15s;
+    display: flex; align-items: center; gap: 4px;
+    white-space: nowrap;
+    font-size: 12px;
+  }
+  .top-bar-btn:hover { background: rgba(255,255,255,0.15); color: var(--text); }
+  .top-bar-divider {
+    width: 1px; height: 20px;
+    background: rgba(255,255,255,0.2);
+  }
+  .autosave-indicator {
+    display: flex; align-items: center; gap: 4px;
+    color: var(--success);
+    font-size: 11px;
+  }
+
+  /* コンテキストメニュー */
+  .context-menu {
+    position: absolute;
+    background: rgba(30, 41, 59, 0.97);
+    backdrop-filter: blur(12px);
+    border-radius: 10px;
+    padding: 6px;
+    min-width: 160px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    z-index: 20;
+  }
+  .context-menu-item {
+    padding: 10px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-muted);
+    display: flex; align-items: center; gap: 8px;
+    transition: all 0.1s;
+  }
+  .context-menu-item:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+  .context-menu-item.danger { color: #f87171; }
+  .context-menu-item.danger:hover { background: rgba(239, 68, 68, 0.15); }
+  .context-menu-sep {
+    height: 1px;
+    background: rgba(255,255,255,0.1);
+    margin: 4px 0;
+  }
+
+  /* 吹き出し */
+  .bubble {
+    position: absolute;
+    background: rgba(30, 41, 59, 0.95);
+    backdrop-filter: blur(8px);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    max-width: 200px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    z-index: 15;
+  }
+  .bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 20px;
+    width: 0; height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid rgba(30, 41, 59, 0.95);
+  }
+  .bubble-close {
+    position: absolute; top: 2px; right: 6px;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  /* 戻るボタン */
+  .back-btn {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 10;
+    background: rgba(30, 41, 59, 0.95);
+    backdrop-filter: blur(12px);
+    border-radius: 10px;
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 13px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    transition: all 0.15s;
+  }
+  .back-btn:hover { color: var(--text); background: rgba(30, 41, 59, 1); }
+
+  /* キャンバス上のアイコンモック */
+  .mock-icon {
+    position: absolute;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: outline 0.1s;
+  }
+  .mock-icon.selected {
+    outline: 2px dashed var(--accent);
+    outline-offset: 4px;
+  }
+  .mock-vehicle {
+    width: 50px; height: 36px;
+    border: 2px solid #dc2626;
+    border-radius: 4px;
+    background: white;
+    font-weight: 700;
+    font-size: 16px;
+    color: #dc2626;
+  }
+  .mock-annotation {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--orange);
+    color: white;
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .mock-hazard {
+    width: 20px; height: 20px;
+    color: #dc2626;
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .mock-building {
+    width: 100px; height: 70px;
+    background: #e5e7eb;
+    border: 1px solid #9ca3af;
+    border-radius: 2px;
+    font-size: 11px;
+    color: #6b7280;
+  }
+
+  /* フローチャート */
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 16px 0;
+    flex-wrap: wrap;
+  }
+  .flow-step {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .flow-step.highlight {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+  .flow-arrow { color: var(--text-muted); font-size: 20px; }
+
+  /* タブレットモック */
+  .tablet-frame {
+    background: #1a1a1a;
+    border-radius: 20px;
+    padding: 16px;
+    display: inline-block;
+    margin: 16px auto;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .tablet-screen {
+    background: white;
+    border-radius: 8px;
+    width: 700px;
+    height: 500px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* モバイルパレット */
+  .mobile-palette {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(30, 41, 59, 0.95);
+    backdrop-filter: blur(12px);
+    border-radius: 12px;
+    padding: 8px;
+    display: flex;
+    gap: 4px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    z-index: 10;
+  }
+
+  /* ===== レスポンシブ ===== */
+  @media (max-width: 768px) {
+    .comparison { grid-template-columns: 1fr; }
+    .nav { gap: 4px; }
+    .nav-btn { padding: 6px 10px; font-size: 11px; }
+    .tablet-frame { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== ナビゲーション ===== -->
+<nav class="nav">
+  <button class="nav-btn active" onclick="showSection('overview')">概要</button>
+  <button class="nav-btn" onclick="showSection('s1')">①用語</button>
+  <button class="nav-btn" onclick="showSection('s2')">②現場図一覧</button>
+  <button class="nav-btn" onclick="showSection('s3')">③自動保存</button>
+  <button class="nav-btn" onclick="showSection('s4')">④コンテキストメニュー</button>
+  <button class="nav-btn" onclick="showSection('s5')">⑤吹き出し注釈</button>
+  <button class="nav-btn" onclick="showSection('s6')">⑥フルスクリーン</button>
+  <button class="nav-btn" onclick="showSection('integrated')">統合モック</button>
+  <button class="nav-btn" onclick="showSection('nonfunc')">非機能要件</button>
+</nav>
+
+<!-- ===== 概要 ===== -->
+<div id="overview" class="section active">
+  <h1>災害現場図 改善提案書</h1>
+  <p class="subtitle">災害現場の過酷な環境下（屋外・炎天下/極寒・風雨・騒然）でタブレット操作する前提のUIUX改善</p>
+
+  <div class="card">
+    <h3>設計原則 — 災害現場ファースト</h3>
+    <table>
+      <tr><th>環境要因</th><th>UIへの影響</th><th>対策</th></tr>
+      <tr><td>グローブ着用</td><td>タッチ精度低下</td><td>最小タッチターゲット 48px、操作間隔 8px以上</td></tr>
+      <tr><td>直射日光・雨</td><td>視認性低下</td><td>ハイコントラスト、太字ラベル、半透明背景</td></tr>
+      <tr><td>移動中・立位</td><td>片手操作</td><td>フローティングUI、画面端配置</td></tr>
+      <tr><td>騒音・緊張</td><td>認知負荷増大</td><td>最小限のUI要素、自動保存、ゼロ確認ダイアログ</td></tr>
+      <tr><td>時間的切迫</td><td>操作ステップ最小化</td><td>2タップ以内で主要操作完了</td></tr>
+      <tr><td>キャンバスサイズ不安</td><td>利用放棄リスク</td><td>フルスクリーン、無限キャンバス感</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>改善項目一覧</h3>
+    <table>
+      <tr><th>#</th><th>項目</th><th>種別</th><th>変更規模</th></tr>
+      <tr><td>1</td><td>「患者一覧」→「傷病者一覧」用語変更</td><td><span class="badge badge-func">機能</span></td><td>小（文言のみ）</td></tr>
+      <tr><td>2</td><td>現場図一覧画面の新設（複数図管理）</td><td><span class="badge badge-func">機能</span><span class="badge badge-break">破壊的</span></td><td>大（新画面＋DB変更）</td></tr>
+      <tr><td>3</td><td>自動保存の導入（保存ボタン廃止）</td><td><span class="badge badge-ux">UX</span></td><td>中（状態管理変更）</td></tr>
+      <tr><td>4</td><td>コンテキストメニュー化（下部ツールバー廃止）</td><td><span class="badge badge-ux">UX</span><span class="badge badge-break">破壊的</span></td><td>大（操作系全面刷新）</td></tr>
+      <tr><td>5</td><td>注釈の吹き出し個別表示（下部パネル廃止）</td><td><span class="badge badge-ux">UX</span></td><td>中（注釈UI刷新）</td></tr>
+      <tr><td>6</td><td>フルスクリーンキャンバス（ヘッダ廃止）</td><td><span class="badge badge-ux">UX</span><span class="badge badge-break">破壊的</span></td><td>大（レイアウト全面刷新）</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ===== ①用語 ===== -->
+<div id="s1" class="section">
+  <h1>① 用語変更：「患者一覧」→「傷病者一覧」</h1>
+  <p class="subtitle">消防法・災害医療で統一された正式用語への変更</p>
+
+  <div class="card">
+    <h3>調査結果</h3>
+    <table>
+      <tr><th>用語</th><th>使用文脈</th><th>法的根拠・典拠</th><th>評価</th></tr>
+      <tr>
+        <td><strong>傷病者</strong></td>
+        <td>消防法、救急救命士法、DMAT活動要領、J-SPEED、MCLS</td>
+        <td>消防法第2条第9項「傷病者」を定義<br>救急救命士法で救急搬送対象を「傷病者」と規定<br>DMAT活動要領で一貫して使用</td>
+        <td style="color:#22c55e; font-weight:700;">★★★ 最適</td>
+      </tr>
+      <tr>
+        <td>患者</td>
+        <td>医療機関内（病院・診療所）</td>
+        <td>医療法で医療機関に来た人を「患者」と呼称</td>
+        <td style="color:#ef4444;">× 災害現場では不適切</td>
+      </tr>
+      <tr>
+        <td>負傷者</td>
+        <td>報道、一般用語</td>
+        <td>法的定義なし。「傷」のみで「病」を含まない</td>
+        <td style="color:#f59e0b;">△ 範囲が狭い</td>
+      </tr>
+      <tr>
+        <td>要救護者</td>
+        <td>自治体防災計画</td>
+        <td>法定用語ではない</td>
+        <td style="color:#f59e0b;">△ 一般的でない</td>
+      </tr>
+      <tr>
+        <td>被災者</td>
+        <td>災害対策基本法</td>
+        <td>災害で被害を受けた全員（無傷含む）</td>
+        <td style="color:#ef4444;">× 範囲が広すぎ</td>
+      </tr>
+    </table>
+
+    <div class="note">
+      <strong>根拠:</strong> 消防法第2条第9項「救急業務」の定義で搬送対象を<strong>「傷病者」</strong>と明記。
+      救急救命士法・DMAT活動要領・MCLS標準テキスト・J-SPEED診療記録も全て「傷病者」で統一。
+      トリアージタッグの書式も「傷病者氏名」「傷病者住所」と表記。
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>変更箇所</h3>
+    <div class="comparison">
+      <div class="comparison-before">
+        <div class="comparison-label">BEFORE</div>
+        <p>各ダッシュボードのタブ名: <code>患者一覧</code></p>
+      </div>
+      <div class="comparison-after">
+        <div class="comparison-label">AFTER</div>
+        <p>各ダッシュボードのタブ名: <code>傷病者一覧</code></p>
+      </div>
+    </div>
+
+    <h3>追加で変更検討すべき箇所</h3>
+    <table>
+      <tr><th>現在の表記</th><th>推奨変更</th><th>理由</th></tr>
+      <tr><td>PatientDetailModal</td><td>内部名称のため変更不要</td><td>コード内部名は影響範囲大</td></tr>
+      <tr><td>UI上の「患者」テキスト全般</td><td>「傷病者」に統一</td><td>ユーザー向け表示のみ変更</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ===== ②現場図一覧 ===== -->
+<div id="s2" class="section">
+  <h1>② 現場図一覧画面の新設</h1>
+  <p class="subtitle">複数の現場図を作成・管理できる一覧画面</p>
+
+  <div class="card">
+    <h3>画面遷移フロー</h3>
+    <div class="flow">
+      <div class="flow-step">ダッシュボード</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">ヘッダー「現場図」アイコン押下</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step highlight">現場図一覧画面</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">カード選択 or 新規作成</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step highlight">キャンバス（フルスクリーン）</div>
+    </div>
+
+    <div class="comparison">
+      <div class="comparison-before">
+        <div class="comparison-label">BEFORE</div>
+        <ul>
+          <li>現場図アイコン → 即座に最新の1件を表示</li>
+          <li>複数図管理不可</li>
+          <li>「新規」ボタンで確認ダイアログ → 前の図は見れなくなる</li>
+        </ul>
+      </div>
+      <div class="comparison-after">
+        <div class="comparison-label">AFTER</div>
+        <ul>
+          <li>現場図アイコン → 一覧画面（大型サムネイルカード 2×2）</li>
+          <li>複数図をサムネイルの内容で視覚判断して選択</li>
+          <li>デフォルト名は「現場図 MM/DD HH:MM」で自動生成（変更不要な命名）</li>
+          <li>「+新規作成」カード → 直接キャンバスへ</li>
+          <li>既存カード選択 → キャンバスで編集再開</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>現場図一覧画面 モックアップ</h3>
+    <div class="mockup-container">
+      <div class="mockup-label">現場図一覧画面（タブレット縦 768x1024 想定 — 2列×2行で収まる）</div>
+      <div class="list-mockup" style="max-width:768px; margin:0 auto; min-height:auto;">
+        <div class="list-header">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <span style="cursor:pointer; font-size:20px; color:var(--text-muted);">✕</span>
+            <h3 style="font-size:18px;">現場図</h3>
+            <span style="color:var(--text-muted); font-size:14px;">3件</span>
+          </div>
+        </div>
+        <div class="list-grid">
+          <!-- 新規作成カード -->
+          <div class="list-card">
+            <div class="list-card-thumb new-card">
+              <div class="list-card-thumb-inner">
+                <span style="font-size:48px; color:var(--accent);">＋</span>
+              </div>
+            </div>
+            <div class="list-card-info">
+              <div class="title" style="color:var(--accent); cursor:default;">新規作成</div>
+            </div>
+          </div>
+          <!-- 既存カード1（デフォルト名のまま運用される想定） -->
+          <div class="list-card">
+            <div class="list-card-thumb" style="background:linear-gradient(135deg, #f8fafc, #e2e8f0);">
+              <div class="list-card-thumb-inner" style="flex-direction:column; gap:6px;">
+                <div style="display:flex; gap:8px;">
+                  <div style="width:36px; height:26px; border:2px solid #dc2626; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#dc2626; background:white;">P</div>
+                  <div style="width:36px; height:26px; border:2px solid #dc2626; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#dc2626; background:white;">A</div>
+                </div>
+                <div style="width:70px; height:50px; background:#e5e7eb; border:1px solid #9ca3af; border-radius:2px; display:flex; align-items:center; justify-content:center; font-size:9px; color:#6b7280;">建物</div>
+                <div style="width:22px; height:22px; border-radius:50%; background:#f97316; display:flex; align-items:center; justify-content:center; font-size:10px; color:white; font-weight:700;">①</div>
+              </div>
+            </div>
+            <div class="list-card-info">
+              <div class="title">現場図 03/06 14:32</div>
+              <div class="meta">更新: 14:45</div>
+            </div>
+          </div>
+          <!-- 既存カード2 -->
+          <div class="list-card">
+            <div class="list-card-thumb" style="background:linear-gradient(135deg, #f8fafc, #e2e8f0);">
+              <div class="list-card-thumb-inner" style="flex-direction:column; gap:6px;">
+                <div style="font-size:10px; color:#166534; font-weight:600; background:#dcfce7; padding:2px 6px; border-radius:3px; border:1px solid #16a34a;">本部</div>
+                <div style="display:flex; gap:4px;">
+                  <div style="font-size:10px; color:#dc2626; font-weight:600; background:#fef2f2; padding:2px 6px; border-radius:3px; border:1px solid #dc2626;">+T</div>
+                  <div style="font-size:10px; color:#dc2626; font-weight:600; background:#fef2f2; padding:2px 6px; border-radius:3px; border:1px solid #dc2626;">+救</div>
+                </div>
+                <div style="font-size:9px; color:#6b7280;">↔ 動線</div>
+              </div>
+            </div>
+            <div class="list-card-info">
+              <div class="title">現場図 03/06 13:15</div>
+              <div class="meta">更新: 14:10</div>
+            </div>
+          </div>
+          <!-- 既存カード3 -->
+          <div class="list-card">
+            <div class="list-card-thumb" style="background:linear-gradient(135deg, #f8fafc, #e2e8f0);">
+              <div class="list-card-thumb-inner" style="flex-direction:column; gap:6px;">
+                <div style="display:flex; gap:6px;">
+                  <div style="width:36px; height:26px; border:2px solid #dc2626; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#dc2626; background:white;">R</div>
+                  <div style="width:36px; height:26px; border:2px solid #dc2626; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#dc2626; background:white;">L</div>
+                </div>
+                <div style="font-size:14px; color:#dc2626; font-weight:700;">✕</div>
+                <div style="width:80px; height:40px; background:#e5e7eb; border:1px solid #9ca3af; border-radius:2px; display:flex; align-items:center; justify-content:center; font-size:9px; color:#6b7280;">倒壊建物</div>
+              </div>
+            </div>
+            <div class="list-card-info">
+              <div class="title">現場図 03/06 12:48</div>
+              <div class="meta">更新: 13:30</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>一覧画面の設計ポイント</h3>
+    <ul>
+      <li><strong>サムネイル重視:</strong> 現場図の主な識別手段はサムネイルの内容。Konva <code>stage.toDataURL()</code> でキャプチャし、カードの75%を占めるサイズで表示。名前を読まなくても「どの図か」を瞬時に視覚判断できる</li>
+      <li><strong>カード情報:</strong> デフォルト名 + 最終更新時刻のみ。作成者名は表示しない（隊長クラスに固定のため不要）</li>
+      <li><strong>デフォルト名:</strong> <code>現場図 MM/DD HH:MM</code>（作成日時ベース）。現場では名前を変更する余裕がないことを前提とし、変更されなくても時系列で識別可能な命名</li>
+      <li><strong>名前変更:</strong> 一覧画面でカード名をタップ → インライン編集。キャンバス画面では名前変更不可（描画に集中させる）</li>
+      <li><strong>レイアウト:</strong> タブレット縦持ちで2列×2行。想定2〜3ファイル + 新規カード = 最大4枚が一画面に収まる。仮に超えても縦スクロールで十分</li>
+      <li><strong>新規作成:</strong> 常に先頭に＋カードを表示。1タップで空キャンバスへ遷移</li>
+      <li><strong>ソート:</strong> 更新日時降順（最近使った図が先頭、新規カードの次）</li>
+      <li><strong>閲覧ロール（TRI/TRN等）:</strong> 同じ一覧画面だが「新規作成」カード非表示。既存図の閲覧のみ</li>
+      <li><strong>削除:</strong> カード長押し → 確認ダイアログ（誤削除防止）</li>
+    </ul>
+
+    <h3>サムネイルサイズの設計根拠</h3>
+    <div class="note">
+      <strong>サイズ決定:</strong> タブレット縦持ち（768×1024px）を基準。<br>
+      ・ヘッダー: 56px / 上下余白: 32px / カード間隔: 16px → 利用可能高さ: 920px<br>
+      ・2列: (768 - 32 - 16) / 2 = <strong>360px幅</strong> / カード<br>
+      ・アスペクト比 4:3 → サムネイル高さ: <strong>270px</strong><br>
+      ・名前+更新時刻: 52px → カード総高さ: 322px<br>
+      ・2行: 322×2 + 16 = <strong>660px</strong> → 920pxの72%で余裕を持って収まる<br>
+      ・サムネイルはカード面積の約84%を占め、内容を視覚的に判断するのに十分な大きさ
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>DB変更</h3>
+    <table>
+      <tr><th>変更</th><th>内容</th></tr>
+      <tr><td>scene_mapsテーブル</td><td><code>thumbnail</code> カラム追加（text型、Base64エンコード画像、360px幅相当の低解像度PNG）</td></tr>
+      <tr><td>nameデフォルト値</td><td><code>'現場図 ' || to_char(now(), 'MM/DD HH24:MI')</code> — アプリ側で生成しINSERT</td></tr>
+      <tr><td>クエリ変更</td><td><code>limit(1)</code> → 全件取得（<code>order by updated_at desc</code>）</td></tr>
+      <tr><td>RLSポリシー</td><td>変更なし（既存ポリシーで対応可能）</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ===== ③自動保存 ===== -->
+<div id="s3" class="section">
+  <h1>③ 自動保存の導入</h1>
+  <p class="subtitle">災害現場で「保存し忘れ」は致命的。操作に集中するために自動保存へ</p>
+
+  <div class="card">
+    <h3>自動保存の設計</h3>
+    <div class="comparison">
+      <div class="comparison-before">
+        <div class="comparison-label">BEFORE</div>
+        <ul>
+          <li>手動保存（ヘッダーの「保存」ボタン）</li>
+          <li>未保存状態の<code>isDirty</code>フラグ管理</li>
+          <li>閉じる時に「未保存の変更があります」確認ダイアログ</li>
+          <li><strong>問題:</strong> 災害現場で保存忘れ → データ消失リスク</li>
+        </ul>
+      </div>
+      <div class="comparison-after">
+        <div class="comparison-label">AFTER</div>
+        <ul>
+          <li>デバウンス自動保存（変更後2秒で自動保存）</li>
+          <li>保存ボタン廃止 → キャンバス領域拡大</li>
+          <li>確認ダイアログ不要 → 閉じるが即座に完了</li>
+          <li>自動保存インジケーター（✓ 保存済み）表示</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>自動保存のタイミング</h3>
+    <table>
+      <tr><th>トリガー</th><th>保存タイミング</th><th>理由</th></tr>
+      <tr><td>アイコン配置・移動・削除</td><td>操作後 2秒</td><td>連続操作を妨げない</td></tr>
+      <tr><td>テキスト編集</td><td>入力停止後 2秒</td><td>タイピング中に保存しない</td></tr>
+      <tr><td>回転・Z順序変更</td><td>操作後 2秒</td><td>デバウンスで集約</td></tr>
+      <tr><td>キャンバスから離脱</td><td>即座に保存</td><td>「戻る」「閉じる」時に確実に保存</td></tr>
+    </table>
+
+    <h3>自動保存インジケーター</h3>
+    <div style="display:flex; gap:24px; margin:16px 0;">
+      <div style="background:var(--surface2); padding:10px 16px; border-radius:8px; display:flex; align-items:center; gap:6px;">
+        <span style="color:var(--success);">●</span> <span style="font-size:13px;">保存済み</span>
+      </div>
+      <div style="background:var(--surface2); padding:10px 16px; border-radius:8px; display:flex; align-items:center; gap:6px;">
+        <span style="color:var(--warning);">●</span> <span style="font-size:13px;">保存中...</span>
+      </div>
+      <div style="background:var(--surface2); padding:10px 16px; border-radius:8px; display:flex; align-items:center; gap:6px;">
+        <span style="color:var(--danger);">●</span> <span style="font-size:13px;">保存失敗（リトライ中）</span>
+      </div>
+    </div>
+
+    <div class="note">
+      <strong>実装:</strong> <code>useEffect</code> + <code>setTimeout</code>（2000ms デバウンス）。<code>data</code> の変更を検知して自動でSupabase UPSERTを実行。保存エラー時は3回リトライ後にトースト通知。
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>新規作成フロー</h3>
+    <div class="flow">
+      <div class="flow-step">一覧画面「＋新規作成」</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">空キャンバス表示<br><small style="color:var(--text-muted);">（DB INSERT: 名前は「現場図 MM/DD HH:MM」）</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">編集操作</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">自動保存 ✓</div>
+    </div>
+    <div class="note">
+      新規作成時点でDBレコードを作成（空データで即INSERT）。デフォルト名は<code>現場図 MM/DD HH:MM</code>形式で自動生成。
+      名前変更は一覧画面のカード名タップで行う（キャンバス上では不可 — 描画に集中させる）。
+      大抵はデフォルト名のまま運用される想定で、サムネイルの内容で図を識別する。
+    </div>
+  </div>
+</div>
+
+<!-- ===== ④コンテキストメニュー ===== -->
+<div id="s4" class="section">
+  <h1>④ コンテキストメニュー化</h1>
+  <p class="subtitle">下部ツールバー廃止 → アイコン直接操作でキャンバス領域を最大化</p>
+
+  <div class="card">
+    <h3>操作方式の比較</h3>
+    <div class="comparison">
+      <div class="comparison-before">
+        <div class="comparison-label">BEFORE — 下部ツールバー方式</div>
+        <ul>
+          <li>アイコン選択 → 視線を下部ツールバーに移動 → 操作ボタン押下</li>
+          <li>常に画面下部を占有（60px）</li>
+          <li>選択状態がツールバーに表示（アイコンから目が離れる）</li>
+          <li><strong>問題:</strong> 視線移動が多く、災害現場での操作に不向き</li>
+        </ul>
+      </div>
+      <div class="comparison-after">
+        <div class="comparison-label">AFTER — コンテキストメニュー方式</div>
+        <ul>
+          <li>アイコンを長押し（500ms） → アイコン直上にメニュー表示</li>
+          <li>画面下部を完全開放 → キャンバス最大化</li>
+          <li>視線がアイコンから離れない（操作と対象が同一位置）</li>
+          <li>Excalidraw / tldraw と同等の操作性</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>コンテキストメニュー モックアップ</h3>
+    <div class="mockup-container" style="height:400px;">
+      <div class="mockup-label">アイコン長押し → コンテキストメニュー</div>
+      <div style="background:white; height:100%; position:relative;">
+        <div class="canvas-grid"></div>
+
+        <!-- 選択アイコン（ポンプ車） -->
+        <div class="mock-icon mock-vehicle selected" style="left:200px; top:180px;">P</div>
+
+        <!-- コンテキストメニュー -->
+        <div class="context-menu" style="left:180px; top:100px;">
+          <div class="context-menu-item">↻ 回転（15°）</div>
+          <div class="context-menu-item">⬆ 前面へ</div>
+          <div class="context-menu-item">⬇ 背面へ</div>
+          <div class="context-menu-item">📋 複製</div>
+          <div class="context-menu-sep"></div>
+          <div class="context-menu-item danger">🗑 削除</div>
+        </div>
+
+        <!-- 他のアイコン -->
+        <div class="mock-icon mock-vehicle" style="left:400px; top:250px;">A</div>
+        <div class="mock-icon mock-annotation" style="left:320px; top:150px;">①</div>
+        <div class="mock-icon mock-building" style="left:450px; top:100px;">建物A</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>操作体系の詳細設計</h3>
+    <table>
+      <tr><th>操作</th><th>デスクトップ</th><th>タブレット/モバイル</th><th>結果</th></tr>
+      <tr><td>選択</td><td>クリック</td><td>タップ</td><td>青ダッシュ枠で選択表示</td></tr>
+      <tr><td>移動</td><td>ドラッグ</td><td>ドラッグ</td><td>アイコンを新位置へ移動（現状維持）</td></tr>
+      <tr><td>メニュー表示</td><td>右クリック</td><td>長押し（500ms）</td><td>コンテキストメニュー表示</td></tr>
+      <tr><td>選択解除</td><td>キャンバス空白クリック</td><td>キャンバス空白タップ</td><td>選択枠消去＋メニュー閉じ</td></tr>
+      <tr><td>ズーム</td><td>Ctrl+ホイール</td><td>ピンチ</td><td>0.2〜5倍（現状維持）</td></tr>
+      <tr><td>パン</td><td>Space+ドラッグ / ホイール</td><td>2本指ドラッグ</td><td>キャンバス移動</td></tr>
+    </table>
+
+    <div class="note">
+      <strong>長押し判定:</strong> 500ms のタイマー。移動距離が5px以内の場合のみメニュー表示（ドラッグと競合しない）。メニュー表示時にバイブレーション（<code>navigator.vibrate(50)</code>）で触覚フィードバック。
+    </div>
+
+    <h3>コンテキストメニュー項目（アイコン種別で変化）</h3>
+    <table>
+      <tr><th>種別</th><th>メニュー項目</th></tr>
+      <tr><td>全共通</td><td>回転（15°）/ 前面へ / 背面へ / 複製 / 削除</td></tr>
+      <tr><td>テキストラベル</td><td>+ テキスト編集</td></tr>
+      <tr><td>注釈スタンプ</td><td>+ 注釈テキスト編集 / 吹き出し表示切替</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ===== ⑤吹き出し注釈 ===== -->
+<div id="s5" class="section">
+  <h1>⑤ 吹き出し注釈（インライン表示）</h1>
+  <p class="subtitle">注釈テキストをアイコン直上に吹き出しで表示。目を離さず一目で理解可能に</p>
+
+  <div class="card">
+    <h3>現行 vs 改善後</h3>
+    <div class="comparison">
+      <div class="comparison-before">
+        <div class="comparison-label">BEFORE — 下部パネル方式</div>
+        <ul>
+          <li>全注釈のテキストが画面下部に一覧表示</li>
+          <li>「① → ○○に集結」「② → 車両進入禁止」と番号対応表</li>
+          <li>視線移動: キャンバスの① → 下部パネルの①テキスト → 戻る</li>
+          <li><strong>問題:</strong> 番号が増えると対応関係を追うのが困難</li>
+          <li><strong>問題:</strong> 下部パネルがキャンバス面積を占有</li>
+        </ul>
+      </div>
+      <div class="comparison-after">
+        <div class="comparison-label">AFTER — 吹き出し方式</div>
+        <ul>
+          <li>各①②③の直上に吹き出しで個別表示</li>
+          <li>タップで表示 / 再タップ or 吹き出し✕で非表示</li>
+          <li>視線移動ゼロ: アイコンと説明が同一箇所</li>
+          <li>全吹き出し一括表示 / 非表示トグル（フローティングバーに配置）</li>
+          <li>注釈テキスト編集はコンテキストメニューから</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>吹き出し モックアップ</h3>
+    <div class="mockup-container" style="height:400px;">
+      <div class="mockup-label">注釈タップ → 吹き出し表示</div>
+      <div style="background:white; height:100%; position:relative;">
+        <div class="canvas-grid"></div>
+
+        <!-- 注釈①：吹き出し表示中 -->
+        <div class="bubble" style="left:120px; top:100px;">
+          <span class="bubble-close">✕</span>
+          救護所への搬送ルート
+        </div>
+        <div class="mock-icon mock-annotation" style="left:140px; top:170px;">①</div>
+
+        <!-- 注釈②：吹き出し非表示 -->
+        <div class="mock-icon mock-annotation" style="left:350px; top:200px; opacity:0.8;">②</div>
+
+        <!-- 注釈③：吹き出し表示中 -->
+        <div class="bubble" style="left:430px; top:80px;">
+          <span class="bubble-close">✕</span>
+          車両進入禁止エリア<br>
+          <small style="color:var(--text-muted);">ガス漏れの恐れ</small>
+        </div>
+        <div class="mock-icon mock-annotation" style="left:460px; top:160px;">③</div>
+
+        <!-- 他のアイコン -->
+        <div class="mock-icon mock-vehicle" style="left:250px; top:300px;">P</div>
+        <div class="mock-icon mock-hazard" style="left:500px; top:280px;">✕</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>吹き出しの操作設計</h3>
+    <table>
+      <tr><th>操作</th><th>結果</th></tr>
+      <tr><td>注釈アイコンをタップ</td><td>吹き出し表示（トグル）。テキスト未入力なら編集ダイアログ</td></tr>
+      <tr><td>吹き出しの✕をタップ</td><td>その吹き出しを閉じる</td></tr>
+      <tr><td>フローティングバーの「💬全表示」ボタン</td><td>全注釈の吹き出しを一括表示 / 非表示切替</td></tr>
+      <tr><td>注釈を長押し → メニュー「テキスト編集」</td><td>インライン編集ダイアログを表示</td></tr>
+    </table>
+
+    <h3>吹き出しの表示ルール</h3>
+    <ul>
+      <li><strong>位置:</strong> アイコン直上に表示（上方向がデフォルト）。画面上端に近い場合は下方向に自動切替</li>
+      <li><strong>最大幅:</strong> 200px。長文は折り返し</li>
+      <li><strong>Z順序:</strong> 常にアイコンより前面</li>
+      <li><strong>ドラッグ:</strong> アイコン移動時に吹き出しも追従</li>
+      <li><strong>閲覧モード:</strong> タップで表示/非表示のみ（編集不可）</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ===== ⑥フルスクリーン ===== -->
+<div id="s6" class="section">
+  <h1>⑥ フルスクリーンキャンバス</h1>
+  <p class="subtitle">「災害現場図」「キャンバス名」のヘッダー廃止。画面全体をキャンバスに</p>
+
+  <div class="card">
+    <h3>設計根拠</h3>
+    <div class="warn">
+      <strong>致命的問題:</strong> 人間心理として「描きたいものがキャンバスに収まらない」と感じた時点で思考停止し、この機能自体を使わなくなる。
+      ヘッダー・注釈パネル・ツールバーが合計で約120pxの画面高さを消費しており、タブレット縦持ちでは実質的なキャンバスが画面の80%程度しかない。
+    </div>
+
+    <div class="comparison">
+      <div class="comparison-before">
+        <div class="comparison-label">BEFORE — ヘッダ+下部パネル方式</div>
+        <div style="background:#1a1a2e; padding:8px; border-radius:6px; margin-top:8px;">
+          <div style="background:#334155; padding:8px 12px; border-radius:4px; margin-bottom:4px; font-size:12px; display:flex; justify-content:space-between;">
+            <span>災害現場図: 倒壊ビルA棟周辺</span>
+            <span>[保存] [新規] [×]</span>
+          </div>
+          <div style="background:white; height:200px; border-radius:4px; margin-bottom:4px; display:flex; align-items:center; justify-content:center;">
+            <span style="color:#666; font-size:11px;">キャンバス（画面の約80%）</span>
+          </div>
+          <div style="background:#334155; padding:8px; border-radius:4px; margin-bottom:4px; font-size:11px;">
+            [↻回転] [前面] [背面] [削除] ☑グリッド
+          </div>
+          <div style="background:#1e293b; padding:8px; border-radius:4px; font-size:11px;">
+            ① 救護所への搬送ルート ② 車両進入禁止エリア...
+          </div>
+        </div>
+      </div>
+      <div class="comparison-after">
+        <div class="comparison-label">AFTER — フルスクリーン方式</div>
+        <div style="background:#1a1a2e; padding:8px; border-radius:6px; margin-top:8px; position:relative;">
+          <div style="background:white; height:300px; border-radius:4px; display:flex; align-items:center; justify-content:center; position:relative;">
+            <span style="color:#666; font-size:11px;">キャンバス（画面の100%）</span>
+            <!-- フローティングUI -->
+            <div style="position:absolute; top:6px; left:50%; transform:translateX(-50%); background:rgba(30,41,59,0.9); padding:4px 10px; border-radius:6px; font-size:10px; color:#94a3b8; display:flex; gap:8px; align-items:center;">
+              <span>←</span>
+              <span style="opacity:0.6;">現場図 03/06 14:32</span>
+              <span style="color:#22c55e;">● 保存済み</span>
+              <span>💬</span>
+              <span>⊞</span>
+            </div>
+            <div style="position:absolute; left:6px; top:50%; transform:translateY(-50%); background:rgba(30,41,59,0.9); padding:6px; border-radius:8px; display:flex; flex-direction:column; gap:3px;">
+              <div style="width:28px; height:28px; background:rgba(255,255,255,0.1); border-radius:4px;"></div>
+              <div style="width:28px; height:28px; background:rgba(255,255,255,0.1); border-radius:4px;"></div>
+              <div style="width:28px; height:28px; background:rgba(255,255,255,0.1); border-radius:4px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>フローティングUI要素の配置</h3>
+    <table>
+      <tr><th>位置</th><th>要素</th><th>機能</th></tr>
+      <tr>
+        <td>上部中央</td>
+        <td>フローティングバー</td>
+        <td>← 戻る / 図名（読み取り専用・控えめ表示） / 保存インジケーター / 吹き出し全表示 / グリッド表示</td>
+      </tr>
+      <tr>
+        <td>左端中央</td>
+        <td>フローティングパレット</td>
+        <td>アイコンパレット（カテゴリ折りたたみ） / 折りたたみ可能（«ボタン）</td>
+      </tr>
+    </table>
+
+    <h3>キャンバス面積の改善効果（タブレット縦持ち 768x1024 想定）</h3>
+    <table>
+      <tr><th>要素</th><th>BEFORE</th><th>AFTER</th></tr>
+      <tr><td>ヘッダー</td><td>48px固定</td><td>0px（フローティング化、キャンバスと重畳）</td></tr>
+      <tr><td>ツールバー</td><td>48px固定</td><td>0px（コンテキストメニュー化）</td></tr>
+      <tr><td>注釈パネル</td><td>80〜120px固定</td><td>0px（吹き出し化）</td></tr>
+      <tr><td><strong>キャンバス実面積</strong></td><td style="color:var(--danger);"><strong>約80%</strong></td><td style="color:var(--success);"><strong>100%</strong>（UI要素は半透明で重畳）</td></tr>
+    </table>
+
+    <div class="note">
+      <strong>パレット折りたたみ:</strong> パレット左端の「«」ボタンで折りたたみ → 小さなアイコンのみのミニパレット（幅24px）に変化。展開は「»」タップ。フルスクリーン活用時はパレットを隠して最大キャンバスを実現。
+    </div>
+  </div>
+</div>
+
+<!-- ===== 統合モックアップ ===== -->
+<div id="integrated" class="section">
+  <h1>統合モックアップ — 改善後のキャンバス画面</h1>
+  <p class="subtitle">①〜⑥の全改善を統合した最終形のUIモック</p>
+
+  <div class="card" style="padding:12px;">
+    <div class="mockup-container" style="height:650px;">
+      <div style="background:white; height:100%; position:relative; overflow:hidden;">
+        <!-- グリッド -->
+        <div class="canvas-grid"></div>
+
+        <!-- ===== フローティングトップバー（名前編集なし — 描画に集中） ===== -->
+        <div class="floating-top-bar">
+          <div class="top-bar-btn" style="font-size:18px;" title="一覧に戻る">←</div>
+          <div class="top-bar-divider"></div>
+          <div style="font-size:12px; color:var(--text-muted); padding:0 4px; max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">現場図 03/06 14:32</div>
+          <div class="top-bar-divider"></div>
+          <div class="autosave-indicator">
+            <span>●</span> 保存済み
+          </div>
+          <div class="top-bar-divider"></div>
+          <div class="top-bar-btn" title="吹き出し全表示">💬</div>
+          <div class="top-bar-btn" title="グリッド表示">⊞</div>
+          <div class="top-bar-btn" title="Undo">↩</div>
+          <div class="top-bar-btn" title="Redo">↪</div>
+        </div>
+
+        <!-- ===== フローティングパレット ===== -->
+        <div class="floating-palette">
+          <div class="palette-collapse" title="パレットを折りたたむ">«</div>
+
+          <!-- 車両 -->
+          <div style="font-size:9px; color:var(--text-muted); text-align:center; padding:2px 0;">車両</div>
+          <div class="palette-item" style="color:#dc2626; border:1px solid #dc2626; font-size:14px;">P</div>
+          <div class="palette-item" style="color:#dc2626; border:1px solid #dc2626; font-size:14px;">A</div>
+          <div class="palette-item" style="color:#dc2626; border:1px solid #dc2626; font-size:14px;">R</div>
+          <div class="palette-item selected" style="font-size:14px;">L</div>
+
+          <div class="palette-divider"></div>
+
+          <!-- 施設 -->
+          <div style="font-size:9px; color:var(--text-muted); text-align:center; padding:2px 0;">施設</div>
+          <div class="palette-item" style="font-size:11px; color:#16a34a;">本部</div>
+          <div class="palette-item" style="font-size:12px; color:#dc2626;">+救</div>
+          <div class="palette-item" style="font-size:12px; color:#dc2626;">+T</div>
+
+          <div class="palette-divider"></div>
+
+          <!-- 災害 -->
+          <div style="font-size:9px; color:var(--text-muted); text-align:center; padding:2px 0;">災害</div>
+          <div class="palette-item" style="font-size:16px; color:#dc2626;">✕</div>
+          <div class="palette-item" style="font-size:14px; color:#dc2626;">⚠</div>
+          <div class="palette-item" style="font-size:14px;">🧍</div>
+
+          <div class="palette-divider"></div>
+
+          <!-- 注釈 -->
+          <div style="font-size:9px; color:var(--text-muted); text-align:center; padding:2px 0;">注釈</div>
+          <div class="palette-item" style="background:var(--orange); color:white; border-radius:50%; font-size:13px;">①</div>
+          <div class="palette-item" style="font-size:13px;">Aa</div>
+        </div>
+
+        <!-- ===== キャンバス上のアイコン群 ===== -->
+
+        <!-- 建物 -->
+        <div class="mock-icon mock-building" style="left:300px; top:180px;">倒壊ビルA棟</div>
+        <div class="mock-icon mock-building" style="left:480px; top:300px; width:80px; height:50px;">マンションB</div>
+
+        <!-- 車両 -->
+        <div class="mock-icon mock-vehicle" style="left:180px; top:350px;">P</div>
+        <div class="mock-icon mock-vehicle" style="left:240px; top:350px;">P</div>
+        <div class="mock-icon mock-vehicle" style="left:180px; top:400px;">A</div>
+        <div class="mock-icon mock-vehicle" style="left:240px; top:400px;">A</div>
+        <div class="mock-icon mock-vehicle" style="left:500px; top:480px;">R</div>
+
+        <!-- 施設 -->
+        <div class="mock-icon" style="left:120px; top:500px; font-size:12px; background:#dcfce7; border:2px solid #16a34a; border-radius:4px; padding:4px 8px; color:#166534; font-weight:600;">🚩 本部</div>
+        <div class="mock-icon" style="left:350px; top:480px; font-size:12px; background:#fef2f2; border:2px solid #dc2626; border-radius:4px; padding:4px 8px; color:#dc2626; font-weight:600;">+救 救護所</div>
+
+        <!-- 災害点 -->
+        <div class="mock-icon mock-hazard" style="left:340px; top:200px;">✕</div>
+
+        <!-- 注釈①：吹き出し表示中 -->
+        <div class="bubble" style="left:400px; top:120px; max-width:180px;">
+          <span class="bubble-close">✕</span>
+          3F部分崩落<br>
+          <small style="color:var(--text-muted);">要救助者3名確認</small>
+        </div>
+        <div class="mock-icon mock-annotation" style="left:430px; top:200px;">①</div>
+
+        <!-- 注釈②：吹き出し非表示 -->
+        <div class="mock-icon mock-annotation" style="left:200px; top:280px;">②</div>
+
+        <!-- 注釈③：吹き出し表示中 -->
+        <div class="bubble" style="left:480px; top:370px; max-width:160px;">
+          <span class="bubble-close">✕</span>
+          北側進入路
+        </div>
+        <div class="mock-icon mock-annotation" style="left:510px; top:440px;">③</div>
+
+        <!-- テキストラベル -->
+        <div style="position:absolute; left:150px; top:320px; font-size:11px; color:#374151; font-weight:500;">水利 ←</div>
+        <div style="position:absolute; left:420px; top:550px; font-size:11px; color:#374151; font-weight:500;">→ 国道17号</div>
+
+        <!-- ===== コンテキストメニュー（デモ用） ===== -->
+        <div class="context-menu" style="left:520px; top:400px; display:none;" id="demoContextMenu">
+          <div class="context-menu-item">↻ 回転（15°）</div>
+          <div class="context-menu-item">⬆ 前面へ</div>
+          <div class="context-menu-item">⬇ 背面へ</div>
+          <div class="context-menu-item">📋 複製</div>
+          <div class="context-menu-sep"></div>
+          <div class="context-menu-item danger">🗑 削除</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center; margin-top:12px;">
+      <p style="font-size:13px; color:var(--text-muted);">
+        ↑ フルスクリーンキャンバス + フローティングUI + 吹き出し注釈 + コンテキストメニュー
+      </p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>タブレット横持ち時のレイアウト</h3>
+    <div class="mockup-container" style="height:400px;">
+      <div style="background:white; height:100%; position:relative; overflow:hidden;">
+        <div class="canvas-grid"></div>
+
+        <!-- フローティングトップバー（横持ち） -->
+        <div style="position:absolute; top:8px; left:50%; transform:translateX(-50%); background:rgba(30,41,59,0.9); backdrop-filter:blur(12px); border-radius:8px; padding:4px 10px; display:flex; align-items:center; gap:8px; font-size:12px; color:#94a3b8; z-index:10; white-space:nowrap;">
+          <span style="cursor:pointer;">←</span>
+          <span style="width:1px; height:16px; background:rgba(255,255,255,0.2);"></span>
+          <span style="opacity:0.6;">現場図 03/06 13:15</span>
+          <span style="width:1px; height:16px; background:rgba(255,255,255,0.2);"></span>
+          <span style="color:var(--success);">● 保存済み</span>
+          <span style="width:1px; height:16px; background:rgba(255,255,255,0.2);"></span>
+          <span>💬</span>
+          <span>⊞</span>
+        </div>
+
+        <!-- フローティングパレット（横持ち = 左端、コンパクト） -->
+        <div style="position:absolute; left:8px; top:50%; transform:translateY(-50%); background:rgba(30,41,59,0.9); backdrop-filter:blur(12px); border-radius:10px; padding:6px; display:flex; flex-direction:column; gap:3px; z-index:10;">
+          <div style="width:36px; height:36px; display:flex; align-items:center; justify-content:center; color:#dc2626; font-weight:700; font-size:13px; border:1px solid #dc2626; border-radius:6px;">P</div>
+          <div style="width:36px; height:36px; display:flex; align-items:center; justify-content:center; color:#dc2626; font-weight:700; font-size:13px; border:1px solid #dc2626; border-radius:6px;">A</div>
+          <div style="width:36px; height:36px; display:flex; align-items:center; justify-content:center; color:#16a34a; font-weight:700; font-size:10px; border:1px solid #16a34a; border-radius:6px;">本部</div>
+          <div style="width:36px; height:36px; display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:12px; background:var(--orange); border-radius:50%;">①</div>
+          <div style="width:36px; height:24px; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:12px; cursor:pointer;">⋯</div>
+        </div>
+
+        <!-- 配置済みアイコン -->
+        <div class="mock-icon mock-vehicle" style="left:200px; top:150px;">A</div>
+        <div class="mock-icon mock-vehicle" style="left:300px; top:250px;">P</div>
+        <div class="mock-icon" style="left:500px; top:120px; font-size:12px; background:#dcfce7; border:2px solid #16a34a; border-radius:4px; padding:4px 8px; color:#166534; font-weight:600;">🚩 本部</div>
+        <div class="mock-icon" style="left:400px; top:300px; font-size:12px; background:#fef2f2; border:2px solid #dc2626; border-radius:4px; padding:4px 8px; color:#dc2626; font-weight:600;">+T トリアージポスト</div>
+        <div class="mock-icon mock-annotation" style="left:350px; top:180px;">①</div>
+        <div class="bubble" style="left:320px; top:105px;">
+          <span class="bubble-close">✕</span>
+          一次トリアージ実施場所
+        </div>
+      </div>
+    </div>
+    <p style="text-align:center; font-size:13px; color:var(--text-muted); margin-top:8px;">
+      ↑ タブレット横持ち時 — パレットはコンパクト化、キャンバス最大化
+    </p>
+  </div>
+</div>
+
+<!-- ===== 非機能要件 ===== -->
+<div id="nonfunc" class="section">
+  <h1>非機能要件</h1>
+  <p class="subtitle">パフォーマンス・アクセシビリティ・オフライン対応・セキュリティ</p>
+
+  <div class="card">
+    <h2 style="margin-top:0;">パフォーマンス</h2>
+    <table>
+      <tr><th>項目</th><th>目標値</th><th>対策</th></tr>
+      <tr><td>自動保存レイテンシ</td><td>&lt; 500ms</td><td>Supabase UPSERT、差分保存検討</td></tr>
+      <tr><td>一覧画面表示</td><td>&lt; 1秒</td><td>サムネイルは低解像度（360px幅、4:3比率PNG）で保存。2〜3件 × 50KB程度</td></tr>
+      <tr><td>キャンバス描画FPS</td><td>60fps（100アイコンまで）</td><td>Konvaのレイヤー分離、不要な再描画抑制</td></tr>
+      <tr><td>コンテキストメニュー表示</td><td>&lt; 100ms</td><td>DOM要素のshow/hide（React状態のみ）</td></tr>
+      <tr><td>吹き出しレンダリング</td><td>&lt; 16ms</td><td>Konvaネイティブ描画（DOM吹き出しはオーバーレイ）</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0;">オフライン耐性</h2>
+    <div class="warn">
+      災害現場では通信が不安定・断絶する可能性が高い。自動保存がネットワークエラーで失敗するケースへの対策が必須。
+    </div>
+    <table>
+      <tr><th>状況</th><th>対策</th></tr>
+      <tr><td>保存失敗</td><td>ローカル（localStorage）にバッファリング → 通信復旧時に自動リトライ（最大3回、指数バックオフ）</td></tr>
+      <tr><td>完全オフライン</td><td>localStorageに最新データを常時保持。オンライン復帰時にサーバーと同期</td></tr>
+      <tr><td>保存失敗通知</td><td>赤インジケーター「● 保存失敗」+ 「ローカルに保存済み」サブテキスト</td></tr>
+      <tr><td>競合（同時編集）</td><td>MVPでは後勝ち（Last Write Wins）。将来的にリアルタイム同期検討</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0;">アクセシビリティ（災害現場特化）</h2>
+    <table>
+      <tr><th>要件</th><th>対策</th></tr>
+      <tr><td>グローブ操作</td><td>全タッチターゲット 48x48px以上、ボタン間隔 8px以上</td></tr>
+      <tr><td>視認性（屋外日光下）</td><td>フローティングUI: 半透明ダーク背景 + 白文字。コントラスト比 4.5:1以上</td></tr>
+      <tr><td>片手操作</td><td>主要操作は画面片側に集約。パレットは左右配置切替可能（将来）</td></tr>
+      <tr><td>触覚フィードバック</td><td>長押しメニュー表示時にバイブレーション（50ms）</td></tr>
+      <tr><td>夜間操作</td><td>キャンバス背景色切替（白/ダーク）検討（将来）</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0;">セキュリティ</h2>
+    <table>
+      <tr><th>項目</th><th>対策</th></tr>
+      <tr><td>RLSポリシー</td><td>既存ポリシー維持。thumbnailカラムも同様のRLS</td></tr>
+      <tr><td>XSS</td><td>注釈テキスト・図名はKonva Textノード経由描画（HTMLインジェクション不可）</td></tr>
+      <tr><td>データ容量</td><td>1図あたりの上限: JSONデータ 1MB + サムネイル 100KB。超過時は警告</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0;">実装優先順位</h2>
+    <table>
+      <tr><th>優先度</th><th>項目</th><th>理由</th><th>依存関係</th></tr>
+      <tr>
+        <td><span class="badge badge-func">P0</span></td>
+        <td>⑥ フルスクリーンキャンバス</td>
+        <td>機能利用の致命的ブロッカー解消</td>
+        <td>④⑤の前提（レイアウト変更）</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-func">P0</span></td>
+        <td>④ コンテキストメニュー化</td>
+        <td>下部ツールバー廃止に伴う代替操作系</td>
+        <td>⑥と同時実装</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-func">P0</span></td>
+        <td>⑤ 吹き出し注釈</td>
+        <td>下部注釈パネル廃止に伴う代替表示</td>
+        <td>⑥と同時実装</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-func">P1</span></td>
+        <td>③ 自動保存</td>
+        <td>保存ボタン廃止の前提</td>
+        <td>⑥実装後</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-func">P1</span></td>
+        <td>② 現場図一覧</td>
+        <td>複数図管理の基盤</td>
+        <td>③実装後（一覧から新規→自動保存）</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-func">P2</span></td>
+        <td>① 用語変更</td>
+        <td>影響小、いつでも実施可能</td>
+        <td>なし</td>
+      </tr>
+    </table>
+
+    <h3>推奨実装順序</h3>
+    <div class="flow">
+      <div class="flow-step highlight">Phase 1: ⑥④⑤<br><small>フルスクリーン化</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step highlight">Phase 2: ③<br><small>自動保存</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step highlight">Phase 3: ②<br><small>一覧画面</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Phase 4: ①<br><small>用語変更</small></div>
+    </div>
+
+    <div class="note">
+      <strong>Phase 1（⑥④⑤）は一括実装推奨。</strong>下部ツールバー・注釈パネル・ヘッダーを同時に廃止し、フローティングUI・コンテキストメニュー・吹き出しを同時に導入する方が、段階的に変更するより整合性が保てる。
+    </div>
+  </div>
+</div>
+
+<script>
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+  window.scrollTo(0, 0);
+}
+</script>
+
+</body>
+</html>

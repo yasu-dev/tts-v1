@@ -47,6 +47,7 @@ export interface SceneMapRow {
   id: string;
   name: string;
   data: SceneMapData;
+  thumbnail: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;

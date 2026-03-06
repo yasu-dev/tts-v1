@@ -513,7 +513,7 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
         {currentStep === 1 && (
           <div className="card">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold">患者一覧（{initialTags.length}件）</h2>
+              <h2 className="text-xl font-bold">傷病者一覧（{initialTags.length}件）</h2>
               <ViewToggle viewMode={viewMode} onToggle={handleViewModeToggle} />
             </div>
 

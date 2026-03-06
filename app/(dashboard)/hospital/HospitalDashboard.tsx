@@ -515,9 +515,9 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
           </div>
         </div>
 
-        {/* 搬送中患者一覧 */}
+        {/* 傷病者一覧 */}
         <div className="card">
-          <h2 className="mb-4 text-xl font-bold">患者一覧（{filteredPatients.length}件）</h2>
+          <h2 className="mb-4 text-xl font-bold">傷病者一覧（{filteredPatients.length}件）</h2>
           {filteredPatients.length === 0 ? (
             <p className="py-8 text-center text-gray-500">
               {filter === 'all'

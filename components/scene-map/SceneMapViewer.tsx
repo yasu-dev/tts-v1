@@ -12,14 +12,14 @@ interface SceneMapViewerProps {
   data: SceneMapData | null;
   mapName: string;
   updatedAt: string | null;
-  onClose: () => void;
+  onBack: () => void;
 }
 
 export default function SceneMapViewer({
   data: initialData,
   mapName,
   updatedAt,
-  onClose,
+  onBack,
 }: SceneMapViewerProps) {
   const viewData = initialData || createEmptySceneMapData();
   const [scale, setScale] = useState(viewData.stage.scale);
@@ -78,7 +78,11 @@ export default function SceneMapViewer({
     if (!iso) return '';
     try {
       const d = new Date(iso);
-      return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      const hh = String(d.getHours()).padStart(2, '0');
+      const min = String(d.getMinutes()).padStart(2, '0');
+      return `${mm}/${dd} ${hh}:${min}`;
     } catch {
       return '';
     }
@@ -90,35 +94,9 @@ export default function SceneMapViewer({
     viewData.annotations.length === 0;
 
   return (
-    <div className="flex h-full flex-col">
-      {/* ヘッダー */}
-      <div className="flex items-center justify-between border-b bg-gray-50 p-3">
-        <h2 className="text-lg font-bold text-gray-900">
-          災害現場図{mapName ? `: ${mapName}` : ''}
-        </h2>
-        <div className="flex items-center gap-2">
-          {updatedAt && (
-            <span className="text-sm text-gray-500">最終更新 {formatUpdatedAt(updatedAt)}</span>
-          )}
-          <button
-            onClick={onClose}
-            className="rounded-lg p-2 text-gray-600 hover:bg-gray-200"
-            aria-label="閉じる"
-          >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      {/* キャンバス */}
-      <div ref={containerRef} className="relative flex-1 overflow-hidden bg-white">
+    <div className="relative h-full w-full bg-white">
+      {/* Fullscreen canvas */}
+      <div ref={containerRef} className="absolute inset-0">
         {isEmpty ? (
           <div className="flex h-full items-center justify-center">
             <div className="text-center text-gray-400">
@@ -155,7 +133,6 @@ export default function SceneMapViewer({
             onTap={() => setTappedAnnotation(null)}
           >
             <Layer>
-              {/* グリッド */}
               {viewData.showGrid && (
                 <GridLayer
                   width={stageSize.width}
@@ -166,7 +143,6 @@ export default function SceneMapViewer({
                 />
               )}
 
-              {/* アイコン（移動不可） */}
               {viewData.icons.map((icon) => (
                 <IconRenderer
                   key={icon.id}
@@ -180,7 +156,6 @@ export default function SceneMapViewer({
                 />
               ))}
 
-              {/* テキストラベル */}
               {viewData.labels.map((label) => (
                 <Text
                   key={label.id}
@@ -193,7 +168,6 @@ export default function SceneMapViewer({
                 />
               ))}
 
-              {/* アノテーション */}
               {viewData.annotations.map((ann) => (
                 <Group
                   key={ann.id}
@@ -221,7 +195,6 @@ export default function SceneMapViewer({
                     align="center"
                     verticalAlign="middle"
                   />
-                  {/* 吹き出し（タップ時またはshowBubble時） */}
                   {(tappedAnnotation === ann.id || ann.showBubble) && ann.text && (
                     <Group x={18} y={-20}>
                       <Rect
@@ -247,22 +220,40 @@ export default function SceneMapViewer({
         )}
       </div>
 
-      {/* 注釈一覧（読み取り専用） */}
-      {viewData.annotations.length > 0 && (
-        <div className="max-h-28 overflow-y-auto border-t bg-gray-50 p-3">
-          <h4 className="mb-1.5 text-xs font-bold text-gray-600">注釈一覧</h4>
-          <div className="space-y-1">
-            {viewData.annotations.map((ann) => (
-              <div key={ann.id} className="flex items-center gap-2">
-                <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-orange-400 bg-orange-100 text-[10px] font-bold text-orange-700">
-                  {ann.number}
-                </span>
-                <span className="text-xs text-gray-700">{ann.text || '（未入力）'}</span>
-              </div>
-            ))}
-          </div>
+      {/* Floating top bar */}
+      <div className="pointer-events-none absolute left-0 right-0 top-0 z-10 flex items-center justify-between p-3">
+        <div className="pointer-events-auto flex items-center gap-3">
+          <button
+            onClick={onBack}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-md"
+            aria-label="戻る"
+          >
+            <svg
+              className="h-5 w-5 text-gray-700"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+          </button>
+          {mapName && (
+            <span className="rounded-lg bg-white/90 px-3 py-1.5 text-sm text-gray-500 shadow-md">
+              {mapName}
+            </span>
+          )}
         </div>
-      )}
+        {updatedAt && (
+          <span className="pointer-events-auto rounded-lg bg-white/90 px-3 py-1.5 text-xs text-gray-400 shadow-md">
+            更新 {formatUpdatedAt(updatedAt)}
+          </span>
+        )}
+      </div>
     </div>
   );
 }
