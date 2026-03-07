@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Stage, Layer, Group, Circle, Text, Rect } from 'react-konva';
+import { Stage, Layer, Group, Circle, Text, Rect, Line } from 'react-konva';
 import type { KonvaEventObject } from 'konva/lib/Node';
 import type Konva from 'konva';
 import { SceneMapData, createEmptySceneMapData } from './types';
@@ -91,7 +91,8 @@ export default function SceneMapViewer({
   const isEmpty =
     viewData.icons.length === 0 &&
     viewData.labels.length === 0 &&
-    viewData.annotations.length === 0;
+    viewData.annotations.length === 0 &&
+    (viewData.strokes?.length ?? 0) === 0;
 
   return (
     <div className="relative h-full w-full bg-white">
@@ -142,6 +143,20 @@ export default function SceneMapViewer({
                   stageY={position.y}
                 />
               )}
+
+              {/* Strokes (behind icons) */}
+              {(viewData.strokes ?? []).map((stroke) => (
+                <Line
+                  key={stroke.id}
+                  points={stroke.points}
+                  stroke={stroke.color}
+                  strokeWidth={stroke.strokeWidth}
+                  lineCap="round"
+                  lineJoin="round"
+                  tension={0.5}
+                  listening={false}
+                />
+              ))}
 
               {viewData.icons.map((icon) => (
                 <IconRenderer

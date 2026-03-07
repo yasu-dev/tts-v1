@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Stage, Layer, Group, Circle, Text, Rect } from 'react-konva';
+import { Stage, Layer, Group, Circle, Text, Rect, Line } from 'react-konva';
 import type { KonvaEventObject } from 'konva/lib/Node';
 import type Konva from 'konva';
+import { Pencil } from 'lucide-react';
 import {
   SceneMapData,
+  Stroke,
   PlacedIcon,
   PlacedLabel,
   PlacedAnnotation,
@@ -15,6 +17,7 @@ import { getIconDefinition } from './icons';
 import IconRenderer from './iconRenderer';
 import GridLayer from './GridLayer';
 import IconPalette from './IconPalette';
+import DrawingToolbar from './DrawingToolbar';
 
 interface SceneMapEditorProps {
   initialData: SceneMapData | null;
@@ -48,6 +51,13 @@ export default function SceneMapEditor({
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [paletteOpen, setPaletteOpen] = useState(true);
+
+  // Drawing mode state
+  const [drawingMode, setDrawingMode] = useState<'off' | 'pen' | 'eraser'>('off');
+  const [penColor, setPenColor] = useState('#000000');
+  const [penWidth, setPenWidth] = useState(2);
+  const [currentStroke, setCurrentStroke] = useState<number[] | null>(null);
+  const isDrawing = drawingMode !== 'off';
 
   const containerRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<Konva.Stage>(null);
@@ -714,6 +724,102 @@ export default function SceneMapEditor({
     setDataDirty((prev) => ({ ...prev, showGrid: !prev.showGrid }));
   }, [setDataDirty]);
 
+  // Drawing mode toggle
+  const toggleDrawingMode = useCallback(() => {
+    if (drawingMode === 'off') {
+      setDrawingMode('pen');
+      setPaletteSelection(null);
+      setPaletteOpen(false);
+      setSelectedIconId(null);
+      setContextMenu(null);
+    } else {
+      setDrawingMode('off');
+      setCurrentStroke(null);
+    }
+  }, [drawingMode]);
+
+  // Drawing pointer handlers
+  const handleDrawPointerDown = useCallback(
+    (e: KonvaEventObject<MouseEvent | TouchEvent>) => {
+      const stage = stageRef.current;
+      if (!stage) return;
+      const pointerPos = stage.getPointerPosition();
+      if (!pointerPos) return;
+      const transform = stage.getAbsoluteTransform().copy().invert();
+      const pos = transform.point(pointerPos);
+
+      if (drawingMode === 'pen') {
+        setCurrentStroke([pos.x, pos.y]);
+      } else if (drawingMode === 'eraser') {
+        // Erase strokes at this point
+        const threshold = 15;
+        setDataDirty((prev) => {
+          const remaining = (prev.strokes ?? []).filter((s) => {
+            for (let i = 0; i < s.points.length; i += 2) {
+              const dx = pos.x - s.points[i];
+              const dy = pos.y - s.points[i + 1];
+              if (Math.sqrt(dx * dx + dy * dy) < s.strokeWidth + threshold) {
+                return false;
+              }
+            }
+            return true;
+          });
+          if (remaining.length === (prev.strokes ?? []).length) return prev;
+          return { ...prev, strokes: remaining };
+        });
+      }
+    },
+    [drawingMode, setDataDirty]
+  );
+
+  const handleDrawPointerMove = useCallback(
+    (e: KonvaEventObject<MouseEvent | TouchEvent>) => {
+      const stage = stageRef.current;
+      if (!stage) return;
+      const pointerPos = stage.getPointerPosition();
+      if (!pointerPos) return;
+      const transform = stage.getAbsoluteTransform().copy().invert();
+      const pos = transform.point(pointerPos);
+
+      if (drawingMode === 'pen' && currentStroke) {
+        setCurrentStroke((prev) => (prev ? [...prev, pos.x, pos.y] : null));
+      } else if (drawingMode === 'eraser') {
+        const threshold = 15;
+        setDataDirty((prev) => {
+          const remaining = (prev.strokes ?? []).filter((s) => {
+            for (let i = 0; i < s.points.length; i += 2) {
+              const dx = pos.x - s.points[i];
+              const dy = pos.y - s.points[i + 1];
+              if (Math.sqrt(dx * dx + dy * dy) < s.strokeWidth + threshold) {
+                return false;
+              }
+            }
+            return true;
+          });
+          if (remaining.length === (prev.strokes ?? []).length) return prev;
+          return { ...prev, strokes: remaining };
+        });
+      }
+    },
+    [drawingMode, currentStroke, setDataDirty]
+  );
+
+  const handleDrawPointerUp = useCallback(() => {
+    if (drawingMode === 'pen' && currentStroke && currentStroke.length >= 4) {
+      const newStroke: Stroke = {
+        id: genId(),
+        points: currentStroke,
+        color: penColor,
+        strokeWidth: penWidth,
+      };
+      setDataDirty((prev) => ({
+        ...prev,
+        strokes: [...(prev.strokes ?? []), newStroke],
+      }));
+    }
+    setCurrentStroke(null);
+  }, [drawingMode, currentStroke, penColor, penWidth, setDataDirty]);
+
   // Annotation bubble toggle
   const toggleAnnotationBubble = useCallback(
     (id: string) => {
@@ -801,7 +907,16 @@ export default function SceneMapEditor({
   return (
     <div className="relative h-full w-full bg-white">
       {/* Fullscreen Canvas */}
-      <div ref={containerRef} className="absolute inset-0" onContextMenu={handleNativeContextMenu}>
+      <div
+        ref={containerRef}
+        className="absolute inset-0"
+        style={{
+          touchAction: isDrawing ? 'none' : 'auto',
+          cursor:
+            drawingMode === 'pen' ? 'crosshair' : drawingMode === 'eraser' ? 'pointer' : 'default',
+        }}
+        onContextMenu={handleNativeContextMenu}
+      >
         <Stage
           ref={stageRef}
           width={stageSize.width}
@@ -810,17 +925,17 @@ export default function SceneMapEditor({
           scaleY={data.stage.scale}
           x={data.stage.position.x}
           y={data.stage.position.y}
-          draggable
-          onClick={handleStageClick}
-          onTap={handleStageClick}
+          draggable={!isDrawing}
+          onClick={isDrawing ? undefined : handleStageClick}
+          onTap={isDrawing ? undefined : handleStageClick}
           onWheel={handleWheel}
           onDragEnd={handleStageDragEnd}
-          onMouseDown={handleStagePointerDown}
-          onTouchStart={handleStagePointerDown}
-          onMouseMove={handleStagePointerMove}
-          onTouchMove={handleStagePointerMove}
-          onMouseUp={cancelLongPress}
-          onTouchEnd={cancelLongPress}
+          onMouseDown={isDrawing ? handleDrawPointerDown : handleStagePointerDown}
+          onTouchStart={isDrawing ? handleDrawPointerDown : handleStagePointerDown}
+          onMouseMove={isDrawing ? handleDrawPointerMove : handleStagePointerMove}
+          onTouchMove={isDrawing ? handleDrawPointerMove : handleStagePointerMove}
+          onMouseUp={isDrawing ? handleDrawPointerUp : cancelLongPress}
+          onTouchEnd={isDrawing ? handleDrawPointerUp : cancelLongPress}
           onDragStart={handleDragStartBubble}
         >
           <Layer>
@@ -831,6 +946,33 @@ export default function SceneMapEditor({
                 stageScale={data.stage.scale}
                 stageX={data.stage.position.x}
                 stageY={data.stage.position.y}
+              />
+            )}
+
+            {/* Strokes (behind icons) */}
+            {(data.strokes ?? []).map((stroke) => (
+              <Line
+                key={stroke.id}
+                points={stroke.points}
+                stroke={stroke.color}
+                strokeWidth={stroke.strokeWidth}
+                lineCap="round"
+                lineJoin="round"
+                tension={0.5}
+                listening={false}
+              />
+            ))}
+
+            {/* Current stroke being drawn */}
+            {currentStroke && drawingMode === 'pen' && (
+              <Line
+                points={currentStroke}
+                stroke={penColor}
+                strokeWidth={penWidth}
+                lineCap="round"
+                lineJoin="round"
+                tension={0.5}
+                listening={false}
               />
             )}
 
@@ -845,11 +987,11 @@ export default function SceneMapEditor({
                 scale={icon.scale}
                 width={icon.width}
                 height={icon.height}
-                draggable={true}
-                isSelected={selectedIconId === icon.id}
-                onSelect={() => setSelectedIconId(icon.id)}
+                draggable={!isDrawing}
+                isSelected={!isDrawing && selectedIconId === icon.id}
+                onSelect={isDrawing ? undefined : () => setSelectedIconId(icon.id)}
                 onDragEnd={(x, y) => handleIconDragEnd(icon.id, x, y)}
-                onResizeStart={(edge) => handleResizeStart(icon.id, edge)}
+                onResizeStart={isDrawing ? undefined : (edge) => handleResizeStart(icon.id, edge)}
               />
             ))}
 
@@ -860,7 +1002,8 @@ export default function SceneMapEditor({
                 x={label.x}
                 y={label.y}
                 rotation={label.rotation}
-                draggable
+                draggable={!isDrawing}
+                listening={!isDrawing}
                 onClick={() => setSelectedIconId(label.id)}
                 onTap={() => setSelectedIconId(label.id)}
                 onDblClick={() => {
@@ -895,7 +1038,8 @@ export default function SceneMapEditor({
                 key={ann.id}
                 x={ann.x}
                 y={ann.y}
-                draggable
+                draggable={!isDrawing}
+                listening={!isDrawing}
                 onClick={(e) => {
                   e.cancelBubble = true;
                   toggleAnnotationBubble(ann.id);
@@ -1063,6 +1207,16 @@ export default function SceneMapEditor({
               />
             </svg>
           </button>
+          <button
+            onClick={toggleDrawingMode}
+            className={`flex h-10 w-10 items-center justify-center rounded-full shadow-md ${
+              isDrawing ? 'bg-blue-100/90 text-blue-700' : 'bg-white/90 text-gray-500'
+            }`}
+            aria-label="手書き入力"
+            title="手書き入力"
+          >
+            <Pencil className="h-5 w-5" />
+          </button>
         </div>
       </div>
 
@@ -1073,7 +1227,10 @@ export default function SceneMapEditor({
             <div className="flex-1 overflow-y-auto p-1.5">
               <IconPalette
                 selectedType={paletteSelection}
-                onSelect={(type) => setPaletteSelection(type || null)}
+                onSelect={(type) => {
+                  if (isDrawing) return;
+                  setPaletteSelection(type || null);
+                }}
               />
             </div>
             <button
@@ -1106,8 +1263,8 @@ export default function SceneMapEditor({
         )}
       </div>
 
-      {/* Stamp mode indicator */}
-      {paletteSelection && (
+      {/* Stamp mode indicator (hidden when drawing) */}
+      {paletteSelection && !isDrawing && (
         <div className="pointer-events-auto absolute bottom-4 left-1/2 z-30 -translate-x-1/2">
           <div className="flex items-center gap-2 rounded-full bg-blue-600 px-4 py-2 text-sm text-white shadow-lg">
             <span>
@@ -1128,6 +1285,18 @@ export default function SceneMapEditor({
             </button>
           </div>
         </div>
+      )}
+
+      {/* Drawing toolbar */}
+      {isDrawing && (
+        <DrawingToolbar
+          mode={drawingMode as 'pen' | 'eraser'}
+          onModeChange={setDrawingMode}
+          color={penColor}
+          onColorChange={setPenColor}
+          width={penWidth}
+          onWidthChange={setPenWidth}
+        />
       )}
 
       {/* Context menu */}

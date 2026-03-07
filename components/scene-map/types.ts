@@ -31,6 +31,14 @@ export interface PlacedAnnotation {
   showBubble: boolean;
 }
 
+// 手書きストローク
+export interface Stroke {
+  id: string;
+  points: number[]; // [x1, y1, x2, y2, ...] Konva Line用フラット配列
+  color: string; // '#000000' | '#ef4444' | '#3b82f6'
+  strokeWidth: number; // 2 (細字) | 5 (太字)
+}
+
 // キャンバス全体のデータ構造（JSONBとして保存）
 export interface SceneMapData {
   stage: {
@@ -42,6 +50,7 @@ export interface SceneMapData {
   labels: PlacedLabel[];
   annotations: PlacedAnnotation[];
   annotationCounter: number;
+  strokes?: Stroke[];
 }
 
 // Supabase scene_maps テーブルの行型
@@ -88,5 +97,6 @@ export function createEmptySceneMapData(): SceneMapData {
     labels: [],
     annotations: [],
     annotationCounter: 0,
+    strokes: [],
   };
 }
