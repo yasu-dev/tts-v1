@@ -144,20 +144,6 @@ export default function SceneMapViewer({
                 />
               )}
 
-              {/* Strokes (behind icons) */}
-              {(viewData.strokes ?? []).map((stroke) => (
-                <Line
-                  key={stroke.id}
-                  points={stroke.points}
-                  stroke={stroke.color}
-                  strokeWidth={stroke.strokeWidth}
-                  lineCap="round"
-                  lineJoin="round"
-                  tension={0.5}
-                  listening={false}
-                />
-              ))}
-
               {viewData.icons.map((icon) => (
                 <IconRenderer
                   key={icon.id}
@@ -231,6 +217,20 @@ export default function SceneMapViewer({
                     </Group>
                   )}
                 </Group>
+              ))}
+
+              {/* Strokes (in front of icons/labels/annotations) */}
+              {(viewData.strokes ?? []).map((stroke) => (
+                <Line
+                  key={stroke.id}
+                  points={stroke.points}
+                  stroke={stroke.color}
+                  strokeWidth={stroke.strokeWidth}
+                  lineCap="round"
+                  lineJoin="round"
+                  tension={0.5}
+                  listening={false}
+                />
               ))}
             </Layer>
           </Stage>

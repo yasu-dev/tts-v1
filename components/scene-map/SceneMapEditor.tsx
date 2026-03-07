@@ -949,33 +949,6 @@ export default function SceneMapEditor({
               />
             )}
 
-            {/* Strokes (behind icons) */}
-            {(data.strokes ?? []).map((stroke) => (
-              <Line
-                key={stroke.id}
-                points={stroke.points}
-                stroke={stroke.color}
-                strokeWidth={stroke.strokeWidth}
-                lineCap="round"
-                lineJoin="round"
-                tension={0.5}
-                listening={false}
-              />
-            ))}
-
-            {/* Current stroke being drawn */}
-            {currentStroke && drawingMode === 'pen' && (
-              <Line
-                points={currentStroke}
-                stroke={penColor}
-                strokeWidth={penWidth}
-                lineCap="round"
-                lineJoin="round"
-                tension={0.5}
-                listening={false}
-              />
-            )}
-
             {/* Icons */}
             {data.icons.map((icon) => (
               <IconRenderer
@@ -1090,6 +1063,33 @@ export default function SceneMapEditor({
                 )}
               </Group>
             ))}
+
+            {/* Strokes (in front of icons/labels/annotations) */}
+            {(data.strokes ?? []).map((stroke) => (
+              <Line
+                key={stroke.id}
+                points={stroke.points}
+                stroke={stroke.color}
+                strokeWidth={stroke.strokeWidth}
+                lineCap="round"
+                lineJoin="round"
+                tension={0.5}
+                listening={false}
+              />
+            ))}
+
+            {/* Current stroke being drawn */}
+            {currentStroke && drawingMode === 'pen' && (
+              <Line
+                points={currentStroke}
+                stroke={penColor}
+                strokeWidth={penWidth}
+                lineCap="round"
+                lineJoin="round"
+                tension={0.5}
+                listening={false}
+              />
+            )}
           </Layer>
         </Stage>
 
