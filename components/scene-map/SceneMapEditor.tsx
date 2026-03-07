@@ -57,6 +57,7 @@ export default function SceneMapEditor({
   const [penColor, setPenColor] = useState('#000000');
   const [penWidth, setPenWidth] = useState(2);
   const [currentStroke, setCurrentStroke] = useState<number[] | null>(null);
+  const isErasingRef = useRef(false);
   const isDrawing = drawingMode !== 'off';
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -751,6 +752,7 @@ export default function SceneMapEditor({
       if (drawingMode === 'pen') {
         setCurrentStroke([pos.x, pos.y]);
       } else if (drawingMode === 'eraser') {
+        isErasingRef.current = true;
         // Erase strokes at this point
         const threshold = 15;
         setDataDirty((prev) => {
@@ -783,7 +785,7 @@ export default function SceneMapEditor({
 
       if (drawingMode === 'pen' && currentStroke) {
         setCurrentStroke((prev) => (prev ? [...prev, pos.x, pos.y] : null));
-      } else if (drawingMode === 'eraser') {
+      } else if (drawingMode === 'eraser' && isErasingRef.current) {
         const threshold = 15;
         setDataDirty((prev) => {
           const remaining = (prev.strokes ?? []).filter((s) => {
@@ -805,6 +807,7 @@ export default function SceneMapEditor({
   );
 
   const handleDrawPointerUp = useCallback(() => {
+    isErasingRef.current = false;
     if (drawingMode === 'pen' && currentStroke && currentStroke.length >= 4) {
       const newStroke: Stroke = {
         id: genId(),
