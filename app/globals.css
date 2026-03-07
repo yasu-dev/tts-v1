@@ -25,11 +25,11 @@
 }
 
 .leaflet-control-zoom a:hover {
-  @apply bg-blue-500 text-white border-blue-500;
+  @apply border-blue-500 bg-blue-500 text-white;
 }
 
 .leaflet-control-attribution {
-  @apply text-xs bg-white bg-opacity-80 px-2 py-1 rounded;
+  @apply rounded bg-white bg-opacity-80 px-2 py-1 text-xs;
 }
 
 .leaflet-tile-container img {
@@ -45,13 +45,6 @@
   @apply drop-shadow-lg;
 }
 
-/* レスポンシブ対応 */
-@media (max-width: 768px) {
-  .leaflet-container {
-    height: 300px !important;
-  }
-}
-
 /* プリント用 */
 @media print {
   .leaflet-control-container {
@@ -60,6 +53,10 @@
 }
 
 @layer base {
+  body {
+    overflow-x: hidden;
+  }
+
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
@@ -101,31 +98,31 @@
 
   /* ボタンスタイル */
   .btn-primary {
-    @apply bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50;
   }
-  
+
   .btn-secondary {
-    @apply bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors;
+    @apply rounded-lg bg-gray-200 px-4 py-2 font-semibold text-gray-700 transition-colors hover:bg-gray-300;
   }
-  
+
   .btn-danger {
-    @apply bg-red-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors;
+    @apply rounded-lg bg-red-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-red-700;
   }
 
   /* カードスタイル */
   .card {
-    @apply bg-white rounded-lg shadow-md p-6;
+    @apply rounded-lg bg-white p-6 shadow-md;
   }
 
   /* インプットスタイル */
   .input {
-    @apply w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500;
+    @apply w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500;
   }
 }
 
 /* オフラインインジケーター */
 .offline-indicator {
-  @apply fixed top-0 left-0 right-0 bg-yellow-500 text-white text-center py-2 font-semibold z-50;
+  @apply fixed left-0 right-0 top-0 z-50 bg-yellow-500 py-2 text-center font-semibold text-white;
 }
 
 /* ローディングアニメーション */

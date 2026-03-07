@@ -1268,7 +1268,7 @@ export default function SceneMapEditor({
 
       {/* Stamp mode indicator (hidden when drawing) */}
       {paletteSelection && !isDrawing && (
-        <div className="pointer-events-auto absolute bottom-4 left-1/2 z-30 -translate-x-1/2">
+        <div className="pointer-events-auto absolute bottom-14 left-1/2 z-30 -translate-x-1/2">
           <div className="flex items-center gap-2 rounded-full bg-blue-600 px-4 py-2 text-sm text-white shadow-lg">
             <span>
               配置モード: {getIconDefinition(paletteSelection)?.label || paletteSelection}

@@ -32,7 +32,7 @@ export default function DrawingToolbar({
   onWidthChange,
 }: DrawingToolbarProps) {
   return (
-    <div className="pointer-events-auto absolute bottom-4 left-1/2 z-30 -translate-x-1/2">
+    <div className="pointer-events-auto absolute bottom-14 left-1/2 z-30 -translate-x-1/2">
       <div className="flex items-center gap-1 rounded-2xl bg-white/95 px-2 py-1.5 shadow-lg ring-1 ring-black/5">
         {/* Pen / Eraser */}
         <button
