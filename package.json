@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@sentry/nextjs": "^10.39.0",
-    "@supabase/ssr": "^0.5.1",
+    "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.45.4",
     "date-fns": "^3.6.0",
     "html5-qrcode": "^2.3.8",
