@@ -32,6 +32,7 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [manualInput, setManualInput] = useState('');
   const [showManualInput, setShowManualInput] = useState(false);
+  const [filter, setFilter] = useState<'all' | 'black' | 'red' | 'yellow' | 'green'>('all');
   const [viewMode, setViewMode] = useState<'list' | 'panel'>(() => {
     if (typeof window !== 'undefined') {
       return (localStorage.getItem('transportDashboard_viewMode') as 'list' | 'panel') || 'list';
@@ -191,10 +192,28 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
     { id: 'amb-3', name: '牛込救急1' },
   ];
 
+  // トリアージカテゴリ別の統計
+  const stats = {
+    total: tags.length,
+    black: tags.filter((t) => t.triage_category?.final === 'black').length,
+    red: tags.filter((t) => t.triage_category?.final === 'red').length,
+    yellow: tags.filter((t) => t.triage_category?.final === 'yellow').length,
+    green: tags.filter((t) => t.triage_category?.final === 'green').length,
+  };
+
+  // フィルタリング
+  const filteredTags =
+    filter === 'all' ? tags : tags.filter((t) => t.triage_category?.final === filter);
+
+  const handleFilterChange = (newFilter: typeof filter) => {
+    setFilter(newFilter);
+    setCurrentPage(1);
+  };
+
   // ページネーション計算
-  const totalPages = Math.ceil(initialTags.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(filteredTags.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const currentPageTags = initialTags.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const currentPageTags = filteredTags.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const selectedTagData = tags.find((tag) => tag.id === selectedTag);
   const selectedHospitalData = shinjukuHospitals.find((h) => h.id === selectedHospital);
@@ -449,26 +468,53 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
       </header>
 
       <main className="mx-auto max-w-4xl p-6">
-        {/* 統計カード（トリアージカテゴリ別） */}
+        {/* 統計カード（フィルター機能統合） */}
         <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-5">
-          <div className="card bg-white text-center">
-            <p className="text-3xl font-bold text-gray-800">{tags.length}</p>
+          <button
+            onClick={() => handleFilterChange('all')}
+            className={`card cursor-pointer text-center transition-all duration-200 hover:scale-105 hover:shadow-xl ${
+              filter === 'all' ? 'shadow-xl ring-4 ring-blue-500' : ''
+            }`}
+          >
+            <p className="text-3xl font-bold text-gray-800">{stats.total}</p>
             <p className="text-sm text-gray-600">総数</p>
-          </div>
-          {(
-            Object.entries(TriageCategories) as [
-              string,
-              { label: string; color: string; textColor: string },
-            ][]
-          ).map(([key, cat]) => {
-            const count = tags.filter((t) => t.triage_category?.final === key).length;
-            return (
-              <div key={key} className={`card text-center ${cat.color} ${cat.textColor}`}>
-                <p className="text-3xl font-bold">{count}</p>
-                <p className="text-sm opacity-90">{cat.label}</p>
-              </div>
-            );
-          })}
+          </button>
+          <button
+            onClick={() => handleFilterChange('black')}
+            className={`card cursor-pointer bg-black text-center text-white transition-all duration-200 hover:scale-105 hover:shadow-xl ${
+              filter === 'black' ? 'shadow-xl ring-4 ring-gray-400' : ''
+            }`}
+          >
+            <p className="text-3xl font-bold">{stats.black}</p>
+            <p className="text-sm opacity-90">黒（死亡）</p>
+          </button>
+          <button
+            onClick={() => handleFilterChange('red')}
+            className={`card cursor-pointer bg-red-500 text-center text-white transition-all duration-200 hover:scale-105 hover:shadow-xl ${
+              filter === 'red' ? 'shadow-xl ring-4 ring-red-700' : ''
+            }`}
+          >
+            <p className="text-3xl font-bold">{stats.red}</p>
+            <p className="text-sm opacity-90">赤（重症）</p>
+          </button>
+          <button
+            onClick={() => handleFilterChange('yellow')}
+            className={`card cursor-pointer bg-yellow-400 text-center transition-all duration-200 hover:scale-105 hover:shadow-xl ${
+              filter === 'yellow' ? 'shadow-xl ring-4 ring-yellow-600' : ''
+            }`}
+          >
+            <p className="text-3xl font-bold">{stats.yellow}</p>
+            <p className="text-sm">黄（中等症）</p>
+          </button>
+          <button
+            onClick={() => handleFilterChange('green')}
+            className={`card cursor-pointer bg-green-500 text-center text-white transition-all duration-200 hover:scale-105 hover:shadow-xl ${
+              filter === 'green' ? 'shadow-xl ring-4 ring-green-700' : ''
+            }`}
+          >
+            <p className="text-3xl font-bold">{stats.green}</p>
+            <p className="text-sm opacity-90">緑（軽症）</p>
+          </button>
         </div>
 
         {/* 搬送進捗ドーナツフローチャート */}
@@ -513,12 +559,16 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
         {currentStep === 1 && (
           <div className="card">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold">傷病者一覧（{initialTags.length}件）</h2>
+              <h2 className="text-xl font-bold">傷病者一覧（{filteredTags.length}件）</h2>
               <ViewToggle viewMode={viewMode} onToggle={handleViewModeToggle} />
             </div>
 
-            {initialTags.length === 0 ? (
-              <p className="py-8 text-center text-gray-500">搬送待ちの患者はいません</p>
+            {filteredTags.length === 0 ? (
+              <p className="py-8 text-center text-gray-500">
+                {filter === 'all'
+                  ? '搬送待ちの患者はいません'
+                  : `${filter === 'black' ? '黒' : filter === 'red' ? '赤' : filter === 'yellow' ? '黄' : '緑'}タグの患者はいません`}
+              </p>
             ) : (
               <>
                 <div
