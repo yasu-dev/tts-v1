@@ -6,7 +6,7 @@
 
 ## 技術スタック
 
-Next.js 14 + React 18 + TypeScript + Tailwind CSS + shadcn/ui + Prisma(SQLite) + Supabase Auth。バージョンの権威は package.json。
+Next.js 14 + React 18 + TypeScript + Tailwind CSS + shadcn/ui + Supabase (Auth + PostgreSQL)。バージョンの権威は package.json。
 
 ## 仕様書
 
@@ -16,7 +16,7 @@ Next.js 14 + React 18 + TypeScript + Tailwind CSS + shadcn/ui + Prisma(SQLite) +
 
 - App Router使用（app/ディレクトリ直下構成、src/なし）
 - Server Components優先、Client Componentsは必要時のみ
-- DB: 現行SQLite + Prisma。マネージドDB移行はADR決定後
+- DB: Supabase PostgreSQL。データ取得はSupabase Client経由
 - UIコンポーネント: shadcn/ui + Lucide Icons標準
 - データ取得はServer Components直接。API Routeは外部連携等の必要時のみ
 
