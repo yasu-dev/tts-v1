@@ -6,11 +6,12 @@
 
 -- 方法1: Supabase Dashboard UIで作成（推奨）
 -- 1. Authentication → Users → Add User
--- 2. 以下のメールアドレスとパスワードで4つのユーザーを作成：
---    - ic@demo.com / password
---    - tri@demo.com / password
---    - trn@demo.com / password
---    - hsp@demo.com / password
+-- 2. 以下のメールアドレスとパスワードで5つのユーザーを作成：
+--    - ic@demo.com / password   (指揮本部)
+--    - tri@demo.com / password  (タッグ付け部隊)
+--    - trn@demo.com / password  (搬送部隊)
+--    - dmat@demo.com / password (DMAT)
+--    - hsp@demo.com / password  (医療機関)
 -- 3. "Auto Confirm User" にチェック（Email確認をスキップ）
 
 -- 方法2: SQLで直接作成（上級者向け）
@@ -103,6 +104,35 @@ VALUES (
 )
 ON CONFLICT (email) DO NOTHING;
 
+-- DMATユーザー
+INSERT INTO auth.users (
+  id,
+  instance_id,
+  email,
+  encrypted_password,
+  email_confirmed_at,
+  created_at,
+  updated_at,
+  raw_app_meta_data,
+  raw_user_meta_data,
+  is_super_admin,
+  role
+)
+VALUES (
+  gen_random_uuid(),
+  '00000000-0000-0000-0000-000000000000',
+  'dmat@demo.com',
+  crypt('password', gen_salt('bf')),
+  NOW(),
+  NOW(),
+  NOW(),
+  '{"provider":"email","providers":["email"]}',
+  '{"role":"DMAT"}',
+  FALSE,
+  'authenticated'
+)
+ON CONFLICT (email) DO NOTHING;
+
 -- 医療機関ユーザー
 INSERT INTO auth.users (
   id,
@@ -139,5 +169,5 @@ SELECT
   created_at,
   raw_user_meta_data->>'role' as user_role
 FROM auth.users
-WHERE email IN ('ic@demo.com', 'tri@demo.com', 'trn@demo.com', 'hsp@demo.com')
+WHERE email IN ('ic@demo.com', 'tri@demo.com', 'trn@demo.com', 'dmat@demo.com', 'hsp@demo.com')
 ORDER BY email;
