@@ -11,6 +11,23 @@
       }
     ]
   },
+  "overrides": [
+    {
+      "files": [
+        "*.config.js",
+        "*.config.cjs",
+        "*.setup.js",
+        "jest.config.js",
+        "jest.setup.js",
+        "next.config.js"
+      ],
+      "rules": {
+        "@typescript-eslint/no-require-imports": "off",
+        "@next/next/no-img-element": "off",
+        "jsx-a11y/alt-text": "off"
+      }
+    }
+  ],
   "ignorePatterns": [
     ".next/",
     ".netlify/",
