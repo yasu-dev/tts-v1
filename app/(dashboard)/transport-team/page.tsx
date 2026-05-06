@@ -1,11 +1,11 @@
-import { createClient } from '@/lib/supabase/server'
-import { TriageTag } from '@/lib/types'
-import TransportTeamDashboard from './TransportTeamDashboard'
+import { createClient } from '@/lib/supabase/server';
+import { TriageTag } from '@/lib/types';
+import TransportTeamDashboard from './TransportTeamDashboard';
 
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic';
 
 export default async function TransportTeamPage() {
-  const supabase = createClient()
+  const supabase = createClient();
 
   // 搬送部隊に割り当てられた患者を取得（作業完了分を除く）
   const { data: triageTags, error: tagsError } = await supabase
@@ -14,13 +14,13 @@ export default async function TransportTeamPage() {
     .not('transport_assignment', 'is', null)
     .neq('transport_assignment->>status', 'completed')
     .order('triage_category->final', { ascending: true })
-    .order('created_at', { ascending: true })
+    .order('created_at', { ascending: true });
 
   if (tagsError) {
     // console.error('Error fetching triage tags:', tagsError)
   }
 
-  const assignedPatients = (triageTags || []) as TriageTag[]
+  const assignedPatients = (triageTags || []) as TriageTag[];
 
-  return <TransportTeamDashboard assignedPatients={assignedPatients} />
+  return <TransportTeamDashboard assignedPatients={assignedPatients} />;
 }

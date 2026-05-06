@@ -58,9 +58,10 @@ export default function LoginPage() {
 
       logger.info('Login success, redirected');
       router.refresh();
-    } catch (err: any) {
-      setError(err.message || 'ログインに失敗しました');
-      logger.error('Login failed', { message: err?.message });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'ログインに失敗しました';
+      setError(message);
+      logger.error('Login failed', { message });
     } finally {
       setLoading(false);
     }

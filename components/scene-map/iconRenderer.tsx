@@ -2,9 +2,6 @@ import React from 'react';
 import { Group, Rect, Text, Line, Circle, RegularPolygon } from 'react-konva';
 import { getIconDefinition, isResizableType } from './icons';
 
-const MIN_W = 30;
-const MIN_H = 20;
-
 interface IconRendererProps {
   type: string;
   x: number;

@@ -6,14 +6,14 @@ export function formatDate(
   dateString: string | null | undefined,
   options?: Intl.DateTimeFormatOptions
 ): string {
-  if (!dateString) return ''
-  
+  if (!dateString) return '';
+
   try {
-    const date = new Date(dateString)
-    if (isNaN(date.getTime())) return ''
-    return date.toLocaleString('ja-JP', options)
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '';
+    return date.toLocaleString('ja-JP', options);
   } catch {
-    return ''
+    return '';
   }
 }
 
@@ -21,7 +21,7 @@ export function formatDate(
  * 日時フォーマット（フル）
  */
 export function formatDateTime(dateString: string | null | undefined): string {
-  return formatDate(dateString)
+  return formatDate(dateString);
 }
 
 /**
@@ -30,8 +30,8 @@ export function formatDateTime(dateString: string | null | undefined): string {
 export function formatTime(dateString: string | null | undefined): string {
   return formatDate(dateString, {
     hour: '2-digit',
-    minute: '2-digit'
-  })
+    minute: '2-digit',
+  });
 }
 
 /**
@@ -41,8 +41,8 @@ export function formatDateOnly(dateString: string | null | undefined): string {
   return formatDate(dateString, {
     year: 'numeric',
     month: '2-digit',
-    day: '2-digit'
-  })
+    day: '2-digit',
+  });
 }
 
 /**
@@ -53,6 +53,6 @@ export function formatShortDateTime(dateString: string | null | undefined): stri
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
-    minute: '2-digit'
-  })
+    minute: '2-digit',
+  });
 }

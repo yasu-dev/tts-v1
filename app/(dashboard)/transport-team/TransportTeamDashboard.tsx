@@ -1,13 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { TriageTag, TriageCategories } from '@/lib/types';
+import { TriageTag } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
 import LogoutButton from '@/components/LogoutButton';
 import HeaderToolButtons from '@/components/HeaderToolButtons';
 import PatientDetailModal from '@/components/PatientDetailModal';
 import QRScanner from '@/components/QRScanner';
-import { getPhaseInfo } from '@/lib/utils/getPhaseInfo';
 import ViewToggle from '@/components/ViewToggle';
 import PatientListItem from '@/components/PatientListItem';
 import PatientPanelCard from '@/components/PatientPanelCard';
@@ -57,7 +56,7 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
           schema: 'public',
           table: 'triage_tags',
         },
-        async (payload) => {
+        async (_payload) => {
           // 搬送部隊に割り当てられた患者を再取得（作業中のもののみ）
           const { data, error } = await supabase
             .from('triage_tags')
@@ -110,7 +109,11 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
         .eq('id', tagId)
         .single();
 
-      let updateData: any = {
+      const updateData: {
+        updated_at: string;
+        transport_assignment?: TriageTag['transport_assignment'];
+        transport?: TriageTag['transport'];
+      } = {
         updated_at: new Date().toISOString(),
       };
 
@@ -169,7 +172,7 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
       } else {
         alert(`搬送ステータスを${status === 'completed' ? '応急' : status}に更新しました`);
       }
-    } catch (error) {
+    } catch (_error) {
       alert('ステータス更新に失敗しました');
     } finally {
       setLoading(false);
@@ -225,7 +228,7 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
       // 患者詳細モーダルを表示
       setSelectedPatient(patient as TriageTag);
       setShowQRScanner(false);
-    } catch (error) {
+    } catch (_error) {
       alert('QRコードの読み取りに失敗しました');
     }
   };
@@ -521,7 +524,7 @@ export default function TransportTeamDashboard({ assignedPatients }: TransportTe
               <>
                 <QRScanner
                   onScanSuccess={handleQRScan}
-                  onScanError={(error) => {
+                  onScanError={(_error) => {
                     alert('QRスキャンでエラーが発生しました');
                   }}
                 />

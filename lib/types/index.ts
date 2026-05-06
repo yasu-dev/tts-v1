@@ -6,7 +6,7 @@ export interface Event {
   name: string;
   occurred_at: string;
   closed_at: string | null;
-  location_polygon: any | null;
+  location_polygon: unknown | null;
   command_post_location: {
     lat: number;
     lng: number;

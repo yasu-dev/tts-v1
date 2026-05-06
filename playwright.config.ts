@@ -1,10 +1,10 @@
-import { defineConfig, devices } from '@playwright/test'
+import { defineConfig, devices } from '@playwright/test';
 
 /**
  * Playwright E2Eテスト設定
  * @see https://playwright.dev/docs/test-configuration
  */
-const targetBaseURL = process.env.BASE_URL || 'https://triage-tag-system.netlify.app'
+const targetBaseURL = process.env.BASE_URL || 'https://triage-tag-system.netlify.app';
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -22,10 +22,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
 
   /* レポーター */
-  reporter: [
-    ['html'],
-    ['list'],
-  ],
+  reporter: [['html'], ['list']],
 
   /* 共通設定 */
   use: {
@@ -75,20 +72,20 @@ export default defineConfig({
 
   /* 開発サーバー設定 */
   webServer: targetBaseURL.includes('localhost')
-    ? (process.env.PW_USE_HTTPS === '1'
-        ? [
-            {
-              command: 'npm run dev:ssl',
-              url: 'https://localhost:3443',
-              reuseExistingServer: !process.env.CI,
-              timeout: 180 * 1000,
-            },
-          ]
-        : {
-            command: 'npm run dev',
-            url: 'http://localhost:3000',
+    ? process.env.PW_USE_HTTPS === '1'
+      ? [
+          {
+            command: 'npm run dev:ssl',
+            url: 'https://localhost:3443',
             reuseExistingServer: !process.env.CI,
-            timeout: 120 * 1000,
-          })
+            timeout: 180 * 1000,
+          },
+        ]
+      : {
+          command: 'npm run dev',
+          url: 'http://localhost:3000',
+          reuseExistingServer: !process.env.CI,
+          timeout: 120 * 1000,
+        }
     : undefined,
-})
+});

@@ -12,7 +12,7 @@ export default function LogoutButton() {
     setLoading(true);
     try {
       await logout();
-    } catch (error) {
+    } catch (_error) {
       alert('ログアウトに失敗しました');
       setLoading(false);
     }
