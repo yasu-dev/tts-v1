@@ -22,7 +22,7 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
   const [isRealtime, setIsRealtime] = useState(false);
   const [filter, setFilter] = useState<'all' | 'black' | 'red' | 'yellow' | 'green'>('all');
   const [selectedPatient, setSelectedPatient] = useState<TriageTag | null>(null);
-  const [isClient, setIsClient] = useState(false);
+  const [, setIsClient] = useState(false);
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [manualInput, setManualInput] = useState('');
   const [showManualInput, setShowManualInput] = useState(false);
@@ -45,7 +45,7 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
           schema: 'public',
           table: 'triage_tags',
         },
-        async (payload) => {
+        async (_payload) => {
           // この病院向けの搬送中患者を再取得
           const { data, error } = await supabase
             .from('triage_tags')
@@ -74,7 +74,7 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
           table: 'hospitals',
           filter: `id=eq.${hospital.id}`,
         },
-        async (payload) => {
+        async (_payload) => {
           // ページを再読み込みして最新情報を取得
           window.location.reload();
         }
@@ -125,7 +125,7 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
         .eq('id', hospital.id);
 
       if (error) throw error;
-    } catch (error) {
+    } catch (_error) {
       setAcceptingStatus(hospital.current_load.accepting_status);
       alert('更新に失敗しました');
     } finally {
@@ -182,7 +182,7 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
       setPatients((prevPatients) => prevPatients.filter((patient) => patient.id !== tagId));
 
       alert('患者を受け入れました');
-    } catch (error) {
+    } catch (_error) {
       alert('受入処理に失敗しました');
     } finally {
       setLoading(false);
@@ -238,7 +238,7 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
       // 患者詳細モーダルを表示
       setSelectedPatient(patient as TriageTag);
       setShowQRScanner(false);
-    } catch (error) {
+    } catch (_error) {
       alert('QRコードの読み取りに失敗しました');
     }
   };
@@ -640,7 +640,7 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
               <>
                 <QRScanner
                   onScanSuccess={handleQRScan}
-                  onScanError={(error) => {
+                  onScanError={(_error) => {
                     alert('QRスキャンでエラーが発生しました');
                   }}
                 />

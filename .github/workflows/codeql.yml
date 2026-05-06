@@ -13,10 +13,15 @@ concurrency:
 jobs:
   analyze:
     name: Analyze
+    # Private repos require GitHub Advanced Security to run CodeQL. Skip on private until it's enabled.
+    if: github.event.repository.private == false
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
+      actions: read
       security-events: write
+      contents: read
+      pull-requests: read
 
     steps:
       - uses: actions/checkout@v4

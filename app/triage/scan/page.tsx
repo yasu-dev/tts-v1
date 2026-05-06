@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import QRScanner from '@/components/QRScanner';
 import StartWizard, { StartTriageResult } from '@/components/StartWizard';
@@ -29,7 +28,6 @@ const mapAVPUtoJCS = (avpu: 'alert' | 'verbal' | 'pain' | 'unresponsive'): 'I' |
 
 export default function TriageScanPage() {
   const logger = createLogger('app/triage/scan');
-  const router = useRouter();
   const supabase = createClient();
 
   // ステップ管理
@@ -176,7 +174,7 @@ export default function TriageScanPage() {
           points: (events[0].contact_points || []).length,
         });
       }
-    } catch (err) {
+    } catch (_err) {
       logger.error('Failed to load event data');
     }
   };
@@ -303,7 +301,7 @@ export default function TriageScanPage() {
           setError(`タグ番号 ${tagNumber} は既に使用されています。別の番号を入力してください`);
           return;
         }
-      } catch (err) {
+      } catch (_err) {
         // 事前チェックエラーは警告レベル
         logger.warn('Pre-check failed, continuing with submission');
       }
@@ -738,7 +736,7 @@ export default function TriageScanPage() {
                   onChange={(e) =>
                     setVitalSigns({
                       ...vitalSigns,
-                      consciousness: e.target.value as any,
+                      consciousness: e.target.value as 'alert' | 'verbal' | 'pain' | 'unresponsive',
                     })
                   }
                   className="input"
@@ -861,7 +859,12 @@ export default function TriageScanPage() {
                 <label className="mb-2 block text-sm font-bold">性別</label>
                 <select
                   value={patientInfo.sex}
-                  onChange={(e) => setPatientInfo({ ...patientInfo, sex: e.target.value as any })}
+                  onChange={(e) =>
+                    setPatientInfo({
+                      ...patientInfo,
+                      sex: e.target.value as 'male' | 'female' | 'unknown',
+                    })
+                  }
                   className="input"
                 >
                   <option value="unknown">不明</option>

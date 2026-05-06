@@ -374,7 +374,7 @@ export default function SceneMapEditor({
   );
 
   const handleStagePointerMove = useCallback(
-    (e: KonvaEventObject<MouseEvent | TouchEvent>) => {
+    (_e: KonvaEventObject<MouseEvent | TouchEvent>) => {
       if (!longPressStartRef.current || !longPressTimerRef.current) return;
       const stage = stageRef.current;
       if (!stage) return;
@@ -391,7 +391,7 @@ export default function SceneMapEditor({
 
   // Cancel long press on drag start (bubbled from children)
   const handleDragStartBubble = useCallback(
-    (e: KonvaEventObject<DragEvent>) => {
+    (_e: KonvaEventObject<DragEvent>) => {
       cancelLongPress();
     },
     [cancelLongPress]
@@ -741,7 +741,7 @@ export default function SceneMapEditor({
 
   // Drawing pointer handlers
   const handleDrawPointerDown = useCallback(
-    (e: KonvaEventObject<MouseEvent | TouchEvent>) => {
+    (_e: KonvaEventObject<MouseEvent | TouchEvent>) => {
       const stage = stageRef.current;
       if (!stage) return;
       const pointerPos = stage.getPointerPosition();
@@ -775,7 +775,7 @@ export default function SceneMapEditor({
   );
 
   const handleDrawPointerMove = useCallback(
-    (e: KonvaEventObject<MouseEvent | TouchEvent>) => {
+    (_e: KonvaEventObject<MouseEvent | TouchEvent>) => {
       const stage = stageRef.current;
       if (!stage) return;
       const pointerPos = stage.getPointerPosition();

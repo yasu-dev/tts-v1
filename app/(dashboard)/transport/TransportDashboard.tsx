@@ -7,7 +7,6 @@ import LogoutButton from '@/components/LogoutButton';
 import HeaderToolButtons from '@/components/HeaderToolButtons';
 import PatientDetailModal from '@/components/PatientDetailModal';
 import QRScanner from '@/components/QRScanner';
-import { getPhaseInfo } from '@/lib/utils/getPhaseInfo';
 import ViewToggle from '@/components/ViewToggle';
 import PatientListItem from '@/components/PatientListItem';
 import PatientPanelCard from '@/components/PatientPanelCard';
@@ -18,7 +17,10 @@ interface TransportDashboardProps {
   hospitals: Hospital[];
 }
 
-export default function TransportDashboard({ initialTags, hospitals }: TransportDashboardProps) {
+export default function TransportDashboard({
+  initialTags,
+  hospitals: _hospitals,
+}: TransportDashboardProps) {
   const [tags, setTags] = useState<TriageTag[]>(initialTags);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [selectedHospital, setSelectedHospital] = useState<string>('');
@@ -28,7 +30,9 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
   const [selectedTagDetail, setSelectedTagDetail] = useState<TriageTag | null>(null);
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
   const [currentPage, setCurrentPage] = useState(1);
-  const [hospitalStatuses, setHospitalStatuses] = useState<{ [key: string]: any }>({});
+  const [hospitalStatuses, setHospitalStatuses] = useState<{
+    [key: string]: Hospital['current_load'];
+  }>({});
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [manualInput, setManualInput] = useState('');
   const [showManualInput, setShowManualInput] = useState(false);
@@ -370,7 +374,7 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
       setSelectedAmbulance('');
       setCurrentStep(1);
       setCurrentPage(1);
-    } catch (error) {
+    } catch (_error) {
       alert('搬送開始に失敗しました');
     } finally {
       setLoading(false);
@@ -426,7 +430,7 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
       // 患者詳細モーダルを表示
       setSelectedTagDetail(patient as TriageTag);
       setShowQRScanner(false);
-    } catch (error) {
+    } catch (_error) {
       alert('QRコードの読み取りに失敗しました');
     }
   };
@@ -721,13 +725,6 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
                       : acceptingStatus === 'full'
                         ? '満床'
                         : '不可';
-                const statusColor =
-                  acceptingStatus === 'accepting'
-                    ? 'text-green-600'
-                    : acceptingStatus === 'limited'
-                      ? 'text-yellow-600'
-                      : 'text-red-600';
-
                 const isTertiary = hospital.name === '東京医科大学病院';
                 const availableBeds = totalCapacity - currentPatients;
                 const isDisabled =
@@ -1070,7 +1067,7 @@ export default function TransportDashboard({ initialTags, hospitals }: Transport
               <>
                 <QRScanner
                   onScanSuccess={handleQRScan}
-                  onScanError={(error) => {
+                  onScanError={(_error) => {
                     alert('QRスキャンでエラーが発生しました');
                   }}
                 />

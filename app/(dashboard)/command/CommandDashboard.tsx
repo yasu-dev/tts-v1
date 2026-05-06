@@ -22,7 +22,7 @@ export default function CommandDashboard({ initialTags }: CommandDashboardProps)
   const [statusFilters, setStatusFilters] = useState<string[]>([]);
   const [isRealtime, setIsRealtime] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
-  const [realtimeStatus, setRealtimeStatus] = useState<string | null>(null);
+  const [, setRealtimeStatus] = useState<string | null>(null);
   const [selectedTagDetail, setSelectedTagDetail] = useState<TriageTag | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'panel'>(() => {
     if (typeof window !== 'undefined') {

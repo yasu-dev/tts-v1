@@ -1,17 +1,17 @@
-import '@testing-library/jest-dom'
+import '@testing-library/jest-dom';
 
 // Mock IntersectionObserver
 global.IntersectionObserver = class IntersectionObserver {
   constructor() {}
-  
+
   observe() {
     return null;
   }
-  
+
   disconnect() {
     return null;
   }
-  
+
   unobserve() {
     return null;
   }
@@ -20,15 +20,15 @@ global.IntersectionObserver = class IntersectionObserver {
 // Mock ResizeObserver
 global.ResizeObserver = class ResizeObserver {
   constructor() {}
-  
+
   observe() {
     return null;
   }
-  
+
   disconnect() {
     return null;
   }
-  
+
   unobserve() {
     return null;
   }
@@ -37,7 +37,7 @@ global.ResizeObserver = class ResizeObserver {
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: jest.fn().mockImplementation(query => ({
+  value: jest.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -53,6 +53,6 @@ Object.defineProperty(window, 'matchMedia', {
 jest.mock('next/image', () => ({
   __esModule: true,
   default: (props) => {
-    return <img {...props} />
+    return <img {...props} />;
   },
 }));

@@ -8,3 +8,24 @@ updates:
     open-pull-requests-limit: 5
     labels:
       - dependencies
+    groups:
+      production-minor-patch:
+        dependency-type: production
+        update-types:
+          - patch
+          - minor
+      development-minor-patch:
+        dependency-type: development
+        update-types:
+          - patch
+          - minor
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    labels:
+      - dependencies
+      - github-actions
