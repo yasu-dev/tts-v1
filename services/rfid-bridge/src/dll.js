@@ -17,18 +17,14 @@ let api = null;
 export function loadDll() {
   if (lib) return { ok: true };
   try {
-    // RFRW_* 関数群は RFRWUMPHID_Drv.dll に export されている
-    // (FjRfrwCommVO.dll は Init/Term のみで本 API は提供しない)
     const dllPath = path.join(DLL_DIR, 'RFRWUMPHID_Drv.dll');
     lib = koffi.load(dllPath);
     api = {
-      RFRW_Open: lib.func('int __stdcall RFRW_Open(int, int)'),
-      RFRW_Close: lib.func('int __stdcall RFRW_Close(int)'),
-      RFRW_GetDllVersion: lib.func(
-        'int __stdcall RFRW_GetDllVersion(_Out_ uint8_t *ver, int verSize)'
-      ),
+      RFRW_Open: lib.func('int RFRW_Open(int, int)'),
+      RFRW_Close: lib.func('int RFRW_Close(int)'),
+      RFRW_GetDllVersion: lib.func('int RFRW_GetDllVersion(_Out_ uint8_t *ver, int verSize)'),
       RFRW_CLRW_Transmit: lib.func(
-        'int __stdcall RFRW_CLRW_Transmit(int port, const uint8_t *send, int sendLen, _Out_ uint8_t *recv, _Inout_ int *recvLen)'
+        'int RFRW_CLRW_Transmit(int port, uint8_t *send, int sendLen, _Out_ uint8_t *recv, _Inout_ int *recvLen)'
       ),
     };
     return { ok: true };
@@ -40,9 +36,13 @@ export function loadDll() {
 
 export function openReader() {
   if (!api) return { ok: false, error: 'DLL not loaded' };
-  const ret = api.RFRW_Open(USB_HID_PORT, 0);
-  if (ret !== 0) return { ok: false, error: `RFRW_Open returned ${ret}` };
-  return { ok: true };
+  try {
+    const ret = api.RFRW_Open(USB_HID_PORT, 0);
+    if (ret !== 0) return { ok: false, error: `RFRW_Open returned ${ret}` };
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: 'RFRW_Open threw: ' + (e instanceof Error ? e.message : String(e)) };
+  }
 }
 
 export function closeReader() {
@@ -54,31 +54,59 @@ export function closeReader() {
 
 export function getDllVersion() {
   if (!api) return { ok: false, error: 'DLL not loaded' };
-  const ver = Buffer.alloc(8);
-  const ret = api.RFRW_GetDllVersion(ver, ver.length);
-  if (ret !== 0) return { ok: false, error: `RFRW_GetDllVersion returned ${ret}` };
-  return {
-    ok: true,
-    version: Array.from(ver)
-      .map((b) => b.toString(16).padStart(2, '0'))
-      .join(''),
-  };
+  try {
+    const ver = Buffer.alloc(8);
+    const ret = api.RFRW_GetDllVersion(ver, ver.length);
+    if (ret !== 0) return { ok: false, error: `RFRW_GetDllVersion returned ${ret}` };
+    return {
+      ok: true,
+      version: Array.from(ver)
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join(''),
+    };
+  } catch (e) {
+    return {
+      ok: false,
+      error: 'RFRW_GetDllVersion threw: ' + (e instanceof Error ? e.message : String(e)),
+    };
+  }
+}
+
+function transmitOnce(sendBytes) {
+  const send = Buffer.from(sendBytes);
+  const recv = Buffer.alloc(256);
+  const recvLenPtr = [recv.length];
+  let ret;
+  try {
+    ret = api.RFRW_CLRW_Transmit(USB_HID_PORT, send, send.length, recv, recvLenPtr);
+  } catch (e) {
+    return {
+      ok: false,
+      error: 'RFRW_CLRW_Transmit threw: ' + (e instanceof Error ? e.message : String(e)),
+    };
+  }
+  if (ret !== 0) {
+    return { ok: false, error: `RFRW_CLRW_Transmit returned ${ret}` };
+  }
+  const len = recvLenPtr[0];
+  return { ok: true, data: recv.subarray(0, len), len };
 }
 
 export function readEpcOnce(timeoutMs = 2000) {
   if (!api) return { ok: false, error: 'DLL not loaded' };
+
   const start = Date.now();
-  const recv = Buffer.alloc(256);
-  const recvLen = [recv.length];
+  let firstError = null;
 
   while (Date.now() - start < timeoutMs) {
-    const send = Buffer.from([0x08, 0x01, 0x00, 0x00, 0x00, 0x02, 0x05, 0x01]);
-    recvLen[0] = recv.length;
-    const ret = api.RFRW_CLRW_Transmit(USB_HID_PORT, send, send.length, recv, recvLen);
-    if (ret !== 0) return { ok: false, error: `RFRW_CLRW_Transmit returned ${ret}` };
-    const len = recvLen[0];
+    const result = transmitOnce([0x08, 0x01, 0x00, 0x00, 0x00, 0x02, 0x05, 0x01]);
+    if (!result.ok) {
+      firstError = result.error;
+      break;
+    }
+    const len = result.len;
     if (len > 4) {
-      const epc = recv.subarray(2, len - 2);
+      const epc = result.data.subarray(2, len - 2);
       const uid = Array.from(epc)
         .map((b) => b.toString(16).padStart(2, '0').toUpperCase())
         .join('');
@@ -86,12 +114,14 @@ export function readEpcOnce(timeoutMs = 2000) {
         return { ok: true, uid };
       }
     }
-    Sleep(150);
+    busyWait(150);
   }
+
+  if (firstError) return { ok: false, error: firstError };
   return { ok: false, error: 'SCAN_TIMEOUT' };
 }
 
-function Sleep(ms) {
+function busyWait(ms) {
   const end = Date.now() + ms;
   while (Date.now() < end) {}
 }
