@@ -114,6 +114,39 @@
 </tbody>
 </table>
 
+
+<h3 class="doc-h3" id="sec-0-2">0.2 想定運用シナリオ</h3>
+
+<p>本機能の RFID 機能は、想定される運用形態として以下 2 通りを想定する。設計はこの両方に対応する。</p>
+
+<table>
+<thead><tr><th style="width:18%">シナリオ</th><th>担当・端末</th><th>運用詳細</th></tr></thead>
+<tbody>
+<tr>
+  <td><strong>① 現場で直接登録</strong></td>
+  <td>タッグ隊 (TRI ロール)<br>iPad / Windows PC</td>
+  <td>タッグ隊が現場でトリアージ実施 → その場で <code>/triage/scan</code> を開き、タグを読み取って傷病者情報を登録する。タブレット運用時は QR + 手入力、Windows PC + RFID リーダー接続時は QR / RFID / 手入力の 3 経路。<strong>Red / Yellow / Black 傷病者は移動困難なためこの運用</strong></td>
+</tr>
+<tr>
+  <td><strong>② タッグ配布と登録の分業</strong><br><span class="badge badge-new">RFID 主用途</span></td>
+  <td>タッグ隊 (現場): タッグ貼付のみ<br>システム登録者 (集合場所): TRI ロール、Windows PC + RFID リーダー</td>
+  <td>① タッグ隊は現場で物理 RFID タッグを傷病者に貼付するだけ (システム登録なし)。② 自力で歩ける傷病者 (Green 想定) は集合場所まで移動。③ 集合場所のシステム登録者が <code>/triage/scan</code> を Windows PC で開き、RFID リーダーで来た人のタッグを順次読み取って必要最低限の情報を登録。<strong>軽症 (Green) 傷病者の効率的処理に最適</strong></td>
+</tr>
+</tbody>
+</table>
+
+<p>運用設計上の留意点 (本機能のスコープ外、運用ルールで担保):</p>
+
+<ul>
+<li><strong>同時読取防止</strong>: TFU-RW811A は UHF Inventory モードで複数タッグを同時返却し得るため、ブリッジ側で「最初の 1 件のみ採用」を実装済 (§3.5 E1)。運用としては「1 人ずつ前に出てかざす」ルールを設けて誤読を防ぐ</li>
+<li><strong>読取距離</strong>: TFU-RW811A は近接型 (数十 cm〜1m 程度)。タッグの装着位置 (首掛け / 腕巻き / 服に貼付) を運用で固定する</li>
+<li><strong>タッグ事前配布管理</strong>: 未割当タッグの物理在庫、紛失時対応、回収済タッグの再利用可否</li>
+<li><strong>集合場所の通信</strong>: システム登録者 PC が Supabase に常時接続できる回線必須 (4G/5G オフライン耐性は本機能スコープ外)</li>
+<li><strong>同一タッグ二重登録</strong>: DB の <code>UNIQUE(event_id, tag_number)</code> 複合制約で検知 (§3.4)</li>
+</ul>
+
+<hr class="doc-hr">
+
 <!-- ===================== §1 ===================== -->
 <h2 class="doc-h2" id="sec-1">§1 修正内容の詳細化</h2>
 
