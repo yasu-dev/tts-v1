@@ -17,7 +17,9 @@ let api = null;
 export function loadDll() {
   if (lib) return { ok: true };
   try {
-    const dllPath = path.join(DLL_DIR, 'FjRfrwCommVO.dll');
+    // RFRW_* 関数群は RFRWUMPHID_Drv.dll に export されている
+    // (FjRfrwCommVO.dll は Init/Term のみで本 API は提供しない)
+    const dllPath = path.join(DLL_DIR, 'RFRWUMPHID_Drv.dll');
     lib = koffi.load(dllPath);
     api = {
       RFRW_Open: lib.func('int __stdcall RFRW_Open(int, int)'),
