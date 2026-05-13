@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { TriageTag, TriageCategories } from '@/lib/types';
 import { getPhaseInfo } from '@/lib/utils/getPhaseInfo';
+import { formatTagNumberForDisplay } from '@/lib/utils/tag-display';
 
 interface PatientPanelCardProps {
   tag: TriageTag;
@@ -138,8 +139,9 @@ export default function PatientPanelCard({
         <div className="flex items-center gap-2">
           <span
             className={`rounded-lg px-3 py-1 text-sm font-bold ${categoryInfo.color} ${categoryInfo.textColor}`}
+            title={tag.tag_number}
           >
-            {tag.tag_number}
+            {formatTagNumberForDisplay(tag.tag_number)}
           </span>
           {variant === 'transport-team' ? (
             <>

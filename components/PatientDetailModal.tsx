@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { TriageTag, TriageCategories } from '@/lib/types';
 import { formatDateTime, formatShortDateTime } from '@/lib/utils/date-formatter';
+import { formatTagNumberForDisplay } from '@/lib/utils/tag-display';
 import { createClient } from '@/lib/supabase/client';
 import VoiceInput from '@/components/VoiceInput';
 import ImageUploader from '@/components/ImageUploader';
@@ -148,8 +149,9 @@ export default function PatientDetailModal({
             <div className="flex items-center gap-4">
               <span
                 className={`rounded-lg px-6 py-3 text-xl font-bold ${categoryInfo.color} ${categoryInfo.textColor}`}
+                title={editedTag.tag_number}
               >
-                {editedTag.tag_number}
+                {formatTagNumberForDisplay(editedTag.tag_number)}
               </span>
               <div>
                 <h2 className="text-2xl font-bold">{categoryInfo.label}</h2>

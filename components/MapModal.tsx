@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { createClient } from '@/lib/supabase/client';
 import { TriageTag } from '@/lib/types';
+import { formatTagNumberForDisplay } from '@/lib/utils/tag-display';
 
 const TriageMap = dynamic(() => import('@/components/TriageMap'), {
   ssr: false,
@@ -71,7 +72,7 @@ export default function MapModal({ isOpen, onClose }: MapModalProps) {
       id: tag.id,
       position: [tag.location.latitude, tag.location.longitude] as [number, number],
       category: tag.triage_category.final,
-      tagNumber: tag.tag_number,
+      tagNumber: formatTagNumberForDisplay(tag.tag_number),
       anonymousId: tag.anonymous_id,
     }));
 

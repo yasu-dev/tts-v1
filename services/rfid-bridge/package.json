@@ -1,0 +1,21 @@
+{
+  "name": "tts-rfid-bridge",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local WebSocket bridge between browser and FUJITSU TFU-RW811A RFID reader DLL.",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "install-service": "node src/install-service.js install",
+    "uninstall-service": "node src/install-service.js uninstall"
+  },
+  "dependencies": {
+    "koffi": "^2.10.0",
+    "node-windows": "^1.0.0-beta.8",
+    "pino": "^9.5.0",
+    "ws": "^8.18.0"
+  }
+}
