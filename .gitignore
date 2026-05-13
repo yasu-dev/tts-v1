@@ -61,3 +61,6 @@ playwright-report/**/*
 
 # Claude Code personal settings
 .claude/settings.local.json
+
+# Deno (not used in this project; ignore stray lockfile)
+deno.lock
