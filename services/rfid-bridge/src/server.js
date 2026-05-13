@@ -1,7 +1,14 @@
 import http from 'node:http';
 import { WebSocketServer } from 'ws';
 import pino from 'pino';
-import { loadDll, openReader, closeReader, getDllVersion, readEpcOnce } from './dll.js';
+import {
+  loadDll,
+  openReader,
+  closeReader,
+  getDllVersion,
+  readEpcOnce,
+  probeTransmit,
+} from './dll.js';
 
 const WS_PORT = Number(process.env.RFID_WS_PORT || 17324);
 const HEALTH_PORT = Number(process.env.RFID_HEALTH_PORT || 17325);
@@ -148,6 +155,35 @@ wss.on('connection', (ws, req) => {
       if (scanning) return;
       scanning = true;
       sendJson(ws, { type: 'STATUS', status: 'busy' });
+
+      // diagnostic: try GetDllVersion first to verify any FFI call works
+      const verResult = getDllVersion();
+      logger.info({
+        event: 'scan_probe_version',
+        ok: verResult.ok,
+        version: verResult.version,
+        error: verResult.error,
+      });
+
+      // diagnostic: try ApiTrace's known-good 4-byte command before scanning
+      const probeResult = probeTransmit();
+      logger.info({
+        event: 'scan_probe_transmit',
+        ok: probeResult.ok,
+        len: probeResult.len,
+        error: probeResult.error,
+      });
+      if (!probeResult.ok) {
+        scanning = false;
+        sendJson(ws, {
+          type: 'ERROR',
+          code: 'INTERNAL',
+          message: 'probe failed: ' + probeResult.error,
+        });
+        sendJson(ws, { type: 'STATUS', status: 'ready' });
+        return;
+      }
+
       const result = readEpcOnce(READ_TIMEOUT_MS);
       scanning = false;
       if (result.ok) {

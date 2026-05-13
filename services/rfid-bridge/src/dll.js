@@ -74,7 +74,7 @@ export function getDllVersion() {
 
 function transmitOnce(sendBytes) {
   const send = Buffer.from(sendBytes);
-  const recv = Buffer.alloc(256);
+  const recv = Buffer.alloc(1024);
   const recvLenPtr = [recv.length];
   let ret;
   try {
@@ -90,6 +90,11 @@ function transmitOnce(sendBytes) {
   }
   const len = recvLenPtr[0];
   return { ok: true, data: recv.subarray(0, len), len };
+}
+
+export function probeTransmit() {
+  if (!api) return { ok: false, error: 'DLL not loaded' };
+  return transmitOnce([0x00, 0x05, 0x16, 0x00]);
 }
 
 export function readEpcOnce(timeoutMs = 2000) {
