@@ -1,0 +1,36 @@
+---
+description: Rollback policy for safe feature additions
+globs:
+alwaysApply: true
+---
+
+# 機能追加時の原状復帰担保（Cursor Agent 用）
+
+機能追加に失敗した場合、GitHub のデフォルトブランチ（main / master）を **ブランチ作成時点のコード状態に戻せる** ことを最低限保証する。Netlify / AWS 等のホスティング層は default branch HEAD を自動再デプロイするため、default branch を戻せばホスティング層も自動追従する。
+
+## 必須要件（2 点）
+
+1. **GitHub 設定: squash-merge only**
+   - 確認: `gh api repos/<owner>/<repo> --jq '{squash:.allow_squash_merge,merge:.allow_merge_commit,rebase:.allow_rebase_merge}'`
+   - 違えば PATCH: `gh api -X PATCH repos/<owner>/<repo> -F allow_squash_merge=true -F allow_merge_commit=false -F allow_rebase_merge=false`
+   - 各機能が default branch 上に単一 commit で乗るため `git revert <sha>` で確実に打ち消せる
+2. **復帰オペレーション**
+   - `git revert --no-edit <feat-merge-sha> && git push origin <default-branch>`
+   - これでホスティング層が default branch HEAD を自動再デプロイし、ブランチ作成時点のコード状態に戻る
+
+## 不変ルール（機能追加 PR で守る）
+
+- DB スキーマは forward-only（`DROP TABLE` / `DROP COLUMN` / `TRUNCATE` / `DELETE FROM <table>;`（WHERE 無し）/ `ALTER COLUMN ... SET NOT NULL` 禁止）
+- 既存環境変数の変更・削除禁止（追加のみ）
+
+## 着手時セルフチェック
+
+新機能 PR を開く前に必須要件 1 を `gh api` で確認。違えば PATCH してから機能追加に進む。DB 変更を含む場合は forward-only であることを確認。既存環境変数の変更・削除を含む場合は別 PR に分離。
+
+## 補助仕組み（プロジェクト規模に応じて追加）
+
+参照テンプレ: `c:/work/tts/scripts/rollback.sh`, `c:/work/tts/.github/workflows/sql-guard.yml`, `c:/work/tts/docs/runbooks/rollback.md`
+
+## Claude Code との同期
+
+本ファイルは Cursor Agent 用。Claude Code には同等内容がグローバル `~/.claude/CLAUDE.md` の「機能追加時の原状復帰担保（全プロジェクト適用）」セクションに記載済。両 AI で同じルールが適用される。
