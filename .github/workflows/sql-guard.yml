@@ -1,0 +1,48 @@
+name: SQL Guard
+
+on:
+  pull_request:
+    paths:
+      - 'supabase/**/*.sql'
+
+jobs:
+  forward-only-check:
+    name: Forward-only SQL check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Detect destructive SQL in added lines
+        run: |
+          set -euo pipefail
+          BASE="origin/${{ github.base_ref }}"
+          DIFF=$(git diff "$BASE...HEAD" -- 'supabase/**/*.sql' || true)
+          if [ -z "$DIFF" ]; then
+            echo "No SQL changes in supabase/. OK."
+            exit 0
+          fi
+          ADDED=$(printf '%s\n' "$DIFF" \
+            | grep -E '^\+[^+]' \
+            | grep -vE '^\+\s*--' \
+            || true)
+          if [ -z "$ADDED" ]; then
+            echo "No added SQL lines. OK."
+            exit 0
+          fi
+          DESTRUCTIVE=$(printf '%s\n' "$ADDED" \
+            | grep -iE 'DROP[[:space:]]+(TABLE|COLUMN|SCHEMA|DATABASE)|TRUNCATE[[:space:]]+TABLE|DELETE[[:space:]]+FROM[[:space:]]+("?[a-zA-Z_][a-zA-Z0-9_]*"?\.)?"?[a-zA-Z_][a-zA-Z0-9_]*"?[[:space:]]*;|ALTER[[:space:]]+COLUMN[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]+SET[[:space:]]+NOT[[:space:]]+NULL' \
+            || true)
+          if [ -n "$DESTRUCTIVE" ]; then
+            echo "::error::Destructive SQL detected. This repository enforces forward-only migrations to guarantee rollback safety."
+            echo ""
+            echo "Offending lines:"
+            printf '%s\n' "$DESTRUCTIVE"
+            echo ""
+            echo "Allowed: CREATE TABLE, ALTER TABLE ... ADD COLUMN (nullable or with DEFAULT), CREATE INDEX, INSERT, UPDATE (with WHERE)."
+            echo "Disallowed in this PR: DROP TABLE, DROP COLUMN, TRUNCATE, DELETE FROM <table>; (no WHERE), ALTER COLUMN ... SET NOT NULL."
+            echo "If you intentionally need a destructive change, get explicit approval and add a [skip-sql-guard] label to the PR (not yet implemented; contact maintainer)."
+            exit 1
+          fi
+          echo "OK: no destructive SQL in added lines."
