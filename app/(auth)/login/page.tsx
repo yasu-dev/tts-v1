@@ -72,7 +72,6 @@ export default function LoginPage() {
       <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-2xl">
         <div className="mb-8 text-center">
           <h1 className="mb-2 text-3xl font-bold text-gray-800">トリアージタッグシステム</h1>
-          <p className="text-gray-600">災害時トリアージ管理</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
