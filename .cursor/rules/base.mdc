@@ -1,0 +1,28 @@
+---
+description: Project governance and rule authority
+globs:
+alwaysApply: true
+
+# プロジェクト規約
+
+## 権威
+- プロジェクト規約の Single Source of Truth は `CLAUDE.md`。実装前に必ず参照。
+- `.cursor/rules/` は補足ルール。`CLAUDE.md` と矛盾する場合は `CLAUDE.md` が優先。
+
+## 開発体制
+- Cursor Agent と Claude Code の併用開発。方針・ルールは両ツールで統一。
+
+## ルールの育成
+- 新たなルール・制約を発見した場合、ユーザーに追加可否を確認してから追記。
+- 勝手にルールを追加・変更・削除しない。
+
+## 開発ルール
+- 指示されていない変更は提案し承認後に実施。
+- UI変更は承認後に実施。例外: 誤字修正、aria属性追加、明確なバグ修正。
+
+## 品質ゲート
+- コミット時: husky + lint-staged（ESLint + Prettier）が自動実行。
+- PR時: GitHub Actions CI（tsc → lint → prettier → build → audit）+ CodeQL。
+- 週次: Dependabot が依存更新PRを自動作成。
+- 環境変数を追加したら `lib/env.ts` + `.env.example` も更新すること。
+- 詳細は `CLAUDE.md` の「品質ゲート」「環境変更時のトリガー」を参照。

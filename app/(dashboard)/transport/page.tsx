@@ -1,11 +1,11 @@
-import { createClient } from '@/lib/supabase/server'
-import { TriageTag, Hospital } from '@/lib/types'
-import TransportDashboard from './TransportDashboard'
+import { createClient } from '@/lib/supabase/server';
+import { TriageTag, Hospital } from '@/lib/types';
+import TransportDashboard from './TransportDashboard';
 
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic';
 
 export default async function TransportPage() {
-  const supabase = createClient()
+  const supabase = createClient();
 
   // DMAT対象患者を取得（赤・黄タグで応急救護所到着済み、病院搬送未開始）
   const { data: triageTags, error: tagsError } = await supabase
@@ -14,28 +14,28 @@ export default async function TransportPage() {
     .in('triage_category->>final', ['red', 'yellow'])
     .eq('transport_assignment->>status', 'completed')
     .order('triage_category->>final', { ascending: true }) // 赤を優先
-    .order('created_at', { ascending: true })
+    .order('created_at', { ascending: true });
 
   // 病院一覧を取得
   const { data: hospitals, error: hospitalsError } = await supabase
     .from('hospitals')
     .select('*')
-    .order('name')
+    .order('name');
 
   if (tagsError || hospitalsError) {
     // console.error('Error fetching data:', tagsError || hospitalsError)
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-100">
         <div className="card max-w-md">
-          <h2 className="text-xl font-bold text-red-600 mb-2">データ取得エラー</h2>
+          <h2 className="mb-2 text-xl font-bold text-red-600">データ取得エラー</h2>
           <p className="text-gray-600">{(tagsError || hospitalsError)?.message}</p>
         </div>
       </div>
-    )
+    );
   }
 
-  const tags = (triageTags || []) as TriageTag[]
-  const hospitalsList = (hospitals || []) as Hospital[]
+  const tags = (triageTags || []) as TriageTag[];
+  const hospitalsList = (hospitals || []) as Hospital[];
 
-  return <TransportDashboard initialTags={tags} hospitals={hospitalsList} />
+  return <TransportDashboard initialTags={tags} hospitals={hospitalsList} />;
 }

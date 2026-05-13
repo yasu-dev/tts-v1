@@ -26,6 +26,9 @@ yarn-error.log*
 .env*.local
 .env
 
+# MCP config (contains tokens)
+.mcp.json
+
 # vercel
 .vercel
 
@@ -52,3 +55,12 @@ playwright-report/**/*
 
 # TypeScript incremental build info
 /tsconfig.tsbuildinfo
+
+# Local Netlify folder
+.netlify
+
+# Claude Code personal settings
+.claude/settings.local.json
+
+# Deno (not used in this project; ignore stray lockfile)
+deno.lock

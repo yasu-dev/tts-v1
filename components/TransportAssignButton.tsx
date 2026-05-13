@@ -1,34 +1,29 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { TriageTag } from '@/lib/types'
-import { createClient } from '@/lib/supabase/client'
+import { useState } from 'react';
+import { TriageTag } from '@/lib/types';
+import { createClient } from '@/lib/supabase/client';
 
 interface TransportAssignButtonProps {
-  tag: TriageTag
+  tag: TriageTag;
 }
 
-const TRANSPORT_TEAMS = [
-  '新宿ポンプ1',
-  '新宿ポンプ2', 
-  '新宿救助1',
-  '三本部機動'
-]
+const TRANSPORT_TEAMS = ['新宿ポンプ1', '新宿ポンプ2', '新宿救助1', '三本部機動'];
 
 export default function TransportAssignButton({ tag }: TransportAssignButtonProps) {
-  const [showModal, setShowModal] = useState(false)
-  const [selectedTeam, setSelectedTeam] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [showModal, setShowModal] = useState(false);
+  const [selectedTeam, setSelectedTeam] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const supabase = createClient()
+  const supabase = createClient();
 
   const handleAssign = async () => {
     if (!selectedTeam) {
-      alert('搬送部隊を選択してください')
-      return
+      alert('搬送部隊を選択してください');
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
     try {
       const { error } = await supabase
         .from('triage_tags')
@@ -40,34 +35,31 @@ export default function TransportAssignButton({ tag }: TransportAssignButtonProp
           },
           updated_at: new Date().toISOString(),
         })
-        .eq('id', tag.id)
+        .eq('id', tag.id);
 
-      if (error) throw error
+      if (error) throw error;
 
-      alert(`${selectedTeam}に搬送指示を出しました`)
-      setShowModal(false)
-      setSelectedTeam('')
+      alert(`${selectedTeam}に搬送指示を出しました`);
+      setShowModal(false);
+      setSelectedTeam('');
       // リアルタイム更新に依存（ページリロードは削除）
-    } catch (error) {
-      alert('搬送部隊の割り当てに失敗しました')
+    } catch (_error) {
+      alert('搬送部隊の割り当てに失敗しました');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <>
-      <button
-        onClick={() => setShowModal(true)}
-        className="btn-primary text-sm px-3 py-1"
-      >
+      <button onClick={() => setShowModal(true)} className="btn-primary px-3 py-1 text-sm">
         搬送部隊割当
       </button>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
-            <div className="flex items-center justify-between mb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="mx-4 w-full max-w-md rounded-lg bg-white p-6">
+            <div className="mb-4 flex items-center justify-between">
               <h3 className="text-lg font-bold">搬送部隊割当</h3>
               <button
                 onClick={() => setShowModal(false)}
@@ -79,24 +71,24 @@ export default function TransportAssignButton({ tag }: TransportAssignButtonProp
 
             <div className="space-y-4">
               <div>
-                <p className="text-sm text-gray-600 mb-2">
+                <p className="mb-2 text-sm text-gray-600">
                   患者: {tag.tag_number} ({tag.anonymous_id})
                 </p>
-                <p className="text-sm text-gray-600 mb-4">
-現在地: 
+                <p className="mb-4 text-sm text-gray-600">
+                  現在地:
                   {tag.location.address ? (
-                    <a 
+                    <a
                       href={`https://www.google.com/maps?q=${tag.location.latitude},${tag.location.longitude}`}
-                      target="_blank" 
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:underline"
                     >
                       {tag.location.address}
                     </a>
                   ) : tag.location.latitude && tag.location.longitude ? (
-                    <a 
+                    <a
                       href={`https://www.google.com/maps?q=${tag.location.latitude},${tag.location.longitude}`}
-                      target="_blank" 
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:underline"
                     >
@@ -109,16 +101,14 @@ export default function TransportAssignButton({ tag }: TransportAssignButtonProp
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  搬送部隊選択
-                </label>
+                <label className="mb-2 block text-sm font-medium text-gray-700">搬送部隊選択</label>
                 <select
                   value={selectedTeam}
                   onChange={(e) => setSelectedTeam(e.target.value)}
-                  className="w-full input"
+                  className="input w-full"
                 >
                   <option value="">選択してください</option>
-                  {TRANSPORT_TEAMS.map(team => (
+                  {TRANSPORT_TEAMS.map((team) => (
                     <option key={team} value={team}>
                       {team}
                     </option>
@@ -127,16 +117,13 @@ export default function TransportAssignButton({ tag }: TransportAssignButtonProp
               </div>
 
               <div className="flex gap-3">
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="flex-1 btn-secondary"
-                >
+                <button onClick={() => setShowModal(false)} className="btn-secondary flex-1">
                   キャンセル
                 </button>
                 <button
                   onClick={handleAssign}
                   disabled={loading || !selectedTeam}
-                  className="flex-1 btn-primary disabled:opacity-50"
+                  className="btn-primary flex-1 disabled:opacity-50"
                 >
                   {loading ? '割当中...' : '割当実行'}
                 </button>
@@ -146,5 +133,5 @@ export default function TransportAssignButton({ tag }: TransportAssignButtonProp
         </div>
       )}
     </>
-  )
+  );
 }
