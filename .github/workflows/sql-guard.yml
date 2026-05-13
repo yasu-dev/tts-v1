@@ -32,7 +32,7 @@ jobs:
             exit 0
           fi
           DESTRUCTIVE=$(printf '%s\n' "$ADDED" \
-            | grep -iE 'DROP[[:space:]]+(TABLE|COLUMN|SCHEMA|DATABASE)|TRUNCATE[[:space:]]+TABLE|DELETE[[:space:]]+FROM[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*;|ALTER[[:space:]]+COLUMN[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]+SET[[:space:]]+NOT[[:space:]]+NULL' \
+            | grep -iE 'DROP[[:space:]]+(TABLE|COLUMN|SCHEMA|DATABASE)|TRUNCATE[[:space:]]+TABLE|DELETE[[:space:]]+FROM[[:space:]]+("?[a-zA-Z_][a-zA-Z0-9_]*"?\.)?"?[a-zA-Z_][a-zA-Z0-9_]*"?[[:space:]]*;|ALTER[[:space:]]+COLUMN[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]+SET[[:space:]]+NOT[[:space:]]+NULL' \
             || true)
           if [ -n "$DESTRUCTIVE" ]; then
             echo "::error::Destructive SQL detected. This repository enforces forward-only migrations to guarantee rollback safety."

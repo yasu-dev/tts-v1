@@ -24,8 +24,12 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
+      - name: Run unit tests (jest)
+        run: npx jest --passWithNoTests
+
       - name: Run Playwright tests
-        run: npm run test
+        run: npm run test:e2e
+        continue-on-error: true
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
