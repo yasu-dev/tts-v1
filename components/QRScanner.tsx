@@ -24,25 +24,36 @@ export default function QRScanner({ onScanSuccess, onScanError }: QRScannerProps
       setHasPermission(false);
       return false;
     }
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
-      });
-      // すぐに停止して権限確認のみ実施
-      stream.getTracks().forEach((t) => t.stop());
-      setHasPermission(true);
-      return true;
-    } catch (e: unknown) {
-      const name = e instanceof Error ? e.name : '';
-      const msg =
-        name === 'NotAllowedError'
-          ? 'カメラ権限が拒否されました。端末の設定から許可してください'
-          : 'カメラの起動に失敗しました';
-      setError(msg);
-      setHasPermission(false);
-      if (onScanError) onScanError(msg);
-      return false;
+    // 制約を緩めながら段階的に試行し、最終失敗時は実エラー名/メッセージを画面に出す
+    const attempts: MediaStreamConstraints[] = [
+      { video: { facingMode: { ideal: 'environment' } } },
+      { video: true },
+    ];
+    let lastError: unknown = null;
+    for (const constraints of attempts) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        stream.getTracks().forEach((t) => t.stop());
+        setHasPermission(true);
+        return true;
+      } catch (e: unknown) {
+        lastError = e;
+        const name = e instanceof Error ? e.name : 'UnknownError';
+        const message = e instanceof Error ? e.message : String(e);
+        logger.warn('getUserMedia attempt failed', { constraints, name, message });
+        if (name === 'NotAllowedError') break; // 権限拒否はリトライしても無駄
+      }
     }
+    const name = lastError instanceof Error ? lastError.name : 'UnknownError';
+    const detail = lastError instanceof Error ? lastError.message : String(lastError);
+    const msg =
+      name === 'NotAllowedError'
+        ? 'カメラ権限が拒否されました。端末の設定から許可してください'
+        : `カメラの起動に失敗しました [${name}${detail ? `: ${detail}` : ''}]`;
+    setError(msg);
+    setHasPermission(false);
+    if (onScanError) onScanError(msg);
+    return false;
   };
 
   const startScanning = async () => {
@@ -67,40 +78,53 @@ export default function QRScanner({ onScanSuccess, onScanError }: QRScannerProps
       const scanner = new Html5Qrcode('qr-reader');
       scannerRef.current = scanner;
 
-      await scanner.start(
-        { facingMode: 'environment' }, // バックカメラを使用
-        {
-          fps: 15,
-          qrbox: { width: 280, height: 280 },
-          aspectRatio: 1.0,
-          disableFlip: false,
-          experimentalFeatures: { useBarCodeDetectorIfSupported: true },
-        } as unknown as Parameters<typeof scanner.start>[1],
-        (decodedText) => {
-          logger.info('QR decoded', { decodedText });
-          onScanSuccess(decodedText);
+      const startConfig = {
+        fps: 15,
+        qrbox: { width: 280, height: 280 },
+        aspectRatio: 1.0,
+        disableFlip: false,
+        experimentalFeatures: { useBarCodeDetectorIfSupported: true },
+      } as unknown as Parameters<typeof scanner.start>[1];
 
-          // onScanSuccess呼び出し後にスキャンを停止
-          if (scannerRef.current) {
-            scannerRef.current.stop().catch((e) => logger.warn('Stop after success failed', e));
-            scannerRef.current.clear();
-          }
-          setIsScanning(false);
-        },
-        (errorMessage) => {
-          // スキャンエラーは無視（スキャン中は常にエラーが発生する）
-          logger.debug('Scan tick error', { errorMessage });
+      const onDecode = (decodedText: string) => {
+        logger.info('QR decoded', { decodedText });
+        onScanSuccess(decodedText);
+        if (scannerRef.current) {
+          scannerRef.current.stop().catch((e) => logger.warn('Stop after success failed', e));
+          scannerRef.current.clear();
         }
-      );
+        setIsScanning(false);
+      };
+      const onTick = (errorMessage: string) => {
+        logger.debug('Scan tick error', { errorMessage });
+      };
+
+      // バックカメラ優先で起動。失敗時は制約なしで再試行
+      try {
+        await scanner.start({ facingMode: 'environment' }, startConfig, onDecode, onTick);
+      } catch (e1) {
+        logger.warn('start with environment camera failed, retry with any camera', {
+          name: e1 instanceof Error ? e1.name : '?',
+          message: e1 instanceof Error ? e1.message : String(e1),
+        });
+        await scanner.start(
+          { facingMode: 'user' as unknown as 'environment' },
+          startConfig,
+          onDecode,
+          onTick
+        );
+      }
 
       setIsScanning(true);
       setHasPermission(true);
       setError('');
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'カメラの起動に失敗しました';
+      const name = err instanceof Error ? err.name : 'UnknownError';
+      const detail = err instanceof Error ? err.message : String(err);
+      const errorMsg = `カメラの起動に失敗しました [${name}${detail ? `: ${detail}` : ''}]`;
       setError(errorMsg);
       setHasPermission(false);
-      logger.error('Failed to start camera', { error: errorMsg });
+      logger.error('Failed to start camera', { name, message: detail });
       if (onScanError) {
         onScanError(errorMsg);
       }
