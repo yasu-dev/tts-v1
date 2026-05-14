@@ -12,7 +12,7 @@ import {
 
 const WS_PORT = Number(process.env.RFID_WS_PORT || 17324);
 const HEALTH_PORT = Number(process.env.RFID_HEALTH_PORT || 17325);
-const READ_TIMEOUT_MS = Number(process.env.RFID_READ_TIMEOUT_MS || 2000);
+const READ_TIMEOUT_MS = Number(process.env.RFID_READ_TIMEOUT_MS || 10000);
 const VERSION = '0.1.0';
 
 const DEFAULT_ORIGINS = [
