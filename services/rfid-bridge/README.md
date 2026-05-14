@@ -11,7 +11,19 @@ FUJITSU TFU-RW811A (920MHz UHF) RFID リーダーをブラウザから利用す�
 
 DLL は **C ABI ネイティブ** (PE32+, x64)。`koffi` で `RFRW_Open` / `RFRW_CLRW_Transmit` / `RFRW_GetDllVersion` を呼び出す。`RFRWUMPHID_Drv.ini` で `AdminCheckCut=1` が設定されているため、標準ユーザー権限で動作する。
 
-## セットアップ
+## クイックスタート (推奨: バッチでワンクリック起動)
+
+`services/rfid-bridge/start-bridge.bat` をダブルクリックするだけで、以下が自動実行されます。
+
+1. 初回のみ `npm install` を自動実行 (1〜2 分)
+2. FUJITSU ドライバの起動時ダイアログ (`RFRWUMPHID_Drv`) を 30 秒間監視し、検出したら自動で OK 押下 (`auto-ok.ps1`)
+3. ブリッジを起動 (WebSocket: 17324 / Health: 17325)
+
+ウィンドウは開いたままにしてください。閉じる = ブリッジ停止。停止したい時は `Ctrl+C` または ウィンドウ閉じる。
+
+デスクトップに `start-bridge.bat` のショートカットを作成しておくと便利です。
+
+## 手動セットアップ (バッチを使わない場合)
 
 ```cmd
 cd services\rfid-bridge
@@ -70,7 +82,7 @@ npm run uninstall-service
 | `RFID_DLL_DIR`                | `C:\Fujitsu Frontech\RFID\CounterSensorSlim64` | DLL 配置ディレクトリ            |
 | `RFID_WS_PORT`                | `17324`                                        | WebSocket ポート                |
 | `RFID_HEALTH_PORT`            | `17325`                                        | HTTP /health ポート             |
-| `RFID_READ_TIMEOUT_MS`        | `2000`                                         | DLL 読み取りタイムアウト        |
+| `RFID_READ_TIMEOUT_MS`        | `10000`                                        | スキャン待ち時間 (ms)           |
 | `RFID_LOG_LEVEL`              | `info`                                         | pino ログレベル                 |
 | `RFID_BRIDGE_ALLOWED_ORIGINS` | (empty)                                        | 許可 Origin 追加 (カンマ区切り) |
 
