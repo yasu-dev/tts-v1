@@ -99,11 +99,18 @@ export function probeTransmit() {
   return transmitOnce([0x00, 0x05, 0x16, 0x00]);
 }
 
+// レスポンス形式: [00 NN] [UID1 14bytes] [UID2 14bytes] ... [90 00]
+//   NN = 検出枚数 (00 = 検出なし、01 以上 = 検出あり)
+//   各 UID は 14 bytes 固定長 (TFU-RW811A 仕様: 112bit EPC)
+//   末尾 90 00 は ACK
+const TAG_BYTE_LEN = 14;
+
 export function readEpcOnce(timeoutMs = 2000) {
   if (!api) return { ok: false, error: 'DLL not loaded' };
 
   const start = Date.now();
   let firstError = null;
+  let discardedCount = 0;
 
   while (Date.now() - start < timeoutMs) {
     const result = transmitOnce([0x08, 0x01, 0x00, 0x00, 0x00, 0x02, 0x05, 0x01]);
@@ -111,14 +118,20 @@ export function readEpcOnce(timeoutMs = 2000) {
       firstError = result.error;
       break;
     }
+    const data = result.data;
     const len = result.len;
-    if (len > 4) {
-      const epc = result.data.subarray(2, len - 2);
-      const uid = Array.from(epc)
-        .map((b) => b.toString(16).padStart(2, '0').toUpperCase())
-        .join('');
-      if (uid.length > 0 && !/^0+$/.test(uid)) {
-        return { ok: true, uid };
+    // 最低: header(2) + 1 UID(14) + ACK(2) = 18 bytes 必要
+    if (len >= 18) {
+      const numTags = data[1];
+      if (numTags > 0 && len >= 2 + TAG_BYTE_LEN + 2) {
+        // 最初の 1 件のみ採用 (設計書 §3.5 E1)
+        const firstUid = data.subarray(2, 2 + TAG_BYTE_LEN);
+        const uid = Array.from(firstUid)
+          .map((b) => b.toString(16).padStart(2, '0').toUpperCase())
+          .join('');
+        if (uid.length > 0 && !/^0+$/.test(uid)) {
+          return { ok: true, uid, numTags, discarded: numTags - 1 };
+        }
       }
     }
     busyWait(150);

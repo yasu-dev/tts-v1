@@ -189,6 +189,8 @@ export default function TriageScanPage() {
 
   const handleQRScanSuccess = (decodedText: string) => {
     logger.info('QR scan success', { decodedText });
+    // 成功したので前のスキャンエラー (RECONNECT_EXHAUSTED 等) をクリア
+    setError('');
     // すでに処理済みの場合は無視
     if (currentStep !== 'qr') {
       logger.debug('Ignore QR: not in qr step');
