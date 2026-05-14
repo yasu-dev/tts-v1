@@ -24,7 +24,7 @@ export function loadDll() {
       RFRW_Close: lib.func('int RFRW_Close(int)'),
       RFRW_GetDllVersion: lib.func('int RFRW_GetDllVersion(_Out_ uint8_t *ver, int verSize)'),
       RFRW_CLRW_Transmit: lib.func(
-        'int RFRW_CLRW_Transmit(int port, uint8_t *send, int sendLen, _Out_ uint8_t *recv, _Inout_ uint64_t *recvLen)'
+        'int RFRW_CLRW_Transmit(int port, int sendLen, uint8_t *send, _Inout_ int *recvLen, _Out_ uint8_t *recv)'
       ),
     };
     return { ok: true };
@@ -78,7 +78,9 @@ function transmitOnce(sendBytes) {
   const recvLenPtr = [recv.length];
   let ret;
   try {
-    ret = api.RFRW_CLRW_Transmit(USB_HID_PORT, send, send.length, recv, recvLenPtr);
+    // 引数順序は DLL ディスアセンブル解析結果に基づく:
+    //   (int port, int sendLen, uint8_t *send, int *recvLen, uint8_t *recv)
+    ret = api.RFRW_CLRW_Transmit(USB_HID_PORT, send.length, send, recvLenPtr, recv);
   } catch (e) {
     return {
       ok: false,
