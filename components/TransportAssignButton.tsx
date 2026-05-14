@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { TriageTag } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
-import { formatTagNumberForDisplay } from '@/lib/utils/tag-display';
 
 interface TransportAssignButtonProps {
   tag: TriageTag;
@@ -72,8 +71,8 @@ export default function TransportAssignButton({ tag }: TransportAssignButtonProp
 
             <div className="space-y-4">
               <div>
-                <p className="mb-2 text-sm text-gray-600" title={tag.tag_number}>
-                  患者: {formatTagNumberForDisplay(tag.tag_number)} ({tag.anonymous_id})
+                <p className="mb-2 text-sm text-gray-600">
+                  患者: {tag.tag_number} ({tag.anonymous_id})
                 </p>
                 <p className="mb-4 text-sm text-gray-600">
                   現在地:

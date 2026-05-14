@@ -7,8 +7,6 @@ import LogoutButton from '@/components/LogoutButton';
 import HeaderToolButtons from '@/components/HeaderToolButtons';
 import PatientDetailModal from '@/components/PatientDetailModal';
 import QRScanner from '@/components/QRScanner';
-import RFIDReader from '@/components/RFIDReader';
-import { useRFIDAvailable } from '@/lib/hooks/useRFIDAvailable';
 import { getPhaseInfo } from '@/lib/utils/getPhaseInfo';
 import CasualtyFlowChart from '@/components/CasualtyFlowChart';
 
@@ -25,7 +23,6 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
   const [filter, setFilter] = useState<'all' | 'black' | 'red' | 'yellow' | 'green'>('all');
   const [selectedPatient, setSelectedPatient] = useState<TriageTag | null>(null);
   const [, setIsClient] = useState(false);
-  const rfidAvailable = useRFIDAvailable();
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [manualInput, setManualInput] = useState('');
   const [showManualInput, setShowManualInput] = useState(false);
@@ -274,7 +271,7 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
                   d="M3 9V5a2 2 0 012-2h4M3 15v4a2 2 0 002 2h4m8-18h4a2 2 0 012 2v4m0 6v4a2 2 0 01-2 2h-4"
                 />
               </svg>
-              <span className="hidden text-sm font-medium sm:inline">スキャン</span>
+              <span className="hidden text-sm font-medium sm:inline">QRスキャン</span>
             </button>
             <HeaderToolButtons />
             <LogoutButton />
@@ -627,7 +624,7 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="mx-4 w-full max-w-md rounded-lg bg-white p-6">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-bold">タグを読み取る</h3>
+              <h3 className="text-lg font-bold">QRコードスキャン</h3>
               <button
                 onClick={() => {
                   setShowQRScanner(false);
@@ -644,19 +641,9 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
                 <QRScanner
                   onScanSuccess={handleQRScan}
                   onScanError={(_error) => {
-                    alert('スキャンでエラーが発生しました');
+                    alert('QRスキャンでエラーが発生しました');
                   }}
                 />
-                {rfidAvailable && (
-                  <div className="mt-4">
-                    <RFIDReader
-                      onScanSuccess={handleQRScan}
-                      onScanError={(_error) => {
-                        alert('スキャンでエラーが発生しました');
-                      }}
-                    />
-                  </div>
-                )}
                 <div className="mt-4 text-center">
                   <button
                     onClick={() => setShowManualInput(true)}
@@ -701,7 +688,7 @@ export default function HospitalDashboard({ hospital, incomingPatients }: Hospit
                     }}
                     className="rounded-lg border border-gray-300 px-4 py-2 hover:bg-gray-50"
                   >
-                    スキャンに戻る
+                    QRスキャンに戻る
                   </button>
                 </div>
               </div>

@@ -3,9 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import QRScanner from '@/components/QRScanner';
-import RFIDReader from '@/components/RFIDReader';
 import StartWizard, { StartTriageResult } from '@/components/StartWizard';
-import { useRFIDAvailable } from '@/lib/hooks/useRFIDAvailable';
 import VoiceInput from '@/components/VoiceInput';
 import LogoutButton from '@/components/LogoutButton';
 import HeaderToolButtons from '@/components/HeaderToolButtons';
@@ -31,7 +29,6 @@ const mapAVPUtoJCS = (avpu: 'alert' | 'verbal' | 'pain' | 'unresponsive'): 'I' |
 export default function TriageScanPage() {
   const logger = createLogger('app/triage/scan');
   const supabase = createClient();
-  const rfidAvailable = useRFIDAvailable();
 
   // ステップ管理
   const [currentStep, setCurrentStepInternal] = useState<Step>('qr');
@@ -509,7 +506,7 @@ export default function TriageScanPage() {
             <span
               className={`text-sm font-bold ${currentStep === 'qr' ? 'text-emerald-600' : 'text-gray-400'}`}
             >
-              1. 読み取り
+              1. QRスキャン
             </span>
             <span
               className={`text-sm font-bold ${currentStep === 'start' ? 'text-emerald-600' : 'text-gray-400'}`}
@@ -559,23 +556,10 @@ export default function TriageScanPage() {
           </div>
         )}
 
-        {/* ステップ1: 読み取り (コードスキャン / タグスキャン / 手動入力) */}
+        {/* ステップ1: QRスキャン */}
         {currentStep === 'qr' && (
           <div>
-            {rfidAvailable ? (
-              <>
-                <div className="mb-3">
-                  <h3 className="mb-2 text-sm font-bold text-gray-700">コードスキャン</h3>
-                  <QRScanner onScanSuccess={handleQRScanSuccess} onScanError={setError} />
-                </div>
-                <div className="mt-4">
-                  <h3 className="mb-2 text-sm font-bold text-gray-700">タグスキャン</h3>
-                  <RFIDReader onScanSuccess={handleQRScanSuccess} onScanError={setError} />
-                </div>
-              </>
-            ) : (
-              <QRScanner onScanSuccess={handleQRScanSuccess} onScanError={setError} />
-            )}
+            <QRScanner onScanSuccess={handleQRScanSuccess} onScanError={setError} />
             <div className="mt-4 rounded-lg bg-white p-4 shadow">
               <p className="mb-2 text-sm font-bold">または手動入力:</p>
               <input

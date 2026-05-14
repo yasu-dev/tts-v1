@@ -2,7 +2,6 @@
 
 import { TriageTag, TriageCategories } from '@/lib/types';
 import { getPhaseInfo } from '@/lib/utils/getPhaseInfo';
-import { formatTagNumberForDisplay } from '@/lib/utils/tag-display';
 
 interface PatientListItemProps {
   tag: TriageTag;
@@ -29,9 +28,8 @@ export default function PatientListItem({
       <div className="flex items-center gap-4">
         <span
           className={`rounded-lg px-4 py-2 font-bold ${categoryInfo.color} ${categoryInfo.textColor}`}
-          title={tag.tag_number}
         >
-          {formatTagNumberForDisplay(tag.tag_number)}
+          {tag.tag_number}
         </span>
         <div>
           <div className="mb-1 flex items-center gap-2">

@@ -16,9 +16,6 @@ const nextConfig = {
       bodySizeLimit: '10mb',
     },
     instrumentationHook: true,
-    outputFileTracingExcludes: {
-      '*': ['./services/**', './docs/**', './supabase/**'],
-    },
   },
 };
 
