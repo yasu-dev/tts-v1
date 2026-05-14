@@ -80,12 +80,6 @@ export default function QRScanner({ onScanSuccess, onScanError }: QRScannerProps
         return;
       }
 
-      const scanner = new Html5Qrcode('qr-reader', {
-        verbose: false,
-        experimentalFeatures: { useBarCodeDetectorIfSupported: false },
-      });
-      scannerRef.current = scanner;
-
       const startConfig: Html5QrcodeCameraScanConfig = {
         fps: 15,
         qrbox: { width: 280, height: 280 },
@@ -118,15 +112,23 @@ export default function QRScanner({ onScanSuccess, onScanError }: QRScannerProps
         logger.debug('Scan tick error', { errorMessage });
       };
 
-      const attempts: Array<{ label: string; constraints: MediaTrackConstraints }> = [
-        { label: 'environment camera', constraints: { facingMode: { ideal: 'environment' } } },
-        { label: 'any camera', constraints: {} },
+      // html5-qrcode は facingMode に WebRTC 標準の { ideal } を受け付けず、
+      // string か { exact } のみ許容するため、string 形式で渡す。
+      // 失敗時の再試行では state transition 競合を避けるため scanner を作り直す。
+      const attempts: Array<{ label: string; facingMode: 'environment' | 'user' }> = [
+        { label: 'environment camera', facingMode: 'environment' },
+        { label: 'user camera', facingMode: 'user' },
       ];
       let lastError: unknown = null;
 
       for (const attempt of attempts) {
+        const scanner = new Html5Qrcode('qr-reader', {
+          verbose: false,
+          experimentalFeatures: { useBarCodeDetectorIfSupported: false },
+        });
+        scannerRef.current = scanner;
         try {
-          await scanner.start(attempt.constraints, startConfig, onDecode, onTick);
+          await scanner.start({ facingMode: attempt.facingMode }, startConfig, onDecode, onTick);
           lastError = null;
           break;
         } catch (err) {
@@ -135,6 +137,8 @@ export default function QRScanner({ onScanSuccess, onScanError }: QRScannerProps
             name: err instanceof Error ? err.name : '?',
             message: err instanceof Error ? err.message : String(err),
           });
+          scannerRef.current = null;
+          await clearScanner(scanner);
         }
       }
 
