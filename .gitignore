@@ -64,3 +64,6 @@ playwright-report/**/*
 
 # Deno (not used in this project; ignore stray lockfile)
 deno.lock
+
+# Cursor MCP config (contains secrets — kept local; see .cursor/mcp.example.json)
+.cursor/mcp.json

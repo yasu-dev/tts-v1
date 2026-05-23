@@ -1,0 +1,51 @@
+{
+  "mcpServers": {
+    "shadcn-ui": {
+      "command": "npx",
+      "args": ["-y", "shadcn", "registry:mcp"]
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    },
+    "netlify": {
+      "command": "npx",
+      "args": ["-y", "@netlify/mcp"]
+    },
+    "supabase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server-supabase",
+        "--access-token",
+        "YOUR_SUPABASE_ACCESS_TOKEN"
+      ]
+    },
+    "antv-chart": {
+      "command": "npx",
+      "args": ["-y", "@antv/mcp-server-chart"]
+    },
+    "aws-api": {
+      "command": "uvx",
+      "args": ["awslabs.aws-api-mcp-server@latest"],
+      "env": {
+        "AWS_REGION": "ap-northeast-1",
+        "AWS_API_MCP_PROFILE_NAME": "twd-audit",
+        "READ_OPERATIONS_ONLY": "false",
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      }
+    },
+    "aws-docs": {
+      "command": "uvx",
+      "args": ["awslabs.aws-documentation-mcp-server@latest"],
+      "env": {
+        "AWS_DOCUMENTATION_PARTITION": "aws",
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      }
+    }
+  }
+}

@@ -2,15 +2,11 @@
 description: Next.js project-specific conventions
 globs: "app/**/*.{ts,tsx}"
 alwaysApply: false
+---
 
 # Next.js プロジェクト固有ルール
 
-- App Router使用。`app/` 直下構成（src/なし、dal/層なし）
-- デフォルトServer Components。Client Componentsは `use client` を明示
-- データ取得はServer Componentsで直接。API Routeは以下の例外のみ:
-  - SEO/OGP等で静的化できない取得
-  - Webhook受信/署名検証
-  - ストリーミング/SSE
-  - ヘルスチェック
-- 例外でGET追加時はPRに理由とキャッシュ戦略を記載
-- 既存GET APIは互換維持
+アーキテクチャ標準（App Router、Server Components 優先、新規 GET API 原則禁止）は `c:/work/CLAUDE.md` 参照。プロジェクト固有差分はプロジェクト `CLAUDE.md` 参照。
+
+- 既存 GET API は互換維持
+- 例外で GET 追加時は PR に理由とキャッシュ/再検証戦略を記載

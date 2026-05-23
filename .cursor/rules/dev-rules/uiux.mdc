@@ -2,11 +2,11 @@
 description: UI/UX project constraints
 globs: "*.tsx"
 alwaysApply: false
+---
 
-# UI/UX ルール（プロジェクト固有）
+# UI/UX ルール
 
-- shadcn/ui ベースのコンポーネントを標準使用
-- アイコンは Lucide Icons
-- 既存UIの変更は承認フロー必須（CLAUDE.md参照）
-- 新規アニメーションライブラリの導入はPRで合意
-- 通知/トーストはプロジェクト標準実装を使用（なければPRで追加提案）
+標準（shadcn/ui + Lucide Icons + Tailwind CSS）は `c:/work/CLAUDE.md` 参照。プロジェクト固有差分（ブランドカラー・タッチターゲット等）はプロジェクト `CLAUDE.md` 参照。
+
+- 既存UIの変更は承認フロー必須
+- 軽微例外: 文言誤字、aria 属性追加、明確なバグ修正、計測タグ追加

@@ -1,11 +1,16 @@
 ---
 description: Database design conventions
-globs: "prisma/**/*"
+globs:
 alwaysApply: false
+---
 
-# DB設計ルール（プロジェクト固有）
+# DB設計ルール
 
-- 現行: SQLite + Prisma ORM。マネージドDB移行はADR決定後
+DB スタック（Supabase + RLS）の詳細はプロジェクト `CLAUDE.md` 参照。
+
+## 共通原則
+
 - スキーマ変更は必ずマイグレーション経由
-- マイグレーション名は変更内容を明確に記述
 - 本番適用前にテスト環境で検証
+- 外部キーには必ずインデックスを設定
+- forward-only（DROP TABLE / DROP COLUMN / TRUNCATE / ALTER COLUMN ... SET NOT NULL 禁止）— `rollback-policy.mdc` および `docs/runbooks/rollback.md` 参照
