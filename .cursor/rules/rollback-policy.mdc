@@ -33,4 +33,4 @@ alwaysApply: true
 
 ## Claude Code との同期
 
-本ファイルは Cursor Agent 用。Claude Code には同等内容がグローバル `~/.claude/CLAUDE.md` の「機能追加時の原状復帰担保（全プロジェクト適用）」セクションに記載済。両 AI で同じルールが適用される。
+本ファイルは Cursor Agent 用。Claude Code には同等内容がルート `c:/work/CLAUDE.md` の「機能追加時の原状復帰担保」セクションに記載済。両 AI で同じルールが適用される。

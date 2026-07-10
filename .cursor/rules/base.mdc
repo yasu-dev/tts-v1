@@ -2,6 +2,7 @@
 description: Project governance and rule authority
 globs:
 alwaysApply: true
+---
 
 # プロジェクト規約
 
@@ -18,11 +19,11 @@ alwaysApply: true
 
 ## 開発ルール
 - 指示されていない変更は提案し承認後に実施。
-- UI変更は承認後に実施。例外: 誤字修正、aria属性追加、明確なバグ修正。
+- UI変更は承認後に実施。例外: 誤字修正、aria属性追加、明確なバグ修正、計測タグ追加。
 
 ## 品質ゲート
 - コミット時: husky + lint-staged（ESLint + Prettier）が自動実行。
-- PR時: GitHub Actions CI（tsc → lint → prettier → build → audit）+ CodeQL。
+- PR時: GitHub Actions CI（tsc → lint → prettier → build → テスト実行（vitest / playwright。空振り禁止） → audit）+ CodeQL。
 - 週次: Dependabot が依存更新PRを自動作成。
 - 環境変数を追加したら `lib/env.ts` + `.env.example` も更新すること。
 - 詳細は `CLAUDE.md` の「品質ゲート」「環境変更時のトリガー」を参照。
