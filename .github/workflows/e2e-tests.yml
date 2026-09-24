@@ -1,47 +1,76 @@
 name: E2E Tests
 
+# runs-on は ubuntu-24.04 に固定（ubuntu-latest は 2026-10-19 から Ubuntu 26 へ順次移行するため）。
 on:
   push:
     branches: [main, develop]
   pull_request:
     branches: [main]
+  workflow_dispatch: {}
 
 jobs:
   test:
     timeout-minutes: 60
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v6
 
+      # テストが 0 件のまま Playwright・Jest を走らせると、空振りの成功か、中身のない失敗しか出ない
+      # （2026-09-24 実測: tests/e2e も *.test.* も 0 件）。テストがある種類だけを実行する。
+      # テストを追加すれば自動で有効になり、失敗はそのまま CI の失敗になる（continue-on-error は付けない）。
+      - name: Detect tests
+        id: detect
+        run: |
+          e2e=$(git ls-files 'tests/e2e/**' | grep -cE '\.(spec|test)\.[cm]?[jt]sx?$' || true)
+          unit=$(git ls-files | grep -vE '^tests/e2e/' | grep -cE '\.(spec|test)\.[cm]?[jt]sx?$' || true)
+          echo "e2e=$e2e" >> "$GITHUB_OUTPUT"
+          echo "unit=$unit" >> "$GITHUB_OUTPUT"
+          echo "E2E テスト: $e2e 件 / ユニットテスト: $unit 件"
+          if [ "$e2e" = 0 ] && [ "$unit" = 0 ]; then
+            echo "::notice::テストが 0 件のため実行しない（テストを追加すると自動で実行される）"
+          fi
+
       - uses: actions/setup-node@v6
+        if: steps.detect.outputs.e2e != '0' || steps.detect.outputs.unit != '0'
         with:
           node-version: lts/*
 
       - name: Install dependencies
+        if: steps.detect.outputs.e2e != '0' || steps.detect.outputs.unit != '0'
         run: npm ci
 
+      - name: Run unit tests (jest)
+        if: steps.detect.outputs.unit != '0'
+        run: npx jest --ci
+
       - name: Install Playwright Browsers
+        if: steps.detect.outputs.e2e != '0'
         run: npx playwright install --with-deps
 
-      - name: Run unit tests (jest)
-        run: npx jest --passWithNoTests
-
       - name: Run Playwright tests
+        id: e2e
+        if: steps.detect.outputs.e2e != '0'
         run: npm run test:e2e
+        env:
+          # CI では checkout した変更を検査する（既定の本番 URL へは向けない）
+          BASE_URL: http://localhost:3000
 
+      # 失敗時だけ保存する。保存の失敗ではテスト結果を赤にしない。
       - name: Upload test results
         uses: actions/upload-artifact@v7
-        if: always()
+        if: failure() && steps.e2e.outcome == 'failure'
+        continue-on-error: true
         with:
           name: playwright-report
           path: playwright-report/
-          retention-days: 30
+          retention-days: 3
 
       - name: Upload test videos
         uses: actions/upload-artifact@v7
-        if: always()
+        if: failure() && steps.e2e.outcome == 'failure'
+        continue-on-error: true
         with:
           name: test-videos
           path: test-results/
-          retention-days: 30
+          retention-days: 3
